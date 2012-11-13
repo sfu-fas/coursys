@@ -8,21 +8,32 @@ class CustomMultipleInputWidget(forms.MultiWidget):
     <script type="text/javascript">
     $('document').ready(function () {
 
-        var min = '%(min)s'
-        var max = '%(max)s'
+        var name = '%(max)s'
 
-        var current = parseInt(min)
+        min = typeof(min) == 'undefined' ? new Object() : min
+        min[name.toString()] = '%(min)s'
 
-        widget_dts = []
-        widget_dds = []
+        max = typeof(max) == 'undefined' ? new Object() : max
+        max[name.toString()] = '%(max)s'
+
+        current = typeof(current) == 'undefined' ? new Object() : current
+        current[name.toString()] = parseInt(min[name.toString()])
+
+        widget_dts = typeof(widget_dts) == 'undefined' ? new Object(): widget_dts
+        widget_dds = typeof(widget_dds) == 'undefined' ? new Object(): widget_dds
+
+        widget_dts[name.toString()] = []
+        widget_dds[name.toString()] = []
 
         var scripts = document.getElementsByTagName( 'script' )
         var thisScriptTag = scripts[ scripts.length - 1 ]
 
-        var amount = function () {
+        amount = typeof(amount) == 'undefined' ? new Object() : amount
+
+        amount[name.toString()] = function () {
             var count = 0;
-            for (var i = 0; i < max; i++){
-                if (widget_dds[i].is(':visible')){
+            for (var i = 0; i < max[name.toString()]; i++){
+                if (widget_dds[name.toString()][i].is(':visible')){
                     count += 1;
                 }
             }
@@ -31,32 +42,37 @@ class CustomMultipleInputWidget(forms.MultiWidget):
 
         cursor = $(thisScriptTag).parents('dd')
 
-        for(var i=max-1; i >= 0; i--){
-            widget_dds[i] = cursor;
+        for(var i=max[name.toString()]-1; i >= 0; i--){
+            widget_dds[name.toString()][i] = cursor;
             cursor = $(cursor).prev()
-            widget_dts[i] = cursor;
+            widget_dts[name.toString()][i] = cursor;
             cursor = $(cursor).prev()
-            if(i-min >= 0){
-                widget_dds[i].hide();
-                widget_dts[i].hide();
+
+            if(i-min[name.toString()] >= 0){
+                if ($(widget_dds[name.toString()][i]).find('input').attr('value').length === 0){
+                    widget_dds[name.toString()][i].hide();
+                    widget_dts[name.toString()][i].hide();
+                }
+                else{
+                    current[name.toString()] += 1
+                }
             }
         }
 
-        $(widget_dts[max-1]).after('<dt><label>Add</label></dt><dd class="add_button">\ ' +
-                        '<div class="field"><input type="button" name="Add Choice" value="Add Choice" class="button" /></div>\ ' +
+        $(widget_dts[name.toString()][max[name.toString()]-1]).after('<dt><label>Add</label></dt><dd class="add_button">\ ' +
+                        '<div class="field"><input type="button" name="Add Choice" value="Add Response" class="button" /></div>\ ' +
                         '</dd>');
 
-        add_button = $(widget_dts[max-1]).next().next().find('input')
+        add_button = $(widget_dts[name.toString()][max[name.toString()]-1]).next().next().find('input')
 
         $(add_button).click(function () {
-            if(current < max){
-
-                widget_dts[current].show()
-                widget_dds[current].show()
-                current += 1
+            if(current[name.toString()] < max[name.toString()]){
+                widget_dts[name.toString()][current[name.toString()]].show()
+                widget_dds[name.toString()][current[name.toString()]].show()
+                current[name.toString()] += 1
             }
 
-            if (amount() >= max){
+            if (amount[name.toString()]() >= max[name.toString()]){
                 $(add_button).parents('.add_button').prev().hide()
                 $(add_button).parents('.add_button').hide()
             }
@@ -84,7 +100,7 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         for widget in rendered_widgets[1:]:
             output += u'<dt style="visibility:hidden"> <label>{0}</label></dt><dd><div class="field">{1}</div</dd>'.format(
                 self.name, widget)
-        output += mark_safe(self.WIDGET_JAVASCRIPT) % {'max': self.max, 'min': self.min}
+        output += mark_safe(self.WIDGET_JAVASCRIPT) % {'max': self.max, 'min': self.min, 'name': self.name}
         return output
 
     def render(self, name, value, attrs=None):
