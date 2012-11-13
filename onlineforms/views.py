@@ -309,7 +309,6 @@ def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
-    nonactive_fields = Field.objects.filter(sheet=owner_sheet, active=False).order_by('order')
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None
     field_slug = None
@@ -344,17 +343,9 @@ def edit_sheet(request, form_slug, sheet_slug):
     for (counter, field) in enumerate(form):
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
-    #test for nonactive fields
-    nonactive_form = DynamicForm(owner_sheet.title)
-    form.fromFields(nonactive_fields)
-    
-    modelNonFormFields = []
-    for (counter, field) in enumerate(form):
-        modelNonFormFields.append({'modelField': nonactive_fields[counter], 'formField': field})
-
-    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields, 'nonactive_fields': modelNonFormFields }
+ 
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
-
 
 @requires_form_admin_by_slug()
 def reorder_field(request, form_slug, sheet_slug):
@@ -448,8 +439,6 @@ def new_field(request, form_slug, sheet_slug):
                 return HttpResponseRedirect(
                     reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
 
-
-
             #If the form is configurable it must be validated
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
@@ -497,8 +486,11 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
             messages.info(request, "Nothing modified")
 
         elif form.is_valid():
+            new_sheet = owner_sheet.safe_save()
+            # newfield = field.safe_save()
             new_field = Field.objects.create(label=form.cleaned_data['label'],
-                sheet=owner_sheet,
+                #sheet=owner_sheet,
+                sheet=new_sheet,
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,

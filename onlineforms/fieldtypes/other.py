@@ -6,9 +6,9 @@ from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 
 
 class CustomMultipleInputField(fields.MultiValueField):
+    def __init__(self, name="",max=20, min=2, *args, **kwargs):
 
-    def __init__(self, max=5, *args, **kwargs):
-        kwargs['widget'] = CustomMultipleInputWidget( max=max)
+        kwargs['widget'] = CustomMultipleInputWidget(name=name, max=max, min=min)
         field_set = [fields.CharField() for _ in xrange(int(max))]
 
         super(CustomMultipleInputField, self).__init__(fields=field_set, *args, **kwargs)
@@ -22,7 +22,8 @@ class CustomMultipleInputField(fields.MultiValueField):
 
 class ListField(FieldBase):
     class ListConfigForm(FieldConfigForm):
-        max_responses = forms.IntegerField(min_value=1, max_value=20)
+        max_responses = forms.IntegerField(min_value=1, max_value=20, initial=5)
+        min_responses = forms.IntegerField(min_value=1, max_value=10, initial=2)
 
     def make_config_form(self):
         return self.ListConfigForm(self.config)
@@ -32,7 +33,10 @@ class ListField(FieldBase):
         return CustomMultipleInputField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'],
-            max=self.config['max_responses'])
+            max=self.config['max_responses'],
+            min=self.config['min_responses'],
+            name=self.config['label'])
+
 
     def serialize_field(self, cleaned_data):
         return{'info': cleaned_data}

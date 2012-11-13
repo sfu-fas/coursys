@@ -30,14 +30,14 @@
 
                     new_choice = '<dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
                             '<div class="field"><input type="text" name="choice_' + choice_count + '" id="id_choice_' + choice_count + '" />'+r_button+'</div>\ ' +
-                            '</dd>'
+                            '</dd>';
 
                     return new_choice
                 }
 
                 $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
                         '<div class="field"><input type="button" name="Add Choice" value="Add Choice" id="add_button" /></div>\ ' +
-                        '</dd></div>');
+                        '</dd>');
 
                 $("#add_button").click(function () {
                     choice_count++
