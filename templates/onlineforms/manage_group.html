@@ -103,9 +103,9 @@ $(document).ready(function() {
 <div id="form-container">
     <fieldset>
         <legend>Add Member</legend>
-        <form action="" method="POST">
+        <form action="{% url onlineforms.views.add_group_member formgroup_slug=group.slug userid=member.emplid %}" method="POST">{% csrf_token %}
             <ul>
-                {{ search.as_p }}
+                {{ search|as_dl }}
                 <li><input class="submit" type="submit" value="Add" /></li>
             </ul>
         </form>

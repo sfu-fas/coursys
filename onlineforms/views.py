@@ -89,7 +89,11 @@ def add_group_member(request, formgroup_slug):
     if group.unit not in request.units:
         return ForbiddenResponse(request)
 
-    form = EmployeeSearchForm()
+    """
+    if request.method == 'POST':
+        if 'action' in request.POST:
+            if request.POST['action'] == 'remove':
+    """
     pass
 
 
