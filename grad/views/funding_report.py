@@ -49,7 +49,9 @@ def _build_funding_totals(semester, programs, units):
     prog_lookup = dict((prog.id, prog) for prog in programs)
     
     # TA funding
-    tacourses = TACourse.objects.filter(contract__posting__semester=semester, contract__posting__unit__in=units) \
+    tacourses = TACourse.objects.filter(contract__posting__semester=semester,
+                                        contract__posting__unit__in=units,
+                                        contract__status='SGN') \
                         .select_related('contract__application')
     for crs in tacourses:
         person_id = crs.contract.application.person_id
