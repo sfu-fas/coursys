@@ -59,6 +59,8 @@ STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE') # statuses we don't actually use anymore
 
+GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
+
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
@@ -70,7 +72,7 @@ class GradStudent(models.Model):
         return make_slug(userid + "-" + self.program.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     research_area = models.TextField('Research Area', blank=True)
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True, db_index=True)
+    campus = models.CharField(max_length=5, choices=GRAD_CAMPUS_CHOICES, blank=True, db_index=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")

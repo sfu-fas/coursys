@@ -21,7 +21,7 @@ class GradImport(object):
     IMPORT_USER = 'csilop'
     CAMPUS_MAP = {
                   '': None,
-                  'both': None,
+                  'both': 'MULTI',
                   'Sry': 'SURRY',
                   'Bby': 'BRNBY',
                   }

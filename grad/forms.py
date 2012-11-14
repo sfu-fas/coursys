@@ -4,9 +4,9 @@ from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
-    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment
+    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment, GRAD_CAMPUS_CHOICES
 from courselib.forms import StaffSemesterField
-from coredata.models import Person, Member, Semester, CAMPUS_CHOICES, VISA_STATUSES
+from coredata.models import Person, Member, Semester, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import HiddenInput
@@ -472,7 +472,7 @@ class SearchForm(forms.Form):
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
-    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False)
+    campus = forms.MultipleChoiceField(GRAD_CAMPUS_CHOICES, required=False)
     supervisor = forms.MultipleChoiceField([], required=False, label='Senior Supervisor')
     
     requirements = forms.MultipleChoiceField(choices=[],
