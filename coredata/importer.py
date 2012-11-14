@@ -691,6 +691,31 @@ def update_amaint_userids():
         a = ComputingAccount(emplid=emplid, userid=userid)
         a.save()
 
+
+@transaction.commit_on_success
+def update_all_userids():
+    """
+    Make sure everybody's userid is right.
+    """
+    db = AMAINTConn()
+    accounts_by_emplid = dict((ca.emplid, ca) for ca in ComputingAccount.objects.all())
+    
+    for p in Person.objects.all():
+        if p.emplid in accounts_by_emplid:
+            account_userid = accounts_by_emplid[p.emplid].userid
+            if p.userid != account_userid:
+                p.userid = account_userid
+                if account_userid:
+                    p.config['replaced_userid'] = account_userid
+                p.save()
+
+        else:
+            if p.userid:
+                p.config['old_userid'] = p.userid
+                p.userid = None
+                p.save()
+
+
 def update_grads():
     """
     Update any currently-relevant grad students
@@ -711,6 +736,9 @@ def main():
 
     print "fixing any unknown emplids"
     fix_emplid()
+    
+    print "updating userids"
+    update_all_userids()
     
     print "updating active grad students"
     update_grads()
