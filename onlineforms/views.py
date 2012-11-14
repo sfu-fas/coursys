@@ -22,7 +22,7 @@ from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, Group
 from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
-from onlineforms.models import NonSFUFormFiller, FormFiller
+from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
 from onlineforms.utils import reorder_sheet_fields
 
 from coredata.models import Person, Role
@@ -568,6 +568,15 @@ def view_submission(request, formsubmit_slug):
     context = {'sheet_submissions': sheet_sub_html}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
+def sheet_submission_via_url(request, secret_url):
+    sheet_submission_secret_url = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
+    sheet_submission_object = sheet_submission_secret_url.sheet_submission
+    sheet = sheet_submission_object.sheet
+    form_submission = sheet_submission_object.form_submission
+    form = form_submission.form
+    return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug)
+
+
 def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
     # if no one can fill out this form, stop right now
@@ -713,7 +722,16 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                         # refill the form with the new data
                         form.fromFields(sheet.fields, sheet_submission.get_field_submissions(refetch=True))
                         # don't redirect, show the form with errors(if they exist) but notify them that info was saved
+
+                        url = reverse('onlineforms.views.sheet_submission', kwargs={
+                            'form_slug': owner_form.slug, 
+                            'formsubmit_slug': form_submission.slug, 
+                            'sheet_slug': sheet.slug, 
+                            'sheetsubmit_slug': sheet_submission.slug})
+
                         messages.success(request, 'All fields without errors were saved.')
+                        # not ready yet
+                        # return HttpResponseRedirect(url)
                     elif request.POST["submit-mode"] == "Submit":
                         # all the fields have been submitted, this sheet is done
                         sheet_submission.status = 'DONE'

@@ -9,7 +9,7 @@ from courselib.slugs import make_slug
 from django.db.models import Max
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-import datetime
+import datetime, random, sha
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField
@@ -434,5 +434,28 @@ class FieldSubmissionFile(models.Model):
     file_attachment = models.FileField(storage=FormSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
+
+class SheetSubmissionSecretUrl(models.Model):
+    sheet_submission = models.ForeignKey(SheetSubmission)
+    key = models.CharField(max_length=128, null=False, editable=False, unique=True)
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        if not(self.key):
+            self.key = self.autokey()
+        super(SheetSubmissionSecretUrl, self).save(*args, **kwargs)
+
+    def autokey(self):
+        generated = False
+        attempt = str(random.randint(1000,900000000))
+        while not(generated):
+            old_attemp = attempt
+            attempt = sha.new(attempt).hexdigest()
+            if len(SheetSubmissionSecretUrl.objects.filter(key=attempt)) == 0:
+                generated = True
+            elif old_attempt == attempt:
+                attempt = str(random.randint(1000,900000000))
+        return attempt
+
     
 
