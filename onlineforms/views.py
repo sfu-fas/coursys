@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, AdminAssignSheet, EditGroupForm, EmployeeSearchForm
 from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -136,7 +136,7 @@ def admin_list_all(request):
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = AdminAssignForm(data=request.POST or None, label='sheet', 
+    form = AdminAssignSheet(data=request.POST or None, label='sheet', 
         query_set=Sheet.objects.filter(form=form_submission.form, active=True))
     if form.is_valid():
         # make new sheet submission for next sheet choosen
@@ -155,7 +155,9 @@ def admin_assign(request, formsubmit_slug):
     
 @requires_formgroup()
 def admin_assign_any(request):
-    form = AdminAssignForm(data=request.POST or None, label='form', 
+    admin = get_object_or_404(Person, userid=request.user.username)
+    form_groups = FormGroup.objects.filter(members=admin)
+    form = AdminAssignForm(data=request.POST or None, form_groups=form_groups, label='form', 
         query_set=Form.objects.filter(active=True))
     if form.is_valid():
         assignee = form.cleaned_data['assignee']

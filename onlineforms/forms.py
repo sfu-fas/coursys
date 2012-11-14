@@ -52,27 +52,37 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
-# Administrate forms
-class FormModelChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return obj.title    
-    
-class AdminAssignForm(forms.Form):
+# Administrate forms 
+class AdminAssignSheet(forms.Form):
+    class FormModelChoiceField(forms.ModelChoiceField):
+        def label_from_instance(self, obj):
+            return obj.title    
+        
     assignee = PersonField(label='Assign to', required=False)
     """email = forms.EmailField(required=False,
                 label='Assign to e-mail',
                 help_text='Assign this form to an external email address.')"""
     
     def __init__(self, label, query_set, *args, **kwargs):
-        super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields.insert(0, label, FormModelChoiceField(required=True, 
+        super(AdminAssignSheet, self).__init__(*args, **kwargs)
+        self.fields.insert(0, label, self.FormModelChoiceField(required=True, 
             queryset=query_set, 
             label=label.capitalize()))
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
-        return super(AdminAssignForm, self).is_valid(*args, **kwargs)
+        return super(AdminAssignSheet, self).is_valid(*args, **kwargs)
 
+class AdminAssignForm(AdminAssignSheet):
+    class FormGroupModelChoiceField(forms.ModelChoiceField):
+        def label_from_instance(self, obj):
+            return obj.name  
+    
+    def __init__(self, form_groups, label, query_set, *args, **kwargs):
+        super(AdminAssignForm, self).__init__(label, query_set, *args, **kwargs)
+        self.fields.insert(1, 'form_group', 
+            self.FormGroupModelChoiceField(required=True, queryset=form_groups, label='Form Group'))
+		
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
