@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, AdminAssignSheet, EditGroupForm, EmployeeSearchForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm
 from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -148,7 +148,7 @@ def admin_list_all(request):
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = AdminAssignSheet(data=request.POST or None, label='sheet', 
+    form = AdminAssignForm(data=request.POST or None, label='sheet', 
         query_set=Sheet.objects.filter(form=form_submission.form, active=True))
     if form.is_valid():
         # make new sheet submission for next sheet choosen
@@ -169,19 +169,22 @@ def admin_assign(request, formsubmit_slug):
 def admin_assign_any(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_groups = FormGroup.objects.filter(members=admin)
-    form = AdminAssignForm(data=request.POST or None, form_groups=form_groups, label='form', 
+    form = AdminAssignForm(data=request.POST or None, label='form', 
         query_set=Form.objects.filter(active=True))
     if form.is_valid():
         assignee = form.cleaned_data['assignee']
-        # create new form submission with a blank sheet submission 
-        form = form.cleaned_data['form']
-        user = userToFormFiller(assignee)
         
-        # selector for assigning if in multiple form groups?
-        """FormSubmission.objects.create(form=form, initiator=user, 
+        # create new form submission with a blank sheet submission 
+        user = userToFormFiller(assignee)
+        form = form.cleaned_data['form']
+        form_submission = FormSubmission.objects.create(form=form, 
+                            initiator=user, 
+                            owner=form.owner,
+                            status='WAIT')
+        
         SheetSubmission.objects.create(form_submission=form_submission,
-            sheet=Sheet.objects.filter(form=form, is_initial=True, active=True)
-            filler=user)"""
+            sheet=form.initial_sheet,
+            filler=user)
 
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
