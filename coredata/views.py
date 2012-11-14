@@ -6,7 +6,7 @@ from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm,
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-        UNIT_ROLES, ROLES, ROLE_DESCR
+        UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
 from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
@@ -367,7 +367,7 @@ def missing_instructors(request, unit_slug):
         return ForbiddenResponse(request, "Not an admin for this unit")
 
     # build a set of all instructors that don't have an instructor-appropriate role
-    roles = dict(((r.person, r.role) for r in Role.objects.filter(unit=unit, role__in=["FAC","SESS","COOP"]).select_related('person')))
+    roles = dict(((r.person, r.role) for r in Role.objects.filter(unit=unit, role__in=INSTR_ROLES).select_related('person')))
     missing = set()
     long_ago = datetime.date.today() - datetime.timedelta(days=365*3)
     instructors = Member.objects.filter(role="INST", offering__owner=unit,

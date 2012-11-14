@@ -864,6 +864,7 @@ ROLE_CHOICES = (
         ('FAC', 'Faculty Member'),
         ('SESS', 'Sessional Instructor'),
         ('COOP', 'Co-op Staff'),
+        ('INST', 'Other Instructor'),
         ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
         ('DICC', 'Discipline Case Filer (email CC)'),
@@ -878,7 +879,7 @@ ROLE_CHOICES = (
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD', 'TECH', 'FAC', 'SESS', 'COOP'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD', 'TECH', 'FAC', 'SESS', 'COOP', 'INST'] # roles departmental admins ('ADMN') are allowed to assign with their unit
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
@@ -893,7 +894,10 @@ ROLE_DESCR = {
         'FAC': 'Faculty Member',
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',
+        'INST': 'Other instructor (outside department, etc).',
               }
+INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors
+
 class Role(models.Model):
     """
     Additional roles within the system (not course-related).
