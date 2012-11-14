@@ -31,6 +31,8 @@ def getattribute(value, arg, html=True):
         return value.get_current_status_display()
     elif arg == 'active_semesters':
         return value.active_semesters_display()
+    elif arg == 'campus':
+        return value.get_campus_display()
     elif arg == 'gpa':
         res = value.person.gpa()
         if res:
