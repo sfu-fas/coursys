@@ -295,7 +295,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
             field2 = field1.clone()
             field2.sheet = sheet2
             field2.save()
-        return sheet2
+        return sheet2       
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -347,23 +347,6 @@ class Field(models.Model, _FormCoherenceMixin):
 
 
     @transaction.commit_on_success
-    def safe_save(self):
-        """
-        Save a copy of this field, and return the copy: does not modify self.
-        """
-        # copy the sheet
-        sheet2 = self.sheet.safe_save()
-        active = self.active
-        # delete the copy of self
-        Field.objects.filter(sheet=sheet2, original=self.original).delete()
-        # clone and update self
-        field2 = self.clone()
-        field2.sheet = sheet2
-        field2.active = active
-        field2.save()
-        return field2
-
-    @transaction.commit_on_success
     def save(self, *args, **kwargs):
         # if this field is just being created it needs a order number
         if(self.order == None):
@@ -373,6 +356,7 @@ class Field(models.Model, _FormCoherenceMixin):
             else:
                 next_order = max_aggregate['order__max'] + 1
             self.order = next_order
+
 
         super(Field, self).save(*args, **kwargs)
         self.cleanup_fields()

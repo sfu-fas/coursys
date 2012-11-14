@@ -52,12 +52,12 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
-# Administrate forms
-class FormModelChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return obj.title    
-    
+# Administrate forms 
 class AdminAssignForm(forms.Form):
+    class FormModelChoiceField(forms.ModelChoiceField):
+        def label_from_instance(self, obj):
+            return obj.title    
+        
     assignee = PersonField(label='Assign to', required=False)
     """email = forms.EmailField(required=False,
                 label='Assign to e-mail',
@@ -65,14 +65,14 @@ class AdminAssignForm(forms.Form):
     
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields.insert(0, label, FormModelChoiceField(required=True, 
+        self.fields.insert(0, label, self.FormModelChoiceField(required=True, 
             queryset=query_set, 
             label=label.capitalize()))
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(AdminAssignForm, self).is_valid(*args, **kwargs)
-
+		
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
@@ -90,7 +90,7 @@ class DynamicForm(forms.Form):
         for k in keys:
             self.fields[k] = kwargs[k]
 
-    def fromFields(self, fields, field_submissions=[]):
+    def fromFields(self, fields, field_submissions=[], read_only=False):
         """
         Sets the fields from a list of field model objects
         preserving the order they are given in
@@ -110,6 +110,8 @@ class DynamicForm(forms.Form):
                 self.fields[counter] = display_field.make_entry_field(field_submission_dict[field])
             else:
                 self.fields[counter] = display_field.make_entry_field()
+            if read_only:
+                self.fields[counter].widget.attrs['disabled'] = True            
             # keep the display field for later
             self.display_fields[self.fields[counter] ] = display_field
 

@@ -75,10 +75,22 @@ def manage_group(request, formgroup_slug):
     else:
         form = EditGroupForm(instance=group)
     #form.fields['unit'].choices = unit_choices
+    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
 
+
+    # below is for finding person thru coredata/personfield and adding to group
+    """
+    if request.method == 'POST': 
+        search_form = EmployeeSearchForm(request.POST)
+        if not form.is_valid():
+            simsearch = None
+            if 'search' in form.data and form.data['search'].strip().isdigit():
+                simseach = form.data['search'].strip()
+            context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form, 'simsearch': simsearch}
+    """
     search_form = EmployeeSearchForm()
 
-    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
+
     context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form }
     return render(request, 'onlineforms/manage_group.html', context)
 
@@ -89,15 +101,21 @@ def add_group_member(request, formgroup_slug):
     if group.unit not in request.units:
         return ForbiddenResponse(request)
 
-    form = EmployeeSearchForm()
-    pass
-
+    print "in add_group_member"
+    if request.method == 'POST':
+        if 'action' in request.POST:
+            if request.POST['action'] == 'add':
+                print "Request method stuff"
+                post_data = request.POST.values()
+                member_id = int(post_data[len(post_data)-1])
+                member = Person.objects.get(emplid=member_id)
+                group.members.add(member)
+                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = FormGroup.objects.get(slug=formgroup_slug)
     member = Person.objects.get(emplid=userid)
-    formgroup_slug
 
     if group.unit not in request.units:
         return ForbiddenResponse(request)
@@ -106,9 +124,7 @@ def remove_group_member(request, formgroup_slug, userid):
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'remove':
-                print "in request.post action == remove"
                 group.members.remove(member)
-                print "member is removed"
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 
@@ -151,19 +167,24 @@ def admin_assign(request, formsubmit_slug):
     
 @requires_formgroup()
 def admin_assign_any(request):
+    admin = get_object_or_404(Person, userid=request.user.username)
+    form_groups = FormGroup.objects.filter(members=admin)
     form = AdminAssignForm(data=request.POST or None, label='form', 
         query_set=Form.objects.filter(active=True))
     if form.is_valid():
         assignee = form.cleaned_data['assignee']
-        # create new form submission with a blank sheet submission 
-        form = form.cleaned_data['form']
-        user = userToFormFiller(assignee)
         
-        # selector for assigning if in multiple form groups?
-        """FormSubmission.objects.create(form=form, initiator=user, 
+        # create new form submission with a blank sheet submission 
+        user = userToFormFiller(assignee)
+        form = form.cleaned_data['form']
+        form_submission = FormSubmission.objects.create(form=form, 
+                            initiator=user, 
+                            owner=form.owner,
+                            status='WAIT')
+        
         SheetSubmission.objects.create(form_submission=form_submission,
-            sheet=Sheet.objects.filter(form=form, is_initial=True, active=True)
-            filler=user)"""
+            sheet=form.initial_sheet,
+            filler=user)
 
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
@@ -305,7 +326,6 @@ def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
-    nonactive_fields = Field.objects.filter(sheet=owner_sheet, active=False).order_by('order')
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None
     field_slug = None
@@ -340,17 +360,9 @@ def edit_sheet(request, form_slug, sheet_slug):
     for (counter, field) in enumerate(form):
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
-    #test for nonactive fields
-    nonactive_form = DynamicForm(owner_sheet.title)
-    form.fromFields(nonactive_fields)
-    
-    modelNonFormFields = []
-    for (counter, field) in enumerate(form):
-        modelNonFormFields.append({'modelField': nonactive_fields[counter], 'formField': field})
-
-    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields, 'nonactive_fields': modelNonFormFields }
+ 
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
-
 
 @requires_form_admin_by_slug()
 def reorder_field(request, form_slug, sheet_slug):
@@ -444,8 +456,6 @@ def new_field(request, form_slug, sheet_slug):
                 return HttpResponseRedirect(
                     reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
 
-
-
             #If the form is configurable it must be validated
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
@@ -493,8 +503,11 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
             messages.info(request, "Nothing modified")
 
         elif form.is_valid():
+            new_sheet = owner_sheet.safe_save()
+            # newfield = field.safe_save()
             new_field = Field.objects.create(label=form.cleaned_data['label'],
-                sheet=owner_sheet,
+                #sheet=owner_sheet,
+                sheet=new_sheet,
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
@@ -583,6 +596,8 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
     # a field -> field submission lookup
     field_submission_dict = {}
+    # previously filled sheets to display
+    filled_sheets = {}
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
@@ -603,6 +618,14 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
         # populate the field -> fieldSubmission lookup
         for field_submission in sheet_submission.field_submissions:
             field_submission_dict[field_submission.field] = field_submission
+
+        # get previously filled in sheet's data
+        if sheet.can_view == 'ALL':
+            sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
+            for filled_sheet in sheet_submissions:
+                temp_form = DynamicForm(filled_sheet.sheet.title)
+                temp_form.fromFields(filled_sheet.sheet.fields, filled_sheet.field_submissions, read_only=True)
+                filled_sheets[filled_sheet] = temp_form
     else:
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
@@ -710,5 +733,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     context = { 'owner_form': owner_form,
                 'sheet': sheet, 
                 'form': form,
+                'form_submission': form_submission,
+                'filled_sheets': filled_sheets,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)
