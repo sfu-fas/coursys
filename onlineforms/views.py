@@ -723,5 +723,6 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     context = { 'owner_form': owner_form,
                 'sheet': sheet, 
                 'form': form,
+                'form_submission': form_submission,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)
