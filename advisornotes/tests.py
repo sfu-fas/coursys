@@ -180,7 +180,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         f.close()
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.content, 'Necessary credentials not present')
+        self.assertEqual(response.content, "The key 'secret' is not present. ")
 
     def test_rest_notes_not_advisor(self):
         client = Client()
@@ -189,7 +189,8 @@ class AdvistorNotesAPITest(TransactionTestCase):
         f.close()
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.content, "User doesn't have the necessary permissions")
+        from coredata.validate_rest import _token_not_found
+        self.assertEqual(response.content, _token_not_found)
 
     def test_rest_notes_no_generated_token(self):
         client = Client()
@@ -199,7 +200,8 @@ class AdvistorNotesAPITest(TransactionTestCase):
         UserConfig.objects.get(user__userid='dzhao', key='advisor-token').delete()
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.content, "No token has been generated for user")
+        from coredata.validate_rest import _token_not_found
+        self.assertEqual(response.content, _token_not_found)
 
     def test_rest_notes_invalid_token(self):
         client = Client()
@@ -208,7 +210,8 @@ class AdvistorNotesAPITest(TransactionTestCase):
         f.close()
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json; charset=utf-8')
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.content, "Secret token didn't match")
+        from coredata.validate_rest import _token_not_found
+        self.assertEqual(response.content, _token_not_found)
 
     def test_rest_notes_no_notes(self):
         client = Client()
