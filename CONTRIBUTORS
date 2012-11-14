@@ -1,6 +1,6 @@
 The following people have contributed to CourSys. I won't attempt to detail their individual contributions here.
 
-Spring 2010:
+Spring 2010: (core grades/submission/marking functionality)
   Vincent Choi, kcc14
   Jianfeng Hu, jfhu
   Li Tan, lta19
@@ -10,7 +10,7 @@ Spring 2010:
   Youyou Yang, youyouy
   Yiran Zhou, yza73
 
-Spring 2011:
+Spring 2011: (extensions of grading functionality)
   Sanglian Gu, sga52
   Jianfeng Hu, jfhu
   Tianqi Jin, tianqij
@@ -18,10 +18,10 @@ Spring 2011:
   Youyou Yang, youyouy
   Tianhan Zhang, tianhanz
 
-Summer 2011:
+Summer 2011: (rework of grade importing, testing)
   Ted Kirkpatrick, ted
 
-Spring 2012:
+Spring 2012: (grad/ra/ta functionality)
   Holly Becker, hcb1
   David Carlson, dca10
   Alice Chen, cac17
@@ -32,3 +32,14 @@ Spring 2012:
   Brendon O'Laney, bolaney
   Sarah Wong, spw4
 
+Summer 2012: (course discussion, advisor records)
+  Chris Parsons, cwp3
+  Mark Westerhof, mdw4
+
+Fall 2012: (online forms)
+  Kyle Demeule, kdd2
+  Ethan Holmes, eth3
+  Allison Ng, allisonn
+  Kirandeep Sandhu, kks27
+  Peter Zenger, paz1
+  
