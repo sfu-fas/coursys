@@ -54,7 +54,7 @@
                     <td>{{ form.original|default:"" }}</td>  
                     <td class="miniaction">
                         <form action="{% url onlineforms.views.list_all %}" method="post">{% csrf_token %}
-                            <a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit</a>  
+                            <a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit Info</a>  
                             <input type="hidden" name="action" value="del" />
                             <p>    
                                 <input type="hidden" name="form_id" value="{{form.id}}" />
