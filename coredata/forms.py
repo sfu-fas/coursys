@@ -214,6 +214,7 @@ class InstrRoleForm(forms.Form):
             ('FAC', 'Faculty Member'),
             ('SESS', 'Sessional Instructor'),
             ('COOP', 'Co-op Staff'),
+            ('INST', 'Other Instructor'),
             ]
 
     person = forms.ModelChoiceField(queryset=Person.objects.all(), widget=forms.HiddenInput)
