@@ -17,6 +17,17 @@
     {% for r in UNIT_ROLES %}
     place_help('{{r|escapejs}}', '{{ROLE_DESCR|hash:r|escapejs}}')
     {% endfor %}
+
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    });  
+
   });
 //]]></script>
 {% endblock %}
