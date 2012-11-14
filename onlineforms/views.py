@@ -596,6 +596,8 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
     # a field -> field submission lookup
     field_submission_dict = {}
+    # previously filled sheets to display
+    filled_sheets = {}
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
@@ -616,6 +618,14 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
         # populate the field -> fieldSubmission lookup
         for field_submission in sheet_submission.field_submissions:
             field_submission_dict[field_submission.field] = field_submission
+
+        # get previously filled in sheet's data
+        if sheet.can_view == 'ALL':
+            sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
+            for filled_sheet in sheet_submissions:
+                temp_form = DynamicForm(filled_sheet.sheet.title)
+                temp_form.fromFields(filled_sheet.sheet.fields, filled_sheet.field_submissions, read_only=True)
+                filled_sheets[filled_sheet] = temp_form
     else:
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
@@ -724,5 +734,6 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                 'sheet': sheet, 
                 'form': form,
                 'form_submission': form_submission,
+                'filled_sheets': filled_sheets,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)
