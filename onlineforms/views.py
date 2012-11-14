@@ -75,10 +75,22 @@ def manage_group(request, formgroup_slug):
     else:
         form = EditGroupForm(instance=group)
     #form.fields['unit'].choices = unit_choices
+    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
 
+
+    # below is for finding person thru coredata/personfield and adding to group
+    """
+    if request.method == 'POST': 
+        search_form = EmployeeSearchForm(request.POST)
+        if not form.is_valid():
+            simsearch = None
+            if 'search' in form.data and form.data['search'].strip().isdigit():
+                simseach = form.data['search'].strip()
+            context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form, 'simsearch': simsearch}
+    """
     search_form = EmployeeSearchForm()
 
-    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
+
     context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form }
     return render(request, 'onlineforms/manage_group.html', context)
 
@@ -89,19 +101,21 @@ def add_group_member(request, formgroup_slug):
     if group.unit not in request.units:
         return ForbiddenResponse(request)
 
-    """
+    print "in add_group_member"
     if request.method == 'POST':
         if 'action' in request.POST:
-            if request.POST['action'] == 'remove':
-    """
-    pass
-
+            if request.POST['action'] == 'add':
+                print "Request method stuff"
+                post_data = request.POST.values()
+                member_id = int(post_data[len(post_data)-1])
+                member = Person.objects.get(emplid=member_id)
+                group.members.add(member)
+                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = FormGroup.objects.get(slug=formgroup_slug)
     member = Person.objects.get(emplid=userid)
-    formgroup_slug
 
     if group.unit not in request.units:
         return ForbiddenResponse(request)
@@ -110,9 +124,7 @@ def remove_group_member(request, formgroup_slug, userid):
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'remove':
-                print "in request.post action == remove"
                 group.members.remove(member)
-                print "member is removed"
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 
