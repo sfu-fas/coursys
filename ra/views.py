@@ -484,7 +484,11 @@ def person_info(request):
         
         # GradPrograms
         emplid = request.GET['emplid']
-        for gs in GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units):
+        if emplid.isdigit():
+            grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units)
+        else:
+            grads = []
+        for gs in grads:
             pdata = {
                      'program': gs.program.label,
                      'unit': gs.program.unit.name,

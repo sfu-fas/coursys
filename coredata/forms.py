@@ -215,14 +215,9 @@ class InstrRoleForm(forms.Form):
             ('SESS', 'Sessional Instructor'),
             ('COOP', 'Co-op Staff'),
             ]
-    def clean_department(self):
-        data = self.cleaned_data
-        if data['role']!='NONE' and data['department']=='':
-            raise forms.ValidationError, "Required to set role."
-        return data['department']
+
     person = forms.ModelChoiceField(queryset=Person.objects.all(), widget=forms.HiddenInput)
     role = forms.ChoiceField(choices=ROLE_CHOICES)
-    department = forms.CharField(max_length=4, required=False)
     
 InstrRoleFormSet = forms.formsets.formset_factory(InstrRoleForm, extra=0)
 
