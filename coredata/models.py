@@ -865,6 +865,7 @@ ROLE_CHOICES = (
         ('SESS', 'Sessional Instructor'),
         ('COOP', 'Co-op Staff'),
         ('INST', 'Other Instructor'),
+        ('SUPV', 'Additional Supervisor'),
         ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
         ('DICC', 'Discipline Case Filer (email CC)'),
@@ -879,7 +880,10 @@ ROLE_CHOICES = (
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD', 'TECH', 'FAC', 'SESS', 'COOP', 'INST'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+# roles departmental admins ('ADMN') are allowed to assign within their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD','TECH',
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV']
+# help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
@@ -894,7 +898,8 @@ ROLE_DESCR = {
         'FAC': 'Faculty Member',
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',
-        'INST': 'Other instructor (outside department, etc).',
+        'INST': 'Instructors outside of the department or others who teach courses',
+        'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
               }
 INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors
 

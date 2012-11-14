@@ -6,7 +6,7 @@ from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradPr
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
     ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment, GRAD_CAMPUS_CHOICES
 from courselib.forms import StaffSemesterField
-from coredata.models import Person, Member, Semester, VISA_STATUSES
+from coredata.models import Person, Semester, Role, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import HiddenInput
@@ -121,15 +121,17 @@ class PotentialSupervisorForm(ModelForm):
         exclude = ('student', 'supervisor_type', 'position', 'created_by', 'modified_by', 'external', 'removed', 'config')
 
 def possible_supervisor_people(units):
+    roles = Role.objects.filter(unit__in=units, role__in=['FAC', 'SUPV']).select_related('person')
+    return set(r.person for r in roles)
     # instructors of courses in the unit
-    people = set(m.person for m in
-             Member.objects.filter(role="INST", offering__owner__in=units).select_related('person')
-             .exclude(offering__component="SEC") if m.person.userid)
+    #people = set(m.person for m in
+    #         Member.objects.filter(role="INST", offering__owner__in=units).select_related('person')
+    #         .exclude(offering__component="SEC") if m.person.userid)
     # previous supervisors
     #people |= set(s.supervisor for s in
     #          Supervisor.objects.filter(student__program__unit__in=units).select_related('supervisor') 
     #          if s.supervisor and s.supervisor.userid)
-    return people
+    #return people
     
 def possible_supervisors(units, extras=[], null=False):
     """
