@@ -31,14 +31,6 @@ from datetime import datetime
 
 @requires_role('ADMN')
 def manage_groups(request):
-    #if request.method == 'POST':
-    #    if 'action' in request.POST:
-    #        if request.POST['action'] == 'delete':
-    #            print "if request.post['action'] == delete "
-    #            if 'group_id' in request.POST:
-    #                selected_group = FormGroup.objects.filter(pk=request.POST['group_id'])
-    #                selected_group.delete()
-
     groups = FormGroup.objects.filter(unit__in=request.units)
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
@@ -67,6 +59,7 @@ def manage_group(request, formgroup_slug):
         return ForbiddenResponse(request)
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
+    # for editting group name
     if request.method == 'POST':
         form = EditGroupForm(instance=group)
         if form.is_valid():
@@ -74,22 +67,10 @@ def manage_group(request, formgroup_slug):
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     else:
         form = EditGroupForm(instance=group)
-    #form.fields['unit'].choices = unit_choices
     grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
 
-
     # below is for finding person thru coredata/personfield and adding to group
-    """
-    if request.method == 'POST': 
-        search_form = EmployeeSearchForm(request.POST)
-        if not form.is_valid():
-            simsearch = None
-            if 'search' in form.data and form.data['search'].strip().isdigit():
-                simseach = form.data['search'].strip()
-            context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form, 'simsearch': simsearch}
-    """
     search_form = EmployeeSearchForm()
-
 
     context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form }
     return render(request, 'onlineforms/manage_group.html', context)
@@ -101,12 +82,11 @@ def add_group_member(request, formgroup_slug):
     if group.unit not in request.units:
         return ForbiddenResponse(request)
 
-    print "in add_group_member"
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
-                print "Request method stuff"
                 post_data = request.POST.values()
+                # grabs the emplid from the post data list
                 member_id = int(post_data[len(post_data)-1])
                 member = Person.objects.get(emplid=member_id)
                 group.members.add(member)
