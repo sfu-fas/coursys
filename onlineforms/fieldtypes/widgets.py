@@ -8,32 +8,26 @@ class CustomMultipleInputWidget(forms.MultiWidget):
     <script type="text/javascript">
     $('document').ready(function () {
 
-        var name = '%(max)s'
+        var name = '%(name)s'
 
-        min = typeof(min) == 'undefined' ? new Object() : min
-        min[name.toString()] = '%(min)s'
 
-        max = typeof(max) == 'undefined' ? new Object() : max
-        max[name.toString()] = '%(max)s'
+        var min = '%(min)s'
 
-        current = typeof(current) == 'undefined' ? new Object() : current
-        current[name.toString()] = parseInt(min[name.toString()])
+        max = '%(max)s'
 
-        widget_dts = typeof(widget_dts) == 'undefined' ? new Object(): widget_dts
-        widget_dds = typeof(widget_dds) == 'undefined' ? new Object(): widget_dds
+        current = parseInt(min)
 
-        widget_dts[name.toString()] = []
-        widget_dds[name.toString()] = []
+        widget_dts = []
+        widget_dds= []
 
-        var scripts = document.getElementsByTagName( 'script' )
-        var thisScriptTag = scripts[ scripts.length - 1 ]
+        scripts = document.getElementsByTagName( 'script' )
 
-        amount = typeof(amount) == 'undefined' ? new Object() : amount
+        thisScriptTag = scripts[ scripts.length - 1 ]
 
-        amount[name.toString()] = function () {
+        amount = function () {
             var count = 0;
-            for (var i = 0; i < max[name.toString()]; i++){
-                if (widget_dds[name.toString()][i].is(':visible')){
+            for (var i = 0; i < max; i++){
+                if (widget_dds[i].is(':visible')){
                     count += 1;
                 }
             }
@@ -42,37 +36,37 @@ class CustomMultipleInputWidget(forms.MultiWidget):
 
         cursor = $(thisScriptTag).parents('dd')
 
-        for(var i=max[name.toString()]-1; i >= 0; i--){
-            widget_dds[name.toString()][i] = cursor;
+        for(var i=max-1; i >= 0; i--){
+            widget_dds[i] = cursor;
             cursor = $(cursor).prev()
-            widget_dts[name.toString()][i] = cursor;
+            widget_dts[i] = cursor;
             cursor = $(cursor).prev()
 
-            if(i-min[name.toString()] >= 0){
-                if ($(widget_dds[name.toString()][i]).find('input').attr('value').length === 0){
-                    widget_dds[name.toString()][i].hide();
-                    widget_dts[name.toString()][i].hide();
+            if(i-min >= 0){
+                if ($(widget_dds[i]).find('input').attr('value').length === 0){
+                    widget_dds[i].hide();
+                    widget_dts[i].hide();
                 }
                 else{
-                    current[name.toString()] += 1
+                    current += 1
                 }
             }
         }
 
-        $(widget_dts[name.toString()][max[name.toString()]-1]).after('<dt><label>Add</label></dt><dd class="add_button">\ ' +
+        $(widget_dts[max-1]).after('<dt><label>Add</label></dt><dd class="add_button">\ ' +
                         '<div class="field"><input type="button" name="Add Choice" value="Add Response" class="button" /></div>\ ' +
                         '</dd>');
 
-        add_button = $(widget_dts[name.toString()][max[name.toString()]-1]).next().next().find('input')
+        add_button = $(widget_dts[max-1]).next().next().find('input')
 
         $(add_button).click(function () {
-            if(current[name.toString()] < max[name.toString()]){
-                widget_dts[name.toString()][current[name.toString()]].show()
-                widget_dds[name.toString()][current[name.toString()]].show()
-                current[name.toString()] += 1
+            if(current < max){
+                widget_dts[current].show()
+                widget_dds[current].show()
+                current += 1
             }
 
-            if (amount[name.toString()]() >= max[name.toString()]){
+            if (amount() >= max){
                 $(add_button).parents('.add_button').prev().hide()
                 $(add_button).parents('.add_button').hide()
             }
