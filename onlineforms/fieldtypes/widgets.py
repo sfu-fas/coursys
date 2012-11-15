@@ -4,6 +4,9 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 class CustomMultipleInputWidget(forms.MultiWidget):
+
+    initial_data = None
+
     WIDGET_JAVASCRIPT = """
     <script type="text/javascript">
     $('document').ready(function () {
@@ -84,9 +87,12 @@ class CustomMultipleInputWidget(forms.MultiWidget):
 
         super(CustomMultipleInputWidget, self).__init__(widgets, attrs=attrs)
 
+    def set_initial_data(self, value):
+        self.initial_data = value
+
     def decompress(self, value):
-        if value:
-            return value
+        if self.initial_data:
+            return self.initial_data
         return [None] * int(self.max)
 
     def format_output(self, rendered_widgets):

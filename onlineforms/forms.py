@@ -6,12 +6,13 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
 class DividerFieldWidget(forms.TextInput):
-  def render(self, name, value, attrs=None):
-    return mark_safe('<hr />')
+    def render(self, name, value, attrs=None):
+        return mark_safe('<hr />')
+
 
 class ExplanationFieldWidget(forms.Textarea):
-  def render(self, name, value, attrs=None):
-    return mark_safe('<div>%s</div>' % escape(value))
+    def render(self, name, value, attrs=None):
+        return mark_safe('<div>%s</div>' % escape(value))
 
 # Manage groups
 class GroupForm(ModelForm):
@@ -35,8 +36,9 @@ class EmployeeSearchForm(forms.Form):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-	exclude = ('active', 'original', 'unit')
-        
+        exclude = ('active', 'original', 'unit')
+
+
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view')
@@ -56,23 +58,24 @@ class FieldForm(forms.Form):
 class AdminAssignForm(forms.Form):
     class FormModelChoiceField(forms.ModelChoiceField):
         def label_from_instance(self, obj):
-            return obj.title    
-        
+            return obj.title
+
     assignee = PersonField(label='Assign to', required=False)
     """email = forms.EmailField(required=False,
                 label='Assign to e-mail',
                 help_text='Assign this form to an external email address.')"""
-    
+
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields.insert(0, label, self.FormModelChoiceField(required=True, 
-            queryset=query_set, 
+        self.fields.insert(0, label, self.FormModelChoiceField(required=True,
+            queryset=query_set,
             label=label.capitalize()))
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(AdminAssignForm, self).is_valid(*args, **kwargs)
-		
+
+
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
@@ -108,10 +111,12 @@ class DynamicForm(forms.Form):
             # make the form field, using the form submission data if it exists
             if field in field_submission_dict:
                 self.fields[counter] = display_field.make_entry_field(field_submission_dict[field])
+                if (field.fieldtype == "LIST"):
+                    self.fields[counter].widget.set_initial_data(field_submission_dict[field].data['info'])
             else:
                 self.fields[counter] = display_field.make_entry_field()
             if read_only:
-                self.fields[counter].widget.attrs['disabled'] = True            
+                self.fields[counter].widget.attrs['disabled'] = True
             # keep the display field for later
             self.display_fields[self.fields[counter] ] = display_field
 
