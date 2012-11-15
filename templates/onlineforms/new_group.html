@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %} Create New Group{% endblock %}
-{% block h1 %} Create New Group {% endblock %}
+{% block title %}Create New Group{% endblock %}
+{% block h1 %}Create New Group {% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
@@ -26,19 +26,19 @@
 {% endblock %}
 
 {% block content %}
-<div id="form-container">
-	<form action="{% url onlineforms.views.new_group %}" method="POST">
-		{% csrf_token %}
+<div id="form-container" style="clear: left;">
 		 <fieldset>
-            <legend>New Group Information</legend>
-            <ul>
-                {{form|as_dl}}
-                <li>
-                    <input class="submit" type="submit" value="Submit" />
-                </li>
-            </ul>
+            <form action="{% url onlineforms.views.new_group %}" method="POST">
+            {% csrf_token %}
+                <legend>New Group Information</legend>
+                <ul>
+                    {{form|as_dl}}
+                    <li>
+                        <input class="submit" type="submit" value="Next" />
+                    </li>
+                </ul>
+            </form>
         </fieldset>
-	</form>
 </div>
 
 

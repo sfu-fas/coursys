@@ -56,7 +56,7 @@ $(document).ready(function() {
 <div id="form-container" style="clear: left;">
 	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="POST">
 		{% csrf_token %}
-		 <fieldset>
+		 <fieldset style="width: 65%">
             <legend>Edit Group Information</legend>
             <ul>
                 {{form|as_dl}}
@@ -68,9 +68,9 @@ $(document).ready(function() {
 	</form>
 </div>
 
-<div id="form-container">
+<br />
+<div id="form-container" style="width: 65%">
     <legend>Manage Members</legend>
-
     <div id="table-container">
         <table class="display" id="formgroupmembers">
         <thead>
@@ -100,8 +100,9 @@ $(document).ready(function() {
     </div>
 </div>
 
+<br />
 <div id="form-container">
-    <fieldset>
+    <fieldset style="width: 65%">
         <legend>Add Member</legend>
         <form action="{% url onlineforms.views.add_group_member formgroup_slug=group.slug %}" method="POST">{% csrf_token %}
             <ul>

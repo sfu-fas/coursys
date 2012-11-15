@@ -44,11 +44,15 @@ def new_group(request):
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
+            name = str(form.cleaned_data['name'])
+            formgroup = FormGroup.objects.get(name=name)
+            return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup.slug }))
     else:
         form = GroupForm()
         form.fields['unit'].choices = unit_choices
-    context = {'form': form}
+
+    add_member_form = EmployeeSearchForm()
+    context = {'form': form, 'addMemberForm': add_member_form}
     return render(request, 'onlineforms/new_group.html', context)
 
 
