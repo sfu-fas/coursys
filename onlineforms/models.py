@@ -121,6 +121,9 @@ class FormFiller(models.Model):
         else:
             raise Exception, "This form filler object is in an invalid state."
 
+    def isSFUPerson(self):
+        return self.sfuFormFiller != None
+
     def __unicode__(self):
         formFiller = self.getFormFiller()
         return formFiller.__unicode__()
