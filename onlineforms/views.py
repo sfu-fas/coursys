@@ -574,10 +574,11 @@ def sheet_submission_via_url(request, secret_url):
     sheet = sheet_submission_object.sheet
     form_submission = sheet_submission_object.form_submission
     form = form_submission.form
-    return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug)
+    alternate_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url})
+    return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
 
 
-def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None):
+def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
     # if no one can fill out this form, stop right now
     if owner_form.initiators == "NON":
@@ -618,8 +619,10 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
             return NotFoundResponse(request)
         # check that they can access this sheet
         formFillerPerson = sheet_submission.filler.sfuFormFiller
-        if not(formFillerPerson) or loggedin_user != formFillerPerson:
-            return ForbiddenResponse(request)
+        # if they are accessing via an alternate URL don't check their account
+        if not(alternate_url):
+            if not(formFillerPerson) or loggedin_user != formFillerPerson:
+                return ForbiddenResponse(request)
 
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields, sheet_submission.field_submissions)
@@ -640,6 +643,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
         form.fromFields(sheet.fields)
         form_submission = None
         sheet_submission = None
+        formFillerPerson = None
 
     if request.method == 'POST' and 'submit-mode' in request.POST:
         submit_modes = ["Save", "Submit"]
@@ -652,25 +656,33 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
             if form.is_valid():
                 # sheet is valid, lets get a form filler
-                formFiller = None
-                if 'add-nonsfu' in request.POST and owner_form.initiators == "ANY":
-                    nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
-                    if nonSFUFormFillerForm.is_valid():
-                        nonSFUFormFiller = nonSFUFormFillerForm.save()
-                        #LOG EVENT#
-                        l = LogEntry(userid=logentry_userid,
-                            description=("Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
-                            related_object=nonSFUFormFiller)
-                        l.save()
-                        formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
-                        formFiller.save()
-                elif loggedin_user:
-                    formFiller = userToFormFiller(loggedin_user)
+                if formFillerPerson:
+                    # if we already have a form filler from above, use it
+                    formFiller = formFillerPerson
                 else:
-                    # they didn't provide nonsfu info and they are not logged in
-                    context = {'owner_form': owner_form,
-                               'error_msg': "You must have a SFU account and be logged in to fill out this form."}
-                    return render(request, 'onlineforms/submissions/sheet_submission.html', context)
+                    # we don't have a form filler from above(could be initial sheet submission)
+                    # if they provided a non-SFU form use that info, otherwise grab their logged in credentials
+                    formFiller = None
+                    if 'add-nonsfu' in request.POST and sheet.is_initial and owner_form.initiators == "ANY":
+                        nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
+                        if nonSFUFormFillerForm.is_valid():
+                            nonSFUFormFiller = nonSFUFormFillerForm.save()
+                            #LOG EVENT#
+                            l = LogEntry(userid=logentry_userid,
+                                description=("Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
+                                related_object=nonSFUFormFiller)
+                            l.save()
+                            formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
+                            formFiller.save()
+                    elif loggedin_user:
+                        formFiller = userToFormFiller(loggedin_user)
+                    else:
+                        # they didn't provide nonsfu info and they are not logged in
+                        # (or the sheet doesn't allow non-SFU people to fill it in)
+                        context = {'owner_form': owner_form,
+                                   'error_msg': "You must have a SFU account and be logged in to fill out this form."}
+                        return render(request, 'onlineforms/submissions/sheet_submission.html', context)
+
 
                 if formFiller:
                     # we have a form filler, the data is valid, create the formsubmission and sheetsubmission objects if necessary
@@ -753,5 +765,6 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                 'form': form,
                 'form_submission': form_submission,
                 'filled_sheets': filled_sheets,
+                'alternate_url': alternate_url,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)

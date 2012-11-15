@@ -31,9 +31,9 @@
 
         {% if sheet %}
             {% if  form.is_multipart %}
-                <form enctype="multipart/form-data" action="" method="post">
+                <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
             {% else %}
-                <form action="" method="post">
+                <form action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
             {% endif %}
             {% csrf_token %}
             {% if nonSFUFormFillerForm %}
