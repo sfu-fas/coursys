@@ -1235,7 +1235,7 @@ def generate_csv(request, post_slug):
         
         row = [app.person.sortname(), app.category, program, status, unit, startsem, app.base_units, campuspref]
         
-        for off in all_offerings:
+        for off in offerings:
             crs = off.course
             if crs in course_prefs[app]:
                 pref = course_prefs[app][crs]
