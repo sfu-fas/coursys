@@ -468,7 +468,8 @@ def view_courses(request):
     """
     View to view all courses
     """
-    if 'coursesearch' in request.GET and request.GET['course'] and request.GET['course'].isdigit():
+    if 'coursesearch' in request.GET and 'course' in request.GET \
+            and request.GET['course'] and request.GET['course'].isdigit():
         # handle the search for other courses
         offering = get_object_or_404(Course, id=request.GET['course'])
         return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': offering.slug}))
@@ -556,7 +557,8 @@ def view_course_offerings(request, semester=None):
         semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
         semesters = Semester.objects.filter(start__lte=datetime.date.today() + datetime.timedelta(days=365)).order_by('-end')[:6]
     
-    if 'offeringsearch' in request.GET:
+    if 'offeringsearch' in request.GET and 'offering' in request.GET \
+            and request.GET['offering'] and request.GET['offering'].isdigit():
         # handle the search for other offerings
         offering = get_object_or_404(CourseOffering, id=request.GET['offering'])
         return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
