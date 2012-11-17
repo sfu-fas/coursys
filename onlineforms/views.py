@@ -605,12 +605,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
-        sheet_submission = get_object_or_404(SheetSubmission, form_submission=form_submission, slug=sheetsubmit_slug)
-        # get the sheet object they actually filled out
-        sheet = sheet_submission.sheet
-        if sheet.slug != sheet_slug:
-            context = {'owner_form': owner_form, 'error_msg': "The supplied sheet and sheet submission don't match."}
-            return render(request, 'onlineforms/submissions/sheet_submission.html', context)
+        sheet_submission = get_object_or_404(SheetSubmission, sheet=sheet, form_submission=form_submission, slug=sheetsubmit_slug)
         # check if this sheet has already been filled
         if sheet_submission.status == "DONE":
             # or maybe show in display only mode
