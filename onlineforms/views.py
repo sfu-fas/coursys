@@ -28,6 +28,9 @@ from onlineforms.utils import reorder_sheet_fields
 from coredata.models import Person, Role
 from log.models import LogEntry
 from datetime import datetime
+from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+
 
 @requires_role('ADMN')
 def manage_groups(request):
@@ -217,6 +220,12 @@ def new_form(request):
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
             f.save()
+            send_mail('Subject here', 'Here is the message.', 'nobody@courses.cs.sfu.ca',
+            ['kks27@sfu.ca'], fail_silently=False)
+            email = EmailMessage('Hello', 'Body goes here', 'nobody@courses.cs.sfu.ca',
+              ['kks27@sfu.ca', 'sandhukiran15@gmail.com'], ['bcc@example.com'],
+                headers = {'Reply-To': 'another@example.com'})
+            email.send()
             return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
         form = FormForm()
