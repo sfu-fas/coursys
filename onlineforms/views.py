@@ -30,6 +30,9 @@ from log.models import LogEntry
 from datetime import datetime
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
+from django.template import Context
 
 
 @requires_role('ADMN')
@@ -134,6 +137,7 @@ def admin_list_all(request):
 
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
+    admin = get_object_or_404(Person, userid=request.user.username)       
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     form = AdminAssignForm(data=request.POST or None, label='sheet', 
         query_set=Sheet.objects.filter(form=form_submission.form, active=True))
@@ -147,6 +151,25 @@ def admin_assign(request, formsubmit_slug):
         # change form submission status back to wait status
         form_submission.status = 'WAIT'
         form_submission.save()
+
+        #need to send email to the person
+        plaintext = get_template('onlineforms/emails/email.txt')
+        htmly     = get_template('onlineforms/emails/email.html')
+
+        #d = Context({ 'username': assignee })
+        d = Context({ 'username': admin ,'assignee':assignee,'sheeturl':form_submission})   
+        subject, from_email, to = 'hello', 'from@example.com', 'to@example.com'
+        text_content = plaintext.render(d)
+        html_content = htmly.render(d)
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
+        # email = EmailMessage('Hello', 'You have been assigned a sheet', 'nobody@courses.cs.sfu.ca',
+        #       ['kks27@sfu.ca'], ['bcc@example.com'],
+        #         headers = {'Reply-To': 'another@example.com'})
+        # email.send()
+
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'form_submission': form_submission}
@@ -220,12 +243,6 @@ def new_form(request):
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
             f.save()
-            send_mail('Subject here', 'Here is the message.', 'nobody@courses.cs.sfu.ca',
-            ['kks27@sfu.ca'], fail_silently=False)
-            email = EmailMessage('Hello', 'Body goes here', 'nobody@courses.cs.sfu.ca',
-              ['kks27@sfu.ca', 'sandhukiran15@gmail.com'], ['bcc@example.com'],
-                headers = {'Reply-To': 'another@example.com'})
-            email.send()
             return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
         form = FormForm()
