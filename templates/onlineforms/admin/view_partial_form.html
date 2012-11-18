@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block h1 %} View Form {% endblock %}
-{% block title %} View Form {% endblock %}
+{% block h1 %} View {{ form.title }} {% endblock %}
+{% block title %} View {{ form.title }}  {% endblock %}
 
 {% block headextra %}
+<style type="text/css">
+    .view_fieldset {
+        padding-bottom: 1em;
+    }
+</style>
+
 <script type="text/javascript">
     $(document).ready(function() {
         $('#form_table').dataTable({
@@ -19,7 +25,7 @@
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
     <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
-    <li>&gt; View Form</li>
+    <li>&gt; View {{ form.title }}</li>
 {% endblock %}
 
 {% block content %}

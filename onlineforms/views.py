@@ -540,6 +540,21 @@ def submissions_list_all_forms(request):
     context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
+    
+def readonly_sheets(sheet_submissions):
+    sheet_sub_html = {}
+    for sheet_sub in sheet_submissions:
+        # get html from feild submissions
+        field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
+        fields = []
+        for field_sub in field_submissions:
+            field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
+            if field.configurable:
+                field.html = field.to_html(field_sub)
+                field.label = field.config['label']
+            fields.append(field)
+        sheet_sub_html[sheet_sub.sheet.title] = fields
+        return sheet_sub_html
 
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
@@ -547,17 +562,7 @@ def view_submission(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
 
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
-    sheet_sub_html = {}
-    for sheet_sub in sheet_submissions:
-        # get html from feild submissions
-        field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
-        html = ''
-        for field_sub in field_submissions:
-            display_field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
-            html += display_field.to_html(field_sub)
-        sheet_sub_html[sheet_sub.sheet.title] = html
-
-    context = {'sheet_submissions': sheet_sub_html}
+    context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(sheet_submissions)}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 def sheet_submission_via_url(request, secret_url):

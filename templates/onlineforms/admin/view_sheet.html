@@ -1,8 +1,15 @@
-{% for sheet_sub_title, sheet_sub_html in sheet_submissions.items %}
-	<form action="">
-		<fieldset>
+{% for sheet_sub_title, fields in sheet_submissions.items %}
+<div id="form_container">
+	<form>
+		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub_title }}</legend>
-			{{ sheet_sub_html|safe }}
+			<dl class="dlform">
+			{% for field in fields %}
+				<dt><label>{{ field.label }}:</label></dt>
+				<dd>{{ field.html }}</dd>
+			{% endfor %}
+			</dl>
 		</fieldset>
 	</form>
+</div>
 {% endfor %}
