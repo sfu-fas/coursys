@@ -1,0 +1,8 @@
+{% for sheet_sub_title, sheet_sub_html in sheet_submissions.items %}
+	<form action="">
+		<fieldset>
+			<legend>{{ sheet_sub_title }}</legend>
+			{{ sheet_sub_html|safe }}
+		</fieldset>
+	</form>
+{% endfor %}
