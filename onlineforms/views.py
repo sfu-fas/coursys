@@ -491,7 +491,6 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
     if request.POST:
         clean_config = _clean_config(request.POST)
         form = type(config=clean_config).make_config_form()
-
         if field.config == clean_config:
             messages.info(request, "Nothing modified")
 
@@ -509,7 +508,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
             messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
-                reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+                reverse('onlineforms.views.edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
 
     else:
         if not type.configurable:
