@@ -5,8 +5,13 @@
 			<legend>{{ sheet_sub_title }}</legend>
 			<dl class="dlform">
 			{% for field in fields %}
-				<dt><label>{{ field.label }}:</label></dt>
-				<dd>{{ field.html }}</dd>
+                {% ifequal field.fieldtype "DIVI" %}
+                    <hr />
+                {% else %}
+                    <dt><label>{{ field.label }}:</label></dt>
+                    <dd>{{ field.html }}</dd>
+                    {{ field.fieldtype }}
+                {% endifequal %}
 			{% endfor %}
 			</dl>
 		</fieldset>

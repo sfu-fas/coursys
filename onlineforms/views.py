@@ -569,6 +569,7 @@ def readonly_sheets(sheet_submissions):
             if field.configurable:
                 field.html = field.to_html(field_sub)
                 field.label = field.config['label']
+            field.fieldtype = field_sub.field.fieldtype
             fields.append(field)
         sheet_sub_html[sheet_sub.sheet.title] = fields
         return sheet_sub_html
