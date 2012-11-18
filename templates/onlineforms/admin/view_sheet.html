@@ -1,3 +1,15 @@
+{% block headextra %}
+<style type="text/css">
+    .view_fieldset {
+        padding-bottom: 1em;
+    }
+    
+    hr {
+        clear: both;
+    }
+</style>
+{% endblock %}
+
 {% for sheet_sub_title, fields in sheet_submissions.items %}
 <div id="form_container">
 	<form>
@@ -10,7 +22,6 @@
                 {% else %}
                     <dt><label>{{ field.label }}:</label></dt>
                     <dd>{{ field.html }}</dd>
-                    {{ field.fieldtype }}
                 {% endifequal %}
 			{% endfor %}
 			</dl>
