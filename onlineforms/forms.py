@@ -93,7 +93,7 @@ class DynamicForm(forms.Form):
         for k in keys:
             self.fields[k] = kwargs[k]
 
-    def fromFields(self, fields, field_submissions=[], read_only=False):
+    def fromFields(self, fields, field_submissions=[]):
         """
         Sets the fields from a list of field model objects
         preserving the order they are given in
@@ -115,8 +115,6 @@ class DynamicForm(forms.Form):
                     self.fields[counter].widget.set_initial_data(field_submission_dict[field].data['info'])
             else:
                 self.fields[counter] = display_field.make_entry_field()
-            if read_only:
-                self.fields[counter].widget.attrs['disabled'] = True
             # keep the display field for later
             self.display_fields[self.fields[counter] ] = display_field
 
