@@ -141,6 +141,8 @@ class SubmissionTests(TestCase):
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-simple-form"})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
+        # make sure it's not displaying the add-nonsfu form
+        self.assertNotContains(response, '<input type="hidden" name="add-nonsfu" value="True"/>')
         # check for some important fields
         # note: the keys are the slugs of the field
         fill_data = {
@@ -200,7 +202,7 @@ class SubmissionTests(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         # check that the non sfu form is up
-
+        self.assertContains(response, '<input type="hidden" name="add-nonsfu" value="True"/>')
         # check for some important fields
         # note: the keys are the slugs of the field
         fill_data = {
