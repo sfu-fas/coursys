@@ -148,10 +148,6 @@ def admin_assign(request, formsubmit_slug):
             sheet=form.cleaned_data['sheet'],
             filler=userToFormFiller(assignee))
 
-        # change form submission status back to wait status
-        form_submission.status = 'WAIT'
-        form_submission.save()
-
         #need to send email to the person
         plaintext = get_template('onlineforms/emails/email.txt')
         htmly     = get_template('onlineforms/emails/email.html')
@@ -576,10 +572,9 @@ def readonly_sheets(sheet_submissions):
 
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
-    print formsubmit_slug
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
 
-    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
+    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status='DONE')
     context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(sheet_submissions)}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
@@ -709,6 +704,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                     # create the sheet submission
                     sheet_submission = SheetSubmission(sheet=sheet, form_submission=form_submission, filler=formFiller)
                     sheet_submission.save()
+                    
                     #LOG EVENT#
                     l = LogEntry(userid=logentry_userid,
                         description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
