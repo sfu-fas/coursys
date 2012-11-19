@@ -16,7 +16,7 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         var max = '%(max)s'
         var current = parseInt(min)
         var widget_dts = []
-        var widget_dds= []
+        var widget_fields = []
 
         var thisScriptTag
 
@@ -30,7 +30,7 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         var amount = function () {
             var count = 0;
             for (var i = 0; i < max; i++){
-                if (widget_dds[i].is(':visible')){
+                if (widget_fields[i].is(':visible')){
                     count += 1;
                 }
             }
@@ -41,14 +41,14 @@ class CustomMultipleInputWidget(forms.MultiWidget):
 
         //Hide all empty fields on load
         for(var i=max-1; i >= 0; i--){
-            widget_dds[i] = cursor;
+            widget_fields[i] = $(cursor).children(":first")
             cursor = $(cursor).prev()
             widget_dts[i] = cursor;
             cursor = $(cursor).prev()
 
             if(i-min >= 0){
-                if ($(widget_dds[i]).find('input').attr('value').length === 0){
-                    widget_dds[i].hide();
+                if ($(widget_fields[i]).find('input').attr('value').length === 0){
+                    widget_fields[i].hide();
                     widget_dts[i].hide();
                 }
                 else{
@@ -66,7 +66,7 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         $(add_button).click(function () {
             if(current < max){
                 widget_dts[current].show()
-                widget_dds[current].show()
+                widget_fields[current].show()
                 current += 1
             }
 
