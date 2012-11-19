@@ -128,7 +128,7 @@ class ModelTests(TestCase):
 class SubmissionTests(TestCase):
     fixtures = ['test_data']
 
-    def test_simple_initial_form_submission(self):
+    def test_valid_simple_initial_form_submission_loggedin(self):
         # get a person
         logged_in_person = Person.objects.get(userid="ggbaker")
         # log them in
@@ -174,6 +174,72 @@ class SubmissionTests(TestCase):
         # do the same for the sheet submission
         self.assertTrue(sheet_submission.filler.isSFUPerson())
         self.assertEqual(sheet_submission.filler.sfuFormFiller, logged_in_person)
+        # verify the data
+        field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_submission).order_by('field__order')
+        self.assertEqual(len(fill_data), len(field_submissions))
+        for field_submission in field_submissions:
+            self.assertEqual(fill_data[field_submission.field.slug], field_submission.data['info'])
+        # check the sheet submission and form submission status
+        self.assertEqual(sheet_submission.status, "DONE")
+        # form submissions is pending until someone manually marks it done
+        self.assertEqual(form_submission.status, "PEND")
+
+    def test_valid_simple_initial_form_submission_anonymous(self):
+        person = {'first_name': "Alan",
+                    'last_name': "Turing",
+                    'email_address': "alan.turing@gmail.com"
+        }
+
+        # log them in
+        client = Client()
+
+        old_form_submission_count = len(FormSubmission.objects.all())
+        old_sheet_submission_count = len(SheetSubmission.objects.all())
+
+        url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-simple-form"})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        # check that the non sfu form is up
+
+        # check for some important fields
+        # note: the keys are the slugs of the field
+        fill_data = {
+            "favorite-color": "Black",
+            "reason": "Because it's metal",
+            "second-favorite-color": "Green"
+        }
+        # submit the form
+        post_data = {
+            'first_name': person["first_name"],
+            'last_name': person["last_name"],
+            'email_address': person["email_address"],
+            'add-nonsfu': True,
+            '0': fill_data["favorite-color"],
+            '1': fill_data["reason"],
+            '2': fill_data["second-favorite-color"],
+            'submit-mode': "Submit",
+        }
+        response = client.post(url, post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        # check that a success messaging is being displayed
+        self.assertContains(response, '<li class="success">')
+        # check that one form submission and one sheet submission got created
+        self.assertEqual(old_form_submission_count + 1, len(FormSubmission.objects.all()))
+        self.assertEqual(old_sheet_submission_count + 1, len(SheetSubmission.objects.all()))
+        # find the submission in the database
+        form_submission = FormSubmission.objects.latest('id')
+        self.assertTrue(form_submission)
+        sheet_submission = SheetSubmission.objects.latest('id')
+        self.assertTrue(sheet_submission)
+        self.assertEqual(sheet_submission.form_submission, form_submission)
+        # make sure the person we logged in as got form initiator credits
+        self.assertFalse(form_submission.initiator.isSFUPerson())
+        self.assertEqual(form_submission.initiator.name(), "%s %s" % (person["first_name"], person["last_name"]))
+        self.assertEqual(form_submission.initiator.email(), person["email_address"])
+        # do the same for the sheet submission
+        self.assertFalse(sheet_submission.filler.isSFUPerson())
+        self.assertEqual(form_submission.initiator.name(), "%s %s" % (person["first_name"], person["last_name"]))
+        self.assertEqual(form_submission.initiator.email(), person["email_address"])
         # verify the data
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_submission).order_by('field__order')
         self.assertEqual(len(fill_data), len(field_submissions))
