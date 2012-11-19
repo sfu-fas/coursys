@@ -8,26 +8,26 @@ class CustomMultipleInputWidget(forms.MultiWidget):
     initial_data = None
 
     WIDGET_JAVASCRIPT = """
-    <script type="text/javascript">
+    <script type="text/javascript" name="%(name)s">
     $('document').ready(function () {
 
         var name = '%(name)s'
-
-
         var min = '%(min)s'
+        var max = '%(max)s'
+        var current = parseInt(min)
+        var widget_dts = []
+        var widget_dds= []
 
-        max = '%(max)s'
+        var thisScriptTag
 
-        current = parseInt(min)
+        $('script').each(function() {
+            if($(this).attr('name') === name){
+                thisScriptTag = this
+            }
+        });
 
-        widget_dts = []
-        widget_dds= []
-
-        scripts = document.getElementsByTagName( 'script' )
-
-        thisScriptTag = scripts[ scripts.length - 1 ]
-
-        amount = function () {
+        //Return amount of fields
+        var amount = function () {
             var count = 0;
             for (var i = 0; i < max; i++){
                 if (widget_dds[i].is(':visible')){
@@ -37,8 +37,9 @@ class CustomMultipleInputWidget(forms.MultiWidget):
             return count
         }
 
-        cursor = $(thisScriptTag).parents('dd')
+        var cursor = $(thisScriptTag).parents('dd')
 
+        //Hide all empty fields on load
         for(var i=max-1; i >= 0; i--){
             widget_dds[i] = cursor;
             cursor = $(cursor).prev()
@@ -60,7 +61,7 @@ class CustomMultipleInputWidget(forms.MultiWidget):
                         '<div class="field"><input type="button" name="Add Choice" value="Add Response" class="button" /></div>\ ' +
                         '</dd>');
 
-        add_button = $(widget_dts[max-1]).next().next().find('input')
+        var add_button = $(widget_dts[max-1]).next().next().find('input')
 
         $(add_button).click(function () {
             if(current < max){
