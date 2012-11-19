@@ -644,6 +644,9 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
         if sheet.can_view == 'ALL':
             filled_sheets = readonly_sheets(form_submission)
     else:
+        # make sure we are allowed to initiate this form
+        if not loggedin_user and owner_form.initiators != "ANY":
+            return ForbiddenResponse(request)
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
         form_submission = None

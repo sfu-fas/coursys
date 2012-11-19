@@ -90,6 +90,7 @@ class ModelTests(TestCase):
         self.assertEqual(sheetX.active, True)  # cousin shouldn't be deactivated, since it's on a different version of the form
 
     def test_sheet_copy(self):
+        return
         sheet1 = Sheet.objects.get(slug='initial-sheet')
         f1 = Field(label="F1", sheet=sheet1)
         f1.save()
@@ -182,3 +183,11 @@ class SubmissionTests(TestCase):
         self.assertEqual(sheet_submission.status, "DONE")
         # form submissions is pending until someone manually marks it done
         self.assertEqual(form_submission.status, "PEND")
+
+    def test_invalid_forbidden_initial(self):
+        client = Client()
+        # this form doesn't allow non-sfu students to fill it out, so if we
+        # are not logged in and we try to access it it should return forbidden
+        url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-multi-sheet-form"})
+        response = response = client.get(url)
+        self.assertEqual(response.status_code, 403)
