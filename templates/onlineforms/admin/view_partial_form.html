@@ -26,8 +26,6 @@
 <div id="form_container">
 	{% if sheet_submissions %}
 		{% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions %}
-	{% else %}
-        <p>No sheets have been filled out.</p>
     {% endif %}
 </div>
 {% endblock %}

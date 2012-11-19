@@ -148,10 +148,6 @@ def admin_assign(request, formsubmit_slug):
             sheet=form.cleaned_data['sheet'],
             filler=userToFormFiller(assignee))
 
-        # change form submission status back to wait status
-        form_submission.status = 'WAIT'
-        form_submission.save()
-
         #need to send email to the person
         plaintext = get_template('onlineforms/emails/email.txt')
         htmly     = get_template('onlineforms/emails/email.html')
@@ -558,7 +554,8 @@ def submissions_list_all_forms(request):
     return render(request, 'onlineforms/submissions/forms.html', context)
 
     
-def readonly_sheets(sheet_submissions):
+def readonly_sheets(form_submission):
+    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_sub_html = {}
     for sheet_sub in sheet_submissions:
         # get html from feild submissions
@@ -572,15 +569,12 @@ def readonly_sheets(sheet_submissions):
             field.fieldtype = field_sub.field.fieldtype
             fields.append(field)
         sheet_sub_html[sheet_sub.sheet.title] = fields
-        return sheet_sub_html
+    return sheet_sub_html
 
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
-    print formsubmit_slug
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-
-    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
-    context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(sheet_submissions)}
+    context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(form_submission)}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 def sheet_submission_via_url(request, secret_url):
@@ -623,7 +617,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     # a field -> field submission lookup
     field_submission_dict = {}
     # previously filled sheets to display
-    filled_sheets = {}
+    filled_sheets = []
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
@@ -648,12 +642,11 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
         # get previously filled in sheet's data
         if sheet.can_view == 'ALL':
-            sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-            for filled_sheet in sheet_submissions:
-                temp_form = DynamicForm(filled_sheet.sheet.title)
-                temp_form.fromFields(filled_sheet.sheet.fields, filled_sheet.field_submissions, read_only=True)
-                filled_sheets[filled_sheet] = temp_form
+            filled_sheets = readonly_sheets(form_submission)
     else:
+        # make sure we are allowed to initiate this form
+        if not loggedin_user and owner_form.initiators != "ANY":
+            return ForbiddenResponse(request)
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
         form_submission = None
@@ -709,6 +702,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                     # create the sheet submission
                     sheet_submission = SheetSubmission(sheet=sheet, form_submission=form_submission, filler=formFiller)
                     sheet_submission.save()
+                    
                     #LOG EVENT#
                     l = LogEntry(userid=logentry_userid,
                         description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
@@ -760,9 +754,9 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                         access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
                     else:
                         access_url = reverse('onlineforms.views.sheet_submission', kwargs={
-                            'form_slug': owner_form.slug, 
-                            'formsubmit_slug': form_submission.slug, 
-                            'sheet_slug': sheet.slug, 
+                            'form_slug': owner_form.slug,
+                            'formsubmit_slug': form_submission.slug,
+                            'sheet_slug': sheet.slug,
                             'sheetsubmit_slug': sheet_submission.slug})
 
                     messages.success(request, 'All fields without errors were saved. Use this pages URL to edit this submission in the future.')
@@ -782,9 +776,9 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                 messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
         else:
             messages.error(request, 'Invalid post data.')
- 
-    context = { 'owner_form': owner_form,
-                'sheet': sheet, 
+
+    context = {'owner_form': owner_form,
+                'sheet': sheet,
                 'form': form,
                 'form_submission': form_submission,
                 'filled_sheets': filled_sheets,

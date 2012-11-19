@@ -1,6 +1,8 @@
 from django.forms import widgets
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape as escape
 import re
 
 class RadioSelectField(FieldBase):
@@ -78,7 +80,7 @@ class DropdownSelectField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+        return mark_safe('<p>' + 'choice goes here' + '</p>')
 
 
 class MultipleSelectField(FieldBase):
