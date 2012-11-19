@@ -11,7 +11,6 @@
 {% endblock %}
 
 {% for sheet_sub_title, fields in sheet_submissions.items %}
-<div id="form_container">
 	<form>
 		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub_title }}</legend>
@@ -27,5 +26,4 @@
 			</dl>
 		</fieldset>
 	</form>
-</div>
 {% endfor %}

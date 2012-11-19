@@ -568,12 +568,11 @@ def readonly_sheets(sheet_submissions):
             field.fieldtype = field_sub.field.fieldtype
             fields.append(field)
         sheet_sub_html[sheet_sub.sheet.title] = fields
-        return sheet_sub_html
+    return sheet_sub_html
 
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status='DONE')
     context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(sheet_submissions)}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
