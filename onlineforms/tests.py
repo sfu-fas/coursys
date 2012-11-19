@@ -145,11 +145,7 @@ class SubmissionTests(TestCase):
         self.assertNotContains(response, '<input type="hidden" name="add-nonsfu" value="True"/>')
         # check for some important fields
         # note: the keys are the slugs of the field
-        fill_data = {
-            "favorite-color": "Black",
-            "reason": "Because it's metal",
-            "second-favorite-color": "Green"
-        }
+        fill_data = {"favorite-color": "Black", "reason": "Because it's metal", "second-favorite-color": "Green"}
         # submit the form
         post_data = {
             '0': fill_data["favorite-color"],
@@ -187,14 +183,8 @@ class SubmissionTests(TestCase):
         self.assertEqual(form_submission.status, "PEND")
 
     def test_valid_simple_initial_form_submission_anonymous(self):
-        person = {'first_name': "Alan",
-                    'last_name': "Turing",
-                    'email_address': "alan.turing@gmail.com"
-        }
-
-        # log them in
         client = Client()
-
+        person = {'first_name': "Alan", 'last_name': "Turing", 'email_address': "alan.turing@gmail.com"}
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
@@ -205,11 +195,7 @@ class SubmissionTests(TestCase):
         self.assertContains(response, '<input type="hidden" name="add-nonsfu" value="True"/>')
         # check for some important fields
         # note: the keys are the slugs of the field
-        fill_data = {
-            "favorite-color": "Black",
-            "reason": "Because it's metal",
-            "second-favorite-color": "Green"
-        }
+        fill_data = {"favorite-color": "Black", "reason": "Because it's metal", "second-favorite-color": "Green"}
         # submit the form
         post_data = {
             'first_name': person["first_name"],
@@ -251,6 +237,43 @@ class SubmissionTests(TestCase):
         self.assertEqual(sheet_submission.status, "DONE")
         # form submissions is pending until someone manually marks it done
         self.assertEqual(form_submission.status, "PEND")
+
+    def test_invalid_nonsfu_missing_elements(self):
+        client = Client()
+        old_form_submission_count = len(FormSubmission.objects.all())
+        old_sheet_submission_count = len(SheetSubmission.objects.all())
+
+        url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-simple-form"})
+        response = basic_page_tests(self, client, url)
+        # test with each field missing
+        person_nofirst = {'first_name': "", 'last_name': "Turing", 'email_address': "alan.turing@gmail.com"}
+        person_nolast = {'first_name': "Alan", 'last_name': "", 'email_address': "alan.turing@gmail.com"}
+        person_noemail = {'first_name': "Alan", 'last_name': "Turing", 'email_address': ""}
+        people = [person_nofirst, person_nolast, person_noemail]
+        fill_data = {"favorite-color": "Black", "reason": "Because it's metal", "second-favorite-color": "Green"}
+
+        for person in people:
+            # submit with empty user info
+            post_data = {
+                'first_name': person['first_name'],
+                'last_name': person['last_name'],
+                'email_address': person['email_address'],
+                'add-nonsfu': True,
+                '0': fill_data["favorite-color"],
+                '1': fill_data["reason"],
+                '2': fill_data["second-favorite-color"],
+                'submit-mode': "Submit",
+            }
+
+            response = client.post(url, post_data, follow=True)
+            self.assertEqual(response.status_code, 200)
+            # make sure no success
+            self.assertNotContains(response, '<li class="success">')
+            # make sure there was an error
+            self.assertContains(response, '<li class="error">')
+            # make sure nothing got added to the database
+            self.assertEqual(old_form_submission_count, len(FormSubmission.objects.all()))
+            self.assertEqual(old_sheet_submission_count, len(SheetSubmission.objects.all()))
 
     def test_invalid_forbidden_initial(self):
         client = Client()
