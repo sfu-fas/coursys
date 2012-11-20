@@ -153,7 +153,7 @@ def admin_assign(request, formsubmit_slug):
         htmly     = get_template('onlineforms/emails/email.html')
 
         #d = Context({ 'username': assignee })
-        d = Context({ 'username': admin ,'assignee':assignee,'sheeturl':form_submission})
+        d = Context({ 'username': admin.name ,'assignee':assignee.name(),'sheeturl':form_submission})
         assignee_email =  assignee.full_email()   
         subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
         text_content = plaintext.render(d)
