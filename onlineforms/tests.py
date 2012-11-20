@@ -8,7 +8,9 @@ from settings import CAS_SERVER_URL
 from courselib.testing import basic_page_tests
 
 from onlineforms.models import FormGroup, Form, Sheet, Field
-from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
+from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
+
+from onlineforms.views import get_sheet_submission_url
 
 
 class ModelTests(TestCase):
@@ -282,3 +284,34 @@ class SubmissionTests(TestCase):
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-multi-sheet-form"})
         response = response = client.get(url)
         self.assertEqual(response.status_code, 403)
+
+
+class MiscTests(TestCase):
+    fixtures = ['test_data', 'onlineforms/extra_test_data']
+
+    def test_sheet_submission_get_url(self):
+        # arrange
+        slugs = {'sheetsubmit_slug': "submission-initial-2",
+                'sheet_slug': "initial-2",
+                'formsubmit_slug': "submission-comp-simple-form-2",
+                'form_slug': "comp-simple-form"
+        }
+        form = Form.objects.get(slug=slugs['form_slug'])
+        form_submission = FormSubmission.objects.get(form=form, slug=slugs['formsubmit_slug'])
+        sheet = Sheet.objects.get(form=form, slug=slugs['sheet_slug'])
+        sheet_submission = SheetSubmission.objects.get(sheet=sheet, form_submission=form_submission, slug=slugs['sheetsubmit_slug'])
+        # act
+        url = get_sheet_submission_url(sheet_submission)
+        # assert, check that we get a full URL with all the slugs
+        expected_url = reverse('onlineforms.views.sheet_submission', kwargs=slugs)
+        self.assertEqual(url, expected_url)
+
+    def test_sheet_submission_get_url_secret(self):
+        # arrange
+        key = "b50d3a695edf877df2a2100376d493f1aec5c26a"
+        sheet_submission = SheetSubmissionSecretUrl.objects.get(key=key).sheet_submission
+        # act
+        url = get_sheet_submission_url(sheet_submission)
+        # assert, check that we get a URL using the key, not all the slugs
+        expected_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': key})
+        self.assertEqual(url, expected_url)
