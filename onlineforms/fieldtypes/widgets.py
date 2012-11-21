@@ -57,9 +57,13 @@ class CustomMultipleInputWidget(forms.MultiWidget):
             }
         }
 
-        $(widget_dts[max-1]).after('<dt><label>Add</label></dt><dd class="add_button">\ ' +
+        if(amount() < max){
+            $(widget_dts[max-1]).after('<dt><label>Add</label></dt><dd class="add_button">\ ' +
                         '<div class="field"><input type="button" name="Add Choice" value="Add Response" class="button" /></div>\ ' +
                         '</dd>');
+        }
+
+
 
         var add_button = $(widget_dts[max-1]).next().next().find('input')
 

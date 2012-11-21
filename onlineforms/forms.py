@@ -124,16 +124,14 @@ class DynamicForm(forms.Form):
         for name, field in self.fields.items():
             try:
                 if isinstance(field, forms.MultiValueField):
-                    # handle {name}_{i} names from POST data
-                    i = 0
-                    cleaned_data = []
-                    while True:
-                        n = str(name) + '_' + str(i)
-                        if n not in post_data:
-                            break
-                        if post_data[n]:
-                            cleaned_data.append(post_data[n])
-                        i += 1
+
+                    relevant_data = dict([(k,v) for k,v in post_data.items() if k.startswith(str(name)+"_")])
+                    relevant_data[str(name)] = u''
+                    relevant_data['required'] = ignore_required
+
+                    cleaned_data = field.compress(relevant_data)
+
+
                 elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
@@ -148,7 +146,8 @@ class DynamicForm(forms.Form):
                 field.initial = cleaned_data
             except forms.ValidationError, e:
                 self.errors[name] = ", ".join(e.messages)
-                field.initial = post_data[str(name)]
+                if str(name) in post_data:
+                    field.initial = post_data[str(name)]
 
     def is_valid(self):
         # override because I'm not sure how to bind this form to data (i.e. form.is_bound)

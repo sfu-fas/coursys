@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
@@ -6,17 +7,40 @@ from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 
 
 class CustomMultipleInputField(fields.MultiValueField):
-    def __init__(self, name="",max=20, min=2, *args, **kwargs):
-
+    def __init__(self, name="", max=20, min=2, other_required=False, *args, **kwargs):
+        self.min = min
+        self.max = max
+        self.required = other_required
         kwargs['widget'] = CustomMultipleInputWidget(name=name, max=max, min=min)
         field_set = [fields.CharField() for _ in xrange(int(max))]
 
         super(CustomMultipleInputField, self).__init__(fields=field_set, *args, **kwargs)
 
+
     def compress(self, data_list):
-        #not used
+
         if data_list:
-            return "|".join(data_list)
+            name = data_list.items()[1][0][0]
+            count = 0
+            data = []
+
+            for item in data_list.items():
+
+                k = item[0]
+                v = item[1]
+
+                if str(k).startswith(str(name) + '_'):
+                    if len(str(v)) > 0:
+                        data.append(v)
+                        count += 1
+
+            data.reverse()
+
+            if self.required and count < int(self.min):
+                #Need to still return data.  Maybe append something to data and handle the error from the form
+                raise ValidationError, 'Enter at least N responses'
+
+            return data
         return None
 
 
@@ -29,13 +53,13 @@ class ListField(FieldBase):
         return self.ListConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-
         return CustomMultipleInputField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'],
             max=self.config['max_responses'],
             min=self.config['min_responses'],
-            name=self.config['label'])
+            name=self.config['label'],
+            other_required=self.config['required'])
 
 
     def serialize_field(self, cleaned_data):
@@ -45,7 +69,7 @@ class ListField(FieldBase):
         infos = fieldsubmission.data['info']
         html = '<ul>'
         for info in infos:
-            html += '<li>'+info+'</li>'
+            html += '<li>' + info + '</li>'
         html += '</ul>'
 
         return mark_safe(html)
