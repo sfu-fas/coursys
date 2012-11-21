@@ -175,6 +175,7 @@ class TAPosting(models.Model):
         # 'max_courses': Maximum number of courses an applicant can select
         # 'min_courses': Minimum number of courses an applicant can select
         # 'offer_text': Text to be displayed when students accept/reject the offer (creole markup)
+        # 'export_seq': sequence ID for payroll export (so we can create a unique Batch ID)
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -190,6 +191,7 @@ class TAPosting(models.Model):
             'min_courses': 5,
             'contact': None,
             'offer_text': '',
+            'export_seq': 0,
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -250,6 +252,16 @@ class TAPosting(models.Model):
     def is_open(self):
         today = datetime.date.today()
         return self.opens <= today <= self.closes
+    
+    def next_export_seq(self):
+        if 'export_seq' in self.config:
+            current = self.config['export_seq']
+        else:
+            current = 0
+        
+        self.config['export_seq'] = current + 1
+        self.save()
+        return self.config['export_seq']
     
     def cat_index(self, val):
         indexer = dict((v[0],k) for k,v in enumerate(CATEGORY_CHOICES))
