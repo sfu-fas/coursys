@@ -303,7 +303,7 @@ urlpatterns += patterns('',
     url(r'^sysadmin/roles/$', 'coredata.views.role_list'),
     url(r'^sysadmin/roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_role'),
     url(r'^sysadmin/roles/new$', 'coredata.views.new_role'),
-    url(r'^sysadmin/roles/instr$', 'coredata.views.missing_instructors'),
+    #url(r'^sysadmin/roles/instr$', 'coredata.views.missing_instructors'),
     url(r'^sysadmin/units/$', 'coredata.views.unit_list'),
     url(r'^sysadmin/units/new$', 'coredata.views.edit_unit'),
     url(r'^sysadmin/units/(?P<unit_slug>[\w-]+)/edit$', 'coredata.views.edit_unit'),
@@ -330,6 +330,7 @@ urlpatterns += patterns('',
     url(r'^admin/signatures/' + USERID_SLUG + '/view$', 'dashboard.views.view_signature'),
     url(r'^admin/signatures/' + USERID_SLUG + '/delete', 'dashboard.views.delete_signature'),
     url(r'^admin/(?P<unit_slug>[\w-]+)/address$', 'coredata.views.unit_address'),
+    url(r'^admin/(?P<unit_slug>[\w-]+)/instr$', 'coredata.views.missing_instructors'),
 
 )
 

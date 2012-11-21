@@ -21,7 +21,11 @@
 <p>You are an admin for:</p>
 <ul>
 {% for u in units %}
-<li>{{u.name}} [<a href="{% url coredata.views.unit_address unit_slug=u.slug %}">edit contact info</a>]</li>
+<li>{{u.name}}
+	[
+	<a href="{% url coredata.views.unit_address unit_slug=u.slug %}">edit contact info</a>
+	| <a href="{% url coredata.views.missing_instructors unit_slug=u.slug %}">identify faculty</a>
+    ]</li>
 {% endfor %}
 </ul>
 {% endblock %}
