@@ -1396,8 +1396,11 @@ def _compose_imported_grades(file, students_qset, data_to_return, activity):
         error_string = "File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text."
     else:
         fcopy = io.StringIO(fh.getvalue(), newline=None)
-        first_line = csv.reader(fcopy).next()
-        (error_string, userid_col, activity_col) = _CMS_header(first_line, Person.userid_header(), activity.short_name)
+        try:
+            first_line = csv.reader(fcopy).next()
+            (error_string, userid_col, activity_col) = _CMS_header(first_line, Person.userid_header(), activity.short_name)
+        except UnicodeEncodeError:
+            error_string = "File cannot be encoded as UTF-8 data: make sure it contains legal Unicode characters."
 
     if error_string != None:
         return error_string
