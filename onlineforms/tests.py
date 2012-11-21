@@ -7,7 +7,7 @@ from django.forms import Field as DjangoFormsField, Form as DjangoForm
 
 from coredata.models import Person, Unit
 from settings import CAS_SERVER_URL
-from courselib.testing import basic_page_tests
+from courselib.testing import basic_page_tests, test_auth
 
 from onlineforms.models import FormGroup, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
@@ -117,7 +117,7 @@ class ModelTests(TestCase):
         self.assertEqual(Field.objects.filter(sheet=sheet2).count(), 2)  # inactive isn't copied
 
 
-class SubmissionTests(TestCase):
+class IntegrationTestCase(TestCase):
     fixtures = ['test_data']
 
     def test_valid_simple_initial_form_submission_loggedin(self):
@@ -274,6 +274,92 @@ class SubmissionTests(TestCase):
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-multi-sheet-form"})
         response = response = client.get(url)
         self.assertEqual(response.status_code, 403)
+
+
+class ViewTestCase(TestCase):
+    fixtures = ['test_data', 'onlineforms/extra_test_data']
+    slug_data = {'formgroup_slug': "comp-admins",
+                'formsubmit_slug': "submission-comp-simple-form-2",
+                'form_slug': "comp-simple-form",
+                'sheet_slug': "initial-2",
+                'field_slug': "favorite-color",
+                'sheetsubmit_slug': "submission-initial-2",
+                'secret_url': "b50d3a695edf877df2a2100376d493f1aec5c26a"}
+
+    def test_no_arg_pages(self):
+        client = self.log_in()
+        views = ['manage_groups',
+                        'new_group',
+                        'admin_list_all',
+                        'admin_assign_any',
+                        'list_all',
+                        'new_form',
+                        'submissions_list_all_forms']
+        self.run_basic_page_tests(client, views, {})
+
+    def test_formgroup_pages(self):
+        client = self.log_in()
+        views = ['manage_group', 'add_group_member']
+        args = {'formgroup_slug': self.slug_data["formgroup_slug"]}
+        self.run_basic_page_tests(client, views, args)
+
+    def test_form_pages(self):
+        client = self.log_in()
+        views = ['view_form', 'preview_form', 'edit_form', 'new_sheet', 'sheet_submission']
+        args = {'form_slug': self.slug_data["form_slug"]}
+        self.run_basic_page_tests(client, views, args)
+
+    def test_sheet_pages(self):
+        client = self.log_in()
+        views = ['edit_sheet', 'edit_sheet_info', 'new_field']
+        args = {'form_slug': self.slug_data["form_slug"], 'sheet_slug': self.slug_data["sheet_slug"]}
+        self.run_basic_page_tests(client, views, args)
+
+    def test_field_pages(self):
+        client = self.log_in()
+        views = ['edit_field']
+        args = {'form_slug': self.slug_data["form_slug"],
+                'sheet_slug': self.slug_data["sheet_slug"],
+                'field_slug': self.slug_data["field_slug"]}
+        self.run_basic_page_tests(client, views, args)
+
+    def test_form_submission_pages(self):
+        client = self.log_in()
+        views = ['view_submission']
+        args = {'formsubmit_slug': self.slug_data["formsubmit_slug"]}
+        self.run_basic_page_tests(client, views, args)
+
+    def test_secret_url_pages(self):
+        client = self.log_in()
+        views = ['sheet_submission_via_url']
+        args = {'secret_url': self.slug_data["secret_url"]}
+        self.run_basic_page_tests(client, views, args)
+
+    def test_total_submission_pages(self):
+        client = self.log_in()
+        views = ['sheet_submission']
+        args = {'form_slug': self.slug_data["form_slug"],
+                'sheet_slug': self.slug_data["sheet_slug"],
+                'formsubmit_slug': self.slug_data["formsubmit_slug"],
+                'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
+        self.run_basic_page_tests(client, views, args)
+
+    def run_basic_page_tests(self, client, views, arguments):
+        for view in views:
+                try:
+                    url = reverse('onlineforms.views.' + view, kwargs=arguments)
+                    response = basic_page_tests(self, client, url)
+                    self.assertEqual(response.status_code, 200)
+                except:
+                    print "with view==" + repr(view)
+                    raise
+
+    def log_in(self):
+        logged_in_person = Person.objects.get(userid="ggbaker")
+        # log them in
+        client = Client()
+        client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+        return client
 
 
 class MiscTests(TestCase):
