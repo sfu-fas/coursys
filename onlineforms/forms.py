@@ -131,7 +131,6 @@ class DynamicForm(forms.Form):
 
                     cleaned_data = field.compress(relevant_data)
 
-
                 elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
@@ -148,6 +147,9 @@ class DynamicForm(forms.Form):
                 self.errors[name] = ", ".join(e.messages)
                 if str(name) in post_data:
                     field.initial = post_data[str(name)]
+                else:
+                    initial_data = [v for k,v in post_data.items() if k.startswith(str(name)+"_")]
+                    field.initial = initial_data
 
     def is_valid(self):
         # override because I'm not sure how to bind this form to data (i.e. form.is_bound)

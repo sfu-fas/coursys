@@ -12,13 +12,12 @@ class CustomMultipleInputField(fields.MultiValueField):
         self.max = max
         self.required = other_required
         kwargs['widget'] = CustomMultipleInputWidget(name=name, max=max, min=min)
-        field_set = [fields.CharField() for _ in xrange(int(max))]
+        self.field_set = [fields.CharField() for _ in xrange(int(max))]
 
-        super(CustomMultipleInputField, self).__init__(fields=field_set, *args, **kwargs)
+        super(CustomMultipleInputField, self).__init__(fields=self.field_set, *args, **kwargs)
 
 
     def compress(self, data_list):
-
         if data_list:
             name = data_list.items()[1][0][0]
             count = 0
@@ -31,8 +30,7 @@ class CustomMultipleInputField(fields.MultiValueField):
                         count += 1
 
             if self.required and count < int(self.min):
-                #Need to still return data.  Maybe append something to data and handle the error from the form
-                raise ValidationError, 'Enter at least N responses'
+                raise ValidationError, 'Enter at least '+self.min+' responses'
 
             return data
         return None
@@ -50,8 +48,8 @@ class ListField(FieldBase):
         return CustomMultipleInputField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'],
-            max=self.config['max_responses'],
             min=self.config['min_responses'],
+            max=self.config['max_responses'],
             name=self.config['label'],
             other_required=self.config['required'])
 
