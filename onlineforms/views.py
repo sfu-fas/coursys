@@ -28,6 +28,12 @@ from onlineforms.utils import reorder_sheet_fields
 from coredata.models import Person, Role
 from log.models import LogEntry
 from datetime import datetime
+from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
+from django.template import Context
+
 
 @requires_role('ADMN')
 def manage_groups(request):
@@ -131,6 +137,7 @@ def admin_list_all(request):
 
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
+    admin = get_object_or_404(Person, userid=request.user.username)       
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     form = AdminAssignForm(data=request.POST or None, label='sheet', 
         query_set=Sheet.objects.filter(form=form_submission.form, active=True))
@@ -141,9 +148,25 @@ def admin_assign(request, formsubmit_slug):
             sheet=form.cleaned_data['sheet'],
             filler=userToFormFiller(assignee))
 
-        # change form submission status back to wait status
-        form_submission.status = 'WAIT'
-        form_submission.save()
+        #need to send email to the person
+        plaintext = get_template('onlineforms/emails/email.txt')
+        htmly     = get_template('onlineforms/emails/email.html')
+
+        #d = Context({ 'username': assignee })
+        d = Context({ 'username': admin.name ,'assignee':assignee.name(),'sheeturl':form_submission})
+        assignee_email =  assignee.full_email()   
+        subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
+        text_content = plaintext.render(d)
+        html_content = htmly.render(d)
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
+        # email = EmailMessage('Hello', 'You have been assigned a sheet', 'nobody@courses.cs.sfu.ca',
+        #       ['kks27@sfu.ca'], ['bcc@example.com'],
+        #         headers = {'Reply-To': 'another@example.com'})
+        # email.send()
+
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'form_submission': form_submission}
@@ -482,7 +505,6 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
     if request.POST:
         clean_config = _clean_config(request.POST)
         form = type(config=clean_config).make_config_form()
-
         if field.config == clean_config:
             messages.info(request, "Nothing modified")
 
@@ -500,7 +522,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
             messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
-                reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+                reverse('onlineforms.views.edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
 
     else:
         if not type.configurable:
@@ -532,24 +554,28 @@ def submissions_list_all_forms(request):
     context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
-
-@requires_formgroup()
-def view_submission(request, formsubmit_slug):
-    print formsubmit_slug
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-
-    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
+    
+def readonly_sheets(form_submission):
+    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_sub_html = {}
     for sheet_sub in sheet_submissions:
         # get html from feild submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
-        html = ''
+        fields = []
         for field_sub in field_submissions:
-            display_field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
-            html += display_field.to_html(field_sub)
-        sheet_sub_html[sheet_sub.sheet.title] = html
+            field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
+            if field.configurable:
+                field.html = field.to_html(field_sub)
+                field.label = field.config['label']
+            field.fieldtype = field_sub.field.fieldtype
+            fields.append(field)
+        sheet_sub_html[sheet_sub.sheet.title] = fields
+    return sheet_sub_html
 
-    context = {'sheet_submissions': sheet_sub_html}
+@requires_formgroup()
+def view_submission(request, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(form_submission)}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 def sheet_submission_via_url(request, secret_url):
@@ -592,12 +618,11 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     # a field -> field submission lookup
     field_submission_dict = {}
     # previously filled sheets to display
-    filled_sheets = {}
+    filled_sheets = []
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
         sheet_submission = get_object_or_404(SheetSubmission, sheet=sheet, form_submission=form_submission, slug=sheetsubmit_slug)
-        
         # check if this sheet has already been filled
         if sheet_submission.status == "DONE":
             # or maybe show in display only mode
@@ -618,12 +643,11 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
         # get previously filled in sheet's data
         if sheet.can_view == 'ALL':
-            sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-            for filled_sheet in sheet_submissions:
-                temp_form = DynamicForm(filled_sheet.sheet.title)
-                temp_form.fromFields(filled_sheet.sheet.fields, filled_sheet.field_submissions, read_only=True)
-                filled_sheets[filled_sheet] = temp_form
+            filled_sheets = readonly_sheets(form_submission)
     else:
+        # make sure we are allowed to initiate this form
+        if not loggedin_user and owner_form.initiators != "ANY":
+            return ForbiddenResponse(request)
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
         form_submission = None
@@ -656,6 +680,8 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                             l.save()
                             formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
                             formFiller.save()
+                        else:
+                            formFiller = None
                     elif loggedin_user:
                         formFiller = userToFormFiller(loggedin_user)
                     else:
@@ -665,99 +691,119 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                                    'error_msg': "You must have a SFU account and be logged in to fill out this form."}
                         return render(request, 'onlineforms/submissions/sheet_submission.html', context)
 
-                # we have a form filler, the data is valid, create the formsubmission and sheetsubmission objects if necessary
-                if not(form_submission):
-                    # create the form submission
-                    form_submission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
-                    form_submission.save()
-                    #LOG EVENT#
-                    l = LogEntry(userid=logentry_userid,
-                        description=("Form submission created for form %s by %s") % (owner_form.title, formFiller.email()),
-                        related_object=form_submission)
-                    l.save()
-                if not(sheet_submission):
-                    # create the sheet submission
-                    sheet_submission = SheetSubmission(sheet=sheet, form_submission=form_submission, filler=formFiller)
-                    sheet_submission.save()
-                    #LOG EVENT#
-                    l = LogEntry(userid=logentry_userid,
-                        description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
-                        related_object=sheet_submission)
-                    l.save()
+                if formFiller:
+                    # we have a form filler, the data is valid, create the formsubmission and sheetsubmission objects if necessary
+                    if not(form_submission):
+                        # create the form submission
+                        form_submission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
+                        form_submission.save()
+                        #LOG EVENT#
+                        l = LogEntry(userid=logentry_userid,
+                            description=("Form submission created for form %s by %s") % (owner_form.title, formFiller.email()),
+                            related_object=form_submission)
+                        l.save()
+                    if not(sheet_submission):
+                        # create the sheet submission
+                        sheet_submission = SheetSubmission(sheet=sheet, form_submission=form_submission, filler=formFiller)
+                        sheet_submission.save()
+                        #LOG EVENT#
+                        l = LogEntry(userid=logentry_userid,
+                            description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
+                            related_object=sheet_submission)
+                        l.save()
 
-                # save the data from the fields
-                for name, field in form.fields.items():
-                    # a field can be skipped if we are saving and it is not in the cleaned data
-                    if not(request.POST["submit-mode"] == "Save") or str(name) in form.cleaned_data:
-                        cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
-                        # if we already have a field submission, edit it. Otherwise create a new one
-                        if sheet.fields[name] in field_submission_dict:
-                            fieldSubmission = field_submission_dict[sheet.fields[name]]
-                            fieldSubmission.data = cleaned_data
+                    # save the data from the fields
+                    for name, field in form.fields.items():
+                        # a field can be skipped if we are saving and it is not in the cleaned data
+                        if not(request.POST["submit-mode"] == "Save") or str(name) in form.cleaned_data:
+                            cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
+                            # if we already have a field submission, edit it. Otherwise create a new one
+                            if sheet.fields[name] in field_submission_dict:
+                                fieldSubmission = field_submission_dict[sheet.fields[name]]
+                                fieldSubmission.data = cleaned_data
+                            else:
+                                fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheet_submission, data=cleaned_data)
+                            fieldSubmission.save()
+                            # save files
+                            if isinstance(field, FileField):
+                                if str(name) in request.FILES:
+                                    new_file = request.FILES[str(name)]
+                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
+                                    new_file_submission.save()
+                            #LOG EVENT#
+                            l = LogEntry(userid=logentry_userid,
+                                description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
+                                related_object=fieldSubmission)
+                            l.save()
+
+                    # cleanup for each submit-mode
+                    if request.POST["submit-mode"] == "Save":
+                        # refill the form with the new data
+                        form.fromFields(sheet.fields, sheet_submission.get_field_submissions(refetch=True))
+                        # don't redirect, show the form with errors(if they exist) but notify them that info was saved
+
+                        if alternate_url:
+                            access_url = alternate_url
+                        elif not formFiller.isSFUPerson():
+                            # if they aren't accessing via an alternate url, they aren't a SFU account,
+                            # and they are saving then we need to create a alternate url for them to use
+                            secret_url = SheetSubmissionSecretUrl(sheet_submission=sheet_submission)
+                            secret_url.save()
+                            #LOG EVENT#
+                            l = LogEntry(userid=logentry_userid,
+                                description=("Secret URL created for sheet submission %s of sheet %s of form %s by %s") % (sheet_submission, sheet.title, owner_form.title, formFiller.email()),
+                                related_object=secret_url)
+                            l.save()
+                            access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
                         else:
-                            fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheet_submission, data=cleaned_data)
-                        fieldSubmission.save()
-                        # save files
-                        if isinstance(field, FileField):
-                            if str(name) in request.FILES:
-                                new_file = request.FILES[str(name)]
-                                new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
-                                new_file_submission.save()
-                        #LOG EVENT#
+                            access_url = reverse('onlineforms.views.sheet_submission', kwargs={
+                                'form_slug': owner_form.slug,
+                                'formsubmit_slug': form_submission.slug,
+                                'sheet_slug': sheet.slug,
+                                'sheetsubmit_slug': sheet_submission.slug})
+
+                        messages.success(request, 'All fields without errors were saved. Use this pages URL to edit this submission in the future.')
+                        return HttpResponseRedirect(access_url)
+                    elif request.POST["submit-mode"] == "Submit":
+                        # all the fields have been submitted, this sheet is done
+                        sheet_submission.status = 'DONE'
+                        sheet_submission.save()
                         l = LogEntry(userid=logentry_userid,
-                            description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
-                            related_object=fieldSubmission)
+                            description=("Sheet submission %s completed by %s") % (sheet_submission.slug, formFiller.email()),
+                            related_object=sheet_submission)
                         l.save()
 
-                # cleanup for each submit-mode
-                if request.POST["submit-mode"] == "Save":
-                    # refill the form with the new data
-                    form.fromFields(sheet.fields, sheet_submission.get_field_submissions(refetch=True))
-                    # don't redirect, show the form with errors(if they exist) but notify them that info was saved
-
-                    if alternate_url:
-                        access_url = alternate_url
-                    elif not formFiller.isSFUPerson():
-                        # if they aren't accessing via an alternate url, they aren't a SFU account,
-                        # and they are saving then we need to create a alternate url for them to use
-                        secret_url = SheetSubmissionSecretUrl(sheet_submission=sheet_submission)
-                        secret_url.save()
-                        #LOG EVENT#
-                        l = LogEntry(userid=logentry_userid,
-                            description=("Secret URL created for sheet submission %s of sheet %s of form %s by %s") % (sheet_submission, sheet.title, owner_form.title, formFiller.email()),
-                            related_object=secret_url)
-                        l.save()
-                        access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
-                    else:
-                        access_url = reverse('onlineforms.views.sheet_submission', kwargs={
-                            'form_slug': owner_form.slug, 
-                            'formsubmit_slug': form_submission.slug, 
-                            'sheet_slug': sheet.slug, 
-                            'sheetsubmit_slug': sheet_submission.slug})
-
-                    messages.success(request, 'All fields without errors were saved. Use this pages URL to edit this submission in the future.')
-                    return HttpResponseRedirect(access_url)
-                elif request.POST["submit-mode"] == "Submit":
-                    # all the fields have been submitted, this sheet is done
-                    sheet_submission.status = 'DONE'
-                    sheet_submission.save()
-                    l = LogEntry(userid=logentry_userid,
-                        description=("Sheet submission %s completed by %s") % (sheet_submission.slug, formFiller.email()),
-                        related_object=sheet_submission)
-                    l.save()
-
-                    messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
-                    return HttpResponseRedirect(reverse(submissions_list_all_forms))
+                        messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
+                        return HttpResponseRedirect(reverse(submissions_list_all_forms))
+                else:
+                    messages.error(request, "Error in user data.")
             else:
                 messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
         else:
             messages.error(request, 'Invalid post data.')
- 
-    context = { 'owner_form': owner_form,
-                'sheet': sheet, 
+
+    context = {'owner_form': owner_form,
+                'sheet': sheet,
                 'form': form,
                 'form_submission': form_submission,
                 'filled_sheets': filled_sheets,
                 'alternate_url': alternate_url,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)
+
+
+def get_sheet_submission_url(sheet_submission):
+    """
+    Creates a URL for a sheet submission.
+    If a secret URL has been generated it will use that,
+    otherwise it will create a standard URL.
+    """
+    secret_urls = SheetSubmissionSecretUrl.objects.filter(sheet_submission=sheet_submission)
+    if secret_urls:
+        return reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
+    else:
+        return reverse('onlineforms.views.sheet_submission', kwargs={
+                                'form_slug': sheet_submission.form_submission.form.slug,
+                                'formsubmit_slug': sheet_submission.form_submission.slug,
+                                'sheet_slug': sheet_submission.sheet.slug,
+                                'sheetsubmit_slug': sheet_submission.slug})

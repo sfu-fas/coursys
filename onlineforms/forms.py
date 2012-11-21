@@ -93,7 +93,7 @@ class DynamicForm(forms.Form):
         for k in keys:
             self.fields[k] = kwargs[k]
 
-    def fromFields(self, fields, field_submissions=[], read_only=False):
+    def fromFields(self, fields, field_submissions=[]):
         """
         Sets the fields from a list of field model objects
         preserving the order they are given in
@@ -115,8 +115,6 @@ class DynamicForm(forms.Form):
                     self.fields[counter].widget.set_initial_data(field_submission_dict[field].data['info'])
             else:
                 self.fields[counter] = display_field.make_entry_field()
-            if read_only:
-                self.fields[counter].widget.attrs['disabled'] = True
             # keep the display field for later
             self.display_fields[self.fields[counter] ] = display_field
 
@@ -126,16 +124,13 @@ class DynamicForm(forms.Form):
         for name, field in self.fields.items():
             try:
                 if isinstance(field, forms.MultiValueField):
-                    # handle {name}_{i} names from POST data
-                    i = 0
-                    cleaned_data = []
-                    while True:
-                        n = str(name) + '_' + str(i)
-                        if n not in post_data:
-                            break
-                        if post_data[n]:
-                            cleaned_data.append(post_data[n])
-                        i += 1
+
+                    relevant_data = dict([(k,v) for k,v in post_data.items() if k.startswith(str(name)+"_")])
+                    relevant_data[str(name)] = u''
+                    relevant_data['required'] = ignore_required
+
+                    cleaned_data = field.compress(relevant_data)
+
                 elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
@@ -150,7 +145,11 @@ class DynamicForm(forms.Form):
                 field.initial = cleaned_data
             except forms.ValidationError, e:
                 self.errors[name] = ", ".join(e.messages)
-                field.initial = post_data[str(name)]
+                if str(name) in post_data:
+                    field.initial = post_data[str(name)]
+                else:
+                    initial_data = [v for k,v in post_data.items() if k.startswith(str(name)+"_")]
+                    field.initial = initial_data
 
     def is_valid(self):
         # override because I'm not sure how to bind this form to data (i.e. form.is_bound)

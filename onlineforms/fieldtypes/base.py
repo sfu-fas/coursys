@@ -13,7 +13,7 @@ class FieldConfigForm(forms.Form):
 
     required = forms.BooleanField(label="Required", required=False)
     label = forms.CharField(label="Label")
-    help_text = forms.CharField(label="Help Text")
+    help_text = forms.CharField(label="Help Text", required=False)
 
     def serialize(self):
         """

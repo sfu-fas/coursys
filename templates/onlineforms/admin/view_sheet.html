@@ -1,0 +1,29 @@
+{% block headextra %}
+<style type="text/css">
+    .view_fieldset {
+        padding-bottom: 1em;
+    }
+    
+    hr {
+        clear: both;
+    }
+</style>
+{% endblock %}
+
+{% for sheet_sub_title, fields in sheet_submissions.items %}
+	<form>
+		<fieldset class="view_fieldset">
+			<legend>{{ sheet_sub_title }}</legend>
+			<dl class="dlform">
+			{% for field in fields %}
+                {% ifequal field.fieldtype "DIVI" %}
+                    <hr />
+                {% else %}
+                    <dt><label>{{ field.label }}:</label></dt>
+                    <dd>{{ field.html }}</dd>
+                {% endifequal %}
+			{% endfor %}
+			</dl>
+		</fieldset>
+	</form>
+{% endfor %}

@@ -384,9 +384,12 @@ class FormSubmission(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
-        pass
-        # if 'WAIT' in all SheetSubmission.statuses => 'WAIT'
-        # unless old status was 'DONE'
+        sheet_submissions = SheetSubmission.objects.filter(form_submission=self) 
+        if all(sheet_sub.status == 'DONE' for sheet_sub in sheet_submissions):
+            self.status = 'PEND'
+        else:
+            self.status = 'WAIT'
+        self.save()
     
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission)
@@ -403,7 +406,7 @@ class SheetSubmission(models.Model):
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
         super(SheetSubmission, self).save(*args, **kwargs)
-        #self.form_submission.update_status()
+        self.form_submission.update_status()
 
     cached_fields = None
     def get_field_submissions(self, refetch=False):

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block h1 %} View Form {% endblock %}
-{% block title %} View Form {% endblock %}
+
+{% block h1 %} View {{ form.title }} {% endblock %}
+{% block title %} View {{ form.title }}  {% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -18,21 +19,13 @@
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
     <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
-    <li>&gt; View Form</li>
+    <li>&gt; View {{ form.title }}</li>
 {% endblock %}
 
 {% block content %}
 <div id="form_container">
-    {% for sheet_sub_title, sheet_sub_html in sheet_submissions.items %}
-        <form action="">
-            <fieldset>
-                <legend>{{ sheet_sub_title }}</legend>
-                {{ sheet_sub_html|safe }}
-            </fieldset>
-        </form>
-    {% empty %}
-        <p>No sheets have been filled out.</p>
-    {% endfor %}
-
+	{% if sheet_submissions %}
+		{% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions %}
+    {% endif %}
 </div>
 {% endblock %}

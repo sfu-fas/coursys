@@ -22,12 +22,9 @@
             <p><strong>Form Initiator:</strong> {{ form_submission.initiator.name }}, {{ form_submission.initiator.email_mailto }}</p>
         {% endif %}
 
-        {% for filled_sheet, sheet_form in filled_sheets.items %}
-            <fieldset>
-                <legend>{{ filled_sheet.sheet.title }} [Read Only]</legend>
-                {{ sheet_form|as_dl }}
-            </fieldset>
-        {% endfor %}
+        {% if filled_sheets %}
+            {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=filled_sheets %}
+        {% endif %}
 
         {% if sheet %}
             {% if  form.is_multipart %}
