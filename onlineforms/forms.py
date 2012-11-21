@@ -148,7 +148,7 @@ class DynamicForm(forms.Form):
                 if str(name) in post_data:
                     field.initial = post_data[str(name)]
                 else:
-                    initial_data = [v for k,v in post_data.items() if k.startswith(str(name)+"_")]
+                    initial_data = [v for k,v in post_data.items() if k.startswith(str(name)+"_") and v != '']
                     field.initial = initial_data
 
     def is_valid(self):
