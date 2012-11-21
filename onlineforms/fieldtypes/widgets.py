@@ -82,7 +82,6 @@ class CustomMultipleInputWidget(forms.MultiWidget):
     def __init__(self, attrs=None, name="test", max=20, min=1 ):
         self.max = max
         self.min = min
-        self.name = name
 
         widgets = [forms.TextInput() for _ in xrange(int(self.max))]
 
@@ -105,7 +104,8 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         return output
 
     def render(self, name, value, attrs=None):
-        name = str(name)
-        output = super(CustomMultipleInputWidget, self).render(name, value, attrs)
+        #name = str(name)
+        self.name = str(name)
+        output = super(CustomMultipleInputWidget, self).render(self.name, value, attrs)
 
         return output
