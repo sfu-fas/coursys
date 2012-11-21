@@ -96,8 +96,10 @@ class GradStudent(models.Model):
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
         # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
         # 'work_title': title of the Thesis/Project/Extended Essay
-    defaults = {'sin': '000000000'}
+        # 'applic_email': email address from the application process (where it could be imported)
+    defaults = {'sin': '000000000', 'applic_email': None}
     sin, set_sin = getter_setter('sin')
+    applic_email, set_applic_email = getter_setter('applic_email')
 
     def __unicode__(self):
         return u"%s, %s" % (self.person, self.program.label)
