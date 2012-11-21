@@ -480,7 +480,7 @@ class TestImportFunctionsNumeric(TestCase):
             self.values[i] = [self.values[i][6], self.values[i][1]]
         data_to_return = {}
         with open(inName, 'r') as inp:
-             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, None)
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
@@ -492,6 +492,15 @@ class TestImportFunctionsNumeric(TestCase):
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err,
             'File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text.')
+        self.assertEqual(len(data_to_return), 0)
+
+    def test_import_grades_new_format_utf8_bom(self):
+        inName = 'marking/testfiles/newformat_utf8_bom.csv'
+        data_to_return = {}
+        with open(inName, 'r') as inp:
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertEqual(err,
+            'File cannot be encoded as UTF-8 data: make sure it contains legal Unicode characters.')
         self.assertEqual(len(data_to_return), 0)
 
 
@@ -528,7 +537,7 @@ class TestImportFunctionsLetter(TestCase):
         del self.values[0] # Delete header row
         data_to_return = {}
         with open(inName, 'r') as inp:
-             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, None)
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
