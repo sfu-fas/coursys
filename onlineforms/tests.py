@@ -3,12 +3,15 @@ from django.db.utils import IntegrityError
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 
+from django.forms import Field as DjangoFormsField, Form as DjangoForm
+
 from coredata.models import Person, Unit
 from settings import CAS_SERVER_URL
 from courselib.testing import basic_page_tests
 
 from onlineforms.models import FormGroup, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
+from onlineforms.models import FIELD_TYPE_MODELS
 
 from onlineforms.views import get_sheet_submission_url
 
@@ -305,3 +308,33 @@ class MiscTests(TestCase):
         # assert, check that we get a URL using the key, not all the slugs
         expected_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': key})
         self.assertEqual(url, expected_url)
+
+
+class FieldTestCase(TestCase):
+    fixtures = ['test_data']
+    config = {"min_length": 5,
+                "max_length": 10,
+                "required": False,
+                "help_text": "whatever",
+                "label": "whatever",
+                "min_responses": 1,
+                "max_responses": 4}
+
+    def test_make_config_form(self):
+        for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
+            instance = field_model(self.config)
+            config_form = instance.make_config_form()
+            # looks like a divider will return a bool false here, look into that
+            # still checks for notimplemented error though
+            if config_form:
+                self.assertTrue(isinstance(config_form, DjangoForm))
+
+    def test_make_entry_field(self):
+        for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
+            instance = field_model(self.config)
+            self.assertTrue(isinstance(instance.make_entry_field(), DjangoFormsField))
+
+    def test_serialize_field(self):
+        for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
+            instance = field_model(self.config)
+            self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
