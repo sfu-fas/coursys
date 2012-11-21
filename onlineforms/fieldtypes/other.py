@@ -24,17 +24,11 @@ class CustomMultipleInputField(fields.MultiValueField):
             count = 0
             data = []
 
-            for item in data_list.items():
-
-                k = item[0]
-                v = item[1]
-
+            for k, v in sorted(data_list.iteritems(), key=lambda (k,v): (k,v)):
                 if str(k).startswith(str(name) + '_'):
                     if len(str(v)) > 0:
                         data.append(v)
                         count += 1
-
-            data.reverse()
 
             if self.required and count < int(self.min):
                 #Need to still return data.  Maybe append something to data and handle the error from the form
