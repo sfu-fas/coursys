@@ -557,8 +557,7 @@ def view_course_offerings(request, semester=None):
         semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
         semesters = Semester.objects.filter(start__lte=datetime.date.today() + datetime.timedelta(days=365)).order_by('-end')[:6]
     
-    if 'offeringsearch' in request.GET and 'offering' in request.GET \
-            and request.GET['offering'] and request.GET['offering'].isdigit():
+    if 'offeringsearch' in request.GET and request.GET['offeringsearch'] and request.GET['offeringsearch'].isdigit():
         # handle the search for other offerings
         offering = get_object_or_404(CourseOffering, id=request.GET['offering'])
         return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
