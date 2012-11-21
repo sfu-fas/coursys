@@ -93,16 +93,13 @@ class ModelTests(TestCase):
         self.assertEqual(sheetX.active, True)  # cousin shouldn't be deactivated, since it's on a different version of the form
 
     def test_sheet_copy(self):
-        form = Form.objects.get(slug="comp-simple-form")
-        form.save()
-        sheet1 = Sheet(title="Initial Sheet", form=form)
-        sheet1.save()
-        f1 = Field(label="F1", sheet=sheet1)
-        f1.save()
-        f2 = Field(label="F2", sheet=sheet1)
-        f2.save()
-        f3 = Field(label="F3", sheet=sheet1, active=False)
-        f3.save()
+        fg = FormGroup.objects.create(name="Admin Test", unit=self.unit)
+        form = Form.objects.create(title="Test Form", unit=self.unit, owner=fg)
+        sheet1 = Sheet.objects.create(title="Initial Sheet", form=form)
+        # create three fields
+        Field.objects.create(label="F1", sheet=sheet1)
+        Field.objects.create(label="F2", sheet=sheet1)
+        Field.objects.create(label="F3", sheet=sheet1, active=False)
 
         self.assertEqual(Field.objects.filter(sheet=sheet1).count(), 3)
         self.assertEqual(Field.objects.filter(sheet=sheet1, active=True).count(), 2)
