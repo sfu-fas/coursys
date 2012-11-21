@@ -25,4 +25,7 @@ def save_search(request):
         return HttpResponseRedirect(reverse('grad.views.index'))
     else:
         messages.add_message(request, messages.ERROR, saveform.errors.as_text())
-        return HttpResponseRedirect(reverse('grad.views.search') + u'?' + saveform.data['query'])
+        if True or 'query' in saveform.data:
+            return HttpResponseRedirect(reverse('grad.views.search') + u'?' + saveform.data['query'])
+        else:
+            return HttpResponseRedirect(reverse('grad.views.search'))
