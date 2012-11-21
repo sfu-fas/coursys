@@ -726,7 +726,8 @@ def contracts_csv(request, post_slug):
     
     contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']) \
                 .select_related('semester', 'application__person')
-    batchid = '%s_%s_01' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"))
+    seq = posting.next_export_seq()
+    batchid = '%s_%s_%02i' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"), seq)
     for c in contracts:
         courses = TACourse.objects.filter(contract=c)
         total_bu = 0
@@ -741,11 +742,14 @@ def contracts_csv(request, post_slug):
         schol_rate = 'TSCH' if c.scholarship_per_bu else ''
         salary_total = (total_bu + prep_units) * c.pay_per_bu
         schol_total = (total_bu + prep_units) * c.scholarship_per_bu
+        if prep_units == 0:
+            prep_units = ''
+        
         row = [batchid, posting.semester.name, signed, benefits, c.application.person.emplid, c.application.sin]
         row.extend([c.application.person.last_name, c.application.person.first_name, c.application.person.middle_name])
         row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
-        row.extend([c.position_number.position_number, '', '', 'TSU', '', c.application.category])
-        row.extend(['*fund*', posting.unit.deptid(), '', c.position_number.account_number, prep_units, total_bu])
+        row.extend(["%08i" % (c.position_number.position_number), '', '', 'TSU', '', c.application.category])
+        row.extend([11, posting.unit.deptid(), '', c.position_number.account_number, prep_units, total_bu])
         row.extend(['T', "%.2f"%(salary_total), '', '', '', schol_rate, "%.2f"%(schol_total), '', '', '', ''])
         writer.writerow(row)
     
