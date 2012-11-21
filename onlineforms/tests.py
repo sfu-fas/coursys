@@ -20,7 +20,6 @@ class ModelTests(TestCase):
         self.unit = Unit.objects.get(label="COMP")
 
     def test_FormGroup(self):
-        return
         groupName = "admins_test"
         u1 = Unit.objects.get(label="COMP")
         u2 = Unit.objects.get(label="ENG")
@@ -48,7 +47,6 @@ class ModelTests(TestCase):
         """
         Make sure .active and .original are getting manipulated correctly.
         """
-        return
         # create new form
         form = Form(title="Test Form", unit=self.unit, owner=FormGroup.objects.all()[0])
         form.save()
@@ -92,8 +90,10 @@ class ModelTests(TestCase):
         self.assertEqual(sheetX.active, True)  # cousin shouldn't be deactivated, since it's on a different version of the form
 
     def test_sheet_copy(self):
-        return
-        sheet1 = Sheet.objects.get(slug='initial-sheet')
+        form = Form.objects.get(slug="comp-simple-form")
+        form.save()
+        sheet1 = Sheet(title="Initial Sheet", form=form)
+        sheet1.save()
         f1 = Field(label="F1", sheet=sheet1)
         f1.save()
         f2 = Field(label="F2", sheet=sheet1)
@@ -115,16 +115,6 @@ class ModelTests(TestCase):
         self.assertEqual(Field.objects.filter(sheet=sheet1).count(), 3)
         self.assertEqual(Field.objects.filter(sheet=sheet1, active=True).count(), 2)
         self.assertEqual(Field.objects.filter(sheet=sheet2).count(), 2)  # inactive isn't copied
-
-        # copy a field and make sure things are okay
-        f3a = Field.objects.filter(sheet=sheet2)[0]
-        f3b = f3a.safe_save()
-
-        self.assertNotEqual(f3a.sheet, f3b.sheet)
-        self.assertEqual(f3a.sheet.form, f3b.sheet.form)
-        self.assertEqual(f3a.label, f3b.label)
-        self.assertEqual(f3a.original, f3b.original)
-        self.assertEqual(Field.objects.filter(sheet=f3b.sheet, active=True).count(), 2)
 
 
 class SubmissionTests(TestCase):
