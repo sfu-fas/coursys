@@ -140,7 +140,6 @@ def get_full_path(request):
         full_path = ('http', ':/', request)
         return ''.join(full_path)    
 
-
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     admin = get_object_or_404(Person, userid=request.user.username)       
@@ -160,12 +159,8 @@ def admin_assign(request, formsubmit_slug):
         
         admin_name = admin.name()
         assignee_name = assignee.name() 
-        #d = Context({ 'username': assignee })
-        sheet_url = get_sheet_submission_url(sheet_submission)
-        #sheet_u = HttpRequest.build_absolute_uri(sheet_url)
-    
+        sheet_url = get_sheet_submission_url(sheet_submission)    
         full_url = get_full_path(sheet_url)
-
         d = Context({ 'username': admin_name ,'assignee':assignee_name,'sheeturl':full_url})
         assignee_email =  assignee.full_email()   
         subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
@@ -174,12 +169,6 @@ def admin_assign(request, formsubmit_slug):
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
-
-        # email = EmailMessage('Hello', 'You have been assigned a sheet', 'nobody@courses.cs.sfu.ca',
-        #       ['kks27@sfu.ca'], ['bcc@example.com'],
-        #         headers = {'Reply-To': 'another@example.com'})
-        # email.send()
-
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'form_submission': form_submission}
