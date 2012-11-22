@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django import forms
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404, get_list_or_404
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpRequest
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
@@ -144,16 +144,20 @@ def admin_assign(request, formsubmit_slug):
     if form.is_valid():
         # make new sheet submission for next sheet choosen
         assignee = form.cleaned_data['assignee']
-        SheetSubmission.objects.create(form_submission=form_submission,
+        sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=userToFormFiller(assignee))
-
+          
         #need to send email to the person
         plaintext = get_template('onlineforms/emails/email.txt')
         htmly     = get_template('onlineforms/emails/email.html')
-
+        
+        admin_name = admin.name()
+        assignee_name = assignee.name() 
         #d = Context({ 'username': assignee })
-        d = Context({ 'username': admin.name ,'assignee':assignee.name(),'sheeturl':form_submission})
+        sheet_url = get_sheet_submission_url(sheet_submission)
+        #sheet_u = HttpRequest.build_absolute_uri(sheet_url)
+        d = Context({ 'username': admin_name ,'assignee':assignee_name,'sheeturl':sheet_url})
         assignee_email =  assignee.full_email()   
         subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
         text_content = plaintext.render(d)
