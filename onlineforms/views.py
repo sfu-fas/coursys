@@ -95,9 +95,9 @@ def add_group_member(request, formgroup_slug):
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
-                post_data = request.POST.values()
-                # grabs the emplid from the post data list
-                member_id = int(post_data[len(post_data)-1])
+                print "in request post action"
+                print request.POST['search']
+                member_id = request.POST['search']
                 member = Person.objects.get(emplid=member_id)
                 group.members.add(member)
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
