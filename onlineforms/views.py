@@ -23,7 +23,7 @@ from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
-from onlineforms.utils import reorder_sheet_fields
+from onlineforms.utils import reorder_sheet_fields, get_sheet_submission_url
 
 from coredata.models import Person, Role
 from log.models import LogEntry
@@ -807,20 +807,3 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                 'alternate_url': alternate_url,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)
-
-
-def get_sheet_submission_url(sheet_submission):
-    """
-    Creates a URL for a sheet submission.
-    If a secret URL has been generated it will use that,
-    otherwise it will create a standard URL.
-    """
-    secret_urls = SheetSubmissionSecretUrl.objects.filter(sheet_submission=sheet_submission)
-    if secret_urls:
-        return reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
-    else:
-        return reverse('onlineforms.views.sheet_submission', kwargs={
-                                'form_slug': sheet_submission.form_submission.form.slug,
-                                'formsubmit_slug': sheet_submission.form_submission.slug,
-                                'sheet_slug': sheet_submission.sheet.slug,
-                                'sheetsubmit_slug': sheet_submission.slug})

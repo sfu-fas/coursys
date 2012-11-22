@@ -1,4 +1,5 @@
-from onlineforms.models import Field
+from onlineforms.models import Field, SheetSubmissionSecretUrl
+from django.core.urlresolvers import reverse
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
 
@@ -28,3 +29,20 @@ def reorder_sheet_fields(ordered_fields, field_slug, order):
                 ordered_fields[i+1].save()
                 ordered_fields[i].save()
             break
+
+
+def get_sheet_submission_url(sheet_submission):
+    """
+    Creates a URL for a sheet submission.
+    If a secret URL has been generated it will use that,
+    otherwise it will create a standard URL.
+    """
+    secret_urls = SheetSubmissionSecretUrl.objects.filter(sheet_submission=sheet_submission)
+    if secret_urls:
+        return reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
+    else:
+        return reverse('onlineforms.views.sheet_submission', kwargs={
+                                'form_slug': sheet_submission.form_submission.form.slug,
+                                'formsubmit_slug': sheet_submission.form_submission.slug,
+                                'sheet_slug': sheet_submission.sheet.slug,
+                                'sheetsubmit_slug': sheet_submission.slug})
