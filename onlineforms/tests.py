@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.db.utils import IntegrityError
-from django.test.client import Client
 from django.core.urlresolvers import reverse
 
 from django.forms import Field as DjangoFormsField, Form as DjangoForm
@@ -14,6 +13,11 @@ from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission,
 from onlineforms.models import FIELD_TYPE_MODELS
 
 from onlineforms.views import get_sheet_submission_url
+
+
+# repeats a string to exactly the length we want
+def repeat_to_length(string_to_expand, length):
+    return (string_to_expand * ((length / len(string_to_expand)) + 1))[:length]
 
 
 class ModelTests(TestCase):
@@ -414,22 +418,45 @@ class FieldTestCase(TestCase):
             self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
 
     def test_smltxt_field(self):
+        test_input = "abacus"
+        config = self.standard_config.copy()
+        field_submission = self.field_test("SMTX", config, test_input)
+        self.assertEqual(field_submission.data["info"], test_input)
+
+    def test_medtxt_field(self):
+        test_input = repeat_to_length("Never Eat Shredded Wheat.", 351)
+        config = self.standard_config.copy()
+        config["min_length"] = 320
+        config["max_length"] = 377
+        field_submission = self.field_test("MDTX", config, test_input)
+        self.assertEqual(field_submission.data["info"], test_input)
+
+    def test_lrgtxt_field(self):
+        test_input = repeat_to_length("The quick brown fox jumps over the lazy dog.", 444)
+        config = self.standard_config.copy()
+        config["min_length"] = 401
+        config["max_length"] = 490
+        field_submission = self.field_test("LGTX", config, test_input)
+        self.assertEqual(field_submission.data["info"], test_input)
+
+    # takes a fieldtype, field config, and input.
+    # will create a form with one sheet with one field of
+    # the type specified with the config specified. Will then
+    # submit the sheet with test_input, and will return the field submission
+    def field_test(self, fieldtype, config, test_input):
         # create a basic form with one field to submit
         fg = FormGroup.objects.create(name="Admin Test", unit=self.unit)
         form = Form.objects.create(title="Test Form", unit=self.unit, owner=fg, initiators="LOG")
         sheet = Sheet.objects.create(title="Initial Sheet", form=form, is_initial=True)
-        config = self.standard_config.copy()
-        field = Field.objects.create(label="F1", sheet=sheet, fieldtype="SMTX", config=config)
+        field = Field.objects.create(label="F1", sheet=sheet, fieldtype=fieldtype, config=config)
         # make a post request to submit the sheet
-        test_input = "abacus"
         post_data = {'0': test_input, 'submit-mode': "Submit"}
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': form.slug})
         response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
-        # ensure objects were created and the input value is there
+        # ensure objects were created
         self.assertEqual(len(FormSubmission.objects.filter(form=form)), 1)
         self.assertEqual(len(SheetSubmission.objects.filter(sheet=sheet)), 1)
         field_submissions = FieldSubmission.objects.filter(field=field)
         self.assertEqual(len(field_submissions), 1)
-        field_submission = field_submissions[0]
-        self.assertEqual(field_submission.data["info"], test_input)
+        return field_submissions[0]
