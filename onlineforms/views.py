@@ -104,6 +104,8 @@ def add_group_member(request, formgroup_slug):
                         member = search_form.cleaned_data['search']
                         group.members.add(member)
                         return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+                else: # if accidentally don't search for anybody
+                    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
