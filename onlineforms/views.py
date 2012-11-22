@@ -33,6 +33,7 @@ from django.core.mail import EmailMessage
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.template import Context
+from django.core.urlresolvers import reverse
 
 
 @requires_role('ADMN')
@@ -135,6 +136,11 @@ def admin_list_all(request):
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
+def get_full_path(request):
+        full_path = ('http', ':/', request)
+        return ''.join(full_path)    
+
+
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     admin = get_object_or_404(Person, userid=request.user.username)       
@@ -157,7 +163,10 @@ def admin_assign(request, formsubmit_slug):
         #d = Context({ 'username': assignee })
         sheet_url = get_sheet_submission_url(sheet_submission)
         #sheet_u = HttpRequest.build_absolute_uri(sheet_url)
-        d = Context({ 'username': admin_name ,'assignee':assignee_name,'sheeturl':sheet_url})
+    
+        full_url = get_full_path(sheet_url)
+
+        d = Context({ 'username': admin_name ,'assignee':assignee_name,'sheeturl':full_url})
         assignee_email =  assignee.full_email()   
         subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
         text_content = plaintext.render(d)
