@@ -96,12 +96,12 @@ def add_group_member(request, formgroup_slug):
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
-                print "in request post action"
-                print request.POST['search']
-                member_id = request.POST['search']
-                member = Person.objects.get(emplid=member_id)
-                group.members.add(member)
-                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+                search_form = EmployeeSearchForm(request.POST)
+                if search_form.is_valid(): 
+                    member_id = search_form.cleaned_data['search']
+                    member = Person.objects.get(emplid=member_id)
+                    group.members.add(member)
+                    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
