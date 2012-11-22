@@ -88,7 +88,7 @@
                     <th scope="col">Initiator</th>
                     <th scope="col">Sheet</th>
                     <th scope="col">Assigned to</th>
-                    <th scope="col">Elasped Time</th>
+                    <th scope="col">Elapsed Time</th>
                     <th scope="col">Done</th>
                     <th scope="col">View Form</th>    
                 </tr>
@@ -100,7 +100,7 @@
                     <td>{{ form_sub.initiator }}</td>
                     <td>{{ form_sub.assigned_to.sheet.title }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
-                    <td>{{ form_sub.assigned_to.given_at|timesince }}</td>
+                    <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
                       <td class="miniaction">
                         <form action="{% url onlineforms.views.admin_done formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
                             <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />

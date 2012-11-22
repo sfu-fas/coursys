@@ -177,7 +177,8 @@ def admin_assign(request, formsubmit_slug):
         admin_name = admin.name()
         assignee_name = assignee.name() 
         sheet_url = get_sheet_submission_url(sheet_submission)    
-        full_url = get_full_path(sheet_url)
+        # full_url = get_full_path(sheet_url)
+        full_url = request.build_absolute_uri(sheet_url)
         d = Context({ 'username': admin_name ,'assignee':assignee_name,'sheeturl':full_url})
         assignee_email =  assignee.full_email()   
         subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
@@ -607,6 +608,14 @@ def sheet_submission_via_url(request, secret_url):
     form = form_submission.form
     alternate_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url})
     return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
+
+
+@requires_formgroup()
+def view_submission(request, sheetsubmit_slug, file_id):
+    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
+    filesub = get_object_or_404(FileSubmission)
+    # read file
+    # like that: https://docs.djangoproject.com/en/1.3/howto/outputting-csv/
 
 
 def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
