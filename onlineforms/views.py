@@ -72,12 +72,11 @@ def manage_group(request, formgroup_slug):
 
     # for editting group name
     if request.method == 'POST':
-        form = EditGroupForm(instance=group)
+        form = EditGroupForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
-    else:
-        form = EditGroupForm(instance=group)
+    form = EditGroupForm(instance=group)
     grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
 
     # below is for finding person thru coredata/personfield and adding to group
