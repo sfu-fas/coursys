@@ -168,9 +168,11 @@ def admin_assign(request, formsubmit_slug):
         html_content = htmly.render(d)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, "text/html")
-        msg.send()
-        return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
-
+        if assignee.full_email() != admin.full_email():
+                msg.send()        
+                return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+        else:
+             return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
     
