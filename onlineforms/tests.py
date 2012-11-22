@@ -16,14 +16,6 @@ from onlineforms.models import FIELD_TYPE_MODELS
 from onlineforms.views import get_sheet_submission_url
 
 
-def log_in():
-    logged_in_person = Person.objects.get(userid="ggbaker")
-    # log them in
-    client = Client()
-    client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
-    return client
-
-
 class ModelTests(TestCase):
     fixtures = ['test_data']
 
@@ -129,17 +121,14 @@ class IntegrationTestCase(TestCase):
     fixtures = ['test_data']
 
     def test_valid_simple_initial_form_submission_loggedin(self):
-        # get a person
         logged_in_person = Person.objects.get(userid="ggbaker")
-        # log them in
-        client = Client()
-        client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+        self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
 
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-simple-form"})
-        response = basic_page_tests(self, client, url)
+        response = basic_page_tests(self, self.client, url)
         self.assertEqual(response.status_code, 200)
         # make sure it's not displaying the add-nonsfu form
         self.assertNotContains(response, '<input type="hidden" name="add-nonsfu" value="True"/>')
@@ -153,7 +142,7 @@ class IntegrationTestCase(TestCase):
             '2': fill_data["second-favorite-color"],
             'submit-mode': "Submit",
         }
-        response = client.post(url, post_data, follow=True)
+        response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
         # check that a success messaging is being displayed
         self.assertContains(response, '<li class="success">')
@@ -183,13 +172,12 @@ class IntegrationTestCase(TestCase):
         self.assertEqual(form_submission.status, "PEND")
 
     def test_valid_simple_initial_form_submission_anonymous(self):
-        client = Client()
         person = {'first_name': "Alan", 'last_name': "Turing", 'email_address': "alan.turing@gmail.com"}
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-simple-form"})
-        response = basic_page_tests(self, client, url)
+        response = basic_page_tests(self, self.client, url)
         self.assertEqual(response.status_code, 200)
         # check that the non sfu form is up
         self.assertContains(response, '<input type="hidden" name="add-nonsfu" value="True"/>')
@@ -207,7 +195,7 @@ class IntegrationTestCase(TestCase):
             '2': fill_data["second-favorite-color"],
             'submit-mode': "Submit",
         }
-        response = client.post(url, post_data, follow=True)
+        response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
         # check that a success messaging is being displayed
         self.assertContains(response, '<li class="success">')
@@ -239,12 +227,11 @@ class IntegrationTestCase(TestCase):
         self.assertEqual(form_submission.status, "PEND")
 
     def test_invalid_nonsfu_missing_elements(self):
-        client = Client()
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-simple-form"})
-        response = basic_page_tests(self, client, url)
+        response = basic_page_tests(self, self.client, url)
         # test with each field missing
         person_nofirst = {'first_name': "", 'last_name': "Turing", 'email_address': "alan.turing@gmail.com"}
         person_nolast = {'first_name': "Alan", 'last_name': "", 'email_address': "alan.turing@gmail.com"}
@@ -265,7 +252,7 @@ class IntegrationTestCase(TestCase):
                 'submit-mode': "Submit",
             }
 
-            response = client.post(url, post_data, follow=True)
+            response = self.client.post(url, post_data, follow=True)
             self.assertEqual(response.status_code, 200)
             # make sure no success
             self.assertNotContains(response, '<li class="success">')
@@ -276,11 +263,10 @@ class IntegrationTestCase(TestCase):
             self.assertEqual(old_sheet_submission_count, len(SheetSubmission.objects.all()))
 
     def test_invalid_forbidden_initial(self):
-        client = Client()
         # this form doesn't allow non-sfu students to fill it out, so if we
         # are not logged in and we try to access it it should return forbidden
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-multi-sheet-form"})
-        response = response = client.get(url)
+        response = response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
 
 
@@ -294,8 +280,11 @@ class ViewTestCase(TestCase):
                 'sheetsubmit_slug': "submission-initial-2",
                 'secret_url': "b50d3a695edf877df2a2100376d493f1aec5c26a"}
 
+    def setUp(self):
+        logged_in_person = Person.objects.get(userid="ggbaker")
+        self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+
     def test_no_arg_pages(self):
-        client = log_in()
         views = ['manage_groups',
                         'new_group',
                         'admin_list_all',
@@ -303,61 +292,54 @@ class ViewTestCase(TestCase):
                         'list_all',
                         'new_form',
                         'submissions_list_all_forms']
-        self.run_basic_page_tests(client, views, {})
+        self.run_basic_page_tests(views, {})
 
     def test_formgroup_pages(self):
-        client = log_in()
         views = ['manage_group', 'add_group_member']
         args = {'formgroup_slug': self.slug_data["formgroup_slug"]}
-        self.run_basic_page_tests(client, views, args)
+        self.run_basic_page_tests(views, args)
 
     def test_form_pages(self):
-        client = log_in()
         views = ['view_form', 'preview_form', 'edit_form', 'new_sheet', 'sheet_submission']
         args = {'form_slug': self.slug_data["form_slug"]}
-        self.run_basic_page_tests(client, views, args)
+        self.run_basic_page_tests(views, args)
 
     def test_sheet_pages(self):
-        client = log_in()
         views = ['edit_sheet', 'edit_sheet_info', 'new_field']
         args = {'form_slug': self.slug_data["form_slug"], 'sheet_slug': self.slug_data["sheet_slug"]}
-        self.run_basic_page_tests(client, views, args)
+        self.run_basic_page_tests(views, args)
 
     def test_field_pages(self):
-        client = log_in()
         views = ['edit_field']
         args = {'form_slug': self.slug_data["form_slug"],
                 'sheet_slug': self.slug_data["sheet_slug"],
                 'field_slug': self.slug_data["field_slug"]}
-        self.run_basic_page_tests(client, views, args)
+        self.run_basic_page_tests(views, args)
 
     def test_form_submission_pages(self):
-        client = log_in()
         views = ['view_submission']
         args = {'formsubmit_slug': self.slug_data["formsubmit_slug"]}
-        self.run_basic_page_tests(client, views, args)
+        self.run_basic_page_tests(views, args)
 
     def test_secret_url_pages(self):
-        client = log_in()
         views = ['sheet_submission_via_url']
         args = {'secret_url': self.slug_data["secret_url"]}
-        self.run_basic_page_tests(client, views, args)
+        self.run_basic_page_tests(views, args)
 
     def test_total_submission_pages(self):
-        client = log_in()
         views = ['sheet_submission']
         args = {'form_slug': self.slug_data["form_slug"],
                 'sheet_slug': self.slug_data["sheet_slug"],
                 'formsubmit_slug': self.slug_data["formsubmit_slug"],
                 'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
-        self.run_basic_page_tests(client, views, args)
+        self.run_basic_page_tests(views, args)
 
-    def run_basic_page_tests(self, client, views, arguments):
+    def run_basic_page_tests(self, views, arguments):
         for view in views:
                 try:
                     url = reverse('onlineforms.views.' + view, kwargs=arguments)
-                    # response = client.get(url)
-                    response = basic_page_tests(self, client, url)
+                    response = self.client.get(url)
+                    # response = basic_page_tests(self, self.client, url)
                     self.assertEqual(response.status_code, 200)
                 except:
                     print "with view==" + repr(view)
@@ -406,7 +388,9 @@ class FieldTestCase(TestCase):
                 "max_responses": 4}
 
     def setUp(self):
-        self.unit = Unit.objects.get(label="COMP")
+        # we want to be logge din for all these tests
+        logged_in_person = Person.objects.get(userid="ggbaker")
+        self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
 
     def test_make_config_form(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
@@ -428,7 +412,6 @@ class FieldTestCase(TestCase):
             self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
 
     def test_smltxt_field(self):
-        client = log_in()
         fg = FormGroup.objects.create(name="Admin Test", unit=self.unit)
         form = Form.objects.create(title="Test Form", unit=self.unit, owner=fg, initiators="LOG")
         sheet = Sheet.objects.create(title="Initial Sheet", form=form, is_initial=True)
@@ -441,7 +424,7 @@ class FieldTestCase(TestCase):
             '0': test_input,
             'submit-mode': "Submit",
         }
-        response = client.post(url, post_data, follow=True)
+        response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(len(FormSubmission.objects.filter(form=form)), 1)
