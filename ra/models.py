@@ -1,7 +1,7 @@
 from django.db import models
 from coredata.models import Person, Unit, Semester
 from jsonfield import JSONField
-#from courselib.json_fields import getter_setter
+from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
@@ -118,6 +118,8 @@ class RAAppointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    defaults = {'use_hourly': False}
+    use_hourly, set_use_hourly = getter_setter('use_hourly')
 
     def __unicode__(self):
         return unicode(self.person) + "@" + unicode(self.created_at)

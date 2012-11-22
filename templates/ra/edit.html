@@ -23,7 +23,7 @@ var payperiods_url = "{% url ra.views.pay_periods %}";
     <form action="{% url ra.views.edit ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
       <fieldset style="list-style: none;">
         <legend>Contract Information</legend>
-        {{ raform|as_dl_excludefields:"lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours,pay_frequency,reappointment,medical_benefits,dental_benefits,notes,comments" }}
+        {{ raform|as_dl_excludefields:"lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours,pay_frequency,reappointment,medical_benefits,dental_benefits,notes,comments,use_hourly" }}
 
         <p><legend>Salary Information</legend></p>
         <table id="salary_info">
@@ -49,12 +49,18 @@ var payperiods_url = "{% url ra.views.pay_periods %}";
             <td class="salary_label">{{ raform.hours.label }}:*</td>
             <td>{{ raform.hours }}{{ raform.hours.errors }}</td>
           </tr>
+
+          <tr>
+            <td class="salary_first">{{ raform.use_hourly.label }}:*</td>
+            <td>{{ raform.use_hourly }}{{ raform.use_hourly.errors }}
+            	<span class="helptext">{{ raform.use_hourly.help_text }}</span></td>
+          </tr>
         </table>
 
         <p class="helptext">* This field is required.</p>
         
         <p><legend>Other Information</legend></p>
-        {{ raform|as_dl_excludefields:"person,sin,hiring_faculty,unit,hiring_category,scholarship,project,account,start_date,end_date,pay_frequency,lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours" }}
+        {{ raform|as_dl_excludefields:"person,sin,hiring_faculty,unit,hiring_category,scholarship,project,account,start_date,end_date,pay_frequency,lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours,use_hourly" }}
         <p><input type="submit" class="submit" value="Submit" /></p>
       </fieldset>
     </form>  
