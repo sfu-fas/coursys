@@ -7,13 +7,21 @@ from django.forms import Field as DjangoFormsField, Form as DjangoForm
 
 from coredata.models import Person, Unit
 from settings import CAS_SERVER_URL
-from courselib.testing import basic_page_tests, test_auth
+from courselib.testing import basic_page_tests
 
 from onlineforms.models import FormGroup, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
 from onlineforms.models import FIELD_TYPE_MODELS
 
 from onlineforms.views import get_sheet_submission_url
+
+
+def log_in():
+    logged_in_person = Person.objects.get(userid="ggbaker")
+    # log them in
+    client = Client()
+    client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+    return client
 
 
 class ModelTests(TestCase):
@@ -287,7 +295,7 @@ class ViewTestCase(TestCase):
                 'secret_url': "b50d3a695edf877df2a2100376d493f1aec5c26a"}
 
     def test_no_arg_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['manage_groups',
                         'new_group',
                         'admin_list_all',
@@ -298,25 +306,25 @@ class ViewTestCase(TestCase):
         self.run_basic_page_tests(client, views, {})
 
     def test_formgroup_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['manage_group', 'add_group_member']
         args = {'formgroup_slug': self.slug_data["formgroup_slug"]}
         self.run_basic_page_tests(client, views, args)
 
     def test_form_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['view_form', 'preview_form', 'edit_form', 'new_sheet', 'sheet_submission']
         args = {'form_slug': self.slug_data["form_slug"]}
         self.run_basic_page_tests(client, views, args)
 
     def test_sheet_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['edit_sheet', 'edit_sheet_info', 'new_field']
         args = {'form_slug': self.slug_data["form_slug"], 'sheet_slug': self.slug_data["sheet_slug"]}
         self.run_basic_page_tests(client, views, args)
 
     def test_field_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['edit_field']
         args = {'form_slug': self.slug_data["form_slug"],
                 'sheet_slug': self.slug_data["sheet_slug"],
@@ -324,19 +332,19 @@ class ViewTestCase(TestCase):
         self.run_basic_page_tests(client, views, args)
 
     def test_form_submission_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['view_submission']
         args = {'formsubmit_slug': self.slug_data["formsubmit_slug"]}
         self.run_basic_page_tests(client, views, args)
 
     def test_secret_url_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['sheet_submission_via_url']
         args = {'secret_url': self.slug_data["secret_url"]}
         self.run_basic_page_tests(client, views, args)
 
     def test_total_submission_pages(self):
-        client = self.log_in()
+        client = log_in()
         views = ['sheet_submission']
         args = {'form_slug': self.slug_data["form_slug"],
                 'sheet_slug': self.slug_data["sheet_slug"],
@@ -348,18 +356,12 @@ class ViewTestCase(TestCase):
         for view in views:
                 try:
                     url = reverse('onlineforms.views.' + view, kwargs=arguments)
+                    # response = client.get(url)
                     response = basic_page_tests(self, client, url)
                     self.assertEqual(response.status_code, 200)
                 except:
                     print "with view==" + repr(view)
                     raise
-
-    def log_in(self):
-        logged_in_person = Person.objects.get(userid="ggbaker")
-        # log them in
-        client = Client()
-        client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
-        return client
 
 
 class MiscTests(TestCase):
@@ -395,13 +397,16 @@ class MiscTests(TestCase):
 
 class FieldTestCase(TestCase):
     fixtures = ['test_data']
-    config = {"min_length": 5,
+    config = {"min_length": 1,
                 "max_length": 10,
                 "required": False,
                 "help_text": "whatever",
                 "label": "whatever",
                 "min_responses": 1,
                 "max_responses": 4}
+
+    def setUp(self):
+        self.unit = Unit.objects.get(label="COMP")
 
     def test_make_config_form(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
@@ -421,3 +426,27 @@ class FieldTestCase(TestCase):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
             instance = field_model(self.config)
             self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
+
+    def test_smltxt_field(self):
+        client = log_in()
+        fg = FormGroup.objects.create(name="Admin Test", unit=self.unit)
+        form = Form.objects.create(title="Test Form", unit=self.unit, owner=fg, initiators="LOG")
+        sheet = Sheet.objects.create(title="Initial Sheet", form=form, is_initial=True)
+        field = Field.objects.create(label="F1", sheet=sheet, fieldtype="SMTX", config=self.config)
+
+        test_input = "abacus"
+
+        url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': form.slug})
+        post_data = {
+            '0': test_input,
+            'submit-mode': "Submit",
+        }
+        response = client.post(url, post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(len(FormSubmission.objects.filter(form=form)), 1)
+        self.assertEqual(len(SheetSubmission.objects.filter(sheet=sheet)), 1)
+        field_submissions = FieldSubmission.objects.filter(field=field)
+        self.assertEqual(len(field_submissions), 1)
+        field_submission = field_submissions[0]
+        self.assertEqual(field_submission.data["info"], test_input)
