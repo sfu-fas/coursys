@@ -487,6 +487,9 @@ class RAForm(object):
             biweekly = "$  %.2f" % (self.ra.biweekly_pay)
             hours = "%i : 00" % (self.ra.hours)
             lumpsum = ''
+        if not self.ra.use_hourly():
+            hourly = ''
+            hours = ''
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=2.125*inch, label="HOURLY", content=hourly)
         self._draw_box_left(3*inch, height - self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content=biweekly)
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=2.25*inch, label="LUMP SUM ADJUSTMENT", content='')

@@ -9,6 +9,8 @@ from grad.models import GradStudent
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
     sin = forms.IntegerField(label='SIN', required=False)
+    use_hourly = forms.BooleanField(label='Use Hourly Rate', initial=False, required=False,
+                                    help_text='Should the hourly rate be displayed on the contract?')
     #scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
 
     def is_valid(self, *args, **kwargs):

@@ -110,7 +110,9 @@ def new(request):
 
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid_or_emplid()
-            appointment = raform.save()
+            appointment = raform.save(commit=False)
+            appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
+            appointment.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
@@ -166,12 +168,14 @@ def edit(request, ra_slug):
         raform = RAForm(data, instance=appointment)
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid
-            raform.save()
+            appointment = raform.save(commit=False)
+            appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
+            appointment.save()
             messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
         #The initial value needs to be the person's emplid in the form. Django defaults to the pk, which is not human readable.
-        raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid})
+        raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'use_hourly': appointment.use_hourly()})
         #As in the new method, choices are restricted to relevant options.
         raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
         raform.fields['hiring_faculty'].choices = hiring_faculty_choices
@@ -187,7 +191,9 @@ def edit(request, ra_slug):
 def reappoint(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     semester = Semester.first_relevant()
-    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
+    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
+                    'start_date': semester.start, 'end_date': semester.end, 'hours': 70,
+                    'use_hourly': appointment.use_hourly() })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
     scholarship_choices = [("", "---------")]
     for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):
@@ -240,7 +246,7 @@ def letter(request, ra_slug):
     response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
-        to_addr_lines=[], 
+        to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
         from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], 
         salutation="Dear " + appointment.person.first_name, 
         closing="Yours Truly", 
