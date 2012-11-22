@@ -379,22 +379,24 @@ class MiscTests(TestCase):
 
 class FieldTestCase(TestCase):
     fixtures = ['test_data']
-    config = {"min_length": 1,
-                "max_length": 10,
-                "required": False,
-                "help_text": "whatever",
-                "label": "whatever",
-                "min_responses": 1,
-                "max_responses": 4}
+    # one config file the should handle most fields
+    standard_config = {"min_length": 1,
+                        "max_length": 10,
+                        "required": False,
+                        "help_text": "whatever",
+                        "label": "whatever",
+                        "min_responses": 1,
+                        "max_responses": 4}
 
     def setUp(self):
+        self.unit = Unit.objects.get(label="COMP")
         # we want to be logge din for all these tests
         logged_in_person = Person.objects.get(userid="ggbaker")
         self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
 
     def test_make_config_form(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
-            instance = field_model(self.config)
+            instance = field_model(self.standard_config)
             config_form = instance.make_config_form()
             # looks like a divider will return a bool false here, look into that
             # still checks for notimplemented error though
@@ -403,30 +405,28 @@ class FieldTestCase(TestCase):
 
     def test_make_entry_field(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
-            instance = field_model(self.config)
+            instance = field_model(self.standard_config)
             self.assertTrue(isinstance(instance.make_entry_field(), DjangoFormsField))
 
     def test_serialize_field(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
-            instance = field_model(self.config)
+            instance = field_model(self.standard_config)
             self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
 
     def test_smltxt_field(self):
+        # create a basic form with one field to submit
         fg = FormGroup.objects.create(name="Admin Test", unit=self.unit)
         form = Form.objects.create(title="Test Form", unit=self.unit, owner=fg, initiators="LOG")
         sheet = Sheet.objects.create(title="Initial Sheet", form=form, is_initial=True)
-        field = Field.objects.create(label="F1", sheet=sheet, fieldtype="SMTX", config=self.config)
-
+        config = self.standard_config.copy()
+        field = Field.objects.create(label="F1", sheet=sheet, fieldtype="SMTX", config=config)
+        # make a post request to submit the sheet
         test_input = "abacus"
-
+        post_data = {'0': test_input, 'submit-mode': "Submit"}
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': form.slug})
-        post_data = {
-            '0': test_input,
-            'submit-mode': "Submit",
-        }
         response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
-
+        # ensure objects were created and the input value is there
         self.assertEqual(len(FormSubmission.objects.filter(form=form)), 1)
         self.assertEqual(len(SheetSubmission.objects.filter(sheet=sheet)), 1)
         field_submissions = FieldSubmission.objects.filter(field=field)
