@@ -863,6 +863,7 @@ dl.dlform .helptext {
   margin-left: 10.5em;
 }
 dl.dlform dt{
+  clear: both;
 	margin-left: 1em;
 }
 dl.dlform input, dl.dlform select, dl.dlform textarea {
