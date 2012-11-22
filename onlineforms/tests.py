@@ -12,7 +12,7 @@ from onlineforms.models import FormGroup, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
 from onlineforms.models import FIELD_TYPE_MODELS
 
-from onlineforms.views import get_sheet_submission_url
+from onlineforms.utils import get_sheet_submission_url
 
 
 # repeats a string to exactly the length we want
