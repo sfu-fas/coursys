@@ -246,7 +246,7 @@ def letter(request, ra_slug):
     response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
-        to_addr_lines=[], 
+        to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
         from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], 
         salutation="Dear " + appointment.person.first_name, 
         closing="Yours Truly", 
