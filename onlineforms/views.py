@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django import forms
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404, get_list_or_404
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpRequest
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
@@ -33,6 +33,7 @@ from django.core.mail import EmailMessage
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.template import Context
+from django.core.urlresolvers import reverse
 
 
 @requires_role('ADMN')
@@ -135,6 +136,10 @@ def admin_list_all(request):
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
+def get_full_path(request):
+        full_path = ('http', ':/', request)
+        return ''.join(full_path)    
+
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     admin = get_object_or_404(Person, userid=request.user.username)       
@@ -144,31 +149,30 @@ def admin_assign(request, formsubmit_slug):
     if form.is_valid():
         # make new sheet submission for next sheet choosen
         assignee = form.cleaned_data['assignee']
-        SheetSubmission.objects.create(form_submission=form_submission,
+        sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=userToFormFiller(assignee))
-
+          
         #need to send email to the person
         plaintext = get_template('onlineforms/emails/email.txt')
         htmly     = get_template('onlineforms/emails/email.html')
-
-        #d = Context({ 'username': assignee })
-        d = Context({ 'username': admin.name ,'assignee':assignee.name(),'sheeturl':form_submission})
+        
+        admin_name = admin.name()
+        assignee_name = assignee.name() 
+        sheet_url = get_sheet_submission_url(sheet_submission)    
+        full_url = get_full_path(sheet_url)
+        d = Context({ 'username': admin_name ,'assignee':assignee_name,'sheeturl':full_url})
         assignee_email =  assignee.full_email()   
         subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
         text_content = plaintext.render(d)
         html_content = htmly.render(d)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, "text/html")
-        msg.send()
-
-        # email = EmailMessage('Hello', 'You have been assigned a sheet', 'nobody@courses.cs.sfu.ca',
-        #       ['kks27@sfu.ca'], ['bcc@example.com'],
-        #         headers = {'Reply-To': 'another@example.com'})
-        # email.send()
-
-        return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
-
+        if assignee.full_email() != admin.full_email():
+                msg.send()        
+                return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+        else:
+             return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
     
