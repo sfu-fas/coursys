@@ -95,12 +95,15 @@ def add_group_member(request, formgroup_slug):
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
-                search_form = EmployeeSearchForm(request.POST)
-                if search_form.is_valid(): 
-                    member_id = search_form.cleaned_data['search']
-                    member = Person.objects.get(emplid=member_id)
-                    group.members.add(member)
-                    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+                if request.POST['search'] != '':
+                    print "if request post search is NOT empty" 
+                    search_form = EmployeeSearchForm(request.POST)
+                    print search_form
+                    if search_form.is_valid(): 
+                        # search returns Person object
+                        member = search_form.cleaned_data['search']
+                        group.members.add(member)
+                        return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
