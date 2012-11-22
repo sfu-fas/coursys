@@ -82,6 +82,15 @@
                     <td>{{ sheet.get_can_view_display }}</td>
                     <td>{{ sheet.original }}</td>
                      <td>
+                        {% if sheet.is_initial = 1 %}
+                        <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
+                        <p> 
+                            <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
+                            <input type="hidden" name="action" value="del" />
+                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" disabled />
+                        </p>
+                        </form>    
+                        {% else %}
                         <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
                         <p> 
                             <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
@@ -89,6 +98,7 @@
                             <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" />
                         </p>
                         </form>
+                        {%  endif %}
                     </td>
                 </tr>
               {% endfor %}
