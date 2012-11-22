@@ -342,8 +342,8 @@ class ViewTestCase(TestCase):
         for view in views:
                 try:
                     url = reverse('onlineforms.views.' + view, kwargs=arguments)
-                    response = self.client.get(url)
-                    # response = basic_page_tests(self, self.client, url)
+                    # response = self.client.get(url)
+                    response = basic_page_tests(self, self.client, url)
                     self.assertEqual(response.status_code, 200)
                 except:
                     print "with view==" + repr(view)
