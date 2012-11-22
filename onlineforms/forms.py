@@ -4,6 +4,7 @@ from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from django.template.defaultfilters import linebreaksbr
 
 class DividerFieldWidget(forms.TextInput):
     def render(self, name, value, attrs=None):
@@ -12,7 +13,7 @@ class DividerFieldWidget(forms.TextInput):
 
 class ExplanationFieldWidget(forms.Textarea):
     def render(self, name, value, attrs=None):
-        return mark_safe('<div>%s</div>' % escape(value))
+        return mark_safe('<div>%s</div>' % linebreaksbr(escape(value)))
 
 # Manage groups
 class GroupForm(ModelForm):

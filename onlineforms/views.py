@@ -148,8 +148,21 @@ def get_full_path(request):
 def admin_assign(request, formsubmit_slug):
     admin = get_object_or_404(Person, userid=request.user.username)       
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+
+    # get the next sheet that hasn't been completed (as the default next sheet to assign)
+    filled_orders = [val['sheet__order'] for val in
+                     form_submission.sheetsubmission_set.filter(status='DONE').values('sheet__order')]
+    later_sheets = Sheet.objects \
+                   .filter(form=form_submission.form, active=True, order__gt=max(filled_orders)) \
+                   .order_by('order')
+    if later_sheets:
+        default_sheet = later_sheets[0]
+    else:
+        default_sheet = None
+
     form = AdminAssignForm(data=request.POST or None, label='sheet', 
-        query_set=Sheet.objects.filter(form=form_submission.form, active=True))
+        query_set=Sheet.objects.filter(form=form_submission.form, active=True),
+        initial={'sheet': default_sheet})
     if form.is_valid():
         # make new sheet submission for next sheet choosen
         assignee = form.cleaned_data['assignee']
@@ -662,13 +675,11 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
         sheet_submission = None
         formFiller = None
 
-    if request.method == 'POST' and 'submit-mode' in request.POST:
-        submit_modes = ["Save", "Submit"]
-        if request.POST["submit-mode"] in submit_modes:
+    if request.method == 'POST' and ('save' in request.POST or 'submit' in request.POST):
             # get the info from post
-            if request.POST["submit-mode"] == "Save":
+            if 'save' in request.POST:
                 form.fromPostData(request.POST, ignore_required=True)
-            elif request.POST["submit-mode"] == "Submit":
+            elif 'submit' in request.POST:
                 form.fromPostData(request.POST)
 
             if form.is_valid():
@@ -723,7 +734,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                     # save the data from the fields
                     for name, field in form.fields.items():
                         # a field can be skipped if we are saving and it is not in the cleaned data
-                        if not(request.POST["submit-mode"] == "Save") or str(name) in form.cleaned_data:
+                        if not('submit' in request.POST) or str(name) in form.cleaned_data:
                             cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
                             # if we already have a field submission, edit it. Otherwise create a new one
                             if sheet.fields[name] in field_submission_dict:
@@ -745,7 +756,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                             l.save()
 
                     # cleanup for each submit-mode
-                    if request.POST["submit-mode"] == "Save":
+                    if 'save' in request.POST:
                         # refill the form with the new data
                         form.fromFields(sheet.fields, sheet_submission.get_field_submissions(refetch=True))
                         # don't redirect, show the form with errors(if they exist) but notify them that info was saved
@@ -772,7 +783,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
                         messages.success(request, 'All fields without errors were saved. Use this pages URL to edit this submission in the future.')
                         return HttpResponseRedirect(access_url)
-                    elif request.POST["submit-mode"] == "Submit":
+                    elif 'submit' in request.POST:
                         # all the fields have been submitted, this sheet is done
                         sheet_submission.status = 'DONE'
                         sheet_submission.save()
@@ -787,8 +798,6 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                     messages.error(request, "Error in user data.")
             else:
                 messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
-        else:
-            messages.error(request, 'Invalid post data.')
 
     context = {'owner_form': owner_form,
                 'sheet': sheet,

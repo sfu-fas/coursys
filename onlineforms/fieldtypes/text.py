@@ -4,6 +4,7 @@ from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
+from django.template.defaultfilters import linebreaksbr
 
 class SmallTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 100}
@@ -42,7 +43,7 @@ class SmallTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
+        return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
 
 
 class MediumTextField(FieldBase):
@@ -78,7 +79,7 @@ class MediumTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
+        return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
 
 
 class LargeTextField(FieldBase):
@@ -115,7 +116,7 @@ class LargeTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
+        return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
 
 
 class EmailTextField(FieldBase):
@@ -168,5 +169,5 @@ class ExplanationTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + escape(self.config['text_explanation']) + '</p>')
+        return mark_safe('<p>' + linebreaksbr(escape(self.config['text_explanation'])) + '</p>')
 

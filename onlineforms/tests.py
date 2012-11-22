@@ -144,7 +144,7 @@ class IntegrationTestCase(TestCase):
             '0': fill_data["favorite-color"],
             '1': fill_data["reason"],
             '2': fill_data["second-favorite-color"],
-            'submit-mode': "Submit",
+            'submit': "Yesplease",
         }
         response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -197,7 +197,7 @@ class IntegrationTestCase(TestCase):
             '0': fill_data["favorite-color"],
             '1': fill_data["reason"],
             '2': fill_data["second-favorite-color"],
-            'submit-mode': "Submit",
+            'submit': "Okay go",
         }
         response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -253,7 +253,7 @@ class IntegrationTestCase(TestCase):
                 '0': fill_data["favorite-color"],
                 '1': fill_data["reason"],
                 '2': fill_data["second-favorite-color"],
-                'submit-mode': "Submit",
+                'submit': "Yes",
             }
 
             response = self.client.post(url, post_data, follow=True)
