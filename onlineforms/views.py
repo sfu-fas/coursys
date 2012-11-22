@@ -569,7 +569,7 @@ def readonly_sheets(form_submission):
                 field.label = field.config['label']
             field.fieldtype = field_sub.field.fieldtype
             fields.append(field)
-        sheet_sub_html[sheet_sub.sheet.title] = fields
+        sheet_sub_html[sheet_sub] = fields
     return sheet_sub_html
 
 @requires_formgroup()
