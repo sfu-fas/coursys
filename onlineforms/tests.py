@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.db.utils import IntegrityError
-from django.test.client import Client
 from django.core.urlresolvers import reverse
 
 from django.forms import Field as DjangoFormsField, Form as DjangoForm
@@ -14,6 +13,11 @@ from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission,
 from onlineforms.models import FIELD_TYPE_MODELS
 
 from onlineforms.views import get_sheet_submission_url
+
+
+# repeats a string to exactly the length we want
+def repeat_to_length(string_to_expand, length):
+    return (string_to_expand * ((length / len(string_to_expand)) + 1))[:length]
 
 
 class ModelTests(TestCase):
@@ -338,8 +342,8 @@ class ViewTestCase(TestCase):
         for view in views:
                 try:
                     url = reverse('onlineforms.views.' + view, kwargs=arguments)
-                    response = self.client.get(url)
-                    # response = basic_page_tests(self, self.client, url)
+                    # response = self.client.get(url)
+                    response = basic_page_tests(self, self.client, url)
                     self.assertEqual(response.status_code, 200)
                 except:
                     print "with view==" + repr(view)
@@ -379,22 +383,24 @@ class MiscTests(TestCase):
 
 class FieldTestCase(TestCase):
     fixtures = ['test_data']
-    config = {"min_length": 1,
-                "max_length": 10,
-                "required": False,
-                "help_text": "whatever",
-                "label": "whatever",
-                "min_responses": 1,
-                "max_responses": 4}
+    # one config file the should handle most fields
+    standard_config = {"min_length": 1,
+                        "max_length": 10,
+                        "required": False,
+                        "help_text": "whatever",
+                        "label": "whatever",
+                        "min_responses": 1,
+                        "max_responses": 4}
 
     def setUp(self):
+        self.unit = Unit.objects.get(label="COMP")
         # we want to be logge din for all these tests
         logged_in_person = Person.objects.get(userid="ggbaker")
         self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
 
     def test_make_config_form(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
-            instance = field_model(self.config)
+            instance = field_model(self.standard_config)
             config_form = instance.make_config_form()
             # looks like a divider will return a bool false here, look into that
             # still checks for notimplemented error though
@@ -403,33 +409,54 @@ class FieldTestCase(TestCase):
 
     def test_make_entry_field(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
-            instance = field_model(self.config)
+            instance = field_model(self.standard_config)
             self.assertTrue(isinstance(instance.make_entry_field(), DjangoFormsField))
 
     def test_serialize_field(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
-            instance = field_model(self.config)
+            instance = field_model(self.standard_config)
             self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
 
     def test_smltxt_field(self):
+        test_input = "abacus"
+        config = self.standard_config.copy()
+        field_submission = self.field_test("SMTX", config, test_input)
+        self.assertEqual(field_submission.data["info"], test_input)
+
+    def test_medtxt_field(self):
+        test_input = repeat_to_length("Never Eat Shredded Wheat.", 351)
+        config = self.standard_config.copy()
+        config["min_length"] = 320
+        config["max_length"] = 377
+        field_submission = self.field_test("MDTX", config, test_input)
+        self.assertEqual(field_submission.data["info"], test_input)
+
+    def test_lrgtxt_field(self):
+        test_input = repeat_to_length("The quick brown fox jumps over the lazy dog.", 444)
+        config = self.standard_config.copy()
+        config["min_length"] = 401
+        config["max_length"] = 490
+        field_submission = self.field_test("LGTX", config, test_input)
+        self.assertEqual(field_submission.data["info"], test_input)
+
+    # takes a fieldtype, field config, and input.
+    # will create a form with one sheet with one field of
+    # the type specified with the config specified. Will then
+    # submit the sheet with test_input, and will return the field submission
+    def field_test(self, fieldtype, config, test_input):
+        # create a basic form with one field to submit
         fg = FormGroup.objects.create(name="Admin Test", unit=self.unit)
         form = Form.objects.create(title="Test Form", unit=self.unit, owner=fg, initiators="LOG")
         sheet = Sheet.objects.create(title="Initial Sheet", form=form, is_initial=True)
-        field = Field.objects.create(label="F1", sheet=sheet, fieldtype="SMTX", config=self.config)
-
-        test_input = "abacus"
-
+        field = Field.objects.create(label="F1", sheet=sheet, fieldtype=fieldtype, config=config)
+        # make a post request to submit the sheet
+        post_data = {'0': test_input, 'submit-mode': "Submit"}
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': form.slug})
-        post_data = {
-            '0': test_input,
-            'submit-mode': "Submit",
-        }
         response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
-
+        # ensure objects were created
         self.assertEqual(len(FormSubmission.objects.filter(form=form)), 1)
         self.assertEqual(len(SheetSubmission.objects.filter(sheet=sheet)), 1)
         field_submissions = FieldSubmission.objects.filter(field=field)
         self.assertEqual(len(field_submissions), 1)
-        field_submission = field_submissions[0]
-        self.assertEqual(field_submission.data["info"], test_input)
+        return field_submissions[0]
