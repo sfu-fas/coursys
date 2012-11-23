@@ -15,7 +15,7 @@
 <div id="form_container">
     <form action="{% url onlineforms.views.edit_sheet_info form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}"  method="post"> {% csrf_token %}
         <fieldset>
-            <legend>Form Information</legend>
+            <legend>Sheet Information</legend>
                 {{form|as_dl}}           
             <input type="hidden" name="action" value="edit" />
             <input class="submit" type="submit" value="Submit" />

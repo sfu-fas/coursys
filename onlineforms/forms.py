@@ -48,6 +48,7 @@ class SheetForm(forms.Form):
 class EditSheetForm(ModelForm):
     class Meta:
         model = Sheet
+        exclude = ('active', 'original', 'order', 'is_initial')
 
 class NonSFUFormFillerForm(ModelForm):
     class Meta:
