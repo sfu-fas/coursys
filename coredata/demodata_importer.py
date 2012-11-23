@@ -4,7 +4,7 @@
 #   echo "drop database coursysdemo; create database coursysdemo;" | ./manage.py dbshell && echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, random
-from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin
+from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
 from coredata.models import Member, Person, CourseOffering
 
 IMPORT_SEMESTERS = ('1127', '1131')
@@ -110,6 +110,9 @@ def import_semesters():
     
 def main():
     create_semesters()
+
+    print "getting emplid/userid mapping"
+    update_amaint_userids()
 
     print "importing course offerings"
     offerings = import_offerings(import_semesters=import_semesters)
