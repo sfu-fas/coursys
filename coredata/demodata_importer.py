@@ -1,5 +1,6 @@
 # do the import with fake data for development
 # suggested execution:
+## select 'drop table "' || tablename || '" cascade;' from pg_tables;
 #   echo "drop database coursysdemo; create database coursysdemo;" | ./manage.py dbshell && echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, random
