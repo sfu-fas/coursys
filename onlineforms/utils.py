@@ -57,7 +57,7 @@ def email_assigned(request, admin, assignee, sheet_submission):
 
     full_url = request.build_absolute_uri(get_sheet_submission_url(sheet_submission))
     email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url})
-    subject, from_email, to = 'CourSys: You have been assigned a sheet to complete.', "nobody@courses.cs.sfu.ca", assignee.full_email()
+    subject, from_email, to = 'CourSys: You have been assigned a sheet to complete.', admin.full_email() , assignee.full_email()
     msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
     msg.attach_alternative(htmly.render(email_context), "text/html")
     msg.send()
