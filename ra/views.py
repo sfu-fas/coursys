@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from django.template.defaultfilters import date as datefilter
 from django.conf import settings
-from ra.models import RAAppointment, Project, Account
+from ra.models import RAAppointment, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
@@ -117,7 +117,8 @@ def new(request):
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
         semester = Semester.next_starting()
-        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
+        semesterconfig = SemesterConfig.get_config(request.units, semester)
+        raform = RAForm(initial={'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70 })
         raform.fields['scholarship'].choices = scholarship_choices
         raform.fields['hiring_faculty'].choices = hiring_faculty_choices
         raform.fields['unit'].choices = unit_choices
@@ -130,8 +131,9 @@ def new(request):
 def new_student(request, userid):
     person = get_object_or_404(Person, emplid=userid)
     semester = Semester.next_starting()
+    semesterconfig = SemesterConfig.get_config(request.units, semester)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    initial = {'person': student.emplid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
+    initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70 }
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
     gss = GradStudent.objects.filter(person=student)
     if gss:
@@ -190,9 +192,10 @@ def edit(request, ra_slug):
 @requires_role("FUND")
 def reappoint(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
-    semester = Semester.first_relevant()
+    semester = Semester.next_starting()
+    semesterconfig = SemesterConfig.get_config(request.units, semester)
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
-                    'start_date': semester.start, 'end_date': semester.end, 'hours': 70,
+                    'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70,
                     'use_hourly': appointment.use_hourly() })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
     scholarship_choices = [("", "---------")]

@@ -1,12 +1,13 @@
 # do the import with fake data for development
 # suggested execution:
+## select 'drop table "' || tablename || '" cascade;' from pg_tables;
 #   echo "drop database coursysdemo; create database coursysdemo;" | ./manage.py dbshell && echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, random
-from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin
+from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
 from coredata.models import Member, Person, CourseOffering
 
-IMPORT_SEMESTERS = ('1121', '1124')
+IMPORT_SEMESTERS = ('1127', '1131')
 
 #FIRSTTERM = "1111"
 #DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
@@ -110,6 +111,9 @@ def import_semesters():
 def main():
     create_semesters()
 
+    print "getting emplid/userid mapping"
+    update_amaint_userids()
+
     print "importing course offerings"
     offerings = import_offerings(import_semesters=import_semesters)
     offerings = list(offerings)
@@ -127,7 +131,7 @@ def main():
     create_others()
 
     print "giving sysadmin permissions"
-    give_sysadmin(['ggbaker', 'sumo'])
+    give_sysadmin(['ggbaker'])
 
 if __name__ == "__main__":
     hostname = socket.gethostname()

@@ -203,3 +203,44 @@ class RAAppointment(models.Model):
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1
+
+
+
+class SemesterConfig(models.Model):
+    """
+    A table for department-specific semester config.
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    semester = models.ForeignKey(Semester, null=False, blank=False)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    defaults = {'start_date': None, 'end_date': None}
+    # 'start_date': default first day of contracts that semester, 'YYYY-MM-DD'
+    # 'end_date': default last day of contracts that semester, 'YYYY-MM-DD'
+    
+    class Meta:
+        unique_together = (('unit', 'semester'),)
+    
+    @classmethod
+    def get_config(cls, units, semester):
+        """
+        Either get existing SemesterConfig or return a new one.
+        """
+        configs = SemesterConfig.objects.filter(unit__in=units, semester=semester).select_related('semester')
+        if configs:
+            return configs[0]
+        else:
+            return SemesterConfig(unit=list(units)[0], semester=semester)
+    
+    def start_date(self):
+        if 'start_date'in self.config:
+            return datetime.datetime.strptime(self.config['start_date'], '%Y-%m-%d').date()
+        else:
+            return self.semester.start
+
+    def end_date(self):
+        if 'end_date'in self.config:
+            return datetime.datetime.strptime(self.config['end_date'], '%Y-%m-%d').date()
+        else:
+            return self.semester.end
+
+
