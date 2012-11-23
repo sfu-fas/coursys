@@ -23,7 +23,7 @@ from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
-from onlineforms.utils import reorder_sheet_fields, get_sheet_submission_url
+from onlineforms.utils import reorder_sheet_fields, get_sheet_submission_url, email_assigned, email_nonsfu_initialized
 
 from coredata.models import Person, Role
 from log.models import LogEntry
@@ -169,28 +169,10 @@ def admin_assign(request, formsubmit_slug):
         sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=userToFormFiller(assignee))
-          
-        #need to send email to the person
-        plaintext = get_template('onlineforms/emails/email.txt')
-        htmly     = get_template('onlineforms/emails/email.html')
-        
-        admin_name = admin.name()
-        assignee_name = assignee.name() 
-        sheet_url = get_sheet_submission_url(sheet_submission)    
-        # full_url = get_full_path(sheet_url)
-        full_url = request.build_absolute_uri(sheet_url)
-        d = Context({ 'username': admin_name ,'assignee':assignee_name,'sheeturl':full_url})
-        assignee_email =  assignee.full_email()   
-        subject, from_email, to = 'hello', 'nobody@courses.cs.sfu.ca', assignee_email
-        text_content = plaintext.render(d)
-        html_content = htmly.render(d)
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-        msg.attach_alternative(html_content, "text/html")
+        # send email
         if assignee.full_email() != admin.full_email():
-                msg.send()        
-                return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
-        else:
-             return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+                email_assigned(request, admin, assignee, sheet_submission)
+        return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
     
