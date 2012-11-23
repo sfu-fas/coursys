@@ -233,7 +233,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     owner = get_unit(acad_org)
 
     # search for existing offerings both possible ways and make sure we're consistent
-    c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester)
+    c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester).select_related('course')
     c_old2 = CourseOffering.objects.filter(class_nbr=class_nbr, semester=semester)
     c_old = list(set(c_old1) | set(c_old2))
     
