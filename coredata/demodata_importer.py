@@ -6,7 +6,7 @@ import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin
 from coredata.models import Member, Person, CourseOffering
 
-IMPORT_SEMESTERS = ('1121', '1124')
+IMPORT_SEMESTERS = ('1127', '1131')
 
 #FIRSTTERM = "1111"
 #DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
@@ -127,7 +127,7 @@ def main():
     create_others()
 
     print "giving sysadmin permissions"
-    give_sysadmin(['ggbaker', 'sumo'])
+    give_sysadmin(['ggbaker'])
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
