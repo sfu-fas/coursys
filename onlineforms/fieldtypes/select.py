@@ -104,16 +104,30 @@ class MultipleSelectField(FieldBase):
         return self.MultipleSelectConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+
         the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
         the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
-        c = forms.MultipleChoiceField(required=self.config['required'],
+        initial = []
+
+        if fieldsubmission:
+            initial=fieldsubmission.data['info']
+
+        c = self.CustomMultipleChoiceField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'],
             choices=the_choices,
-            widget=forms.CheckboxSelectMultiple())
+            widget=forms.CheckboxSelectMultiple(),
+            initial=initial)
 
         return c
+
+    class CustomMultipleChoiceField(forms.MultipleChoiceField):
+        def clean(self, data=None):
+            return data
+
+
+
 
     def serialize_field(self, cleaned_data):
         return {'info': cleaned_data}

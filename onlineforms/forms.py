@@ -1,5 +1,6 @@
 from coredata.forms import PersonField
 from django import forms
+from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
@@ -125,18 +126,19 @@ class DynamicForm(forms.Form):
         for name, field in self.fields.items():
             try:
                 if isinstance(field, forms.MultiValueField):
-
                     relevant_data = dict([(k,v) for k,v in post_data.items() if k.startswith(str(name)+"_")])
                     relevant_data[str(name)] = u''
                     relevant_data['required'] = ignore_required
-
                     cleaned_data = field.compress(relevant_data)
-
                 elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
                     else:
-                        cleaned_data = field.clean(post_data[str(name)])
+                        if isinstance(field, MultipleChoiceField):
+                            relevant_data = post_data.getlist(str(name))
+                            cleaned_data = field.clean(relevant_data)
+                        else:
+                            cleaned_data = field.clean(post_data[str(name)])
                 else:
                     if ignore_required:
                         cleaned_data = ""
