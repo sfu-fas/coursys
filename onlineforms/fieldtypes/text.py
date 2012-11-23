@@ -10,8 +10,8 @@ class SmallTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 100}
     
     class SmallTextConfigForm(FieldConfigForm):
-        min_length = forms.IntegerField(min_value=1, max_value=300, initial=1, widget=forms.TextInput(attrs={'size': 3}))
-        max_length = forms.IntegerField(min_value=1, max_value=300, widget=forms.TextInput(attrs={'size': 3}))
+        min_length = forms.IntegerField(min_value=1, max_value=100, initial=1, widget=forms.TextInput(attrs={'size': 3}))
+        max_length = forms.IntegerField(min_value=1, max_value=100, widget=forms.TextInput(attrs={'size': 3}))
 
     def make_config_form(self):
         return self.SmallTextConfigForm(self.config)
@@ -47,9 +47,11 @@ class SmallTextField(FieldBase):
 
 
 class MediumTextField(FieldBase):
+    more_default_config = {'min_length': 1, 'max_length': 1000}
+
     class MediumTextConfigForm(FieldConfigForm):
-        min_length = forms.IntegerField(min_value=1, max_value=400)
-        max_length = forms.IntegerField(min_value=1, max_value=400)
+        min_length = forms.IntegerField(min_value=1, max_value=1000, widget=forms.TextInput(attrs={'size': 4}))
+        max_length = forms.IntegerField(min_value=1, max_value=1000, widget=forms.TextInput(attrs={'size': 4}))
 
     def make_config_form(self):
         return self.MediumTextConfigForm(self.config)
@@ -83,9 +85,11 @@ class MediumTextField(FieldBase):
 
 
 class LargeTextField(FieldBase):
+    more_default_config = {'min_length': 1, 'max_length': 10000}
+
     class LargeTextConfigForm(FieldConfigForm):
-        min_length = forms.IntegerField(min_value=1, max_value=500)
-        max_length = forms.IntegerField(min_value=1, max_value=500)
+        min_length = forms.IntegerField(min_value=1, max_value=10000, widget=forms.TextInput(attrs={'size': 5}))
+        max_length = forms.IntegerField(min_value=1, max_value=10000, widget=forms.TextInput(attrs={'size': 5}))
 
     def make_config_form(self):
         return self.LargeTextConfigForm(self.config)
@@ -145,8 +149,7 @@ class EmailTextField(FieldBase):
 
 class ExplanationTextField(FieldBase):
     class ExplanationTextConfigForm(FieldConfigForm):
-        max_length = forms.IntegerField(min_value=1, max_value=300)
-        text_explanation = forms.CharField(required=True, max_length=500,
+        text_explanation = forms.CharField(required=True, max_length=10000,
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))
 
     def make_config_form(self):

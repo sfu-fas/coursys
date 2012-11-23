@@ -63,8 +63,6 @@ class CustomMultipleInputWidget(forms.MultiWidget):
                         '</dd>');
         }
 
-
-
         var add_button = $(widget_dts[max-1]).next().next().find('input')
 
         $(add_button).click(function () {
@@ -108,7 +106,6 @@ class CustomMultipleInputWidget(forms.MultiWidget):
         return output
 
     def render(self, name, value, attrs=None):
-        #name = str(name)
         self.name = str(name)
         output = super(CustomMultipleInputWidget, self).render(self.name, value, attrs)
 

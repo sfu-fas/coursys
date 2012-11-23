@@ -69,7 +69,7 @@ class ListField(FieldBase):
 
 class FileCustomField(FieldBase):
     class FileConfigForm(FieldConfigForm):
-        max_length = forms.IntegerField(min_value=1, max_value=500)
+        pass
 
     def make_config_form(self):
         return self.FileConfigForm(self.config)
@@ -77,8 +77,7 @@ class FileCustomField(FieldBase):
     def make_entry_field(self, fieldsubmission=None):
         return forms.FileField(required=self.config['required'],
             label=self.config['label'],
-            help_text=self.config['help_text'],
-            max_length=int(self.config['max_length']))
+            help_text=self.config['help_text'])
 
     def serialize_field(self, cleaned_data):
         return {'info': cleaned_data}
