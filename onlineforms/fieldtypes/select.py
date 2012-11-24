@@ -33,6 +33,10 @@ class RadioSelectField(FieldBase):
             choices=the_choices,
             widget=forms.RadioSelect())
 
+        if fieldsubmission:
+            initial=fieldsubmission.data['info']
+            c.initial=initial
+
         return c
 
     def serialize_field(self, cleaned_data):
@@ -70,6 +74,11 @@ class DropdownSelectField(FieldBase):
             label=self.config['label'],
             help_text=self.config['help_text'],
             choices=the_choices)
+
+        if fieldsubmission:
+            initial=fieldsubmission.data['info']
+            c.initial=initial
+
 
         if not self.config['required']:
             c.choices.insert(0, ('', '----------'))
