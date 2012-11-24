@@ -37,9 +37,11 @@ class CustomMultipleInputField(fields.MultiValueField):
 
 
 class ListField(FieldBase):
+    more_default_config = {'min_responses': 2, 'max_responses': 5}
+
     class ListConfigForm(FieldConfigForm):
-        max_responses = forms.IntegerField(min_value=1, max_value=20, initial=5)
-        min_responses = forms.IntegerField(min_value=1, max_value=10, initial=2)
+        min_responses = forms.IntegerField(min_value=1, max_value=20, initial=2, widget=forms.TextInput(attrs={'size': 5}))
+        max_responses = forms.IntegerField(min_value=1, max_value=20, initial=5, widget=forms.TextInput(attrs={'size': 5}))
 
     def make_config_form(self):
         return self.ListConfigForm(self.config)

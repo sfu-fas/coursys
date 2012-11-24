@@ -126,11 +126,25 @@ class MultipleSelectField(FieldBase):
         def clean(self, data=None):
             return data
 
-
-
-
     def serialize_field(self, cleaned_data):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+
+        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
+
+        initial = []
+
+        if fieldsubmission:
+            initial = fieldsubmission.data['info']
+
+        display_values = [dict(the_choices)[str(i)] for i in initial]
+
+        output = '<ul>'
+
+        for item in display_values:
+            output += '<li>%s</li>' % escape(str(item))
+        output += '</ul>'
+
+        return mark_safe(output)

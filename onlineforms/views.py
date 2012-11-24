@@ -627,10 +627,11 @@ def sheet_submission_via_url(request, secret_url):
     return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
 
 
-@requires_formgroup()
-def view_submission(request, sheetsubmit_slug, file_id):
-    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
-    filesub = get_object_or_404(FileSubmission)
+#Commented out as this was breaking the other 'view_submission'
+#@requires_formgroup()
+#def view_submission(request, sheetsubmit_slug, file_id):
+#    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
+#    filesub = get_object_or_404(FileSubmission)
     # read file
     # like that: https://docs.djangoproject.com/en/1.3/howto/outputting-csv/
 
