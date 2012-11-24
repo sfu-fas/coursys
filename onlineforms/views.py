@@ -184,7 +184,7 @@ def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
         if formFiller.full_email() != admin.full_email():
-                email_assigned(request, admin, formFiller, sheet_submission)
+            email_assigned(request, admin, formFiller, sheet_submission)
         messages.success(request, 'Sheet assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
@@ -230,7 +230,7 @@ def admin_assign_any(request, assign_to_sfu_account=True):
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
         if formFiller.full_email() != admin.full_email():
-                email_assigned(request, admin, formFiller, sheet_submission)
+            email_assigned(request, admin, formFiller, sheet_submission)
         messages.success(request, 'Form assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
