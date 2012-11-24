@@ -136,7 +136,7 @@ class EmailTextField(FieldBase):
             help_text=self.config['help_text'])
 
         if fieldsubmission:
-            c.initial = fieldsubmission.data['email']
+            c.initial = fieldsubmission.data['info']
 
         return c
 
@@ -144,7 +144,7 @@ class EmailTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + escape(fieldsubmission.data['email']) + '</p>')
+        return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
 
 
 class ExplanationTextField(FieldBase):

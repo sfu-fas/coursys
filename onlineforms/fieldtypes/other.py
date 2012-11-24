@@ -89,7 +89,6 @@ class FileCustomField(FieldBase):
 
 
 class URLCustomField(FieldBase):
-    #Can use URLField
     class URLConfigForm(FieldConfigForm):
         pass
 
@@ -101,13 +100,16 @@ class URLCustomField(FieldBase):
             label=self.config['label'],
             help_text=self.config['help_text'])
 
+        if fieldsubmission:
+            c.initial = fieldsubmission.data['info']
+
         return c
 
-    def serialize_field(self, field):
-        raise NotImplementedError
+    def serialize_field(self,  cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+        return mark_safe('<p>' + fieldsubmission.data['info'] + '</p>')
 
 
 class DividerField(FieldBase):
