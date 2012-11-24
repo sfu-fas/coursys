@@ -79,6 +79,21 @@ class AdminAssignForm(forms.Form):
         return super(AdminAssignForm, self).is_valid(*args, **kwargs)
 
 
+class AdminAssignForm_nonsfu(ModelForm):
+    class FormModelChoiceField(forms.ModelChoiceField):
+        def label_from_instance(self, obj):
+            return obj.title
+
+    class Meta:
+        model = NonSFUFormFiller
+
+    def __init__(self, label, query_set, *args, **kwargs):
+        super(AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
+        self.fields.insert(0, label, self.FormModelChoiceField(required=True,
+            queryset=query_set,
+            label=label.capitalize()))
+
+
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title

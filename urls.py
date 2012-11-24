@@ -470,6 +470,7 @@ urlpatterns += patterns('',
     url(r'forms/admin/$', 'onlineforms.views.admin_list_all'),
     url(r'forms/admin/assign$', 'onlineforms.views.admin_assign_any'),
     url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign$', 'onlineforms.views.admin_assign'),
+    url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign-nonsfu$', 'onlineforms.views.admin_assign_nonsfu'),
     url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign_done$', 'onlineforms.views.admin_done'),
     
     url(r'forms/manage/$', 'onlineforms.views.list_all'),

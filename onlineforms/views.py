@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
 from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -144,9 +144,15 @@ def get_full_path(request):
         full_path = ('http', ':/', request)
         return ''.join(full_path)    
 
+
 @requires_formgroup()
-def admin_assign(request, formsubmit_slug):
-    admin = get_object_or_404(Person, userid=request.user.username)       
+def admin_assign_nonsfu(request, formsubmit_slug):
+    return admin_assign(request, formsubmit_slug, assign_to_sfu_account=False)
+
+
+@requires_formgroup()
+def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
+    admin = get_object_or_404(Person, userid=request.user.username)
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
 
     # get the next sheet that hasn't been completed (as the default next sheet to assign)
@@ -160,22 +166,42 @@ def admin_assign(request, formsubmit_slug):
     else:
         default_sheet = None
 
-    form = AdminAssignForm(data=request.POST or None, label='sheet', 
-        query_set=Sheet.objects.filter(form=form_submission.form, active=True),
-        initial={'sheet': default_sheet})
-    if form.is_valid():
-        # make new sheet submission for next sheet choosen
-        assignee = form.cleaned_data['assignee']
-        sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
-            sheet=form.cleaned_data['sheet'],
-            filler=userToFormFiller(assignee))
-        # send email
-        if assignee.full_email() != admin.full_email():
-                email_assigned(request, admin, assignee, sheet_submission)
-        return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
-    context = {'form': form, 'form_submission': form_submission}
+    if assign_to_sfu_account:
+        form = AdminAssignForm(data=request.POST or None, label='sheet',
+            query_set=Sheet.objects.filter(form=form_submission.form, active=True),
+            initial={'sheet': default_sheet})
+        if form.is_valid():
+            # make new sheet submission for next sheet choosen
+            assignee = form.cleaned_data['assignee']
+            sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
+                sheet=form.cleaned_data['sheet'],
+                filler=userToFormFiller(assignee))
+            # send email
+            if assignee.full_email() != admin.full_email():
+                    email_assigned(request, admin, assignee, sheet_submission)
+            messages.success(request, 'Sheet assigned.')
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+    else:
+        form = AdminAssignForm_nonsfu(data=request.POST or None, label='sheet',
+            query_set=Sheet.objects.filter(form=form_submission.form, active=True),
+            initial={'sheet': default_sheet})
+        if request.method == 'POST' and form.is_valid():
+            nonSFUFormFiller = form.save()
+            formFiller = FormFiller.objects.create(nonSFUFormFiller=nonSFUFormFiller)
+            sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
+                sheet=form.cleaned_data['sheet'],
+                filler=formFiller)
+            # create a URL for the sheet
+            SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
+            # send email
+            email_assigned(request, admin, formFiller, sheet_submission)
+            messages.success(request, 'Sheet assigned.')
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign.html", context)
-    
+
+
 @requires_formgroup()
 def admin_assign_any(request):
     admin = get_object_or_404(Person, userid=request.user.username)
