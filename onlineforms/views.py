@@ -203,29 +203,48 @@ def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
 
 
 @requires_formgroup()
-def admin_assign_any(request):
+def admin_assign_any_nonsfu(request):
+    return admin_assign_any(request, assign_to_sfu_account=False)
+
+
+@requires_formgroup()
+def admin_assign_any(request, assign_to_sfu_account=True):
     admin = get_object_or_404(Person, userid=request.user.username)
-    form_groups = FormGroup.objects.filter(members=admin)
-    form = AdminAssignForm(data=request.POST or None, label='form', 
-        query_set=Form.objects.filter(active=True))
-    if form.is_valid():
-        assignee = form.cleaned_data['assignee']
-        
-        # create new form submission with a blank sheet submission 
-        user = userToFormFiller(assignee)
+
+    if assign_to_sfu_account:
+        form = AdminAssignForm(data=request.POST or None, label='form',
+            query_set=Form.objects.filter(active=True))
+    else:
+        form = AdminAssignForm_nonsfu(data=request.POST or None, label='form',
+            query_set=Form.objects.filter(active=True))
+
+    if request.method == 'POST' and form.is_valid():
+        # get the person to assign too
+        if assign_to_sfu_account:
+            assignee = form.cleaned_data['assignee']
+            formFiller = userToFormFiller(assignee)
+        else:
+            nonSFUFormFiller = form.save()
+            formFiller = FormFiller.objects.create(nonSFUFormFiller=nonSFUFormFiller)
+        # create new form submission with a blank sheet submission
         form = form.cleaned_data['form']
-        form_submission = FormSubmission.objects.create(form=form, 
-                            initiator=user, 
+        form_submission = FormSubmission.objects.create(form=form,
+                            initiator=formFiller,
                             owner=form.owner,
                             status='WAIT')
-        
-        SheetSubmission.objects.create(form_submission=form_submission,
+        sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.initial_sheet,
-            filler=user)
-
+            filler=formFiller)
+        # create an alternate URL, if necessary
+        if not assign_to_sfu_account:
+            SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
+        # send email
+        if formFiller.full_email() != admin.full_email():
+                email_assigned(request, admin, formFiller, sheet_submission)
+        messages.success(request, 'Form assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
-    context = {'form': form}
+    context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
 @requires_formgroup()
