@@ -23,7 +23,7 @@ from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
-from onlineforms.utils import reorder_sheet_fields, get_sheet_submission_url, email_assigned, email_nonsfu_initialized
+from onlineforms.utils import reorder_sheet_fields, email_assigned, email_nonsfu_started
 
 from coredata.models import Person, Role
 from log.models import LogEntry
@@ -764,6 +764,8 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                                 description=("Secret URL created for sheet submission %s of sheet %s of form %s by %s") % (sheet_submission, sheet.title, owner_form.title, formFiller.email()),
                                 related_object=secret_url)
                             l.save()
+                            # email them the URL
+                            email_nonsfu_started(request, sheet_submission)
                             access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
                         else:
                             access_url = reverse('onlineforms.views.sheet_submission', kwargs={

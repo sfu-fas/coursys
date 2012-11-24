@@ -52,16 +52,24 @@ def get_sheet_submission_url(sheet_submission):
 
 
 def email_assigned(request, admin, assignee, sheet_submission):
-    plaintext = get_template('onlineforms/emails/email.txt')
-    htmly = get_template('onlineforms/emails/email.html')
+    plaintext = get_template('onlineforms/emails/sheet_assigned.txt')
+    htmly = get_template('onlineforms/emails/sheet_assigned.html')
 
     full_url = request.build_absolute_uri(get_sheet_submission_url(sheet_submission))
     email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url})
-    subject, from_email, to = 'CourSys: You have been assigned a sheet to complete.', admin.full_email() , assignee.full_email()
+    subject, from_email, to = 'CourSys: You have been assigned a sheet.', admin.full_email(), assignee.full_email()
     msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
     msg.attach_alternative(htmly.render(email_context), "text/html")
     msg.send()
 
 
-def email_nonsfu_initialized(sheet_submission):
-    pass
+def email_nonsfu_started(request, sheet_submission):
+    plaintext = get_template('onlineforms/emails/nonsfu_sheet_started.txt')
+    htmly = get_template('onlineforms/emails/nonsfu_sheet_started.html')
+
+    full_url = request.build_absolute_uri(get_sheet_submission_url(sheet_submission))
+    email_context = Context({'initiator': sheet_submission.filler.name(), 'sheeturl': full_url})
+    subject, from_email, to = 'CourSys: You have started a form submission.', "nobody@courses.cs.sfu.ca", sheet_submission.filler.full_email()
+    msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
+    msg.attach_alternative(htmly.render(email_context), "text/html")
+    msg.send()
