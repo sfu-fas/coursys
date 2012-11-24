@@ -141,10 +141,13 @@ class MultipleSelectField(FieldBase):
 
         display_values = [dict(the_choices)[str(i)] for i in initial]
 
-        output = '<ul>'
+        if display_values:
+            output = '<ul>'
 
-        for item in display_values:
-            output += '<li>%s</li>' % escape(str(item))
-        output += '</ul>'
+            for item in display_values:
+                output += '<li>%s</li>' % escape(str(item))
+            output += '</ul>'
+        else:
+            output = '<br />'
 
         return mark_safe(output)
