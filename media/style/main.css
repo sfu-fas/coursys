@@ -852,7 +852,7 @@ fieldset div.inputfield {
     float: left;
 }
 fieldset .datetime {
-  color: #666;
+    color: #666;
 }
 .helptext {
     color: gray;
@@ -860,25 +860,37 @@ fieldset .datetime {
 }
 fieldset p.helptext,
 dl.dlform .helptext {
-  margin-left: 10.5em;
+    margin-left: 10.5em;
 }
 dl.dlform dt{
-  clear: both;
+    clear: both;
 	margin-left: 1em;
 }
+dl.dlform dt label{
+	clear: both;
+}
+
 dl.dlform input, dl.dlform select, dl.dlform textarea {
 	margin-bottom: 0;
 }
+
 dl.dlform div.field.radio {
     display: inline-block;
 }
+
 dl.dlform div.field.radio label {
     text-align: left;
     width: auto;
 }
+
 dl.dlform div.field.radio ul {
     margin-top: 0;
 }
+
+dl.dlform  dd .explanation_block {
+    margin-left: 9.5em;
+}
+
 fieldset .errortext {
     color: red;
     font-size: 0.9em;

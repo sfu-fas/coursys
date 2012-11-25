@@ -14,7 +14,7 @@ class DividerFieldWidget(forms.TextInput):
 
 class ExplanationFieldWidget(forms.Textarea):
     def render(self, name, value, attrs=None):
-        return mark_safe('<div>%s</div>' % linebreaksbr(escape(value)))
+        return mark_safe('<div class="explanation_block">%s</div>' % linebreaksbr(escape(value)))
 
 # Manage groups
 class GroupForm(ModelForm):
