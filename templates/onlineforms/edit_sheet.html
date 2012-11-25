@@ -168,13 +168,12 @@
                         {% endif %}
                     </td>
                     <td>
-                        {{ field.formField.label_tag }}{% if field.formField.field.required %}<span class="required">*</span>{% endif %}: {{ field.formField }}
-                        {{ field.formField.help_text }}
+                        {{ field.formField.label }}, {{ field.formField.type }}
                     </td>
                     <td>
                         <a href="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.modelField.slug %}">Edit</a>
                     </td>
-                    <td>
+                    <td class="miniaction">
                         <form action="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}" method="post">{% csrf_token %}
                         <p> 
                             <input type="hidden" name="field_id" value="{{field.modelField.id}}" />

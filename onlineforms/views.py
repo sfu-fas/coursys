@@ -384,7 +384,7 @@ def edit_sheet(request, form_slug, sheet_slug):
         return HttpResponseRedirect(
             reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet_slug}))
 
-        # check if they are deleting a field from the sheet
+    # check if they are deleting a field from the sheet
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         field_id = request.POST['field_id']
         fields = Field.objects.filter(id=field_id, sheet=owner_sheet)
@@ -404,6 +404,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     # a list of dictionaries containing the field model object(for editing) and the field form object(for display)
     modelFormFields = []
     for (counter, field) in enumerate(form):
+        field.type =  fields[counter].fieldtype
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
  
