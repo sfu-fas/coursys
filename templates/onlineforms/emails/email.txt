@@ -1,9 +1,0 @@
-
-Hello {{assignee}},
-
-{{ username }} - has assigned you a sheet {{sheeturl}}
-
-
-School of Computing Science,
-Simon Fraser University, BC
-
