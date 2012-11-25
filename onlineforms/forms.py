@@ -1,5 +1,6 @@
 from coredata.forms import PersonField
 from django import forms
+from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
@@ -13,7 +14,7 @@ class DividerFieldWidget(forms.TextInput):
 
 class ExplanationFieldWidget(forms.Textarea):
     def render(self, name, value, attrs=None):
-        return mark_safe('<div>%s</div>' % linebreaksbr(escape(value)))
+        return mark_safe('<div class="explanation_block">%s</div>' % linebreaksbr(escape(value)))
 
 # Manage groups
 class GroupForm(ModelForm):
@@ -38,8 +39,9 @@ class FormForm(ModelForm):
     class Meta:
         model = Form
         exclude = ('active', 'original', 'unit')
-
-
+     
+    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'})) 
+        
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view')
@@ -63,9 +65,6 @@ class AdminAssignForm(forms.Form):
             return obj.title
 
     assignee = PersonField(label='Assign to', required=False)
-    """email = forms.EmailField(required=False,
-                label='Assign to e-mail',
-                help_text='Assign this form to an external email address.')"""
 
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
@@ -76,6 +75,21 @@ class AdminAssignForm(forms.Form):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(AdminAssignForm, self).is_valid(*args, **kwargs)
+
+
+class AdminAssignForm_nonsfu(ModelForm):
+    class FormModelChoiceField(forms.ModelChoiceField):
+        def label_from_instance(self, obj):
+            return obj.title
+
+    class Meta:
+        model = NonSFUFormFiller
+
+    def __init__(self, label, query_set, *args, **kwargs):
+        super(AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
+        self.fields.insert(0, label, self.FormModelChoiceField(required=True,
+            queryset=query_set,
+            label=label.capitalize()))
 
 
 class DynamicForm(forms.Form):
@@ -126,18 +140,19 @@ class DynamicForm(forms.Form):
         for name, field in self.fields.items():
             try:
                 if isinstance(field, forms.MultiValueField):
-
                     relevant_data = dict([(k,v) for k,v in post_data.items() if k.startswith(str(name)+"_")])
                     relevant_data[str(name)] = u''
                     relevant_data['required'] = ignore_required
-
                     cleaned_data = field.compress(relevant_data)
-
                 elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
                     else:
-                        cleaned_data = field.clean(post_data[str(name)])
+                        if isinstance(field, MultipleChoiceField):
+                            relevant_data = post_data.getlist(str(name))
+                            cleaned_data = field.clean(relevant_data)
+                        else:
+                            cleaned_data = field.clean(post_data[str(name)])
                 else:
                     if ignore_required:
                         cleaned_data = ""

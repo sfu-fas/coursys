@@ -406,6 +406,7 @@ class SheetSubmission(models.Model):
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
         super(SheetSubmission, self).save(*args, **kwargs)
+        self.completed_at = datetime.datetime.now()
         self.form_submission.update_status()
 
     cached_fields = None

@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Preview Form{% endblock %}
-{% block h1 %}Preview Form{% endblock %}
+{% block title %}Preview {{owner_sheet.title }}{% endblock %}
+{% block h1 %}Preview {{owner_sheet.title }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>
+    &gt; <a href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
+</li>
 <li>&gt; Preview</li>
 {% endblock %}
 
@@ -19,15 +22,11 @@
         {{ form.non_field_errors }}
     </p>
     {% endif %}
-	{% for form in forms%}
     <form action="#" method="post">{% csrf_token %}
         <fieldset>
             <legend>{{form.title}}</legend>
             {{form|as_dl}}
         </fieldset>
     </form>
-	{% empty %}
-		There are no sheets in this form!
-	{% endfor %}
 </div>
 {% endblock %}
