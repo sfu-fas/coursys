@@ -131,11 +131,18 @@ def admin_list_all(request):
     form_groups = FormGroup.objects.filter(members=admin)
     if form_groups:
         pend_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='PEND')
+        
+        #Waiting submissions
         wait_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='WAIT')
         for wait_sub in wait_submissions:
             last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
             wait_sub.assigned_to = last_sheet_assigned
+        
+        # Completed submissions
         done_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='DONE')
+        for done_sub in done_submissions:
+            latest_sumbission = SheetSubmission.objects.filter(form_submission=done_sub).latest('completed_at')
+            done_sub.completed_at = latest_sumbission.completed_at
 
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
