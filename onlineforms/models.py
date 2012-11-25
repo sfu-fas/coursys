@@ -307,6 +307,8 @@ class Sheet(models.Model, _FormCoherenceMixin):
             max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
             if(max_aggregate['order__max'] == None):
                 next_order = 0
+                # making first sheet for form--- initial 
+                self.is_initial = True
             else:
                 next_order = max_aggregate['order__max'] + 1
             self.order = next_order
