@@ -39,8 +39,9 @@ class FormForm(ModelForm):
     class Meta:
         model = Form
         exclude = ('active', 'original', 'unit')
-
-
+     
+    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'})) 
+        
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view')
@@ -64,9 +65,6 @@ class AdminAssignForm(forms.Form):
             return obj.title
 
     assignee = PersonField(label='Assign to', required=False)
-    """email = forms.EmailField(required=False,
-                label='Assign to e-mail',
-                help_text='Assign this form to an external email address.')"""
 
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
