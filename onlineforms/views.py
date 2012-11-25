@@ -315,28 +315,6 @@ def view_form(request, form_slug):
     context = {'form': form, 'sheets': sheets, 'nonactive_sheets': nonactive_sheets}
     return render(request, "onlineforms/view_form.html", context)       
 
-
-@requires_form_admin_by_slug()
-def preview_form(request, form_slug):
-    owner_form = get_object_or_404(Form, slug=form_slug)
-    form_sheets = Sheet.objects.filter(form=owner_form, active=True).order_by('order')
-
-    # need to divide up fields based on sheets (DIVI)
-    forms = []
-    for sheet in form_sheets:
-        form = DynamicForm(sheet.title)
-        fieldargs = {}
-        fields = Field.objects.filter(sheet=sheet, active=True).order_by('order')
-        for field in fields:
-            display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
-            fieldargs[field.id] = display_field.make_entry_field()
-        form.setFields(fieldargs)
-        forms.append(form)
-
-    context = {'forms': forms, 'owner_form': owner_form}
-    return render(request, "onlineforms/preview_form.html", context)
-
-
 @requires_form_admin_by_slug()
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
@@ -372,6 +350,21 @@ def new_sheet(request, form_slug):
     context = {'form': form, 'owner_form': owner_form}
     return render(request, "onlineforms/new_sheet.html", context)
 
+@requires_form_admin_by_slug()
+def preview_sheet(request, form_slug, sheet_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug, form=owner_form)
+    
+    form = DynamicForm(owner_sheet.title)
+    fieldargs = {}
+    fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
+    for field in fields:
+        display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
+        fieldargs[field.id] = display_field.make_entry_field()
+    form.setFields(fieldargs)
+
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
+    return render(request, "onlineforms/preview_sheet.html", context)
 
 @requires_form_admin_by_slug()
 def edit_sheet(request, form_slug, sheet_slug):
