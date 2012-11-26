@@ -439,6 +439,12 @@ class FieldTestCase(TestCase):
         field_submission = self.field_test("LGTX", config, test_input)
         self.assertEqual(field_submission.data["info"], test_input)
 
+    def test_email_field(self):
+        test_input = "person@example.com"
+        config = self.standard_config.copy()
+        field_submission = self.field_test("EMAI", config, test_input)
+        self.assertEqual(field_submission.data["info"], test_input)
+
     # takes a fieldtype, field config, and input.
     # will create a form with one sheet with one field of
     # the type specified with the config specified. Will then
@@ -450,7 +456,7 @@ class FieldTestCase(TestCase):
         sheet = Sheet.objects.create(title="Initial Sheet", form=form, is_initial=True)
         field = Field.objects.create(label="F1", sheet=sheet, fieldtype=fieldtype, config=config)
         # make a post request to submit the sheet
-        post_data = {'0': test_input, 'submit-mode': "Submit"}
+        post_data = {'0': test_input, 'submit': "submit"}
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': form.slug})
         response = self.client.post(url, post_data, follow=True)
         self.assertEqual(response.status_code, 200)
