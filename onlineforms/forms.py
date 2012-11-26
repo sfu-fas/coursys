@@ -2,7 +2,7 @@ from coredata.forms import PersonField
 from django import forms
 from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
-from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
+from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, INITIATOR_CHOICES, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django.template.defaultfilters import linebreaksbr
@@ -39,9 +39,17 @@ class FormForm(ModelForm):
     class Meta:
         model = Form
         exclude = ('active', 'original', 'unit')
-     
     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'})) 
-        
+    initiators = forms.ChoiceField(required=True, choices=INITIATOR_CHOICES,)
+    
+
+    def validate(self, value):
+        data = self.cleaned_data['initiators']
+        if 'NON' not in data :
+            raise forms.ValidationError("You need to check your data !!")
+            Form.active = False
+
+
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
     can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view')
