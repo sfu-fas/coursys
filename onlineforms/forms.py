@@ -14,7 +14,7 @@ class DividerFieldWidget(forms.TextInput):
 
 class ExplanationFieldWidget(forms.Textarea):
     def render(self, name, value, attrs=None):
-        return mark_safe('<div class="explanation_block">%s</div>' % linebreaksbr(escape(value)))
+        return mark_safe('<div class="explanation_block">%s</div>' % linebreaksbr(escape(self.explanation)))
 
 # Manage groups
 class GroupForm(ModelForm):
@@ -43,11 +43,8 @@ class FormForm(ModelForm):
     initiators = forms.ChoiceField(required=True, choices=INITIATOR_CHOICES,)
     
 
-    def validate(self, value):
-        data = self.cleaned_data['initiators']
-        if 'NON' not in data :
-            raise forms.ValidationError("You need to check your data !!")
-            Form.active = False
+class NewFormForm(FormForm):
+    pass
 
 
 class SheetForm(forms.Form):
