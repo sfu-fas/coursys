@@ -445,6 +445,22 @@ class FieldTestCase(TestCase):
         field_submission = self.field_test("EMAI", config, test_input)
         self.assertEqual(field_submission.data["info"], test_input)
 
+    def test_radio_field(self):
+        # config data for the radio button
+        test_data = [{"key": "choice_1", "value": "AM"},
+                        {"key": "choice_2", "value": "FM"},
+                        {"key": "choice_3", "value": "TAPE"}]
+        # which value from above we are going to select
+        test_input = test_data[1]
+        config = self.standard_config.copy()
+        for test in test_data:
+            config[test["key"]] = test["value"]
+        field_submission = self.field_test("RADI", config, test_input["key"])
+        # the key is stored in the field submission, not the actual value
+        self.assertEqual(field_submission.data["info"], test_input["key"])
+        # check the value by going through the field config
+        self.assertEqual(field_submission.field.config[field_submission.data["info"]], test_input["value"])
+
     # takes a fieldtype, field config, and input.
     # will create a form with one sheet with one field of
     # the type specified with the config specified. Will then
