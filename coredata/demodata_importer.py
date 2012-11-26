@@ -1,7 +1,7 @@
 # do the import with fake data for development
 # suggested execution:
-## select 'drop table "' || tablename || '" cascade;' from pg_tables;
-#   echo "drop database coursysdemo; create database coursysdemo;" | ./manage.py dbshell && echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
+#   echo "select 'drop table \"' || tablename || '\" cascade;' from pg_tables where schemaname = 'public';" | ./manage.py dbshell | grep 'drop table' | ./manage.py dbshell
+#   echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
