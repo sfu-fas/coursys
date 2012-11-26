@@ -43,7 +43,8 @@ class RadioSelectField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+        choice = fieldsubmission.data['info']
+        return mark_safe('<p>' + escape(self.config[choice]) + '</p>')
 
 
 class DropdownSelectField(FieldBase):
