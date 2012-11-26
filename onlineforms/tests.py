@@ -461,6 +461,50 @@ class FieldTestCase(TestCase):
         # check the value by going through the field config
         self.assertEqual(field_submission.field.config[field_submission.data["info"]], test_input["value"])
 
+    def test_dropdown_field(self):
+        # config data for the radio button
+        test_data = [{"key": "choice_1", "value": "Yes"},
+                        {"key": "choice_2", "value": "No"},
+                        {"key": "choice_3", "value": "Maybe"}]
+        # which value from above we are going to select
+        test_input = test_data[2]
+        config = self.standard_config.copy()
+        for test in test_data:
+            config[test["key"]] = test["value"]
+        field_submission = self.field_test("SEL1", config, test_input["key"])
+        # the key is stored in the field submission, not the actual value
+        self.assertEqual(field_submission.data["info"], test_input["key"])
+        # check the value by going through the field config
+        self.assertEqual(field_submission.field.config[field_submission.data["info"]], test_input["value"])
+
+    def test_multiselect_field(self):
+        # config data for the radio button
+        test_data = [{"key": "choice_1", "value": "Apple"},
+                        {"key": "choice_2", "value": "Orange"},
+                        {"key": "choice_3", "value": "Pear"},
+                        {"key": "choice_4", "value": "Banana"}]
+        # which value from above we are going to select
+        test_selected = [test_data[1], test_data[3]]
+        test_not_selected = [test_data[0], test_data[2]]
+        config = self.standard_config.copy()
+        for test in test_data:
+            config[test["key"]] = test["value"]
+        field_submission = self.field_test("SELN", config, [select["key"] for select in test_selected])
+        # construct a list of the actual values we could get from the db
+        in_db_values = [field_submission.field.config[key] for key in field_submission.data["info"]]
+        # check the values we selected are in the field submission
+        for selected in test_selected:
+            # the key is stored in the field submission, not the actual value
+            self.assertIn(selected["key"], field_submission.data["info"])
+            # check the value by going through the field config
+            self.assertIn(selected["value"], in_db_values)
+        # check the values we did not select are not in the field submission
+        for not_selected in test_not_selected:
+            # the key is stored in the field submission, not the actual value
+            self.assertNotIn(not_selected["key"], field_submission.data["info"])
+            # check the value by going through the field config
+            self.assertNotIn(not_selected["value"], in_db_values)
+
     # takes a fieldtype, field config, and input.
     # will create a form with one sheet with one field of
     # the type specified with the config specified. Will then
