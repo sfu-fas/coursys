@@ -1,3 +1,4 @@
+
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
@@ -541,7 +542,7 @@ class RAForm(object):
         f = Frame(self.BOX_OFFSET, height - 1.125*inch, self.MAIN_WIDTH - 2*self.BOX_OFFSET, 1*inch) # showBoundary=1
         notes = []
         if self.ra.pay_frequency != 'L':
-            default_note = "For total amount of $%s over %i pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
+            default_note = "For total amount of $%s over %.1f pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
         else:
             default_note = "Lump sum payment of $%s." % (self.ra.lump_sum_pay,)
         notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
