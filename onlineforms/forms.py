@@ -39,12 +39,13 @@ class FormForm(ModelForm):
     class Meta:
         model = Form
         exclude = ('active', 'original', 'unit')
-    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'})) 
-    initiators = forms.ChoiceField(required=True, choices=INITIATOR_CHOICES,)
-    
+    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))     
 
 class NewFormForm(FormForm):
-    pass
+    class Meta:
+        model = Form
+        exclude = ('active', 'original', 'unit', 'initiators' )
+    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'})) 
 
 
 class SheetForm(forms.Form):

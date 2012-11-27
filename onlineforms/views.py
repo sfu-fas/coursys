@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
+from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
 from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -279,7 +279,7 @@ def list_all(request):
 def new_form(request):
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
-        form = FormForm(request.POST)
+        form = NewFormForm(request.POST)
         form.fields['owner'].choices = group_choices
         if form.is_valid():
             f = form.save(commit=False)
@@ -288,7 +288,7 @@ def new_form(request):
             f.save()
             return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
-        form = FormForm()
+        form = NewFormForm()
         form.fields['owner'].choices = group_choices
     return render(request, 'onlineforms/new_form.html', {'form': form})
 
