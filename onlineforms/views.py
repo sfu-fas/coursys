@@ -1,25 +1,15 @@
-from datetime import datetime
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django import forms
 from django.forms.fields import FileField
-from django.shortcuts import render, get_object_or_404, get_list_or_404
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpRequest
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
-
-from django.db import models
-from django.forms import ModelForm
-from django.forms.models import modelformset_factory
-from django.forms.models import BaseModelFormSet
-from django.template import RequestContext
 from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
-from onlineforms.fieldtypes import *
 from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
-from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
@@ -27,14 +17,11 @@ from onlineforms.utils import reorder_sheet_fields, email_assigned, email_nonsfu
 
 from coredata.models import Person, Role
 from log.models import LogEntry
-from datetime import datetime
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.template import Context
-from django.core.urlresolvers import reverse
-
 
 @requires_role('ADMN')
 def manage_groups(request):
