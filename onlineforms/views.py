@@ -106,6 +106,10 @@ def add_group_member(request, formgroup_slug):
                         return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                 else: # if accidentally don't search for anybody
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
+    
+    groups = FormGroup.objects.filter(unit__in=request.units)
+    context = {'groups': groups}
+    return render(request, 'onlineforms/manage_groups.html', context)
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
@@ -121,8 +125,10 @@ def remove_group_member(request, formgroup_slug, userid):
             if request.POST['action'] == 'remove':
                 group.members.remove(member)
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
-
-
+    
+    groups = FormGroup.objects.filter(unit__in=request.units)
+    context = {'groups': groups}
+    return render(request, 'onlineforms/manage_groups.html', context)
 
 # Form admin views
 @requires_formgroup()
