@@ -486,17 +486,15 @@ def person_info(request):
     Get more info about this person, for AJAX updates on new RA form
     """
     result = {}
-    if 'emplid' not in request.GET:
+    emplid = request.GET.get('emplid', None)
+    if not emplid or not emplid.isdigit() or len(emplid) != 9:
         pass
     else:
         programs = []
         
         # GradPrograms
         emplid = request.GET['emplid']
-        if emplid.isdigit():
-            grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units)
-        else:
-            grads = []
+        grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units)
         for gs in grads:
             pdata = {
                      'program': gs.program.label,
