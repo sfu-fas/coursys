@@ -1059,8 +1059,6 @@ def _copy_posting_defaults(source, destination):
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
     account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False).order_by('title')]
-    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
-    contact_choices = list(set(contact_choices))
 
     today = datetime.date.today()
     if post_slug:
@@ -1094,6 +1092,12 @@ def edit_posting(request, post_slug=None):
             default_exclude = set((o.course_id for o in offerings.filter(component="SEC").exclude(section__startswith="C")))
             posting.config['excluded'] = default_exclude
             posting.config['contact'] = Person.objects.get(userid=request.user.username).id
+
+    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
+    current_contact = posting.contact()
+    if current_contact:
+        contact_choices.append((current_contact.id, current_contact.name()))
+    contact_choices = list(set(contact_choices))
     
     if request.method == "POST":
         form = TAPostingForm(data=request.POST, instance=posting)
