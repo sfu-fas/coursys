@@ -231,6 +231,9 @@ class TAAcceptanceForm(forms.ModelForm):
                   'created_at'
                   ]
     
+class NewTAContractForm(forms.Form):
+    application = forms.ModelChoiceField(queryset=TAApplication.objects.none())
+
 
 class TAContractForm(forms.ModelForm):
  

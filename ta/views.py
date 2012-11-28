@@ -18,7 +18,7 @@ from coredata.queries import add_person, more_personal_info, SIMSProblem
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
-    CourseDescriptionForm, LabelledHidden
+    CourseDescriptionForm, LabelledHidden, NewTAContractForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -667,6 +667,11 @@ def all_contracts(request, post_slug):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
         return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
 
+    existing = set(c.application_id for c in TAContract.objects.filter(posting=posting).select_related('application'))
+    queryset = TAApplication.objects.filter(posting=posting).exclude(id__in=existing).order_by('person')
+    application_choices = [(a.id, a.person.name()) for a in queryset if a not in existing]
+    form = NewTAContractForm()
+    form.fields['application'].choices = application_choices
     
     try:
         p = int(request.GET.get("page",'1'))
@@ -707,7 +712,8 @@ def all_contracts(request, post_slug):
             
     #postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
-    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications})
+    return render(request, 'ta/all_contracts.html',
+                  {'contracts':contracts, 'posting':posting, 'applications':applications, 'form': form})
 
 @requires_role("TAAD")
 def contracts_csv(request, post_slug):
@@ -883,6 +889,30 @@ def contracts_forms(request, post_slug):
     ta_forms(contracts, response)
     return response
 
+@requires_role("TAAD")
+def new_contract(request, post_slug):
+    """
+    Create a new contract for this person and redirect to edit it.
+    """
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+
+    existing = set(c.application_id for c in TAContract.objects.filter(posting=posting).select_related('application'))
+    queryset = TAApplication.objects.filter(posting=posting).exclude(id__in=existing).order_by('person')
+    application_choices = [(a.id, a.person.name()) for a in queryset if a not in existing]
+    
+    if request.method == 'POST':
+        form = NewTAContractForm(request.POST)
+        form.fields['application'].choices = application_choices
+        form.fields['application'].queryset = queryset
+        
+        if form.is_valid():
+            app = form.cleaned_data['application']
+            contract = TAContract(created_by=request.user.username)
+            contract.first_assign(app, posting)
+            return HttpResponseRedirect(reverse(edit_contract, kwargs={'post_slug': posting.slug, 'userid': app.person.userid}))
+    
+    return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+ 
 
 @requires_role("TAAD")
 def edit_contract(request, post_slug, userid):

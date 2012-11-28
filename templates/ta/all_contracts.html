@@ -104,13 +104,9 @@
 
 <div id="ta_con">
 <h2>New Contract:</h2>
-<form>
-	<select name="app" id="app">
-		{% for app in applications %}
-		<option value="{{app.id}}">{{ app.person }}</option>
-		{% endfor %}
-	</select>
-	<a id="create" href="" style="height:0"><button type="button" class="submit" id="submit">Create</button></a>
+<form action="{% url ta.views.new_contract post_slug=posting.slug %}" method="post">{% csrf_token %}
+	{{ form.application }}
+	<input type="submit" class="submit" id="submit" value="Create">
 	<div class="helptext">Select the associated applicant</div>
 	
 </form>
