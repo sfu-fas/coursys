@@ -762,11 +762,16 @@ def contracts_csv(request, post_slug):
     return response
     
 
-
+@requires_role("TAAD")
+def preview_offer(request, post_slug, userid):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
+    return accept_contract(request, posting.slug, userid, preview=True)
+    
+    
 @login_required
-def accept_contract(request, post_slug, userid):
-    # TODO: don't really need userid in the URL here
-    if request.user.username != userid:
+def accept_contract(request, post_slug, userid, preview=False):
+    if not preview and request.user.username != userid:
         return ForbiddenResponse(request, 'You cannot access this page')
 
     posting = get_object_or_404(TAPosting, slug=post_slug)
@@ -826,7 +831,8 @@ def accept_contract(request, post_slug, userid):
                 'schol_sem':schol_sem_out,
                 'total':total,
                 'acc_deadline': pdead,
-                'form':form
+                'form':form,
+                'preview': preview,
             }
     return render(request, 'ta/accept.html', context)
 
