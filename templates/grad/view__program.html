@@ -9,7 +9,7 @@
 		</thead>
 		<tbody>
 			{% for ph in programhistory %}
-			<tr>
+			<tr{% if forloop.last %} class="current"{% endif %}>
 				<td> {{ ph.program.label }}	</td>
 				<td> {{ ph.start_semester.name }} </td>
 				<td> <span class="sort">{{ph.starting.isoformat}}</span>{{ ph.starting|date:GRAD_DATE_FORMAT }} </td>

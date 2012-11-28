@@ -68,7 +68,7 @@ def view(request, grad_slug, section=None):
             return NotFoundResponse(request)
         
         elif section == 'general':
-            programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units)
+            programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units).order_by('starting')
             context['programhistory'] = programhistory
             flag_values = grad.flags_and_values()
             context['flag_values'] = flag_values

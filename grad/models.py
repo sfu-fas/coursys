@@ -132,7 +132,7 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        first_program = GradProgramHistory.objects.filter(student=self).order_by('start_semester__name')[0]
+        first_program = GradProgramHistory.objects.filter(student=self).order_by('-starting')[0]
         self.start_semester = first_program.start_semester
 
         # end_semester
@@ -433,6 +433,9 @@ class GradProgramHistory(models.Model):
     start_semester = models.ForeignKey(Semester, null=False, default=Semester.current,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
+    
+    class Meta:
+        ordering = ('-starting',)
     
     def save(self, *args, **kwargs):
         super(GradProgramHistory, self).save(*args, **kwargs)

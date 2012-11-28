@@ -183,10 +183,10 @@ class GradAcademicForm(ModelForm):
                    }
 
 class GradProgramHistoryForm(ModelForm):
-    semester = StaffSemesterField()
+    start_semester = StaffSemesterField()
     class Meta: 
         model = GradProgramHistory
-        fields = ('program', 'semester', 'starting')
+        fields = ('program', 'start_semester', 'starting')
         widgets = {
                    'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
                    }

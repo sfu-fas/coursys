@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse
 def manage_program(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     program_choices = [(p.id, unicode(p)) for p in GradProgram.objects.filter(unit__in=request.units)]
-    programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units)
+    programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units).order_by('starting')
     
     if request.method == 'POST':
         form = GradProgramHistoryForm(request.POST)
@@ -23,6 +23,7 @@ def manage_program(request, grad_slug):
             gph.save()
             grad.program = gph.program
             grad.save()
+            grad.update_status_fields()
 
             messages.success(request, "Updated program info for %s." % (grad.person))
             l = LogEntry(userid=request.user.username,

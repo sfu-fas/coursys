@@ -22,6 +22,9 @@ server {
 	client_max_body_size 50m;
 	client_body_buffer_size 1024k;
 
+        # Use HTTP Strict Transport Security to force client to use secure connections only
+        add_header Strict-Transport-Security max-age=31536000;
+
 	location /media {
 		root /home/ggbaker/static/;
 		expires 1d;
