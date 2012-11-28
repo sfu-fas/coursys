@@ -618,6 +618,18 @@ def readonly_sheets(form_submission):
         sheet_sub_html[sheet_sub] = fields
     return sheet_sub_html
 
+
+def file_field_download(request, formsubmit_slug):
+    # grab the file from specified location
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+
+    filename = form_submission
+    wrapper = FileWrapper(file(filename))
+    response = HttpResponse(wrapper, content_type=filename.mediatype)
+    # response = ['Content-Length'] = os.path.getsize(filename)
+    return response
+
+
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
