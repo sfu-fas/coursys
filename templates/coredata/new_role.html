@@ -9,15 +9,15 @@
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
-  $('#id_person').each(function() {
-    $(this).autocomplete({
-      source:'/data/students',
-      minLength: 2,
-      select: function(event, ui){
-        $(this).data("val", ui.item.value);
-      }
-    });
-  });
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    });  
 });
 //]]></script>
 {% endblock %}

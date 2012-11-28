@@ -133,15 +133,19 @@ class PersonField(forms.CharField):
         PersonField.person_data_prep(self)
         return super(MyFormClass, self).is_valid(*args, **kwargs)
     
-    You might also want to autocomplete for people in the system: 
-    $('#id_person').each(function() {
-      $(this).autocomplete({
-        source: '/data/students',
-        minLength: 2,
-        select: function(event, ui){
-          $(this).data("val", ui.item.value);
-        }
+    You might also want to autocomplete for people in the system:
+    $(document).ready(function() {
+      ...
+      $('#id_person').each(function() {
+        $(this).autocomplete({
+          source: '/data/students',
+          minLength: 2,
+          select: function(event, ui){
+            $(this).data("val", ui.item.value);
+          }
+        });
       });
+      ...
     });  
     """
     def __init__(self, *args, **kwargs):
