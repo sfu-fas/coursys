@@ -40,6 +40,16 @@ class FormForm(ModelForm):
         model = Form
         exclude = ('active', 'original', 'unit')
     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))     
+    # get instance of the FormForm    
+    def _get(self):
+            return self.instance
+    #Validation error on assigning Forms without initial sheets         
+    def clean_initiators(self):
+        initiators = self.cleaned_data['initiators']
+        form = self._get()
+        if initiators != 'NON' and not Sheet.objects.filter(form=form, is_initial=True, active=True):
+             raise forms.ValidationError, "No initial sheet: can't activate"
+        return initiators
 
 class NewFormForm(FormForm):
     class Meta:
