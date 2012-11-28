@@ -618,12 +618,13 @@ def readonly_sheets(form_submission):
         sheet_sub_html[sheet_sub] = fields
     return sheet_sub_html
 
-
-def file_field_download(request, formsubmit_slug):
+@requires_formgroup()
+def file_field_download(request, sheetsubmit_slug, file_id):
     # grab the file from specified location
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
+    file_submission = get_object_or_404(FileSubmission)
 
-    filename = form_submission
+    filename # = form_submission
     wrapper = FileWrapper(file(filename))
     response = HttpResponse(wrapper, content_type=filename.mediatype)
     # response = ['Content-Length'] = os.path.getsize(filename)
@@ -633,7 +634,9 @@ def file_field_download(request, formsubmit_slug):
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(form_submission)}
+    sheet_submissions = readonly_sheets(form_submission)
+
+    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 def sheet_submission_via_url(request, secret_url):
@@ -646,7 +649,7 @@ def sheet_submission_via_url(request, secret_url):
     return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
 
 
-#Commented out as this was breaking the other 'view_submission'
+#Commented out as this was breaking the other 'view_submission'()
 #@requires_formgroup()
 #def view_submission(request, sheetsubmit_slug, file_id):
 #    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
