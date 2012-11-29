@@ -66,7 +66,7 @@ $(function() {
                     <td>{{alert.n_comments}}</td>
                     <td><a href='{% url alerts.views.view_alert alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
                     <td>{{ alert.description }}</td>
-                    {% for key, value in most_recent_alert.details.items %}
+                    {% for key, value in alert.details.items %}
                         <td>{{value}}</td>
                     {% endfor %}
                 </tr>

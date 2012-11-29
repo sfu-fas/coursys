@@ -59,6 +59,17 @@ def view_alert_types(request):
 
     return render(request, 'alerts/view_alert_types.html', {'alert_types': types })
 
+def regularize_keys( alert, most_recent_alert ):
+    """ As it turns out, alerts may not have the same key/value pairs as the most recent alert. """
+    for key, value in most_recent_alert.details.iteritems():
+        if key not in alert.details:
+            alert.details[key] = ""
+
+    for key, value in alert.details.iteritems():
+        if key not in most_recent_alert.details:
+            del alert.details[key]
+
+
 @requires_role('ADVS')
 def view_alerts(request, alert_type, option="UNRESOLVED"):
     """
@@ -71,6 +82,8 @@ def view_alerts(request, alert_type, option="UNRESOLVED"):
         most_recent_alert = all_alerts.latest('created_at');
     except Alert.DoesNotExist:
         most_recent_alert = {}
+
+    [ regularize_keys( alert, most_recent_alert ) for alert in all_alerts ]
 
     resolved_flag = option == "RESOLVED"
     unresolved_flag = option == "UNRESOLVED"
@@ -126,6 +139,8 @@ def view_automation(request, alert_type):
         most_recent_alert = unresolved_alerts.latest('created_at');
     except Alert.DoesNotExist:
         most_recent_alert = {}
+    
+    [ regularize_keys( alert, most_recent_alert ) for alert in unresolved_alerts ]
     
     alert_emails = AlertEmailTemplate.objects.filter( alerttype=alert_type, hidden=False ).order_by('threshold')
     alert_email_dict = dict( [ (key,[]) for key in alert_emails ] ) 

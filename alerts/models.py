@@ -101,6 +101,9 @@ class Alert(models.Model):
             update_status="UPDT"
             update_comments = self.description
 
+        collidee.details = self.details
+        collidee.save()
+
         update = AlertUpdate( alert=collidee, update_type=update_status, comments=update_comments ) 
         update.save()
 
