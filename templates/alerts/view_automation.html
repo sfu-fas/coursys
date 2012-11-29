@@ -4,6 +4,7 @@
 {% block h1 %}Alerts: {{alert_type.code}} Automation{% endblock %}
 
 {% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}style/alerts.css" rel="stylesheet" />
 <script type="text/javascript">
 $(function() {
   $('.display').dataTable( {
@@ -36,11 +37,10 @@ $(function() {
 
 {% if alert_automations %}
     {% for title, email, alerts in alert_automations %}
+        <div class='automation'>
         <h2> {{title}} </h2>
-        <p> <a href="{% url alerts.views.delete_automation alert_type=alert_type.slug automation_id=email.id %}">Delete</a> </p> 
         <p>{{email.content|linebreaksbr}}</p>
-        <h3><del>The following students will receive this e-mail at <a href='#'>8:00 PM</a></del></h3>
-        <h3>The system is currently running in 'safe' mode, and no automatic emails will be sent.</h3> 
+        <h3>The following students will receive this e-mail at <a href='#'>8:00 PM</a></h3>
         <table class="display">
             <thead>
                 <tr>
@@ -50,6 +50,9 @@ $(function() {
                     <th>Comments</th>
                     <th>Last Update</th>
                     <th>Description</th>
+                    {% for key, value in most_recent_alert.details.items %}
+                        <th>{{key|lower|capfirst}}</th>
+                    {% endfor %}
                 </tr>
             </thead>
             <tbody>
@@ -63,13 +66,21 @@ $(function() {
                     <td>{{alert.n_comments}}</td>
                     <td><a href='{% url alerts.views.view_alert alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
                     <td>{{ alert.description }}</td>
+                    {% for key, value in most_recent_alert.details.items %}
+                        <td>{{value}}</td>
+                    {% endfor %}
                 </tr>
             {% endfor %}
             </tbody>
         </table>
+        <a class='button' href="{% url alerts.views.delete_automation alert_type=alert_type.slug automation_id=email.id %}">Delete</a>  
+        </div>
     {% endfor %} 
 {% else %}
-<p> No automated e-mails have been set up for this Alert Type. </p>
 {% endif %}
+
+<div class='automation'>
+    <h2> Manual Intervention </h2>
+</div>
 
 {% endblock %}

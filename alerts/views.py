@@ -1,10 +1,10 @@
 
 from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
 from forms import EmailForm, ResolutionForm, AlertUpdateForm
-from django.views.decorators.csrf import csrf_exempt
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
 
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -67,6 +67,10 @@ def view_alerts(request, alert_type, option="UNRESOLVED"):
     alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
     
     all_alerts = Alert.objects.filter( alerttype=alert_type, hidden=False )
+    try:
+        most_recent_alert = all_alerts.latest('created_at');
+    except Alert.DoesNotExist:
+        most_recent_alert = {}
 
     resolved_flag = option == "RESOLVED"
     unresolved_flag = option == "UNRESOLVED"
@@ -100,6 +104,7 @@ def view_alerts(request, alert_type, option="UNRESOLVED"):
                                                         'resolved': resolved_flag,
                                                         'unresolved': unresolved_flag,
                                                         'all': all_flag,
+                                                        'most_recent_alert': most_recent_alert,
                                                         'alert_type':alert_type})
 
 @requires_role('ADVS')
@@ -116,6 +121,11 @@ def view_automation(request, alert_type):
     alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
         
     unresolved_alerts = Alert.objects.filter( alerttype=alert_type, resolved=False )
+
+    try:
+        most_recent_alert = unresolved_alerts.latest('created_at');
+    except Alert.DoesNotExist:
+        most_recent_alert = {}
     
     alert_emails = AlertEmailTemplate.objects.filter( alerttype=alert_type, hidden=False ).order_by('threshold')
     alert_email_dict = dict( [ (key,[]) for key in alert_emails ] ) 
@@ -150,7 +160,8 @@ def view_automation(request, alert_type):
         last_warning = email.threshold
 
     return render(request, 'alerts/view_automation.html', { 'alert_type': alert_type,
-                                                            'alert_automations': alert_automations }) 
+                                                            'alert_automations': alert_automations,
+                                                            'most_recent_alert': most_recent_alert}) 
 
 @requires_role('ADVS')
 def new_automation(request, alert_type):
