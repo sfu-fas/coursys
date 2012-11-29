@@ -20,7 +20,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from onlineforms.fieldtypes import *
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
 from onlineforms.fieldtypes.other import FileCustomField
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
 from onlineforms.utils import reorder_sheet_fields, email_assigned, email_nonsfu_started
@@ -410,7 +410,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     # a list of dictionaries containing the field model object(for editing) and the field form object(for display)
     modelFormFields = []
     for (counter, field) in enumerate(form):
-        field.type =  fields[counter].fieldtype
+        field.type =  dict(FIELD_TYPE_CHOICES)[fields[counter].fieldtype]
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
  
