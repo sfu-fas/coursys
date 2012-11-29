@@ -4,6 +4,7 @@ from forms import EmailForm, ResolutionForm, AlertUpdateForm
 from django.views.decorators.csrf import csrf_exempt
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
+
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -14,6 +15,7 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.forms.util import ErrorList
 from django.template import Template, Context
+from django.core.mail import send_mail
 import rest
 import datetime
 import json
@@ -112,7 +114,6 @@ def view_resolved_alerts(request, alert_type):
 @requires_role('ADVS')
 def view_automation(request, alert_type):
     alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
-    alert_emails = AlertEmailTemplate.objects.filter( alerttype=alert_type ).order_by('threshold')
         
     unresolved_alerts = Alert.objects.filter( alerttype=alert_type, resolved=False )
     
@@ -153,6 +154,7 @@ def view_automation(request, alert_type):
 
 @requires_role('ADVS')
 def new_automation(request, alert_type):
+    print "Booga booga booga"
     alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
 
     if request.method == 'POST':
@@ -172,11 +174,12 @@ def new_automation(request, alert_type):
                       related_object=form.instance)
                 l.save()            
                 return HttpResponseRedirect(reverse('alerts.views.view_automation', kwargs={'alert_type':alert_type.slug}))
+        else:
+            print form.errors
     else:
         form = EmailForm()
 
     sample_alert = Alert.objects.filter(alerttype=alert_type, hidden=False)[0]
-
 
     email_tags = [
         ("person.name","The name of the student that has triggered the alert"),
@@ -207,14 +210,7 @@ def delete_automation( request, alert_type, automation_id ):
     
     return HttpResponseRedirect(reverse('alerts.views.view_automation', kwargs={'alert_type': alert_type}))
 
-@requires_role('ADVS')
-def view_email_preview(request, alert_type, alert_id, automation_id):
-    alert_email = get_object_or_404(AlertEmailTemplate, id=automation_id)
-    alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
-    alert = get_object_or_404(Alert, pk=alert_id, alerttype__unit__in=request.units)
-
-    t = Template( alert_email.content )
-
+def build_context( alert ):
     email_context = {
         'person':{
         'name':alert.person.name(),
@@ -227,7 +223,18 @@ def view_email_preview(request, alert_type, alert_id, automation_id):
         },
         'description':alert.description
     }
+    return email_context
     
+
+@requires_role('ADVS')
+def view_email_preview(request, alert_type, alert_id, automation_id):
+    alert_email = get_object_or_404(AlertEmailTemplate, id=automation_id)
+    alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
+    alert = get_object_or_404(Alert, pk=alert_id, alerttype__unit__in=request.units)
+
+    t = Template( alert_email.content )
+
+    email_context = build_context( alert )    
     email_context['details'] = {}
     for k, v in alert.details.iteritems():
         email_context['details'][k] = str(v)
@@ -315,3 +322,41 @@ def comment_alert( request, alert_type, alert_id ):
     Comment on an alert
     """
     return reopen_or_comment_alert( request, alert_type, alert_id, "COMM", "Comment on" )
+
+@requires_role('ADVS')
+def send_emails( request ):
+    """
+    Send all e-mails. 
+    """
+
+    alert_emails = AlertEmailTemplate.objects.all().order_by('threshold')
+        
+    unresolved_alerts = Alert.objects.filter( resolved=False )
+    
+    alert_emails = AlertEmailTemplate.objects.filter( hidden=False ).order_by('threshold')
+    alert_email_dict = dict( [ (key,[]) for key in alert_emails ] ) 
+
+    for alert in unresolved_alerts:
+        number_of_warnings_sent = alert.alertupdate_set.filter( update_type='EMAI' ).count() 
+        for email in alert_emails:
+            if number_of_warnings_sent < email.threshold:
+                alert_email_dict[email].append( alert )
+                break
+
+    alert_automations = []
+    for email in alert_emails:
+        for alert in alert_email_dict[email]:
+            email_context = build_context( alert )    
+            t = Template( email.content )
+
+            email_context = build_context( alert )    
+            email_context['details'] = {}
+            for k, v in alert.details.iteritems():
+                email_context['details'][k] = str(v)
+
+            rendered_text = t.render( Context(email_context) ) 
+            send_mail( email.subject, rendered_text, "noreply@courses.cs.sfu.ca", [alert.person.email()], fail_silently=True )
+            update = AlertUpdate( alert=alert, update_type="EMAI", comments=rendered_text )
+            update.save()
+
+    return HttpResponseRedirect(reverse('alerts.views.view_alert_types'))

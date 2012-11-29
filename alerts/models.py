@@ -77,7 +77,7 @@ class Alert(models.Model):
         return self.last_update().created_at
 
     def last_resolution(self):
-        return self.alertupdate_set.filter(update_type="RESO").latest('created_at')
+        return self.alertupdate_set.filter(update_type__in=["RESO", "EMAI"]).latest('created_at')
 
     def resolved_until(self):
         resolution = self.last_resolution()
