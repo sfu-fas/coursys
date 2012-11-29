@@ -1381,3 +1381,30 @@ def new_description(request):
         form.fields['unit'].choices = unit_choices
     context = {'form': form}
     return render(request, 'ta/new_description.html', context)
+
+from grad.models import STATUS_ACTIVE, STATUS_INACTIVE
+@login_required
+def instr_offers(request):
+    p = get_object_or_404(Person, userid=request.user.username)
+    cutoff = datetime.date.today() - datetime.timedelta(days=180)
+    members = Member.objects.filter(person=p, role="INST", offering__semester__start__gte=cutoff) \
+              .select_related('offering')
+    offerings = [m.offering for m in members]
+    tacrses = TACourse.objects.filter(course__in=offerings, bu__gt=0,
+                                      contract__status__in=['OPN','REJ','ACC','SGN']) \
+                              .select_related('contract__application__person', 'offering')
+
+    for crs in tacrses:
+        p = crs.contract.application.person
+        gradprog = GradStudent.objects.filter(person=p, current_status__in=STATUS_ACTIVE+STATUS_INACTIVE) \
+                   .select_related('program__unit')
+        crs.gradprog = ', '.join("%s %s" % (gp.program.label, gp.program.unit.label) for gp in gradprog)
+    
+    context = {'tacrses': tacrses}    
+    return render(request, 'ta/instr_offers.html', context)
+    
+    
+    #print members
+
+
+

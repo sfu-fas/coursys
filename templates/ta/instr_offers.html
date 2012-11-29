@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+
+{% block h1 %}Your (Potential) TAs{% endblock %}
+{% block title %}Your (Potential) TAs{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; Your TAs</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+  $(function() {
+  	table = $('#tas').dataTable({
+        "bPaginate": false,
+		"bJQueryUI": true,
+		"aaSorting": [[0, "asc"]],
+		//"aoColumns": [],
+	});
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table class="display" id="tas">
+<thead><tr><th scope="col">Course</th><th scope="col">TA</th><th scope="col">Status</th></tr></thead>
+<tbody>
+{% for crs in tacrses %}
+  <tr>
+  <td>{{crs.course}}</td>
+  <td>{{crs.contract.application.person.name}}{% if crs.gradprog %} ({{crs.gradprog}}){% endif %}</td>
+  <td>{{crs.contract.get_status_display}}</td>
+
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+
+{% endblock %}
