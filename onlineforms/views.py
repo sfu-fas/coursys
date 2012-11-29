@@ -35,6 +35,9 @@ from django.template.loader import get_template
 from django.template import Context
 from django.core.urlresolvers import reverse
 
+from os.path import splitext
+from django.conf import settings
+# from onlineforms.settings import PROJECT_DIR
 
 @requires_role('ADMN')
 def manage_groups(request):
@@ -618,16 +621,27 @@ def readonly_sheets(form_submission):
         sheet_sub_html[sheet_sub] = fields
     return sheet_sub_html
 
+
 @requires_formgroup()
 def file_field_download(request, sheetsubmit_slug, file_id):
-    # grab the file from specified location
+    # given the sheet, it contains the fields with the files
+    print "In file_field_download"
     sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
-    file_submission = get_object_or_404(FileSubmission)
+    print sheet_submission
+    field_submission = get_object_or_404(FieldSubmission, sheet_submission=sheet_submission.id)
+    print field_submission
+    file_submission = get_object_or_404(FieldSubmissionFile, pk=file_id, field_submission=field_submission.id)
+    print file_submission
 
-    filename # = form_submission
-    wrapper = FileWrapper(file(filename))
-    response = HttpResponse(wrapper, content_type=filename.mediatype)
-    # response = ['Content-Length'] = os.path.getsize(filename)
+    file_path = os.path.join(settings.PROJECT_DIR, 'submitted_files') + str(file_submission.file_attachment)
+    file_name, file_extension = os.path.splitext(file_path)
+    print file_field
+    wrapper = FileWrapper(file(file_field))
+    response = HttpResponse(wrapper, content_type=file_field.file_mediatype)
+    #content = "\'attachment; filename=\'" + file_name + file_extension
+    #response = ['Content-Disposition'] = str("\'attachment; filename=\'" + file_name + file_extension)
+    response['Content-Disposition'] = 'attachment; filename=file.txt'
+    print "done!"
     return response
 
 
