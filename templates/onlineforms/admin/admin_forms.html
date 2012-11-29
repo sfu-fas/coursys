@@ -64,7 +64,9 @@
                     </td>
                     <td class="miniaction">
                         <form action="{% url onlineforms.views.admin_done formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
-                            <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
+                            <div>
+                                <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
+                            </div>
                         </form>
                     </td>
                     <td>
@@ -103,7 +105,9 @@
                     <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
                       <td class="miniaction">
                         <form action="{% url onlineforms.views.admin_done formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
-                            <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
+                            <div>
+                                <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
+                            </div>
                         </form>
                     </td>
                     <td>
