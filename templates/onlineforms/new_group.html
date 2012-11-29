@@ -27,18 +27,20 @@
 
 {% block content %}
 <div id="form-container" style="clear: left;">
-		 <fieldset>
-            <form action="{% url onlineforms.views.new_group %}" method="POST">
+            <form action="{% url onlineforms.views.new_group %}" method="post">
             {% csrf_token %}
+            <fieldset>
                 <legend>New Group Information</legend>
                 <ul>
-                    {{form|as_dl}}
+                    <li>
+                        {{form|as_dl}}
+                    </li>
                     <li>
                         <input class="submit" type="submit" value="Next" />
                     </li>
                 </ul>
+            </fieldset>
             </form>
-        </fieldset>
 </div>
 
 

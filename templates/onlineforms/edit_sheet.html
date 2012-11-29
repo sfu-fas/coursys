@@ -132,7 +132,7 @@
         </tr>
         <tr>
             <th scope="row">Is Initial</th>
-            <td>{{ owner_sheet.get_is_initial_display }}</th>
+            <td>{{ owner_sheet.get_is_initial_display }}</td>
         </tr>
         <tr>
             <th scope="row">Can View</th>
@@ -147,10 +147,12 @@
         {% if fields %}
             <table class="display" id="fields_table">
                 <thead>
-                    <th>Order</th>
-                    <th>Field</th>
-                    <th>Edit</th>
-                    <th>Remove</th>
+                    <tr>
+                        <th>Order</th>
+                        <th>Field</th>
+                        <th>Edit</th>
+                        <th>Remove</th>
+                    </tr>
                 </thead>
                 {% for field in fields %}
                 <tr>
