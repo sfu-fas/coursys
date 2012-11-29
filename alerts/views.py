@@ -180,7 +180,6 @@ def view_automation(request, alert_type):
 
 @requires_role('ADVS')
 def new_automation(request, alert_type):
-    print "Booga booga booga"
     alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
 
     if request.method == 'POST':
@@ -200,8 +199,6 @@ def new_automation(request, alert_type):
                       related_object=form.instance)
                 l.save()            
                 return HttpResponseRedirect(reverse('alerts.views.view_automation', kwargs={'alert_type':alert_type.slug}))
-        else:
-            print form.errors
     else:
         form = EmailForm()
 
