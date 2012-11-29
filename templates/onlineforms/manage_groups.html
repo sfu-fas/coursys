@@ -22,7 +22,7 @@
     &gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a>
 </li>
 <li>
-	&gt; Groups
+    &gt; Groups
 </li>
 {% endblock %}
 
@@ -37,34 +37,37 @@
 
 {% block content %}
 <div class="datatable_container">
-	{% if groups %}
-	    <table class="display" id="groups_table">
-	        <thead>
-	            <tr>
-					<th scope="col">Faculty</th>
-	                <th scope="col">Group Name</th>
-	                <th scope="col">Tag Name</th>
-	                <th scope="col">Edit Group</th>
-				</tr>
-			</thead>
-			<tbody>
-			{% for group in groups %}
-				<tr>
-					<td>{{group.unit}}</td>
-					<td>{{group.name}}</td>
-					<td>{{group.slug}}</td>
-					<td class="miniaction">
-						<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">{% csrf_token %}
-							<input type="hidden" name="group_id" value="{{group.id}}" />
-							<input type="submit" value="Edit">
-						</form>
-				</tr>
-			{% endfor %}
-			</tbody>
-	    </table>
+    {% if groups %}
+        <table class="display" id="groups_table">
+            <thead>
+                <tr>
+                    <th scope="col">Faculty</th>
+                    <th scope="col">Group Name</th>
+                    <th scope="col">Tag Name</th>
+                    <th scope="col">Edit Group</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for group in groups %}
+                <tr>
+                    <td>{{group.unit}}</td>
+                    <td>{{group.name}}</td>
+                    <td>{{group.slug}}</td>
+                    <td class="miniaction">
+                        <form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">{% csrf_token %}
+                            <div>
+                                <input type="hidden" name="group_id" value="{{group.id}}" />
+                                <input type="submit" value="Edit" />
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-    	<p>There are no groups available.</p>
-	{% endif %}
+        <p>There are no groups available.</p>
+    {% endif %}
 </div>
 
 {% endblock %}
