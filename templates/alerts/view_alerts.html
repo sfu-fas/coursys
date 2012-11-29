@@ -62,7 +62,7 @@ $(function() {
             <th>Comments</th>
             <th>Last Update</th>
             <!--<th>Description</th>-->
-            {% for key, value in alerts.0.details.items %}
+            {% for key, value in most_recent_alert.details.items %}
                 <th>{{key|lower|capfirst}}</th>
             {% endfor %}
         </tr>
