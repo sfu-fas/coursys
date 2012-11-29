@@ -77,11 +77,13 @@
             </p>
         {% endif %}
         <form action="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.slug %}"
-              method="post" name="form">{% csrf_token %}
+              method="post">{% csrf_token %}
             <fieldset>
                 <legend> Edit Field Type</legend>
                 <ul>
-                    {{ form|as_dl }}
+                    <li>
+                        {{ form|as_dl }}
+                    </li>
                     <li>
                         <input class="submit" type="submit" value="Save Changes"/>
                     </li>
