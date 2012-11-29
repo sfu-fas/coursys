@@ -623,25 +623,23 @@ def readonly_sheets(form_submission):
 
 
 @requires_formgroup()
-def file_field_download(request, sheetsubmit_slug, file_id):
+def file_field_download(request, sheetsubmit_slug, file_id, disposition):
     # given the sheet, it contains the fields with the files
-    print "In file_field_download"
     sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
-    print sheet_submission
     field_submission = get_object_or_404(FieldSubmission, sheet_submission=sheet_submission.id)
-    print field_submission
     file_submission = get_object_or_404(FieldSubmissionFile, pk=file_id, field_submission=field_submission.id)
-    print file_submission
 
     file_path = os.path.join(settings.PROJECT_DIR, 'submitted_files') + str(file_submission.file_attachment)
     file_name, file_extension = os.path.splitext(file_path)
-    print file_field
     wrapper = FileWrapper(file(file_field))
     response = HttpResponse(wrapper, content_type=file_field.file_mediatype)
     #content = "\'attachment; filename=\'" + file_name + file_extension
     #response = ['Content-Disposition'] = str("\'attachment; filename=\'" + file_name + file_extension)
-    response['Content-Disposition'] = 'attachment; filename=file.txt'
-    print "done!"
+
+    """
+    using strings for request[CD] doesn't work - following pattern from pages.view where disposition is just called as "attachment"
+    """
+    response['Content-Disposition'] = disposition + '; filename=' + file_name + file_extension
     return response
 
 
