@@ -65,9 +65,13 @@ def regularize_keys( alert, most_recent_alert ):
         if key not in alert.details:
             alert.details[key] = ""
 
+    delete_keys = []
     for key, value in alert.details.iteritems():
         if key not in most_recent_alert.details:
-            del alert.details[key]
+            delete_keys.append(key)
+
+    for key in delete_keys:
+        del alert.details[key]
 
 
 @requires_role('ADVS')
