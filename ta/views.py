@@ -1306,21 +1306,37 @@ def view_financial(request, post_slug):
     context = {'posting': posting, 'offerings': offerings, 'excluded': excluded, 'info': info}
     return render(request, 'ta/view_financial.html', context) 
 
+
+def _contact_people(posting, statuses):
+    """
+    The set of people to be contacted with the given statuses in the given posting.
+    """
+    contracts = TAContract.objects.filter(posting=posting, status__in=statuses).select_related('application__person')
+    people = set((c.application.person for c in contracts))
+    if '_APPLIC' in statuses:
+        # they want applicants
+        apps = TAApplication.objects.filter(posting=posting, late=False).select_related('person')
+        people |= set((app.person for app in apps))
+    if '_LATEAPP' in statuses:
+        # they want applicants
+        apps = TAApplication.objects.filter(posting=posting, late=True).select_related('person')
+        people |= set((app.person for app in apps))
+    return people
+
 @requires_role("TAAD")
 def contact_tas(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if request.method == "POST":
         form = TAContactForm(request.POST)
         if form.is_valid():
-            contracts = TAContract.objects.filter(posting=posting, status__in=form.cleaned_data['statuses']).select_related('application__person')
+            people = _contact_people(posting, form.cleaned_data['statuses'])
             from_person = Person.objects.get(userid=request.user.username)
+            if 'url' in form.cleaned_data and form.cleaned_data['url']:
+                url = form.cleaned_data['url']
             # message each person
             count = 0
-            for c in contracts:
-                person = c.application.person
+            for person in people:
                 url = ''
-                if 'url' in form.cleaned_data and form.cleaned_data['url']:
-                    url = form.cleaned_data['url']
                 n = NewsItem(user=person, author=from_person, course=None, source_app='ta_contract',
                              title=form.cleaned_data['subject'], content=form.cleaned_data['text'], url=url)
                 n.save()
@@ -1331,8 +1347,8 @@ def contact_tas(request, post_slug):
     
     elif 'statuses' in request.GET:
         statuses = request.GET['statuses'].split(',')
-        contracts = TAContract.objects.filter(posting=posting, status__in=statuses).select_related('application__person')
-        emails = [c.application.person.full_email() for c in contracts]
+        people = _contact_people(posting, statuses)
+        emails = [p.full_email() for p in people]
         
         resp = HttpResponse(mimetype="application/json")
         data = {'contacts': ", ".join(emails)}
