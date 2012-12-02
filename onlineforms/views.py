@@ -607,19 +607,25 @@ def submissions_list_all_forms(request):
 def readonly_sheets(form_submission):
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_sub_html = {}
+    file_sub = None
     for sheet_sub in sheet_submissions:
         # get html from feild submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
         fields = []
         for field_sub in field_submissions:
             field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
-            if field.configurable:
-                field.html = field.to_html(field_sub)
-                field.label = field.config['label']
             field.fieldtype = field_sub.field.fieldtype
+            if field.configurable:
+                field.label = field.config['label']
+                if field.fieldtype == "FILE":
+                    file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub.id)
+                    # skip method for field.html = field.to_html(fileField)                    
+                else:
+                    field.html = field.to_html(field_sub)
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
-    return sheet_sub_html
+    print sheet_sub_html
+    return sheet_sub_html, file_sub
 
 
 @requires_formgroup()
@@ -646,9 +652,10 @@ def file_field_download(request, sheetsubmit_slug, file_id, disposition):
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    sheet_submissions = readonly_sheets(form_submission)
+    sheet_submissions, file_sub = readonly_sheets(form_submission)
 
-    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions}
+
+    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'file_sub': file_sub}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 def sheet_submission_via_url(request, secret_url):

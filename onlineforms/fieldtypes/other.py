@@ -85,7 +85,7 @@ class FileCustomField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + "File title?" + '</p>')
+        return mark_safe('<p>' + 'File title?' + '</p>')
 
 
 class URLCustomField(FieldBase):

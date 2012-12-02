@@ -23,8 +23,14 @@
                 {% ifequal field.fieldtype "DIVI" %}
                     <hr />
                 {% else %}
-                    <dt><label>{{ field.label }}:</label></dt>
-                    <dd>{{ field.html }}</dd>
+                    {% if file_sub %}
+                        <dt><label>{{ field.label }}:</label></dt>
+                        <!--<dd><a{{ file_sub.file_attachment }} hello world </dd>-->
+                        <dd><a href="{% url onlineforms.views.file_field_download %}">Download File</a></dd>
+                    {% else %}
+                        <dt><label>{{ field.label }}:</label></dt>
+                        <dd>{{ field.html }}</dd>
+                    {% endif %}
                 {% endifequal %}
 			{% endfor %}
 			</dl>
