@@ -682,7 +682,8 @@ def all_contracts(request, post_slug):
     except(InvalidPage, EmptyPage):
         contract_page.paginator.page(paginator.num_pages)
     
-    if request.method == "POST":
+    if request.method == "POST" and 'sendoffers' in request.POST:
+        # POST request to send offers
         ccount = 0
         from_user = posting.contact()
         for contract in contracts:
@@ -699,7 +700,25 @@ def all_contracts(request, post_slug):
             messages.success(request, "Successfully sent %s offers." % ccount)
         elif ccount > 0:
             messages.success(request, "Successfully sent offer.")
-            
+
+    elif request.method == "POST":
+        # POST request to set a contract to "signed"
+        for key in request.POST:
+            if key.startswith('signed-'):
+                userid = key[7:]
+                contracts = TAContract.objects.filter(posting=posting, application__person__userid=userid)
+                if contracts:
+                    contract = contracts[0]
+                    contract.status = 'SGN'
+                    contract.save()
+                    messages.success(request, u"Contract for %s signed." % (contract.application.person.name()))
+                    l = LogEntry(userid=request.user.username,
+                        description=u"Set contract for %s to signed." % (contract.application.person.name()),
+                        related_object=contract)
+                    l.save()
+                return HttpResponseRedirect(reverse('ta.views.all_contracts', kwargs={'post_slug': posting.slug}))
+
+    
     for contract in contracts:
         total_bu =0
         crs_list = ''
