@@ -115,8 +115,9 @@ class GradImport(object):
                         "FROM PersonalInfo WHERE Identifier=%s", (cortezid,))
             for sin, in list(self.db):
                 if sin and len(sin)==9 and sin.isdigit():
-                    gs.set_sin(sin)
-                    gs.save()
+                    p = gs.person
+                    p.set_sin(sin)
+                    p.save()
             
             
     

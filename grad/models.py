@@ -91,14 +91,14 @@ class GradStudent(models.Model):
     current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
     config = JSONField(default={}) # addition configuration
-        # 'sin': Social Insurance Number
+        # 'sin': Social Insurance Number: no longer used. Now at self.person.sin()
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
         # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
         # 'work_title': title of the Thesis/Project/Extended Essay
         # 'applic_email': email address from the application process (where it could be imported)
     defaults = {'sin': '000000000', 'applic_email': None}
-    sin, set_sin = getter_setter('sin')
+    #sin, set_sin = getter_setter('sin')
     applic_email, set_applic_email = getter_setter('applic_email')
 
     def __unicode__(self):

@@ -251,9 +251,8 @@ def _new_application(request, post_slug, manual=False, userid=None):
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
 
-        for gs in GradStudent.objects.filter(person=person):
-            if gs.sin() != gs.defaults['sin']:
-                sin = gs.sin()
+        if person.sin() != person.defaults['sin']:
+            sin = person.sin()
        
     if request.method == "POST":
         search_form = StudentSearchForm(request.POST)
@@ -283,12 +282,11 @@ def _new_application(request, post_slug, manual=False, userid=None):
         if ta_form.is_valid() and courses_formset.is_valid():
             app = ta_form.save(commit=False)
 
-            # if they gave a SIN, populate any GradStudent records
+            # if they gave a SIN, populate the Person record
             if app.sin and app.sin != ta_form.sin_default:
-                for gs in GradStudent.objects.filter(person=person):
-                    if gs.sin() != app.sin:
-                        gs.set_sin(app.sin)
-                        gs.save()
+                if person.sin() != app.sin:
+                    person.set_sin(app.sin)
+                    person.save()
             
             today = datetime.date.today()
             if(posting.closes < today):

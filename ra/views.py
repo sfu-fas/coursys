@@ -138,7 +138,7 @@ def new_student(request, userid):
     gss = GradStudent.objects.filter(person=student)
     if gss:
         gradstudent = gss[0]
-        initial['sin'] = gradstudent.sin()
+        initial['sin'] = gradstudent.person.sin()
     
     raform = RAForm(initial=initial)
     raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
