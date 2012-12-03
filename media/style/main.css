@@ -1965,3 +1965,11 @@ fieldset hr {
     border: none;
     border-bottom: 1px solid #BFBAB0;
 }
+
+h3.red-header {
+    padding: 0;
+    margin-left: 1em;
+    color: #B5111A;
+    font-weight: bold;
+    font-size: 1.2em;
+}

@@ -53,13 +53,15 @@ $(document).ready(function() {
 
 
 {% block content %}
-<div id="form-container" style="clear: left;">
-	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="POST">
+<div style="clear: left;">
+	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">
 		{% csrf_token %}
 		 <fieldset style="width: 65%">
             <legend>Edit Group Information</legend>
             <ul>
-                {{form|as_dl}}
+                <li>
+                    {{form|as_dl}}
+                </li>
                 <li>
                     <input class="submit" type="submit" value="Submit" />
                 </li>
@@ -69,8 +71,8 @@ $(document).ready(function() {
 </div>
 
 <br />
-<div id="form-container" style="width: 65%">
-    <legend>Manage Members</legend>
+<div style="width: 65%">
+    <h3 class="red-header">Manage Members</h3>
     <div id="table-container">
         <table class="display" id="formgroupmembers">
         <thead>
@@ -87,9 +89,11 @@ $(document).ready(function() {
                     {{ member.first_name }} {{ member.last_name }}
                 </td>
                 <td class="miniaction"> 
-                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.emplid %}" method="POST">{% csrf_token %}
-                        <input type="hidden" name="action" value="remove"/>
-                        <input type="submit" value="remove"/>
+                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.emplid %}" method="post">{% csrf_token %}
+                        <div>
+                            <input type="hidden" name="action" value="remove"/>
+                            <input type="submit" value="remove"/>
+                        </div>
                     </form>
                 </td>                
             </tr>
@@ -101,12 +105,12 @@ $(document).ready(function() {
 </div>
 
 <br />
-<div id="form-container">
+<div>
     <fieldset style="width: 65%">
         <legend>Add Member</legend>
-        <form action="{% url onlineforms.views.add_group_member formgroup_slug=group.slug %}" method="POST">{% csrf_token %}
+        <form action="{% url onlineforms.views.add_group_member formgroup_slug=group.slug %}" method="post">{% csrf_token %}
             <ul>
-                {{ search|as_dl }}
+                <li>{{ search|as_dl }}</li>
                 <li><input type="hidden" name="action" value="add" /></li>
                 <li><input class="submit" type="submit" value="Add" /></li>
             </ul>

@@ -9,8 +9,8 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, r
 from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
+from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
 from onlineforms.utils import reorder_sheet_fields, email_assigned, email_nonsfu_started
@@ -22,6 +22,12 @@ from django.core.mail import EmailMessage
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.template import Context
+from django.core.urlresolvers import reverse
+
+import os
+from os.path import splitext
+from django.conf import settings
+from django.core.servers.basehttp import FileWrapper
 
 @requires_role('ADMN')
 def manage_groups(request):
@@ -93,6 +99,10 @@ def add_group_member(request, formgroup_slug):
                         return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                 else: # if accidentally don't search for anybody
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
+    
+    groups = FormGroup.objects.filter(unit__in=request.units)
+    context = {'groups': groups}
+    return render(request, 'onlineforms/manage_groups.html', context)
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
@@ -108,8 +118,10 @@ def remove_group_member(request, formgroup_slug, userid):
             if request.POST['action'] == 'remove':
                 group.members.remove(member)
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
-
-
+    
+    groups = FormGroup.objects.filter(unit__in=request.units)
+    context = {'groups': groups}
+    return render(request, 'onlineforms/manage_groups.html', context)
 
 # Form admin views
 @requires_formgroup()
@@ -266,7 +278,7 @@ def list_all(request):
 def new_form(request):
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
-        form = FormForm(request.POST)
+        form = NewFormForm(request.POST)
         form.fields['owner'].choices = group_choices
         if form.is_valid():
             f = form.save(commit=False)
@@ -275,7 +287,7 @@ def new_form(request):
             f.save()
             return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
-        form = FormForm()
+        form = NewFormForm()
         form.fields['owner'].choices = group_choices
     return render(request, 'onlineforms/new_form.html', {'form': form})
 
@@ -391,7 +403,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     # a list of dictionaries containing the field model object(for editing) and the field form object(for display)
     modelFormFields = []
     for (counter, field) in enumerate(form):
-        field.type =  fields[counter].fieldtype
+        field.type =  dict(FIELD_TYPE_CHOICES)[fields[counter].fieldtype]
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
  
@@ -583,26 +595,58 @@ def submissions_list_all_forms(request):
 
     
 def readonly_sheets(form_submission):
+#sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-    sheet_sub_html = {}
+    sheet_sub_html = {} 
+    sheetsWithFiles = {} 
     for sheet_sub in sheet_submissions:
         # get html from feild submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
         fields = []
         for field_sub in field_submissions:
             field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
-            if field.configurable:
-                field.html = field.to_html(field_sub)
-                field.label = field.config['label']
             field.fieldtype = field_sub.field.fieldtype
+            if field.configurable:
+                field.label = field.config['label']
+                if field.fieldtype == "FILE":
+                    # file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub.id)
+                    sheetsWithFiles[sheet_sub.id] = field_sub.id
+                    # skip method for field.html = field.to_html(fileField)                    
+                else:
+                    field.html = field.to_html(field_sub)
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
-    return sheet_sub_html
+        return sheet_sub_html, sheetsWithFiles
+
+
+@requires_formgroup()
+def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition):
+    print "\nin file field"
+
+    form_sub = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
+    field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
+    file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub)
+
+    file_path = os.path.join(settings.PROJECT_DIR, 'submitted_files') + '/' + str(file_sub.file_attachment)
+    f = open(file_path, 'r')
+    path = os.path.basename(file_path)
+    file_name,file_extension = os.path.splitext(path)
+    response = HttpResponse(FileWrapper(f), content_type=file_sub.file_mediatype)
+    """
+    using strings for request[CD] doesn't work - following idea from a pages.view where disposition is just called as "attachment"
+    """
+    response['Content-Disposition'] = disposition + '; filename=' + file_name + file_extension
+    return response
 
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
+    print "\nin view submission"
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    context = {'form': form_submission.form, 'sheet_submissions': readonly_sheets(form_submission)}
+    sheet_submissions, sheetsWithFiles = readonly_sheets(form_submission)
+
+
+    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 def sheet_submission_via_url(request, secret_url):
@@ -615,7 +659,7 @@ def sheet_submission_via_url(request, secret_url):
     return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
 
 
-#Commented out as this was breaking the other 'view_submission'
+#Commented out as this was breaking the other 'view_submission'()
 #@requires_formgroup()
 #def view_submission(request, sheetsubmit_slug, file_id):
 #    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
