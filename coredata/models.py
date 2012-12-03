@@ -61,11 +61,14 @@ class Person(models.Model):
         # 'applic_email': application email address
         # 'gpa': Most recent CGPA for this student
         # 'ccredits': Number of completed credits
+        # 'sin': Social Insurance Number (usually populated by TA/RA contracts)
         # 'nonstudent_hs': highschool field from NonStudent record
         # 'nonstudent_colg': college field from NonStudent record
         # 'nonstudent_notes': notes field from NonStudent record
     
-    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None, 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
+                'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
+                'sin': '000000000'}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
@@ -74,6 +77,7 @@ class Person(models.Model):
     # see grad.forms.VISA_STATUSES for list of possibilites
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
+    sin, set_sin = getter_setter('sin')
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
