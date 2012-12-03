@@ -35,9 +35,10 @@ from django.template.loader import get_template
 from django.template import Context
 from django.core.urlresolvers import reverse
 
+import os
 from os.path import splitext
 from django.conf import settings
-# from onlineforms.settings import PROJECT_DIR
+from django.core.servers.basehttp import FileWrapper
 
 @requires_role('ADMN')
 def manage_groups(request):
@@ -605,9 +606,10 @@ def submissions_list_all_forms(request):
 
     
 def readonly_sheets(form_submission):
+#sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-    sheet_sub_html = {}
-    file_sub = None
+    sheet_sub_html = {} 
+    sheetsWithFiles = {} 
     for sheet_sub in sheet_submissions:
         # get html from feild submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
@@ -618,44 +620,44 @@ def readonly_sheets(form_submission):
             if field.configurable:
                 field.label = field.config['label']
                 if field.fieldtype == "FILE":
-                    file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub.id)
+                    # file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub.id)
+                    sheetsWithFiles[sheet_sub.id] = field_sub.id
                     # skip method for field.html = field.to_html(fileField)                    
                 else:
                     field.html = field.to_html(field_sub)
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
-    print sheet_sub_html
-    return sheet_sub_html, file_sub
+        return sheet_sub_html, sheetsWithFiles
 
 
 @requires_formgroup()
-def file_field_download(request, sheetsubmit_slug, file_id, disposition):
-    # given the sheet, it contains the fields with the files
-    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
-    field_submission = get_object_or_404(FieldSubmission, sheet_submission=sheet_submission.id)
-    file_submission = get_object_or_404(FieldSubmissionFile, pk=file_id, field_submission=field_submission.id)
+def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition):
+    print "\nin file field"
 
-    file_path = os.path.join(settings.PROJECT_DIR, 'submitted_files') + str(file_submission.file_attachment)
-    file_name, file_extension = os.path.splitext(file_path)
-    wrapper = FileWrapper(file(file_field))
-    response = HttpResponse(wrapper, content_type=file_field.file_mediatype)
-    #content = "\'attachment; filename=\'" + file_name + file_extension
-    #response = ['Content-Disposition'] = str("\'attachment; filename=\'" + file_name + file_extension)
+    form_sub = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
+    field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
+    file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub)
 
+    file_path = os.path.join(settings.PROJECT_DIR, 'submitted_files') + '/' + str(file_sub.file_attachment)
+    f = open(file_path, 'r')
+    path = os.path.basename(file_path)
+    file_name,file_extension = os.path.splitext(path)
+    response = HttpResponse(FileWrapper(f), content_type=file_sub.file_mediatype)
     """
-    using strings for request[CD] doesn't work - following pattern from pages.view where disposition is just called as "attachment"
+    using strings for request[CD] doesn't work - following idea from a pages.view where disposition is just called as "attachment"
     """
     response['Content-Disposition'] = disposition + '; filename=' + file_name + file_extension
     return response
 
-
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
+    print "\nin view submission"
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    sheet_submissions, file_sub = readonly_sheets(form_submission)
+    sheet_submissions, sheetsWithFiles = readonly_sheets(form_submission)
 
 
-    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'file_sub': file_sub}
+    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 def sheet_submission_via_url(request, secret_url):
