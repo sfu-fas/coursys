@@ -1080,12 +1080,6 @@ def grade_change_form(member, oldgrade, newgrade, user, outfile):
 
 class CardReqForm(object):
     LINE_WIDTH = 1
-    NOTE_STYLE = ParagraphStyle(name='Normal',
-                                fontName='Helvetica',
-                                fontSize=10,
-                                leading=11,
-                                alignment=TA_LEFT,
-                                textColor=black)
 
     def __init__(self, outfile):
         """
@@ -1311,4 +1305,160 @@ def card_req_forms(grads, outfile):
     for g in grads:
         doc.draw_form(g)
     doc.save()
+
+
+class FASnetForm(object):
+    ENTRY_HEIGHT = 10*mm
+    LEGAL_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Times-Roman',
+                                fontSize=10,
+                                leading=11,
+                                alignment=TA_LEFT,
+                                borderPadding=0,
+                                textColor=black)
+    TINYLEGAL_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Times-Roman',
+                                fontSize=8,
+                                leading=8,
+                                alignment=TA_LEFT,
+                                textColor=black)
+
+
+    def __init__(self, outfile):
+        """
+        Create FASnet account form in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+        self.legal = open(os.path.join(settings.PROJECT_DIR, 'external', 'sfu', 'fasnet_legal.txt')).read()
+
+    def save(self):
+        self.c.save()
+
+    def label_font(self):
+        self.c.setFont("Times-Roman", 14)
+    def entry_font(self):
+        self.c.setFont("Helvetica", 12)
+
+    def check_label(self, x, y, label, fill=False):
+        self.label_font()
+        self.c.setLineWidth(0.4)
+        self.c.rect(x, y, 3*mm, 3*mm, fill=0)
+        if fill:
+            self.c.line(x, y, x+3*mm, y+3*mm)
+            self.c.line(x+3*mm, y, x, y+3*mm)
+        self.c.drawStringRight(x-2*mm, y, label)
+
+    def label_blank(self, x, y, label, value='', labelwidth=40*mm, linelength=70*mm, fill=False):
+        self.label_font()
+        self.c.drawString(x, y, label+":")
+        self.c.setLineWidth(0.4)
+        self.c.line(x+labelwidth, y-1*mm, x+labelwidth+linelength, y-1*mm)
+        self.entry_font()
+        self.c.drawString(x+labelwidth+2*mm, y, value)
+
+
+    def draw_form(self, grad):
+        """
+        Generates card requisition form for this grad
+        """
+        self.c.setStrokeColor(black)
+        self.c.translate(23*mm, 12*mm) # origin = lower-left of the main box
+        main_width = 180*mm
+        self.c.setStrokeColor(black)
+        self.c.setFillColor(black)
+        self.c.setLineWidth(0.5)
+        
+        # for form itself
+        
+        # top header
+        self.c.setFont("Helvetica-Bold", 14)
+        self.c.drawCentredString(main_width/2, 243*mm, 'SIMON FRASER UNIVERSITY')
+        self.c.setFont("Helvetica-Bold", 12)
+        self.c.drawCentredString(main_width/2, 236*mm, 'FASnet Account Application')
+
+        # the blanks
+        base_y = 220*mm
+        self.label_blank(0*mm, base_y, 'Campus Userid', grad.person.userid or '')
+        self.label_blank(0*mm, base_y - 1*self.ENTRY_HEIGHT, 'Family Name', grad.person.last_name)
+        self.label_blank(0*mm, base_y - 2*self.ENTRY_HEIGHT, 'Given Name(s)', grad.person.first_name)
+        self.label_blank(0*mm, base_y - 3*self.ENTRY_HEIGHT, 'Student Number', unicode(grad.person.emplid))
+
+        self.label_blank(0*mm, base_y - 5*self.ENTRY_HEIGHT, 'Account Type', 'Graduate Student')
+        self.label_blank(0*mm, base_y - 6*self.ENTRY_HEIGHT, 'Department', grad.program.unit.informal_name())
+
+        self.label_blank(0*mm, base_y - 7*self.ENTRY_HEIGHT, 'Groups', 'cs_grads group')
+        self.label_blank(0*mm, base_y - 8*self.ENTRY_HEIGHT, 'Research Lab(s)', '')
+        self.label_blank(0*mm, base_y - 9*self.ENTRY_HEIGHT, 'Home Directory', '/cs/grad1,2,3')
+        self.label_blank(0*mm, base_y - 10*self.ENTRY_HEIGHT, 'Platforms', 'Unix & Windows')
+
+        # find a sensible person to sign the form
+        signers = list(Role.objects.filter(unit=grad.program.unit, role='GRAD').order_by('-id')) \
+                  + list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) \
+                  + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        for role in signers:
+            import PIL
+            try:
+                sig = Signature.objects.get(user=role.person)
+                sig.sig.open()
+                img = PIL.Image.open(sig.sig)
+                width, height = img.size
+                hei = 10*mm
+                wid = 1.0*width/height * hei
+                sig.sig.open()
+                ir = ImageReader(sig.sig)
+                self.c.drawImage(ir, x=45*mm, y=base_y - 15*self.ENTRY_HEIGHT, width=wid, height=hei)
+                self.entry_font()
+                self.c.drawString(42*mm, base_y - 12*self.ENTRY_HEIGHT, role.person.name())
+                break
+            except Signature.DoesNotExist:
+                pass
+
+        self.label_blank(0*mm, base_y - 12*self.ENTRY_HEIGHT, 'Sponsor', '')
+        self.label_blank(0*mm, base_y - 13*self.ENTRY_HEIGHT, 'Expiry', '4 years')
+
+        self.label_blank(0*mm, base_y - 15*self.ENTRY_HEIGHT, 'Sponsor Signature', '')
+        self.label_blank(0*mm, base_y - 16*self.ENTRY_HEIGHT, 'Date', datetime.date.today().strftime("%B %d, %Y"))
+
+        self.c.showPage()
+
+        # page 2: leagalese
+        
+        p = Paragraph("In using information resources at Simon Fraser University you are agreeing to comply with policies and procedures as specified in Simon Fraser University's Policies and Procedures document GP24 and any other University/Departmental policies. The following is an excerpt from GP24.",
+                  self.LEGAL_STYLE)
+        f = Frame(0.5*inch, 0.5*inch, 7.5*inch, 10*inch)
+        f.addFromList([p], self.c)
+
+        content = []
+        for txt in self.legal.split('\n\n'):
+            content.append(Spacer(1, 5))
+            p = Paragraph(txt, self.TINYLEGAL_STYLE)
+            content.append(p)
+
+        f = Frame(0.75*inch, 1*inch, 7*inch, 9*inch)
+        f.addFromList(content, self.c)
+
+        self.label_blank(0.5*inch, 1*inch, 'Signature of Applicant', '', labelwidth=48*mm, linelength=60*mm)
+        self.label_blank(125*mm, 1*inch, 'Date', '', labelwidth=14*mm, linelength=40*mm)
+        
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawCentredString(4.25*inch, 0.7*inch, 'Please drop off completed form at the Dean of Applied Science Office (ASB 9861).')
+        self.c.drawCentredString(4.25*inch, 0.5*inch, 'For account related inquiries please email helpdesk@fas.sfu.ca.')
+
+        self.c.showPage()
+
+
+def fasnet_forms(grads, outfile):
+    doc = FASnetForm(outfile)
+    for g in grads:
+        doc.draw_form(g)
+    doc.save()
+
+
+
+
+
+
+
+
+
     
