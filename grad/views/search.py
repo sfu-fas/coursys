@@ -11,6 +11,7 @@ from coredata.models import Person
 import unicodecsv as csv
 import copy, datetime, json
 from grad.templatetags.getattribute import getattribute
+from dashboard.letters import card_req_forms
 
 MAX_RESULTS = 1000
 
@@ -48,6 +49,56 @@ def _parse_sort(sortstr):
             return None
         res.append([num, order])
     return mark_safe(json.dumps(res))
+
+
+def _generate_csv(response, columns, headers, grads):
+    writer = csv.writer(response)
+    writer.writerow( headers )
+    for grad in grads:
+        row = []
+        for column in columns:
+            value = getattribute(grad, column, html=False)
+            row.append(value)
+        writer.writerow( row )
+
+
+def _generate_excel(response, columns, headers, grads):
+    import xlwt
+    book = xlwt.Workbook(encoding='utf-8')
+    sheet = book.add_sheet('Search Results')
+    hdrstyle = xlwt.easyxf('font: bold on; pattern: pattern solid, fore_colour grey25; align: horiz centre')
+    evenstyle = xlwt.easyxf('pattern: back_colour gray40')
+    oddstyle = xlwt.easyxf('pattern: pattern sparse_dots, fore_colour grey25')
+    
+    # header row
+    sheet.write(0, 0, u'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
+    sheet.row(0).height = 400
+    for i,hdr in enumerate(headers):
+        sheet.write(1, i, hdr, hdrstyle)
+    
+    # data rows
+    for i,grad in enumerate(grads):
+        style = [oddstyle, evenstyle][i%2]
+        for j,column in enumerate(columns):
+            sheet.write(i+2, j, getattribute(grad, column, html=False), style)
+    
+    # set column widths
+    for i,c in enumerate(columns):
+        wid = COLUMN_WIDTHS[c]
+        sheet.col(i).width = wid
+    
+    count = len(grads)
+    sheet.write(count+4, 0, 'Number of students: %i' % (count))
+    sheet.write(count+5, 0, 'Report generated: %s' % (datetime.datetime.now()))
+    
+    book.save(response)
+
+
+def _generate_cardforms(response, grads):
+    card_req_forms(grads, response)
+
+
+
 
 @requires_role("GRAD", get_only=["GRPD"])
 def search(request):
@@ -119,52 +170,21 @@ def search(request):
             # CSV output
             response = HttpResponse(mimetype='text/csv')
             response['Content-Disposition'] = 'inline; filename=grad_search.csv'
-            writer = csv.writer(response) 
-            
-            writer.writerow( human_readable_column_headers )
-            
-            for grad in grads:
-                row = []
-                for column in columns:
-                    value = getattribute(grad, column, html=False)
-                    row.append(value)
-                writer.writerow( row )
+            _generate_csv(response, columns, human_readable_column_headers, grads)
             return response
         
         elif 'excel' in request.GET:
             # Excel output
-            import xlwt
             response = HttpResponse(mimetype='application/vnd.ms-excel')
             response['Content-Disposition'] = 'inline; filename=grad_search.xls'
-            
-            book = xlwt.Workbook(encoding='utf-8')
-            sheet = book.add_sheet('Search Results')
-            hdrstyle = xlwt.easyxf('font: bold on; pattern: pattern solid, fore_colour grey25; align: horiz centre')
-            evenstyle = xlwt.easyxf('pattern: back_colour gray40')
-            oddstyle = xlwt.easyxf('pattern: pattern sparse_dots, fore_colour grey25')
-            
-            # header row
-            sheet.write(0, 0, u'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
-            sheet.row(0).height = 400
-            for i,hdr in enumerate(human_readable_column_headers):
-                sheet.write(1, i, hdr, hdrstyle)
-            
-            # data rows
-            for i,grad in enumerate(grads):
-                style = [oddstyle, evenstyle][i%2]
-                for j,column in enumerate(columns):
-                    sheet.write(i+2, j, getattribute(grad, column, html=False), style)
-            
-            # set column widths
-            for i,c in enumerate(columns):
-                wid = COLUMN_WIDTHS[c]
-                sheet.col(i).width = wid
-            
-            count = len(grads)
-            sheet.write(count+4, 0, 'Number of students: %i' % (count))
-            sheet.write(count+5, 0, 'Report generated: %s' % (datetime.datetime.now()))
-            
-            book.save(response)
+            _generate_excel(response, columns, human_readable_column_headers, grads)
+            return response
+        
+        elif 'cardforms' in request.GET:
+            # Excel output
+            response = HttpResponse(mimetype='application/pdf')
+            response['Content-Disposition'] = 'inline; filename=card_access.pdf'
+            _generate_cardforms(response, grads)
             return response
         
         if overflow:

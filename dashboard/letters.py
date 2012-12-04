@@ -1,4 +1,3 @@
-
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
@@ -9,6 +8,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont  
 from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
+from coredata.models import Role
 from django.conf import settings
 import os, datetime
 from dashboard.models import Signature
@@ -1075,3 +1075,240 @@ def grade_change_form(member, oldgrade, newgrade, user, outfile):
     doc = GradeChangeForm(outfile)
     doc.draw_form(member, oldgrade, newgrade, user)
     doc.save()
+
+
+
+class CardReqForm(object):
+    LINE_WIDTH = 1
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=10,
+                                leading=11,
+                                alignment=TA_LEFT,
+                                textColor=black)
+
+    def __init__(self, outfile):
+        """
+        Create TA Appointment Form(s) in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def save(self):
+        self.c.save()
+
+    def title_font(self):
+        self.c.setFont("Helvetica-Bold", 12)
+    def label_font(self):
+        self.c.setFont("Helvetica", 12)
+    def entry_font(self):
+        self.c.setFont("Helvetica-Bold", 10)
+
+    def check_label(self, x, y, label, fill=False):
+        self.label_font()
+        self.c.setLineWidth(0.4)
+        self.c.rect(x, y, 3*mm, 3*mm, fill=0)
+        self.c.setLineWidth(self.LINE_WIDTH)
+        if fill:
+            self.c.line(x, y, x+3*mm, y+3*mm)
+            self.c.line(x+3*mm, y, x, y+3*mm)
+        self.c.drawString(x+8*mm, y, label)
+                
+
+    def draw_form(self, grad):
+        """
+        Generates card requisition form for this grad
+        """
+        self.c.setStrokeColor(black)
+        self.c.translate(23*mm, 12*mm) # origin = lower-left of the main box
+        main_width = 166*mm
+        self.c.setStrokeColor(black)
+        self.c.setFillColor(black)
+        self.c.setLineWidth(self.LINE_WIDTH)
+        
+        # top header
+        self.title_font()
+        self.c.drawString(0*mm, 251*mm, u"SIMON FRASER UNIVERSITY")
+        self.c.drawString(0*mm, 246*mm, u"CARD REQUISITION")
+        self.c.drawString(118*mm, 258*mm, u"CARD NO.")
+        self.c.rect(118*mm, 250*mm, 47*mm, 6.5*mm, fill=0)
+        for i in range(1,6):
+            self.c.line(118*mm + i*47.0/6*mm, 250*mm, 118*mm + i*47.0/6*mm, 256.5*mm)
+        self.check_label(118*mm, 244*mm, u'New Issue', fill=True)
+        self.check_label(118*mm, 238*mm, u'Addendum')
+        
+        # basic info
+        self.label_font()
+        self.c.drawString(0, 235*mm, 'Department:')
+        self.c.line(25*mm, 235*mm, 89*mm, 235*mm)
+        self.c.drawString(0, 223*mm, 'Last Name:')
+        self.c.line(23*mm, 223*mm, 89*mm, 223*mm)
+        self.c.drawString(0, 217.5*mm, 'Given Names:')
+        self.c.line(28*mm, 217.5*mm, 89*mm, 217.5*mm)
+        self.c.drawString(0, 212*mm, 'ID No.:')
+        self.c.line(14*mm, 212*mm, 89*mm, 212*mm)
+        
+        self.entry_font()
+        self.c.drawString(29*mm, 236*mm, grad.program.unit.label)
+        self.c.drawString(29*mm, 224*mm, grad.person.last_name)
+        self.c.drawString(29*mm, 218.5*mm, grad.person.first_name)
+        self.c.drawString(29*mm, 213*mm, unicode(grad.person.emplid))
+        
+        # traffic and security use box
+        self.title_font()
+        self.c.setLineWidth(self.LINE_WIDTH)
+        self.c.setFillColor(CMYKColor(0, 0, 0, .2))
+        self.c.rect(main_width-69*mm, 208*mm, 69*mm, 28*mm, fill=1)
+        self.c.setFillColor(black)
+        self.c.drawString(99*mm, 229*mm, 'TRAFFIC & SECURITY')
+        self.c.drawString(99*mm, 223*mm, 'OFFICE USE ONLY')
+        self.label_font()
+        self.c.drawString(99*mm, 218*mm, 'Service Charge')
+        self.c.drawString(132*mm, 218*mm, '$')
+        self.c.line(135*mm, 218*mm, 161*mm, 218*mm)
+        self.c.drawString(99*mm, 213*mm, 'Deposit')
+        self.c.drawString(132*mm, 213*mm, '$')
+        self.c.line(135*mm, 213*mm, 161*mm, 213*mm)
+
+        self.c.line(0, 208*mm, main_width, 208*mm)
+        
+        # charge to/refund
+        self.title_font()
+        self.c.drawString(0*mm, 196.5*mm, 'CHARGE TO:')
+        self.c.drawString(0*mm, 190*mm, 'Individual')
+        self.c.drawString(50*mm, 190*mm, 'Department')
+        self.c.drawString(110*mm, 196.5*mm, 'REFUND:')
+        
+        self.check_label(0*mm, 182*mm, u'Deposit', fill=True)
+        self.check_label(0*mm, 174.5*mm, u'Service Charge')
+        self.check_label(50*mm, 182*mm, u'Deposit')
+        self.check_label(50*mm, 174.5*mm, u'Service Charge', fill=True)
+        self.check_label(110*mm, 182*mm, u'Individual', fill=True)
+        self.check_label(110*mm, 174.5*mm, u'Department')
+        
+        # account code
+        self.title_font()
+        self.c.drawString(0*mm, 163*mm, 'Account Code')
+        self.c.rect(30*mm, 162*mm, 68*mm, 6.5*mm, fill=0)
+        for i in range(12):
+            h = 3*mm
+            if i == 8:
+                h = 6.5*mm
+            x = 30*mm + i*68.0/12*mm
+            self.c.line(x, 162*mm, x, 162*mm+h)
+        
+        self.entry_font()
+        acct = grad.program.unit.config.get('card_account', '')
+        for i,c in enumerate(unicode(acct)):
+            x = 32*mm + i*68.0/12*mm
+            self.c.drawString(x, 163*mm, c)
+        
+        self.c.line(0, 157*mm, main_width, 157*mm)
+        
+        # classification
+        self.title_font()
+        self.c.drawString(0*mm, 148*mm, 'CLASSIFICATION')
+        self.check_label(13*mm, 140*mm, u'Staff')
+        self.check_label(51*mm, 140*mm, u'Faculty')
+        self.check_label(89*mm, 140*mm, u'RA')
+        self.check_label(128*mm, 140*mm, u'Visitor')
+        self.check_label(13*mm, 133*mm, u'Undergrad')
+        self.check_label(51*mm, 133*mm, u'Graduate', fill=True)
+        self.check_label(89*mm, 133*mm, u'_____________')
+
+        self.c.drawString(0*mm, 123*mm, 'EMPLOYEE GROUP')
+        self.check_label(13*mm, 115*mm, u'CUPE')
+        self.check_label(51*mm, 115*mm, u'APSA')
+        self.check_label(89*mm, 115*mm, u'Student', fill=True)
+        self.check_label(128*mm, 115*mm, u'Polyparty')
+        self.check_label(13*mm, 108*mm, u'Contract')
+        self.check_label(51*mm, 108*mm, u'TSSU')
+        self.check_label(89*mm, 108*mm, u'SFUFA')
+        self.check_label(128*mm, 108*mm, u'____________')
+
+        self.c.line(0, 102*mm, main_width, 102*mm)
+        
+        # areas
+        self.title_font()
+        self.c.drawString(0*mm, 95*mm, 'AREAS')
+        self.c.drawString(80*mm, 95*mm, 'SCHEDULE')
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(0*mm, 88*mm, 'Room #/Door #')
+        self.c.drawString(80*mm, 88*mm, '24 Hr.')
+        self.c.drawString(100*mm, 88*mm, 'M-F 8:30-4:30')
+        self.c.drawString(130*mm, 88*mm, 'Other Days/Times')
+        for i in range(3):
+            y = 82*mm - i*5.5*mm
+            self.c.rect(0*mm, y, 75*mm, 5.5*mm, fill=0)
+            self.check_label(82*mm, y+1*mm, '', fill=True)
+            self.check_label(108*mm, y+1*mm, '')
+            self.c.line(130*mm, y, 166*mm, y)
+        
+        
+        self.entry_font()
+        rooms = grad.program.unit.config.get('card_rooms', '').split("|")
+        for i,rm in enumerate(rooms):
+            y = 83*mm - i*5.5*mm
+            self.c.drawString(1*mm, y, rm)
+
+        # find a sensible person to sign the form
+        signers = list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        for role in signers:
+            import PIL
+            try:
+                sig = Signature.objects.get(user=role.person)
+                sig.sig.open()
+                img = PIL.Image.open(sig.sig)
+                width, height = img.size
+                hei = 7*mm
+                wid = 1.0*width/height * hei
+                sig.sig.open()
+                ir = ImageReader(sig.sig)
+                self.c.drawImage(ir, x=114*mm, y=50*mm, width=wid, height=hei)
+                break
+            except Signature.DoesNotExist:
+                pass
+
+        # dates and signature
+        self.title_font()
+        self.c.drawString(0*mm, 57*mm, 'Effective Date:')
+        self.c.line(32*mm, 57*mm, 74*mm, 57*mm)
+        self.c.drawString(80*mm, 57*mm, 'Expiry Date:')
+        self.c.line(106*mm, 57*mm, 166*mm, 57*mm)
+        self.c.drawString(0*mm, 51*mm, 'Date:')
+        self.c.line(13*mm, 51*mm, 74*mm, 51*mm)
+        self.c.drawString(80*mm, 51*mm, 'Authorized By:')
+        self.c.line(113*mm, 51*mm, 166*mm, 51*mm)
+        
+        self.entry_font()
+        today = datetime.date.today()
+        expiry = today + datetime.timedelta(days=365*5+1)
+        self.c.drawString(34*mm, 58*mm, today.strftime("%B %d, %Y"))
+        self.c.drawString(108*mm, 58*mm, expiry.strftime("%B %d, %Y"))
+        self.c.drawString(34*mm, 52*mm, today.strftime("%B %d, %Y"))
+
+        self.c.setDash(6,3)
+        self.c.line(0, 46*mm, main_width, 46*mm)
+        
+        # rules and signature
+        self.c.setFont("Helvetica-Bold", 10)
+        self.c.drawString(0*mm, 40*mm, "Please read the following before signing:")
+        self.c.setFont("Helvetica", 10)
+        self.c.drawString(0*mm, 35*mm, u"\u2022 THIS CARD IS FOR MY OWN USE.")
+        self.c.drawString(0*mm, 30*mm, u"\u2022 IT REMAINS THE POPERTY OF SFU.")
+        self.c.drawString(0*mm, 25*mm, u"\u2022 IT WILL NOT BE PASSED ON TO ANOTHER PERSON")
+        self.c.drawString(0*mm, 20*mm, u"\u2022 IT WILL BE RETURNED TO THIS OFFICE ONLY, WHEN NO LONGER OF USE TO MYSELF.")
+        
+        self.c.setDash(1)
+        self.c.line(0, 5*mm, 62*mm, 5*mm)
+        self.c.line(69*mm, 5*mm, 136*mm, 5*mm)
+        self.c.drawString(0*mm, 0*mm, u"SIGNATURE")
+        self.c.drawString(69*mm, 0*mm, u"DATE")
+
+        self.c.showPage()
+
+def card_req_forms(grads, outfile):
+    doc = CardReqForm(outfile)
+    for g in grads:
+        doc.draw_form(g)
+    doc.save()
+    
