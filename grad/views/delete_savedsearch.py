@@ -10,12 +10,12 @@ def delete_savedsearch(request):
     current_user = Person.objects.get(userid=request.user.username)
     if request.method != 'POST':
         return ForbiddenResponse(request)
-    try:
-        savedsearch = SavedSearch.objects.get(
+    savedsearches = SavedSearch.objects.filter(
                 person=request.POST['person'], 
                 query=request.POST['query'])
-    except SavedSearch.DoesNotExist:
+    if not savedsearches:
         return NotFoundResponse(request, u"This Saved Search doesn't exist.")
+    savedsearch = savedsearches[0]
     if current_user != savedsearch.person:
         return ForbiddenResponse(request, u"You cannot delete this Saved Search.")
     savedsearch.delete()

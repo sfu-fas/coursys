@@ -4,7 +4,6 @@ from coredata.models import Person
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
-from grad.models import GradStudent
 
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
@@ -23,10 +22,9 @@ class RAForm(forms.ModelForm):
             emplid = int(self['person'].value())
         except ValueError:
             raise forms.ValidationError("The correct format for a SIN is XXXXXXXXX, all numbers, no spaces or dashes.")
-        gradstudents = GradStudent.objects.filter(person__emplid=emplid)
-        for gradstudent in gradstudents:
-            gradstudent.set_sin(sin)
-            gradstudent.save()
+        person = Person.objects.filter(emplid=emplid)
+        person.set_sin(sin)
+        person.save()
         return sin
 
     def clean_hours(self):
