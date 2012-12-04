@@ -286,6 +286,9 @@ class UnitAddressForm(forms.Form):
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),
                                help_text='Department ID (cost centre) for financial services. e.g. "12345". Used for TA/RA contracts.')
+    card_account = forms.CharField(required=False, label="Card Account",
+                               widget=forms.TextInput(attrs={'size': 12}),
+                               help_text='Account code for card requisitions (e.g. "12345678 1234")')
 
     def __init__(self, unit, *args, **kwargs):
         super(UnitAddressForm, self).__init__(*args, **kwargs)
@@ -311,6 +314,8 @@ class UnitAddressForm(forms.Form):
             self.initial['email'] = unit.config['email']
         if 'deptid' in unit.config:
             self.initial['deptid'] = unit.config['deptid']
+        if 'card_account' in unit.config:
+            self.initial['card_account'] = unit.config['card_account']
         if 'informal_name' in unit.config:
             self.initial['informal_name'] = unit.config['informal_name']
         else:
@@ -338,6 +343,7 @@ class UnitAddressForm(forms.Form):
         self._set_or_delete(data, 'web', self.unit.config, 'web')
         self._set_or_delete(data, 'email', self.unit.config, 'email')
         self._set_or_delete(data, 'deptid', self.unit.config, 'deptid')
+        self._set_or_delete(data, 'card_account', self.unit.config, 'card_account')
         self._set_or_delete(data, 'phone', self.unit.config, 'tel')
         self._set_or_delete(data, 'informal_name', self.unit.config, 'informal_name')
 
