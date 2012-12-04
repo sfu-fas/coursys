@@ -94,11 +94,6 @@ def _generate_excel(response, columns, headers, grads):
     book.save(response)
 
 
-def _generate_cardforms(response, grads):
-    card_req_forms(grads, response)
-
-
-
 
 @requires_role("GRAD", get_only=["GRPD"])
 def search(request):
@@ -181,10 +176,10 @@ def search(request):
             return response
         
         elif 'cardforms' in request.GET:
-            # Excel output
+            # access card requisition output
             response = HttpResponse(mimetype='application/pdf')
             response['Content-Disposition'] = 'inline; filename=card_access.pdf'
-            _generate_cardforms(response, grads)
+            card_req_forms(grads, response)
             return response
         
         if overflow:

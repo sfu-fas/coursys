@@ -1148,7 +1148,7 @@ class CardReqForm(object):
         self.c.line(14*mm, 212*mm, 89*mm, 212*mm)
         
         self.entry_font()
-        self.c.drawString(29*mm, 236*mm, grad.program.unit.label)
+        self.c.drawString(29*mm, 236*mm, grad.program.unit.informal_name())
         self.c.drawString(29*mm, 224*mm, grad.person.last_name)
         self.c.drawString(29*mm, 218.5*mm, grad.person.first_name)
         self.c.drawString(29*mm, 213*mm, unicode(grad.person.emplid))

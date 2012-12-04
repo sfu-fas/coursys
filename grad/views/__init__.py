@@ -6,6 +6,7 @@ from all_promises import all_promises
 from funding_report import funding_report
 from view import view
 from grad_more_info import grad_more_info
+from get_form import get_form
 from manage_supervisors import manage_supervisors
 from remove_supervisor import remove_supervisor
 from manage_financialcomments import manage_financialcomments
