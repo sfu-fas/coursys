@@ -22,9 +22,11 @@ class RAForm(forms.ModelForm):
             emplid = int(self['person'].value())
         except ValueError:
             raise forms.ValidationError("The correct format for a SIN is XXXXXXXXX, all numbers, no spaces or dashes.")
-        person = Person.objects.filter(emplid=emplid)
-        person.set_sin(sin)
-        person.save()
+        people = Person.objects.filter(emplid=emplid)
+        if people:
+            person = people[0]
+            person.set_sin(sin)
+            person.save()
         return sin
 
     def clean_hours(self):
