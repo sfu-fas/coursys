@@ -11,7 +11,7 @@ from coredata.models import Person
 import unicodecsv as csv
 import copy, datetime, json
 from grad.templatetags.getattribute import getattribute
-from dashboard.letters import card_req_forms
+from dashboard.letters import card_req_forms, fasnet_forms
 
 MAX_RESULTS = 1000
 
@@ -182,8 +182,16 @@ def search(request):
             card_req_forms(grads, response)
             return response
         
+        elif 'fasnetforms' in request.GET:
+            # access card requisition output
+            response = HttpResponse(mimetype='application/pdf')
+            response['Content-Disposition'] = 'inline; filename=fasnet_access.pdf'
+            fasnet_forms(grads, response)
+            return response
+        
         if overflow:
             messages.warning(request, "Too many result found: limited to %i." % (MAX_RESULTS))
+
         context = {
                    'grads': grads,
                    'human_readable_column_headers': human_readable_column_headers,
@@ -191,6 +199,7 @@ def search(request):
                    'saveform' : saveform,
                    'query_string': query_string,
                    'sort': sort,
+                   'uses_fasnet': any(u.uses_fasnet() for u in request.units),
                    }
         resp = render(request, 'grad/search_results.html', context)
         return resp

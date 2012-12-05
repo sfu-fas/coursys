@@ -830,6 +830,12 @@ class Unit(models.Model):
         else:
             return self.name
     
+    def uses_fasnet(self):
+        """
+        Used to decide whether or not to display the FASnet account forms.
+        """
+        return self.slug in ['cmpt', 'ensc']
+    
     @classmethod
     def __sub_unit_ids(cls, unitids):
         """
