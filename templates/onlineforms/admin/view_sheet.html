@@ -23,10 +23,11 @@
                 {% ifequal field.fieldtype "DIVI" %}
                     <hr />
                 {% else %}
-                    {% if file_sub %}
-                        <dt><label>{{ field.label }}:</label></dt>
-                        <!--<dd><a{{ file_sub.file_attachment }} hello world </dd>-->
-                        <dd><a href="{% url onlineforms.views.file_field_download %}">Download File</a></dd>
+                    {% if sheetsWithFiles %}
+                        {% for sheet_id, file_id in sheetsWithFiles.items %}
+                            <dt><label>{{ field.label }}:</label></dt>
+                            <dd>{% ifequal sheet_id sheet_sub.id %}<a href="{% url onlineforms.views.file_field_download formsubmit_slug=formsubmit_slug sheet_id=sheet_sub.id file_id=file_id disposition="attachment" %}">Download File</a>{% endifequal %}</dd>
+                        {% endfor %}
                     {% else %}
                         <dt><label>{{ field.label }}:</label></dt>
                         <dd>{{ field.html }}</dd>

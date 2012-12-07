@@ -488,6 +488,7 @@ urlpatterns += patterns('',
 
     url(r'forms/$', 'onlineforms.views.submissions_list_all_forms'),
     url(r'forms/view/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
+    url(r'forms/view/' + FORMSUBMIT_SLUG + '/' + '(?P<sheet_id>\d+)/'+ '(?P<disposition>\w+)/' + '(?P<file_id>\d+)/$', 'onlineforms.views.file_field_download'),
     url(r'forms/submission/' + SECRET_SUBMIT_URL + '/$', 'onlineforms.views.sheet_submission_via_url'),
     url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission'),

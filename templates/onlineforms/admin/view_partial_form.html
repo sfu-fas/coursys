@@ -25,8 +25,8 @@
 {% block content %}
 <div id="form_container">
 	{% if sheet_submissions %}
-        {% if file_sub %}
-            {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions file_sub=file_sub %}
+        {% if sheetsWithFiles %}
+            {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles formsubmit_slug=formsubmit_slug %}
         {% endif %}
     {% else %}
 		{% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions %}
