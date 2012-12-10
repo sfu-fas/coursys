@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from grad.models import GradStudent, LetterTemplate
 from django.contrib import messages
 from log.models import LogEntry
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from grad.forms import LetterForm
 import datetime
 from django.core.urlresolvers import reverse
@@ -16,7 +16,7 @@ def new_letter(request, grad_slug):
     from_choices = [('', u'\u2014')] \
                     + [(r.person.id, "%s. %s, %s" %
                             (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=grad.program.unit)]
+                        for r in Role.objects.filter(unit=grad.program.unit, role__in=['GRPD','GRAD','TAAD','TADM','FUND','ADMN'])]
     directors = Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id')
     if directors:
         default_from = directors[0].person.id
