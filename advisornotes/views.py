@@ -361,6 +361,7 @@ def student_courses_data(request, userid):
     except SIMSProblem as e:
         data = {'error': e.message}
 
+    data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(mimetype='application/json;charset=utf-8')
     json.dump(data, response, encoding='utf-8', indent=1)
     return response
