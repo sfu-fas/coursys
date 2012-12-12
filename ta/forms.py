@@ -106,7 +106,7 @@ class TUGForm(forms.ModelForm):
                  error_class, label_suffix, empty_permitted, instance)
         # see old revisions (git id 1d1d2f9) for a dropdown
         if userid is not None and offering is not None:
-            member = Member.objects.get(person__userid=userid, offering=offering)
+            member = Member.objects.exclude(role='DROP').get(person__userid=userid, offering=offering)
         elif instance is not None:
             member = instance.member
         else:

@@ -58,7 +58,7 @@ def _tryget(member):
 @requires_course_staff_by_slug
 def all_tugs(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    current_user = Member.objects.get(person__userid=request.user.username, offering=course)
+    current_user = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course)
     is_ta = current_user.role == 'TA'
     if is_ta:
         tas = [current_user]
@@ -98,7 +98,7 @@ def all_tugs_admin(request, semester_name=None):
 @requires_course_instr_by_slug
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, offering=course, person__userid=userid)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     bu = member.bu()
     has_lab_or_tut = course.labtas()
         
@@ -137,7 +137,7 @@ def view_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role="TA")
     try:
-        curr_user_role = Member.objects.get(person__userid=request.user.username, offering=course).role
+        curr_user_role = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course).role
     except Member.DoesNotExist:
         # we'll just assume this since it's the only other possibility 
         #  since we're checking authorization in the decorator
@@ -161,7 +161,7 @@ def view_tug(request, course_slug, userid):
 @requires_course_instr_by_slug
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, offering=course, person__userid=userid)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     tug = get_object_or_404(TUG, member=member)
 
     if (request.method=="POST"):
