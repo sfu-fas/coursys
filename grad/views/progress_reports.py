@@ -50,6 +50,7 @@ def generate_queries(notes, grads):
     for n in notes:
         yield "# " + n + "\n"
 
+    yield "START TRANSACTION;\n"
     yield '\n# people.person entries\n'
     for gs in grads:
         yield ("INSERT INTO people.person (emplid, LegalGivenNames, PreferredGivenNames, PreferredSurnames, Title, sex, "
@@ -119,6 +120,7 @@ def generate_queries(notes, grads):
                        + "VALUES (%s, %s, %s, %s);\n") \
                 % escape_all(gs.person.emplid, sup.external, prog, ptype)
 
+    yield "COMMIT;\n"
 
 
 @requires_role("GRAD", get_only=["GRPD"])
@@ -129,5 +131,5 @@ def progress_reports(request):
                 end_semester=None, current_status__in=['ACTI', 'LEAV', 'PART']) \
                 .select_related('person', 'program__unit')
     query_text = generate_queries(['queried students starting in %s or before'%(last_semester.name)], grads)
-    query_text = ''.join(query_text)
+    #query_text = ''.join(query_text)
     return HttpResponse(query_text, mimetype='text/plain')
