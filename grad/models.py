@@ -29,6 +29,25 @@ class GradProgram(models.Model):
         unique_together = (('unit', 'label'),)
     def __unicode__ (self):
         return u"%s" % (self.label)
+    
+    def cmpt_program_type(self):
+        """
+        Hack for CMPT progress reports system export.
+        """
+        if self.label == 'MSc Course':
+            return ('MSc', 'Course')
+        elif self.label == 'MSc Proj':
+            return ('MSc', 'Project')
+        elif self.label == 'MSc Thesis':
+            return ('MSc', 'Thesis')
+        elif self.label == 'PhD':
+            return ('PhD', 'Thesis')
+        elif self.label == 'Qualifying':
+            return ('Qualifying', '')
+        elif self.label == 'Special':
+            return ('Special', '')
+        else:
+            return ('???', '???')
 
 STATUS_CHOICES = (
         ('APPL', 'Applicant'), # TODO: remove Applicant: not used in the real data
