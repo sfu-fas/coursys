@@ -15,36 +15,16 @@
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
 <script type="text/javascript">//<![CDATA[
-	var urlMap = {
-	{% for k in templates %}
-	'{{k.id}}' : '{% url grad.views.get_letter_text grad_slug=grad.slug letter_template_id=k.id %}'
-	{% if not forloop.last %},{% endif %}
-	{% endfor %}
-	};
 
 	$(document).ready(function() {
-		$('#id_content').attr("disabled", "disabled");
 		$("#id_date").datepicker({
 			'dateFormat' : 'yy-mm-dd'
 		});
-		$('#content_note').show('slow');
 
 		get_addresses('{% url grad.views.get_addresses %}')
 
-		$("#id_template").change(function() {
-			var template_val
-			template_val = $("#id_template").val();
-			$("#id_content").empty();
-			if(template_val == 0) {
-				$('#id_content').attr("disabled", "disabled");
-				$('#content_note').show('slow');
-			} else {
-				url = urlMap[$(this).val()];
-				$('#id_content').removeAttr("disabled");
-				$('#content_note').hide('slow');
-				getData(url);
-			}
-		});
+		url = '{% url grad.views.get_letter_text grad_slug=grad.slug letter_template_id=template.id %}'
+		getData(url);
 
 		$("#id_from_person").change(update_from_lines);
 		update_from_lines();
@@ -54,7 +34,7 @@
 {% endblock %}
 {% block content %}
 <div class="form_container">
-	<form action="{% url grad.views.new_letter grad_slug=grad.slug%}" method="post">
+	<form action="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=template.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -66,18 +46,12 @@
 					<label>Template:</label>
 				</dt>
 				<dd>
-					<div class="field">
-						<select name="template" id="id_template">
-							<option value="0"> --- Pick an existing template --- </option>
-							{% for t in templates%} <option value="{{t.id}}">{{t.label}}</option>
-							{% endfor %}
-						</select>
-						{{form.template.errors}}
-						<div style="color: red; font-weight: normal; float: right; margin-right: 200px;" id="content_note">
-						Please select a template.
-					</div>
-					</div>
+                                    <div class="field">
+                                            <input type='hidden' name='template' id='id_template' value='{{template.id}}' label='{{template.label|upper}}'>
+                                            {{form.template.errors}}
 
+					{{ template.label|upper }} LETTER
+                                    </div>
 				</dd>
 			</dl>
 			<div style="clear: both"></div>

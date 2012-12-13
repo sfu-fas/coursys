@@ -15,12 +15,6 @@
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
 <script type="text/javascript">//<![CDATA[
-	var urlMap = {
-	{% for k in templates %}
-	'{{k.id}}' : '{% url grad.views.get_letter_text grad_slug=grad.slug letter_template_id=k.id %}'
-	{% if not forloop.last %},{% endif %}
-	{% endfor %}
-	};
 
 	$(document).ready(function() {
 		$("#id_date").datepicker({
@@ -53,7 +47,7 @@
 {% endblock %}
 {% block content %}
 <div class="form_container">
-	<form action="{% url grad.views.new_letter grad_slug=grad.slug%}" method="post">
+	<form action="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=letter.template.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -66,12 +60,11 @@
 				</dt>
 				<dd>
 					<div class="field">
-						<select name="template" id="id_template">
-							{% for t in templates%}<option value="{{t.id}}"{% if letter.template_id == t.id %} selected="selected"{% endif %}>{{t.label}}</option>
-							{% endfor %}
-						</select>
-						{{form.template.errors}}
+                                            <input type='hidden' name='template' id='id_template' value='{{letter.template.id}}' label='{{template.label|upper}}'>
+					    {{letter.template.label|upper}}
+					    {{form.template.errors}}
 					</div>
+
 
 				</dd>
 			</dl>
