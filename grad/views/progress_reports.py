@@ -1,7 +1,7 @@
 from courselib.auth import requires_role
 from django.http import HttpResponse
 from coredata.models import Semester
-from grad.models import GradStudent, CompletedRequirement, Supervisor, Scholarship, OtherFunding
+from grad.models import GradStudent, CompletedRequirement, Supervisor, Scholarship, OtherFunding, GradStatus
 from ta.models import TACourse
 from ra.models import RAAppointment
 from coredata.queries import grad_student_courses, grad_student_gpas
@@ -129,7 +129,7 @@ def generate_progrep_queries(gs):
         yield ("INSERT INTO progrep.finsupport (emplid, semester, type, name, amount, bu) VALUES (%s, %s, %s, %s, %s, %s);\n") \
             % escape_all(gs.person.emplid, schol.start_semester.name, 'scholarship', schol.scholarship_type.name, "%.2f"%schol.amount, '')
 
-    # grades
+    # grades & GPA
     for coursedata in grad_student_courses(gs.person.emplid):
         strm, subject, number, section, units, grade, gradepoints, instr = coursedata
         yield ("INSERT INTO progrep.grade (emplid, semester, course_dept, course_num, course_section,"
@@ -145,6 +145,21 @@ def generate_progrep_queries(gs):
                + "(%s, %s, %s, %s);\n") \
             % escape_all(gs.person.emplid, strm, sgpa, cgpa)
 
+    # leaves
+    statuses = GradStatus.objects.filter(student=gs, status='LEAV', hidden=False)
+    for st in statuses:
+        yield ("INSERT INTO progrep.onleave (emplid, semester, reason) VALUES "
+               + "(%s, %s, %s) ON DUPLICATE KEY UPDATE emplid=%s, semester=%s;\n") \
+            % escape_all(gs.person.emplid, st.start, '', gs.person.emplid, st.start)
+    
+    # user accounting
+    yield ("INSERT INTO progrep.user (emplid, username, email_notifications, final_email) VALUES "
+               + "(%s, %s, %s, %s) ON DUPLICATE KEY UPDATE emplid=%s;\n") \
+            % escape_all(gs.person.emplid, gs.person.userid, 'Y', 'Y', gs.person.emplid)
+    yield ("INSERT INTO progrep.user_role (emplid, role_id) VALUES "
+               + "(%s, %s) ON DUPLICATE KEY UPDATE emplid=%s;\n") \
+            % escape_all(gs.person.emplid, 1, gs.person.emplid)
+
 
 def generate_queries(notes, grads):
     """
@@ -156,8 +171,9 @@ def generate_queries(notes, grads):
     for gs in grads:
         yield '\n# %s %s (%s)\n' % (gs.person.name(), gs.program.description, gs.person.emplid)
         yield "START TRANSACTION;\n"
-        #for q in generate_people_queries(gs):
-        #    yield q
+        for q in generate_people_queries(gs):
+            yield q
+        yield "\n"
         for q in generate_progrep_queries(gs):
             yield q
         yield "COMMIT;\n"
@@ -172,7 +188,7 @@ def progress_reports(request):
 
     grads = GradStudent.objects.filter(program__unit__in=request.units, start_semester__name__lte=last_semester.name,
                 end_semester=None, current_status__in=['ACTI', 'LEAV', 'PART']) \
-                .select_related('person', 'program__unit')
+                .select_related('person', 'program__unit').order_by('person')
     #grads = grads[:50]
     query_text = generate_queries(['queried students starting in %s or before'%(last_semester.name)], grads)
     query_text = ''.join(query_text)
