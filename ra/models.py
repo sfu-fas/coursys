@@ -241,4 +241,10 @@ class SemesterConfig(models.Model):
         else:
             return self.semester.end
 
+    def set_start_date(self, date):
+        self.config['start_date'] = date.strftime('%Y-%m-%d')
+
+    def set_end_date(self, date):
+        self.config['end_date'] = date.strftime('%Y-%m-%d')
+
 

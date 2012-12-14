@@ -1,6 +1,6 @@
 from django import forms
 from ra.models import RAAppointment, Account, Project
-from coredata.models import Person
+from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
@@ -91,3 +91,11 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         exclude = ('hidden',)
+
+class SemesterConfigForm(forms.Form):
+    unit = forms.ModelChoiceField(queryset=Unit.objects.all())
+    start_date = forms.DateField(required=True, help_text="Default start date for contracts")
+    end_date = forms.DateField(required=True, help_text="Default end date for contracts")
+
+
+
