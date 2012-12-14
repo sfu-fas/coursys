@@ -130,8 +130,8 @@ def generate_queries(notes, grads):
 
     yield "START TRANSACTION;\n"
     
-    #for q in generate_people_queries(grads):
-    #    yield q
+    for q in generate_people_queries(grads):
+        yield q
 
     yield "\nCOMMIT;\n"
 
