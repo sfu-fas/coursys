@@ -688,9 +688,10 @@ def update_amaint_userids():
     ComputingAccount.objects.all().delete()
     db.execute("SELECT username, emplid FROM idMap WHERE emplid!='' ORDER BY username", ())
     for userid, emplid in db:
-        if not emplid.isdigit():
-            a = ComputingAccount(emplid=emplid, userid=userid)
-            a.save()
+        if emplid.startswith('E'):
+            continue
+        a = ComputingAccount(emplid=emplid, userid=userid)
+        a.save()
 
 
 @transaction.commit_on_success
