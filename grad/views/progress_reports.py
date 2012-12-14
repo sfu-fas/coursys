@@ -121,6 +121,21 @@ def generate_people_queries(grads):
                 % escape_all(gs.person.emplid, sup.external, prog, ptype)
 
 
+def generate_progrep_queries(grads):
+    """
+    Generate queries for the progrep database
+    """
+    yield '\n# people.person entries\n'
+    for gs in grads:
+        yield ("INSERT INTO people.person (emplid, LegalGivenNames, PreferredGivenNames, PreferredSurnames, Title, sex, "
+            + "ShowProfile, ShowPicture, Note, LegalSurnames)\n    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            + "\n    ON DUPLICATE KEY UPDATE "
+            + "Title=%s, LegalGivenNames=%s, PreferredGivenNames=%s, LegalSurnames=%s, Sex=%s;\n") \
+            % escape_all(gs.person.emplid, gs.person.first_name, gs.person.pref_first_name, gs.person.last_name,
+                     gs.person.get_title(), gs.person.gender(), 'n', 'n', '', gs.person.last_name,
+                     gs.person.get_title(), gs.person.first_name, gs.person.pref_first_name, gs.person.last_name, gs.person.gender())
+
+
 def generate_queries(notes, grads):
     """
     Generate all of the queries that need to be fired to get the Progress Reports database updated.
@@ -128,11 +143,14 @@ def generate_queries(notes, grads):
     for n in notes:
         yield "# " + n + "\n"
 
-    yield "START TRANSACTION;\n"
-    
+    yield "\nSTART TRANSACTION;\n"
     #for q in generate_people_queries(grads):
     #    yield q
+    yield "\nCOMMIT;\n"
 
+    yield "\nSTART TRANSACTION;\n"
+    for q in generate_progrep_queries(grads):
+        yield q
     yield "\nCOMMIT;\n"
 
 
