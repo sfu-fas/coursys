@@ -518,8 +518,8 @@ class TAContract(models.Model):
         from grad.models import GradStudent
         for gs in GradStudent.objects.filter(person=self.application.person):
             if 'sin' not in gs.config:
-                gs.set_sin(self.sin)
-                gs.save()
+                gs.person.set_sin(self.sin)
+                gs.person.save()
 
         # if signed, create the Member objects so they have access to the courses.
         courses = TACourse.objects.filter(contract=self)
