@@ -10,7 +10,7 @@
 <li>&gt; Edit Semester Teaching Intention for {{ instructor.name }}</li>{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url planning.views.planner_edit_intention semester=semester.name userid=instructor.userid %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Semester Teaching Intention</legend>

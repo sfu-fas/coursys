@@ -710,11 +710,10 @@ div.collapsible {
 }
 
 
-#form_container, .form_container {
+.form_container {
     margin: 0 1em 0 0;
     clear: both;
 }
-#form_container .errorindicator, #form_container .successindicator, #form_container .warningindicator,
 .form_container .errorindicator, .form_container .successindicator, 
 .form_container .warningindicator {
     border: 1px solid;
@@ -723,41 +722,35 @@ div.collapsible {
     margin-bottom: 1em;
     margin-top: 0;
 }
-#form_container .successindicator,
 .form_container .successindicator {
     border: 1px solid green;
     color: green;
 }
-#form_container .errorindicator,
 .form_container .errorindicator {
     border: 1px solid red;
     color: red;
 }
-#form_container .warningindicator,
 .form_container .warningindicator {
     border: 1px solid orange;
     color: orange;
 }
-#form_container .errorlist,
 .form_container .errorlist {
     color: red;
     margin-left: 9.5em;
     margin-top: .1em;
     margin-bottom: .2em;
 }
-#form_container .meeting-times .errorlist {
+.form_container .meeting-times .errorlist {
   margin-left: 0;
 }
-#form_container .requireindicator,
+.form_container .requireindicator,
 .form_container .requireindicator {
     padding: 0 0 0 1em;
     color: #D52E2D;
 }
-#main #form_container h3,
 #main .form_container h3 {
   margin-left: 1em;
 }
-#main #form_container p
 #main .form_container p {
   margin-left: 1em;
 }
@@ -1307,12 +1300,12 @@ thead.form_head th{
     margin: 0em;
     padding: 0em;
 }
-#form_container .component_description {
+.form_container .component_description {
     margin: 0 0 0.5em 0;
     padding: 0 0 0 0em;
     list-style: none;
 }
-#form_container .component_description label {
+.form_container .component_description label {
     font-weight: bold;
     margin-right: 1em;
 }
@@ -1378,7 +1371,7 @@ hr.fieldsep {
   color: #fff;
   border: none;
 }
-div#form_container>form>ul>li {
+div.form_container>form>ul>li {
   list-style-type: none;
 }
 div.discside {
@@ -1748,7 +1741,7 @@ table.course-plan .meeting-time:first-child {
   width: 50%;
 }
 
-#main #form_container.add-course-offering h3 {
+#main .form_container.add-course-offering h3 {
   color: #B5111A;
   margin: 10px 0 10px 14px;
 }
@@ -1855,7 +1848,7 @@ table.course-plan .meeting-time:first-child {
   line-height: 24px;
 }
 
-#main #form_container.add-course-offering .meeting-times h3 {
+#main .form_container.add-course-offering .meeting-times h3 {
   margin-left: 0;
   margin-bottom: 10px;
 }

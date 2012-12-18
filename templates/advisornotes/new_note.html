@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<div id="form_container">
+<div class="form_container">
 <form action="{% url advisornotes.views.new_note userid=userid %}" enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
 <legend>Note</legend>

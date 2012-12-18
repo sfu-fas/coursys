@@ -25,7 +25,7 @@
 
 {% block content %}
 <p><strong>Current program:</strong> {{grad.program.label}}</p>
-<div id="form_container">
+<div class="form_container">
 	<form method="post" action="">
 		{% csrf_token %}
 		<fieldset>

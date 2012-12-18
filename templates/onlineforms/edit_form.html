@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}"  method="post"> {% csrf_token %}
         <fieldset>
             <legend>Form Information</legend>

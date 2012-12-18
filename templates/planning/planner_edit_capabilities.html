@@ -45,7 +45,7 @@ function confirmDelete() {
         {% endif %}
 </div>
 
-<div id="form_container">
+<div class="form_container">
     <form action="{% url planning.views.planner_edit_capabilities userid=instructor.userid %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add Course</legend>

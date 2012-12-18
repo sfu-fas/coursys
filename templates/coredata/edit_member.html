@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
 <form action="{% if member %}{% url coredata.views.edit_member member_id=member.id %}{% else %}{% url coredata.views.edit_member %}{% endif %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Membership</legend>

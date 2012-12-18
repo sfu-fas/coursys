@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
 	{% if sheet_submissions %}
         {% if sheetsWithFiles %}
             {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles formsubmit_slug=formsubmit_slug %}

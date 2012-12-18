@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
 	<form action="{% url alerts.views.new_automation alert_type=alert_type.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>

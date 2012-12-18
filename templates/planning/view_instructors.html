@@ -23,7 +23,7 @@
 
 <div class="datatable_container">
     
-    <div id="form_container">
+    <div class="form_container">
         <form action="{% url planning.views.view_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug planned_offering_slug=planned_offering.slug %}" method="post">{% csrf_token %}
 
         <h3>Capable Instructors</h3>

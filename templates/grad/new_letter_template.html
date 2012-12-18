@@ -27,7 +27,7 @@ dl dt {
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
 	<form action="{% url grad.views.new_letter_template %}" method="post">
 		{% csrf_token %}
 		<fieldset>

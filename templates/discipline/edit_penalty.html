@@ -43,7 +43,7 @@ function form_change() {
 </blockquote>
 <p>Please consider consulting with the departmental Academic Integrity Advisor or Chair before deciding penlaty.</p>
 
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.edit_case_info field='penalty' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="form_change();">{% csrf_token %}
     <hr class="fieldsep" />
     <div class="discside" id="group_penalty"></div>

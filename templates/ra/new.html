@@ -40,7 +40,7 @@ var emplid = null;
 <li>&gt; New Appointment</li>{% endblock %}
 
 {% block content %}
-  <div id="form_container">
+  <div class="form_container">
     <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
       <fieldset style="list-style: none;">
         <legend>Contract Information</legend>

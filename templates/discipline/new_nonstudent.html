@@ -10,7 +10,7 @@
 
 {% block content %}
 <p>This form can be used to create a case for someone who is not a student in this course.</p>
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.new_nonstudent course_slug=course.slug %}" method="post">{% csrf_token %}
     <fieldset>
     <legend>Dishonesty Case</legend>

@@ -46,7 +46,7 @@ $(document).ready(function(){
 <form action="{%url marking.views.copy_course_setup course_slug=course.slug%}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
 {% if conflicting_activities %}
 <h2> Current Conflicting Setup of this course: </h2>
-<div id="form_container">	
+<div class="form_container">	
 	<p class = "warningindicator" id="setupcopy">	
 	<img alt="warning" src="{{MEDIA_URL}}/icons/exclamation.png"/>
 	<b>
