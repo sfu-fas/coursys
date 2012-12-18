@@ -4,9 +4,9 @@ from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
-    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment
+    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment, GRAD_CAMPUS_CHOICES
 from courselib.forms import StaffSemesterField
-from coredata.models import Person, Member, Semester, CAMPUS_CHOICES, VISA_STATUSES
+from coredata.models import Person, Semester, Role, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import HiddenInput
@@ -121,15 +121,17 @@ class PotentialSupervisorForm(ModelForm):
         exclude = ('student', 'supervisor_type', 'position', 'created_by', 'modified_by', 'external', 'removed', 'config')
 
 def possible_supervisor_people(units):
+    roles = Role.objects.filter(unit__in=units, role__in=['FAC', 'SUPV']).select_related('person')
+    return set(r.person for r in roles)
     # instructors of courses in the unit
-    people = set(m.person for m in
-             Member.objects.filter(role="INST", offering__owner__in=units).select_related('person')
-             .exclude(offering__component="SEC") if m.person.userid)
+    #people = set(m.person for m in
+    #         Member.objects.filter(role="INST", offering__owner__in=units).select_related('person')
+    #         .exclude(offering__component="SEC") if m.person.userid)
     # previous supervisors
     #people |= set(s.supervisor for s in
     #          Supervisor.objects.filter(student__program__unit__in=units).select_related('supervisor') 
     #          if s.supervisor and s.supervisor.userid)
-    return people
+    #return people
     
 def possible_supervisors(units, extras=[], null=False):
     """
@@ -181,10 +183,10 @@ class GradAcademicForm(ModelForm):
                    }
 
 class GradProgramHistoryForm(ModelForm):
-    semester = StaffSemesterField()
+    start_semester = StaffSemesterField()
     class Meta: 
         model = GradProgramHistory
-        fields = ('program', 'semester', 'starting')
+        fields = ('program', 'start_semester', 'starting')
         widgets = {
                    'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
                    }
@@ -415,6 +417,7 @@ COLUMN_CHOICES = (
         ('person.emplid',           'Employee ID'),
         ('person.userid',           'User ID'),
         ('email',                   'Email Address'),
+        ('appemail',                'Application Email'),
         ('program',                 'Program'),
         ('research_area',           'Research Area'),
         ('campus',                  'Campus'),
@@ -439,6 +442,7 @@ COLUMN_WIDTHS_DATA = (
         ('person.last_name',        6000),
         ('person.pref_first_name',  4000),
         ('email',                   5000),
+        ('appemail',                5000),
         ('program',                 3000),
         ('research_area',           6000),
         ('campus',                  3000),
@@ -472,7 +476,7 @@ class SearchForm(forms.Form):
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
-    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False)
+    campus = forms.MultipleChoiceField(GRAD_CAMPUS_CHOICES, required=False)
     supervisor = forms.MultipleChoiceField([], required=False, label='Senior Supervisor')
     
     requirements = forms.MultipleChoiceField(choices=[],

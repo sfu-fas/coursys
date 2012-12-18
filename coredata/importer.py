@@ -233,7 +233,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     owner = get_unit(acad_org)
 
     # search for existing offerings both possible ways and make sure we're consistent
-    c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester)
+    c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester).select_related('course')
     c_old2 = CourseOffering.objects.filter(class_nbr=class_nbr, semester=semester)
     c_old = list(set(c_old1) | set(c_old2))
     
@@ -688,8 +688,35 @@ def update_amaint_userids():
     ComputingAccount.objects.all().delete()
     db.execute("SELECT username, emplid FROM idMap WHERE emplid!='' ORDER BY username", ())
     for userid, emplid in db:
+        if emplid.startswith('E'):
+            continue
         a = ComputingAccount(emplid=emplid, userid=userid)
         a.save()
+
+
+@transaction.commit_on_success
+def update_all_userids():
+    """
+    Make sure everybody's userid is right.
+    """
+    db = AMAINTConn()
+    accounts_by_emplid = dict((ca.emplid, ca) for ca in ComputingAccount.objects.all())
+    
+    for p in Person.objects.all():
+        if p.emplid in accounts_by_emplid:
+            account_userid = accounts_by_emplid[p.emplid].userid
+            if p.userid != account_userid:
+                p.userid = account_userid
+                if account_userid:
+                    p.config['replaced_userid'] = account_userid
+                p.save()
+
+        else:
+            if p.userid:
+                p.config['old_userid'] = p.userid
+                p.userid = None
+                p.save()
+
 
 def update_grads():
     """
@@ -711,6 +738,9 @@ def main():
 
     print "fixing any unknown emplids"
     fix_emplid()
+    
+    print "updating userids"
+    update_all_userids()
     
     print "updating active grad students"
     update_grads()

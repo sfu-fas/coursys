@@ -1,0 +1,54 @@
+GP 24 Fair Use of Information Resources
+March 4, 1993
+
+SUBJECT Policy and Procedure on the Fair Use of Information Resources
+
+1. University Information Resources
+
+   Simon Fraser University makes computing and other information resource facilities available to its faculty, staff, students, and authorized external users.  The goal of the facilities offered to these users is to provide an open and effective information technology infrastructure for instructional, research, and administrative use.  Users have the right to expect that their rightful access to information, their use of network and equipment authorized to them, and their use of any other resources connected with their authorized access to services will be protected by the University to a degree that is reasonable and technically feasible.  In order to preserve the integrity of the facilities against accidents, failures or improper use, the University reserves the right to limit, restrict or terminate any user's access, and to inspect, copy, remove, or otherwise alter any data, file, or system resources within the limitations set out below.
+
+   The use of the University's information resources is extended to members of the University community to help them meet the objectives of their studies, research, or job-related tasks.
+
+   The University makes no warranty, express or implied, regarding the computing services offered, or their fitness for any particular purpose.  The computing facilities provided will be designed to serve the broad base of users in the community, but cannot be expected to fulfill every specialized need.
+
+2. The Proper Use of Information Resources, Information Technology, and Networks
+
+   It is the policy of the University to maintain access for its community to local, national and international sources of information and to provide an atmosphere that encourages access to knowledge and sharing of information.
+
+   It is the policy of the University that information resources will be used by members of its community with respect for the public trust through which they have been provided and in accordance with policy and regulations established from time to time by the University and its operating units.
+
+   In accordance with the above policies, the University works to create an intellectual environment in which students, staff, and faculty may feel free to create and to collaborate with colleagues both at the University and at other institutions, without fear that the products of their intellectual efforts will be violated by misrepresentation, tampering, destruction and/or theft.
+
+   Access to the information resource infrastructure both within the University and beyond the campus, sharing of information, and security of the intellectual products of the community, all require that each and every user accept responsibility to protect the rights of the community. Any member of the University community who, without authorization, accesses, uses, destroys, alters, dismantles or disfigures the University information technologies, properties or facilities, including those owned by third parties, thereby threatens the atmosphere of increased access and sharing of information, threatens the security within which members of the community may create intellectual products and maintain records, and in light of the University=s policy in this area, has engaged in unethical and unacceptable conduct. Access to the networks and to the information technology environment at the University is a privilege and must be treated as such by all users of these systems.
+
+   To ensure the existence of this information resource environment, members of the University community will take actions, in concert with government agencies and other interested parties, to identify and to set up technical and procedural mechanisms to make the information technology environment at the University and its internal and external networks resistant to disruption.
+
+   In the final analysis, the health and well-being of this resource is the responsibility of its users who must all guard against abuses which disrupt and/or threaten the long-term viability of the systems at the University and those beyond the University.  The University requires that members of its community act in accordance with these responsibilities, this policy, the University's Harassment Policy, relevant laws and contractual obligations, and the highest standard of ethics.
+
+   Though not exhaustive, the following defines the University's position regarding several general issues in this area.
+
+   a) Information resources in this document are meant to include any information in electronic or audio-visual format or any hardware or software that make possible the storage and use of such information.  As example, included in this definition are electronic mail, local databases, externally accessed databases, CD-ROM, motion picture film, recorded magnetic media, photographs, and digitized information.
+
+   b) The University characterizes as unethical and unacceptable, and just cause for taking disciplinary action up to and including non-reappointment, discharge, suspension, expulsion, dismissal, financial penalties and/or legal action, any activity through which an individual:
+
+     i. violates such matters as University or third party copyright or patent protection and authorizations, as well as license agreements and other contracts;
+
+     ii. interferes with the intended use of the information resources;
+
+     iii. seeks to gain or gains unauthorized access to information resources;
+
+     iv. without authorization, destroys, alters, dismantles, disfigures, prevents rightful access to or otherwise interferes with the integrity of computer-based information and/or information resources;
+
+     v. without authorization invades the privacy of individuals or entities that are creators, authors, users, or subjects of information resources;
+
+     vi. makes pre-emptive use of the system for personal gain.
+
+   c) This policy is applicable to any member of the University community, whether at the University or elsewhere, and refers to all information resources whether individually controlled, or shared, stand-alone or networked. Individual units within the University may define conditions of use for facilities under their control.  These statements must be consistent with this overall policy but may provide additional detail, guidelines and/or restrictions.  Where such conditions of use exist, enforcement mechanisms defined therein shall apply.  Where no enforcement mechanism exists, the applicable general policies and agreements of the University shall prevail.  Where use of external networks is involved, policies governing such use also are applicable and must be adhered to.
+
+3. Rights and Obligations of University Staff
+
+   The staff of University service units in general have the right, within their jurisdiction, to carry out their responsibility to keep the University's information technology facilities operating and available to the user community.
+
+   It is acknowledged that there is a delicate balance between the absolute right of privacy of a user, and the need of the staff to investigate and correct disruptions in order to insure the continued functioning of the facilities.
+
+   In exceptional circumstances, where it is deemed necessary to protect the integrity of the system, designated staff members authorized by two designated senior administrators of the University may be permitted to examine stored or printed data to gather sufficient information to diagnose and correct problems, or to determine if a user is acting in violation of University policy.  In doing so, the staff has an obligation to maintain the privacy of a user's data.

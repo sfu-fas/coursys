@@ -99,9 +99,9 @@
 	{{contract.posting.html_offer_text}}
 </div>
 {% endif %}
-
+{% if not preview %}
 <p><input id="submit" name="reject" type="submit" class="submit" value="Reject" /><input id="submit" name="accept" type="submit" class="submit" value="Accept" /></p>
-
+{% endif %}
 
 </form>
 </div>

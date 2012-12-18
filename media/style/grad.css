@@ -20,4 +20,6 @@ p.hiddencomment {
 	background: no-repeat url("/media/icons/unfold.png") top left;
 	padding-left: 20px;
 }
-
+tr.current {
+	font-weight: bold;
+}

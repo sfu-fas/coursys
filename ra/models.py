@@ -1,7 +1,7 @@
 from django.db import models
 from coredata.models import Person, Unit, Semester
 from jsonfield import JSONField
-#from courselib.json_fields import getter_setter
+from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
@@ -118,6 +118,8 @@ class RAAppointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    defaults = {'use_hourly': False}
+    use_hourly, set_use_hourly = getter_setter('use_hourly')
 
     def __unicode__(self):
         return unicode(self.person) + "@" + unicode(self.created_at)
@@ -126,12 +128,10 @@ class RAAppointment(models.Model):
         ordering = ['person', 'created_at']
 
     def save(self, *args, **kwargs):
-        # set SIN field on any GradStudent objects for this person
-        from grad.models import GradStudent
-        for gs in GradStudent.objects.filter(person=self.person):
-            if  self.sin and 'sin' not in gs.config:
-                gs.set_sin(self.sin)
-                gs.save()
+        # set SIN field on the Person object
+        if self.sin and 'sin' not in self.person.config:
+            self.person.set_sin(self.sin)
+            self.person.save()
         super(RAAppointment, self).save(*args, **kwargs)
     
     def default_letter_text(self):
@@ -172,6 +172,25 @@ class RAAppointment(models.Model):
             se = 7
         semname = str((date.year-1900)*10 + se)
         return Semester.objects.get(name=semname)
+
+    @classmethod
+    def start_end_dates(cls, semester):
+        """
+        First and last days of the semester, in the way that financial people do (without regard to class start/end dates)
+        """
+        yr = int(semester.name[0:3]) + 1900
+        sm = int(semester.name[3])
+        if sm == 1:
+            start = datetime.date(yr, 1, 1)
+            end = datetime.date(yr, 4, 30)
+        elif sm == 4:
+            start = datetime.date(yr, 5, 1)
+            end = datetime.date(yr, 8, 31)
+        elif sm == 7:
+            start = datetime.date(yr, 9, 1)
+            end = datetime.date(yr, 12, 31)
+        return start, end
+
         
     def start_semester(self):
         "Guess the starting semester of this appointment"
@@ -182,3 +201,50 @@ class RAAppointment(models.Model):
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1
+
+
+
+class SemesterConfig(models.Model):
+    """
+    A table for department-specific semester config.
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    semester = models.ForeignKey(Semester, null=False, blank=False)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    defaults = {'start_date': None, 'end_date': None}
+    # 'start_date': default first day of contracts that semester, 'YYYY-MM-DD'
+    # 'end_date': default last day of contracts that semester, 'YYYY-MM-DD'
+    
+    class Meta:
+        unique_together = (('unit', 'semester'),)
+    
+    @classmethod
+    def get_config(cls, units, semester):
+        """
+        Either get existing SemesterConfig or return a new one.
+        """
+        configs = SemesterConfig.objects.filter(unit__in=units, semester=semester).select_related('semester')
+        if configs:
+            return configs[0]
+        else:
+            return SemesterConfig(unit=list(units)[0], semester=semester)
+    
+    def start_date(self):
+        if 'start_date'in self.config:
+            return datetime.datetime.strptime(self.config['start_date'], '%Y-%m-%d').date()
+        else:
+            return self.semester.start
+
+    def end_date(self):
+        if 'end_date'in self.config:
+            return datetime.datetime.strptime(self.config['end_date'], '%Y-%m-%d').date()
+        else:
+            return self.semester.end
+
+    def set_start_date(self, date):
+        self.config['start_date'] = date.strftime('%Y-%m-%d')
+
+    def set_end_date(self, date):
+        self.config['end_date'] = date.strftime('%Y-%m-%d')
+
+

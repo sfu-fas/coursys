@@ -1,0 +1,39 @@
+
+
+.automation{
+    margin-bottom: 10px;
+    clear: both;
+    background-color: #EEE;
+    border-radius: 5px;
+    border: #DDD 1px solid;
+    padding: 10px;
+}
+
+#main .automation h2{ 
+    margin-top: 0;
+}
+
+#main .automation p{
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+#main .automation .button{
+    margin-top: 10px;
+}
+
+/* -- Automation Form -- */
+
+#id_subject{
+    width: 400px;
+}
+
+#id_threshold{
+    width: 50px;    
+}
+
+#id_content{
+    width: 400px;
+    height: 400px;
+}

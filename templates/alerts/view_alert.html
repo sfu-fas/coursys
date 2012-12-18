@@ -27,16 +27,8 @@
     <table class="info">
         <tbody>
             <tr>
-                <th class="ui-state-default">Last Name</th>
-                <td>{{ alert.person.last_name }}</td>
-            </tr>
-            <tr>
-                <th class="ui-state-default">First Name</th>
-                <td>{{ alert.person.first_name }}</td>
-            </tr>
-            <tr>
-                <th class="ui-state-default">Middle Name</th>
-                <td>{{ alert.person.middle_name|default:"—" }} </td>
+                <th class="ui-state-default">Name</th>
+                <td>{{ alert.person.name }}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Student Number</th>
@@ -50,18 +42,6 @@
                 <td>{{ alert.person.email_mailto }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Updates</th>
-                <td>{{alert.n_updates}}</td>
-            </tr>
-            <tr>
-                <th class="ui-state-default">Actions</th>
-                <td>{{alert.n_emails}}</td>
-            </tr>
-            <tr>
-                <th class="ui-state-default">Comments</th>
-                <td>{{alert.n_comments}}</td>
-            </tr>
-            <tr>
                 <th class="ui-state-default">Last Updated</th>
                 <td><abbr title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></td>
             </tr>
@@ -73,6 +53,12 @@
                 <th class="ui-state-default">Description</th>
                 <td>{{ alert.description }}</td>
             </tr>
+            {% for key, value in alert.details.items %}
+                <tr>
+                    <th>{{key|lower|capfirst}}</th>
+                    <td>{{value}}</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

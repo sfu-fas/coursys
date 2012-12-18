@@ -4,8 +4,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from django.template.defaultfilters import date as datefilter
 from django.conf import settings
-from ra.models import RAAppointment, Project, Account
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm
+from ra.models import RAAppointment, Project, Account, SemesterConfig
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
 from coredata.queries import more_personal_info, SIMSProblem
@@ -110,12 +110,15 @@ def new(request):
 
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid_or_emplid()
-            appointment = raform.save()
+            appointment = raform.save(commit=False)
+            appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
+            appointment.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
         semester = Semester.next_starting()
-        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
+        semesterconfig = SemesterConfig.get_config(request.units, semester)
+        raform = RAForm(initial={'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70 })
         raform.fields['scholarship'].choices = scholarship_choices
         raform.fields['hiring_faculty'].choices = hiring_faculty_choices
         raform.fields['unit'].choices = unit_choices
@@ -128,13 +131,14 @@ def new(request):
 def new_student(request, userid):
     person = get_object_or_404(Person, emplid=userid)
     semester = Semester.next_starting()
+    semesterconfig = SemesterConfig.get_config(request.units, semester)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    initial = {'person': student.emplid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
+    initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70 }
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
     gss = GradStudent.objects.filter(person=student)
     if gss:
         gradstudent = gss[0]
-        initial['sin'] = gradstudent.sin()
+        initial['sin'] = gradstudent.person.sin()
     
     raform = RAForm(initial=initial)
     raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
@@ -166,12 +170,14 @@ def edit(request, ra_slug):
         raform = RAForm(data, instance=appointment)
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid
-            raform.save()
+            appointment = raform.save(commit=False)
+            appointment.set_use_hourly(raform.cleaned_data['use_hourly'])
+            appointment.save()
             messages.success(request, 'Updated RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
         #The initial value needs to be the person's emplid in the form. Django defaults to the pk, which is not human readable.
-        raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid})
+        raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'use_hourly': appointment.use_hourly()})
         #As in the new method, choices are restricted to relevant options.
         raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
         raform.fields['hiring_faculty'].choices = hiring_faculty_choices
@@ -186,8 +192,11 @@ def edit(request, ra_slug):
 @requires_role("FUND")
 def reappoint(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
-    semester = Semester.first_relevant()
-    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
+    semester = Semester.next_starting()
+    semesterconfig = SemesterConfig.get_config(request.units, semester)
+    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
+                    'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70,
+                    'use_hourly': appointment.use_hourly() })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
     scholarship_choices = [("", "---------")]
     for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):
@@ -240,9 +249,9 @@ def letter(request, ra_slug):
     response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
-        to_addr_lines=[], 
+        to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
         from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], 
-        salutation="Dear " + appointment.person.first_name, 
+        salutation="Dear " + appointment.person.get_title() + ' ' + appointment.person.last_name, 
         closing="Yours Truly", 
         signer=appointment.hiring_faculty,
         cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
@@ -358,6 +367,33 @@ def remove_project(request, project_slug):
     l.save()              
     
     return HttpResponseRedirect(reverse('ra.views.projects_index'))
+
+@requires_role("FUND")
+def semester_config(request, semester_name=None):
+    if semester_name:
+        semester = get_object_or_404(Semester, name=semester_name)
+    else:
+        semester = Semester.next_starting()
+
+    unit_choices = [(u.id, u.name) for u in request.units]
+    if request.method == 'POST':
+        form = SemesterConfigForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            config = SemesterConfig.get_config(units=[form.cleaned_data['unit']], semester=semester)
+            config.set_start_date(form.cleaned_data['start_date'])
+            config.set_end_date(form.cleaned_data['end_date'])
+            config.save()
+            messages.success(request, 'Updated semester configuration for %s.' % (semester.name))
+            return HttpResponseRedirect(reverse('ra.views.search'))
+    else:
+        config = SemesterConfig.get_config(units=request.units, semester=semester)
+        form = SemesterConfigForm(initial={'start_date': config.start_date(), 'end_date': config.end_date()})
+        form.fields['unit'].choices = unit_choices
+
+    return render(request, 'ra/semester_config.html', {'semester': semester, 'form': form})
+
+
 
 @requires_role("FUND")
 def search_scholarships_by_student(request, student_id):
@@ -477,14 +513,16 @@ def person_info(request):
     Get more info about this person, for AJAX updates on new RA form
     """
     result = {}
-    if 'emplid' not in request.GET:
+    emplid = request.GET.get('emplid', None)
+    if not emplid or not emplid.isdigit() or len(emplid) != 9:
         pass
     else:
         programs = []
         
         # GradPrograms
         emplid = request.GET['emplid']
-        for gs in GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units):
+        grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units)
+        for gs in grads:
             pdata = {
                      'program': gs.program.label,
                      'unit': gs.program.unit.name,

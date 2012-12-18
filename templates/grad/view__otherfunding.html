@@ -1,4 +1,4 @@
-{% if index %}
+{% if index and can_edit %}
     <p class="manage_link">
         <a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Manage Other Funding</a>
     </p>

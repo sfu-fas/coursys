@@ -3,8 +3,10 @@ from quick_search import quick_search
 from not_found import not_found
 from supervisor_index import supervisor_index
 from all_promises import all_promises
+from funding_report import funding_report
 from view import view
 from grad_more_info import grad_more_info
+from get_form import get_form
 from manage_supervisors import manage_supervisors
 from remove_supervisor import remove_supervisor
 from manage_financialcomments import manage_financialcomments
@@ -26,6 +28,7 @@ from programs import programs
 from requirements import requirements
 from new_requirement import new_requirement
 from import_applic import import_applic
+from progress_reports import progress_reports
 from letter_templates import letter_templates
 from new_letter_template import new_letter_template
 from manage_letter_template import manage_letter_template

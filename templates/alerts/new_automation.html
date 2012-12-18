@@ -6,6 +6,10 @@
 {% block title %}New Automation{% endblock %}
 {% block h1 %}New Automation{% endblock %}
 
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}style/alerts.css" rel="stylesheet" />
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
 <li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>

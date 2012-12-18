@@ -160,14 +160,14 @@
     <h3> Resolution: </h3>
             <h4>{{alert.last_resolution.get_update_type_display}} - {{alert.last_resolution.created_at|date:"Y/m/d"}}</h3>
             <div class="note-content">
-                {{alert.last_resolution.comments}}
+                {{alert.last_resolution.comments|linebreaksbr}}
             </div>
     {% else %}
         {% if alert.last_update %}
         <h3> Last Update: </h3>
                 <h4>{{alert.last_update.get_update_type_display}} - {{alert.last_update.created_at|date:"Y/m/d"}}</h3>
                 <div class="note-content">
-                    {{alert.last_update.comments}}
+                    {{alert.last_update.comments|linebreaksbr}}
                 </div>
         {% endif %}
     {% endif %}

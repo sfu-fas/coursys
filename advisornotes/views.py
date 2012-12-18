@@ -3,6 +3,7 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
     EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from alerts.models import Alert
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, \
     SIMSProblem
@@ -301,7 +302,10 @@ def student_notes(request, userid):
             items.append(item)
         nonstudent = True
 
-    return render(request, 'advisornotes/student_notes.html', {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
+    template = 'advisornotes/student_notes.html'
+    if 'compact' in request.GET:
+        template = 'advisornotes/student_notes_compact.html'
+    return render(request, template, {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
 
 
 @requires_role('ADVS')
@@ -361,6 +365,7 @@ def student_courses_data(request, userid):
     except SIMSProblem as e:
         data = {'error': e.message}
 
+    data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(mimetype='application/json;charset=utf-8')
     json.dump(data, response, encoding='utf-8', indent=1)
     return response
@@ -557,8 +562,7 @@ def view_course_offerings(request, semester=None):
         semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
         semesters = Semester.objects.filter(start__lte=datetime.date.today() + datetime.timedelta(days=365)).order_by('-end')[:6]
     
-    if 'offeringsearch' in request.GET and 'offering' in request.GET \
-            and request.GET['offering'] and request.GET['offering'].isdigit():
+    if 'offeringsearch' in request.GET and request.GET['offeringsearch'] and request.GET['offeringsearch'].isdigit():
         # handle the search for other offerings
         offering = get_object_or_404(CourseOffering, id=request.GET['offering'])
         return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))

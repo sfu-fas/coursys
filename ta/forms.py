@@ -106,7 +106,7 @@ class TUGForm(forms.ModelForm):
                  error_class, label_suffix, empty_permitted, instance)
         # see old revisions (git id 1d1d2f9) for a dropdown
         if userid is not None and offering is not None:
-            member = Member.objects.get(person__userid=userid, offering=offering)
+            member = Member.objects.exclude(role='DROP').get(person__userid=userid, offering=offering)
         elif instance is not None:
             member = instance.member
         else:
@@ -231,6 +231,9 @@ class TAAcceptanceForm(forms.ModelForm):
                   'created_at'
                   ]
     
+class NewTAContractForm(forms.Form):
+    application = forms.ModelChoiceField(queryset=TAApplication.objects.none())
+
 
 class TAContractForm(forms.ModelForm):
  
@@ -559,8 +562,10 @@ class AssignBUForm(forms.Form):
     bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False)
     bu.widget.attrs['class'] = u'bu_inp'
 
+# fake contract statuses to allow selecting applicants in the form
+APPLICANT_STATUSES = (('_APPLIC', 'Applicants (not late)'), ('_LATEAPP', 'Late Applicants'))
 class TAContactForm(forms.Form):
-    statuses = forms.MultipleChoiceField(choices=STATUS_CHOICES, help_text="TAs to contact (according to contract status)")
+    statuses = forms.MultipleChoiceField(choices=APPLICANT_STATUSES+STATUS_CHOICES, help_text="TAs to contact (according to contract status)")
     subject = forms.CharField()
     text = forms.CharField(widget=forms.Textarea(), help_text='Message body. <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed.')
     url = forms.URLField(label="URL", required=False, help_text='Link to include in the message. (optional)')

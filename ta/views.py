@@ -18,7 +18,7 @@ from coredata.queries import add_person, more_personal_info, SIMSProblem
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
-    CourseDescriptionForm, LabelledHidden
+    CourseDescriptionForm, LabelledHidden, NewTAContractForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -58,7 +58,7 @@ def _tryget(member):
 @requires_course_staff_by_slug
 def all_tugs(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    current_user = Member.objects.get(person__userid=request.user.username, offering=course)
+    current_user = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course)
     is_ta = current_user.role == 'TA'
     if is_ta:
         tas = [current_user]
@@ -98,7 +98,7 @@ def all_tugs_admin(request, semester_name=None):
 @requires_course_instr_by_slug
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, offering=course, person__userid=userid)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     bu = member.bu()
     has_lab_or_tut = course.labtas()
         
@@ -137,7 +137,7 @@ def view_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role="TA")
     try:
-        curr_user_role = Member.objects.get(person__userid=request.user.username, offering=course).role
+        curr_user_role = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course).role
     except Member.DoesNotExist:
         # we'll just assume this since it's the only other possibility 
         #  since we're checking authorization in the decorator
@@ -161,7 +161,7 @@ def view_tug(request, course_slug, userid):
 @requires_course_instr_by_slug
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, offering=course, person__userid=userid)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     tug = get_object_or_404(TUG, member=member)
 
     if (request.method=="POST"):
@@ -251,9 +251,8 @@ def _new_application(request, post_slug, manual=False, userid=None):
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
 
-        for gs in GradStudent.objects.filter(person=person):
-            if gs.sin() != gs.defaults['sin']:
-                sin = gs.sin()
+        if person.sin() != person.defaults['sin']:
+            sin = person.sin()
        
     if request.method == "POST":
         search_form = StudentSearchForm(request.POST)
@@ -283,12 +282,11 @@ def _new_application(request, post_slug, manual=False, userid=None):
         if ta_form.is_valid() and courses_formset.is_valid():
             app = ta_form.save(commit=False)
 
-            # if they gave a SIN, populate any GradStudent records
+            # if they gave a SIN, populate the Person record
             if app.sin and app.sin != ta_form.sin_default:
-                for gs in GradStudent.objects.filter(person=person):
-                    if gs.sin() != app.sin:
-                        gs.set_sin(app.sin)
-                        gs.save()
+                if person.sin() != app.sin:
+                    person.set_sin(app.sin)
+                    person.save()
             
             today = datetime.date.today()
             if(posting.closes < today):
@@ -667,6 +665,11 @@ def all_contracts(request, post_slug):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
         return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
 
+    existing = set(c.application_id for c in TAContract.objects.filter(posting=posting).select_related('application'))
+    queryset = TAApplication.objects.filter(posting=posting).exclude(id__in=existing).order_by('person')
+    application_choices = [(a.id, a.person.name()) for a in queryset if a not in existing]
+    form = NewTAContractForm()
+    form.fields['application'].choices = application_choices
     
     try:
         p = int(request.GET.get("page",'1'))
@@ -677,7 +680,8 @@ def all_contracts(request, post_slug):
     except(InvalidPage, EmptyPage):
         contract_page.paginator.page(paginator.num_pages)
     
-    if request.method == "POST":
+    if request.method == "POST" and 'sendoffers' in request.POST:
+        # POST request to send offers
         ccount = 0
         from_user = posting.contact()
         for contract in contracts:
@@ -694,7 +698,25 @@ def all_contracts(request, post_slug):
             messages.success(request, "Successfully sent %s offers." % ccount)
         elif ccount > 0:
             messages.success(request, "Successfully sent offer.")
-            
+
+    elif request.method == "POST":
+        # POST request to set a contract to "signed"
+        for key in request.POST:
+            if key.startswith('signed-'):
+                userid = key[7:]
+                contracts = TAContract.objects.filter(posting=posting, application__person__userid=userid)
+                if contracts:
+                    contract = contracts[0]
+                    contract.status = 'SGN'
+                    contract.save()
+                    messages.success(request, u"Contract for %s signed." % (contract.application.person.name()))
+                    l = LogEntry(userid=request.user.username,
+                        description=u"Set contract for %s to signed." % (contract.application.person.name()),
+                        related_object=contract)
+                    l.save()
+                return HttpResponseRedirect(reverse('ta.views.all_contracts', kwargs={'post_slug': posting.slug}))
+
+    
     for contract in contracts:
         total_bu =0
         crs_list = ''
@@ -707,7 +729,8 @@ def all_contracts(request, post_slug):
             
     #postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
-    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications})
+    return render(request, 'ta/all_contracts.html',
+                  {'contracts':contracts, 'posting':posting, 'applications':applications, 'form': form})
 
 @requires_role("TAAD")
 def contracts_csv(request, post_slug):
@@ -726,7 +749,8 @@ def contracts_csv(request, post_slug):
     
     contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']) \
                 .select_related('semester', 'application__person')
-    batchid = '%s_%s_01' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"))
+    seq = posting.next_export_seq()
+    batchid = '%s_%s_%02i' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"), seq)
     for c in contracts:
         courses = TACourse.objects.filter(contract=c)
         total_bu = 0
@@ -741,22 +765,30 @@ def contracts_csv(request, post_slug):
         schol_rate = 'TSCH' if c.scholarship_per_bu else ''
         salary_total = (total_bu + prep_units) * c.pay_per_bu
         schol_total = (total_bu + prep_units) * c.scholarship_per_bu
+        if prep_units == 0:
+            prep_units = ''
+        
         row = [batchid, posting.semester.name, signed, benefits, c.application.person.emplid, c.application.sin]
         row.extend([c.application.person.last_name, c.application.person.first_name, c.application.person.middle_name])
         row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
-        row.extend([c.position_number.position_number, '', '', 'TSU', '', c.application.category])
-        row.extend(['*fund*', posting.unit.deptid(), '', c.position_number.account_number, prep_units, total_bu])
+        row.extend(["%08i" % (c.position_number.position_number), '', '', 'TSU', '', c.application.category])
+        row.extend([11, posting.unit.deptid(), '', c.position_number.account_number, prep_units, total_bu])
         row.extend(['T', "%.2f"%(salary_total), '', '', '', schol_rate, "%.2f"%(schol_total), '', '', '', ''])
         writer.writerow(row)
     
     return response
     
 
-
+@requires_role("TAAD")
+def preview_offer(request, post_slug, userid):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
+    return accept_contract(request, posting.slug, userid, preview=True)
+    
+    
 @login_required
-def accept_contract(request, post_slug, userid):
-    # TODO: don't really need userid in the URL here
-    if request.user.username != userid:
+def accept_contract(request, post_slug, userid, preview=False):
+    if not preview and request.user.username != userid:
         return ForbiddenResponse(request, 'You cannot access this page')
 
     posting = get_object_or_404(TAPosting, slug=post_slug)
@@ -816,7 +848,8 @@ def accept_contract(request, post_slug, userid):
                 'schol_sem':schol_sem_out,
                 'total':total,
                 'acc_deadline': pdead,
-                'form':form
+                'form':form,
+                'preview': preview,
             }
     return render(request, 'ta/accept.html', context)
 
@@ -879,6 +912,30 @@ def contracts_forms(request, post_slug):
     ta_forms(contracts, response)
     return response
 
+@requires_role("TAAD")
+def new_contract(request, post_slug):
+    """
+    Create a new contract for this person and redirect to edit it.
+    """
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+
+    existing = set(c.application_id for c in TAContract.objects.filter(posting=posting).select_related('application'))
+    queryset = TAApplication.objects.filter(posting=posting).exclude(id__in=existing).order_by('person')
+    application_choices = [(a.id, a.person.name()) for a in queryset if a not in existing]
+    
+    if request.method == 'POST':
+        form = NewTAContractForm(request.POST)
+        form.fields['application'].choices = application_choices
+        form.fields['application'].queryset = queryset
+        
+        if form.is_valid():
+            app = form.cleaned_data['application']
+            contract = TAContract(created_by=request.user.username)
+            contract.first_assign(app, posting)
+            return HttpResponseRedirect(reverse(edit_contract, kwargs={'post_slug': posting.slug, 'userid': app.person.userid}))
+    
+    return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+ 
 
 @requires_role("TAAD")
 def edit_contract(request, post_slug, userid):
@@ -1019,8 +1076,6 @@ def _copy_posting_defaults(source, destination):
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
     account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False).order_by('title')]
-    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
-    contact_choices = list(set(contact_choices))
 
     today = datetime.date.today()
     if post_slug:
@@ -1054,6 +1109,12 @@ def edit_posting(request, post_slug=None):
             default_exclude = set((o.course_id for o in offerings.filter(component="SEC").exclude(section__startswith="C")))
             posting.config['excluded'] = default_exclude
             posting.config['contact'] = Person.objects.get(userid=request.user.username).id
+
+    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
+    current_contact = posting.contact()
+    if current_contact:
+        contact_choices.append((current_contact.id, current_contact.name()))
+    contact_choices = list(set(contact_choices))
     
     if request.method == "POST":
         form = TAPostingForm(data=request.POST, instance=posting)
@@ -1262,21 +1323,37 @@ def view_financial(request, post_slug):
     context = {'posting': posting, 'offerings': offerings, 'excluded': excluded, 'info': info}
     return render(request, 'ta/view_financial.html', context) 
 
+
+def _contact_people(posting, statuses):
+    """
+    The set of people to be contacted with the given statuses in the given posting.
+    """
+    contracts = TAContract.objects.filter(posting=posting, status__in=statuses).select_related('application__person')
+    people = set((c.application.person for c in contracts))
+    if '_APPLIC' in statuses:
+        # they want applicants
+        apps = TAApplication.objects.filter(posting=posting, late=False).select_related('person')
+        people |= set((app.person for app in apps))
+    if '_LATEAPP' in statuses:
+        # they want applicants
+        apps = TAApplication.objects.filter(posting=posting, late=True).select_related('person')
+        people |= set((app.person for app in apps))
+    return people
+
 @requires_role("TAAD")
 def contact_tas(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if request.method == "POST":
         form = TAContactForm(request.POST)
         if form.is_valid():
-            contracts = TAContract.objects.filter(posting=posting, status__in=form.cleaned_data['statuses']).select_related('application__person')
+            people = _contact_people(posting, form.cleaned_data['statuses'])
             from_person = Person.objects.get(userid=request.user.username)
+            if 'url' in form.cleaned_data and form.cleaned_data['url']:
+                url = form.cleaned_data['url']
             # message each person
             count = 0
-            for c in contracts:
-                person = c.application.person
+            for person in people:
                 url = ''
-                if 'url' in form.cleaned_data and form.cleaned_data['url']:
-                    url = form.cleaned_data['url']
                 n = NewsItem(user=person, author=from_person, course=None, source_app='ta_contract',
                              title=form.cleaned_data['subject'], content=form.cleaned_data['text'], url=url)
                 n.save()
@@ -1287,8 +1364,8 @@ def contact_tas(request, post_slug):
     
     elif 'statuses' in request.GET:
         statuses = request.GET['statuses'].split(',')
-        contracts = TAContract.objects.filter(posting=posting, status__in=statuses).select_related('application__person')
-        emails = [c.application.person.full_email() for c in contracts]
+        people = _contact_people(posting, statuses)
+        emails = [p.full_email() for p in people]
         
         resp = HttpResponse(mimetype="application/json")
         data = {'contacts': ", ".join(emails)}
@@ -1337,3 +1414,26 @@ def new_description(request):
         form.fields['unit'].choices = unit_choices
     context = {'form': form}
     return render(request, 'ta/new_description.html', context)
+
+from grad.models import STATUS_ACTIVE, STATUS_INACTIVE
+@login_required
+def instr_offers(request):
+    p = get_object_or_404(Person, userid=request.user.username)
+    cutoff = datetime.date.today() - datetime.timedelta(days=60)
+    members = Member.objects.filter(person=p, role="INST", offering__semester__start__gte=cutoff) \
+              .select_related('offering')
+    offerings = [m.offering for m in members]
+    tacrses = TACourse.objects.filter(course__in=offerings, bu__gt=0,
+                                      contract__status__in=['OPN','REJ','ACC','SGN']) \
+                              .select_related('contract__application__person', 'offering')
+
+    for crs in tacrses:
+        p = crs.contract.application.person
+        gradprog = GradStudent.objects.filter(person=p, current_status__in=STATUS_ACTIVE+STATUS_INACTIVE) \
+                   .select_related('program__unit')
+        crs.gradprog = ', '.join("%s %s" % (gp.program.label, gp.program.unit.label) for gp in gradprog)
+    
+    context = {'tacrses': tacrses}    
+    return render(request, 'ta/instr_offers.html', context)
+
+

@@ -7,12 +7,12 @@ from courselib.auth import requires_global_role, requires_role, requires_course_
         has_formgroup
 from courselib.search import get_query
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-        UNIT_ROLES, ROLES, ROLE_DESCR
+        UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
 from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-import json
+import json, datetime
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -100,45 +100,6 @@ def edit_unit(request, unit_slug=None):
 
 
 
-@requires_global_role("SYSA")
-def missing_instructors(request):
-    # build a set of all instructors that don't have an instructor-appropriate role
-    roles = dict(((r.person, r.role) for r in Role.objects.filter(role__in=["FAC","SESS","COOP"]).select_related('person')))
-    missing = set()
-    for o in CourseOffering.objects.filter(graded=True):
-        for i in o.member_set.filter(role="INST"):
-            if i.person not in roles:
-                missing.add(i.person)
-    missing = list(missing)
-    missing.sort()
-    initial = [{'person': p, 'role': None} for p in missing]
-
-    if request.method == 'POST':
-        formset = InstrRoleFormSet(request.POST, initial=initial)
-        if formset.is_valid():
-            count = 0
-            for f in formset.forms:
-                p = f.cleaned_data['person']
-                r = f.cleaned_data['role']
-                d = f.cleaned_data['department']
-                if r == "NONE" or p not in missing:
-                    continue
-                
-                r = Role(person=p, role=r, department=d)
-                r.save()
-                count += 1
-
-                #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
-                      description=("new role: %s as %s") % (p.userid, r),
-                      related_object=r)
-                l.save()
-            messages.success(request, 'Set instructor roles for %i people.' % (count))
-            return HttpResponseRedirect(reverse(role_list))
-    else:
-        formset = InstrRoleFormSet(initial=initial)
-
-    return render(request, 'coredata/missing_instructors.html', {'formset': formset})
 
 
 @requires_global_role("SYSA")
@@ -398,6 +359,57 @@ def unit_address(request, unit_slug):
         form = UnitAddressForm(unit=unit)
     context = {'unit': unit, 'form': form}
     return render(request, "coredata/unit_address.html", context)
+
+
+@requires_role('ADMN')
+def missing_instructors(request, unit_slug):
+    unit = get_object_or_404(Unit, slug=unit_slug)
+    if unit not in request.units:
+        return ForbiddenResponse(request, "Not an admin for this unit")
+
+    # build a set of all instructors that don't have an instructor-appropriate role
+    roles = dict(((r.person, r.role) for r in Role.objects.filter(unit=unit, role__in=INSTR_ROLES).select_related('person')))
+    missing = set()
+    long_ago = datetime.date.today() - datetime.timedelta(days=365*3)
+    instructors = Member.objects.filter(role="INST", offering__owner=unit,
+                                        offering__semester__start__gte=long_ago) \
+                                .exclude(offering__component='CAN') \
+                                .exclude(person__userid=None) \
+                                .select_related('person')
+    for i in instructors:
+        if i.person not in roles:
+            missing.add(i.person)
+    missing = list(missing)
+    missing.sort()
+    initial = [{'person': p, 'role': None} for p in missing]
+
+    if request.method == 'POST':
+        formset = InstrRoleFormSet(request.POST, initial=initial)
+        if formset.is_valid():
+            count = 0
+            for f in formset.forms:
+                p = f.cleaned_data['person']
+                r = f.cleaned_data['role']
+                if r == "NONE" or p not in missing:
+                    continue
+                
+                r = Role(person=p, role=r, unit=unit)
+                r.save()
+                count += 1
+
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("new role: %s as %s") % (p.userid, r),
+                      related_object=r)
+                l.save()
+            messages.success(request, 'Set instructor roles for %i people.' % (count))
+            return HttpResponseRedirect(reverse('coredata.views.unit_admin'))
+    else:
+        formset = InstrRoleFormSet(initial=initial)
+
+    context = {'formset': formset, 'unit': unit}
+    return render(request, 'coredata/missing_instructors.html', context)
+
 
 
 

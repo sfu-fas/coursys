@@ -1,4 +1,4 @@
-<p class="manage_link"><a href="{% url grad.views.manage_general grad_slug=grad.slug  %}">Manage General Info</a></p>
+{% if can_edit %}<p class="manage_link"><a href="{% url grad.views.manage_general grad_slug=grad.slug  %}">Manage General Info</a></p>{% endif %}
 {% include "grad/view__program.html" %}
 <div class="datatable">
 	<table class="display" id="academics">

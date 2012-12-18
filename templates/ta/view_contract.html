@@ -17,6 +17,7 @@
     <ul>
     <li><a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid %}">Edit Contract</a></li>
     <li><a href="{% url ta.views.view_form post_slug=contract.posting.slug userid=contract.application.person.userid %}">Appointment Form</a></li>
+    <li><a href="{% url ta.views.preview_offer post_slug=contract.posting.slug userid=contract.application.person.userid %}">Preview Offer</a></li>
     </ul>
 </div>
 {% endblock %}

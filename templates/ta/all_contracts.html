@@ -62,9 +62,7 @@
 <table class="display" id="contracts">
   <thead>
   	<tr>
-	<!--#name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit-->
   		<th scope="col">Person</th>
-		<!--<th scope="col">First Name</th>-->
   		<th scope="col">Appt Category</th>
 		<th scope="col">Rank</th>
 		<th scope="col">Status</th>
@@ -72,31 +70,36 @@
 		<th scope="col">TA Courses</th>
 		<th scope="col">Deadline</th>
   		<th scope="col">Manage</th>
-  		<th scope="col">Send Offer? <input type="checkbox" id="select_tog"></th>
+  		<th scope="col">Send?<input type="checkbox" id="select_tog"></th>
   	</tr>
   </thead>
   <tbody>
   {% for contract in contracts %}
   <tr>
-  	<td>{{ contract.application.person }}</td> <!--#lastname-->
-  	 <!--<td>{{ contract.application.person.first_name }}</td>-#first name-->
-  	<td>{{contract.get_appt_category_display}} ({{contract.appt_category}})</td><!--#appt category-->
-	<td>{{contract.application.rank}}</td> <!--#rank-->
-	<td>{{contract.get_status_display}}</td><!--#status-->
-	<td>{{contract.total_bu}}</td><!--#totalbu-->
-	<td>{{contract.crs_list|linebreaksbr}}</td><!--#courses ta-ing-->
-	<td>{{ contract.deadline|date:"M d Y" }}</td><!--#deadline-->
+  	<td>{{ contract.application.person }}</td>
+  	<td>{{contract.get_appt_category_display}} ({{contract.appt_category}})</td>
+	<td>{{contract.application.rank}}</td>
+	<td>{{contract.get_status_display}}</td>
+	<td>{{contract.total_bu}}</td>
+	<td>{{contract.crs_list|linebreaksbr}}</td>
+	<td>{{ contract.deadline|date:"M d Y" }}</td>
   	<td>
   		<a href="{% url ta.views.view_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a>&nbsp;
   		<a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a>&nbsp;
   	</td>
-  	<td>{% if contract.status == 'NEW' %} <input name="contract_{{contract.id}}" class="offer" type="checkbox"/> {% endif %} </td>
+  	<td class="miniaction">
+  		{% if contract.status == 'NEW' %}
+  		<input name="contract_{{contract.id}}" class="offer" type="checkbox"/>
+  		{% else %}{% if contract.status == 'ACC' or contract.status == 'OPN' %}
+  		<input type="submit" name="signed-{{ contract.application.person.userid }}" value="Signed" />
+  		{% endif %}{% endif %}
+  	</td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
-<input id="send" class="submit" type="submit" value="Send"/>
+<input id="send" class="submit" name="sendoffers" type="submit" value="Send"/>
 </form>
 {%else%}
 	<p>No contracts yet</p>
@@ -104,13 +107,9 @@
 
 <div id="ta_con">
 <h2>New Contract:</h2>
-<form>
-	<select name="app" id="app">
-		{% for app in applications %}
-		<option value="{{app.id}}">{{ app.person }}</option>
-		{% endfor %}
-	</select>
-	<a id="create" href="" style="height:0"><button type="button" class="submit" id="submit">Create</button></a>
+<form action="{% url ta.views.new_contract post_slug=posting.slug %}" method="post">{% csrf_token %}
+	{{ form.application }}
+	<input type="submit" class="submit" id="submit" value="Create">
 	<div class="helptext">Select the associated applicant</div>
 	
 </form>

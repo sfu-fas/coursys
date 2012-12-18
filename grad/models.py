@@ -29,6 +29,25 @@ class GradProgram(models.Model):
         unique_together = (('unit', 'label'),)
     def __unicode__ (self):
         return u"%s" % (self.label)
+    
+    def cmpt_program_type(self):
+        """
+        Hack for CMPT progress reports system export.
+        """
+        if self.label == 'MSc Course':
+            return ('MSc', 'Course')
+        elif self.label == 'MSc Proj':
+            return ('MSc', 'Project')
+        elif self.label == 'MSc Thesis':
+            return ('MSc', 'Thesis')
+        elif self.label == 'PhD':
+            return ('PhD', 'Thesis')
+        elif self.label == 'Qualifying':
+            return ('Qualifying', '')
+        elif self.label == 'Special':
+            return ('Special', '')
+        else:
+            return ('???', '???')
 
 STATUS_CHOICES = (
         ('APPL', 'Applicant'), # TODO: remove Applicant: not used in the real data
@@ -59,6 +78,8 @@ STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE') # statuses we don't actually use anymore
 
+GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
+
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
@@ -70,7 +91,7 @@ class GradStudent(models.Model):
         return make_slug(userid + "-" + self.program.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     research_area = models.TextField('Research Area', blank=True)
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True, db_index=True)
+    campus = models.CharField(max_length=5, choices=GRAD_CAMPUS_CHOICES, blank=True, db_index=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
@@ -89,13 +110,15 @@ class GradStudent(models.Model):
     current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
     config = JSONField(default={}) # addition configuration
-        # 'sin': Social Insurance Number
+        # 'sin': Social Insurance Number: no longer used. Now at self.person.sin()
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
         # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
         # 'work_title': title of the Thesis/Project/Extended Essay
-    defaults = {'sin': '000000000'}
-    sin, set_sin = getter_setter('sin')
+        # 'applic_email': email address from the application process (where it could be imported)
+    defaults = {'sin': '000000000', 'applic_email': None}
+    #sin, set_sin = getter_setter('sin')
+    applic_email, set_applic_email = getter_setter('applic_email')
 
     def __unicode__(self):
         return u"%s, %s" % (self.person, self.program.label)
@@ -128,7 +151,7 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        first_program = GradProgramHistory.objects.filter(student=self).order_by('start_semester__name')[0]
+        first_program = GradProgramHistory.objects.filter(student=self).order_by('-starting')[0]
         self.start_semester = first_program.start_semester
 
         # end_semester
@@ -429,6 +452,9 @@ class GradProgramHistory(models.Model):
     start_semester = models.ForeignKey(Semester, null=False, default=Semester.current,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
+    
+    class Meta:
+        ordering = ('-starting',)
     
     def save(self, *args, **kwargs):
         super(GradProgramHistory, self).save(*args, **kwargs)

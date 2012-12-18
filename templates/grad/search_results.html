@@ -91,4 +91,9 @@ width: 120px;
 		</tbody>
 	</table>
 </div>
+
+<p>	Forms for these students:
+<a href="{% url grad.views.search %}?{{query_string}}&amp;cardforms=yes">Card Access Forms</a>
+{% if uses_fasnet %}| <a href="{% url grad.views.search %}?{{query_string}}&amp;fasnetforms=yes">FASnet Account Forms</a>{% endif %}
+</p>
 {% endblock %} 

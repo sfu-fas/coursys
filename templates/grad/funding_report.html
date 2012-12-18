@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load floatsortable %}
+
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#funding').dataTable({
+			"bJQueryUI" : true,
+			"bSort" : false,
+			"bPaginate": false,
+			"bFilter": false,
+			"bInfo": false,
+		});
+	});
+
+</script>
+{% endblock %}
+
+{% block title %}Funding Summary for {{semester.label}}{% endblock %}
+{% block h1 %}Funding Summary for {{semester.label}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; Funding Summary for {{semester.label}}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+{% if semester.previous_semester %}
+<li><a href="{% url grad.views.funding_report semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+{% endif %}
+{% if semester.next_semester %}
+<li><a href="{% url grad.views.funding_report semester_name=semester.next_semester.name %}">Next Semester</a></li>
+{% endif %}
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+	<table class="display" id="funding">
+		<thead>
+			<tr>
+            <th scope="col">Program</th>
+            <th scope="col">TA Funding</th>
+            <th scope="col">RA Funding</th>
+            <th scope="col">Scholarships</th>
+            <th scope="col">Other Funding</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for prog in programs %}
+            <tr>
+            <td scope="row">{{prog.label}}</td>
+            <td class="num"><span class="sort">{{prog.funding_ta|floatsortable}}</span>${{prog.funding_ta|floatformat:"2"}}</td>
+            <td class="num"><span class="sort">{{prog.funding_ra|floatsortable}}</span>${{prog.funding_ra|floatformat:"2"}}</td>
+            <td class="num"><span class="sort">{{prog.funding_schol|floatsortable}}</span>${{prog.funding_schol|floatformat:"2"}}</td>
+            <td class="num"><span class="sort">{{prog.funding_other|floatsortable}}</span>${{prog.funding_other|floatformat:"2"}}</td>
+            </tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+<p>* &ldquo;Non Grad&rdquo; includes funding for grad students outside of the {{these_units}}.</p>
+<p>** This report only contains funding <em>from</em> the {{these_units}}. Students may also have received funding from other units.</p>
+{% endblock %} 

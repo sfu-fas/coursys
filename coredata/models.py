@@ -61,11 +61,14 @@ class Person(models.Model):
         # 'applic_email': application email address
         # 'gpa': Most recent CGPA for this student
         # 'ccredits': Number of completed credits
+        # 'sin': Social Insurance Number (usually populated by TA/RA contracts)
         # 'nonstudent_hs': highschool field from NonStudent record
         # 'nonstudent_colg': college field from NonStudent record
         # 'nonstudent_notes': notes field from NonStudent record
     
-    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None, 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
+                'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
+                'sin': '000000000'}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
@@ -74,6 +77,7 @@ class Person(models.Model):
     # see grad.forms.VISA_STATUSES for list of possibilites
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
+    sin, set_sin = getter_setter('sin')
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
@@ -826,6 +830,12 @@ class Unit(models.Model):
         else:
             return self.name
     
+    def uses_fasnet(self):
+        """
+        Used to decide whether or not to display the FASnet account forms.
+        """
+        return self.slug in ['cmpt', 'ensc']
+    
     @classmethod
     def __sub_unit_ids(cls, unitids):
         """
@@ -864,6 +874,8 @@ ROLE_CHOICES = (
         ('FAC', 'Faculty Member'),
         ('SESS', 'Sessional Instructor'),
         ('COOP', 'Co-op Staff'),
+        ('INST', 'Other Instructor'),
+        ('SUPV', 'Additional Supervisor'),
         ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
         ('DICC', 'Discipline Case Filer (email CC)'),
@@ -878,7 +890,10 @@ ROLE_CHOICES = (
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD', 'TECH', 'FAC', 'SESS', 'COOP'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+# roles departmental admins ('ADMN') are allowed to assign within their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD','TECH',
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV']
+# help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
@@ -893,7 +908,11 @@ ROLE_DESCR = {
         'FAC': 'Faculty Member',
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',
+        'INST': 'Instructors outside of the department or others who teach courses',
+        'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
               }
+INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors
+
 class Role(models.Model):
     """
     Additional roles within the system (not course-related).
