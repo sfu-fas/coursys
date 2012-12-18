@@ -301,7 +301,10 @@ def student_notes(request, userid):
             items.append(item)
         nonstudent = True
 
-    return render(request, 'advisornotes/student_notes.html', {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
+    template = 'advisornotes/student_notes.html'
+    if 'compact' in request.GET:
+        template = 'advisornotes/student_notes_compact.html'
+    return render(request, template, {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
 
 
 @requires_role('ADVS')

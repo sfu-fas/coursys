@@ -5,8 +5,9 @@ from autoslug import AutoSlugField
 from coredata.models import Person, Unit, Course, CourseOffering
 from jsonfield import JSONField
 from courselib.slugs import make_slug
-import datetime
+from pages.models import _normalize_newlines
 from datetime import date
+import datetime
 import os.path
 
 NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
@@ -111,6 +112,19 @@ class AdvisorNote(models.Model):
     
     def __hash__(self):
         return self.unique_tuple().__hash__()
+    
+    def text_preview(self):
+        """
+        A max-one-line preview of the note content, for the compact display.
+        """
+        text = _normalize_newlines(self.text.rstrip())
+        lines = text.split('\n')
+        text = lines[0]
+        if len(text) > 70:
+            text = text[:100] + u' \u2026'
+        elif len(lines) > 1:
+            text += u' \u2026'
+        return text
 
 
 ARTIFACT_CATEGORIES = (

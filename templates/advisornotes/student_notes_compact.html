@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; {{ student.name }}</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  	table = $('.display').dataTable({
+        "bPaginate": false,
+		"bJQueryUI": true,
+		"aaSorting": [[0, "desc"]],
+		//"aoColumns": [],
+	});
+});
+//]]>
+</script>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{%block content%}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th class="ui-state-default">Last Name</th>
+                <td>{{ student.last_name }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">First Name</th>
+                <td>{{ student.first_name }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Middle Name</th>
+                <td>{{ student.middle_name|default:"—" }} </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Student Number</th>
+                <td> {% if nonstudent %}
+                Not a student (<a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a>)
+                {% endif %}
+                {% if not nonstudent %}
+                {{ student.emplid }}
+                [<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{student.emplid }}">SIMS record</a>]
+                {% endif %} </td>
+            </tr>
+            {% if not nonstudent %}
+            <tr>
+                <th class="ui-state-default">Email Address</th>
+                <td>{{ student.email_mailto }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if items %}
+<div class="datatable_container">
+<table class="display" id="offerings">
+<thead><tr><th scope="col">At</th><th scope="col">Advisor</th><th scope="col">Attachment</th>
+<th scope="col">Content</th></tr></thead>
+<tbody>
+{% for item in items %}
+{% if item.note %}
+{% with item.item as note %}
+{% if not note.hidden %}
+<tr id="note-row-{{note.id}}">
+	<td><span class="sort">{{note.created_at.isoformat}}</span>{{note.created_at|date:"Y-m-d G:i"}}</td>
+	<td>{{note.advisor.name}}
+		{% if note.emailed %}
+		<img src="{{ MEDIA_URL }}icons/email.png" alt="Student was emailed the contents of this note" title="Student was emailed the contents of this note" />
+		{% endif %}
+		</td>
+	<td>{% if note.file_attachment %}
+    <p><a href="{% url advisornotes.views.download_file userid=userid note_id=note.id%}" title="{{ note.attachment_filename }}"><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /></a>
+	({{ note.file_attachment.size|filesizeformat }})
+    </p>
+    {% endif %}</td>
+	<td>{{note.text_preview|linebreaksbr}}</td>
+</tr>
+{% endif %}
+{% endwith %}
+
+{% else %}
+{% with item.item as problem %}
+<tr id="note-row-{{note.id}}">
+	<td><span class="sort">{{problem.created_at.isoformat}}</span>{{problem.created_at|date:"Y-m-d G:i"}}</td>
+	<td></td>
+	<td>{% if problem.comments %}{{ problem.comments|length }} comments{% endif %}</td>
+	<td>{{ problem.description }}</td>
+</tr>
+{% endwith %}
+{% endif %}
+
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+
+{%else%}
+<p>
+    No notes or problems
+</p>
+{%endif%}
+
+{%endblock content%}
