@@ -151,11 +151,15 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        first_program = GradProgramHistory.objects.filter(student=self).order_by('-starting')
-        if first_program:
-            self.start_semester = first_program[0].start_semester
+        programs = GradProgramHistory.objects.filter(student=self).order_by('-starting')
+        if programs.count() > 0:
+            self.start_semester = programs[0].start_semester
         else:
-            self.start_semester = None
+            programs = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
+            if programs.count() > 0:
+                self.start_semester = programs[0].start
+            else:
+                self.start_semester = None
 
         # end_semester
         if self.current_status in STATUS_DONE:
@@ -179,9 +183,7 @@ class GradStudent(models.Model):
         # their (final) status in that semester. The data is messy enough
         # that I don't see any better way.
         next_sem = Semester.current().offset(1)
-        start = self.start_semester
-        if not start:
-            return 0,0
+        start = self.start_semester or next_sem
         end = self.end_semester or next_sem
         
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
