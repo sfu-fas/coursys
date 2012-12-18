@@ -68,19 +68,18 @@
             <thead>
                 <tr>
                     <th scope="col">Title</th>
-                    <th scope="col">Is Initial</th>
                     <th scope="col">Can View</th>
-                    <th scope="col">Original</th>
-                    <th scope="col"> Actions </th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             {% for sheet in sheets %}
                 <tr>
-                    <td><a href="{% url onlineforms.views.edit_sheet form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a></td>
-                    <td>{{ sheet.is_initial|default:"" }}</td>
-                    <td>{{ sheet.get_can_view_display }}</td>
-                    <td>{{ sheet.original }}</td>
-                     <td>
+                    <td>
+                    	<a href="{% url onlineforms.views.edit_sheet form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a>
+                    	{% if sheet.is_initial %}(initial sheet){% endif %}
+                    </td>
+                    <td>{{ sheet.get_can_view_display_short }}</td>
+                    <td class="miniaction">
                         {% if sheet.is_initial = 1 %}
                         <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
                         <p> 

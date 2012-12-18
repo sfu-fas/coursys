@@ -29,6 +29,9 @@ from os.path import splitext
 from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
+#######################################################################
+# Group Management
+
 @requires_role('ADMN')
 def manage_groups(request):
     groups = FormGroup.objects.filter(unit__in=request.units)
@@ -146,10 +149,13 @@ def admin_list_all(request):
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
-def get_full_path(request):
-        full_path = ('http', ':/', request)
-        return ''.join(full_path)    
 
+#######################################################################
+# Managing submissions & assigning sheets
+
+#def _get_full_path(request):
+#        full_path = ('http', ':/', request)
+#        return ''.join(full_path)    
 
 @requires_formgroup()
 def admin_assign_nonsfu(request, formsubmit_slug):
@@ -177,7 +183,7 @@ def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
 
     if request.method == 'POST' and form.is_valid():
         if assign_to_sfu_account:
-            formFiller = userToFormFiller(form.cleaned_data['assignee'])
+            formFiller = _userToFormFiller(form.cleaned_data['assignee'])
         else:
             nonSFUFormFiller = form.save()  # in this case the form is a model form
             formFiller = FormFiller.objects.create(nonSFUFormFiller=nonSFUFormFiller)
@@ -218,7 +224,7 @@ def admin_assign_any(request, assign_to_sfu_account=True):
         # get the person to assign too
         if assign_to_sfu_account:
             assignee = form.cleaned_data['assignee']
-            formFiller = userToFormFiller(assignee)
+            formFiller = _userToFormFiller(assignee)
         else:
             nonSFUFormFiller = form.save()
             formFiller = FormFiller.objects.create(nonSFUFormFiller=nonSFUFormFiller)
@@ -250,7 +256,7 @@ def admin_done(request, formsubmit_slug):
     form_submission.save()
     return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
-def userToFormFiller(user):
+def _userToFormFiller(user):
     try:
         form_filler = FormFiller.objects.get(sfuFormFiller=user)
     except ObjectDoesNotExist:
@@ -314,6 +320,10 @@ def view_form(request, form_slug):
     context = {'form': form, 'sheets': sheets, 'nonactive_sheets': nonactive_sheets}
     return render(request, "onlineforms/view_form.html", context)       
 
+
+#######################################################################
+# Creating/editing forms
+
 @requires_form_admin_by_slug()
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
@@ -355,12 +365,8 @@ def preview_sheet(request, form_slug, sheet_slug):
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug, form=owner_form)
     
     form = DynamicForm(owner_sheet.title)
-    fieldargs = {}
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
-    for field in fields:
-        display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
-        fieldargs[field.id] = display_field.make_entry_field()
-    form.setFields(fieldargs)
+    form.fromFields(fields)
 
     context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
     return render(request, "onlineforms/preview_sheet.html", context)
@@ -491,8 +497,9 @@ def new_field(request, form_slug, sheet_slug):
             need_choices = field.choices
 
             if not configurable:
+                new_sheet = owner_sheet.safe_save()
                 Field.objects.create(label='',
-                    sheet=owner_sheet,
+                    sheet=new_sheet,
                     fieldtype=type,
                     config=None,
                     active=True,
@@ -500,12 +507,13 @@ def new_field(request, form_slug, sheet_slug):
                 messages.success(request, 'Successfully created a new divider field')
 
                 return HttpResponseRedirect(
-                    reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+                    reverse('onlineforms.views.edit_sheet', args=(form_slug, new_sheet.slug)))
 
             #If the form is configurable it must be validated
             if form.is_valid():
+                new_sheet = owner_sheet.safe_save()
                 Field.objects.create(label=form.cleaned_data['label'],
-                    sheet=owner_sheet,
+                    sheet=new_sheet,
                     fieldtype=type,
                     config=custom_config,
                     active=True,
@@ -513,7 +521,7 @@ def new_field(request, form_slug, sheet_slug):
                 messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
 
                 return HttpResponseRedirect(
-                    reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+                    reverse('onlineforms.views.edit_sheet', args=(form_slug, new_sheet.slug)))
 
     if section == 'select':
         form = FieldForm()
@@ -582,7 +590,7 @@ def submissions_list_all_forms(request):
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
-        sheet_submissions = SheetSubmission.objects.filter(filler=userToFormFiller(loggedin_user)).exclude(status='DONE')
+        sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)).exclude(status='DONE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
@@ -641,13 +649,17 @@ def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition
 
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
-    print "\nin view submission"
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     sheet_submissions, sheetsWithFiles = readonly_sheets(form_submission)
 
 
     context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
+
+
+#######################################################################
+# Submitting sheets
+
 
 def sheet_submission_via_url(request, secret_url):
     sheet_submission_secret_url = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
@@ -702,10 +714,11 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
-        sheet_submission = get_object_or_404(SheetSubmission, sheet=sheet, form_submission=form_submission, slug=sheetsubmit_slug)
+        sheet_submission = get_object_or_404(SheetSubmission, sheet__original=sheet.original, form_submission=form_submission, slug=sheetsubmit_slug)
+        sheet = sheet_submission.sheet # revert to the old version that the user was working with.
         # check if this sheet has already been filled
         if sheet_submission.status == "DONE":
-            # or maybe show in display only mode
+            # TODO: show in display-only mode instead
             return NotFoundResponse(request)
         # check that they can access this sheet
         formFiller = sheet_submission.filler
@@ -761,7 +774,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                         else:
                             formFiller = None
                     elif loggedin_user:
-                        formFiller = userToFormFiller(loggedin_user)
+                        formFiller = _userToFormFiller(loggedin_user)
                     else:
                         # they didn't provide nonsfu info and they are not logged in
                         # (or the sheet doesn't allow non-SFU people to fill it in)

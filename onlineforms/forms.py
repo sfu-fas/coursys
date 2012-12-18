@@ -38,7 +38,7 @@ class EmployeeSearchForm(forms.Form):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit')
+        exclude = ('active', 'original', 'unit', 'config')
     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))     
     # get instance of the FormForm    
     def _get(self):
@@ -65,7 +65,7 @@ class SheetForm(forms.Form):
 class EditSheetForm(ModelForm):
     class Meta:
         model = Sheet
-        exclude = ('active', 'original', 'order', 'is_initial')
+        exclude = ('active', 'original', 'order', 'is_initial', 'config', 'form')
 
 class NonSFUFormFillerForm(ModelForm):
     class Meta:
@@ -112,18 +112,6 @@ class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
         super(DynamicForm, self).__init__(*args, **kwargs)
-
-    def setFields(self, kwargs):
-        """
-        Sets the fields in a form
-        """
-        keys = kwargs.keys()
-
-        # Determine order right here
-        keys.sort()
-
-        for k in keys:
-            self.fields[k] = kwargs[k]
 
     def fromFields(self, fields, field_submissions=[]):
         """

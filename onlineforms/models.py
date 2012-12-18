@@ -28,6 +28,10 @@ VIEWABLE_CHOICES = [
         ('ALL', 'Filler can see all info on previous sheets'),
         ('NON', "Filler can't see any info on other sheets (just name/email of initiator)"),
         ]
+VIEWABLE_SHORT = {
+        'ALL': 'Can view previous submissions',
+        'NON': 'Can only see name/email',
+        }
 
 # choices for the Field.fieldtype field
 FIELD_TYPE_CHOICES = [
@@ -114,15 +118,15 @@ class FormFiller(models.Model):
     nonSFUFormFiller = models.ForeignKey(NonSFUFormFiller, null=True)
 
     def getFormFiller(self):
-        if self.sfuFormFiller != None:
+        if self.sfuFormFiller:
             return self.sfuFormFiller
-        elif self.nonSFUFormFiller != None:
+        elif self.nonSFUFormFiller:
             return self.nonSFUFormFiller
         else:
             raise Exception, "This form filler object is in an invalid state."
 
     def isSFUPerson(self):
-        return self.sfuFormFiller != None
+        return bool(self.sfuFormFiller)
 
     def __unicode__(self):
         formFiller = self.getFormFiller()
@@ -144,8 +148,7 @@ class FormFiller(models.Model):
         return formFiller.email()
 
     def delete(self, *args, **kwargs):
-        formFiller = self.getFormFiller()
-        return formFiller.delete(*args, **kwargs)
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
     def email_mailto(self):
         formFiller = self.getFormFiller()
@@ -223,6 +226,7 @@ class Form(models.Model, _FormCoherenceMixin):
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     def __unicode__(self):
         return "%s [%s]" % (self.title, self.id)
@@ -266,6 +270,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
     
     def autoslug(self):
         return make_slug(self.title)
@@ -284,6 +289,9 @@ class Sheet(models.Model, _FormCoherenceMixin):
             self.active = False
             self.save()
 
+    class Meta:
+        unique_together = (("form", "slug"),)
+
     @transaction.commit_on_success
     def safe_save(self):
         """
@@ -291,6 +299,8 @@ class Sheet(models.Model, _FormCoherenceMixin):
         """
         # clone the sheet
         sheet2 = self.clone()
+        self.slug = self.slug + "_" + str(self.id)
+        self.save()
         sheet2.save()
         sheet2.cleanup_fields()
         # copy the fields
@@ -318,14 +328,15 @@ class Sheet(models.Model, _FormCoherenceMixin):
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
-     
-
     cached_fields = None
     def get_fields(self, refetch=False):
         if refetch or not(self.cached_fields):
             self.cached_fields = Field.objects.filter(sheet=self, active=True).order_by('order')
         return self.cached_fields
     fields = property(get_fields)
+    
+    def get_can_view_display_short(self):
+        return VIEWABLE_SHORT[self.can_view]
 
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
@@ -342,6 +353,7 @@ class Field(models.Model, _FormCoherenceMixin):
     def autoslug(self):
         return make_slug(self.label)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='sheet')
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     def __unicode__(self):
         return "%s, %s" % (self.sheet, self.label)
@@ -350,6 +362,8 @@ class Field(models.Model, _FormCoherenceMixin):
         self.active = False
         self.save()
 
+    class Meta:
+        unique_together = (("sheet", "slug"),)
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -458,7 +472,7 @@ class SheetSubmissionSecretUrl(models.Model):
         generated = False
         attempt = str(random.randint(1000,900000000))
         while not(generated):
-            old_attemp = attempt
+            old_attempt = attempt
             attempt = sha.new(attempt).hexdigest()
             if len(SheetSubmissionSecretUrl.objects.filter(key=attempt)) == 0:
                 generated = True
