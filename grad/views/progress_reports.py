@@ -5,7 +5,6 @@ from grad.models import GradStudent, CompletedRequirement, Supervisor, Scholarsh
 from ta.models import TACourse
 from ra.models import RAAppointment
 from coredata.queries import grad_student_courses, grad_student_gpas
-import MySQLdb
 
 def escape(s):
     if s is None:
@@ -13,6 +12,7 @@ def escape(s):
     elif type(s) == int:
         return unicode(s)
     else:
+        import MySQLdb
         return "'" + MySQLdb._mysql.escape_string(unicode(s)) + "'"
 
 def escape_all(*ss):
