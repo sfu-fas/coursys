@@ -12,8 +12,6 @@ from onlineforms.models import FormGroup, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
 from onlineforms.models import FIELD_TYPE_MODELS
 
-from onlineforms.utils import get_sheet_submission_url
-
 
 # repeats a string to exactly the length we want
 def repeat_to_length(string_to_expand, length):
@@ -365,7 +363,7 @@ class MiscTests(TestCase):
         sheet = Sheet.objects.get(form=form, slug=slugs['sheet_slug'])
         sheet_submission = SheetSubmission.objects.get(sheet=sheet, form_submission=form_submission, slug=slugs['sheetsubmit_slug'])
         # act
-        url = get_sheet_submission_url(sheet_submission)
+        url = sheet_submission.get_submission_url()
         # assert, check that we get a full URL with all the slugs
         expected_url = reverse('onlineforms.views.sheet_submission', kwargs=slugs)
         self.assertEqual(url, expected_url)
@@ -375,7 +373,7 @@ class MiscTests(TestCase):
         key = "b50d3a695edf877df2a2100376d493f1aec5c26a"
         sheet_submission = SheetSubmissionSecretUrl.objects.get(key=key).sheet_submission
         # act
-        url = get_sheet_submission_url(sheet_submission)
+        url = sheet_submission.get_submission_url()
         # assert, check that we get a URL using the key, not all the slugs
         expected_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': key})
         self.assertEqual(url, expected_url)

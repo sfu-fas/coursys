@@ -12,8 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
-from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl
-from onlineforms.utils import reorder_sheet_fields, email_assigned, email_started
+from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
 from coredata.models import Person, Role
 from log.models import LogEntry
@@ -196,7 +195,7 @@ def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
         if formFiller.full_email() != admin.full_email():
-            email_assigned(request, admin, formFiller, sheet_submission)
+            sheet_submission.email_assigned(request, admin, formFiller)
         messages.success(request, 'Sheet assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
@@ -242,7 +241,7 @@ def admin_assign_any(request, assign_to_sfu_account=True):
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
         if formFiller.full_email() != admin.full_email():
-            email_assigned(request, admin, formFiller, sheet_submission)
+            sheet_submission.email_assigned(request, admin, formFiller)
         messages.success(request, 'Form assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
@@ -846,10 +845,10 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                                 related_object=secret_url)
                             l.save()
                             # email them the URL
-                            email_started(request, sheet_submission)
+                            sheet_submission.email_started(request)
                             access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
                         else:
-                            email_started(request, sheet_submission)
+                            sheet_submission.email_started(request)
                             access_url = reverse('onlineforms.views.sheet_submission', kwargs={
                                 'form_slug': owner_form.slug,
                                 'formsubmit_slug': form_submission.slug,

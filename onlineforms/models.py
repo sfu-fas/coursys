@@ -8,7 +8,11 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.db.models import Max
 from django.core.files.storage import FileSystemStorage
+from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.template import Context
+from django.template.loader import get_template
+from django.core.mail import EmailMultiAlternatives
 import datetime, random, sha
 
 # choices for Form.initiator field
@@ -85,6 +89,7 @@ class NonSFUFormFiller(models.Model):
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
     email_address = models.EmailField(max_length=254)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
@@ -116,6 +121,7 @@ class FormFiller(models.Model):
     """
     sfuFormFiller = models.ForeignKey(Person, null=True)
     nonSFUFormFiller = models.ForeignKey(NonSFUFormFiller, null=True)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     def getFormFiller(self):
         if self.sfuFormFiller:
@@ -164,6 +170,7 @@ class FormGroup(models.Model):
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     class Meta:
         unique_together = (("unit", "name"),)
@@ -406,7 +413,8 @@ class FormSubmission(models.Model):
         else:
             self.status = 'WAIT'
         self.save()
-    
+
+
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission)
     sheet = models.ForeignKey(Sheet)
@@ -431,6 +439,48 @@ class SheetSubmission(models.Model):
             self.cached_fields = FieldSubmission.objects.filter(sheet_submission=self)
         return self.cached_fields
     field_submissions = property(get_field_submissions)
+
+    def get_submission_url(self):
+        """
+        Creates a URL for a sheet submission.
+        If a secret URL has been generated it will use that,
+        otherwise it will create a standard URL.
+        """
+        secret_urls = SheetSubmissionSecretUrl.objects.filter(sheet_submission=self)
+        if secret_urls:
+            return reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
+        else:
+            return reverse('onlineforms.views.sheet_submission', kwargs={
+                                'form_slug': self.form_submission.form.slug,
+                                'formsubmit_slug': self.form_submission.slug,
+                                'sheet_slug': self.sheet.slug,
+                                'sheetsubmit_slug': self.slug})
+
+    def email_assigned(self, request, admin, assignee):
+        plaintext = get_template('onlineforms/emails/sheet_assigned.txt')
+        htmly = get_template('onlineforms/emails/sheet_assigned.html')
+    
+        full_url = request.build_absolute_uri(self.get_submission_url())
+        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url})
+        subject, from_email, to = 'CourSys: You have been assigned a sheet.', admin.full_email(), assignee.full_email()
+        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
+        msg.attach_alternative(htmly.render(email_context), "text/html")
+        msg.send()
+    
+    
+    def email_started(self, request):
+        plaintext = get_template('onlineforms/emails/nonsfu_sheet_started.txt')
+        htmly = get_template('onlineforms/emails/nonsfu_sheet_started.html')
+    
+        full_url = request.build_absolute_uri(self.get_submission_url())
+        email_context = Context({'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self})
+        subject = '%s submission incomplete' % (self.sheet.form.title)
+        from_email = "nobody@courses.cs.sfu.ca"
+        to = self.filler.full_email()
+        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
+        msg.attach_alternative(htmly.render(email_context), "text/html")
+        msg.send()
+
 
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
@@ -482,3 +532,31 @@ class SheetSubmissionSecretUrl(models.Model):
 
     
 
+ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
+
+def reorder_sheet_fields(ordered_fields, field_slug, order):
+    """
+    Reorder the activity in the field list of a course according to the
+    specified order action. Please make sure the field list belongs to
+    the same sheet.
+    """
+    for field in ordered_fields:
+        if not isinstance(field, Field):
+            raise TypeError(u'ordered_fields should be list of Field')
+    for i in range(0, len(ordered_fields)):
+        if ordered_fields[i].slug == field_slug:
+            if (order == ORDER_TYPE['UP']) and (not i == 0):
+                # swap order
+                temp = ordered_fields[i-1].order
+                ordered_fields[i-1].order = ordered_fields[i].order
+                ordered_fields[i].order = temp
+                ordered_fields[i-1].save()
+                ordered_fields[i].save()
+            elif (order == ORDER_TYPE['DN']) and (not i == len(ordered_fields) - 1):
+                # swap order
+                temp = ordered_fields[i+1].order
+                ordered_fields[i+1].order = ordered_fields[i].order
+                ordered_fields[i].order = temp
+                ordered_fields[i+1].save()
+                ordered_fields[i].save()
+            break

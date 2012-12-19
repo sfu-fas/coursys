@@ -1,5 +1,3 @@
-Dear {{ initiator }}, 
-
-You recently started a form submission on CourSys. The form has not yet been submitted and must be completed before any action will be taken.
+You recently started filling out the form "{{sheetsub.sheet.form.title}}" on CourSys. The form has not yet been submitted and must be completed before any action will be taken.
 
 You can access it at {{ sheeturl }}.

@@ -14,6 +14,7 @@ class Migration(SchemaMigration):
             ('last_name', self.gf('django.db.models.fields.CharField')(max_length=32)),
             ('first_name', self.gf('django.db.models.fields.CharField')(max_length=32)),
             ('email_address', self.gf('django.db.models.fields.EmailField')(max_length=254)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['NonSFUFormFiller'])
 
@@ -22,6 +23,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('sfuFormFiller', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'], null=True)),
             ('nonSFUFormFiller', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.NonSFUFormFiller'], null=True)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['FormFiller'])
 
@@ -31,6 +33,7 @@ class Migration(SchemaMigration):
             ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=60)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique=True, max_length=50, populate_from=None, unique_with=())),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['FormGroup'])
 
@@ -58,6 +61,7 @@ class Migration(SchemaMigration):
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique=True, max_length=50, populate_from=None, unique_with=())),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['Form'])
 
@@ -73,9 +77,13 @@ class Migration(SchemaMigration):
             ('original', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.Sheet'], null=True, blank=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
         ))
         db.send_create_signal('onlineforms', ['Sheet'])
+
+        # Adding unique constraint on 'Sheet', fields ['form', 'slug']
+        db.create_unique('onlineforms_sheet', ['form_id', 'slug'])
 
         # Adding model 'Field'
         db.create_table('onlineforms_field', (
@@ -84,14 +92,17 @@ class Migration(SchemaMigration):
             ('sheet', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.Sheet'])),
             ('order', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('fieldtype', self.gf('django.db.models.fields.CharField')(default='SMTX', max_length=4)),
-            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('original', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.Field'], null=True, blank=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['Field'])
+
+        # Adding unique constraint on 'Field', fields ['sheet', 'slug']
+        db.create_unique('onlineforms_field', ['sheet_id', 'slug'])
 
         # Adding model 'FormSubmission'
         db.create_table('onlineforms_formsubmission', (
@@ -146,6 +157,12 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Removing unique constraint on 'Field', fields ['sheet', 'slug']
+        db.delete_unique('onlineforms_field', ['sheet_id', 'slug'])
+
+        # Removing unique constraint on 'Sheet', fields ['form', 'slug']
+        db.delete_unique('onlineforms_sheet', ['form_id', 'slug'])
+
         # Removing unique constraint on 'FormGroup', fields ['unit', 'name']
         db.delete_unique('onlineforms_formgroup', ['unit_id', 'name'])
 
@@ -210,7 +227,7 @@ class Migration(SchemaMigration):
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'})
         },
         'onlineforms.field': {
-            'Meta': {'object_name': 'Field'},
+            'Meta': {'unique_together': "(('sheet', 'slug'),)", 'object_name': 'Field'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
@@ -241,6 +258,7 @@ class Migration(SchemaMigration):
         'onlineforms.form': {
             'Meta': {'object_name': 'Form'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '500'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -254,12 +272,14 @@ class Migration(SchemaMigration):
         },
         'onlineforms.formfiller': {
             'Meta': {'object_name': 'FormFiller'},
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'nonSFUFormFiller': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.NonSFUFormFiller']", 'null': 'True'}),
             'sfuFormFiller': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']", 'null': 'True'})
         },
         'onlineforms.formgroup': {
             'Meta': {'unique_together': "(('unit', 'name'),)", 'object_name': 'FormGroup'},
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'members': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['coredata.Person']", 'symmetrical': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
@@ -277,15 +297,17 @@ class Migration(SchemaMigration):
         },
         'onlineforms.nonsfuformfiller': {
             'Meta': {'object_name': 'NonSFUFormFiller'},
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'email_address': ('django.db.models.fields.EmailField', [], {'max_length': '254'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '32'})
         },
         'onlineforms.sheet': {
-            'Meta': {'object_name': 'Sheet'},
+            'Meta': {'unique_together': "(('form', 'slug'),)", 'object_name': 'Sheet'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'can_view': ('django.db.models.fields.CharField', [], {'default': "'NON'", 'max_length': '4'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.Form']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
