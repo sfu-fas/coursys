@@ -27,7 +27,7 @@
         {% endif %}
 
         {% if sheet %}
-            {% if  form.is_multipart %}
+            {% if form.is_multipart %}
                 <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
             {% else %}
                 <form action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">

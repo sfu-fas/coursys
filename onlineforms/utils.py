@@ -63,7 +63,7 @@ def email_assigned(request, admin, assignee, sheet_submission):
     msg.send()
 
 
-def email_nonsfu_started(request, sheet_submission):
+def email_started(request, sheet_submission):
     plaintext = get_template('onlineforms/emails/nonsfu_sheet_started.txt')
     htmly = get_template('onlineforms/emails/nonsfu_sheet_started.html')
 
