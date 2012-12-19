@@ -20,7 +20,7 @@ class ExplanationFieldWidget(forms.Textarea):
 class GroupForm(ModelForm):
     class Meta:
         model = FormGroup
-        exclude = ('members',)
+        exclude = ('members', 'config')
 
 class EditGroupForm(ModelForm):
     class Meta:

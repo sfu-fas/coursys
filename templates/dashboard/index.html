@@ -26,7 +26,7 @@ $(document).ready(function() {
     <ul>
     <li><a href="{% url dashboard.views.news_list %}">All News Items</a></li>
     <li><a href="{% url dashboard.views.config %}">User Configuration</a></li>
-    <!--<li><a href="{% url onlineforms.views.submissions_list_all_forms %}">Online Forms</a></li>-->
+    <!--<li><a href="{% url onlineforms.views.index %}">Online Forms</a></li>-->
     <li><a href="{% url dashboard.views.calendar %}">View Calendar</a></li>
     <!--{% if 'FAC' in roles or 'SESS' in roles or 'COOP' in roles %}<li><a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li>{% endif %}-->
     {% if 'PLAN' in roles %}<li><a href="{% url planning.views.admin_index %}">Course Planning</a></li>{% endif %}  

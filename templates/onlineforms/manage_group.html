@@ -5,15 +5,8 @@
 {% block h1 %}Edit This Group {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-    &gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a>
-</li>
-<li>
-    &gt; <a href="{% url onlineforms.views.manage_groups %}">Groups</a>
-</li>
-<li>
-    &gt; Edit Group
-</li>
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="">Manage Form Groups</a></li>
 {% endblock %}
 
 {% block headextra %}
@@ -38,19 +31,6 @@ $(document).ready(function() {
 
 </script>
 {% endblock %}
-
-{% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-        <li><a href="{% url onlineforms.views.manage_groups %}">Manage Groups</a></li>
-    </ul>
-    <ul>
-        <li><a href="{% url onlineforms.views.new_group %}">New Group</a></li>
-    </ul>
-</div>
-{% endblock %}
-
 
 {% block content %}
 <div style="clear: left;">

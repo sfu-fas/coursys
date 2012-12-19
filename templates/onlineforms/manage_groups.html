@@ -1,29 +1,24 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Manage Groups{% endblock %}
-{% block h1 %}Manage Groups{% endblock %}
+{% block title %}Manage Form Groups{% endblock %}
+{% block h1 %}Manage Form Groups{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
-    $(document).ready(function() {
+$(document).ready(function() {
     $('#groups_table').dataTable({
                 "bPaginate": false,
                 "bJQueryUI": true,
                 "aaSorting": [[0, "asc"]],
     });
-
-    });
+});
 </script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-    &gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a>
-</li>
-<li>
-    &gt; Groups
-</li>
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; Manage Form Groups</li>
 {% endblock %}
 
 {% block actions %}
@@ -41,26 +36,15 @@
         <table class="display" id="groups_table">
             <thead>
                 <tr>
-                    <th scope="col">Faculty</th>
                     <th scope="col">Group Name</th>
-                    <th scope="col">Tag Name</th>
-                    <th scope="col">Edit Group</th>
+                    <th scope="col">Unit</th>
                 </tr>
             </thead>
             <tbody>
             {% for group in groups %}
                 <tr>
-                    <td>{{group.unit}}</td>
-                    <td>{{group.name}}</td>
-                    <td>{{group.slug}}</td>
-                    <td class="miniaction">
-                        <form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">{% csrf_token %}
-                            <div>
-                                <input type="hidden" name="group_id" value="{{group.id}}" />
-                                <input type="submit" value="Edit" />
-                            </div>
-                        </form>
-                    </td>
+                    <td><a href="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}">{{group.name}}</a></td>
+                    <td>{{group.unit.name}}</td>
                 </tr>
             {% endfor %}
             </tbody>

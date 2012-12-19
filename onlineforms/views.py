@@ -2,29 +2,21 @@ from django.contrib import messages
 from django import forms
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, Http404, HttpRequest
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
 
-# FormGroup management views
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
-from onlineforms.models import NonSFUFormFiller, FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
+from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
 from coredata.models import Person, Role
 from log.models import LogEntry
-from django.core.mail import send_mail
-from django.core.mail import EmailMessage
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import get_template
-from django.template import Context
-from django.core.urlresolvers import reverse
 
 import os
-from os.path import splitext
 from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
@@ -60,10 +52,7 @@ def new_group(request):
 
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
-    group = FormGroup.objects.get(slug=formgroup_slug)
-    if group.unit not in request.units:
-        return ForbiddenResponse(request)
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
 
     # for editting group name
     if request.method == 'POST':
@@ -83,9 +72,7 @@ def manage_group(request, formgroup_slug):
 
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
-    group = FormGroup.objects.get(slug=formgroup_slug)
-    if group.unit not in request.units:
-        return ForbiddenResponse(request)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
 
     if request.method == 'POST':
         if 'action' in request.POST:
@@ -108,7 +95,7 @@ def add_group_member(request, formgroup_slug):
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
-    group = FormGroup.objects.get(slug=formgroup_slug)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
     member = Person.objects.get(emplid=userid)
 
     if group.unit not in request.units:
@@ -158,6 +145,7 @@ def admin_list_all(request):
 
 @requires_formgroup()
 def admin_assign_nonsfu(request, formsubmit_slug):
+    #group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
     return admin_assign(request, formsubmit_slug, assign_to_sfu_account=False)
 
 
@@ -301,7 +289,7 @@ def new_form(request):
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
-     # just for testing active and nonactive sheets
+    # just for testing active and nonactive sheets
     nonactive_sheets = Sheet.objects.filter(form=form, active=False).order_by('order') 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         sheet_id = request.POST['sheet_id']
@@ -469,7 +457,7 @@ def new_field(request, form_slug, sheet_slug):
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
 
     section = 'select'
-    type = None
+    ftype = None
 
     need_choices = False
     configurable = False
@@ -480,11 +468,11 @@ def new_field(request, form_slug, sheet_slug):
         if section == 'config':
             custom_config = {}
             if 'type' in request.POST:
-                type = request.POST['type']
+                ftype = request.POST['type']
                 type_model = FIELD_TYPE_MODELS[type]
                 field = type_model()
             else:
-                type = request.POST['type_name']
+                ftype = request.POST['type_name']
                 type_model = FIELD_TYPE_MODELS[type]
                 custom_config = _clean_config(request.POST)
                 field = type_model(config=custom_config)
@@ -499,7 +487,7 @@ def new_field(request, form_slug, sheet_slug):
                 new_sheet = owner_sheet.safe_save()
                 Field.objects.create(label='',
                     sheet=new_sheet,
-                    fieldtype=type,
+                    fieldtype=ftype,
                     config=None,
                     active=True,
                     original=None, )
@@ -513,7 +501,7 @@ def new_field(request, form_slug, sheet_slug):
                 new_sheet = owner_sheet.safe_save()
                 Field.objects.create(label=form.cleaned_data['label'],
                     sheet=new_sheet,
-                    fieldtype=type,
+                    fieldtype=ftype,
                     config=custom_config,
                     active=True,
                     original=None, )
@@ -526,7 +514,7 @@ def new_field(request, form_slug, sheet_slug):
         form = FieldForm()
         section = 'config'
 
-    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': ftype
         , 'choices': need_choices}
     return render(request, 'onlineforms/new_field.html', context)
 
@@ -545,12 +533,12 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
 
-    type = FIELD_TYPE_MODELS[field.fieldtype]
-    need_choices = type().choices
+    ftype = FIELD_TYPE_MODELS[field.fieldtype]
+    need_choices = ftype().choices
 
     if request.POST:
         clean_config = _clean_config(request.POST)
-        form = type(config=clean_config).make_config_form()
+        form = ftype(config=clean_config).make_config_form()
         if field.config == clean_config:
             messages.info(request, "Nothing modified")
 
@@ -571,7 +559,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                 reverse('onlineforms.views.edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
 
     else:
-        if not type.configurable:
+        if not ftype.configurable:
             return HttpResponseRedirect(
                 reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
         form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
@@ -583,7 +571,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 
 # Form-filling views
 
-def submissions_list_all_forms(request):
+def index(request):
     form_groups = None
     sheet_submissions = None
     if(request.user.is_authenticated()):
@@ -601,7 +589,7 @@ def submissions_list_all_forms(request):
     return render(request, 'onlineforms/submissions/forms.html', context)
 
     
-def readonly_sheets(form_submission):
+def _readonly_sheets(form_submission):
 #sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_sub_html = {} 
@@ -628,8 +616,6 @@ def readonly_sheets(form_submission):
 
 @requires_formgroup()
 def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition):
-    print "\nin file field"
-
     form_sub = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
     field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
@@ -649,7 +635,7 @@ def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition
 @requires_formgroup()
 def view_submission(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    sheet_submissions, sheetsWithFiles = readonly_sheets(form_submission)
+    sheet_submissions, sheetsWithFiles = _readonly_sheets(form_submission)
 
 
     context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
@@ -668,15 +654,6 @@ def sheet_submission_via_url(request, secret_url):
     form = form_submission.form
     alternate_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url})
     return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
-
-
-#Commented out as this was breaking the other 'view_submission'()
-#@requires_formgroup()
-#def view_submission(request, sheetsubmit_slug, file_id):
-#    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
-#    filesub = get_object_or_404(FileSubmission)
-    # read file
-    # like that: https://docs.djangoproject.com/en/1.3/howto/outputting-csv/
 
 
 def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
@@ -735,7 +712,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
         # get previously filled in sheet's data
         if sheet.can_view == 'ALL':
-            filled_sheets = readonly_sheets(form_submission)
+            filled_sheets = _readonly_sheets(form_submission)
     else:
         # make sure we are allowed to initiate this form
         if not loggedin_user and owner_form.initiators != "ANY":
@@ -867,7 +844,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                         l.save()
 
                         messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
-                        return HttpResponseRedirect(reverse(submissions_list_all_forms))
+                        return HttpResponseRedirect(reverse(index))
                 else:
                     messages.error(request, "Error in user data.")
             else:

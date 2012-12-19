@@ -497,7 +497,7 @@ urlpatterns += patterns('',
     url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/new$', 'onlineforms.views.new_field'),
     url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
 
-    url(r'forms/$', 'onlineforms.views.submissions_list_all_forms'),
+    url(r'forms/$', 'onlineforms.views.index'),
     url(r'forms/view/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
     url(r'forms/view/' + FORMSUBMIT_SLUG + '/' + '(?P<sheet_id>\d+)/'+ '(?P<disposition>\w+)/' + '(?P<file_id>\d+)/$', 'onlineforms.views.file_field_download'),
     url(r'forms/submission/' + SECRET_SUBMIT_URL + '/$', 'onlineforms.views.sheet_submission_via_url'),

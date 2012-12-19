@@ -293,7 +293,7 @@ class ViewTestCase(TestCase):
                         'admin_assign_any',
                         'list_all',
                         'new_form',
-                        'submissions_list_all_forms']
+                        'index']
         self.run_basic_page_tests(views, {})
 
     def test_formgroup_pages(self):

@@ -5,7 +5,7 @@
 {% block h1 %}New Sheet{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{owner_form.title}}</a></li>
 <li>&gt; New Sheet</li>
