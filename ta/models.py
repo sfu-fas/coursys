@@ -480,6 +480,7 @@ STATUS_CHOICES = (
         ("CAN","Cancelled"),
     )
 STATUS = dict(STATUS_CHOICES)
+STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
 
 class TAContract(models.Model):
     """    
@@ -604,6 +605,8 @@ class TACourse(models.Model):
     
     def pay(self):
         contract = self.contract
+        if contract.status in STATUSES_NOT_TAING:
+            return decimal.Decimal(0)
         total = self.bu * (contract.pay_per_bu + contract.scholarship_per_bu)
         return total
         
