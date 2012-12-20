@@ -150,7 +150,7 @@ def generate_progrep_queries(gs):
     for st in statuses:
         yield ("INSERT INTO progrep.onleave (emplid, semester, reason) VALUES "
                + "(%s, %s, %s) ON DUPLICATE KEY UPDATE emplid=%s, semester=%s;\n") \
-            % escape_all(gs.person.emplid, st.start, '', gs.person.emplid, st.start)
+            % escape_all(gs.person.emplid, st.start.name, '', gs.person.emplid, st.start.name)
     
     # user accounting
     yield ("INSERT INTO progrep.user (emplid, username, email_notifications, final_email) VALUES "
