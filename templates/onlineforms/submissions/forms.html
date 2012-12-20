@@ -43,26 +43,15 @@
 
 {% block content %}
 <h2>Available forms</h2>
-<div class="datatable_container">
+ 	<p>These forms can be filled out and submitted online:</p>
     {% if forms %}
-        <table class="display" id="form_table">
-            <thead>
-                <tr>
-                    <th scope="col">Title</th>
-                    <th scope="col">Unit</th>
-                    <th scope="col">Description</th>
-                </tr>
-            </thead>
+        <ul>
             {% for form in forms %}
-                <tr>
-                    <td><a href="{% url onlineforms.views.sheet_submission form_slug=form.slug %}">{{ form.title }}</a></td>
-                    <td>{{ form.unit|default:"" }}</td>
-                    <td>{{ form.description }}</td>
-                </tr>
+            <li><a href="{% url onlineforms.views.sheet_submission form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
             {% endfor %}
-        </table>
+        </ul>
     {% else %}
-            <p>There are currently no forms.</p>
+            <p class="empty">There are currently no forms.</p>
     {% endif %}
 </div>
 

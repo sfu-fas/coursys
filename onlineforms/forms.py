@@ -39,7 +39,10 @@ class FormForm(ModelForm):
     class Meta:
         model = Form
         exclude = ('active', 'original', 'unit', 'config')
-    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))     
+        widgets = {
+                'description': forms.TextInput(attrs={'size': '70'})
+                }
+
     # get instance of the FormForm    
     def _get(self):
             return self.instance
@@ -48,19 +51,21 @@ class FormForm(ModelForm):
         initiators = self.cleaned_data['initiators']
         form = self._get()
         if initiators != 'NON' and not Sheet.objects.filter(form=form, is_initial=True, active=True):
-             raise forms.ValidationError, "No initial sheet: can't activate"
+            raise forms.ValidationError, "No initial sheet: can't activate"
         return initiators
 
 class NewFormForm(FormForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'initiators' )
-    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'})) 
+        exclude = ('active', 'original', 'unit', 'initiators', 'config')
+        widgets = {
+                'description': forms.TextInput(attrs={'size': '70'})
+                }
 
 
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
-    can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view')
+    can_view = forms.ChoiceField(required=True, choices=VIEWABLE_CHOICES, label='Can view', help_text='When someone is filling out this sheet, what else can they see?')
 
 class EditSheetForm(ModelForm):
     class Meta:

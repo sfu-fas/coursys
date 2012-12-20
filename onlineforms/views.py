@@ -139,10 +139,6 @@ def admin_list_all(request):
 #######################################################################
 # Managing submissions & assigning sheets
 
-#def _get_full_path(request):
-#        full_path = ('http', ':/', request)
-#        return ''.join(full_path)    
-
 @requires_formgroup()
 def admin_assign_nonsfu(request, formsubmit_slug):
     #group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -267,6 +263,9 @@ def list_all(request):
     return render(request, 'onlineforms/manage_forms.html', context)
 
 
+#######################################################################
+# Creating/editing forms
+
 @requires_formgroup()
 def new_form(request):
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
@@ -278,7 +277,7 @@ def new_form(request):
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
             f.save()
-            return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
+            return HttpResponseRedirect(reverse(view_form, kwargs={'form_slug':f.slug }))
     else:
         form = NewFormForm()
         form.fields['owner'].choices = group_choices
@@ -287,10 +286,8 @@ def new_form(request):
 
 @requires_form_admin_by_slug()
 def view_form(request, form_slug):
-    form = get_object_or_404(Form, slug=form_slug)
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
-    # just for testing active and nonactive sheets
-    nonactive_sheets = Sheet.objects.filter(form=form, active=False).order_by('order') 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         sheet_id = request.POST['sheet_id']
         sheets = Sheet.objects.filter(id=sheet_id, form=form)
@@ -304,16 +301,13 @@ def view_form(request, form_slug):
             reverse(view_form, kwargs={'form_slug':form.slug }))
 
     
-    context = {'form': form, 'sheets': sheets, 'nonactive_sheets': nonactive_sheets}
+    context = {'form': form, 'sheets': sheets}
     return render(request, "onlineforms/view_form.html", context)       
 
 
-#######################################################################
-# Creating/editing forms
-
 @requires_form_admin_by_slug()
 def edit_form(request, form_slug):
-    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
@@ -335,20 +329,27 @@ def edit_form(request, form_slug):
 
 @requires_form_admin_by_slug()
 def new_sheet(request, form_slug):
-    owner_form = get_object_or_404(Form, slug=form_slug)
-    form = SheetForm(request.POST or None)
-    if form.is_valid():
-        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
-        messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
-        return HttpResponseRedirect(
-            reverse('onlineforms.views.view_form', args=(form_slug,)))
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    if request.method == 'POST':
+        form = SheetForm(request.POST)
+        if form.is_valid():
+            sheet = Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
+            messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+            return HttpResponseRedirect(
+                reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet.slug}))
+    else:
+        initial = {}
+        other_sheets = Sheet.objects.filter(form=owner_form, active=True).count()
+        if other_sheets == 0:
+            initial['title'] = owner_form.title
+        form = SheetForm(initial=initial)
 
     context = {'form': form, 'owner_form': owner_form}
     return render(request, "onlineforms/new_sheet.html", context)
 
 @requires_form_admin_by_slug()
 def preview_sheet(request, form_slug, sheet_slug):
-    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug, form=owner_form)
     
     form = DynamicForm(owner_sheet.title)
@@ -360,8 +361,7 @@ def preview_sheet(request, form_slug, sheet_slug):
 
 @requires_form_admin_by_slug()
 def edit_sheet(request, form_slug, sheet_slug):
-    # http://127.0.0.1:8000/forms/comp-test-form-2/edit/initial-sheet/
-    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
@@ -409,7 +409,7 @@ def reorder_field(request, form_slug, sheet_slug):
     Ajax way to reorder activity.
     This ajax view function is called in the edit_sheet page.
     """
-    form = get_object_or_404(Form, slug=form_slug)
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     sheet = get_object_or_404(Sheet, form=form, slug=sheet_slug)
     if request.method == 'POST':
         neaten_field_positions(sheet)
@@ -434,7 +434,7 @@ def reorder_field(request, form_slug, sheet_slug):
 
 @requires_form_admin_by_slug()
 def edit_sheet_info(request, form_slug, sheet_slug):
-    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     #owner_field = get_object_or_404(Field, slug=field_slug)
 
@@ -453,7 +453,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
 
 @requires_form_admin_by_slug()
 def new_field(request, form_slug, sheet_slug):
-    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
 
     section = 'select'
@@ -469,11 +469,11 @@ def new_field(request, form_slug, sheet_slug):
             custom_config = {}
             if 'type' in request.POST:
                 ftype = request.POST['type']
-                type_model = FIELD_TYPE_MODELS[type]
+                type_model = FIELD_TYPE_MODELS[ftype]
                 field = type_model()
             else:
                 ftype = request.POST['type_name']
-                type_model = FIELD_TYPE_MODELS[type]
+                type_model = FIELD_TYPE_MODELS[ftype]
                 custom_config = _clean_config(request.POST)
                 field = type_model(config=custom_config)
 
@@ -529,7 +529,7 @@ def _clean_config(config):
 
 @requires_form_admin_by_slug()
 def edit_field(request, form_slug, sheet_slug, field_slug):
-    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
 
@@ -569,7 +569,8 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 
     return render(request, 'onlineforms/edit_field.html', context)
 
-# Form-filling views
+#######################################################################
+# Submitting sheets
 
 def index(request):
     form_groups = None
@@ -641,9 +642,6 @@ def view_submission(request, formsubmit_slug):
     context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
-
-#######################################################################
-# Submitting sheets
 
 
 def sheet_submission_via_url(request, secret_url):

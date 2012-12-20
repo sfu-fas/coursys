@@ -26,6 +26,11 @@ INITIATOR_CHOICES = [
         ('NON', 'Nobody: form cannot be filled out'),  # used to deactivate a form, or during creation/editing.
         # may add others if needed, e.g. instructors, admin staff, majors in a specific program, ...
         ]
+INITIATOR_SHORT = {
+        'LOG': 'SFU Users',
+        'ANY': 'Anyone (including non-SFU)',
+        'NON': 'Nobody (form disabled)',
+        }
 
 # choices for the Sheet.can_view field
 VIEWABLE_CHOICES = [
@@ -221,9 +226,9 @@ class _FormCoherenceMixin(object):
 
 
 class Form(models.Model, _FormCoherenceMixin):
-    title = models.CharField(max_length=60, null=False, blank=False)
-    owner = models.ForeignKey(FormGroup)
-    description = models.CharField(max_length=500, null=False, blank=False)
+    title = models.CharField(max_length=60, null=False, blank=False, help_text='The name of this form.')
+    owner = models.ForeignKey(FormGroup, help_text='The group of users who own/administrate this form.')
+    description = models.CharField(max_length=500, null=False, blank=False, help_text='A brief description of the form that can be displayed to users.')
     initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
@@ -263,6 +268,9 @@ class Form(models.Model, _FormCoherenceMixin):
         return self.cached_sheets
     sheets = property(get_sheets)
 
+    def get_initiators_display_short(self):
+        return INITIATOR_SHORT[self.initiators]
+
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     # the form this sheet is a part of
@@ -272,7 +280,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     # Flag to indicate whether this is the first sheet in the form
     is_initial = models.BooleanField(default=False)
     # indicates whether a person filling a sheet can see the results from all the previous sheets
-    can_view = models.CharField(max_length=4, choices=VIEWABLE_CHOICES, default="NON")
+    can_view = models.CharField(max_length=4, choices=VIEWABLE_CHOICES, default="NON", help_text='When someone is filling out this sheet, what else can they see?')
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)

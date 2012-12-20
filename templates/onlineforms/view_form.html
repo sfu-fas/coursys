@@ -9,13 +9,6 @@
     $('#form_table').dataTable({
                 "bPaginate": false,
                 "bJQueryUI": true,
-                "aoColumns": [
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-        ]
     });
 
     });
@@ -25,7 +18,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
 <li>&gt; {{ form.title }}</li>
 {% endblock %}
 
@@ -34,30 +27,25 @@
     <h2 class="heading">Actions</h2>
     <ul>
         <li><a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit Form Info</a></li>
-        <li class="newsec"><a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">New Sheet</a></li>
+        <li><a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">New Sheet</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
-<h2>Form Info</h2>
 <div class="table_container">
     <table class="info">
         <tr>
-            <th scope="row">Title</th>
-            <td>{{ form.title }}</td>
-        </tr>
-        <tr>
-            <th scope="row">Owner</th>
+            <th scope="row">Owner/Manager</th>
             <td>{{ form.owner }}</td>
-        </tr>
-        <tr>
-            <th scope="row">Initiators</th>
-            <td>{{ form.get_initiators_display }}</td>
         </tr>
         <tr>
             <th scope="row">Unit</th>
             <td>{{ form.unit }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Initiators</th>
+            <td>{{ form.get_initiators_display }}</td>
         </tr>
     </table>
 </div>
@@ -102,7 +90,7 @@
               {% endfor %}
         </table>
     {% else %}
-            <p>There are currently no sheets.</p>
+            <p>There are currently no sheets: you must <a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">create at least one sheet</a> for the initial requester to complete.</p>
     {% endif %}
 </div>
 

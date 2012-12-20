@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block h1 %} Manage Forms {% endblock %}
-{% block title %} Manage Forms {% endblock %}
+{% block h1 %}Edit Forms{% endblock %}
+{% block title %}Edit Forms{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; Edit Forms</li>
+{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -15,10 +20,6 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; Manage Forms</li>
-{% endblock %}
 
 {% block actions %}
 <div id="actions">
@@ -37,10 +38,7 @@
                 <tr>
                     <th scope="col">Title</th>
                     <th scope="col">Owner</th>
-                    <th scope="col">Initiators</th>
-                    <th scope="col">Unit</th>
-                    <th scope="col">Active</th>
-                    <th scope="col">Original</th>
+                    <th scope="col">Who can complete?</th>
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
@@ -48,10 +46,7 @@
                 <tr>
                     <td><a href="{% url onlineforms.views.view_form form_slug=form.slug %}">{{ form.title }}</a></td>
                     <td>{{ form.owner|default:"" }}</td>
-                    <td>{{ form.initiators|default:"" }}</td>
-                    <td>{{ form.unit|default:"" }}</td>
-                    <td>{{ form.active }}</td>
-                    <td>{{ form.original|default:"" }}</td>  
+                    <td>{{ form.get_initiators_display_short }}</td>
                     <td class="miniaction">
                         <form action="{% url onlineforms.views.list_all %}" method="post">{% csrf_token %}
                             <p>

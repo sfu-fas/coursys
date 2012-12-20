@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
 <li>&gt; {{ owner_sheet.title }}</li>
 {% endblock %}
@@ -17,8 +17,7 @@
     <ul>
         <li><a href="{% url onlineforms.views.edit_sheet_info form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Edit Sheet Info</a></li>
         <li><a href="{% url onlineforms.views.preview_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Preview</a></li>
-        <li class="newsec"></li>
-        <li><a href="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a></li>
+        <li class="newsec"><a href="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a></li>
     </ul>
 </div>
 {% endblock %}

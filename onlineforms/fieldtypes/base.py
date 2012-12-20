@@ -11,7 +11,7 @@ class FieldConfigForm(forms.Form):
 
     """
 
-    required = forms.BooleanField(label="Required", required=False)
+    required = forms.BooleanField(label="Required", required=False, help_text="Should the user be required to complete this field?")
     label = forms.CharField(label="Label", max_length=100)
     help_text = forms.CharField(label="Help Text", required=False)
 

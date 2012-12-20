@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Edit This Group{% endblock %}
-{% block h1 %}Edit This Group {% endblock %}
+{% block title %}Edit {{ group.name }}{% endblock %}
+{% block h1 %}Edit {{ group.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="">Manage Form Groups</a></li>
+<li>&gt; <a href="{% url onlineforms.views.manage_groups %}">Form Groups</a></li>
+<li>&gt; Edit {{ group.name }}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -14,6 +15,8 @@
 $(document).ready(function() {
     $('#formgroupmembers').dataTable({
                 "bPaginate": false,
+                "bFilter": false,
+                "bInfo": false,
                 "bJQueryUI": true,
                 "aaSorting": [[0, "asc"]],
     });
@@ -37,22 +40,21 @@ $(document).ready(function() {
 	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">
 		{% csrf_token %}
 		 <fieldset style="width: 65%">
-            <legend>Edit Group Information</legend>
+            <legend>Group Information</legend>
             <ul>
                 <li>
                     {{form|as_dl}}
                 </li>
                 <li>
-                    <input class="submit" type="submit" value="Submit" />
+                    <input class="submit" type="submit" value="Update" />
                 </li>
             </ul>
         </fieldset>
 	</form>
 </div>
 
-<br />
 <div style="width: 65%">
-    <h3 class="red-header">Manage Members</h3>
+    <h2>Manage Members</h2>
     <div id="table-container">
         <table class="display" id="formgroupmembers">
         <thead>
