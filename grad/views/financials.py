@@ -4,7 +4,7 @@ from django.shortcuts import render
 from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
         GradProgramHistory, FinancialComment, STATUS_ACTIVE
 from coredata.models import Semester
-from ta.models import TAContract, TACourse
+from ta.models import TAContract, TACourse, STATUSES_NOT_TAING
 from ra.models import RAAppointment
 import itertools, decimal
 from grad.views.view import _can_view_student
@@ -23,7 +23,7 @@ def financials(request, grad_slug):
     promises_qs = Promise.objects.filter(student=grad, removed=False).select_related('start_semester','end_semester')
     other_fundings = OtherFunding.objects.filter(student=grad, removed=False).select_related('semester')
     
-    contracts = TAContract.objects.filter(application__person=grad.person, status="SGN").select_related('posting__semester')
+    contracts = TAContract.objects.filter(application__person=grad.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
     appointments = RAAppointment.objects.filter(person=grad.person, deleted=False)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
     financial_comments = FinancialComment.objects.filter(student=grad, removed=False).select_related('semester')
@@ -102,9 +102,14 @@ def financials(request, grad_slug):
         courses = []
         for contract in contracts:
             if contract.posting.semester == semester:
-                for course in TACourse.objects.filter(contract=contract):
+                for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
                     amount += course.pay()
-                    courses.append({'course': "%s (%s BU)" % (course.course.name(), course.bu),'amount': course.pay()})
+                    if contract.status == 'SGN':
+                        text = "%s (%s BU)" % (course.course.name(), course.bu)
+                    else:
+                        text = "%s (%s BU, current status: %s)" \
+                             % (course.course.name(), course.bu, contract.get_status_display().lower())
+                    courses.append({'course': text,'amount': course.pay()})
         ta = {'courses':courses,'amount':amount}
         semester_total += amount
 
