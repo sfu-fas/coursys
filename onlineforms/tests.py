@@ -174,7 +174,7 @@ class IntegrationTestCase(TestCase):
         self.assertEqual(form_submission.status, "PEND")
 
     def test_valid_simple_initial_form_submission_anonymous(self):
-        person = {'first_name': "Alan", 'last_name': "Turing", 'email_address': "alan.turing@gmail.com"}
+        person = {'first_name': "Alan", 'last_name': "Turing", 'email_address': "alan.turing@example.net"}
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
 
@@ -235,8 +235,8 @@ class IntegrationTestCase(TestCase):
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-simple-form"})
         response = basic_page_tests(self, self.client, url)
         # test with each field missing
-        person_nofirst = {'first_name': "", 'last_name': "Turing", 'email_address': "alan.turing@gmail.com"}
-        person_nolast = {'first_name': "Alan", 'last_name': "", 'email_address': "alan.turing@gmail.com"}
+        person_nofirst = {'first_name': "", 'last_name': "Turing", 'email_address': "alan.turing@example.net"}
+        person_nolast = {'first_name': "Alan", 'last_name': "", 'email_address': "alan.turing@example.net"}
         person_noemail = {'first_name': "Alan", 'last_name': "Turing", 'email_address': ""}
         people = [person_nofirst, person_nolast, person_noemail]
         fill_data = {"favorite-color": "Black", "reason": "Because it's metal", "second-favorite-color": "Green"}
@@ -270,6 +270,11 @@ class IntegrationTestCase(TestCase):
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-multi-sheet-form"})
         response = response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
+
+    
+    def test_create_fields(self):
+        for key, model in FIELD_TYPE_MODELS:
+            print model
 
 
 class ViewTestCase(TestCase):

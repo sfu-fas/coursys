@@ -53,13 +53,14 @@ FIELD_TYPE_CHOICES = [
         ('SELN', 'Select multiple values'),
         ('LIST', 'Enter a list of short responses'),
         ('FILE', 'Upload a file'),
-        ('URL', 'A web page address (URL)'),
-        ('TEXT', 'An explanation block (user enters nothing)'),
-        ('DIVI', 'A divider'),
+        ('URL', 'Web page address (URL)'),
+        ('TEXT', 'Explanation block (user enters nothing)'),
+        ('DIVI', 'Divider'),
         #('DATE', 'A date'),
         #('SEM', 'Semester'),
         # more may be added.
         ]
+FIELD_TYPES = dict(FIELD_TYPE_CHOICES)
 
 # mapping of field types to FieldType objects that implement their logic
 from onlineforms.fieldtypes import *

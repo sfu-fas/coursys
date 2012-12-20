@@ -11,7 +11,17 @@ class SmallTextField(FieldBase):
     
     class SmallTextConfigForm(FieldConfigForm):
         min_length = forms.IntegerField(min_value=1, max_value=100, initial=1, widget=forms.TextInput(attrs={'size': 3}))
-        max_length = forms.IntegerField(min_value=1, max_value=100, widget=forms.TextInput(attrs={'size': 3}))
+        max_length = forms.IntegerField(min_value=1, max_value=100, initial=100, widget=forms.TextInput(attrs={'size': 3}))
+        def clean(self):
+            try:
+                min_r = int(self.data['min_length'])
+                max_r = int(self.data['max_length'])
+                if min_r > max_r:
+                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+            except (ValueError, KeyError):
+                pass # let somebody else worry about that
+
+            return super(self.__class__, self).clean()
 
     def make_config_form(self):
         return self.SmallTextConfigForm(self.config)
@@ -50,8 +60,18 @@ class MediumTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 1000}
 
     class MediumTextConfigForm(FieldConfigForm):
-        min_length = forms.IntegerField(min_value=1, max_value=1000, widget=forms.TextInput(attrs={'size': 4}))
-        max_length = forms.IntegerField(min_value=1, max_value=1000, widget=forms.TextInput(attrs={'size': 4}))
+        min_length = forms.IntegerField(min_value=1, max_value=1000, initial=1, widget=forms.TextInput(attrs={'size': 4}))
+        max_length = forms.IntegerField(min_value=1, max_value=1000, initial=1000, widget=forms.TextInput(attrs={'size': 4}))
+        def clean(self):
+            try:
+                min_r = int(self.data['min_length'])
+                max_r = int(self.data['max_length'])
+                if min_r > max_r:
+                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+            except (ValueError, KeyError):
+                pass # let somebody else worry about that
+
+            return super(self.__class__, self).clean()
 
     def make_config_form(self):
         return self.MediumTextConfigForm(self.config)
@@ -88,8 +108,18 @@ class LargeTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 10000}
 
     class LargeTextConfigForm(FieldConfigForm):
-        min_length = forms.IntegerField(min_value=1, max_value=10000, widget=forms.TextInput(attrs={'size': 5}))
-        max_length = forms.IntegerField(min_value=1, max_value=10000, widget=forms.TextInput(attrs={'size': 5}))
+        min_length = forms.IntegerField(min_value=1, max_value=10000, initial=1, widget=forms.TextInput(attrs={'size': 5}))
+        max_length = forms.IntegerField(min_value=1, max_value=10000, initial=10000, widget=forms.TextInput(attrs={'size': 5}))
+        def clean(self):
+            try:
+                min_r = int(self.data['min_length'])
+                max_r = int(self.data['max_length'])
+                if min_r > max_r:
+                    raise forms.ValidationError, "Minimum length cannot be more than the maximum."
+            except (ValueError, KeyError):
+                pass # let somebody else worry about that
+
+            return super(self.__class__, self).clean()
 
     def make_config_form(self):
         return self.LargeTextConfigForm(self.config)
@@ -151,6 +181,10 @@ class ExplanationTextField(FieldBase):
     class ExplanationTextConfigForm(FieldConfigForm):
         text_explanation = forms.CharField(required=True, max_length=10000,
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))
+        def __init__(self, *args, **kwargs):
+            super(self.__class__, self).__init__(*args, **kwargs)
+            del self.fields['help_text']
+
 
     def make_config_form(self):
         return self.ExplanationTextConfigForm(self.config)
@@ -161,7 +195,7 @@ class ExplanationTextField(FieldBase):
         w = ExplanationFieldWidget(attrs={'class': 'disabled', 'readonly': 'readonly'})
         c = forms.CharField(required=False,
             label=self.config['label'],
-            help_text=self.config['help_text'],
+            help_text='',
             widget=w)
 
         if 'text_explanation' in self.config:

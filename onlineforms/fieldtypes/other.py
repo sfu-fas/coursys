@@ -42,6 +42,17 @@ class ListField(FieldBase):
     class ListConfigForm(FieldConfigForm):
         min_responses = forms.IntegerField(min_value=1, max_value=20, initial=2, widget=forms.TextInput(attrs={'size': 2}))
         max_responses = forms.IntegerField(min_value=1, max_value=20, initial=5, widget=forms.TextInput(attrs={'size': 2}))
+        def clean(self):
+            try:
+                min_r = int(self.data['min_responses'])
+                max_r = int(self.data['max_responses'])
+                if min_r > max_r:
+                    raise forms.ValidationError, "Minimum number of responses cannot be more than the maximum."
+            except (ValueError, KeyError):
+                pass # let somebody else worry about that
+
+            return super(self.__class__, self).clean()
+
 
     def make_config_form(self):
         return self.ListConfigForm(self.config)

@@ -118,37 +118,28 @@
 {% endblock %}
 
 {% block content %}
-<h2>Sheet Info</h2>
 <div class="table_container">
     <table class="info">
         <tr>
-            <th scope="row">Title</th>
-            <td>{{ owner_sheet.title }}</td>
+            <th scope="row">On Form</th>
+            <td><a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_sheet.form.title }}</a>
+            	{% if owner_sheet.is_initial %}(initial sheet){% endif %}
+            </td>
         </tr>
         <tr>
-            <th scope="row">Form</th>
-            <td><a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_sheet.form.title }}</a></td>
-        </tr>
-        <tr>
-            <th scope="row">Is Initial</th>
-            <td>{{ owner_sheet.get_is_initial_display }}</td>
-        </tr>
-        <tr>
-            <th scope="row">Can View</th>
+            <th scope="row">Visibility</th>
             <td>{{ owner_sheet.get_can_view_display }}</td>
         </tr>
     </table>
 </div>
 <div class="form_container">
-    {# This form will never be submitted so we don't need to worry about errors or anything #}
-    <fieldset>
-        <legend>{{ owner_sheet.title }}</legend>
         {% if fields %}
             <table class="display" id="fields_table">
                 <thead>
                     <tr>
                         <th>Order</th>
-                        <th>Field</th>
+                        <th>Label</th>
+                        <th>Type</th>
                         <th>Edit</th>
                         <th>Remove</th>
                     </tr>
@@ -170,7 +161,10 @@
                         {% endif %}
                     </td>
                     <td>
-                        {{ field.formField.label }}, {{ field.formField.type }}
+                        {{ field.formField.label }}
+                    </td>
+                    <td>
+                        {{ field.formField.type }}
                     </td>
                     <td>
                         <a href="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.modelField.slug %}">Edit</a>
@@ -190,7 +184,6 @@
         {% else %}
             <div>There are currently no fields.</div>
         {% endif %} 
-    </fieldset>
 
     
 </div>

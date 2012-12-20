@@ -9,7 +9,7 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, r
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
@@ -19,6 +19,8 @@ from log.models import LogEntry
 import os
 from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
+
+# TODO: add logging
 
 #######################################################################
 # Group Management
@@ -380,9 +382,11 @@ def edit_sheet(request, form_slug, sheet_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         field_id = request.POST['field_id']
         fields = Field.objects.filter(id=field_id, sheet=owner_sheet)
-        # TODO handle the condition where we cant find the field
         if fields:
+            # need a new version of the form since we're making a change:
+            owner_sheet = owner_sheet.safe_save()
             field = fields[0]
+            field = Field.objects.get(sheet=owner_sheet, original=field.original) # get field on new version, not old
             field.active = False
             field.save()
             messages.success(request, 'Removed the field %s.' % (field.label))
@@ -456,67 +460,66 @@ def new_field(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
 
-    section = 'select'
-    ftype = None
+    invalid_submission = False
 
-    need_choices = False
-    configurable = False
+    if request.method == 'POST' and 'type' in request.POST:
+        ftype = request.POST['type']
+        TypeModel = FIELD_TYPE_MODELS[ftype]
+        custom_config = _clean_config(request.POST)
+        field = TypeModel(config=custom_config)
+        form = field.make_config_form()
 
-    if request.method == 'POST':
-        if 'next_section' in request.POST:
-            section = request.POST['next_section']
-        if section == 'config':
-            custom_config = {}
-            if 'type' in request.POST:
-                ftype = request.POST['type']
-                type_model = FIELD_TYPE_MODELS[ftype]
-                field = type_model()
-            else:
-                ftype = request.POST['type_name']
-                type_model = FIELD_TYPE_MODELS[ftype]
-                custom_config = _clean_config(request.POST)
-                field = type_model(config=custom_config)
-
-            form = field.make_config_form()
-
-            #If the form is not configurable (such as a divider) there's no second form.
-            configurable = field.configurable
-            need_choices = field.choices
-
-            if not configurable:
-                new_sheet = owner_sheet.safe_save()
-                Field.objects.create(label='',
-                    sheet=new_sheet,
-                    fieldtype=ftype,
-                    config=None,
-                    active=True,
-                    original=None, )
-                messages.success(request, 'Successfully created a new divider field')
-
-                return HttpResponseRedirect(
-                    reverse('onlineforms.views.edit_sheet', args=(form_slug, new_sheet.slug)))
-
-            #If the form is configurable it must be validated
-            if form.is_valid():
-                new_sheet = owner_sheet.safe_save()
-                Field.objects.create(label=form.cleaned_data['label'],
+        if form.is_valid():
+            new_sheet = owner_sheet.safe_save()
+            Field.objects.create(label=form.cleaned_data['label'],
                     sheet=new_sheet,
                     fieldtype=ftype,
                     config=custom_config,
                     active=True,
                     original=None, )
-                messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
+            messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
 
-                return HttpResponseRedirect(
+            return HttpResponseRedirect(
                     reverse('onlineforms.views.edit_sheet', args=(form_slug, new_sheet.slug)))
+            
+        # Fall-through to redisplay form with errors
+        invalid_submission = True
 
-    if section == 'select':
+    if (request.method == 'GET' and 'type' in request.GET) or invalid_submission == True:
+        # have selected the field type: now configure the field.
+        if request.method == 'GET':
+            # these are set above in invalid_submission fallthrough case
+            ftype = request.GET['type']
+            TypeModel = FIELD_TYPE_MODELS[ftype]
+            field = TypeModel()
+            field.config = None # force form to behave as new, not as nothing-useful-submitted
+            form = field.make_config_form()
+
+        need_choices = field.choices
+        type_description = FIELD_TYPES[ftype]
+        
+        # ... unless we don't have to configure. Then don't.
+        if not field.configurable:
+            new_sheet = owner_sheet.safe_save()
+            Field.objects.create(label='',
+                sheet=new_sheet,
+                fieldtype=ftype,
+                config={},
+                active=True,
+                original=None, )
+            messages.success(request, 'Successfully created a new field')
+
+            return HttpResponseRedirect(
+                reverse('onlineforms.views.edit_sheet', args=(form_slug, new_sheet.slug)))
+        
+        context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'choices': need_choices, 'ftype': ftype, 'type_description': type_description}
+        return render(request, 'onlineforms/new_field.html', context)
+
+    else:
+        # need to select field type
         form = FieldForm()
-        section = 'config'
-
-    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': ftype
-        , 'choices': need_choices}
-    return render(request, 'onlineforms/new_field.html', context)
+        context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
+        return render(request, 'onlineforms/new_field_select.html', context)
 
 
 def _clean_config(config):

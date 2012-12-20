@@ -11,15 +11,18 @@ class RadioSelectField(FieldBase):
     class RadioSelectConfigForm(FieldConfigForm):
         def __init__(self, config=None):
             super(self.__class__, self).__init__(config)
-
+            
             self.config = config
 
-            keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
-            keys = sorted(keys, key=lambda choice: (int) (re.findall(r'\d+', choice)[0]))
+            if self.config:
+                keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
+                keys = sorted(keys, key=lambda choice: (int) (re.findall(r'\d+', choice)[0]))
+            else:
+                keys = []
 
             for k in keys:
                 self.fields[k] = forms.CharField(required=False, label="Choice")
-
+        
     def make_config_form(self):
         return self.RadioSelectConfigForm(self.config)
 
@@ -56,8 +59,11 @@ class DropdownSelectField(FieldBase):
 
             self.config = config
 
-            keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
-            keys = sorted(keys, key=lambda choice: (int) (re.findall(r'\d+', choice)[0]))
+            if self.config:
+                keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
+                keys = sorted(keys, key=lambda choice: (int) (re.findall(r'\d+', choice)[0]))
+            else:
+                keys = []
 
             for k in keys:
                 self.fields[k] = forms.CharField(required=False, label="Choice")
@@ -104,8 +110,11 @@ class MultipleSelectField(FieldBase):
 
             self.config = config
 
-            keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
-            keys = sorted(keys, key=lambda choice: (int) (re.findall(r'\d+', choice)[0]))
+            if self.config:
+                keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
+                keys = sorted(keys, key=lambda choice: (int) (re.findall(r'\d+', choice)[0]))
+            else:
+                keys = []                
 
             for k in keys:
                 self.fields[k] = forms.CharField(required=False, label="Choice")

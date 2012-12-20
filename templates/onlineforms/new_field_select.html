@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Field{% endblock %}
+{% block h1 %}New Field{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a></li>
+    <li>&gt; New Field</li>
+{% endblock %}
+
+{% block content %}
+    <div class="form_container">
+        <form action="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}"
+              method="get">
+            <fieldset>
+                <legend>Field Type</legend>
+                <ul>
+                    <li>
+                        {{ form|as_dl }}
+                    </li>
+                    <li id="form_section">
+                        <input class="submit" type="submit" value="Select"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}
