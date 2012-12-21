@@ -1349,6 +1349,7 @@ def export_all(request, course_slug):
     z.close()
     zipdata = open(filename, 'rb')
     response = HttpResponse(FileWrapper(zipdata), mimetype='application/zip')
+    response['Content-Length'] = os.path.getsize(filename)    
     response['Content-Disposition'] = 'attachment; filename=' + course.slug + ".zip"
     try:
         os.remove(filename)
