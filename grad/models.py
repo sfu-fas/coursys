@@ -233,7 +233,7 @@ class GradStudent(models.Model):
             res = self._has_committee()
             cache.set(key, res)
 
-        return res
+        return bool(res)
 
     def active_semesters_display(self):
         """

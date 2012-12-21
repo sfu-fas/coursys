@@ -45,7 +45,7 @@
             </td>
             <td>{{s.student.program.description}}</td>
             <td><span class="sort">{{s.type_order}}</span>{{s.get_supervisor_type_display}}
-            	{% if s.supervisor_type == 'POT' %}{% if s.student.has_committee %}(inactive){% else %}(active){% endif %}{% endif %}</td>
+            	{% if s.supervisor_type == 'POT' %}{% if s.student.has_committee %}(has committee){% else %}(no committee){% endif %}{% endif %}</td>
             <td><span class="sort">{{s.student.start_semester.name}}</span>{{s.student.start_semester}}</td>
             <td>{{s.student.get_current_status_display}}</td>
             </tr>
