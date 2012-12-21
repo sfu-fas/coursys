@@ -37,7 +37,9 @@ CODE_TYPES = [
     (".mat", "MATLAB data file (.mat)"),
     (".lisp", "LISP (.lisp)"),
     ("Makefile", "Makefile (Makefile)"),
-    (".sql", "SQl (.sql)"),
+    (".sql", "SQL (.sql)"),
+    (".sas", "SAS (.sas)"),
+    (".r", "R (.r)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()
