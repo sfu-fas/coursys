@@ -16,5 +16,5 @@ while True:
     child.sendline(pw)
     print
     child.wait()
-    time.sleep(10) # pause to avoid being overly agressive in case of failure
+    time.sleep(60) # pause to avoid being overly agressive in case of failure
 
