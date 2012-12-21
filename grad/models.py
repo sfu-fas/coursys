@@ -214,6 +214,27 @@ class GradStudent(models.Model):
             return res
 
 
+    def _has_committee(self):
+        senior_sups = Supervisor.objects.filter(student=self, supervisor_type='SEN', removed=False).count()
+        return senior_sups > 0
+    def clear_has_committee(self):
+        key = 'has_committee-%i' % (self.id)
+        cache.delete(key)
+        
+    def has_committee(self):
+        """
+        Does the student appear to have (some of) their committee formed?
+        
+        Used frequently in permission checking, so caching it.
+        """
+        key = 'has_committee-%i' % (self.id)
+        res = cache.get(key)
+        if res is None:
+            res = self._has_committee()
+            cache.set(key, res)
+
+        return res
+
     def active_semesters_display(self):
         """
         Format self.active_semesters_display for display
@@ -497,11 +518,12 @@ SUPERVISOR_TYPE_CHOICES = [
     ]
 SUPERVISOR_TYPE_ORDER = {
     'SEN': 1,
-    'COM': 2,
-    'CHA': 3,
-    'EXT': 4,
-    'SFU': 5,
-    'POT': 6,
+    'COM': 3,
+    'CHA': 4,
+    'EXT': 5,
+    'SFU': 6,
+    'POTTrue': 7, # potential with committee
+    'POTFalse': 2, # potential without committee
     }
 
 class Supervisor(models.Model):
@@ -557,10 +579,25 @@ class Supervisor(models.Model):
             raise ValueError, "Must be either an SFU user or external"
         
         super(Supervisor, self).save(*args, **kwargs)
+        self.student.clear_has_committee()
     
     def type_order(self):
         "Return key for sorting by supervisor_type"
-        return SUPERVISOR_TYPE_ORDER[self.supervisor_type]
+        key = self.supervisor_type
+        if key == 'POT':
+            key += str(self.student.has_committee())
+        return SUPERVISOR_TYPE_ORDER[key]
+    
+    def can_view_details(self):
+        """
+        Can this supervisor see the details of the student (funding, etc)? Yes for senior; yes for potential if no senior; no otherwise.
+        """
+        if self.supervisor_type == 'SEN':
+            return True
+        elif self.supervisor_type == 'POT':
+            return not self.student.has_committee()
+        else:
+            return False
 
 class GradRequirement(models.Model):
     """
