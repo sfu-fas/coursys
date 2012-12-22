@@ -266,7 +266,7 @@ class GradStudent(models.Model):
         """
         Find courses this student taught, presumably as a sessional instructor. Returns relevant coredata.models.CourseOffering objects.
         """
-        members = Member.objects.filter(person=self.person, role='INST').select_related('offering__owner')
+        members = Member.objects.filter(person=self.person, role='INST', offering__graded=True).select_related('offering__owner')
         return [m.offering for m in members]
         
     def letter_info(self):
