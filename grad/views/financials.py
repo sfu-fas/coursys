@@ -127,7 +127,7 @@ def financials(request, grad_slug):
                              'amount':sem_pay, 'semesters': appointment.semester_length() })
         ra = {'appt':appt, 'amount':amount}        
         semester_total += amount
-
+        
         # promises (ending in this semester, so we display them in the right spot)
         try:
             promise = promises_qs.get(end_semester=semester)

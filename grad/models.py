@@ -1,7 +1,7 @@
 
 from django.db import models, transaction
 from django.core.cache import cache
-from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
+from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
@@ -261,6 +261,13 @@ class GradStudent(models.Model):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.current_status]
+
+    def sessional_courses(self):
+        """
+        Find courses this student taught, presumably as a sessional instructor. Returns relevant coredata.models.CourseOffering objects.
+        """
+        members = Member.objects.filter(person=self.person, role='INST').select_related('offering__owner')
+        return [m.offering for m in members]
         
     def letter_info(self):
         """
@@ -598,6 +605,7 @@ class Supervisor(models.Model):
             return not self.student.has_committee()
         else:
             return False
+
 
 class GradRequirement(models.Model):
     """

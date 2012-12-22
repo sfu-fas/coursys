@@ -129,6 +129,17 @@ def generate_progrep_queries(gs):
         yield ("INSERT INTO progrep.finsupport (emplid, semester, type, name, amount, bu) VALUES (%s, %s, %s, %s, %s, %s);\n") \
             % escape_all(gs.person.emplid, schol.start_semester.name, 'scholarship', schol.scholarship_type.name, "%.2f"%schol.amount, '')
 
+    otherfunding = OtherFunding.objects.filter(student=gs, removed=False)
+    for other in otherfunding:
+        yield ("INSERT INTO progrep.finsupport (emplid, semester, type, name, amount, bu) VALUES (%s, %s, %s, %s, %s, %s);\n") \
+            % escape_all(gs.person.emplid, other.semester.name, 'other', other.description, "%.2f"%other.amount, '')
+
+    sessionals = gs.sessional_courses()
+    for offering in sessionals:
+        yield ("INSERT INTO progrep.finsupport (emplid, semester, type, name, amount, bu) VALUES (%s, %s, %s, %s, %s, %s);\n") \
+            % escape_all(gs.person.emplid, offering.semester.name, 'sessional', offering.name(), "%.2f"%offering.sessional_pay(), '')
+        
+
     # grades & GPA
     for coursedata in grad_student_courses(gs.person.emplid):
         strm, subject, number, section, units, grade, gradepoints, instr = coursedata
