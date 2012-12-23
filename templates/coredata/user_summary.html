@@ -73,7 +73,7 @@ $(document).ready(function() {
 {% if roles %}
 <ul>
   {% for r in roles %}
-  <li>{{r.get_role_display}}</li>
+  <li>{{r.get_role_display}}, {{r.unit.name}}</li>
   {% endfor %}
 </ul>
 

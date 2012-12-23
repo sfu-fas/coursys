@@ -4,6 +4,25 @@
 
 {% block subbreadcrumbs %}<li>&gt; System Admin</li>{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+  $(document).ready(function() {
+    offering_autocomplete('id_offering');
+    $('#id_user').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    });
+  });
+//]]></script>
+{% endblock %}
+
+
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
@@ -21,7 +40,9 @@
 {% block content %}
 <h2 id="search">User Search</h2>
 <form action="{% url coredata.views.sysadmin %}" method="get">
-<p>Userid: <input type="text" name="q" size="8" /></p>
+{{ form.non_field_errors }}
+<p>Person search: {{ form.user }} {{ form.user.errors }} <input type="submit" name="usersearch" value="Search" /></p>
+<p>Course Offering search: {{ form.offering }} {{ form.offering.errors }} <input type="submit" name="offeringsearch" value="Search" /></p>
 <p><input type="submit" value="Search" /></p>
 </form>
 
