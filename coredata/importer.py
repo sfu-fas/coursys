@@ -296,7 +296,7 @@ def import_one_offering(strm, subject, number, section):
 def import_offerings(extra_where='1=1', import_semesters=import_semesters):
     db = SIMSConn()
     db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
-               "class_section like '%%00' AND ("+extra_where+")", (import_semesters(),))
+               "(class_section like '__00' OR class_section like '_0__') AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)
