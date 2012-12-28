@@ -1,17 +1,15 @@
 #!/bin/bash
 
-SUBMITS=/home/ggbaker/submitted_files
 CONFIG=/etc/nginx
-CODE=/home/ggbaker/courses
+CODE=/home/coursys/courses
 TMP=/var/tmp/historytmp
-MKDUMP=/home/ggbaker/mkdump
-REPO=file:///home/ggbaker/history
+REPO=file:///home/coursys/history
 DBPASS=`sed '1,2d' < ~/dbpass | head -n 1`
 export LC_CTYPE=en_US.UTF-8
 
 set -e
 CO=${TMP}/repo
-SUBMITR=${CO}/sub
+#SUBMITR=${CO}/sub
 CONFIGR=${CO}
 CODER=${CO}/code
 DUMP=${CO}/db.dump

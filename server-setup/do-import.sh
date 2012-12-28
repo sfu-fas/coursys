@@ -5,5 +5,5 @@ set -e
 LANG="en_CA.UTF-8" # DB2 doesn't return UTF-8 strings otherwise
 export LANG
 
-cd /home/ggbaker/courses/
+cd ${HOME}/courses/
 time python coredata/importer.py
