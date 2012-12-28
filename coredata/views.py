@@ -19,13 +19,13 @@ def sysadmin(request):
     if 'usersearch' in request.GET:
         # user search
         form = SysAdminSearchForm(request.GET)
-        if form.is_valid():
+        if form.is_valid() and form.cleaned_data['user']:
             emplid = form.cleaned_data['user'].emplid
             return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': emplid}))
     elif 'offeringsearch' in request.GET:
         # course offering search
         form = SysAdminSearchForm(request.GET)
-        if form.is_valid():
+        if form.is_valid() and form.cleaned_data['offering']:
             offering = form.cleaned_data['offering']
             return HttpResponseRedirect(reverse(offering_summary, kwargs={'course_slug': offering.slug}))
     else:
