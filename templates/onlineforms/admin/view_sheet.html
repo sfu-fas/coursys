@@ -1,14 +1,4 @@
-{% block headextra %}
-<style type="text/css">
-    .view_fieldset {
-        padding-bottom: 1em;
-    }
-    
-    hr {
-        clear: both;
-    }
-</style>
-{% endblock %}
+{# be sure to include this if using this fragment: <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />  #}
 
 {% for sheet_sub, fields in sheet_submissions.items %}
 	<form>
@@ -21,7 +11,7 @@
                 <dd><p>{{ sheet_sub.filler.email }}</p></dd>
 			{% for field in fields %}
                 {% ifequal field.fieldtype "DIVI" %}
-                    <hr />
+                    <hr class="clear" />
                 {% else %}
                     {% if sheetsWithFiles %}
                         {% for sheet_id, file_id in sheetsWithFiles.items %}

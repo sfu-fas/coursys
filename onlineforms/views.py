@@ -616,6 +616,8 @@ def _readonly_sheets(form_submission):
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
         return sheet_sub_html, sheetsWithFiles
+    
+    return None, None
 
 
 @requires_formgroup()
@@ -640,7 +642,6 @@ def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition
 def view_submission(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     sheet_submissions, sheetsWithFiles = _readonly_sheets(form_submission)
-
 
     context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)

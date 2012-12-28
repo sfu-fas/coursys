@@ -268,13 +268,13 @@ class IntegrationTestCase(TestCase):
         # this form doesn't allow non-sfu students to fill it out, so if we
         # are not logged in and we try to access it it should return forbidden
         url = reverse('onlineforms.views.sheet_submission', kwargs={'form_slug': "comp-multi-sheet-form"})
-        response = response = self.client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
 
     
-    def test_create_fields(self):
-        for key, model in FIELD_TYPE_MODELS:
-            print model
+    #def test_create_fields(self):
+    #    for key, model in FIELD_TYPE_MODELS:
+    #        print model
 
 
 class ViewTestCase(TestCase):
@@ -282,7 +282,7 @@ class ViewTestCase(TestCase):
     slug_data = {'formgroup_slug': "comp-admins",
                 'formsubmit_slug': "submission-comp-simple-form-2",
                 'form_slug': "comp-simple-form",
-                'sheet_slug': "initial-2",
+                'sheet_slug': "initial",
                 'field_slug': "favorite-color",
                 'sheetsubmit_slug': "submission-initial-2",
                 'secret_url': "b50d3a695edf877df2a2100376d493f1aec5c26a"}
@@ -343,14 +343,13 @@ class ViewTestCase(TestCase):
 
     def run_basic_page_tests(self, views, arguments):
         for view in views:
-                try:
-                    url = reverse('onlineforms.views.' + view, kwargs=arguments)
-                    # response = self.client.get(url)
-                    response = basic_page_tests(self, self.client, url)
-                    self.assertEqual(response.status_code, 200)
-                except:
-                    print "with view==" + repr(view)
-                    raise
+            try:
+                url = reverse('onlineforms.views.' + view, kwargs=arguments)
+                response = basic_page_tests(self, self.client, url)
+                self.assertEqual(response.status_code, 200)
+            except:
+                print "with view==" + repr(view)
+                raise
 
 
 class MiscTests(TestCase):
@@ -359,7 +358,7 @@ class MiscTests(TestCase):
     def test_sheet_submission_get_url(self):
         # arrange
         slugs = {'sheetsubmit_slug': "submission-initial-2",
-                'sheet_slug': "initial-2",
+                'sheet_slug': "initial",
                 'formsubmit_slug': "submission-comp-simple-form-2",
                 'form_slug': "comp-simple-form"
         }

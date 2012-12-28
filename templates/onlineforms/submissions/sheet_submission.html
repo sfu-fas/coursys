@@ -8,6 +8,10 @@
     <li>&gt; {{ sheet.title }} submission</li>
 {% endblock %}
 
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
+{% endblock %}
+
 {% block content %}
 
     {% if error_msg %}

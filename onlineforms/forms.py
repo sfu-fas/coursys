@@ -75,6 +75,7 @@ class EditSheetForm(ModelForm):
 class NonSFUFormFillerForm(ModelForm):
     class Meta:
         model = NonSFUFormFiller
+        exclude = ('config',)
 
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
