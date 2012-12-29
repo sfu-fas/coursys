@@ -18,6 +18,7 @@ from groups.models import Group, GroupMember
 from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType
 from discipline.models import DisciplineTemplate
 from ra.models import Account
+from onlineforms.models import FormGroup
 from courselib.testing import TEST_COURSE_SLUG
 
 FULL_TEST_DATA = TEST_COURSE_SLUG
@@ -94,7 +95,7 @@ def test_class_1(slug):
     m.save()
     
     # create some groups
-    g = Group(name="SomeGroup", courseoffering=crs, manager=Member.objects.get(offering=crs, person__userid="0aaa0"))
+    g = Group(name="SomeGroup", courseoffering=crs, manager=Member.objects.get(offering=crs, person__userid="0aaa0", role='STUD'))
     g.save()
     for userid in ['0aaa0', '0aaa1', '0aaa5', '0aaa10']:
         gm = GroupMember(group=g, student=Member.objects.get(offering=crs, person__userid=userid), confirmed=True, activity=a2)
@@ -129,6 +130,14 @@ def create_others():
     p.save()
     r = Role(person=p, role="ADVS", unit=Unit.objects.get(slug='comp'))
     r.save()
+    if not Person.objects.filter(userid='ggbaker'):
+        Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
+    if not Person.objects.filter(userid='dixon'):
+        Person(userid='dixon', first_name='Tony', last_name='Dixon', emplid='000001234').save()
+    if not Person.objects.filter(userid='diana'):
+        Person(userid='diana', first_name='Diana', last_name='Cukierman', emplid='000001235').save()
+    if not Person.objects.filter(userid='popowich'):
+        Person(userid='popowich', first_name='Fred', last_name='Popowich', emplid='000001236').save()
     r = Role(person=Person.objects.get(userid='dixon'), role="PLAN", unit=Unit.objects.get(slug='comp'))
     r.save()
     r = Role(person=Person.objects.get(userid='ggbaker'), role="FAC", unit=Unit.objects.get(slug='comp'))
@@ -207,6 +216,9 @@ def create_grad_templ():
 
 
 def create_more_data():
+    """
+    More data for the unit tests and general usabilty of a test system 
+    """
     templates = [
                  {"field": "contact_email_text", 
                   "label": "generic", 
@@ -279,6 +291,11 @@ def create_more_data():
     p.save()
     r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='comp'))
     r.save()
+    
+    fg = FormGroup(name="Admins", unit=Unit.objects.get(slug='comp'))
+    fg.save()
+    fg.members = [Person.objects.get(userid='ggbaker'), Person.objects.get(userid='classam')]
+    fg.save()
 
 
 def serialize(filename):
@@ -320,6 +337,7 @@ def serialize(filename):
             TeachingEquivalent.objects.all(),
             TeachingIntention.objects.all(),
             TeachingCapability.objects.all(),
+            FormGroup.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)

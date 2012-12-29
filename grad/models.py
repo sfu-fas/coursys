@@ -151,8 +151,11 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        first_program = GradProgramHistory.objects.filter(student=self).order_by('-starting')[0]
-        self.start_semester = first_program.start_semester
+        first_program = GradProgramHistory.objects.filter(student=self).order_by('-starting')
+        if first_program:
+            self.start_semester = first_program[0].start_semester
+        else:
+            self.start_semester = None
 
         # end_semester
         if self.current_status in STATUS_DONE:
