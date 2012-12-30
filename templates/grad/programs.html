@@ -6,9 +6,10 @@
 	$(document).ready(function() {
 		$('#programs').dataTable({
 			"bJQueryUI" : true,
+			"bPaginate": false,
+			"bFilter": false,
+			"bInfo": false,
 			"aaSorting" : [[0, "asc"]],
-			"iDisplayLength" : 10,
-			"sPaginationType" : "full_numbers",
 		});
 	});
 
