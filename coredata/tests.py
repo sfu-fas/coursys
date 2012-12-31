@@ -223,7 +223,7 @@ class CoredataTest(TestCase):
 
         # check the front end
         client = Client()
-        client.login(ticket="test1", service=CAS_SERVER_URL)
+        client.login_user("test1")
 
         url = reverse('coredata.views.role_list')
         response = basic_page_tests(self, client, url)

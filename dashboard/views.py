@@ -105,8 +105,6 @@ def fake_logout(request):
     Fake logoutiew for devel without access to the fake CAS server
     """
     import socket
-    from django.contrib.auth import login
-    from django.contrib.auth.models import User
     hostname = socket.gethostname()
     if settings.DEPLOYED or hostname.startswith('courses'):
         # make sure we're not in production
@@ -114,6 +112,7 @@ def fake_logout(request):
     
     from django.contrib.auth import logout
     logout(request)
+    return HttpResponseRedirect('/')
 
 
 # copy of django_cas.views.login that doesn't do a message, but does a LogEntry

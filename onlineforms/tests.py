@@ -1,12 +1,10 @@
 from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.urlresolvers import reverse
-
 from django.forms import Field as DjangoFormsField, Form as DjangoForm
 
 from coredata.models import Person, Unit
-from settings import CAS_SERVER_URL
-from courselib.testing import basic_page_tests
+from courselib.testing import basic_page_tests, Client
 
 from onlineforms.models import FormGroup, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
@@ -121,10 +119,12 @@ class ModelTests(TestCase):
 
 class IntegrationTestCase(TestCase):
     fixtures = ['test_data', 'onlineforms/extra_test_data']
+    def setUp(self):
+        self.client = Client()
 
     def test_valid_simple_initial_form_submission_loggedin(self):
         logged_in_person = Person.objects.get(userid="ggbaker")
-        self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+        self.client.login_user(logged_in_person.userid)
 
         old_form_submission_count = len(FormSubmission.objects.all())
         old_sheet_submission_count = len(SheetSubmission.objects.all())
@@ -288,8 +288,9 @@ class ViewTestCase(TestCase):
                 'secret_url': "b50d3a695edf877df2a2100376d493f1aec5c26a"}
 
     def setUp(self):
+        self.client = Client()
         logged_in_person = Person.objects.get(userid="ggbaker")
-        self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+        self.client.login_user(logged_in_person.userid)
         # make sure the sheetsub is owned by the logged in user (to correct for wonky test data)
         sheetsub = SheetSubmission.objects.get(form_submission__slug=self.slug_data["formsubmit_slug"], slug=self.slug_data["sheetsubmit_slug"])
         ff = sheetsub.filler
@@ -400,10 +401,11 @@ class FieldTestCase(TestCase):
                         "max_responses": 4}
 
     def setUp(self):
+        self.client = Client()
         self.unit = Unit.objects.get(label="COMP")
         # we want to be logge din for all these tests
         logged_in_person = Person.objects.get(userid="ggbaker")
-        self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+        self.client.login_user(logged_in_person.userid)
 
     def test_make_config_form(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():

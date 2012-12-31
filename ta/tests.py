@@ -1,8 +1,7 @@
 from django.test import TestCase
-from courselib.testing import basic_page_tests
+from courselib.testing import basic_page_tests, Client
 from ta.models import *
 from coredata.models import Role
-from settings import CAS_SERVER_URL
 from ra.models import Account
 
 
@@ -65,7 +64,7 @@ class ApplicationTest(TestCase):
         #Login a ta admin
         client = Client()
         userid = Role.objects.filter(role="TAAD")[0].person.userid
-        client.login(ticket=userid, service=CAS_SERVER_URL)     
+        client.login_user(userid)     
 
         #Check that assign_tas page has two courses in it, one with someone who has applied
         url = reverse('ta.views.assign_tas', kwargs={'post_slug': posting.slug,})

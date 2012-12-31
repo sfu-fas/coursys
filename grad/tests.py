@@ -1,12 +1,11 @@
 from django.test import TestCase
-
 from django.core.urlresolvers import reverse
 import json, datetime
 from coredata.models import Person, Semester
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment
-from courselib.testing import basic_page_tests, test_auth
+from courselib.testing import basic_page_tests, test_auth, Client
 from grad.views.view import all_sections
 
 

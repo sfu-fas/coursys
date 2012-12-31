@@ -184,7 +184,7 @@ class GradesTest(TestCase):
         
         # test instructor pages
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
 
         response = basic_page_tests(self, client, '/' + c.slug + '/')
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
@@ -196,7 +196,7 @@ class GradesTest(TestCase):
 
         # test student pages
         client = Client()
-        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
+        client.login_user("0aaa0")
         response = basic_page_tests(self, client, '/' + c.slug + '/')
         self.assertContains(response, "Gregory Baker")
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
@@ -223,7 +223,7 @@ class GradesTest(TestCase):
         m.save()
         
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
         
         # course main screen
         url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
@@ -309,7 +309,7 @@ class GradesTest(TestCase):
         m.save()
         
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
         url = reverse('grades.views.edit_activity', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
 
         # for whatever reason, '0' is group and '1' is individual for the group value
@@ -484,7 +484,7 @@ class GradesTest(TestCase):
         
         # test as instructor
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
         
         url = reverse('marking.views.change_grade_status', kwargs={'course_slug': c.slug, 'activity_slug': a.slug, 'userid': stud.person.userid})
         response = basic_page_tests(self, client, url)
@@ -501,7 +501,7 @@ class GradesTest(TestCase):
         response = basic_page_tests(self, client, url)
 
         # test as student
-        client.login(ticket=stud.person.userid, service=CAS_SERVER_URL)
+        client.login_user(stud.person.userid)
 
         url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)

@@ -4,13 +4,9 @@
 
 import re
 import unicodecsv as csv
-
 from decimal import Decimal, ROUND_HALF_EVEN
-
 from datetime import datetime
-
 from django.core.urlresolvers import reverse
-
 from django.test import TestCase
 
 
@@ -22,10 +18,7 @@ from grades.models import NumericActivity, NumericGrade, LetterActivity, LetterG
 from views import manage_activity_components, manage_common_problems, marking_student
 from views import _compose_imported_grades, _strip_email_userid
 
-from settings import CAS_SERVER_URL
-
-from courselib.testing import basic_page_tests, TEST_COURSE_SLUG
-
+from courselib.testing import basic_page_tests, TEST_COURSE_SLUG, Client
 
 
 class BasicTest(TestCase):
@@ -33,6 +26,7 @@ class BasicTest(TestCase):
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
+        self.client = Client()
     
     def test_add_activity_components(self):
         
@@ -52,7 +46,7 @@ class BasicTest(TestCase):
         co2.save()
         co3.save()
         
-        self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
+        self.client.login_user('ggbaker')
 
         response = basic_page_tests(self, self.client, reverse(manage_activity_components, args=(self.c_slug,a.slug)))
           
@@ -81,7 +75,7 @@ class BasicTest(TestCase):
         cp2.save()
         cp3.save()
         
-        self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)        
+        self.client.login_user('ggbaker')        
 
         response = basic_page_tests(self, self.client, reverse(manage_common_problems, args=(self.c_slug,a.slug)))
         
@@ -120,7 +114,7 @@ class BasicTest(TestCase):
                             due_date = datetime.now(), max_grade = 100, position = 0)
         a.save()
                                     
-        self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
+        self.client.login_user('ggbaker')
 
         url = reverse(manage_activity_components, args=(self.c_slug, a.slug))
 
@@ -229,7 +223,7 @@ class BasicTest(TestCase):
         group_mark.setMark(50)               
         group_mark.save()
         
-        self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
+        self.client.login_user('ggbaker')
 
         response = self.client.get(reverse('marking.views.mark_history_student', args=(self.c_slug, a.slug, '0aaa1')))
         self.assertEquals(response.status_code, 200)
@@ -242,7 +236,7 @@ class BasicTest(TestCase):
         
     def test_frontend(self):
         client = Client()
-        client.login(ticket='ggbaker', service=CAS_SERVER_URL)
+        client.login_user('ggbaker')
         
         # set up a course
         c = CourseOffering.objects.get(slug = self.c_slug)
@@ -346,6 +340,7 @@ class TestImportFunctionsNumeric(TestCase):
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
+        self.client = Client()
         self.c = CourseOffering.objects.get(slug = self.c_slug)
         self.a1 = NumericActivity(offering = self.c, name = 'test_assignment_1', 
                             short_name = 'ta1', status = 'RLS', 
@@ -547,7 +542,7 @@ class TestImportFunctionsLetter(TestCase):
         self.get_test_file(inName)
         data_to_return = {}
         with open(inName, 'r') as inp:
-             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, None)
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
@@ -557,6 +552,7 @@ class TestImportViews(TestCase):
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
+        self.client = Client()
         self.c = CourseOffering.objects.get(slug = self.c_slug)
         self.a1 = NumericActivity(offering = self.c, name = 'test_assignment_1', 
                             short_name = 'ta1', status = 'RLS', 
@@ -570,7 +566,7 @@ class TestImportViews(TestCase):
         self.assertEquals(grade.flag, 'GRAD')
 
     def test_import_view(self):
-        self.client.login(ticket='ggbaker', service=CAS_SERVER_URL)
+        self.client.login_user('ggbaker')
 
         # Import the file, check that resulting HTML has correct entries in fields for two affected students
         url = reverse('marking.views.mark_all_students', kwargs={'course_slug':self.c_slug, 'activity_slug':self.a1.slug})
@@ -599,6 +595,7 @@ class TestImportViewsLet(TestCase):
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
+        self.client = Client()
         self.c = CourseOffering.objects.get(slug = self.c_slug)
         self.a1 = LetterActivity(offering = self.c, name = 'test_assignment_1_let', 
                             short_name = 'tal1', status = 'RLS', 
@@ -612,7 +609,7 @@ class TestImportViewsLet(TestCase):
         self.assertEquals(grade.flag, 'GRAD')
 
     def test_import_view_let(self):
-        self.client.login(ticket='ggbaker', service=CAS_SERVER_URL)
+        self.client.login_user('ggbaker')
 
         # Import the file, check that resulting HTML has correct entries in fields for two affected students
         url = reverse('marking.views.mark_all_students', kwargs={'course_slug':self.c_slug, 'activity_slug':self.a1.slug})
@@ -628,7 +625,7 @@ class TestImportViewsLet(TestCase):
         self.assertTrue(re.search(STUD2_GRADE, response.content))
 
         # Submit the grades, check that they were added to DB
-	post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
+        post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
         response = self.client.post(url, post_data, follow=True)
         self.assertEquals(response.status_code, 200)
         let_grades = LetterGrade.objects.filter(activity = self.a1).order_by('member__person__userid')
@@ -642,11 +639,12 @@ class TestMarkingImport(TestCase):
     fixtures = ['test_data']
     
     def setUp(self):
+        self.client = Client()
         self.crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         self.act = self.crs.activity_set.get(slug="a1")
     
     def test_import(self):
-        self.client.login(ticket='ggbaker', service=CAS_SERVER_URL)
+        self.client.login_user('ggbaker')
         url = reverse('marking.views.import_marks', kwargs={'course_slug':self.crs.slug, 'activity_slug':self.act.slug})
         response = basic_page_tests(self, self.client, url)
         
