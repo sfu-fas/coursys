@@ -7,7 +7,7 @@ from submission.models import StudentSubmission
 from coredata.tests import create_offering
 import pickle, re
 
-from django.test.client import Client
+
 from settings import CAS_SERVER_URL
 from courselib.testing import *
 

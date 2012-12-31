@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.test.client import Client
+
 from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
 from courselib.testing import basic_page_tests, TEST_COURSE_SLUG

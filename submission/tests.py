@@ -1,5 +1,5 @@
 from django.test import *
-from django.test.client import Client
+
 from submission.models import *
 from submission.models.code import SubmittedCode
 from submission.forms import *

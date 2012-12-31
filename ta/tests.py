@@ -5,7 +5,7 @@ from coredata.models import Role
 from settings import CAS_SERVER_URL
 from ra.models import Account
 
-from django.test.client import Client
+
 from django.core.urlresolvers import reverse
 
 from datetime import date, datetime

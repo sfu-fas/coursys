@@ -82,7 +82,7 @@ def fake_login(request):
     from django.contrib.auth import login
     from django.contrib.auth.models import User
     hostname = socket.gethostname()
-    if settings.DEPLOYED or hostname.startswith('courses') or not settings.CAS_SERVER_URL.startswith('http://lefty.cmpt.sfu.ca'):
+    if settings.DEPLOYED or hostname.startswith('courses'):
         # make damn sure we're not in production
         raise NotImplementedError
     
@@ -97,8 +97,23 @@ def fake_login(request):
         login(request, user)
         return HttpResponseRedirect('/')
 
-    response = HttpResponse('<form action="">Userid: <input type="text" name="userid" /></form>')
+    response = HttpResponse('<h1>Fake Authenticator</h1><p>Who would you like to be today?</p><form action="">Userid: <input type="text" name="userid" /><br/><input type="submit" value="&quot;Authenticate&quot;" /></form>')
     return response
+
+def fake_logout(request):
+    """
+    Fake logoutiew for devel without access to the fake CAS server
+    """
+    import socket
+    from django.contrib.auth import login
+    from django.contrib.auth.models import User
+    hostname = socket.gethostname()
+    if settings.DEPLOYED or hostname.startswith('courses'):
+        # make sure we're not in production
+        raise NotImplementedError
+    
+    from django.contrib.auth import logout
+    logout(request)
 
 
 # copy of django_cas.views.login that doesn't do a message, but does a LogEntry

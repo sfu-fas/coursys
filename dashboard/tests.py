@@ -1,6 +1,4 @@
 from django.test import TestCase
-from django.test.client import Client
-from settings import CAS_SERVER_URL
 
 from coredata.tests import create_offering
 from coredata.models import *
@@ -18,7 +16,7 @@ class DashboardTest(TestCase):
         # log in as student in the course
         userid = Member.objects.filter(offering__slug=self.c_slug, role="STUD")[0].person.userid
         client = Client()
-        client.login(ticket=userid, service=CAS_SERVER_URL)
+        client.login_user(userid)
 
         response = client.get("/")
         self.assertEquals(response.status_code, 200)
@@ -43,7 +41,7 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 302)
 
         # log in as student "0aaa0"
-        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
+        client.login_user("0aaa0")
         p = Person.objects.get(userid="0aaa0")
 
         # not in the course: should get 403 Forbidden
@@ -80,20 +78,20 @@ class DashboardTest(TestCase):
         response = client.get(url)
         self.assertEquals(response.status_code, 302)
         # try as instructor
-        client.login(ticket=instr, service=CAS_SERVER_URL)
+        client.login_user(instr)
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         validate_content(self, response.content, url)
         # try as TA
-        client.login(ticket=ta, service=CAS_SERVER_URL)
+        client.login_user(ta)
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         # try as student
-        client.login(ticket=student, service=CAS_SERVER_URL)
+        client.login_user(student)
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
         # try as non-member
-        client.login(ticket=nobody, service=CAS_SERVER_URL)
+        client.login_user(nobody)
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
         
@@ -105,7 +103,7 @@ class DashboardTest(TestCase):
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': self.c_slug})
 
         # login as a sysadmin
-        client.login(ticket="sumo", service=CAS_SERVER_URL)
+        client.login_user('sumo')
         # not instructor, so can't really access
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
@@ -115,7 +113,7 @@ class DashboardTest(TestCase):
         self.assertContains(response, 'Logged in as ggbaker')
 
         # login as student
-        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
+        client.login_user("0aaa0")
         # can access normally
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
@@ -127,7 +125,7 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 403)
 
         # login as instructor
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
         # can access course page
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
@@ -145,7 +143,7 @@ class DashboardTest(TestCase):
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
         # try non-course URL as non-admin: shouldn't be able to impersonate
-        client.login(ticket="diana", service=CAS_SERVER_URL)
+        client.login_user("diana")
         url = reverse('dashboard.views.index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
@@ -158,7 +156,7 @@ class DashboardTest(TestCase):
 
         client = Client()
         userid = "0aaa0"
-        client.login(ticket=userid, service=CAS_SERVER_URL)
+        client.login_user(userid)
         configurl = reverse('dashboard.views.config', kwargs={})
         response = client.get(configurl)
         self.assertEquals(response.status_code, 200)

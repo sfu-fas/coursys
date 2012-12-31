@@ -2,7 +2,7 @@ from django.test import TestCase
 from coredata.models import *
 
 from django.core.urlresolvers import reverse
-from django.test.client import Client
+
 from courselib.testing import *
 from settings import CAS_SERVER_URL
 

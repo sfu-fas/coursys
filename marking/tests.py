@@ -12,7 +12,7 @@ from datetime import datetime
 from django.core.urlresolvers import reverse
 
 from django.test import TestCase
-from django.test.client import Client
+
 
 from models import ActivityComponent, CommonProblem, Group, GroupMember
 from models import StudentActivityMark, GroupActivityMark
