@@ -5,7 +5,7 @@
 <h2>Actions</h2>
 <ul>
 {% for t in templates%}
-<li><a href="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=t.slug %}">New {{t.label}} letter</a></li>
+<li><a href="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=t.slug %}">New {{t.label|title}} Letter</a></li>
 {% endfor %}
 </ul>
 </div>

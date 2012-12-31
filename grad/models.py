@@ -180,6 +180,8 @@ class GradStudent(models.Model):
         # that I don't see any better way.
         next_sem = Semester.current().offset(1)
         start = self.start_semester
+        if not start:
+            return 0,0
         end = self.end_semester or next_sem
         
         statuses = GradStatus.objects.filter(student=self, hidden=False) \

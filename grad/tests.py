@@ -158,7 +158,7 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships', 'new_letter',
+        for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships',
                       'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
                       'manage_program', 'manage_financialcomments', 'manage_defence']:
             try:
@@ -168,6 +168,11 @@ class GradTest(TestCase):
             except:
                 print "with view==" + repr(view)
                 raise
+
+        url = reverse('grad.views.new_letter', kwargs={'grad_slug': gs.slug, 'letter_template_slug': lt.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
         
     def test_grad_letters(self):
         """

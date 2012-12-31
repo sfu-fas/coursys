@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
-        Scholarship, OtherFunding, Promise, GradProgramHistory, FinancialComment
+        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory, FinancialComment
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -45,7 +45,7 @@ def _can_view_student(request, grad_slug, funding=False):
     return None, None
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
-                'scholarships', 'otherfunding', 'promises', 'financialcomments']
+                'scholarships', 'otherfunding', 'promises', 'financialcomments', 'letters']
 
 @login_required
 def view(request, grad_slug, section=None):
@@ -116,6 +116,11 @@ def view(request, grad_slug, section=None):
             context['financial_comments'] = comments
             return render(request, 'grad/view__financialcomments.html', context)
         
+        elif section == 'letters':
+            letters = Letter.objects.filter(student=grad).select_related('template').order_by('date')
+            context['letters'] = letters
+            return render(request, 'grad/view__letters.html', context)
+
         else:
             raise ValueError, "Not all sections handled by view code: " + repr(section)
 
