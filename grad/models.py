@@ -1,4 +1,3 @@
-
 from django.db import models, transaction
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
