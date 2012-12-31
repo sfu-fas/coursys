@@ -75,10 +75,18 @@ $(document).ready(function() {
 </table>
 </div>
 
-<div class="helptext">
-Last updated {{grad.updated_at}} by
-{% if not grad.modified_by %}{{grad.created_by}}{% else %}{{grad.modified_by}}{% endif %}.
-</div>
+{% if can_edit %}
+<p><strong>Manage:</strong>
+<a href="{% url grad.views.manage_general grad_slug=grad.slug  %}">General Info</a>
+| <a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Requirements</a>
+| <a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Committee</a>
+| <a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Status</a>
+| <a href="{% url grad.views.manage_scholarships grad_slug=grad.slug  %}">Scholarships</a>
+| <a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Other Funding</a>
+| <a href="{% url grad.views.manage_financialcomments grad_slug=grad.slug  %}">Financial Comments</a>
+| <a href="{% url grad.views.manage_letters grad_slug=grad.slug  %}">Letters</a>
+</p>
+{% endif %}
 
 <h2 id="general" class="collapsed"><a href="#!general">General</a></h2>
 <div id="general_content">{{general_content}}</div>
