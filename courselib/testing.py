@@ -4,7 +4,7 @@ import urllib
 from django.core.urlresolvers import reverse
 
 # course with the test data
-TEST_COURSE_SLUG = '2012fa-cmpt-165-c1'
+TEST_COURSE_SLUG = '2013sp-cmpt-165-d1'
 
 def validate_content(testcase, data, page_descr="unknown page"):
     """

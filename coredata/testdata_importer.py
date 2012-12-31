@@ -4,7 +4,7 @@
 
 import random, socket, datetime, itertools
 from django.core import serializers
-from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff
+from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff, update_amaint_userids, fix_emplid
 from demodata_importer import fake_emplid, fake_emplids, create_classes
 from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES
 from dashboard.models import UserConfig
@@ -15,10 +15,10 @@ from submission.models.pdf import PDFComponent
 from planning.models import SemesterPlan, PlannedOffering, PlanningCourse, TeachingEquivalent, TeachingCapability, TeachingIntention
 from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
-from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType
+from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType, Supervisor, GradRequirement
 from discipline.models import DisciplineTemplate
 from ra.models import Account
-from onlineforms.models import FormGroup
+from onlineforms.models import FormGroup, Form, Sheet, Field, FormSubmission, SheetSubmission, FieldSubmission
 from courselib.testing import TEST_COURSE_SLUG
 
 FULL_TEST_DATA = TEST_COURSE_SLUG
@@ -45,6 +45,9 @@ def test_class_1(slug):
         m = Member(person=p, offering=crs, role="STUD", credits=3, career="UGRD", added_reason="AUTO",
                 labtut_section=lab)
         m.save()
+    
+    if not Member.objects.filter(person__userid='ggbaker', offering=crs, role='INST'):
+        Member(person=Person.objects.get(userid='ggbaker'), offering=crs, role='INST').save()
     
     # create a TA
     p = Person(emplid=fake_emplid(), userid="0grad1", last_name="Gradstudent", first_name="Douglas", middle_name="", pref_first_name="Doug")
@@ -130,14 +133,6 @@ def create_others():
     p.save()
     r = Role(person=p, role="ADVS", unit=Unit.objects.get(slug='comp'))
     r.save()
-    if not Person.objects.filter(userid='ggbaker'):
-        Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
-    if not Person.objects.filter(userid='dixon'):
-        Person(userid='dixon', first_name='Tony', last_name='Dixon', emplid='000001234').save()
-    if not Person.objects.filter(userid='diana'):
-        Person(userid='diana', first_name='Diana', last_name='Cukierman', emplid='000001235').save()
-    if not Person.objects.filter(userid='popowich'):
-        Person(userid='popowich', first_name='Fred', last_name='Popowich', emplid='000001236').save()
     r = Role(person=Person.objects.get(userid='dixon'), role="PLAN", unit=Unit.objects.get(slug='comp'))
     r.save()
     r = Role(person=Person.objects.get(userid='ggbaker'), role="FAC", unit=Unit.objects.get(slug='comp'))
@@ -166,10 +161,18 @@ def create_grads():
     """
     gp = GradProgram(unit=Unit.objects.get(slug='comp'), label='MSc Project', description='MSc Project option')
     gp.save()
+    req = GradRequirement(program=gp, description='Formed Committee')
+    req.save()
     gp = GradProgram(unit=Unit.objects.get(slug='comp'), label='MSc Thesis', description='MSc Thesis option')
     gp.save()
+    req = GradRequirement(program=gp, description='Formed Committee')
+    req.save()
     gp = GradProgram(unit=Unit.objects.get(slug='comp'), label='PhD', description='PhD')
     gp.save()
+    req = GradRequirement(program=gp, description='Defended Thesis')
+    req.save()
+    req = GradRequirement(program=gp, description='Formed Committee')
+    req.save()
     gp = GradProgram(unit=Unit.objects.get(slug='eng'), label='MEng', description='Masters in Engineering')
     gp.save()
     gp = GradProgram(unit=Unit.objects.get(slug='eng'), label='PhD', description='PhD')
@@ -178,6 +181,7 @@ def create_grads():
     st.save()
     
     programs = list(GradProgram.objects.all())
+    supervisors = list(set([m.person for m in Member.objects.filter(offering__owner__slug='comp', role='INST')]))
     for p in Person.objects.filter(userid__endswith='grad'):
         gp = random.choice(programs)
         campus = random.choice(list(CAMPUSES))
@@ -193,7 +197,18 @@ def create_grads():
             st = GradStatus(student=gs, status=random.choice(['GRAD', 'GRAD', 'WIDR']), start=startsem.next_semester().next_semester().next_semester())
             st.save()
         
-        # TODO: supervisors, completed requirements, letter templates and letters 
+        if random.random() > 0.25:
+            sup = Supervisor(student=gs, supervisor=random.choice(supervisors), supervisor_type='SEN')
+            sup.save()
+            sup = Supervisor(student=gs, supervisor=random.choice(supervisors), supervisor_type='COM')
+            sup.save()
+            if random.random() > 0.5:
+                sup = Supervisor(student=gs, supervisor=random.choice(supervisors), supervisor_type='COM')
+                sup.save()
+            else:
+                sup = Supervisor(student=gs, external="Some External Supervisor", supervisor_type='COM', config={'email': 'external@example.com'})
+                sup.save()
+        # TODO: completed requirements, letter templates and letters 
 
 def create_grad_templ():
     templates = [
@@ -296,6 +311,17 @@ def create_more_data():
     fg.save()
     fg.members = [Person.objects.get(userid='ggbaker'), Person.objects.get(userid='classam')]
     fg.save()
+    
+    f1 = Form(title="Simple Form", owner=fg, unit=fg.unit, description="Simple test form.", initiators='ANY')
+    f1.save()
+    s1 = Sheet(form=f1, title="Initial sheet")
+    s1.save()
+    fld1 = Field(label='Favorite Color', sheet=s1, fieldtype='SMTX', config={"min_length": 1, "required": True, "max_length": "100", 'label': 'Favorite Color', "help_text":''})
+    fld1.save()
+    fld2 = Field(label='Reason', sheet=s1, fieldtype='MDTX', config={"min_length": 10, "required": True, "max_length": "400", 'label': 'Reason', "help_text":'Why?'})
+    fld2.save()
+    fld3 = Field(label='Second Favorite Color', sheet=s1, fieldtype='SMTX', config={"min_length": 1, "required": False, "max_length": "100", 'label': 'Second Favorite Color', "help_text":''})
+    fld3.save()
 
 
 def serialize(filename):
@@ -326,6 +352,8 @@ def serialize(filename):
             GradProgram.objects.all(),
             GradStudent.objects.all(),
             GradStatus.objects.all(),
+            GradRequirement.objects.all(),
+            Supervisor.objects.all(),
             ScholarshipType.objects.all(),
             DisciplineTemplate.objects.all(),
             LetterTemplate.objects.all(),
@@ -338,6 +366,12 @@ def serialize(filename):
             TeachingIntention.objects.all(),
             TeachingCapability.objects.all(),
             FormGroup.objects.all(),
+            Form.objects.all(),
+            Sheet.objects.all(),
+            Field.objects.all(),
+            FormSubmission.objects.all(),
+            SheetSubmission.objects.all(),
+            FieldSubmission.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -362,6 +396,20 @@ def main():
     s.save()
     wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 9, 6))
     wk.save()
+    
+    # make sure these people are here, since we need them
+    if not Person.objects.filter(userid='ggbaker'):
+        Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
+    if not Person.objects.filter(userid='dixon'):
+        Person(userid='dixon', first_name='Tony', last_name='Dixon', emplid='000001234').save()
+    if not Person.objects.filter(userid='diana'):
+        Person(userid='diana', first_name='Diana', last_name='Cukierman', emplid='000001235').save()
+    if not Person.objects.filter(userid='popowich'):
+        Person(userid='popowich', first_name='Fred', last_name='Popowich', emplid='000001236').save()
+    
+    # fix their emplids so they identify with real people during the import
+    update_amaint_userids()
+    fix_emplid()
     
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around

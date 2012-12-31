@@ -120,7 +120,7 @@ class ModelTests(TestCase):
 
 
 class IntegrationTestCase(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['test_data', 'onlineforms/extra_test_data']
 
     def test_valid_simple_initial_form_submission_loggedin(self):
         logged_in_person = Person.objects.get(userid="ggbaker")
@@ -290,6 +290,11 @@ class ViewTestCase(TestCase):
     def setUp(self):
         logged_in_person = Person.objects.get(userid="ggbaker")
         self.client.login(ticket=logged_in_person.userid, service=CAS_SERVER_URL)
+        # make sure the sheetsub is owned by the logged in user (to correct for wonky test data)
+        sheetsub = SheetSubmission.objects.get(form_submission__slug=self.slug_data["formsubmit_slug"], slug=self.slug_data["sheetsubmit_slug"])
+        ff = sheetsub.filler
+        ff.sfuFormFiller = logged_in_person
+        ff.save()
 
     def test_no_arg_pages(self):
         views = ['manage_groups',

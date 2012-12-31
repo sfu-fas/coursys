@@ -7,7 +7,7 @@ from coredata.models import *
 from dashboard.models import UserConfig
 from courselib.testing import *
 from django.core.urlresolvers import reverse
-import re
+import re, datetime
 
 class DashboardTest(TestCase):
     fixtures = ['test_data']
@@ -23,10 +23,10 @@ class DashboardTest(TestCase):
         response = client.get("/")
         self.assertEquals(response.status_code, 200)
         
-        # this student is in this course: check for a link to its page
+        # this student is in this course: check for a link to its page (but it only appears after start of semester)
         c = CourseOffering.objects.get(slug=self.c_slug)
-        #print response
-        self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
+        if c.semester.start < datetime.date.today():
+            self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
         validate_content(self, response.content, "index page")
 
@@ -35,7 +35,7 @@ class DashboardTest(TestCase):
         """
         Check out a course front-page
         """
-        s, c = create_offering()
+        _, c = create_offering()
         
         client = Client()
         # not logged in: should be redirected to login page
