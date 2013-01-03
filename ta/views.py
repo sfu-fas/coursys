@@ -35,12 +35,6 @@ def _format_currency(i):
     """used to properly format money"""
     return locale.currency(float(i), grouping=True)
 
-def _get_total_bu(courses):
-    """calculates the total bu given a list of courses"""
-    total = 0
-    for course in courses:
-        total = total + course.bu
-    return total
 
 def _create_news(person, url, from_user, accept_deadline):
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
@@ -717,14 +711,12 @@ def all_contracts(request, post_slug):
                 return HttpResponseRedirect(reverse('ta.views.all_contracts', kwargs={'post_slug': posting.slug}))
 
     
+    # Create a list of courses that this TA is assigned to. 
     for contract in contracts:
-        total_bu =0
         crs_list = ''
         courses = TACourse.objects.filter(contract=contract)
         for course in courses:
-            total_bu += course.bu
-            crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+"("+str(course.bu)+")\n"
-        contract.total_bu = total_bu
+            crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+" ("+str(course.total_bu)+")\n"
         contract.crs_list = crs_list    
             
     #postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
@@ -752,19 +744,15 @@ def contracts_csv(request, post_slug):
     seq = posting.next_export_seq()
     batchid = '%s_%s_%02i' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"), seq)
     for c in contracts:
-        courses = TACourse.objects.filter(contract=c)
-        total_bu = 0
-        prep_units = 0
-        for crs in courses:
-            total_bu += crs.bu
-            if crs.has_labtut():
-                prep_units += LAB_BONUS_DECIMAL
+        bu = c.bu()
+        total_bu = c.total_bu()
+        prep_units = c.prep_bu()
         
         signed = 'Y' if c.status=='SGN' else 'N'
         benefits = 'Y'
         schol_rate = 'TSCH' if c.scholarship_per_bu else ''
-        salary_total = (total_bu + prep_units) * c.pay_per_bu
-        schol_total = (total_bu + prep_units) * c.scholarship_per_bu
+        salary_total = total_bu * c.pay_per_bu
+        schol_total = total_bu * c.scholarship_per_bu
         if prep_units == 0:
             prep_units = ''
         
@@ -772,7 +760,7 @@ def contracts_csv(request, post_slug):
         row.extend([c.application.person.last_name, c.application.person.first_name, c.application.person.middle_name])
         row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
         row.extend(["%08i" % (c.position_number.position_number), '', '', 'TSU', '', c.application.category])
-        row.extend([11, posting.unit.deptid(), '', c.position_number.account_number, prep_units, total_bu])
+        row.extend([11, posting.unit.deptid(), '', c.position_number.account_number, prep_units, bu])
         row.extend(['T', "%.2f"%(salary_total), '', '', '', schol_rate, "%.2f"%(schol_total), '', '', '', ''])
         writer.writerow(row)
     
@@ -800,7 +788,7 @@ def accept_contract(request, post_slug, userid, preview=False):
         application = TAApplication.objects.get(person__userid=userid, posting=posting)
         
     courses = TACourse.objects.filter(contract=contract)
-    total = _get_total_bu(courses)
+    total = contract.total_bu()
     
     #this could be refactored used in multiple places
     pp = posting.payperiods()
@@ -867,7 +855,7 @@ def view_contract(request, post_slug, userid):
     contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
     courses = TACourse.objects.filter(contract=contract)
     
-    total = _get_total_bu(courses)
+    total = contract.total_bu()
     
     pp = posting.payperiods()
     salary_sem = (total*contract.pay_per_bu)
@@ -935,6 +923,13 @@ def new_contract(request, post_slug):
             return HttpResponseRedirect(reverse(edit_contract, kwargs={'post_slug': posting.slug, 'userid': app.person.userid}))
     
     return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+
+
+def _lab_or_tutorial( courseDescription ):
+    if courseDescription.labtut:
+        return " (+%.2f BU)" % LAB_BONUS_DECIMAL
+    else:
+        return ""
  
 
 @requires_role("TAAD")
@@ -945,6 +940,8 @@ def edit_contract(request, post_slug, userid):
         
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit, hidden=False)]
+    description_choices = [('', '---------')] + [(d.id, d.description + _lab_or_tutorial(d) ) 
+                                for d in CourseDescription.objects.filter(unit=posting.unit, hidden=False)]
     
     #number of course form to populate
     num = 3
@@ -980,7 +977,6 @@ def edit_contract(request, post_slug, userid):
                 results = posting.salary()[index] + ',' + posting.scholarship()[index] + ',' + str(posting.accounts()[index])
                 return HttpResponse(results)
             if('course' in request.POST):
-                results = ''
                 course = request.POST['course']
                 co = get_object_or_404(CourseOffering, pk=course)
                 req_bu = posting.required_bu(co)
@@ -990,13 +986,7 @@ def edit_contract(request, post_slug, userid):
                     req_bu = 0.0
                 else:
                     req_bu -= assigned_bu
-                
-                results += str(req_bu)
-                if co.labtas():
-                    results += ',OML'
-                else:
-                    results += ',OM'
-                return HttpResponse(results)
+                return HttpResponse(str(req_bu))
         elif form.is_valid():
             contract = form.save(commit=False)
             formset = TACourseFormset(request.POST, instance=contract)
@@ -1053,10 +1043,13 @@ def edit_contract(request, post_slug, userid):
     form.fields['position_number'].choices = position_choices       
     for f in formset:
         f.fields['course'].choices = course_choices
+        f.fields['description'].choices = description_choices
+    
+    ids_of_descriptions_with_labs = json.dumps([d.id for d in CourseDescription.objects.filter(unit=posting.unit, hidden=False, labtut=True)])
     
     context = {'form': form, 'formset': formset, 'posting': posting, 'editing': editing,
                'old_status': old_status, 'contract': contract, 'application': application,
-               'userid': userid, 'LAB_BONUS': LAB_BONUS}
+               'userid': userid, 'LAB_BONUS': LAB_BONUS, 'ids_of_descriptions_with_labs':ids_of_descriptions_with_labs}
     return render(request, 'ta/edit_contract.html',context)
 
 def _copy_posting_defaults(source, destination):
