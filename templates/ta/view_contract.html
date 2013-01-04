@@ -46,7 +46,9 @@
           <tr>
          	<th scope="col">Course Name</th>
          	<th scope="col">Description</th>
-         	<th scope="col">Base Unit</th>
+         	<th scope="col">Prep Units</th>
+         	<th scope="col">Base Units</th>
+         	<th scope="col">Total Units</th>
           </tr>         
         </thead>  
 		<tbody>
@@ -55,12 +57,16 @@
 			{% for course in courses %}
 			<tr>
 				<td>{{course.course.subject}} {{course.course.number}} {{course.course.section}}</td>
-				<td>{{ course.description.description }}</td>
+				<td>{{course.description.description}}</td>
+                <td>{{course.prep_bu}} </td> 
 				<td>{{course.bu}}</td>
+                <td>{{course.total_bu}} </td>
 			</tr>
 			{% endfor %}		
 			<tr id="cal_tr">
 	      	<td></td>
+            <td></td>
+            <td></td>
 	      	<td class="table-row-label" id="total_bu_label" align="right">Total Base Units:&nbsp;</td>
 	      	<td class="table-row-label">{{total}}</td>
 	      </tr>

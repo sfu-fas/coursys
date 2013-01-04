@@ -105,10 +105,10 @@ def financials(request, grad_slug):
                 for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
                     amount += course.pay()
                     if contract.status == 'SGN':
-                        text = "%s (%s BU)" % (course.course.name(), course.bu)
+                        text = "%s (%s BU)" % (course.course.name(), course.total_bu)
                     else:
                         text = "%s (%s BU, current status: %s)" \
-                             % (course.course.name(), course.bu, contract.get_status_display().lower())
+                             % (course.course.name(), course.total_bu, contract.get_status_display().lower())
                     courses.append({'course': text,'amount': course.pay()})
         ta = {'courses':courses,'amount':amount}
         semester_total += amount

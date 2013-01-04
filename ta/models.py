@@ -138,6 +138,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
     
     def max_hours(self):
         return self.base_units * HOURS_PER_BU
+
     def total_hours(self):
         """
         Total number of hours assigned
@@ -310,7 +311,7 @@ class TAPosting(models.Model):
         total = decimal.Decimal(0)
         tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
         if(tacourses.count() > 0):
-            total = tacourses.aggregate(Sum('bu'))['bu__sum']
+            total = sum([t.total_bu for t in tacourses])
         return decimal.Decimal(total)
 
     def applicant_count(self, offering):
@@ -347,7 +348,7 @@ class TAPosting(models.Model):
         tacourses = TACourse.objects.filter(contract__posting=self).exclude(contract__status__in=['REJ', 'CAN'])
         for course in tacourses:
             pay += course.pay()
-            bus += course.bu
+            bus += course.total_bu
         return (bus, pay, tac)
     
     def html_cache_key(self):
@@ -559,6 +560,17 @@ class TAContract(models.Model):
         self.scholarship_per_bu = posting.scholarship()[index]
         self.save()
 
+    def bu(self):
+        courses = TACourse.objects.filter(contract=self)
+        return sum( [course.bu for course in courses] )
+
+    def total_bu(self):
+        courses = TACourse.objects.filter(contract=self)
+        return sum( [course.total_bu for course in courses] )
+
+    def prep_bu(self):
+        courses = TACourse.objects.filter(contract=self)
+        return sum( [course.prep_bu for course in courses] )
 
 
 class CourseDescription(models.Model):
@@ -586,6 +598,24 @@ class TACourse(models.Model):
     
     def __unicode__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
+
+    @property
+    def prep_bu(self):
+        """
+        Return the prep BUs for this assignment
+        """
+        if self.has_labtut():
+            return LAB_BONUS_DECIMAL
+        else:
+            return 0
+
+    @property
+    def total_bu(self):
+        """
+        Return the total BUs for this assignment
+        """
+        return self.bu + self.prep_bu
+
     def has_labtut(self):
         """
         Does this assignment deserve the LAB_BONUS bonus?
@@ -607,7 +637,7 @@ class TACourse(models.Model):
         contract = self.contract
         if contract.status in STATUSES_NOT_TAING:
             return decimal.Decimal(0)
-        total = self.bu * (contract.pay_per_bu + contract.scholarship_per_bu)
+        total = self.total_bu * (contract.pay_per_bu + contract.scholarship_per_bu)
         return total
         
 TAKEN_CHOICES = (
