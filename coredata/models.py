@@ -685,7 +685,7 @@ class Member(models.Model):
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
-    bu, set_bu = getter_setter('bu')
+    raw_bu, set_bu = getter_setter('bu')
     _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
@@ -709,6 +709,9 @@ class Member(models.Model):
 
         if others:
             raise ValidationError('There is another membership with this person, offering, and role.  These must be unique for a membership (unless role is "dropped").')
+
+    def bu(self):
+        return decimal.Decimal(unicode(self.raw_bu()))
 
     def teaching_credit(self):
         if 'teaching_credit' in self.config:

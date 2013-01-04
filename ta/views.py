@@ -111,9 +111,9 @@ def new_tug(request, course_slug, userid):
     else:
         if has_lab_or_tut:
             form = TUGForm(offering=course,userid=userid, initial=
-                    {'holiday':{'total':bu-LAB_BONUS},
-                     'base_units': bu-LAB_BONUS})
-            form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS)
+                    {'holiday':{'total':bu-LAB_BONUS_DECIMAL},
+                     'base_units': bu-LAB_BONUS_DECIMAL})
+            form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS_DECIMAL)
         else:
             form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
     
@@ -127,8 +127,8 @@ def new_tug(request, course_slug, userid):
                'course':course,
                'form':form,
                'userid':userid,
-               'LAB_BONUS': LAB_BONUS,
-               'LAB_BONUS_4': LAB_BONUS+4,
+               'LAB_BONUS': LAB_BONUS_DECIMAL,
+               'LAB_BONUS_4': LAB_BONUS_DECIMAL+4, # used in the help text
                }
     return render(request,'ta/new_tug.html',context)
 
@@ -155,7 +155,7 @@ def view_tug(request, course_slug, userid):
         context = {'tug': tug, 'ta':member, 'course':course, 
                 'maxHours': max_hours, 'totalHours': total_hours,
                 'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut,
-                'LAB_BONUS': LAB_BONUS, 'LAB_BONUS_4': LAB_BONUS+4, 'HOURS_PER_BU': HOURS_PER_BU, 'LAB_BONUS_HOURS': LAB_BONUS*HOURS_PER_BU, 'HOURS_PER_BU': HOURS_PER_BU,}
+                'LAB_BONUS': LAB_BONUS_DECIMAL, 'LAB_BONUS_4': LAB_BONUS_DECIMAL+4, 'HOURS_PER_BU': HOURS_PER_BU, 'LAB_BONUS_HOURS': LAB_BONUS_DECIMAL*HOURS_PER_BU, 'HOURS_PER_BU': HOURS_PER_BU,}
         return render(request, 'ta/view_tug.html',context)
 
 @requires_course_instr_by_slug
