@@ -57,11 +57,8 @@ def _create_alerts(data, person, unit):
         alerts = data['alerts']
         if not isinstance(alerts, (list, tuple)):
             raise ValidationError("Problems not in list format")
-        if len(alerts) is 0:
-            raise ValidationError("No problems present")
     except KeyError:
-        raise ValidationError("No problems present")
-            
+        alerts = []
 
     errors = []
     
