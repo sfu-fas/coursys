@@ -137,7 +137,7 @@ class GradStudent(models.Model):
         """
         Update the self.start_semester, self.end_semester, self.current_status fields.
         """
-        all_gs = GradStatus.objects.filter(student=self)
+        all_gs = GradStatus.objects.filter(student=self, hidden=False)
         old = (self.start_semester_id, self.end_semester_id, self.current_status)
         self.start_semester = None
         self.end_semester = None
@@ -184,10 +184,12 @@ class GradStudent(models.Model):
         next_sem = Semester.current().offset(1)
         start = self.start_semester or next_sem
         end = self.end_semester or next_sem
-        
-        statuses = GradStatus.objects.filter(student=self, hidden=False) \
+
+        statuses_that_indicate_a_change_in_state = STATUS_ACTIVE + STATUS_INACTIVE
+        statuses = GradStatus.objects.filter(student=self, hidden=False, status__in=statuses_that_indicate_a_change_in_state) \
                    .order_by('start__name', 'start_date', 'created_at') \
                    .select_related('start')
+
         statuses = list(statuses)
         sem = start
         active = 0
@@ -198,7 +200,9 @@ class GradStudent(models.Model):
                 this_status = prev_statuses[-1]
                 if this_status.status in STATUS_ACTIVE:
                     active += 1
-            total += 1
+                    total += 1
+                elif this_status.status in STATUS_INACTIVE and this_status.status not in STATUS_DONE:
+                    total += 1
             sem = sem.next_semester()
         
         return active, total
@@ -725,7 +729,7 @@ class GradStatus(models.Model):
 
         if close_others:
             # make sure any other statuses are closed
-            other_gs = GradStatus.objects.filter(student=self.student, end__isnull=True).exclude(id=self.id)
+            other_gs = GradStatus.objects.filter(student=self.student, hidden=False, end__isnull=True).exclude(id=self.id)
             for gs in other_gs:
                 gs.end = max(self.start, gs.start)
                 gs.save(close_others=False)  
