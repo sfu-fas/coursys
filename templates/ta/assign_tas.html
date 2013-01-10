@@ -58,10 +58,18 @@
 {% block content %}
 <div class="datatable_container">
 <table class="display" id="offerings">
-<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Campus</th>
+<thead>
+    <tr>
+    <th scope="col">Offering</th>
+    <th scope="col">Instructor</th>
+    <th scope="col">Enrol</th>
+    <th scope="col">Campus</th>
 	<th scope="col">Assigned</th>
 	<th scope="col">Applicants</th>
-	<th scope="col">Required BU</th><th scope="col">Assigned BU</th><th scope="col">Diff</th><th scope="col">Required @Cap</th></tr></thead>
+	<th scope="col">Required BU (Default+Extra)</th>
+    <th scope="col">Assigned BU</th>
+    <th scope="col">Diff</th>
+    <th scope="col">Required @Cap</th></tr></thead>
 <tbody>
 {% for o in offerings %}
 <tr>
@@ -80,7 +88,7 @@
   	{% endfor %}
   </td>
   <td class="num">{{ o|display_applicant_count:posting }}</td>
-  <td class="num">{{ o|display_required_bu:posting }}</td>
+  <td class="num">{{ o|display_required_bu:posting }}<br/>({{ o|display_default_bu:posting }}+{{o|display_extra_bu:posting}}) </td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
   <td class="num">{{ o|display_bu_difference:posting }}</td>
   <td class="num">{{ o|display_bu_cap:posting }}</td>
