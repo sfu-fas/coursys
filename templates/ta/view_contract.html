@@ -27,6 +27,7 @@
   <h2>General Information:</h2> 
   
   <table class="info">
+    <tr><th>ID</th><td>{{ contract.application.person.emplid }} ({{contract.application.person.userid}})</td></tr>
   	<tr><th>Email</th><td>{{ contract.application.person.email_mailto }}</td></tr>
   	<tr><th>Applicant SIN</th><td>{{ contract.sin }}</td></tr>
   	<tr><th>Category</th><td>{{ contract.get_appt_category_display }}</td></tr>
