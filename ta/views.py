@@ -524,21 +524,21 @@ def assign_bus(request, post_slug, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
     course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False)
-    #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
+    all_applicants = TAApplication.objects.filter(posting=posting)
     
     descrs = CourseDescription.objects.filter(unit=posting.unit)
     if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
         messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
         return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
     
-    if request.method == "POST" and 'bu_update' in request.POST:
+    if request.method == "POST" and 'extra_bu' in request.POST:
         # update extra BU and lab/tutorial setting for course
-        act = 0
-        extra = 0
-        msg = ''
-        req_bu = ''
-        rem_bu = ''
+        response_data = {
+            'message': "",
+            'error': False,
+            'labtas_changed':False,
+            'has_labtas': False}
         
         extra_bu = request.POST['extra_bu']
         if extra_bu != '':
@@ -546,48 +546,99 @@ def assign_bus(request, post_slug, course_slug):
                 extra_bu = decimal.Decimal(extra_bu)
                 if extra_bu != offering.extra_bu():
                     offering.config['extra_bu'] = extra_bu
-                    req_bu = ta_display.display_bu(offering, posting)
-                    rem_bu = ta_display.display_bu_difference(offering, posting)
+                    response_data['message'] = "Extra Base Units set to " + str(extra_bu)
             except:
-                msg = "Extra BU needs to be a decimal number."
+                response_data['message'] = "Extra Base Units must be a decimal number"
+                response_data['error'] = True
 
-        if 'labtas' in request.POST:
-            if not offering.labtas(): #changed from F to T
+        if 'labtas' in request.POST and request.POST['labtas']=="true":
+            if not 'labtas' in offering.config or offering.config['labtas'] != True:
                 offering.config['labtas'] = True
-                act = 1
+                response_data['labtas_changed'] = True
+                response_data['has_labtas'] = True
         else:
-            if offering.labtas(): #changed from T to F
+            if not 'labtas' in offering.config or offering.config['labtas'] != False:
                 offering.config['labtas'] = False
-                act = -1
-        offering.save()
-        data = {'act': act , 'msg': msg, 'req_bu': req_bu, 'rem_bu': rem_bu }
-        return HttpResponse(json.dumps(data), mimetype='application/json')
+                response_data['labtas_changed'] = True
+                response_data['has_labtas'] = False
 
-    apps = []
-    campus_prefs = []
+        if response_data['message'] == '':
+            response_data['message'] = "Success!"
+
+        offering.save()
+        
+        # if the course's Lab (+0.17) status has changed, change all TA contracts to conform to the new Lab (+0.17) status.
+        if response_data['labtas_changed']:
+            for ta_course in TACourse.objects.filter( course=offering ):
+                if ta_course.contract.posting == posting and ta_course.description != ta_course.default_description():
+                    # change the description
+                    ta_course.description = ta_course.default_description()
+                    ta_course.save()
+                    # this requires that the contract be re-signed
+                    ta_course.contract.status = 'OPN'
+                    ta_course.contract.save()
+
+        return HttpResponse(json.dumps(response_data), mimetype='application/json')
+
+    applicants = []
     assigned_ta = []
-    initial = []
+    initial = [] # used to initialize formset
+
+    # First, people who have assigned BUs
+    for ta_course in tacourses:
+        applicant = ta_course.contract.application
+        applicant.course_rank = 0
+        applicants.append(applicant)
     
-    for p in course_prefs:
-        init = {}
-        assigned = None
-        statuses = GradStatus.objects.filter(student__person=p.app.person, end=None).select_related('student__program__unit')
-        p.app.statuses = statuses # annotate the application with their current grad status(es)
-        apps.append(p.app)
+    # Then, people who have this course in their preferences.
+    for course_preference in course_prefs:
+        applicant = course_preference.app
+        
+        # Determine Rank
+        applicant.course_rank = course_preference.rank
+        
+        if applicant not in applicants:
+            applicants.append(applicant)
+        else:
+            for existing_applicant in applicants:
+                if existing_applicant == applicant:
+                    existing_applicant.course_rank = course_preference.rank
+
+    # Then, anybody else. 
+    for applicant in all_applicants:
+        applicant.course_rank = 0
+        if applicant not in applicants:
+            applicants.append(applicant)
+
+    for applicant in applicants:
+        # Determine Current Grad Status
+        statuses = GradStatus.objects.filter(student__person=applicant.person, end=None).select_related('student__program__unit')
+        applicant.statuses = statuses # annotate the application with their current grad status(es)
+        
+        # Determine Campus Preference
         try:
-            campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
+            campus_preference = CampusPreference.objects.get(app=applicant, campus=offering.campus)
         except CampusPreference.DoesNotExist:
             # temporary fake object: shouldn't happen, but don't die if it does.
-            campus_preference = CampusPreference(app=p.app, campus=offering.campus, pref="NOT")
-        campus_prefs.append(campus_preference)
-        #find BU assigned to this applicant through contract
-        app_tacourse = tacourses.filter(contract__application=p.app)
-        if app_tacourse.count() == 1:
-            init['bu'] = app_tacourse[0].bu
-            assigned = app_tacourse[0]
-        assigned_ta.append(assigned)
-        init['rank'] = p.app.rank
+            campus_preference = CampusPreference(app=applicant, campus=offering.campus, pref="NOT")
+        applicant.campus_preference = campus_preference
+
+        #Find BU assigned to this applicant through contract
+        course_assignments = tacourses.filter(contract__application=applicant)
+        if course_assignments.count() == 1:
+            assignment_for_this_course = course_assignments[0]
+            applicant.assigned_course = assignment_for_this_course
+        else:
+            applicant.assigned_course = None
+
+        # Set initial values for Formset
+        init = {}
+        if applicant.assigned_course:
+            assignment_for_this_course = course_assignments[0]
+            init['bu'] = assignment_for_this_course.bu
+        init['rank'] = applicant.rank
         initial.append(init)
+
 
     AssignBUFormSet = formset_factory(AssignBUForm)
     
@@ -596,21 +647,22 @@ def assign_bus(request, post_slug, course_slug):
         formset = AssignBUFormSet(request.POST)
         if formset.is_valid():
             descr_error = False
-            for i in range(len(apps)):
+            for i in range(len(applicants)):
                 #update rank
-                apps[i].rank = formset[i]['rank'].value()
-                apps[i].save()
+                applicant = applicants[i]
+                applicant.rank = formset[i]['rank'].value()
+                applicant.save()
                 
-                if assigned_ta[i] == None: 
+                if not applicant.assigned_course: 
                     #create new TACourse if bu field is nonempty
-                    if formset[i]['bu'].value() != '':
+                    if formset[i]['bu'].value() != '' and formset[i]['bu'].value() != '0':
                         #create new TAContract if there isn't one
-                        contracts = TAContract.objects.filter(application=apps[i], posting=posting)
+                        contracts = TAContract.objects.filter(application=applicants[i], posting=posting)
                         if contracts.count() > 0: #count is 1
                             contract = contracts[0]
                         else:
                             contract = TAContract(created_by=request.user.username)
-                            contract.first_assign(apps[i], posting)
+                            contract.first_assign(applicants[i], posting)
                         bu = formset[i]['bu'].value()
                         tacourse = TACourse(course=offering, contract=contract, bu=bu)
                         try:
@@ -623,28 +675,20 @@ def assign_bus(request, post_slug, course_slug):
                             tacourse.save()
                 else: 
                     #update bu for existing TACourse
-                    if formset[i]['bu'].value() != '':
-                        assigned_ta[i].bu = formset[i]['bu'].value()
-                        assigned_ta[i].save()                        
+                    if formset[i]['bu'].value() != '' and formset[i]['bu'].value() != '0':
+                        applicant.assigned_course.bu = formset[i]['bu'].value()
+                        applicant.assigned_course.save()                        
                     #unassign bu to this offering for this applicant
                     else:
-                        assigned_ta[i].delete()
+                        course = applicant.assigned_course
+                        course.delete()
             if not descr_error:
                 return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)
     
-    #add class to bu input for js
-    """
-    for i in range(len(apps)):
-        formset[i].fields['bu'].widget.attrs['class']  = 'bu_inp'
-        if assigned_ta[i] != None and assigned_ta[i].description == 'OML':
-            formset[i].fields['bu'].help_text = 'TA runs lab'
-    """
-    
     context = {'formset':formset, 'posting':posting, 'offering':offering, 'instructors':instructors,
-               'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs,
-               'LAB_BONUS': LAB_BONUS}
+               'applications': applicants, 'LAB_BONUS': LAB_BONUS}
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")

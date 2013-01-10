@@ -290,11 +290,16 @@ class TAPosting(models.Model):
 
     def required_bu(self, offering, count=None):
         """
-        Actual BUs to assign to this course: default + extra
+        Actual BUs to assign to this course: default + extra + 0.17*number of TA's
         """
         default = self.default_bu(offering, count=count)
         extra = offering.extra_bu()
-        return default + extra
+
+        if offering.labtas():
+            tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
+            return default + extra + decimal.Decimal(LAB_BONUS * len(tacourses)) 
+        else:
+            return default + extra
 
     def required_bu_cap(self, offering):
         """
