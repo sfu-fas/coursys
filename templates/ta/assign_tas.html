@@ -66,7 +66,7 @@
     <th scope="col">Campus</th>
 	<th scope="col">Assigned</th>
 	<th scope="col">Applicants</th>
-	<th scope="col">Required BU (Default+Extra)</th>
+	<th scope="col">Required BU</th>
     <th scope="col">Assigned BU</th>
     <th scope="col">Diff</th>
     <th scope="col">Required @Cap</th></tr></thead>
@@ -88,7 +88,11 @@
   	{% endfor %}
   </td>
   <td class="num">{{ o|display_applicant_count:posting }}</td>
-  <td class="num">{{ o|display_required_bu:posting }}<br/>({{ o|display_default_bu:posting }}+{{o|display_extra_bu:posting}}) </td>
+  <td class="num">{{ o|display_required_bu:posting }}
+    {% if o|display_extra_bu:posting != "0.00" %} 
+        <br/>({{ o|display_default_bu:posting }}+{{o|display_extra_bu:posting}}) 
+        {% endif %}
+  </td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
   <td class="num">{{ o|display_bu_difference:posting }}</td>
   <td class="num">{{ o|display_bu_cap:posting }}</td>
