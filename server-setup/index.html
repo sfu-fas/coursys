@@ -62,7 +62,8 @@ connect = onara.cs.sfu.ca:5000</pre></blockquote>
 <dt>User setup</dt>
   <dd>Created a user who owns the deployed code:
   <blockquote><pre>adduser coursys
-sudo gpasswd -a coursys admin</pre></blockquote>
+sudo gpasswd -a coursys admin
+echo "ggbaker@sfu.ca" > /home/coursys/.forward</pre></blockquote>
   <p>Created a SSH key for that user <a href="https://wiki.sfu.ca/public/index.php/Coursys_Environment_Setup">per Curtis' instructions</a>.
   <p>Prevented SSH connections as that user by adding this line to <code class="file">/etc/ssh/sshd_config</code>:</p>
   <blockquote><pre>DenyUsers coursys</pre></blockquote>
@@ -137,7 +138,8 @@ sudo pip install -r build_deps/deployed_deps.txt</pre></blockquote>
   <blockquote><pre>MAILTO=ggbaker@sfu.ca
 0 8 * * * /home/coursys/courses/server-setup/do-import.sh
 0 */2 * * * nice ionice -c 3 /home/coursys/courses/server-setup/courses-backup >/dev/null
-0,15,30,45 * * * * cd /home/coursys/courses/ &amp;&amp; python tools/ping_celery.py 2>/dev/null</pre></blockquote>
+*/15 * * * * cd /home/coursys/courses/ &amp;&amp; python tools/ping_celery.py 2>/dev/null
+*/15 * * * * cd /home/coursys/courses/ &amp;&amp; python tools/ping_reportingdb.py</pre></blockquote>
   <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a> and the <a href="do-import.sh">import running script</a>.</p>
   <p>There is also a <a href="mkdump">script <code class="file">mkdump</code></a> that will create a database dump if needed.</p>
   </dd>
