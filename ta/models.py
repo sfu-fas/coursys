@@ -297,7 +297,7 @@ class TAPosting(models.Model):
 
         if offering.labtas():
             tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
-            return default + extra + decimal.Decimal(LAB_BONUS * len(tacourses)) 
+            return default + extra + decimal.Decimal(str(LAB_BONUS * len(tacourses))) 
         else:
             return default + extra
 
