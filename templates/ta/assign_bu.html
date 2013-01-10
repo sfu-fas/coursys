@@ -50,6 +50,7 @@
     $('#messages').hide();
 
     $('#extra_bu').change( show_update );
+    $('#extra_bu').keydown( show_update );
     $('#labtas').change( show_update );
 	
   });
@@ -101,7 +102,7 @@
 				function(data, success){
 
                     // The response object should look like: 
-                    // data = { 'message':'blah blah blah', 'error':false, 'has_labtas':true }
+                    // data = { 'message':'blah blah blah', 'error':false, 'has_labtas':true, 'labtas_changed':true }
 					
                     if(data.message != ''){
 						$('#messages div.warninglist').html('<ul><li class="warning">' + data.message + '</li></ul>');

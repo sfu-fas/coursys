@@ -538,7 +538,7 @@ def assign_bus(request, post_slug, course_slug):
             'message': "",
             'error': False,
             'labtas_changed':False,
-            'has_labtas': False}
+            'has_labtas':  offering.config['labtas'] }
         
         extra_bu = request.POST['extra_bu']
         if extra_bu != '':
