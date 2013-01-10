@@ -94,7 +94,14 @@
   }
   
   function update(){
-  	var extra_bu = $('#extra_bu').val();
+  	var extra_bu = parseFloat($('#extra_bu').val());
+
+    if( isNaN(extra_bu) )
+    {
+        $("#extra_bu").val( "0.00" );
+        extra_bu = 0;
+    }
+
     var labtas = $("#labtas").attr('checked') == 'checked';
   	
   	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
