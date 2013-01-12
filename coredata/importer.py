@@ -58,6 +58,20 @@ def get_combined():
                 CourseOffering.objects.get(slug='2012fa-cmpt-711-g1')
             ]
         },
+        {
+            'subject': 'MACM', 'number': '101', 'section': 'X100',
+            'semester': Semester.objects.get(name="1131"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32755, 'class_nbr': 32755,
+            'title': 'Discrete Math I',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2013sp-macm-101-d1'),
+                CourseOffering.objects.get(slug='2013sp-macm-101-d2')
+            ]
+        },
         ]
     return combined_sections
 
