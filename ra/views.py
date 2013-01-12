@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.template.defaultfilters import date as datefilter
 from django.conf import settings
 from ra.models import RAAppointment, Project, Account, SemesterConfig
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
 from coredata.queries import more_personal_info, SIMSProblem
@@ -138,7 +138,7 @@ def new_student(request, userid):
     gss = GradStudent.objects.filter(person=student)
     if gss:
         gradstudent = gss[0]
-        initial['sin'] = gradstudent.sin()
+        initial['sin'] = gradstudent.person.sin()
     
     raform = RAForm(initial=initial)
     raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
@@ -367,6 +367,33 @@ def remove_project(request, project_slug):
     l.save()              
     
     return HttpResponseRedirect(reverse('ra.views.projects_index'))
+
+@requires_role("FUND")
+def semester_config(request, semester_name=None):
+    if semester_name:
+        semester = get_object_or_404(Semester, name=semester_name)
+    else:
+        semester = Semester.next_starting()
+
+    unit_choices = [(u.id, u.name) for u in request.units]
+    if request.method == 'POST':
+        form = SemesterConfigForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            config = SemesterConfig.get_config(units=[form.cleaned_data['unit']], semester=semester)
+            config.set_start_date(form.cleaned_data['start_date'])
+            config.set_end_date(form.cleaned_data['end_date'])
+            config.save()
+            messages.success(request, 'Updated semester configuration for %s.' % (semester.name))
+            return HttpResponseRedirect(reverse('ra.views.search'))
+    else:
+        config = SemesterConfig.get_config(units=request.units, semester=semester)
+        form = SemesterConfigForm(initial={'start_date': config.start_date(), 'end_date': config.end_date()})
+        form.fields['unit'].choices = unit_choices
+
+    return render(request, 'ra/semester_config.html', {'semester': semester, 'form': form})
+
+
 
 @requires_role("FUND")
 def search_scholarships_by_student(request, student_id):

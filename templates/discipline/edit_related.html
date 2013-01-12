@@ -14,7 +14,7 @@ $(document).ready(function() {
 {% block editlabel %}Related Items{% endblock %}
 
 {% block disc_content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.edit_related course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <div class="discside" id="group_related"></div>
     {{form.as_p}}

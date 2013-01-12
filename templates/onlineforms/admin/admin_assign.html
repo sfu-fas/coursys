@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %} Assign {{ form_submission.form.title }} {% endblock %}
+{% block h1 %} Assign {{ form_submission.form.title }} {% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+    <li>&gt; Assign {{ form_submission.form.title }}</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_assignee').each(function() {
+            $(this).autocomplete({
+                source: '/data/students',
+                minLength: 2,
+                select: function(event, ui){
+                    $(this).data("val", ui.item.value);
+                }
+            });
+        }); 
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+    <div class="form_container">
+        {% if form.non_field_errors %}
+            <p class="errorindicator">
+                <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation"/>
+                {{ form.non_field_errors }}
+            </p>
+        {% endif %}
+        <form action="" method="post">{% csrf_token %}
+            <fieldset>
+                <legend>Assignee Information</legend>
+                <ul>
+                    <li>
+                        {{ form|as_dl }}
+                    </li>
+                    <li>
+                        <input class="submit" type="submit" value="Submit"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </form>
+        <p>
+            {% if assign_to_sfu_account %}
+                <a href="{% url onlineforms.views.admin_assign_nonsfu formsubmit_slug=form_submission.slug %}">
+                    Click here to assign to someone without a SFU account.
+                </a>
+            {% else %}
+                <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_submission.slug %}">
+                    Click here to assign to someone with a SFU account.
+                </a>
+            {% endif %}
+        </p>
+    </div>
+{% endblock %}

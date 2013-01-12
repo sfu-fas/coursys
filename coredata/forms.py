@@ -29,6 +29,8 @@ class OfferingField(forms.ModelChoiceField):
         super(OfferingField, self).__init__(*args, queryset=CourseOffering.objects.none(), widget=OfferingSelect(attrs={'size': 30}), help_text="Type to search for course offerings.", **kwargs)
         
     def to_python(self, value):
+        if not self.required and not value:
+            return None
         try:
             co = CourseOffering.objects.exclude(component="CAN").get(pk=value, graded=True)
         except (ValueError, CourseOffering.DoesNotExist):
@@ -68,21 +70,6 @@ class UnitForm(forms.ModelForm):
             acad_org = None
         return acad_org
 
-class MemberForm(forms.ModelForm):
-    person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
-    offering = OfferingField()
-    
-    def clean_person(self):
-        userid = self.cleaned_data['person']
-        person = Person.objects.filter(userid=userid)
-        if person:
-            return person[0]
-        else:
-            raise forms.ValidationError, "Userid '%s' is unknown."%(userid)
-    
-    class Meta:
-        model = Member
-        exclude = ('config', 'official_grade')
 
 class PersonForm(forms.ModelForm):
     emplid = forms.CharField(max_length=9,
@@ -158,6 +145,9 @@ class PersonField(forms.CharField):
         if isinstance(value, Person):
             return value
         else:
+            if not self.required and not value:
+                return None
+
             try:
                 return Person.objects.get(emplid=value)
             except (ValueError, Person.DoesNotExist):
@@ -199,6 +189,26 @@ class PersonField(forms.CharField):
         else:
             return value
 
+class SysAdminSearchForm(forms.Form):
+    user = PersonField(required=False)
+    offering = OfferingField(required=False)
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(SysAdminSearchForm, self).is_valid(*args, **kwargs)
+
+class MemberForm(forms.ModelForm):
+    person = PersonField()
+    offering = OfferingField()
+    
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(MemberForm, self).is_valid(*args, **kwargs)
+    
+    class Meta:
+        model = Member
+        exclude = ('config', 'official_grade')
+    
 
 class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")
@@ -286,6 +296,11 @@ class UnitAddressForm(forms.Form):
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),
                                help_text='Department ID (cost centre) for financial services. e.g. "12345". Used for TA/RA contracts.')
+    card_account = forms.CharField(required=False, label="Card Account", max_length=12,
+                               widget=forms.TextInput(attrs={'size': 12}),
+                               help_text='Account code for card requisitions (e.g. "1234567 1234")')
+    card_rooms = forms.CharField(required=False, label="Card Access Rooms", help_text='Rooms that all grads have access to, for card access forms. Separate lines with "|".',
+                            widget=forms.TextInput(attrs={'size': 40}))
 
     def __init__(self, unit, *args, **kwargs):
         super(UnitAddressForm, self).__init__(*args, **kwargs)
@@ -311,6 +326,10 @@ class UnitAddressForm(forms.Form):
             self.initial['email'] = unit.config['email']
         if 'deptid' in unit.config:
             self.initial['deptid'] = unit.config['deptid']
+        if 'card_account' in unit.config:
+            self.initial['card_account'] = unit.config['card_account']
+        if 'card_rooms' in unit.config:
+            self.initial['card_rooms'] = unit.config['card_rooms']
         if 'informal_name' in unit.config:
             self.initial['informal_name'] = unit.config['informal_name']
         else:
@@ -338,6 +357,8 @@ class UnitAddressForm(forms.Form):
         self._set_or_delete(data, 'web', self.unit.config, 'web')
         self._set_or_delete(data, 'email', self.unit.config, 'email')
         self._set_or_delete(data, 'deptid', self.unit.config, 'deptid')
+        self._set_or_delete(data, 'card_account', self.unit.config, 'card_account')
+        self._set_or_delete(data, 'card_rooms', self.unit.config, 'card_rooms')
         self._set_or_delete(data, 'phone', self.unit.config, 'tel')
         self._set_or_delete(data, 'informal_name', self.unit.config, 'informal_name')
 

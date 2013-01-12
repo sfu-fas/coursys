@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url planning.views.new_teaching_equivalent_admin userid=instructor.userid %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Teaching Equivalent</legend>

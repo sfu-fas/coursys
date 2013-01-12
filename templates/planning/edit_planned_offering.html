@@ -15,7 +15,7 @@
 
 
 {% block content %}
-<div id="form_container" class="add-course-offering">
+<div class="form_container add-course-offering">
     <form action="{% url planning.views.edit_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=course.slug %}" method="post">{% csrf_token %}
         {% include "planning/course_offering_form.html" with offeringform=form timesformset=formset %}
     </form>

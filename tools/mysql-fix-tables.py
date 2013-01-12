@@ -13,7 +13,7 @@ for row in cursor.fetchall(): results.append(row)
 #for row in results: 
 
 for row in results:
-    print row
     table = row[0]
+    print table
+    #cursor.execute('ALTER TABLE %s ENGINE=InnoDB' % (table))
     #cursor.execute('ALTER TABLE %s CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;' % (table))
-    cursor.execute('ALTER TABLE %s ENGINE=InnoDB' % (table))

@@ -7,9 +7,10 @@
 	$(document).ready(function() {
 		$('#req').dataTable({
 			"bJQueryUI" : true,
-			"aaSorting" : [[0, "asc"]],
-			"iDisplayLength" : 10,
-			"sPaginationType" : "full_numbers",
+			"bPaginate": false,
+			"bFilter": false,
+			"bInfo": false,
+			"aaSorting" : [[1, "asc"], [2, "asc"]],
 		});
 	});
 
@@ -51,9 +52,9 @@
 		<tbody>
 			{% for s in requirements %}
 			<tr>
-				<td scope="row">{{s.program.unit}}</td>
-				<td scope="row">{{s.program}}</td>
-				<td scope="row">{{s.description}}</td>
+				<td>{{s.program.unit.label}}</td>
+				<td>{{s.program}}</td>
+				<td>{{s.description}}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

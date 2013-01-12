@@ -85,7 +85,7 @@
 <i>There are no comments</i>
 {% endif %}
 
-<div id="form_container">
+<div class="form_container">
     <form action="{% url advisornotes.views.edit_problem prob_id=problem.pk %}" method="post">
         {% csrf_token %}
         <fieldset>

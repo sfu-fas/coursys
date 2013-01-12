@@ -2,6 +2,8 @@ import re
 from django import template
 from django.conf import settings
 from coredata.models import Semester
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
 numeric_test = re.compile("^\d+$")
 register = template.Library()
@@ -50,6 +52,15 @@ def getattribute(value, arg, html=True):
             return value.person.email_mailto()
         else:
             return value.person.email()
+    elif arg == 'appemail':
+        if 'applic_email' in value.person.config:
+            email = value.person.config['applic_email']
+            if html:
+                return mark_safe('<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
+            else:
+                return email
+        else:
+            return ''
     elif '.' not in arg:
         if hasattr(value, str(arg)):
             res = getattr(value, arg)

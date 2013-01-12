@@ -6,7 +6,7 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; Import Site</li>{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
     
     <fieldset><legend>Import Content</legend>

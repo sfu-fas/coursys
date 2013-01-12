@@ -11,7 +11,7 @@
 {% block actions %}{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.new_template %}" method="post">{% csrf_token %}
     <fieldset>
     <legend>Template Details</legend>

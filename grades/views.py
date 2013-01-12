@@ -1306,6 +1306,7 @@ def export_all(request, course_slug):
     from django.core.servers.basehttp import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
     from submission.models import generate_submission_contents
+    from discuss.models import DiscussionTopic
 
     course = get_object_or_404(CourseOffering, slug=course_slug)
 
@@ -1327,6 +1328,7 @@ def export_all(request, course_slug):
             markout = StringIO.StringIO()
             json.dump({'marks': markingdata}, markout, cls=_DecimalEncoder, indent=1)
             z.writestr(a.slug + "-marking.json", markout.getvalue())
+            del markout, markingdata
     
     # add submissions
     acts = all_activities_filter(course)
@@ -1334,10 +1336,20 @@ def export_all(request, course_slug):
         if SubmissionComponent.objects.filter(activity=a):
             generate_submission_contents(a, z, prefix=a.slug+'-submissions' + os.sep)
 
+    # add discussion
+    if course.discussion():
+        topics = DiscussionTopic.objects.filter(offering=course).order_by('-pinned', '-last_activity_at')
+        discussion_data = [t.exportable() for t in topics]
+        discussout = StringIO.StringIO()
+        json.dump(discussion_data, discussout, indent=1)
+        z.writestr("discussion.json", discussout.getvalue())
+        del discussion_data, discussout
+
     # return the zip file
     z.close()
     zipdata = open(filename, 'rb')
     response = HttpResponse(FileWrapper(zipdata), mimetype='application/zip')
+    response['Content-Length'] = os.path.getsize(filename)    
     response['Content-Disposition'] = 'attachment; filename=' + course.slug + ".zip"
     try:
         os.remove(filename)

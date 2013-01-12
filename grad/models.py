@@ -1,7 +1,6 @@
-
 from django.db import models, transaction
 from django.core.cache import cache
-from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
+from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
@@ -29,6 +28,25 @@ class GradProgram(models.Model):
         unique_together = (('unit', 'label'),)
     def __unicode__ (self):
         return u"%s" % (self.label)
+    
+    def cmpt_program_type(self):
+        """
+        Hack for CMPT progress reports system export.
+        """
+        if self.label == 'MSc Course':
+            return ('MSc', 'Course')
+        elif self.label == 'MSc Proj':
+            return ('MSc', 'Project')
+        elif self.label == 'MSc Thesis':
+            return ('MSc', 'Thesis')
+        elif self.label == 'PhD':
+            return ('PhD', 'Thesis')
+        elif self.label == 'Qualifying':
+            return ('Qualifying', '')
+        elif self.label == 'Special':
+            return ('Special', '')
+        else:
+            return ('???', '???')
 
 STATUS_CHOICES = (
         ('APPL', 'Applicant'), # TODO: remove Applicant: not used in the real data
@@ -91,14 +109,14 @@ class GradStudent(models.Model):
     current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
     config = JSONField(default={}) # addition configuration
-        # 'sin': Social Insurance Number
+        # 'sin': Social Insurance Number: no longer used. Now at self.person.sin()
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
         # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
         # 'work_title': title of the Thesis/Project/Extended Essay
         # 'applic_email': email address from the application process (where it could be imported)
     defaults = {'sin': '000000000', 'applic_email': None}
-    sin, set_sin = getter_setter('sin')
+    #sin, set_sin = getter_setter('sin')
     applic_email, set_applic_email = getter_setter('applic_email')
 
     def __unicode__(self):
@@ -119,7 +137,7 @@ class GradStudent(models.Model):
         """
         Update the self.start_semester, self.end_semester, self.current_status fields.
         """
-        all_gs = GradStatus.objects.filter(student=self)
+        all_gs = GradStatus.objects.filter(student=self, hidden=False)
         old = (self.start_semester_id, self.end_semester_id, self.current_status)
         self.start_semester = None
         self.end_semester = None
@@ -132,8 +150,15 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        first_program = GradProgramHistory.objects.filter(student=self).order_by('-starting')[0]
-        self.start_semester = first_program.start_semester
+        programs = GradProgramHistory.objects.filter(student=self).order_by('-starting')
+        if programs.count() > 0:
+            self.start_semester = programs[0].start_semester
+        else:
+            programs = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
+            if programs.count() > 0:
+                self.start_semester = programs[0].start
+            else:
+                self.start_semester = None
 
         # end_semester
         if self.current_status in STATUS_DONE:
@@ -157,12 +182,14 @@ class GradStudent(models.Model):
         # their (final) status in that semester. The data is messy enough
         # that I don't see any better way.
         next_sem = Semester.current().offset(1)
-        start = self.start_semester
+        start = self.start_semester or next_sem
         end = self.end_semester or next_sem
-        
-        statuses = GradStatus.objects.filter(student=self, hidden=False) \
+
+        statuses_that_indicate_a_change_in_state = STATUS_ACTIVE + STATUS_INACTIVE
+        statuses = GradStatus.objects.filter(student=self, hidden=False, status__in=statuses_that_indicate_a_change_in_state) \
                    .order_by('start__name', 'start_date', 'created_at') \
                    .select_related('start')
+
         statuses = list(statuses)
         sem = start
         active = 0
@@ -173,7 +200,9 @@ class GradStudent(models.Model):
                 this_status = prev_statuses[-1]
                 if this_status.status in STATUS_ACTIVE:
                     active += 1
-            total += 1
+                    total += 1
+                elif this_status.status in STATUS_INACTIVE and this_status.status not in STATUS_DONE:
+                    total += 1
             sem = sem.next_semester()
         
         return active, total
@@ -194,6 +223,27 @@ class GradStudent(models.Model):
             cache.set(key, res, 24*3600)
             return res
 
+
+    def _has_committee(self):
+        senior_sups = Supervisor.objects.filter(student=self, supervisor_type='SEN', removed=False).count()
+        return senior_sups > 0
+    def clear_has_committee(self):
+        key = 'has_committee-%i' % (self.id)
+        cache.delete(key)
+        
+    def has_committee(self):
+        """
+        Does the student appear to have (some of) their committee formed?
+        
+        Used frequently in permission checking, so caching it.
+        """
+        key = 'has_committee-%i' % (self.id)
+        res = cache.get(key)
+        if res is None:
+            res = self._has_committee()
+            cache.set(key, res)
+
+        return bool(res)
 
     def active_semesters_display(self):
         """
@@ -221,6 +271,13 @@ class GradStudent(models.Model):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.current_status]
+
+    def sessional_courses(self):
+        """
+        Find courses this student taught, presumably as a sessional instructor. Returns relevant coredata.models.CourseOffering objects.
+        """
+        members = Member.objects.filter(person=self.person, role='INST', offering__graded=True).select_related('offering__owner')
+        return [m.offering for m in members]
         
     def letter_info(self):
         """
@@ -478,11 +535,12 @@ SUPERVISOR_TYPE_CHOICES = [
     ]
 SUPERVISOR_TYPE_ORDER = {
     'SEN': 1,
-    'COM': 2,
-    'CHA': 3,
-    'EXT': 4,
-    'SFU': 5,
-    'POT': 6,
+    'COM': 3,
+    'CHA': 4,
+    'EXT': 5,
+    'SFU': 6,
+    'POTTrue': 7, # potential with committee
+    'POTFalse': 2, # potential without committee
     }
 
 class Supervisor(models.Model):
@@ -538,10 +596,26 @@ class Supervisor(models.Model):
             raise ValueError, "Must be either an SFU user or external"
         
         super(Supervisor, self).save(*args, **kwargs)
+        self.student.clear_has_committee()
     
     def type_order(self):
         "Return key for sorting by supervisor_type"
-        return SUPERVISOR_TYPE_ORDER[self.supervisor_type]
+        key = self.supervisor_type
+        if key == 'POT':
+            key += str(self.student.has_committee())
+        return SUPERVISOR_TYPE_ORDER[key]
+    
+    def can_view_details(self):
+        """
+        Can this supervisor see the details of the student (funding, etc)? Yes for senior; yes for potential if no senior; no otherwise.
+        """
+        if self.supervisor_type == 'SEN':
+            return True
+        elif self.supervisor_type == 'POT':
+            return not self.student.has_committee()
+        else:
+            return False
+
 
 class GradRequirement(models.Model):
     """
@@ -655,7 +729,7 @@ class GradStatus(models.Model):
 
         if close_others:
             # make sure any other statuses are closed
-            other_gs = GradStatus.objects.filter(student=self.student, end__isnull=True).exclude(id=self.id)
+            other_gs = GradStatus.objects.filter(student=self.student, hidden=False, end__isnull=True).exclude(id=self.id)
             for gs in other_gs:
                 gs.end = max(self.start, gs.start)
                 gs.save(close_others=False)  

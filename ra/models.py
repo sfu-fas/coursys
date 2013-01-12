@@ -128,12 +128,10 @@ class RAAppointment(models.Model):
         ordering = ['person', 'created_at']
 
     def save(self, *args, **kwargs):
-        # set SIN field on any GradStudent objects for this person
-        from grad.models import GradStudent
-        for gs in GradStudent.objects.filter(person=self.person):
-            if  self.sin and 'sin' not in gs.config:
-                gs.set_sin(self.sin)
-                gs.save()
+        # set SIN field on the Person object
+        if self.sin and 'sin' not in self.person.config:
+            self.person.set_sin(self.sin)
+            self.person.save()
         super(RAAppointment, self).save(*args, **kwargs)
     
     def default_letter_text(self):
@@ -242,5 +240,11 @@ class SemesterConfig(models.Model):
             return datetime.datetime.strptime(self.config['end_date'], '%Y-%m-%d').date()
         else:
             return self.semester.end
+
+    def set_start_date(self, date):
+        self.config['start_date'] = date.strftime('%Y-%m-%d')
+
+    def set_end_date(self, date):
+        self.config['end_date'] = date.strftime('%Y-%m-%d')
 
 

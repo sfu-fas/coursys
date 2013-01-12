@@ -61,11 +61,14 @@ class Person(models.Model):
         # 'applic_email': application email address
         # 'gpa': Most recent CGPA for this student
         # 'ccredits': Number of completed credits
+        # 'sin': Social Insurance Number (usually populated by TA/RA contracts)
         # 'nonstudent_hs': highschool field from NonStudent record
         # 'nonstudent_colg': college field from NonStudent record
         # 'nonstudent_notes': notes field from NonStudent record
     
-    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None, 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
+                'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
+                'sin': '000000000'}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
@@ -74,6 +77,7 @@ class Person(models.Model):
     # see grad.forms.VISA_STATUSES for list of possibilites
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
+    sin, set_sin = getter_setter('sin')
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
@@ -487,6 +491,7 @@ class CourseOffering(models.Model):
         # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
+        # 'sessional_pay': amount the sessional was paid (used in grad finances)
     
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
@@ -499,6 +504,7 @@ class CourseOffering(models.Model):
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
+    _, set_sessional_pay = getter_setter('sessional_pay')
     copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
@@ -564,6 +570,16 @@ class CourseOffering(models.Model):
             return True
         else:
             return False
+    def sessional_pay(self):
+        """
+        Pay for the sessional instructor: check self.owner for a value if not set on offering.
+        """
+        if 'sessional_pay' in self.config:
+            return decimal.Decimal(self.config['sessional_pay'])
+        elif 'sessional_pay' in self.owner.config:
+            return decimal.Decimal(self.owner.config['sessional_pay'])
+        else:
+            return 0
     
     def set_course(self, save=True):
         """
@@ -669,7 +685,7 @@ class Member(models.Model):
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
-    bu, set_bu = getter_setter('bu')
+    raw_bu, set_bu = getter_setter('bu')
     _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
@@ -693,6 +709,9 @@ class Member(models.Model):
 
         if others:
             raise ValidationError('There is another membership with this person, offering, and role.  These must be unique for a membership (unless role is "dropped").')
+
+    def bu(self):
+        return decimal.Decimal(unicode(self.raw_bu()))
 
     def teaching_credit(self):
         if 'teaching_credit' in self.config:
@@ -800,7 +819,8 @@ class Unit(models.Model):
         # 'web': URL
         # 'tel': contact phone number
         # 'fax': fax number (may be None)
-        # 'informal_name': formal name of the unit (e.g. "Computing Science").
+        # 'informal_name': formal name of the unit (e.g. "Computing Science")
+        # 'sessional_pay': default amount sessionals are paid (used in grad finances)
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',
@@ -825,6 +845,12 @@ class Unit(models.Model):
             return self.config['informal_name']
         else:
             return self.name
+    
+    def uses_fasnet(self):
+        """
+        Used to decide whether or not to display the FASnet account forms.
+        """
+        return self.slug in ['cmpt', 'ensc']
     
     @classmethod
     def __sub_unit_ids(cls, unitids):

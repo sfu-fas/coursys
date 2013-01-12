@@ -6,7 +6,7 @@ from django.template import Template, TemplateSyntaxError
 class EmailForm(ModelForm):
     class Meta:
         model = AlertEmailTemplate
-        exclude = ('alerttype', 'created_at', 'created_by', 'hidden')
+        exclude = ('alerttype', 'created_at', 'created_by', 'hidden', 'config')
 
     def clean_content(self):
         content = self.cleaned_data['content']

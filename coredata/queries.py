@@ -82,8 +82,7 @@ class SIMSConn(DBConn):
             _ = passfile.next()
             simspasswd = passfile.next().strip()
         except IOError:
-            raise SIMSProblem, "Connecting to SIMS database requires a .dbpass file."
-            
+            simspasswd = ''
         
         import DB2
         SIMSConn.DatabaseError = DB2.DatabaseError
@@ -645,3 +644,40 @@ def get_or_create_semester(strm):
     wk.save()
     
     return sem
+
+
+
+# queries for grad progress reports
+@cache_by_args
+@SIMS_problem_handler
+def grad_student_courses(emplid):
+    db = SIMSConn()
+    query = "SELECT e.strm, c.subject, c.catalog_nbr, c.class_section, c.class_nbr, " \
+                 "e.unt_taken, e.crse_grade_off, e.grade_points " \
+                 "FROM ps_stdnt_enrl e, ps_class_tbl c " \
+                 "WHERE e.class_nbr=c.class_nbr AND e.strm=c.strm AND e.emplid=%s " \
+                 "AND c.class_type='E' AND e.stdnt_enrl_status='E' AND e.acad_career='GRAD' " \
+                 "ORDER BY e.strm, c.subject, c.catalog_nbr"
+    db.execute(query, (str(emplid),))
+    res = []
+    for strm, subject, number, section, class_nbr, units, grade, gradepoints in db:
+        offerings = CourseOffering.objects.filter(semester__name=strm, class_nbr=class_nbr).exclude(component='CAN')
+        if offerings:
+            instr = offerings[0].instructors_str()
+        else:
+            instr = ''
+        res.append((strm, subject, number, section, units, grade, gradepoints, instr))
+
+    return res
+
+@cache_by_args
+@SIMS_problem_handler
+def grad_student_gpas(emplid):
+    db = SIMSConn()
+    query = "SELECT t.strm, t.cur_gpa, t.cum_gpa " \
+                 "FROM ps_stdnt_car_term t " \
+                 "WHERE t.emplid=%s AND t.acad_career='GRAD'"
+    db.execute(query, (str(emplid),))
+    return list(db)
+
+

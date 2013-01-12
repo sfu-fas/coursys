@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Manage Form Groups{% endblock %}
+{% block h1 %}Manage Form Groups{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#groups_table').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; Form Groups</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.new_group %}">New Group</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+    {% if groups %}
+        <table class="display" id="groups_table">
+            <thead>
+                <tr>
+                    <th scope="col">Group Name</th>
+                    <th scope="col">Unit</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for group in groups %}
+                <tr>
+                    <td><a href="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}">{{group.name}}</a></td>
+                    <td>{{group.unit.name}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>There are no groups available.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

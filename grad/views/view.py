@@ -36,8 +36,9 @@ def _can_view_student(request, grad_slug, funding=False):
         return students[0], 'student'
         
     # senior supervisors can see their students
-    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN', removed=False).select_related('student')
-    if supervisors:
+    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type__in=['SEN','POT'], removed=False).select_related('student')
+    supervisors = [sup for sup in supervisors if sup.can_view_details()]
+    if request.method=='GET' and supervisors:
         grad = supervisors[0].student
         return grad, 'supervisor'
 
@@ -52,7 +53,12 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
-    context = {'grad': grad, 'index': True, 'can_edit': True, 'authtype': authtype}
+    context = {
+        'grad': grad, 
+        'index': True, 
+        'can_edit': True, 
+        'authtype': authtype }
+
     if authtype in ['supervisor', 'graddir']:
         context['can_edit'] = False
     

@@ -7,7 +7,7 @@
 
 {% block content %}
 <p>Note: All data except userid and emplid will be updated on nightly data imports, as long as the person has a role or is a member of a course. Values entered here are temporary.</p>
-<div id="form_container">
+<div class="form_container">
 <form action="{% url coredata.views.new_person %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>New Person</legend>

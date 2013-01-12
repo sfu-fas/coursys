@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url planning.views.planner_create_intention %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Semester Teaching Intention</legend>

@@ -58,6 +58,20 @@ def get_combined():
                 CourseOffering.objects.get(slug='2012fa-cmpt-711-g1')
             ]
         },
+        {
+            'subject': 'MACM', 'number': '101', 'section': 'X100',
+            'semester': Semester.objects.get(name="1131"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32755, 'class_nbr': 32755,
+            'title': 'Discrete Math I',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2013sp-macm-101-d1'),
+                CourseOffering.objects.get(slug='2013sp-macm-101-d2')
+            ]
+        },
         ]
     return combined_sections
 
@@ -296,7 +310,7 @@ def import_one_offering(strm, subject, number, section):
 def import_offerings(extra_where='1=1', import_semesters=import_semesters):
     db = SIMSConn()
     db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
-               "class_section like '%%00' AND ("+extra_where+")", (import_semesters(),))
+               "(class_section like '__00' OR class_section like '_0__') AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)
@@ -688,6 +702,8 @@ def update_amaint_userids():
     ComputingAccount.objects.all().delete()
     db.execute("SELECT username, emplid FROM idMap WHERE emplid!='' ORDER BY username", ())
     for userid, emplid in db:
+        if emplid.startswith('E'):
+            continue
         a = ComputingAccount(emplid=emplid, userid=userid)
         a.save()
 

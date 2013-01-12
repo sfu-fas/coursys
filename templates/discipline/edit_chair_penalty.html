@@ -42,7 +42,7 @@ function form_change() {
 	</ol>
 </blockquote>
 
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.edit_case_info field='chair_penalty' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="form_change();">{% csrf_token %}
     <p>{{ form.chair_penalty.help_text }}
     	{{ form.chair_penalty }}</p>

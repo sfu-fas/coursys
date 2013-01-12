@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Configure Semester {{semester.name}}{% endblock %}
+{% block h1 %}Configure Semester {{semester.name}}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="/media/js/ra.js"></script>
+<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; Configure Semester {{semester.name}}</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+{% if semester.previous_semester %}
+<li><a href="{% url ra.views.semester_config semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+{% endif %}
+{% if semester.next_semester %}
+<li><a href="{% url ra.views.semester_config semester_name=semester.next_semester.name %}">Next Semester</a></li>
+{% endif %}
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+  <div class="form_container">
+    <form action="" method="post">{% csrf_token %}
+      <fieldset>
+        <legend>Semester Setup</legend>
+        {{ form|as_dl }}
+        <p><input type="submit" value="Save" class="submit" /></p>
+      </fieldset>
+    </form>  
+  </div>
+{% endblock %}

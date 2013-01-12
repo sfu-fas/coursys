@@ -16,76 +16,143 @@
 <script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript">
 //<![CDATA[  
+
+  var server_side_labtas_set = false;
+  var initial_extra_bus = false;
+  var default_required_bu = {{ offering|display_default_bu:posting}};
+  var default_required_bu_cap = {{ offering|display_default_bu_cap:posting}};
+
   $(function() {
-  	table = $('#ta_app').dataTable({
+  	
+    table = $('#ta_app').dataTable({
         "bPaginate": false,
 		"bJQueryUI": true,
-		"aaSorting": [[0, "asc"]],
+		"aaSorting": [],
 	});
-	
-	$('#messages').hide()
-	
-	$('.bu_inp').change(function(){
-		var max = parseFloat($(this).parent().parent().prev().html())
-		if(!isNaN($(this).val()) && parseFloat($(this).val()) > max){
-			$('#messages div.warninglist').html('<ul><li class="warning">Assigned BU exceeds the maximum BU</li></ul>')
-    		$('#messages').show()
-    	}
-    	else {
-    		$('#messages').hide()
-    	}
+
+    server_side_labtas_set = $("#labtas").attr('checked') == 'checked';
+    initial_extra_bus = $("#extra_bu").val();
+
+	$('.bu_inp').change(function(i, e){
+        if( isNaN( parseFloat( $(this).val() ))){
+            $(this).val('');
+        }
+        else{
+            $(this).val( parseFloat($(this).val()).toFixed(2) );
+        }
+        
+        var row_element = $(this).parent().parent();
+        decide_whether_to_show_prep_bu( 0, row_element );
+        calculate_total_bu();
 	})
+ 
+    hide_update(); 
+    $('#messages').hide();
+
+    $('#extra_bu').change( show_update );
+    $('#extra_bu').keydown( show_update );
+    $('#labtas').change( show_update );
 	
   });
-  
-  function update(){
-  	var bu = $('#extra_bu').val()
-  	var labtut = "no"
-  	var labtas = "no"
-  	if($('#labtut').attr('checked'))
-  		labtut = "yes"
-  	if($('#labtas').attr('checked'))
-  		labtas = "yes"
-  	
-  	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
-  			{'csrfmiddlewaretoken': "{{csrf_token}}", 'bu_update': 'yes', 'extra_bu': bu, 'labtut': labtut, 'labtas': labtas},
-				function(data){
-					data = JSON.parse(data)
-					if(data.act > 0) //add LAB_BONUS
-						change_bu({{LAB_BONUS}})
-					else if(data.act < 0) //minus LAB_BONUS
-						change_bu(-{{LAB_BONUS}})
-					
-					if(data.msg != ''){
-						$('#messages div.warninglist').html('<ul><li class="warning">' + data[1] + '</li></ul>')
-    					$('#messages').show()
-					}
-					else
-						$('#messages').hide()
-					
-					if(data.req_bu != ''){
-						$('#req_bu').html(data.req_bu)
-						$('#rem_bu').html(data.rem_bu)
-					}
-				})
+
+  function show_update(){
+    
+    $("#update_button").show();
+    $("#cancel_button").show();
+    $("#submit_message").show();
+    $("#submit_button").hide();
   }
   
-  function change_bu(bu){
-  	$('.bu_inp').each(function(){
-  		var val = $(this).val()
-  		if($(this).val()!=''){
-  			var val = $(this).val()
-  			$(this).val((parseFloat(val) + bu).toFixed(2))
-  		}
-  		/*
-  		if($(this).val()!=''){
-  			if($(this).parent().next().length == 0){ //go with default
-  				var val = $(this).val()
-				$(this).val((parseFloat(val) + bu).toFixed(2))
-			}
-		}
-		*/
-	})
+  function hide_update(){
+    
+    $("#update_button").hide();
+    $("#cancel_button").hide();
+    $("#submit_message").hide();
+    $("#submit_button").show();
+    $("#messages").hide();
+  }
+  
+  function decide_whether_to_show_prep_bu( i, row_element ){
+    row_element = $(row_element);
+    // if this person has a valid BU value and LABTAS is set on the server side,
+    // then show the prep-BU bonus. 
+    bu_element = row_element.find(".bu_inp");
+    prep_element = row_element.find(".prep_bu");
+    if( parseFloat( bu_element.val() ) > 0 && server_side_labtas_set ){
+       prep_element.html( "{{LAB_BONUS}}" ); 
+    }
+    else{
+       prep_element.html( "" );
+    }
+  }
+  
+  function cancel(){
+    $("#labtas").prop('checked', server_side_labtas_set );
+    $("#extra_bu").val( initial_extra_bus );
+
+    hide_update();
+  }
+  
+  function update(){
+  	var extra_bu = parseFloat($('#extra_bu').val());
+
+    if( isNaN(extra_bu) )
+    {
+        $("#extra_bu").val( "0.00" );
+        extra_bu = 0;
+    }
+
+    var labtas = $("#labtas").attr('checked') == 'checked';
+  	
+  	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
+  			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': extra_bu, 'labtas': labtas},
+				function(data, success){
+
+                    // The response object should look like: 
+                    // data = { 'message':'blah blah blah', 'error':false, 'has_labtas':true, 'labtas_changed':true }
+					
+                    if(data.message != ''){
+						$('#messages div.warninglist').html('<ul><li class="warning">' + data.message + '</li></ul>');
+    					$('#messages').show();
+					}
+					else{
+						$('#messages').hide();
+					}
+
+                    if( ! data.error ){
+                        server_side_labtas_set = data.has_labtas;
+                    
+                        $(".application_row").each( decide_whether_to_show_prep_bu );
+                        
+                        calculate_total_bu();
+
+                        hide_update();
+                    }
+				})
+  }
+
+  function calculate_total_bu(){
+  	var extra_bu = parseFloat($('#extra_bu').val());
+    var bu = 0;
+    $(".bu_inp").each(function(i,data){
+        if( ! isNaN( parseFloat( $(data).val() ))){
+            bu = bu + parseFloat( $(data).val() )
+        }
+    });
+    var prep_bu = 0;
+    $(".prep_bu").each(function(i,data){
+        if( ! isNaN( parseFloat( $(data).html() ))){
+            prep_bu = prep_bu + parseFloat( $(data).html() )
+        }
+    });
+    var total_bu = bu + prep_bu;
+    var req_bu = default_required_bu + extra_bu + prep_bu;
+    var cap_bu = default_required_bu_cap + extra_bu + prep_bu;
+    var rem_bu = req_bu - total_bu;
+    $("#a_bu").html(total_bu);
+    $("#rem_bu").html(rem_bu);
+    $("#cap_bu").html(cap_bu);
+    $("#req_bu").html(req_bu);
   }
   
 //]]></script>
@@ -119,13 +186,14 @@ Instructor:
             <div class="helptext">(i.e. TAs get +{{LAB_BONUS}} BU)</div>
         </li>
         </ul>
-        <button type="button" class="submit" onclick="update()">Update</button>
+        <button type="button" id="cancel_button" class="submit" onclick="cancel()">Cancel</button>
+        <button type="button" id="update_button" class="submit" onclick="update()">Update</button>
     </fieldset>
 </form>
 
 <div id= "config">
 <p id="info">
-Required BU: <span id="req_bu">{{ offering|display_bu:posting }}</span>
+Required BU: <span id="req_bu">{{ offering|display_required_bu:posting }}</span>
 (<span id="cap_bu">{{ offering|display_bu_cap:posting }}</span> @ enrollment cap),
 assigned: <span id="a_bu"> {{ offering|display_assigned_bu:posting }}</span>,
 remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
@@ -143,39 +211,46 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
       <th scope="col">Grad Program</th>
       <th scope="col">Category</th>
       <th scope="col">Course Rank</th>
-      <th scope="col">Campus Preference</th>
-      <th scope="col">Max BUs</th>
+      <th scope="col">Campus Pref.</th>
+      <th scope="col">Max BUs</th> <!-- this is the maximum number of BU's the student is willing to accept. -->
+      <th scope="col">Prep BUs</th>
       <th scope="col">Assigned BUs</th>
     </tr>
 </thead>
 <tbody>
 {% for a in applications %}
-      <tr>
+      <tr class='application_row'>
         <td scope="row"><a href="{% url ta.views.view_application post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
-        <td>{% for form in formset %}
-        {% ifequal forloop.counter forloop.parentloop.counter %}
-          {{ form.rank }}
-        {% endifequal %}
-        {% endfor %}
+        <td>
+            {% for form in formset %}
+                {% ifequal forloop.counter forloop.parentloop.counter %}
+                  {{ form.rank }}
+                {% endifequal %}
+            {% endfor %}
         </td>
-        <td>{% for st in a.statuses %}
-            {{st.student.program.label}} ({{st.student.program.unit.label}}, {{st.get_status_display}}) {% if not forloop.last %}<br />{% endif %}
-            {% endfor %}</td>
+        <td>
+            {% for st in a.statuses %}
+                {{st.student.program.label}} ({{st.student.program.unit.label}}, {{st.get_status_display}}) {% if not forloop.last %}<br />{% endif %}
+            {% endfor %}
+        </td>
         <td>{{ a.get_category_display }}</td>
-        <td>{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
-        <td>{{ campus_preferences|display_campus_preference:forloop.counter0 }}</td>
+        <td>{{ a.course_rank }}</td>
+        <td>{{ a.campus_preference.get_pref_display }}</td>
         <td>{{ a.base_units }}</td>
-        <td>{% for form in formset %}
-        {% ifequal forloop.counter forloop.parentloop.counter %}
-          {{ form.bu }}
-        {% endifequal %}
-        {% endfor %}
+        <td class='prep_bu'>{{ a.assigned_course.prep_bu }}</td>
+        <td>
+            {% for form in formset %}
+                {% ifequal forloop.counter forloop.parentloop.counter %}
+                    {{ form.bu }}
+                {% endifequal %}
+            {% endfor %}
         </td>
       </tr>	
 {% endfor %}
 </tbody>
 </table>
-<input class="submit" type="submit" value="submit"/>
+<input id="submit_button" class="submit" type="submit" value="Submit"/>
+<div id="submit_message" style="text-align: right;"> Please Update or Cancel your course configuration change before continuing. </div>
 </div>
 </form>
 

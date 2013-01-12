@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block h1 %} View {{ form.title }} {% endblock %}
+{% block title %} View {{ form.title }}  {% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#form_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[0, "asc"]],
+        }); 
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+    <li>&gt; View {{ form.title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+	{% if sheet_submissions %}
+        {% if sheetsWithFiles %}
+            {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles formsubmit_slug=formsubmit_slug %}
+        {% endif %}
+    {% else %}
+		{% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions %}
+    {% endif %}
+    </div>
+{% endblock %}

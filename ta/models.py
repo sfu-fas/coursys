@@ -138,6 +138,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
     
     def max_hours(self):
         return self.base_units * HOURS_PER_BU
+
     def total_hours(self):
         """
         Total number of hours assigned
@@ -289,11 +290,16 @@ class TAPosting(models.Model):
 
     def required_bu(self, offering, count=None):
         """
-        Actual BUs to assign to this course: default + extra
+        Actual BUs to assign to this course: default + extra + 0.17*number of TA's
         """
         default = self.default_bu(offering, count=count)
         extra = offering.extra_bu()
-        return default + extra
+
+        if offering.labtas():
+            tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
+            return default + extra + decimal.Decimal(LAB_BONUS_DECIMAL * len(tacourses)) 
+        else:
+            return default + extra
 
     def required_bu_cap(self, offering):
         """
@@ -310,7 +316,7 @@ class TAPosting(models.Model):
         total = decimal.Decimal(0)
         tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
         if(tacourses.count() > 0):
-            total = tacourses.aggregate(Sum('bu'))['bu__sum']
+            total = sum([t.total_bu for t in tacourses])
         return decimal.Decimal(total)
 
     def applicant_count(self, offering):
@@ -347,7 +353,7 @@ class TAPosting(models.Model):
         tacourses = TACourse.objects.filter(contract__posting=self).exclude(contract__status__in=['REJ', 'CAN'])
         for course in tacourses:
             pay += course.pay()
-            bus += course.bu
+            bus += course.total_bu
         return (bus, pay, tac)
     
     def html_cache_key(self):
@@ -480,6 +486,7 @@ STATUS_CHOICES = (
         ("CAN","Cancelled"),
     )
 STATUS = dict(STATUS_CHOICES)
+STATUSES_NOT_TAING = ['NEW', 'REJ', 'CAN'] # statuses that mean "not actually TAing"
 
 class TAContract(models.Model):
     """    
@@ -518,8 +525,8 @@ class TAContract(models.Model):
         from grad.models import GradStudent
         for gs in GradStudent.objects.filter(person=self.application.person):
             if 'sin' not in gs.config:
-                gs.set_sin(self.sin)
-                gs.save()
+                gs.person.set_sin(self.sin)
+                gs.person.save()
 
         # if signed, create the Member objects so they have access to the courses.
         courses = TACourse.objects.filter(contract=self)
@@ -558,6 +565,17 @@ class TAContract(models.Model):
         self.scholarship_per_bu = posting.scholarship()[index]
         self.save()
 
+    def bu(self):
+        courses = TACourse.objects.filter(contract=self)
+        return sum( [course.bu for course in courses] )
+
+    def total_bu(self):
+        courses = TACourse.objects.filter(contract=self)
+        return sum( [course.total_bu for course in courses] )
+
+    def prep_bu(self):
+        courses = TACourse.objects.filter(contract=self)
+        return sum( [course.prep_bu for course in courses] )
 
 
 class CourseDescription(models.Model):
@@ -585,6 +603,24 @@ class TACourse(models.Model):
     
     def __unicode__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
+
+    @property
+    def prep_bu(self):
+        """
+        Return the prep BUs for this assignment
+        """
+        if self.has_labtut():
+            return LAB_BONUS_DECIMAL
+        else:
+            return 0
+
+    @property
+    def total_bu(self):
+        """
+        Return the total BUs for this assignment
+        """
+        return self.bu + self.prep_bu
+
     def has_labtut(self):
         """
         Does this assignment deserve the LAB_BONUS bonus?
@@ -604,7 +640,9 @@ class TACourse(models.Model):
     
     def pay(self):
         contract = self.contract
-        total = self.bu * (contract.pay_per_bu + contract.scholarship_per_bu)
+        if contract.status in STATUSES_NOT_TAING:
+            return decimal.Decimal(0)
+        total = self.total_bu * (contract.pay_per_bu + contract.scholarship_per_bu)
         return total
         
 TAKEN_CHOICES = (

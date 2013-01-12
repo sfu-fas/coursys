@@ -1,6 +1,7 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
-    EditArtifactNoteForm, OfferingSearchForm, CourseSearchForm
+    EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from alerts.models import Alert
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member
@@ -301,7 +302,10 @@ def student_notes(request, userid):
             items.append(item)
         nonstudent = True
 
-    return render(request, 'advisornotes/student_notes.html', {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
+    template = 'advisornotes/student_notes.html'
+    if 'compact' in request.GET:
+        template = 'advisornotes/student_notes_compact.html'
+    return render(request, template, {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
 
 
 @requires_role('ADVS')
@@ -361,6 +365,7 @@ def student_courses_data(request, userid):
     except SIMSProblem as e:
         data = {'error': e.message}
 
+    data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(mimetype='application/json;charset=utf-8')
     json.dump(data, response, encoding='utf-8', indent=1)
     return response

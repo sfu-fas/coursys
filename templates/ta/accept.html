@@ -32,7 +32,9 @@
           <tr>
          	<th scope="col">Course Name</th>
          	<th scope="col">Description</th>
-         	<th scope="col">Base Unit</th>
+            <th scope="col">Prep Units</th>
+            <th scope="col">Base Units</td>
+         	<th scope="col">Total Units</th>
           </tr>         
         </thead>  
 		<tbody>
@@ -42,11 +44,15 @@
 			<tr>
 				<td>{{course.course.subject}} {{course.course.number}} {{course.course.section}}</td>
 				<td>{{course.get_description_display }}</td>
-				<td>{{course.bu}}</td>
+                <td>{{course.prep_bu}}</td>
+                <td>{{course.bu}}</td>
+				<td>{{course.total_bu}}</td>
 			<tr/>
 			{% endfor %}		
 			<tr id="cal_tr">
 	      	<td></td>
+            <td></td>
+            <td></td>
 	      	<td class="table-row-label" id="total_bu_label" align="right">Total Base Units:&nbsp;</td>
 	      	<td class="table-row-label">{{total}}</td>
 	      </tr>		
@@ -86,10 +92,10 @@
 	  </table>
 </div>
 
-<div id="form_container">
+<div class="form_container">
 <form action="" method="post">{% csrf_token %}
 <p><strong>Social Insurance Number:</strong> {{ form.sin }}
-<span class="helptext">Social insurance number (required for receiving payments: if you don't have a SIN yet, please enter "000000000".)</span></p>
+<span class="helptext">(required for receiving payments)</span></p>
 
 <p>Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; if you have questions about this contract.</p>
 

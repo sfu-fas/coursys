@@ -12,7 +12,7 @@
 <body id="formula_tester">
 <div class="formula_tester_container">
     <h1>Formula Tester</h1>
-    <div id="form_container">
+    <div class="form_container">
         <form action="{% url grades.views.formula_tester course_slug=course.slug %}" method="post">{% csrf_token %}
             {% if messages %}
             <div id="messages">

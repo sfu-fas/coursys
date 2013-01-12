@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %}Edit {{ owner_sheet.title }}{% endblock %}
+{% block title %}Edit {{ owner_sheet.title }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>&gt; <a href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">{{ owner_sheet.title }}</a></li>
+<li>&gt; Edit </li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="{% url onlineforms.views.edit_sheet_info form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}"  method="post"> {% csrf_token %}
+        <fieldset>
+            <legend>Sheet Information</legend>
+                {{form|as_dl}}           
+            <input type="hidden" name="action" value="edit" />
+            <input class="submit" type="submit" value="Submit" />
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

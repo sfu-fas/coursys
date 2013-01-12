@@ -61,9 +61,9 @@ Adapted from the Dreamweaver template here: http://www.sfu.ca/clf/web/index.html
 				<div id="sysmenu">
 				{% if user.is_authenticated %}
 				Logged in as {{user.username}}.
-				<a href="/logout/">Logout</a>
+				<a href="{{ LOGOUT_URL }}">Logout</a>
 				{% else %}
-				Not logged in. <a href="/login/">Login</a>
+				Not logged in. <a href="{{ LOGIN_URL }}">Login</a>
 				{% endif %}
 				</div>
 

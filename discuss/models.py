@@ -117,6 +117,17 @@ class DiscussionTopic(models.Model):
         minutes, seconds = divmod(120 - seconds, 60)
         return "%dm:%ds" % (minutes, seconds)
 
+    def exportable(self):
+        """
+        Create JSON-serializable representation of topic, for export.
+        """
+        data = {'title': self.title, 'body': self.content, 'created_at': self.created_at.isoformat(),
+                'author': self.author.person.userid, 'status': self.status, 'pinned': self.pinned}
+        messages = DiscussionMessage.objects.filter(topic=self).select_related('author__person')
+        data['replies'] = [m.exportable() for m in messages]
+        return data
+        
+
 MESSAGE_STATUSES = (
                   ('VIS', 'Visible'),
                   ('HID', 'Hidden'),
@@ -181,4 +192,11 @@ class DiscussionMessage(models.Model):
     def was_edited(self):
         td = self.modified_at - self.created_at
         return self.modified_at > self.created_at and td > datetime.timedelta(seconds=3) and self.status != 'HID'
-    
+
+    def exportable(self):
+        """
+        Create JSON-serializable representation of message, for export.
+        """
+        data = {'body': self.content, 'created_at': self.created_at.isoformat(),
+                'author': self.author.person.userid, 'status': self.status}
+        return data

@@ -5,7 +5,7 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li><li>&gt; <a href="{% url discipline.views.edit_attach course_slug=course.slug case_slug=case.slug %}">Attached Files</a></li><li>&gt; Edit File "{{attach.name}}"</li>{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.edit_file course_slug=course.slug case_slug=case.slug fileid=attach.id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
     <p>File: {{attach.filename}} ({{attach.attachment.size|filesizeformat}}, {{attach.mediatype}})</p>
     {{ form.non_field_errors }}

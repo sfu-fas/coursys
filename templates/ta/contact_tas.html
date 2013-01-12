@@ -23,7 +23,7 @@
   	$.ajax({
       url: "?statuses="+st.slice(0,-1),
       success: function(data, textStatus, jqXHR) {
-      	$("#contactlist").text("Emails of selected contracts: " + data.contacts);
+      	$("#contactlist").text("Emails of selected TAs: " + data.contacts);
       }
     });
   }
@@ -38,7 +38,7 @@
 {% block actions %}{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
 <form action="" method="post">{% csrf_token %}
 <fieldset>
 <legend>Message Details</legend>

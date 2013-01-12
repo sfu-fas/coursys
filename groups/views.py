@@ -103,7 +103,7 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
         all_act.sort()
         # other attributes for easy display
         email = ",".join(["%s <%s>" % (m['member'].person.name(), m['member'].person.email()) for m in unique_members])
-        userids = ",".join([m['member'].person.userid for m in unique_members])
+        userids = ",".join([m['member'].person.userid for m in unique_members if m['member'].person.userid])
         
         groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'email': email, 'userids': userids})
 
@@ -116,7 +116,7 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
 def create(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    group_manager=Member.objects.get(person = person, offering = course)
+    group_manager=Member.objects.exclude(role="DROP").get(person = person, offering = course)
     groupForSemesterForm = GroupForSemesterForm()
     activities = Activity.objects.exclude(status='INVI').filter(offering=course, group=True, deleted=False)
     activityList = []

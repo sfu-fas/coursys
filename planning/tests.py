@@ -1,8 +1,6 @@
 from django.test import TestCase
-from django.test.client import Client
-from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
-from courselib.testing import basic_page_tests, TEST_COURSE_SLUG
+from courselib.testing import basic_page_tests, TEST_COURSE_SLUG, Client
 
 
 class PlanningTest(TestCase):
@@ -13,7 +11,7 @@ class PlanningTest(TestCase):
         Tests basic page permissions
         """
         client = Client()
-        client.login(ticket="dixon", service=CAS_SERVER_URL)
+        client.login_user("dixon")
         url = reverse('planning.views.admin_index')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
@@ -107,13 +105,13 @@ class PlanningTest(TestCase):
         Tests basic page authentication for instructor
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
         response = client.get(reverse('planning.views.admin_index'))
         self.assertEqual(response.status_code, 403)
 
     def test_course_credits_inst_200_ok(self):
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
 
         url = reverse('planning.views.view_teaching_credits_inst')
         response = basic_page_tests(self, client, url)
@@ -133,7 +131,7 @@ class PlanningTest(TestCase):
 
     def test_course_credits_admin_200_ok(self):
         client = Client()
-        client.login(ticket="teachadm", service=CAS_SERVER_URL)
+        client.login_user("teachadm")
 
         url = reverse('planning.views.view_insts_in_unit')
         response = basic_page_tests(self, client, url)

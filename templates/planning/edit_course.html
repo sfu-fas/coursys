@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url planning.views.edit_course course_slug=course.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Information</legend>
