@@ -198,7 +198,7 @@ def submit(request,course_slug):
     #TODO: validate activity?
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    member = Member.objects.get(person = person, offering = course)
+    member = Member.objects.exclude(role='DROP').get(person=person, offering=course)
     error_info=None
     name = request.POST.get('GroupName')
     if name:
