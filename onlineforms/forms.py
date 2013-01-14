@@ -2,7 +2,7 @@ from coredata.forms import PersonField
 from django import forms
 from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
-from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, INITIATOR_CHOICES, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
+from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django.template.defaultfilters import linebreaksbr
@@ -51,7 +51,7 @@ class FormForm(ModelForm):
         initiators = self.cleaned_data['initiators']
         form = self._get()
         if initiators != 'NON' and not Sheet.objects.filter(form=form, is_initial=True, active=True):
-            raise forms.ValidationError, "No initial sheet: can't activate"
+            raise forms.ValidationError, "Can't activate until you have created at least one sheet to be filled out."
         return initiators
 
 class NewFormForm(FormForm):
