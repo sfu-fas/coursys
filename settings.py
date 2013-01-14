@@ -14,6 +14,7 @@ sys.path.append( os.path.join(PROJECT_DIR, 'external') )
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
     ('Curtis Lassam', 'classam@sfu.ca'),
+    ('sumo Kindersley', 'sumo@sfu.ca'),
 )
 
 MANAGERS = ADMINS
