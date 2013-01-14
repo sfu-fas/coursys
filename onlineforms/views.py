@@ -80,9 +80,7 @@ def add_group_member(request, formgroup_slug):
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
                 if request.POST['search'] != '':
-                    print "if request post search is NOT empty" 
                     search_form = EmployeeSearchForm(request.POST)
-                    print search_form
                     if search_form.is_valid(): 
                         # search returns Person object
                         member = search_form.cleaned_data['search']
@@ -596,10 +594,10 @@ def index(request):
 def _readonly_sheets(form_submission):
 #sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-    sheet_sub_html = {} 
-    sheetsWithFiles = {} 
+    sheet_sub_html = {}
+    sheetsWithFiles = {}
     for sheet_sub in sheet_submissions:
-        # get html from feild submissions
+        # get html from field submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
         fields = []
         for field_sub in field_submissions:
@@ -615,9 +613,8 @@ def _readonly_sheets(form_submission):
                     field.html = field.to_html(field_sub)
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
-        return sheet_sub_html, sheetsWithFiles
-    
-    return None, None
+    return sheet_sub_html, sheetsWithFiles
+
 
 
 @requires_formgroup()
@@ -714,7 +711,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
         # get previously filled in sheet's data
         if sheet.can_view == 'ALL':
-            filled_sheets = _readonly_sheets(form_submission)
+            filled_sheets, _ = _readonly_sheets(form_submission)
     else:
         # make sure we are allowed to initiate this form
         if not loggedin_user and owner_form.initiators != "ANY":
