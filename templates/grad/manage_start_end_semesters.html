@@ -1,0 +1,26 @@
+{% extends "grad/base.html" %}
+{% load form_display %}
+
+{% block title %}{{grad.person.name}}: Start/End Semesters{% endblock %}
+{% block h1 %}{{grad.person.name}}: Start/End Semesters{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Start/End Semesters</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+    <form action="" method="post">
+    	{% csrf_token %}
+    	<fieldset>
+    	<legend>Change Start/End Semesters</legend>
+        {{ form|as_dl }}
+        <p><input class="submit" type="submit" value="Change Start/End" /></p>
+        </fieldset>
+    </form>
+</div>
+<p class="gradback"><a class="button" href="{% url grad.views.view grad_slug=grad.slug %}">Return to Profile</a></p>
+{% endblock %} 

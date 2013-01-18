@@ -2,7 +2,7 @@ from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, Co
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
-import re, hashlib, datetime, operator
+import re, hashlib, datetime
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -75,6 +75,8 @@ class SIMSConn(DBConn):
     DB2Error = None
 
     def get_connection(self):
+        if settings.DISABLE_REPORTING_DB:
+            raise SIMSProblem, "Reporting database access has been disabled in this deployment."
         try:
             passfile = open(self.dbpass_file)
             _ = passfile.next()

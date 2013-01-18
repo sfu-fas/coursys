@@ -50,14 +50,14 @@ Teaching Assistant Time Use Guideline</div>
 	<span id="courses">Course(s): 
 		<span class="tugField">{{course.name}}</span> 
 	</span>
-	<span id="baseUnits"> Base Units Assigned*: 
-		<span class="tugField">{{tug.base_units}}</span>
-		<span id="calculation"> &times; {{HOURS_PER_BU}} = </span>
+	<span id="maxHours"> Maximum Hours to be Assigned: 
+		<span class="tugField">{{ max_hours }}</span>
 	</span>
-	<span id="maxHours"> Maximum Hours: 
-		<span class="tugField">{{ maxHours }}</span>
-		{% if has_lab_or_tut %}<br />[ + {{LAB_BONUS}} &times {{HOURS_PER_BU}} = {{LAB_BONUS_HOURS}} hours of lab/tutorial prep not assigned by instructor]{% endif %}
-	</span>
+	{% if has_lab_or_tut %}
+        <span id="prepHours"> Prep BUs: 
+            <span class="tugField">{{ LAB_BONUS }}</span>
+        </span>
+    {% endif %}
 </div>
 
 <div id="tugBody">
@@ -149,7 +149,7 @@ Teaching Assistant Time Use Guideline</div>
 					Required Total Hours =
 				</td>
 				<td></td>
-				<td>{{totalHours}}</td>
+				<td>{{total_hours}}</td>
 			</tr>
 		</tbody>
 	</table> 

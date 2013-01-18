@@ -79,13 +79,12 @@ class Activity(models.Model):
     position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
     group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
-    #url = models.URLField(verify_exists=True, null=True) # no longer used: use .config['url'] now
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-      # a.config['url'] (string, default None): URL for more info
-      # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
-      # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
-      # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
-      # TODO: showformula not actually implemented yet
+        # a.config['url'] (string, default None): URL for more info
+        # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
+        # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
+        # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
+        # TODO: showformula not actually implemented yet
     
     offering = models.ForeignKey(CourseOffering)
     

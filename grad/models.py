@@ -115,6 +115,8 @@ class GradStudent(models.Model):
         # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
         # 'work_title': title of the Thesis/Project/Extended Essay
         # 'applic_email': email address from the application process (where it could be imported)
+        # 'start_semester': manually-set value to override the guess made by update_status_fields(). A semester.name (e.g. '1127') or None.
+        # 'end_semester': manually-set value to override the guess made by update_status_fields(). A semester.name (e.g. '1127') or None.
     defaults = {'sin': '000000000', 'applic_email': None}
     #sin, set_sin = getter_setter('sin')
     applic_email, set_applic_email = getter_setter('applic_email')
@@ -150,24 +152,36 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        programs = GradProgramHistory.objects.filter(student=self).order_by('-starting')
-        if programs.count() > 0:
-            self.start_semester = programs[0].start_semester
-        else:
-            programs = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-            if programs.count() > 0:
-                self.start_semester = programs[0].start
+        if 'start_semester' in self.config:
+            if self.config['start_semester']:
+                self.start_semester = Semester.objects.get(name=self.config['start_semester'])
             else:
                 self.start_semester = None
+        else:
+            programs = GradProgramHistory.objects.filter(student=self).order_by('-starting')
+            if programs.count() > 0:
+                self.start_semester = programs[0].start_semester
+            else:
+                programs = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
+                if programs.count() > 0:
+                    self.start_semester = programs[0].start
+                else:
+                    self.start_semester = None
 
         # end_semester
-        if self.current_status in STATUS_DONE:
-            ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
-            if ends.count() > 0:
-                end_status = ends[0]
-                self.end_semester = end_status.start
+        if 'end_semester' in self.config:
+            if self.config['end_semester']:
+                self.end_semester = Semester.objects.get(name=self.config['end_semester'])
+            else:
+                self.end_semester = None
         else:
-            self.end_semester = None
+            if self.current_status in STATUS_DONE:
+                ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
+                if ends.count() > 0:
+                    end_status = ends[0]
+                    self.end_semester = end_status.start
+            else:
+                self.end_semester = None
         
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
             key = 'grad-activesem-%i' % (self.id)

@@ -346,7 +346,13 @@ class GradDefenceForm(forms.Form):
         self.fields['internal'].fields[0].choices = [("","Other")] + choices
         self.fields['internal'].widget.widgets[0].choices = [("","Other")] + choices
 
-        
+class GradSemesterForm(forms.Form):
+    start_semester = StaffSemesterField(required=False)
+    end_semester = StaffSemesterField(required=False)
+    # I'm commenting the following out because I suspect it will cause confusion. All the guts are there to make it work if needed, though.
+    #ignore = forms.BooleanField(initial=False, required=False,
+    #                            help_text="Ignore the values here and revert to the default values based on the student's statuses.")
+
 
 
 # creates an 'atom' to represent 'Unknown' (but it's not None) 
