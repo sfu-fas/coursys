@@ -1,0 +1,2 @@
+There has been a reply to the discussion topic "{{topic.title}}" in {{offering.name}} by {{message.author.person.name_pref}}. You can see the discussion here:
+  {{url}}

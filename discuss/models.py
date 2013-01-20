@@ -1,9 +1,14 @@
 from coredata.models import Member, CourseOffering
 from django.db import models
+from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
+from django.template.context import Context
+from django.conf import settings
 from jsonfield.fields import JSONField
 from courselib.json_fields import getter_setter
 from pages.models import ParserFor, brushes_used
-from django.utils.safestring import mark_safe
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 import datetime
@@ -71,9 +76,19 @@ class DiscussionTopic(models.Model):
         brushes = brushes_used(self.Creole.parser.parse(self.content))
         self.set_brushes(list(brushes))
         # TODO: nobody sets config.math to True, but it is honoured if it is set magically. UI for that?
-        
+
+        new_topic = self.id is None
         super(DiscussionTopic, self).save(*args, **kwargs)
+
+        # handle subscriptions
+        if new_topic:
+            subs = DiscussionSubscription.objects.filter(member__offering=self.offering).select_related('member__person')
+            for s in subs:
+                s.notify(self)
         
+    def get_absolute_url(self):
+        return reverse('discuss.views.view_topic', kwargs={'course_slug': self.offering.slug, 'topic_slug': self.slug})
+
     def new_message_update(self):
         self.last_activity_at = datetime.datetime.now()
         self.message_count = self.message_count + 1
@@ -165,13 +180,24 @@ class DiscussionMessage(models.Model):
         brushes = brushes_used(self.topic.Creole.parser.parse(self.content))
         self.set_brushes(list(brushes))
         
+        new_message = self.id is None
+        
         super(DiscussionMessage, self).save(*args, **kwargs)
+
+        # handle subscriptions
+        if new_message:
+            subs = TopicSubscription.objects.filter(member__offering=self.topic.offering, topic=self.topic).select_related('member__person')
+            for s in subs:
+                s.notify(self)
 
     def html_content(self):
         "Convert self.content to HTML"
         creole = self.topic.get_creole()
         html = creole.text2html(self.content)
         return mark_safe(html)
+    
+    def get_absolute_url(self):
+        return self.topic.get_absolute_url() + '#reply-' + str(self.id)
     
     def create_at_delta(self):
         return _time_delta_to_string(self.created_at)
@@ -200,3 +226,78 @@ class DiscussionMessage(models.Model):
         data = {'body': self.content, 'created_at': self.created_at.isoformat(),
                 'author': self.author.person.userid, 'status': self.status}
         return data
+
+
+
+class _DiscussionEmailMixin(object):
+    # mixin to avoid copying-and-pasting the email sending logic
+    def email_user(self, text_template, html_template, context):
+        offering = context['offering']
+        headers = {
+                'Precedence': 'bulk',
+                'Auto-Submitted': 'auto-generated',
+                'X-coursys-topic': 'discussion',
+                'X-course': offering.slug,
+                'Sender': settings.DEFAULT_SENDER_EMAIL,
+                }
+        to_email = context['to'].email()
+        if offering.taemail():
+            from_email = "%s <%s>" % (offering.name(), offering.taemail())
+        else:
+            from_email = settings.DEFAULT_SENDER_EMAIL
+        text_content = get_template(text_template).render(Context(context))
+        html_content = get_template(html_template).render(Context(context))
+        
+        msg = EmailMultiAlternatives(context['subject'], text_content, from_email, [to_email], headers=headers)
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
+
+SUBSCRIPTION_STATUSES = (
+                  ('NONE', 'None'), # == deleted
+                  ('MAIL', 'Email'),
+                  )
+
+class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
+    """
+    A member's subscription to their offering's discussion
+    """
+    member = models.ForeignKey(Member)
+    status = models.CharField(max_length=4, choices=SUBSCRIPTION_STATUSES, default='MAIL',
+                              help_text='Action to take when a new topic/message is posted')
+
+    def notify(self, topic):
+        if self.status == 'NONE':
+            pass
+        elif self.status == 'MAIL':
+            url = settings.BASE_ABS_URL + topic.get_absolute_url()
+            subject = 'New disussion in %s' % (topic.offering.name())
+            context = {'topic': topic, 'url': url,
+                       'offering': self.member.offering, 'subject': subject,
+                       'to': self.member.person, 'author': topic.author}
+            if self.member.person != topic.author.person:
+                self.email_user('discuss/discuss_notify.txt', 'discuss/discuss_notify.html', context)
+
+class TopicSubscription(models.Model, _DiscussionEmailMixin):
+    """
+    A member's subscription to a single discussion topic
+    """
+    topic = models.ForeignKey(DiscussionTopic)
+    member = models.ForeignKey(Member)
+    status = models.CharField(max_length=4, choices=SUBSCRIPTION_STATUSES, default='MAIL',
+                              help_text='Action to take when a new message is posted to the topic')
+    class Meta:
+        unique_together = (('topic', 'member'),)
+
+    def notify(self, message):
+        if self.status == 'NONE':
+            pass
+        elif self.status == 'MAIL':
+            url = settings.BASE_ABS_URL + message.get_absolute_url()
+            subject = 'New disussion on "%s"' % (message.topic.title)
+            context = {'topic': self.topic, 'message': message, 'url': url,
+                       'offering': self.topic.offering, 'subject': subject,
+                       'to': self.member.person, 'author': message.author}
+            if self.member.person != message.author.person:
+                self.email_user('discuss/topic_notify.txt', 'discuss/topic_notify.html', context)
+

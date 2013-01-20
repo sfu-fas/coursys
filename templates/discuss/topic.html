@@ -102,7 +102,7 @@
 			{{ topic.title }}
 		</span>
 		<div class="discussion-topic-meta">
-			<span class="discussion-topic-author-content">{{ topic.author.person.name }} ({{ topic.author.person.userid }})</span>
+			<span class="discussion-topic-author-content">{{ topic.author.person.name_pref }} ({{ topic.author.person.userid }})</span>
 			<span class="discussion-topic-last"><span style="color:#1F6B08">{{ topic.created_at_delta }}</span></span>
 		</div>
 	</div>
@@ -122,9 +122,9 @@
 	{% endif %}
 	{% if replies|length > 0 %}
 	{% for reply in replies %}
-		<div class="discussion-topic-reply">
+		<div class="discussion-topic-reply" id="reply-{{reply.id}}">
 			<div class="discussion-reply-author {% if reply.status == 'HID' %}fade-out{% endif %}">
-				{{ reply.author.person.name }} ({{reply.author.person.userid}}),
+				{{ reply.author.person.name_pref }} ({{reply.author.person.userid}}),
 			</div>
 			<div class="discussion-reply-time{% if reply.status == 'HID' %} fade-out{% endif %}">
 				{{ reply.create_at_delta }}
