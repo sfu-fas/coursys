@@ -1,2 +1,6 @@
 There has been a new discussion topic "{{topic.title}}" created for {{offering.name}} by {{topic.author.person.name_pref}}. You can see the discussion here:
   {{url}}
+
+You received this email from CourSys because you subscribed to discussion in
+this course. If you do not wish to receive these notifications by email, you
+can change your subscription settings at {{editurl}} .

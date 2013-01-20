@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}{{ course.subject }} {{ course.number }} Subscription to &ldquo;{{topic.title}}&rdquo;{% endblock %}
+{% block h1 %}{{ course.subject }} {{ course.number }} Subscription to &ldquo;{{topic.title}}&rdquo;{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a></li>
+<li>&gt; <a href="{% url discuss.views.view_topic course_slug=course.slug topic_slug=topic.slug %}">{{ topic.title }}</a></li>
+<li>&gt; Subscription</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+	<form action="" method="post">{% csrf_token %}
+		<fieldset>
+			<legend>Manage Subscription</legend>
+			{{ form|as_dl }}
+			<p><input class="submit" type="submit" value="Save" /></p>
+		</fieldset>
+	</form>
+</div>
+{% endblock %}

@@ -133,9 +133,11 @@ urlpatterns += patterns('',
     #Discussion
     url(r'^' + COURSE_SLUG + '/discussion/$', 'discuss.views.discussion_index'),
     url(r'^' + COURSE_SLUG + '/discussion/create_topic/$', 'discuss.views.create_topic'),
+    url(r'^' + COURSE_SLUG + '/discussion/subscribe$', 'discuss.views.manage_discussion_subscription'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/$', 'discuss.views.view_topic'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/edit$', 'discuss.views.edit_topic'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/change$', 'discuss.views.change_topic_status'),
+    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/subscribe$', 'discuss.views.manage_topic_subscription'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/remove/(?P<message_slug>' + SLUG_RE + ')$', 'discuss.views.remove_message'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/edit/(?P<message_slug>' + SLUG_RE + ')$', 'discuss.views.edit_message'),
 

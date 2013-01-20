@@ -254,8 +254,8 @@ class _DiscussionEmailMixin(object):
 
 
 SUBSCRIPTION_STATUSES = (
-                  ('NONE', 'None'), # == deleted
-                  ('MAIL', 'Email'),
+                  ('NONE', 'Do nothing'), # == deleted
+                  ('MAIL', 'Email me'),
                   )
 
 class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
@@ -263,16 +263,19 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
     A member's subscription to their offering's discussion
     """
     member = models.ForeignKey(Member)
-    status = models.CharField(max_length=4, choices=SUBSCRIPTION_STATUSES, default='MAIL',
-                              help_text='Action to take when a new topic/message is posted')
+    status = models.CharField(max_length=4, choices=SUBSCRIPTION_STATUSES, default='NONE',
+                              verbose_name='Notification',
+                              help_text='Action to take when a new topic is posted')
 
     def notify(self, topic):
         if self.status == 'NONE':
             pass
         elif self.status == 'MAIL':
             url = settings.BASE_ABS_URL + topic.get_absolute_url()
+            editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_discussion_subscription', 
+                    kwargs={'course_slug': self.member.offering.slug})
             subject = 'New disussion in %s' % (topic.offering.name())
-            context = {'topic': topic, 'url': url,
+            context = {'topic': topic, 'url': url, 'editurl': editurl,
                        'offering': self.member.offering, 'subject': subject,
                        'to': self.member.person, 'author': topic.author}
             if self.member.person != topic.author.person:
@@ -294,8 +297,10 @@ class TopicSubscription(models.Model, _DiscussionEmailMixin):
             pass
         elif self.status == 'MAIL':
             url = settings.BASE_ABS_URL + message.get_absolute_url()
+            editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_topic_subscription',
+                    kwargs={'course_slug': self.member.offering.slug, 'topic_slug': self.topic.slug})
             subject = 'New disussion on "%s"' % (message.topic.title)
-            context = {'topic': self.topic, 'message': message, 'url': url,
+            context = {'topic': self.topic, 'message': message, 'url': url, 'editurl': editurl,
                        'offering': self.topic.offering, 'subject': subject,
                        'to': self.member.person, 'author': message.author}
             if self.member.person != message.author.person:
