@@ -186,6 +186,9 @@ class DiscussionMessage(models.Model):
 
         # handle subscriptions
         if new_message:
+            subs = DiscussionSubscription.objects.filter(member__offering=self.topic.offering).select_related('member__person')
+            for s in subs:
+                s.notify_message(self)
             subs = TopicSubscription.objects.filter(member__offering=self.topic.offering, topic=self.topic).select_related('member__person')
             for s in subs:
                 s.notify(self)
@@ -253,9 +256,14 @@ class _DiscussionEmailMixin(object):
         msg.send()
 
 
-SUBSCRIPTION_STATUSES = (
+TOPIC_SUB_STATUSES = (
                   ('NONE', 'Do nothing'), # == deleted
                   ('MAIL', 'Email me'),
+                  )
+DISCUSSION_SUB_STATUSES = (
+                  ('NONE', 'Do nothing'), # == deleted
+                  ('MAIL', 'Email me when a new topic is started'),
+                  ('ALLM', 'Email me for new topics and replies'),
                   )
 
 class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
@@ -263,14 +271,14 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
     A member's subscription to their offering's discussion
     """
     member = models.ForeignKey(Member)
-    status = models.CharField(max_length=4, choices=SUBSCRIPTION_STATUSES, default='NONE',
+    status = models.CharField(max_length=4, choices=DISCUSSION_SUB_STATUSES, default='NONE',
                               verbose_name='Notification',
                               help_text='Action to take when a new topic is posted')
 
     def notify(self, topic):
         if self.status == 'NONE':
             pass
-        elif self.status == 'MAIL':
+        elif self.status in ['MAIL', 'ALLM']:
             url = settings.BASE_ABS_URL + topic.get_absolute_url()
             editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_discussion_subscription', 
                     kwargs={'course_slug': self.member.offering.slug})
@@ -281,13 +289,28 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             if self.member.person != topic.author.person:
                 self.email_user('discuss/discuss_notify.txt', 'discuss/discuss_notify.html', context)
 
+    def notify_message(self, message):
+        "Called when a reply is posted anywhere for this course."
+        if self.status in ['NONE', 'MAIL']:
+            pass
+        elif self.status == 'ALLM':
+            url = settings.BASE_ABS_URL + message.get_absolute_url()
+            editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_discussion_subscription',
+                    kwargs={'course_slug': self.member.offering.slug})
+            subject = 'New disussion on "%s"' % (message.topic.title)
+            context = {'topic': message.topic, 'message': message, 'url': url, 'editurl': editurl,
+                       'offering': message.topic.offering, 'subject': subject,
+                       'to': self.member.person, 'author': message.author, 'topic_sub': False}
+            if self.member.person != message.author.person:
+                self.email_user('discuss/topic_notify.txt', 'discuss/topic_notify.html', context)
+
 class TopicSubscription(models.Model, _DiscussionEmailMixin):
     """
     A member's subscription to a single discussion topic
     """
     topic = models.ForeignKey(DiscussionTopic)
     member = models.ForeignKey(Member)
-    status = models.CharField(max_length=4, choices=SUBSCRIPTION_STATUSES, default='MAIL',
+    status = models.CharField(max_length=4, choices=TOPIC_SUB_STATUSES, default='MAIL',
                               help_text='Action to take when a new message is posted to the topic')
     class Meta:
         unique_together = (('topic', 'member'),)
@@ -302,7 +325,7 @@ class TopicSubscription(models.Model, _DiscussionEmailMixin):
             subject = 'New disussion on "%s"' % (message.topic.title)
             context = {'topic': self.topic, 'message': message, 'url': url, 'editurl': editurl,
                        'offering': self.topic.offering, 'subject': subject,
-                       'to': self.member.person, 'author': message.author}
+                       'to': self.member.person, 'author': message.author, 'topic_sub': True}
             if self.member.person != message.author.person:
                 self.email_user('discuss/topic_notify.txt', 'discuss/topic_notify.html', context)
 
