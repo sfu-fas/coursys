@@ -548,13 +548,10 @@ class TAContract(models.Model):
                 m.config['bu'] = crs.total_bu
                 m.save()
             elif (self.status == 'SGN' and crs.bu > 0 ) and members:
-                print "This is happening right now"
                 # change in BU -> change in BU for Member
                 m = members[0]
                 # if this student was added by the prof, then added_reason might not be CTA
-                print "bu is being set from " + str(m.config['bu']) + " to " + str(crs.total_bu)
                 m.config['bu'] = crs.total_bu
-                print "bu is now " + str(m.config['bu'])
                 m.added_reason='CTA'
                 m.save()
             elif (self.status != 'SGN' or crs.bu == 0) and members:
