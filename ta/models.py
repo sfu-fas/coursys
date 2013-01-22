@@ -532,11 +532,30 @@ class TAContract(models.Model):
         courses = TACourse.objects.filter(contract=self)
         for crs in courses:
             members = Member.objects.filter(person=self.application.person, offering=crs.course).exclude(role='DROP')
+            dropped_members = Member.objects.filter(person=self.application.person, offering=crs.course, role='DROP')
+            # Should Member just have an optional FK to TACourse rather than getting a copy of the BU? 
+            # TODO: if len(members) or len(dropped_members) > 1, then warning. 
             if (self.status == 'SGN' and crs.bu > 0) and not members:
-                # signed, but not a member: create
-                m = Member(person=self.application.person, offering=crs.course, role='TA',
+                if dropped_members:
+                    m = dropped_members[0]
+                    # if this student was added/dropped by the prof, then added_reason might not be CTA
+                    m.added_reason='CTA'
+                    m.role = "TA"
+                else:
+                    # signed, but not a member: create
+                    m = Member(person=self.application.person, offering=crs.course, role='TA',
                            added_reason='CTA', credits=0, career='NONS')
-                m.config['bu'] = crs.bu
+                m.config['bu'] = crs.total_bu
+                m.save()
+            elif (self.status == 'SGN' and crs.bu > 0 ) and members:
+                print "This is happening right now"
+                # change in BU -> change in BU for Member
+                m = members[0]
+                # if this student was added by the prof, then added_reason might not be CTA
+                print "bu is being set from " + str(m.config['bu']) + " to " + str(crs.total_bu)
+                m.config['bu'] = crs.total_bu
+                print "bu is now " + str(m.config['bu'])
+                m.added_reason='CTA'
                 m.save()
             elif (self.status != 'SGN' or crs.bu == 0) and members:
                 # already in course, but status isn't signed: remove
@@ -544,6 +563,10 @@ class TAContract(models.Model):
                 if m.role == 'TA' and m.added_reason == 'CTA':
                     m.role = 'DROP'
                     m.save()
+            else: 
+                # (self.status != 'SGN' or crs.bu == 0) and not members
+                # there is no contract and this student doesn't exist as a Member in the course
+                pass
             
             if self.status in ('CAN', 'REJ'):
                 crs.bu = 0

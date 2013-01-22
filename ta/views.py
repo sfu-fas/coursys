@@ -1063,8 +1063,8 @@ def edit_contract(request, post_slug, userid):
                 if grad.count()>0:
                     grad[0].config['sin'] = request.POST['sin']
                 
-                contract.save()
                 formset.save()
+                contract.save()
 
                 if not editing:
                     messages.success(request, u"Created TA Contract for %s for %s." % (contract.application.person, posting))
