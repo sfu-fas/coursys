@@ -19,4 +19,12 @@
 		</fieldset>
 	</form>
 </div>
+{% if topic_subs %}
+<p>You are currently subscribed to discussion in these specific topics in this course. You can edit your subscriptions to them as well:</p>
+<ul>
+{% for sub in topic_subs %}
+<li><a href="{% url discuss.views.manage_topic_subscription course_slug=course.slug topic_slug=sub.topic.slug %}">{{ sub.topic.title }}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
 {% endblock %}

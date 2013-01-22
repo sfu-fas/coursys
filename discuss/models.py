@@ -311,7 +311,8 @@ class TopicSubscription(models.Model, _DiscussionEmailMixin):
     topic = models.ForeignKey(DiscussionTopic)
     member = models.ForeignKey(Member)
     status = models.CharField(max_length=4, choices=TOPIC_SUB_STATUSES, default='MAIL',
-                              help_text='Action to take when a new message is posted to the topic')
+                              verbose_name='Notification',
+                              help_text='Action to take when a new message is posted to this topic')
     class Meta:
         unique_together = (('topic', 'member'),)
 

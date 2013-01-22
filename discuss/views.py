@@ -226,6 +226,8 @@ def manage_discussion_subscription(request, course_slug):
     course, _ = _get_course_and_view(request, course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=request.user.username)
     sub, _ = DiscussionSubscription.objects.get_or_create(member=member)
+    topic_subs = TopicSubscription.objects.filter(member=member, topic__offering=course) \
+                 .exclude(status='NONE').select_related('topic')
     if request.method == 'POST':
         form = DiscussionSubscriptionForm(request.POST, instance=sub)
         if form.is_valid():
@@ -238,7 +240,7 @@ def manage_discussion_subscription(request, course_slug):
     else:
         form = DiscussionSubscriptionForm(instance=sub)
 
-    context = {'course':course, 'form': form}
+    context = {'course':course, 'form': form, 'topic_subs': topic_subs}
     return render(request, 'discuss/manage_discussion_subscription.html', context)
 
 @login_required()
@@ -258,7 +260,7 @@ def manage_topic_subscription(request, course_slug, topic_slug):
             return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
         
     else:
-        form = DiscussionSubscriptionForm(instance=sub)
+        form = TopicSubscriptionForm(instance=sub)
 
     context = {'course':course, 'topic': topic, 'form': form}
     return render(request, 'discuss/manage_topic_subscription.html', context)
