@@ -651,7 +651,7 @@ class TAForm(object):
 
         # personal info
         self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(contract.application.person.emplid))
-        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(contract.application.sin))
+        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(contract.sin))
         self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(contract.application.person.last_name))
         self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(contract.application.person.first_name))
         self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(contract.application.posting.unit.name)) # ADDRESS
