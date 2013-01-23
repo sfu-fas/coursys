@@ -595,7 +595,7 @@ def assign_bus(request, post_slug, course_slug):
                     ta_course.description = ta_course.default_description()
                     ta_course.save()
                     # this requires that the contract be re-signed
-                    ta_course.contract.status = 'OPN'
+                    ta_course.contract.status = 'NEW'
                     ta_course.contract.save()
 
         return HttpResponse(json.dumps(response_data), mimetype='application/json')
@@ -679,7 +679,9 @@ def assign_bus(request, post_slug, course_slug):
                         #create new TAContract if there isn't one
                         contracts = TAContract.objects.filter(application=applicants[i], posting=posting)
                         if contracts.count() > 0: #count is 1
+                            # if we've added to the contract, we've invalidated it. 
                             contract = contracts[0]
+                            contract.status = "NEW"
                         else:
                             contract = TAContract(created_by=request.user.username)
                             contract.first_assign(applicants[i], posting)
@@ -693,11 +695,17 @@ def assign_bus(request, post_slug, course_slug):
                             formset[i]._errors['bu'] = formset[i].error_class(["Can't find a contract description to assign to the contract."])
                         else:
                             tacourse.save()
+                            contract.save()
                 else: 
                     #update bu for existing TACourse
                     if formset[i]['bu'].value() != '' and formset[i]['bu'].value() != '0':
-                        applicant.assigned_course.bu = formset[i]['bu'].value()
-                        applicant.assigned_course.save()                        
+                        if formset[i]['bu'].value() != applicant.assigned_course.bu:
+                            applicant.assigned_course.bu = formset[i]['bu'].value()
+                            applicant.assigned_course.save()                        
+                            # if we've changed the contract, we've invalidated it. 
+                            contract = applicant.assigned_course.contract
+                            contract.status = "NEW"
+                            contract.save()
                     #unassign bu to this offering for this applicant
                     else:
                         course = applicant.assigned_course
