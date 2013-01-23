@@ -118,10 +118,13 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
         for f in self.config:
-            if 'weekly' in self.config[f]:
-                self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
-            if 'total' in self.config[f]:
-                self.config[f]['total'] = _round_hours(self.config[f]['total'])
+            # if 'weekly' in False is invalid, so we have to check if self.config[f] is iterable
+            # before we check for 'weekly' or 'total' 
+            if hasattr(self.config[f], '__iter__'):
+                if 'weekly' in self.config[f]:
+                    self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
+                if 'total' in self.config[f]:
+                    self.config[f]['total'] = _round_hours(self.config[f]['total'])
 
         super(TUG, self).save(*args, **kwargs)
         if newsitem:
@@ -130,6 +133,12 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
                     content='Your Time Use Guideline for %s has been changed. If you have not already, please review it with the instructor.' % (self.member.offering.name()),
                     url=self.get_absolute_url())
             n.save()
+
+    def expired( self ):
+        if self.member.offering.labtut():
+            return 'bu' in self.member.config and self.base_units != self.member.bu() - LAB_BONUS_DECIMAL
+        else:
+            return 'bu' in self.member.config and self.base_units != self.member.bu()
             
     def get_absolute_url(self):
         return reverse('ta.views.view_tug', kwargs={
@@ -550,10 +559,11 @@ class TAContract(models.Model):
             elif (self.status == 'SGN' and crs.bu > 0 ) and members:
                 # change in BU -> change in BU for Member
                 m = members[0]
-                # if this student was added by the prof, then added_reason might not be CTA
-                m.config['bu'] = crs.total_bu
-                m.added_reason='CTA'
-                m.save()
+                if m.config['bu'] != crs.total_bu:
+                    # if this student was added by the prof, then added_reason might not be CTA
+                    m.config['bu'] = crs.total_bu
+                    m.added_reason='CTA'
+                    m.save()
             elif (self.status != 'SGN' or crs.bu == 0) and members:
                 # already in course, but status isn't signed: remove
                 m = members[0]

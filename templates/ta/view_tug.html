@@ -31,9 +31,17 @@
 
 {% block content %}
 
+{% if expired %}
+<div id='messages' class='warning' style='width: 600px'>
+    The Base Units for this TA have changed since this TUG was created.
+    Please edit this TUG.
+</div>
+{% endif %}
+
 <div id="tugPrintHeader">
-Simon Fraser University<br/>
-Teaching Assistant Time Use Guideline</div>
+    Simon Fraser University<br/>
+    Teaching Assistant Time Use Guideline
+</div>
 
 <div id="tugHeader">
 	<span id="taName">TA Name: 

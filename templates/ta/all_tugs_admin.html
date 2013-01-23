@@ -43,8 +43,16 @@
 
 <div class="datatable_container">
 <table class="display" id="offerings">
-<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">TA</th>
-<th scope="col">TUG</th><th scope="col">BU</th><th scope="col">Hours</th></tr></thead>
+<thead>
+    <tr>
+        <th scope="col">Offering</th>
+        <th scope="col">Instructor</th>
+        <th scope="col">TA</th>
+        <th scope="col">TUG</th>
+        <th scope="col">BU</th>
+        <th scope="col">Hours</th>
+    </tr>
+</thead>
 <tbody>
 {% for data in tas_with_tugs %}
   <tr>
@@ -54,7 +62,11 @@
   <td>
   	{% if data.tug %}
   	<span class="sort">{{ data.tug.last_update.isoformat }}</span>
-  	<a href="{% url ta.views.view_tug course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
+        {% if data.tug.expired %}
+  	        <a class='warning' href="{% url ta.views.view_tug course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Invalidated by BU Change</a>
+        {% else %}
+  	        <a href="{% url ta.views.view_tug course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
+        {% endif %}
   	{% else %}
   	{% endif %}
   </td>

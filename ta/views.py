@@ -103,7 +103,11 @@ def new_tug(request, course_slug, userid):
             tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
-        if has_lab_or_tut:
+        if not member.bu():
+            form = TUGForm(offering=course,userid=userid, initial=
+                    {'holiday':{'total': 0},
+                     'base_units': 0})
+        elif has_lab_or_tut:
             form = TUGForm(offering=course,userid=userid, initial=
                     {'holiday':{'total':bu-LAB_BONUS_DECIMAL},
                      'base_units': bu-LAB_BONUS_DECIMAL})
@@ -143,10 +147,17 @@ def view_tug(request, course_slug, userid):
     else:
         tug = get_object_or_404(TUG, member=member)
         max_hours = tug.base_units * HOURS_PER_BU
-        total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in tug.config.iteritems() if params.get('total',0) is not None)
+        iterable_fields = [(_, params) for _, params in tug.config.iteritems() if hasattr(params, '__iter__') ]
+        total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
         has_lab_or_tut = course.labtas()
+        expired = tug.expired()
+        # TODO: Remove
+        print tug.config
         
-        context = {'tug': tug, 'ta':member, 'course':course, 
+        context = {'tug': tug, 
+                'ta':member, 
+                'course':course, 
+                'expired':expired,
                 'max_hours': max_hours, 
                 'total_hours':total_hours,
                 'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut,
@@ -158,6 +169,14 @@ def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     tug = get_object_or_404(TUG, member=member)
+    has_lab_or_tut = course.labtas()
+    
+    if tug.expired():
+        bu = member.bu()
+        if has_lab_or_tut:
+            bu = member.bu() - LAB_BONUS_DECIMAL
+        tug.base_units = bu
+        tug.config['holiday']['total'] = bu
 
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
