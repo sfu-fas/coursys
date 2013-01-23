@@ -151,8 +151,6 @@ def view_tug(request, course_slug, userid):
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
         has_lab_or_tut = course.labtas()
         expired = tug.expired()
-        # TODO: Remove
-        print tug.config
         
         context = {'tug': tug, 
                 'ta':member, 
