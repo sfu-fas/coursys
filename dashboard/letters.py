@@ -714,7 +714,7 @@ class TAForm(object):
         self.c.rect(125*mm, 132*mm, 23*mm, 6*mm)
         self.c.drawRightString(147*mm, 133*mm, "%.2f" % (total_bu))
         
-        self._draw_box(153*mm, 155*mm, 22*mm, label="APPT. CATEGORY", content=contract.application.category)
+        self._draw_box(153*mm, 155*mm, 22*mm, label="APPT. CATEGORY", content=contract.appt_category)
             
         # salary/scholarship
         pp = contract.posting.payperiods()
