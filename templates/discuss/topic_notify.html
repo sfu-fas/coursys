@@ -2,5 +2,5 @@
 by {{message.author.person.name_pref}}. You can see the discussion here: <a href="{{url}}">{{url}}</a>.</p>
 
 <p style="font-size: smaller; border-top: 1px solid black;">You received this email from CourSys because you subscribed
-to discussion on this topic. If you do not wish to receive these notifications by email, you can
+to discussion {% if topic_sub %}on this topic{% else %}in this course{% endif %}. If you do not wish to receive these notifications by email, you can
 <a href="{{editurl}}">change your subscription settings</a>.</p>
