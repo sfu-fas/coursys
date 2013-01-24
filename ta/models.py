@@ -559,7 +559,7 @@ class TAContract(models.Model):
             elif (self.status == 'SGN' and crs.bu > 0 ) and members:
                 # change in BU -> change in BU for Member
                 m = members[0]
-                if m.config['bu'] != crs.total_bu:
+                if not 'bu' in m.config or m.config['bu'] != crs.total_bu:
                     # if this student was added by the prof, then added_reason might not be CTA
                     m.config['bu'] = crs.total_bu
                     m.added_reason='CTA'
