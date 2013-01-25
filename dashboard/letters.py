@@ -669,8 +669,16 @@ class TAForm(object):
         self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(contract.pay_end))
         
         # initial appointment boxes
-        self.c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=1)
-        self.c.rect(14*mm, 176*mm, 5*mm, 5*mm, fill=0)
+        
+        initial_appointment_fill = 0
+        if contract.appt == "INIT":
+            initial_appointment_fill = 1
+        reappointment_fill = 0
+        if contract.appt == "REAP":
+            reappointment_fill = 1
+
+        self.c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=initial_appointment_fill)
+        self.c.rect(14*mm, 176*mm, 5*mm, 5*mm, fill=reappointment_fill)
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(21*mm, 188*mm, "INITIAL APPOINTMENT TO")
         self.c.drawString(21*mm, 186*mm, "THIS POSITION NUMBER")
