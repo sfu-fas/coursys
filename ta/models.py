@@ -544,7 +544,7 @@ class TAContract(models.Model):
             dropped_members = Member.objects.filter(person=self.application.person, offering=crs.course, role='DROP')
             # Should Member just have an optional FK to TACourse rather than getting a copy of the BU? 
             # TODO: if len(members) or len(dropped_members) > 1, then warning. 
-            if (self.status == 'SGN' and crs.bu > 0) and not members:
+            if (self.status in ['SGN', 'ACC'] and crs.bu > 0) and not members:
                 if dropped_members:
                     m = dropped_members[0]
                     # if this student was added/dropped by the prof, then added_reason might not be CTA
@@ -556,7 +556,7 @@ class TAContract(models.Model):
                            added_reason='CTA', credits=0, career='NONS')
                 m.config['bu'] = crs.total_bu
                 m.save()
-            elif (self.status == 'SGN' and crs.bu > 0 ) and members:
+            elif (self.status in ['SGN', 'ACC'] and crs.bu > 0 ) and members:
                 # change in BU -> change in BU for Member
                 m = members[0]
                 if not 'bu' in m.config or m.config['bu'] != crs.total_bu:
@@ -564,14 +564,14 @@ class TAContract(models.Model):
                     m.config['bu'] = crs.total_bu
                     m.added_reason='CTA'
                     m.save()
-            elif (self.status != 'SGN' or crs.bu == 0) and members:
+            elif ( (not self.status in ['SGN', 'ACC']) or crs.bu == 0) and members:
                 # already in course, but status isn't signed: remove
                 m = members[0]
                 if m.role == 'TA' and m.added_reason == 'CTA':
                     m.role = 'DROP'
                     m.save()
             else: 
-                # (self.status != 'SGN' or crs.bu == 0) and not members
+                # (self.status not in ['SGN', 'ACC'] or crs.bu == 0) and not members
                 # there is no contract and this student doesn't exist as a Member in the course
                 pass
             
