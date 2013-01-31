@@ -9,7 +9,8 @@ from courselib.auth import requires_course_staff_by_slug, requires_course_instr_
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
-    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU,
+    HOLIDAY_HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
@@ -108,12 +109,14 @@ def new_tug(request, course_slug, userid):
                     {'holiday':{'total': 0},
                      'base_units': 0})
         elif has_lab_or_tut:
+            holiday = (bu-LAB_BONUS_DECIMAL) * HOLIDAY_HOURS_PER_BU
             form = TUGForm(offering=course,userid=userid, initial=
-                    {'holiday':{'total':bu-LAB_BONUS_DECIMAL},
+                    {'holiday':{'total':holiday},
                      'base_units': bu-LAB_BONUS_DECIMAL})
             form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS_DECIMAL)
         else:
-            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
+            holiday = bu * HOLIDAY_HOURS_PER_BU
+            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':holiday}, 'base_units': bu})
     
     if member.bu():
         # we know BUs from the TA application: don't allow editing
