@@ -11,7 +11,13 @@
 {% block title %}{{course.name}} TUG for {{ta.person}} {% endblock %}
 {% block h1 %}{{course.name}} TUG for {{ta.person}} {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; <a href="{% url ta.views.all_tugs course_slug=course.slug %}">TUGs</a></li><li>&gt; {{ta.person.name}}</li>{% endblock %}
+{% block subbreadcrumbs %}
+    {% if user_role == "ADMN" %}
+    <li>&gt; <a href="{% url ta.views.all_tugs_admin %}">All TUGs</a> &gt; {{tug.member.person}}</li>
+    {% else %}
+    <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; <a href="{% url ta.views.all_tugs course_slug=course.slug %}">TUGs</a></li><li>&gt; {{ta.person.name}}</li>
+    {% endif %}
+{% endblock %}
 
 
 
