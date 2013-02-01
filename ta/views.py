@@ -9,7 +9,7 @@ from courselib.auth import requires_course_staff_by_slug, requires_course_instr_
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
-    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU,
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
     HOLIDAY_HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
@@ -176,8 +176,9 @@ def edit_tug(request, course_slug, userid):
         bu = member.bu()
         if has_lab_or_tut:
             bu = member.bu() - LAB_BONUS_DECIMAL
+        holiday = bu * HOLIDAY_HOURS_PER_BU
         tug.base_units = bu
-        tug.config['holiday']['total'] = bu
+        tug.config['holiday']['total'] = holiday
 
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
