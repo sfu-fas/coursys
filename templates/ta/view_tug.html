@@ -21,6 +21,7 @@
 <ul>
 {% if user_role == "ADMN" %}
 <li><a href="{% url ta.views.all_tugs_admin %}">View All TUGs</a></li>
+<li><a href="{% url ta.views.edit_tug course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 {% else %}{% if user_role != "TA" %}
 <li><a href="{% url ta.views.edit_tug course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 {% endif %}{% endif %}
