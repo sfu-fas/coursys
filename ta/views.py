@@ -173,13 +173,13 @@ def edit_tug(request, course_slug, userid):
     tug = get_object_or_404(TUG, member=member)
     has_lab_or_tut = course.labtas()
     
-    if tug.expired():
+    if member.bu():
         bu = member.bu()
         if has_lab_or_tut:
             bu = member.bu() - LAB_BONUS_DECIMAL
         holiday = bu * HOLIDAY_HOURS_PER_BU
-        tug.base_units = bu
         tug.config['holiday']['total'] = holiday
+        tug.base_units = bu
 
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
