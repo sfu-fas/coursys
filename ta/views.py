@@ -163,6 +163,7 @@ def view_tug(request, course_slug, userid):
                 'max_hours': max_hours, 
                 'total_hours':total_hours,
                 'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut,
+                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
                 'LAB_BONUS': LAB_BONUS_DECIMAL, 'LAB_BONUS_4': LAB_BONUS_DECIMAL+4, 'HOURS_PER_BU': HOURS_PER_BU, 'LAB_BONUS_HOURS': LAB_BONUS_DECIMAL*HOURS_PER_BU, 'HOURS_PER_BU': HOURS_PER_BU,}
         return render(request, 'ta/view_tug.html',context)
 
