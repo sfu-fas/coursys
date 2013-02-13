@@ -13,6 +13,7 @@ CODE_TYPES = [
     (".txt", "Plain Text (.txt)"),
     (".java", "Java Source (.java)"),
     (".class", "Java Bytecode (.class)"),
+    (".hpp", "C++ Header (.hpp)"),
     (".cpp", "C++ (.cpp)"),
     (".cc", "C++ (.cc)"),
     (".c", "C (.c)"),
