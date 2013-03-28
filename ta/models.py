@@ -14,6 +14,8 @@ from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from creoleparser import text2html
 
+import bu_rules
+
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
 HOURS_PER_BU = 42 # also in media/js/ta.js
@@ -283,21 +285,8 @@ class TAPosting(models.Model):
         """
         Default BUs to assign for this course offering
         """
-        if count is None:
-            count = offering.enrl_tot
-        level = offering.number[0] + "00"
-        if level not in self.bu_defaults():
-            return decimal.Decimal(0)
-        
-        defaults = self.bu_defaults()[level]
-        defaults.sort()
-        # get highest cutoff <= actual student count
-        last = decimal.Decimal(0)
-        for s,b in defaults:
-            if s > count:
-                return decimal.Decimal(last)
-            last = b
-        return decimal.Decimal(last) # if off the top of scale, return max
+        strategy = bu_rules.get_bu_strategy( self.semester, self.unit )
+        return strategy( self, offering, count )
 
     def required_bu(self, offering, count=None):
         """

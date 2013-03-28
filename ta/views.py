@@ -31,6 +31,7 @@ import datetime, decimal, locale
 import unicodecsv as csv
 from ta.templatetags import ta_display
 import json
+import bu_rules
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -1234,8 +1235,11 @@ def edit_posting(request, post_slug=None):
 @requires_role("TAAD")
 def posting_admin(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    default_visible = bu_rules.does_bu_strategy_involve_defaults(posting.semester, posting.unit) 
+    print default_visible
 
-    context = {'posting': posting}
+    context = {'posting': posting, 
+               'default_visible': default_visible }
     return render(request, 'ta/posting_admin.html', context)
 
 
