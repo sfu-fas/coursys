@@ -492,6 +492,7 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
     """
+    status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
     posting = models.ForeignKey(TAPosting)
     application = models.ForeignKey(TAApplication)
     sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
@@ -505,7 +506,6 @@ class TAContract(models.Model):
     appt_cond = models.BooleanField(default=False, verbose_name="Conditional")
     appt_tssu = models.BooleanField(default=True, verbose_name="Appointment in TSSU")
     deadline = models.DateField(verbose_name="Acceptance Deadline", help_text='Deadline for the applicant to accept/decline the offer')
-    status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
     remarks = models.TextField(blank=True)
     
     created_by = models.CharField(max_length=8, null=False)
