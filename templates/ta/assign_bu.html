@@ -60,7 +60,7 @@
     $("#update_button").show();
     $("#cancel_button").show();
     $("#submit_message").show();
-    $("#submit_button").hide();
+    $(".submit_button").hide();
   }
   
   function hide_update(){
@@ -68,7 +68,7 @@
     $("#update_button").hide();
     $("#cancel_button").hide();
     $("#submit_message").hide();
-    $("#submit_button").show();
+    $(".submit_button").show();
     $("#messages").hide();
   }
   
@@ -191,6 +191,7 @@ Instructor:
     </fieldset>
 </form>
 
+
 <div id= "config">
 <p id="info">
 Required BU: <span id="req_bu">{{ offering|display_required_bu:posting }}</span>
@@ -201,6 +202,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
 </div>
 
 <form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug%}" method="post">{% csrf_token %}
+<input id="submit_button" class="submit submit_button" type="submit" value="Submit"/>
 <div class="form_container">
 {{ formset.management_form }}
 <table class="display" id="ta_app">
@@ -249,7 +251,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
 {% endfor %}
 </tbody>
 </table>
-<input id="submit_button" class="submit" type="submit" value="Submit"/>
+<input id="submit_button" class="submit submit_button" type="submit" value="Submit"/>
 <div id="submit_message" style="text-align: right;"> Please Update or Cancel your course configuration change before continuing. </div>
 </div>
 </form>
