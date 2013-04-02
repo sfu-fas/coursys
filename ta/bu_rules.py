@@ -31,7 +31,7 @@ def cmpt_after_1134_strategy( posting, offering, count=None ):
     default = math.floor( count * CMPT_BU_ALLOCATION_CONSTANT )
     if default < 2:
         return decimal.Decimal(0)
-    return decimal.Decimal(default)
+    return decimal.Decimal(str(default))
 
 def does_bu_strategy_involve_defaults( semester, unit ):
     if unit.label in ["CMPT", "COMP"] and semester < SEM_1134:
