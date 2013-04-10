@@ -190,14 +190,27 @@ class RAAppointment(models.Model):
             start = datetime.date(yr, 9, 1)
             end = datetime.date(yr, 12, 31)
         return start, end
-
         
     def start_semester(self):
         "Guess the starting semester of this appointment"
-        return RAAppointment.semester_guess(self.start_date)
+        start_semester = RAAppointment.semester_guess(self.start_date)
+        # We do this to eliminate hang - if you're starting 3 days before 
+        # semester 1134, you aren't splitting that payment across 2 semesters. 
+        start, end = RAAppointment.start_end_dates(start_semester)
+        if end - self.start_date < datetime.timedelta(15):
+            return start_semester.next_semester()
+        return start_semester
+
     def end_semester(self):
         "Guess the ending semester of this appointment"
-        return RAAppointment.semester_guess(self.end_date)
+        end_semester = RAAppointment.semester_guess(self.end_date)
+        # We do this to eliminate hang - if you're starting 3 days after 
+        # semester 1134, you aren't splitting that payment across 2 semesters. 
+        start, end = RAAppointment.start_end_dates(end_semester)
+        if self.end_date - start < datetime.timedelta(15):
+            return end_semester.previous_semester()
+        return end_semester
+
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1
