@@ -1349,7 +1349,7 @@ def generate_csv(request, post_slug):
         gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
         if gradstudents:
             gs = min(gradstudents, key=_by_start_semester)
-            program = gs.program.label
+            program = app.current_program
             status = gs.get_current_status_display()
             unit = gs.program.unit.label
             if gs.start_semester:
