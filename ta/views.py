@@ -704,7 +704,9 @@ def assign_bus(request, post_slug, course_slug):
                 else: 
                     #update bu for existing TACourse
                     if formset[i]['bu'].value() != '' and formset[i]['bu'].value() != '0':
-                        if formset[i]['bu'].value() != applicant.assigned_course.bu:
+                        old_bu = decimal.Decimal(formset[i]['bu'].value())
+                        new_bu = applicant.assigned_course.bu
+                        if old_bu != new_bu:
                             applicant.assigned_course.bu = formset[i]['bu'].value()
                             applicant.assigned_course.save()                        
                             # if we've changed the contract, we've invalidated it. 
