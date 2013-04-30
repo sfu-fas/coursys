@@ -592,6 +592,8 @@ class TAContract(models.Model):
 
     def total_bu(self):
         courses = TACourse.objects.filter(contract=self)
+        if self.status in ('CAN', 'REJ'):
+            return 0
         return sum( [course.total_bu for course in courses] )
 
     def prep_bu(self):
