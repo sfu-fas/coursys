@@ -663,7 +663,8 @@ class TACourse(models.Model):
         contract = self.contract
         if contract.status in STATUSES_NOT_TAING:
             return decimal.Decimal(0)
-        total = self.total_bu * (contract.pay_per_bu + contract.scholarship_per_bu)
+        total = self.total_bu * contract.pay_per_bu
+        total += self.bu * contract.scholarship_per_bu
         return total
         
 TAKEN_CHOICES = (

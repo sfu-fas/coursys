@@ -706,6 +706,7 @@ class TAForm(object):
         # course assignments
         courses = contract.tacourse_set.filter(bu__gt=0)
         total_bu = 0
+        bu = 0
         for i, crs in zip(range(5), list(courses)+[None]*5):
             h = 162*mm - i*6*mm # bottom of this row
             self.c.rect(24*mm, h, 27*mm, 6*mm)
@@ -717,6 +718,7 @@ class TAForm(object):
                 self.c.drawString(25*mm, h + 1*mm, crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2])
                 self.c.drawString(52*mm, h + 1*mm, crs.description.description)
                 self.c.drawRightString(147*mm, h + 1*mm, "%.2f" % (crs.total_bu))
+                bu += crs.bu
                 total_bu += crs.total_bu
         
         self.c.rect(125*mm, 132*mm, 23*mm, 6*mm)
@@ -728,7 +730,7 @@ class TAForm(object):
         pp = contract.posting.payperiods()
         total_pay = total_bu*contract.pay_per_bu
         biweek_pay = total_pay/pp
-        total_schol = total_bu*contract.scholarship_per_bu
+        total_schol = bu*contract.scholarship_per_bu
         biweek_schol = total_schol/pp
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
         self.c.drawString(8*mm, 123*mm, "SALARY")

@@ -831,7 +831,7 @@ def contracts_csv(request, post_slug):
         benefits = 'Y'
         schol_rate = 'TSCH' if c.scholarship_per_bu else ''
         salary_total = total_bu * c.pay_per_bu
-        schol_total = total_bu * c.scholarship_per_bu
+        schol_total = bu * c.scholarship_per_bu
         if prep_units == 0:
             prep_units = ''
         
@@ -868,12 +868,13 @@ def accept_contract(request, post_slug, userid, preview=False):
         
     courses = TACourse.objects.filter(contract=contract)
     total = contract.total_bu()
+    bu = contract.bu()
     
     #this could be refactored used in multiple places
     pp = posting.payperiods()
     pdead = posting.config['deadline']
     salary_sem = (total*contract.pay_per_bu)
-    schol_sem = (total*contract.scholarship_per_bu)
+    schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
@@ -935,10 +936,11 @@ def view_contract(request, post_slug, userid):
     courses = TACourse.objects.filter(contract=contract)
     
     total = contract.total_bu()
+    bu = contract.bu()
     
     pp = posting.payperiods()
     salary_sem = (total*contract.pay_per_bu)
-    schol_sem = (total*contract.scholarship_per_bu)
+    schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
