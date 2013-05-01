@@ -175,6 +175,7 @@ class BaseSupervisorsFormSet(BaseModelFormSet):
                     
 
 class GradAcademicForm(ModelForm):
+    sin = forms.CharField( label = 'SIN', help_text='Social Insurance Number', required=False )
     class Meta: 
         model = GradStudent
         fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'comments')
