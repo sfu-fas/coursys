@@ -247,7 +247,7 @@ class LetterForm(ModelForm):
                                  help_text='Use the "From" person\'s signature, if on file?')    
     class Meta: 
         model = Letter
-        exclude = ('created_by', 'config')
+        exclude = ('created_by', 'config', 'template')
         widgets = {
                    'student': forms.HiddenInput(),
                    'to_lines': forms.Textarea(attrs={'rows': 4, 'cols': 50}),
