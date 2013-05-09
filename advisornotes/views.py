@@ -107,10 +107,10 @@ def sims_add_person(request):
             if isinstance(p, Person):
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                       description=("added %s (%s) from SIMS") % (p.name(), p.emplid),
+                       description=(u"added %s (%s) from SIMS") % (p.name(), p.emplid),
                       related_object=p)
                 l.save()
-                messages.add_message(request, messages.SUCCESS, 'Record for %s created.' % (p.name()))
+                messages.add_message(request, messages.SUCCESS, u'Record for %s created.' % (p.name()))
                 return _redirect_to_notes(p)
 
     return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
@@ -155,7 +155,7 @@ def new_note(request, userid):
             if 'file_attachment' in request.FILES:
                 upfile = request.FILES['file_attachment']
                 note.file_mediatype = upfile.content_type
-                messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
+                messages.add_message(request, messages.SUCCESS, u'Created file attachment "%s".' % (upfile.name))
 
             if isinstance(student, Person) and form.cleaned_data['email_student']:
                 _email_student_note(note)
@@ -164,7 +164,7 @@ def new_note(request, userid):
             note.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("new note for %s by %s") % (form.instance.student, request.user.username),
+                  description=(u"new note for %s by %s") % (form.instance.student, request.user.username),
                   related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Note created.')
@@ -198,7 +198,7 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
             if 'file_attachment' in request.FILES:
                 upfile = request.FILES['file_attachment']
                 note.file_mediatype = upfile.content_type
-                messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
+                messages.add_message(request, messages.SUCCESS, u'Created file attachment "%s".' % (upfile.name))
 
             if course:
                 note.course = course
@@ -211,10 +211,10 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("new note for %s by %s") % (related, request.user.username),
+                  description=(u"new note for %s by %s") % (related, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Note for %s created.' % related)
+            messages.add_message(request, messages.SUCCESS, u'Note for %s created.' % related)
 
             if course:
                 return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': course.slug}))
@@ -253,10 +253,10 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("edit note for %s by %s") % (related, request.user.username),
+                  description=(u"edit note for %s by %s") % (related, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Note for %s edited.' % related)
+            messages.add_message(request, messages.SUCCESS, u'Note for %s edited.' % related)
 
             if course:
                 return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': course.slug}))
@@ -404,10 +404,10 @@ def new_artifact(request):
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("new artifact %s by %s") % (artifact, request.user.username),
+                  description=(u"new artifact %s by %s") % (artifact, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Artifact "%s" created.' % artifact)
+            messages.add_message(request, messages.SUCCESS, u'Artifact "%s" created.' % artifact)
             return HttpResponseRedirect(reverse('advisornotes.views.view_artifacts', kwargs={}))
     else:
         form = ArtifactForm()
@@ -430,10 +430,10 @@ def edit_artifact(request, artifact_slug):
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("edited artifact %s by %s") % (artifact, request.user.username),
+                  description=(u"edited artifact %s by %s") % (artifact, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Artifact "%s" edited.' % artifact)
+            messages.add_message(request, messages.SUCCESS, u'Artifact "%s" edited.' % artifact)
             return HttpResponseRedirect(reverse('advisornotes.views.view_artifacts', kwargs={}))
     else:
         form = ArtifactForm(instance=artifact)
@@ -643,7 +643,7 @@ def merge_nonstudent(request, nonstudent_slug):
             nonstudent.delete()
             student.save()
             l = LogEntry(userid=request.user.username,
-                  description=("Nonstudent (%s, %s) has been merged with emplid #%s by %s") % (nonstudent.last_name, nonstudent.first_name, student.emplid, request.user),
+                  description=(u"Nonstudent (%s, %s) has been merged with emplid #%s by %s") % (nonstudent.last_name, nonstudent.first_name, student.emplid, request.user),
                   related_object=student)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Advisor notes successfully merged.')
