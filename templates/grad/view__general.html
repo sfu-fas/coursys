@@ -82,6 +82,16 @@
 				{% endfor %}
 				</td>
 			</tr>
+            {% if extras %}
+            <tr>
+                <td>
+                <ul>
+                    {% for extra, value in extras %}
+                    <li><strong class="label">{{extra}}</strong>: <br/>&nbsp;{{value}}</li>
+                    {% endfor %}
+                </ul>
+            </tr>
+            {% endif %}
 			<tr>
 				<td colspan="3">
 				<dl>
