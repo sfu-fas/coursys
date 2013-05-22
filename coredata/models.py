@@ -214,6 +214,10 @@ class Semester(models.Model):
         The human-readable label for the semester, e.g. "Summer 2010".
         """
         name = str(self.name)
+        if len(name) == 3:
+            name = "0"+name
+        if name[1] == '8':
+            name = "0" + name[1:]
         year = 1900 + int(name[0:3])
         semester = self.label_lookup[name[3]]
         return semester + " " + str(year)

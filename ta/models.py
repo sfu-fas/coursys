@@ -14,9 +14,13 @@ from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from creoleparser import text2html
 
+import bu_rules
+
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
 HOURS_PER_BU = 42 # also in media/js/ta.js
+
+HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
 def _round_hours(val):
     "Round to two decimal places because... come on."
@@ -281,21 +285,8 @@ class TAPosting(models.Model):
         """
         Default BUs to assign for this course offering
         """
-        if count is None:
-            count = offering.enrl_tot
-        level = offering.number[0] + "00"
-        if level not in self.bu_defaults():
-            return decimal.Decimal(0)
-        
-        defaults = self.bu_defaults()[level]
-        defaults.sort()
-        # get highest cutoff <= actual student count
-        last = decimal.Decimal(0)
-        for s,b in defaults:
-            if s > count:
-                return decimal.Decimal(last)
-            last = b
-        return decimal.Decimal(last) # if off the top of scale, return max
+        strategy = bu_rules.get_bu_strategy( self.semester, self.unit )
+        return strategy( self, offering, count )
 
     def required_bu(self, offering, count=None):
         """
@@ -501,6 +492,7 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
     """
+    status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
     posting = models.ForeignKey(TAPosting)
     application = models.ForeignKey(TAApplication)
     sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
@@ -514,7 +506,6 @@ class TAContract(models.Model):
     appt_cond = models.BooleanField(default=False, verbose_name="Conditional")
     appt_tssu = models.BooleanField(default=True, verbose_name="Appointment in TSSU")
     deadline = models.DateField(verbose_name="Acceptance Deadline", help_text='Deadline for the applicant to accept/decline the offer')
-    status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
     remarks = models.TextField(blank=True)
     
     created_by = models.CharField(max_length=8, null=False)
@@ -544,7 +535,7 @@ class TAContract(models.Model):
             dropped_members = Member.objects.filter(person=self.application.person, offering=crs.course, role='DROP')
             # Should Member just have an optional FK to TACourse rather than getting a copy of the BU? 
             # TODO: if len(members) or len(dropped_members) > 1, then warning. 
-            if (self.status == 'SGN' and crs.bu > 0) and not members:
+            if (self.status in ['SGN', 'ACC'] and crs.bu > 0) and not members:
                 if dropped_members:
                     m = dropped_members[0]
                     # if this student was added/dropped by the prof, then added_reason might not be CTA
@@ -556,22 +547,22 @@ class TAContract(models.Model):
                            added_reason='CTA', credits=0, career='NONS')
                 m.config['bu'] = crs.total_bu
                 m.save()
-            elif (self.status == 'SGN' and crs.bu > 0 ) and members:
+            elif (self.status in ['SGN', 'ACC'] and crs.bu > 0 ) and members:
                 # change in BU -> change in BU for Member
                 m = members[0]
-                if m.config['bu'] != crs.total_bu:
+                if not 'bu' in m.config or m.config['bu'] != crs.total_bu:
                     # if this student was added by the prof, then added_reason might not be CTA
                     m.config['bu'] = crs.total_bu
                     m.added_reason='CTA'
                     m.save()
-            elif (self.status != 'SGN' or crs.bu == 0) and members:
+            elif ( (not self.status in ['SGN', 'ACC']) or crs.bu == 0) and members:
                 # already in course, but status isn't signed: remove
                 m = members[0]
                 if m.role == 'TA' and m.added_reason == 'CTA':
                     m.role = 'DROP'
                     m.save()
             else: 
-                # (self.status != 'SGN' or crs.bu == 0) and not members
+                # (self.status not in ['SGN', 'ACC'] or crs.bu == 0) and not members
                 # there is no contract and this student doesn't exist as a Member in the course
                 pass
             
@@ -601,6 +592,8 @@ class TAContract(models.Model):
 
     def total_bu(self):
         courses = TACourse.objects.filter(contract=self)
+        if self.status in ('CAN', 'REJ'):
+            return 0
         return sum( [course.total_bu for course in courses] )
 
     def prep_bu(self):
@@ -672,7 +665,8 @@ class TACourse(models.Model):
         contract = self.contract
         if contract.status in STATUSES_NOT_TAING:
             return decimal.Decimal(0)
-        total = self.total_bu * (contract.pay_per_bu + contract.scholarship_per_bu)
+        total = self.total_bu * contract.pay_per_bu
+        total += self.bu * contract.scholarship_per_bu
         return total
         
 TAKEN_CHOICES = (

@@ -79,6 +79,18 @@ STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE') # statuses we
 
 GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
 
+THESIS_TYPE_CHOICES = (
+    ('T','Thesis'), 
+    ('P','Project'), 
+    ('E','Extended Essay'))
+
+THESIS_OUTCOME_CHOICES = (
+    ('NONE', "None (No Outcome)"),
+    ('PASS', "Pass (No Changes)"),
+    ('MINR', "Pass (Minor Changes)"),
+    ('DEFR', "Defer (Major Changes)"),
+    ('FAIL', "Fail"))
+
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
@@ -114,15 +126,44 @@ class GradStudent(models.Model):
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
         # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
         # 'work_title': title of the Thesis/Project/Extended Essay
+        # 'exam_date': date of the Thesis/Project/Extended Essay
         # 'applic_email': email address from the application process (where it could be imported)
         # 'start_semester': manually-set value to override the guess made by update_status_fields(). A semester.name (e.g. '1127') or None.
         # 'end_semester': manually-set value to override the guess made by update_status_fields(). A semester.name (e.g. '1127') or None.
-    defaults = {'sin': '000000000', 'applic_email': None}
+        # -- added for Engineering --
+        # 'thesis_outcome': outcome of Thesis/Project/Extended Essay
+        # 'thesis_location': location of thesis exam
+        # 'qualifying_exam_date': date of qualifying exam
+        # 'qualifying_exam_location': location of qualifying exam 
+        # 'place_of_birth': place of birth of the grad student
+        # 'bachelors_cgpa' : as a string
+        # 'masters_cgpa' : as a string
+        # 'progress': Progress on M.Eng, Ph.D, or MASc.
+
+    defaults = {'sin': '000000000', 'applic_email': None, 
+        'exam_location':'',
+        'place_of_birth':'', 
+        'bachelors_cgpa':'', 
+        'masters_cgpa':'',
+        'qualifying_exam_date':'',
+        'qualifying_exam_location':'',
+        'progress':''}
+
     #sin, set_sin = getter_setter('sin')
     applic_email, set_applic_email = getter_setter('applic_email')
+    
+    tacked_on_fields = [
+        ('place_of_birth', "Place of Birth"),
+        ('bachelors_cgpa', "Bachelors' CGPA"),
+        ('masters_cgpa', "Masters' CGPA"),
+        ('progress', "Last Progress Report"),
+        ('qualifying_exam_date', "Date of qualifying exam"),
+        ('qualifying_exam_location', "Location of qualifying exam"),
+    ]
 
     def __unicode__(self):
         return u"%s, %s" % (self.person, self.program.label)
+
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
@@ -496,6 +537,23 @@ class GradStudent(models.Model):
             semesters[sem]['other'].append(other)
             
         return semesters
+    
+    def thesis_type(self):
+        if 'thesis_type' in self.config:
+            for code, description in THESIS_TYPE_CHOICES:
+                if self.config['thesis_type'] == code:
+                    return description
+        return "Defence"
+
+    def thesis_summary(self): 
+        summary = ""
+        if 'work_title' in self.config:
+            summary += self.config['work_title'] + " : "
+        if 'thesis_location' in self.config:
+            summary += "(" + self.config['thesis_location'] + ") "
+        if 'exam_date' in self.config:
+            summary += self.config['exam_date'] + " "
+        return summary
 
 
 class GradProgramHistory(models.Model):
@@ -715,6 +773,7 @@ STATUS_ORDER = {
         'GRAD': 8,
         'GONE': 8,
         'ARSP': 8,
+        None: 9,
         }
 class GradStatus(models.Model):
     """
@@ -917,8 +976,6 @@ class FinancialComment(models.Model):
     def __unicode__(self):
         return "Comment for %s by %s" % (self.student.person.emplid, self.created_by)
 
-
-
 class GradFlag(models.Model):
     unit = models.ForeignKey(Unit)
     label = models.CharField(max_length=100, blank=False, null=False)
@@ -935,10 +992,6 @@ class GradFlagValue(models.Model):
 
     def __unicode__(self):
         return "%s: %s" % (self.flag.label, self.value)
-    
-
-
-
 
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)

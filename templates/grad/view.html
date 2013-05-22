@@ -67,11 +67,12 @@ $(document).ready(function() {
 </td></tr>
 <tr><th>Current Status</th><td>{{grad.get_current_status_display}} {% if can_edit %}[<a href="{% url grad.views.manage_status grad_slug=grad.slug %}">Update status</a>]{% endif %}</td></tr>
 <tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
-<tr><th>CGPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td></tr>
+<tr><th>CGPA</th><td>{% if grad.person.gpa %}{{grad.person.gpa}} ({{grad.person.ccredits}} credits){% endif %} {% if grad.config.masters_cgpa %} {{grad.config.masters_cgpa}} {% endif %}</td></tr>
 <tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
 <tr><th>Start/End Semesters</th><td>{% if grad.start_semester %}{{ grad.start_semester.name }}{% else %}???{% endif %}&ndash;{% if grad.end_semester %}{{ grad.end_semester.name }}{% else %}present{% endif %}</td></tr>
 <tr><th>Active/Total Semesters</th><td>{{grad.active_semesters_display}}</td></tr>
 {% if other_grad %}<tr><th>Other programs</th><td>{% for g in other_grad %}<a href="{% url grad.views.view grad_slug=g.slug %}">{{g}}</a><br />{% endfor %}</td></tr>{% endif %}
+{% if grad.thesis_type != "Defence" %}<tr><th>{{ grad.thesis_type}}</th><td>{{grad.thesis_summary}}</td></tr> {% endif %}
 </tbody>
 </table>
 </div>
@@ -86,6 +87,7 @@ $(document).ready(function() {
 | <a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Other Funding</a>
 | <a href="{% url grad.views.manage_financialcomments grad_slug=grad.slug  %}">Financial Comments</a>
 | <a href="{% url grad.views.manage_letters grad_slug=grad.slug  %}">Letters</a>
+| <a href="{% url grad.views.manage_defence grad_slug=grad.slug  %}">{{ grad.thesis_type }}</a>
 </p>
 {% endif %}
 

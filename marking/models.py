@@ -415,9 +415,9 @@ def save_copied_activity(target_activity, model, target_course_offering):
     we have to resolve the conflicts by deleting the old activity that conflicts with the new one
     """
     try:
-        old_activity = model.objects.get(Q(name=target_activity.name) | Q(short_name=target_activity.short_name, 
-                                    deleted = False), 
-            offering = target_course_offering)
+        old_activity = model.objects.get(Q(name=target_activity.name) | 
+                                         Q(short_name=target_activity.short_name, deleted = False), 
+                                        offering = target_course_offering, deleted = False)
     except model.DoesNotExist:
         target_activity.save()
     else:    

@@ -11,7 +11,13 @@
 {% block title %}{{course.name}} TUG for {{ta.person}} {% endblock %}
 {% block h1 %}{{course.name}} TUG for {{ta.person}} {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; <a href="{% url ta.views.all_tugs course_slug=course.slug %}">TUGs</a></li><li>&gt; {{ta.person.name}}</li>{% endblock %}
+{% block subbreadcrumbs %}
+    {% if user_role == "ADMN" %}
+    <li>&gt; <a href="{% url ta.views.all_tugs_admin %}">All TUGs</a> &gt; {{tug.member.person}}</li>
+    {% else %}
+    <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; <a href="{% url ta.views.all_tugs course_slug=course.slug %}">TUGs</a></li><li>&gt; {{ta.person.name}}</li>
+    {% endif %}
+{% endblock %}
 
 
 
@@ -21,6 +27,7 @@
 <ul>
 {% if user_role == "ADMN" %}
 <li><a href="{% url ta.views.all_tugs_admin %}">View All TUGs</a></li>
+<li><a href="{% url ta.views.edit_tug course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 {% else %}{% if user_role != "TA" %}
 <li><a href="{% url ta.views.edit_tug course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 {% endif %}{% endif %}
@@ -133,7 +140,7 @@
 				<td class="numeral">8.</td>
 				<td> Statutory Holiday Compensation - <br />
 					To compensate for all statutory holidays which 
-					may occur in a semester, the total workload required will be reduced by one (1) hour 
+					may occur in a semester, the total workload required will be reduced by {{HOLIDAY_HOURS_PER_BU}} hour(s) 
 					for each base unit assigned excluding the additional {{LAB_BONUS}} B.U. for preparation, 
 					e.g. 4 hours reduction for {{LAB_BONUS_4}} B.U. appointment.
  				</td>

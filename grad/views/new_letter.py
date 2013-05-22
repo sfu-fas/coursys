@@ -33,6 +33,7 @@ def new_letter(request, grad_slug, letter_template_slug):
             f = form.save(commit=False)
             f.created_by = request.user.username
             f.config.update(ls)
+            f.template = template;
             f.save()
             messages.success(request, "Created new %s letter for %s." % (form.instance.template.label, form.instance.student))
             l = LogEntry(userid=request.user.username,

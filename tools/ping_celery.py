@@ -10,7 +10,7 @@ import time
 res = ping.delay()
 try:
     # try to run a task
-    res.get(timeout=20)
+    res.get(timeout=120)
 except TimeoutError:
     # if it doesn't return, see if there's other stuff being processed
     count1 = Message.objects.filter(visible=True).count()

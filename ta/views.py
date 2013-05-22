@@ -5,11 +5,13 @@ from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, has_role, \
-    requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse, NotFoundResponse, HttpError
+    requires_course_staff_or_dept_admn_by_slug, requires_course_instr_or_dept_admn_by_slug, \
+    ForbiddenResponse, NotFoundResponse, HttpError
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
-    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
+    HOLIDAY_HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
@@ -29,6 +31,7 @@ import datetime, decimal, locale
 import unicodecsv as csv
 from ta.templatetags import ta_display
 import json
+import bu_rules
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -89,7 +92,7 @@ def all_tugs_admin(request, semester_name=None):
     return render(request, 'ta/all_tugs_admin.html', context)
 
 
-@requires_course_instr_by_slug
+@requires_course_instr_or_dept_admn_by_slug
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
@@ -108,12 +111,14 @@ def new_tug(request, course_slug, userid):
                     {'holiday':{'total': 0},
                      'base_units': 0})
         elif has_lab_or_tut:
+            holiday = (bu-LAB_BONUS_DECIMAL) * HOLIDAY_HOURS_PER_BU
             form = TUGForm(offering=course,userid=userid, initial=
-                    {'holiday':{'total':bu-LAB_BONUS_DECIMAL},
+                    {'holiday':{'total':holiday},
                      'base_units': bu-LAB_BONUS_DECIMAL})
             form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS_DECIMAL)
         else:
-            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
+            holiday = bu * HOLIDAY_HOURS_PER_BU
+            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':holiday}, 'base_units': bu})
     
     if member.bu():
         # we know BUs from the TA application: don't allow editing
@@ -159,22 +164,24 @@ def view_tug(request, course_slug, userid):
                 'max_hours': max_hours, 
                 'total_hours':total_hours,
                 'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut,
+                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
                 'LAB_BONUS': LAB_BONUS_DECIMAL, 'LAB_BONUS_4': LAB_BONUS_DECIMAL+4, 'HOURS_PER_BU': HOURS_PER_BU, 'LAB_BONUS_HOURS': LAB_BONUS_DECIMAL*HOURS_PER_BU, 'HOURS_PER_BU': HOURS_PER_BU,}
         return render(request, 'ta/view_tug.html',context)
 
-@requires_course_instr_by_slug
+@requires_course_instr_or_dept_admn_by_slug
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     tug = get_object_or_404(TUG, member=member)
     has_lab_or_tut = course.labtas()
     
-    if tug.expired():
+    if member.bu():
         bu = member.bu()
         if has_lab_or_tut:
             bu = member.bu() - LAB_BONUS_DECIMAL
+        holiday = bu * HOLIDAY_HOURS_PER_BU
+        tug.config['holiday']['total'] = holiday
         tug.base_units = bu
-        tug.config['holiday']['total'] = bu
 
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
@@ -697,7 +704,9 @@ def assign_bus(request, post_slug, course_slug):
                 else: 
                     #update bu for existing TACourse
                     if formset[i]['bu'].value() != '' and formset[i]['bu'].value() != '0':
-                        if formset[i]['bu'].value() != applicant.assigned_course.bu:
+                        old_bu = decimal.Decimal(formset[i]['bu'].value())
+                        new_bu = applicant.assigned_course.bu
+                        if old_bu != new_bu:
                             applicant.assigned_course.bu = formset[i]['bu'].value()
                             applicant.assigned_course.save()                        
                             # if we've changed the contract, we've invalidated it. 
@@ -822,7 +831,7 @@ def contracts_csv(request, post_slug):
         benefits = 'Y'
         schol_rate = 'TSCH' if c.scholarship_per_bu else ''
         salary_total = total_bu * c.pay_per_bu
-        schol_total = total_bu * c.scholarship_per_bu
+        schol_total = bu * c.scholarship_per_bu
         if prep_units == 0:
             prep_units = ''
         
@@ -859,12 +868,13 @@ def accept_contract(request, post_slug, userid, preview=False):
         
     courses = TACourse.objects.filter(contract=contract)
     total = contract.total_bu()
+    bu = contract.bu()
     
     #this could be refactored used in multiple places
     pp = posting.payperiods()
     pdead = posting.config['deadline']
     salary_sem = (total*contract.pay_per_bu)
-    schol_sem = (total*contract.scholarship_per_bu)
+    schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
@@ -926,10 +936,11 @@ def view_contract(request, post_slug, userid):
     courses = TACourse.objects.filter(contract=contract)
     
     total = contract.total_bu()
+    bu = contract.bu()
     
     pp = posting.payperiods()
     salary_sem = (total*contract.pay_per_bu)
-    schol_sem = (total*contract.scholarship_per_bu)
+    schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
@@ -1228,8 +1239,11 @@ def edit_posting(request, post_slug=None):
 @requires_role("TAAD")
 def posting_admin(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    default_visible = bu_rules.does_bu_strategy_involve_defaults(posting.semester, posting.unit) 
+    print default_visible
 
-    context = {'posting': posting}
+    context = {'posting': posting, 
+               'default_visible': default_visible }
     return render(request, 'ta/posting_admin.html', context)
 
 
@@ -1337,7 +1351,7 @@ def generate_csv(request, post_slug):
         gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
         if gradstudents:
             gs = min(gradstudents, key=_by_start_semester)
-            program = gs.program.label
+            program = app.current_program
             status = gs.get_current_status_display()
             unit = gs.program.unit.label
             if gs.start_semester:
