@@ -198,7 +198,35 @@ def create_semesters():
         wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 5, 6))
         wk.save()
 
+    s = Semester.objects.filter(name="1137")
+    if not s:
+        s = Semester(name="1137", start=datetime.date(2013, 9, 4), end=datetime.date(2013, 12, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 9, 3))
+        wk.save()
+    
+    s = Semester.objects.filter(name="1141")
+    if not s:
+        s = Semester(name="1141", start=datetime.date(2014, 1, 7), end=datetime.date(2014, 4, 12))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 1, 7))
+        wk.save()
+        wk = SemesterWeek(semester=s, week=7, monday=datetime.date(2014, 2, 25))
+        wk.save()
 
+    s = Semester.objects.filter(name="1144")
+    if not s:
+        s = Semester(name="1144", start=datetime.date(2014, 5, 6), end=datetime.date(2014, 8, 2))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 5, 6))
+        wk.save()
+    
+    s = Semester.objects.filter(name="1147")
+    if not s:
+        s = Semester(name="1147", start=datetime.date(2014, 9, 4), end=datetime.date(2014, 12, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 9, 3))
+        wk.save()
 
 @transaction.commit_on_success
 def fix_emplid():
