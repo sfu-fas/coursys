@@ -83,8 +83,10 @@
   <td>{{o.get_campus_display}}</td>
   <td>
   	{% for tacrs in o.assigned %}
-  	<a href="mailto:{{tacrs.contract.application.person.email}}">{{tacrs.contract.application.person.sortname}}</a>
-  	({{tacrs.bu}}){% if not forloop.last %}, {% endif %}
+    {% if tacrs.bu > 0 %}
+  	    <a href="mailto:{{tacrs.contract.application.person.email}}">{{tacrs.contract.application.person.sortname}}</a>
+  	    ({{tacrs.bu}}){% if not forloop.last %}, {% endif %}
+    {% endif %}
   	{% endfor %}
   </td>
   <td class="num">{{ o|display_applicant_count:posting }}</td>
