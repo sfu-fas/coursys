@@ -524,7 +524,10 @@ class TAContract(models.Model):
         # set SIN field on any GradStudent objects for this person
         from grad.models import GradStudent
         for gs in GradStudent.objects.filter(person=self.application.person):
-            if 'sin' not in gs.config:
+            dummy_sins = ['999999999', '000000000', '123456789']
+            if (('sin' not in gs.config 
+                or ('sin' in gs.config and gs.config['sin'] in dummy_sins)) 
+                and not self.sin in dummy_sins ):
                 gs.person.set_sin(self.sin)
                 gs.person.save()
 
@@ -532,9 +535,9 @@ class TAContract(models.Model):
         courses = TACourse.objects.filter(contract=self)
         for crs in courses:
             members = Member.objects.filter(person=self.application.person, offering=crs.course).exclude(role='DROP')
+            # assert( len(members) <= 1 )
             dropped_members = Member.objects.filter(person=self.application.person, offering=crs.course, role='DROP')
             # Should Member just have an optional FK to TACourse rather than getting a copy of the BU? 
-            # TODO: if len(members) or len(dropped_members) > 1, then warning. 
             if (self.status in ['SGN', 'ACC'] and crs.bu > 0) and not members:
                 if dropped_members:
                     m = dropped_members[0]
@@ -567,9 +570,24 @@ class TAContract(models.Model):
                 pass
             
             if self.status in ('CAN', 'REJ'):
+                # These students should be removed from their courses. 
                 crs.bu = 0
                 crs.save()
 
+            # If this course has 0 BUs and a course Member record, clear that record. 
+            if crs.bu == 0 and members:
+                m = members[0]
+                if m.role == 'TA' and m.added_reason == 'CTA':
+                    m.role = 'DROP'
+                    m.save()
+
+        # If they are CTA-added members of any other course this semester, they probably shouldn't be
+        members = Member.objects.filter(person=self.application.person, role='TA', added_reason='CTA', offering__semester=self.posting.semester )
+        courseofferings = [crs.course for crs in courses if crs.bu > 0]
+        for member in members:
+            if member.offering not in courseofferings:
+                member.role = 'DROP'
+                member.save()
 
 
     def first_assign(self, application, posting):
