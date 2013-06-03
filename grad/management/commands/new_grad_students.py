@@ -1,6 +1,5 @@
 """
-This is the script used to import engineering data from a CSV into 
-our grad system. 
+Import new grad students from OASIS (SIMS).
 
 It requires a connection to the reporting database.
 
@@ -19,6 +18,7 @@ import os
 from optparse import make_option
 
 from engineering_import import find_or_generate_person 
+from django.conf import settings
 
 grad_programs = {}
 grad_programs['COMP SCI'] = ['CPPHD', 'CPPZU', 'CPMSC', 'CPMCW', 'CPMZU', 'CPGND', 'CPGQL']
@@ -27,10 +27,10 @@ grad_programs['MECH SYS'] = ['MSMAS', 'MSEPH', 'MSEMS']
 
 class Command(BaseCommand):
     """ Usage: 
-        python manage.py engineering_import
+        python manage.py new_grad_students
     """
-    args = '--input <csv_file> --unit ENG'
-    help = 'Loads data from grad_data.csv into local DB'
+    args = '--semester 1134 --unit CMPT'
+    help = 'Import new grad students from OASIS'
         
     option_list = BaseCommand.option_list + (
             make_option('--semester', action='store', type='string', dest='semester'),
@@ -47,9 +47,7 @@ class Command(BaseCommand):
         errors = []
         adm_appl_nbrs = []
 
-        # TODO: this whole map changes in production
-        DEBUG = True
-        if DEBUG:
+        if settings.DEBUG:
             cmptunit = Unit.objects.get(label="COMP")
             program_map = {
                 'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
