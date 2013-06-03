@@ -9,7 +9,9 @@ It requires a connection to the reporting database.
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
 from coredata.models import Person, Unit, Role, Semester
-from grad.models import GradStudent, GradProgram, Supervisor, GradStatus, GradRequirement, CompletedRequirement
+from grad.models import GradStudent, GradProgram, Supervisor, GradStatus, GradRequirement, CompletedRequirement, GradProgramHistory
+
+from new_grad_students import get_mother_tongue, get_passport_issued_by, holds_resident_visa 
 
 import coredata.queries
 from django.db import transaction
@@ -135,8 +137,18 @@ class Command(BaseCommand):
 
             # Grad Student Fields
             english_fluency = row['TOEFL']
+
+            mother_tongue = get_mother_tongue( student_number )
+            passport_issued_by = get_passport_issued_by( student_number )
+            if passport_issued_by == "Canada":
+                is_canadian = True
+            elif holds_resident_visa( student_number ):
+                is_canadian = True
+            else:
+                is_canadian = False
+            print mother_tongue, passport_issued_by, is_canadian
+
             mother_tongue = row['Native Language'] 
-            is_canadian = yes_no_to_null_boolean( row['Canadian'] )
             comments = row['Comments']
             passport_issued_by = row['Passport']
             research_area = row['Area of Research']
@@ -281,6 +293,10 @@ class Command(BaseCommand):
 
             grad.config['imported_from'] = 'Engineering Import Spring 2013'
             grad.save()
+            
+            start = find_or_generate_semester( first_semester )
+            grad_program_history = GradProgramHistory(student=grad, program=program, start_semester=start)
+            grad_program_history.save()
 
             print "-----------------------------------------------------"
             print " "
@@ -290,14 +306,6 @@ def fix_newlines( table ):
     for row in table.rows:
         for i in xrange(0, len(row)):
             row[i] = row[i].replace(NEWLINE, "\n")
-
-def yes_no_to_null_boolean( string ):
-    if string.lower().strip() == "yes":
-        return True
-    elif string.lower().strip() == "no":
-        return False
-    else:
-        return None
 
 def find_or_generate_semester( name ):
     try: 
