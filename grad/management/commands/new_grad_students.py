@@ -215,8 +215,8 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
             status_code = "COMP"
         elif event == "MATR":
             status_code = "CONF"
-        elif event == "REJE":
-            status_code = "DENY"
+        elif event == "DENY":
+            status_code = "REJE"
         elif event == "WAPP" or event == "WADM":
             if admitted:
                 status_code = "DECL"
