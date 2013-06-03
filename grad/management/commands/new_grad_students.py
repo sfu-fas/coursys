@@ -117,7 +117,7 @@ def import_student( program_map, semester_object, dryrun, unit, emplid, adm_appl
         print "Please select: "
         for i in xrange(0, len(grad_student_records)):
             student = grad_student_records[i]
-            print i, "--", student, "<TODO: Link>" 
+            print i, "--", student, "--", "http://courses.cs.sfu.ca/grad/"+student.slug
         print "N -- None of these are correct; Proceed with import."
         n = get_number_or_n( range(0, len(grad_student_records)) )
         if n != 'n':
@@ -166,8 +166,7 @@ def import_student( program_map, semester_object, dryrun, unit, emplid, adm_appl
                         research_area=research_area,
                         passport_issued_by=passport_issued_by,
                         comments="" )
-    # TODO: leave this in
-    # grad.config['adm_appl_nbr'] = adm_appl_nbr
+    grad.config['adm_appl_nbr'] = adm_appl_nbr
     grad.config['imported_from'] = "Grad student import " + str(datetime.date.today())
     print "Creating new Grad Student"
     print grad
