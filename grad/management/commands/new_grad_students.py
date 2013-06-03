@@ -34,15 +34,17 @@ class Command(BaseCommand):
         
     option_list = BaseCommand.option_list + (
             make_option('--semester', action='store', type='string', dest='semester'),
-            make_option('--dryrun', action='store_true', default=False, dest='dryrun' ),
             make_option('--unit', action='store', type='string', dest='unit'),
+            make_option('--dryrun', action='store_true', default=False, dest='dryrun' ), #don't save anything.
+            make_option('--skip_duplicates', action='store_true', default=False, dest='skip_duplicates'), #don't ask about possible duplicates
         )
     
     def handle(self, *args, **options):
 
         semester = options['semester']
-        dryrun = options['dryrun']
         unit = Unit.objects.get(label=options['unit'])
+        dryrun = options['dryrun']
+        skip_duplicates = options['skip_duplicates'] 
 
         errors = []
         adm_appl_nbrs = []
@@ -77,7 +79,7 @@ class Command(BaseCommand):
         semester_object = Semester.objects.get(name=semester)
 
         for emplid, adm_appl_nbr, acad_prog in get_grad_table(semester, grad_programs[unit.acad_org]): 
-            errors, adm_appl_nbrs = import_student( program_map, semester_object, dryrun, unit, emplid, adm_appl_nbr, acad_prog, errors, adm_appl_nbrs )
+            errors, adm_appl_nbrs = import_student( program_map, semester_object, dryrun, skip_duplicates, unit, emplid, adm_appl_nbr, acad_prog, errors, adm_appl_nbrs )
 
         if len(errors) > 0:
             print "----------------------------------------"
@@ -86,7 +88,7 @@ class Command(BaseCommand):
                 print error
 
 
-def import_student( program_map, semester_object, dryrun, unit, emplid, adm_appl_nbr, acad_prog, errors, adm_appl_nbrs ):
+def import_student( program_map, semester_object, dryrun, skip_duplicates, unit, emplid, adm_appl_nbr, acad_prog, errors, adm_appl_nbrs ):
     """
         program_map - a dictionary, mapping SIMS indicators ("CPPHD") to GradProgram objects (GradProgram.objects.get(...))
         semester - Semester
@@ -115,17 +117,22 @@ def import_student( program_map, semester_object, dryrun, unit, emplid, adm_appl
     
     if len(grad_student_records) > 0: 
         print "This GradStudent record may already exist in coursys: "
-        print "Please select: "
-        for i in xrange(0, len(grad_student_records)):
-            student = grad_student_records[i]
-            print i, "--", student, "--", "http://courses.cs.sfu.ca/grad/"+student.slug
-        print "N -- None of these are correct; Proceed with import."
-        n = get_number_or_n( range(0, len(grad_student_records)) )
-        if n != 'n':
-            correct_record = grad_student_records[n]
-            correct_record.config['adm_appl_nbr'] = adm_appl_nbr
-            correct_record.save()
+        if skip_duplicates:
+            print ".. so we're not dealing with it for now." 
             return errors, adm_appl_nbrs
+        else:
+            print "Please select: "
+            for i in xrange(0, len(grad_student_records)):
+                student = grad_student_records[i]
+                print i, "--", student, "--", "http://courses.cs.sfu.ca/grad/"+student.slug
+            print "N -- None of these are correct; Proceed with import."
+            n = get_number_or_n( range(0, len(grad_student_records)) )
+            if n != 'n':
+                correct_record = grad_student_records[n]
+                correct_record.config['adm_appl_nbr'] = adm_appl_nbr
+                if not dryrun:
+                    correct_record.save()
+                return errors, adm_appl_nbrs
 
     adm_appl_nbrs.append(adm_appl_nbr)
 
@@ -204,13 +211,13 @@ def import_student( program_map, semester_object, dryrun, unit, emplid, adm_appl
         if event == "ADMT" or event == "COND":
             status_code = "OFFO"
             admitted = True
-        if event == "APPL":
+        elif event == "APPL":
             status_code = "COMP"
-        if event == "MATR":
+        elif event == "MATR":
             status_code = "CONF"
-        if event == "REJE":
+        elif event == "REJE":
             status_code = "DENY"
-        if event == "WAPP" or event == "WADM":
+        elif event == "WAPP" or event == "WADM":
             if admitted:
                 status_code = "DECL"
             else:
