@@ -42,6 +42,13 @@
     <tr><th>Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
     <tr><th>Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
   </table>
+
+  {% if application.config.extra_questions %}
+    <h2>Extra Questions</h2>
+    {% for question, answer in application.config.extra_questions.items %}
+        <p><strong>{{ question }}:</strong> {{answer }}</p>
+    {% endfor %}
+  {% endif %}
   
   <h2>Courses Applied for:</h2>
   <table class="info">

@@ -176,7 +176,7 @@ class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     class Meta:
         model = TAApplication
-        exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created')
+        exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created', 'config')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
                    'current_program': forms.TextInput(attrs={'size': 10}),
                    'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
@@ -190,6 +190,12 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['sin'].help_text = 'Social insurance number (required for receiving payments: if you don\'t have a SIN yet, please enter "000000000".)'
         self.fields['sin'].required = True
         self.fields['current_program'].required = True
+
+    def add_extra_questions(self, posting):
+        if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
+            for question in posting.config['extra_questions']:
+                self.fields[question] = forms.CharField(label="Extra Question", help_text=question)
+        print self.fields
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
@@ -404,6 +410,8 @@ class TAPostingForm(forms.ModelForm):
             choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
     skills = forms.CharField(label="Skills", help_text='Skills to ask applicants about: one per line', required=False,
                           widget=forms.Textarea())
+    extra_questions = forms.CharField(label="Extra Questions", help_text='Extra questions to ask applicants: one per line', required=False,
+                          widget=forms.Textarea())
     offer_text = WikiField(label="Offer Text", required=False, help_text='Presented as "More Information About This Offer"; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
 
     # TODO: sanity-check the dates against semester start/end
@@ -428,6 +436,7 @@ class TAPostingForm(forms.ModelForm):
         self.initial['contact'] = self.instance.contact().id
         self.initial['offer_text'] = self.instance.offer_text()
         skills = Skill.objects.filter(posting=self.instance)
+        self.initial['extra_questions'] = '\n'.join(self.instance.extra_questions())
         self.initial['skills'] = '\n'.join((s.name for s in skills))
     
     def clean_payperiods(self):
@@ -542,6 +551,13 @@ class TAPostingForm(forms.ModelForm):
                 old.name = skill
                 res.append(old)
         return res
+
+    def clean_extra_questions(self):
+        extra_questions = self.cleaned_data['extra_questions']
+        extra_questions = [q.strip() for q in extra_questions.split('\n') if len(q.strip()) > 0 ]
+        self.instance.config['extra_questions'] = extra_questions
+        return extra_questions
+        
 
 class BUForm(forms.Form):
     students = forms.IntegerField(min_value=0, max_value=1000)
