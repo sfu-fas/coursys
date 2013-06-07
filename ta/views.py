@@ -476,6 +476,23 @@ def view_all_applications(request,post_slug):
             }
     return render(request, 'ta/view_all_applications.html', context)
 
+@requires_role("TAAD")
+def print_all_applications(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    applications = TAApplication.objects.filter(posting=posting)
+
+    for application in applications:
+        application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+        application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+        application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+        application.contracts = TAContract.objects.filter(application=application)
+
+    context = {
+            'applications': applications,
+            'posting': posting,
+            }
+    return render(request, 'ta/print_all_applications.html', context)
+
 @login_required
 def view_application(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
@@ -1250,7 +1267,6 @@ def edit_posting(request, post_slug=None):
 def posting_admin(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     default_visible = bu_rules.does_bu_strategy_involve_defaults(posting.semester, posting.unit) 
-    print default_visible
 
     context = {'posting': posting, 
                'default_visible': default_visible }
