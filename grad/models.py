@@ -31,7 +31,7 @@ class GradProgram(models.Model):
     
     def cmpt_program_type(self):
         """
-        Hack for CMPT progress reports system export.
+REJEck for CMPT progress reports system export.
         """
         if self.label == 'MSc Course':
             return ('MSc', 'Course')
@@ -599,6 +599,7 @@ LETTER_TAGS = {
 
 SUPERVISOR_TYPE_CHOICES = [
     ('SEN', 'Senior Supervisor'),
+    ('COS', 'Co-senior Supervisor'),
     ('COM', 'Committee Member'),
     ('CHA', 'Defence Chair'),
     ('EXT', 'External Examiner'),
