@@ -398,7 +398,7 @@ def get_email( emplid ):
         emplid = %s
         AND
         pref_email_flag = 'Y'
-        """, (emplid) )
+        """, (emplid,) )
     for email_address in db:
-        return email_address
+        return " ".join(email_address)
     return None
