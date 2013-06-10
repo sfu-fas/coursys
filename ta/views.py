@@ -294,12 +294,20 @@ def _new_application(request, post_slug, manual=False, userid=None):
             ta_form = TAApplicationForm(request.POST, prefix='ta', instance=application)
         else:
             ta_form = TAApplicationForm(request.POST, prefix='ta')
+        
+        ta_form.add_extra_questions(posting)
+
         courses_formset = CoursesFormSet(request.POST)
         for f in courses_formset:
             f.fields['course'].choices = course_choices
 
         if ta_form.is_valid() and courses_formset.is_valid():
             app = ta_form.save(commit=False)
+            if 'extra_questions' in posting.config:
+                temp = {}
+                for question in posting.config['extra_questions']:
+                    temp[question] = ta_form.cleaned_data[question] 
+                app.config['extra_questions'] = temp
 
             # if they gave a SIN, populate the Person record
             if app.sin and app.sin != ta_form.sin_default:
@@ -383,6 +391,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         # editing: build initial form from existing values
         
         ta_form = TAApplicationForm(prefix='ta', instance=application)
+        ta_form.add_extra_questions(posting)
         cp_init = [{'course': cp.course, 'taken': cp.taken, 'exper':cp.exper} for cp in old_coursepref]
         search_form = None
         courses_formset = CoursesFormSet(initial=cp_init)
@@ -415,6 +424,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         for f in courses_formset:
             f.fields['course'].choices = course_choices
         ta_form = TAApplicationForm(prefix='ta', initial={'sin': sin})
+        ta_form.add_extra_questions(posting)
         campus_preferences = [(lbl, name, 'WIL') for lbl,name in CAMPUS_CHOICES if lbl in used_campuses]
         skill_values = [(s.position, s.name, 'NONE') for s in skills]
         today = datetime.date.today()
@@ -465,6 +475,23 @@ def view_all_applications(request,post_slug):
             'posting': posting,
             }
     return render(request, 'ta/view_all_applications.html', context)
+
+@requires_role("TAAD")
+def print_all_applications(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    applications = TAApplication.objects.filter(posting=posting)
+
+    for application in applications:
+        application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+        application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+        application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+        application.contracts = TAContract.objects.filter(application=application)
+
+    context = {
+            'applications': applications,
+            'posting': posting,
+            }
+    return render(request, 'ta/print_all_applications.html', context)
 
 @login_required
 def view_application(request, post_slug, userid):
@@ -1240,7 +1267,6 @@ def edit_posting(request, post_slug=None):
 def posting_admin(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     default_visible = bu_rules.does_bu_strategy_involve_defaults(posting.semester, posting.unit) 
-    print default_visible
 
     context = {'posting': posting, 
                'default_visible': default_visible }

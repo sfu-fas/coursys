@@ -8,15 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'TAApplication.current_program'
-        db.add_column('ta_taapplication', 'current_program',
-                      self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True),
+        # Adding field 'TAApplication.config'
+        db.add_column('ta_taapplication', 'config',
+                      self.gf('jsonfield.fields.JSONField')(default={}),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'TAApplication.current_program'
-        db.delete_column('ta_taapplication', 'current_program')
+        # Deleting field 'TAApplication.config'
+        db.delete_column('ta_taapplication', 'config')
 
 
     models = {
@@ -148,6 +148,7 @@ class Migration(SchemaMigration):
             'base_units': ('django.db.models.fields.DecimalField', [], {'default': '5', 'max_digits': '4', 'decimal_places': '2'}),
             'category': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'comments': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'course_load': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'current_program': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'experience': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),

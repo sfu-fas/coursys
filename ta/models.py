@@ -190,6 +190,7 @@ class TAPosting(models.Model):
         # 'min_courses': Minimum number of courses an applicant can select
         # 'offer_text': Text to be displayed when students accept/reject the offer (creole markup)
         # 'export_seq': sequence ID for payroll export (so we can create a unique Batch ID)
+        # 'extra_questions': additional questions to ask applicants
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -206,6 +207,7 @@ class TAPosting(models.Model):
             'contact': None,
             'offer_text': '',
             'export_seq': 0,
+            'extra_questions': []
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -219,6 +221,7 @@ class TAPosting(models.Model):
     max_courses, set_max_courses = getter_setter('max_courses')
     min_courses, set_min_courses = getter_setter('min_courses')
     offer_text, set_offer_text = getter_setter('offer_text')
+    extra_questions, set_extra_questions = getter_setter('extra_questions')
     _, set_contact = getter_setter('contact')
     
     class Meta:
@@ -414,6 +417,7 @@ class TAApplication(models.Model):
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
     admin_created = models.BooleanField(blank=False, default=False)
+    config = JSONField(null=False, blank=False, default={})
  
     class Meta:
         unique_together = (('person', 'posting'),)

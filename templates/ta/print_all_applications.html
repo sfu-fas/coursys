@@ -1,32 +1,31 @@
 {% extends "base.html" %}
-{% load form_display %}
 
-{% block title %}{{ application.posting.unit.label }} TA Application for {{application.person}}{% endblock %}
-{% block h1 %}{{ application.posting.unit.label }} TA Application for {{application.person}}{% endblock %}
+{% block title %}{{ application.posting.unit.label }} TA Applications for {{posting.short_str}}{% endblock %}
+{% block h1 %}{{ application.posting.unit.label }} TA Applications for {{posting.short_str}}{% endblock %}
+
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}style/print.css" rel="stylesheet" />
+<script type="text/javascript">
+  $(function() {
+      window.print()
+  });
+
+</script>
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=application.posting.slug %}">{{ application.posting.short_str }}</a></li>
-<li>&gt; {{ application.person.userid }}</li> 
-{% endblock %}
-
-{% block actions %}
-{% if application.posting.is_open or contract %}
-<div id="actions">
-<h2 class="heading">Actions</h2>
-<ul>
-{% if application.posting.is_open %}<li><a href="{% url ta.views.edit_application post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>{% endif %}
-{% if contract %}<li><a href="{% url ta.views.view_contract post_slug=application.posting.slug userid=application.person.userid %}">View Contract</a></li>{% endif %}
-</ul>
-</div>
-{% endif %}
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; TA Applications for {{posting.short_str}} </li> 
 {% endblock %}
 
 {% block content %}
 
+{% for application in applications %}
+<div class="table_container" style='page-break-after:always; page-break-inside:avoid;'>
+  <h2>{{application.person.name}}</h2>
 
-<div class="table_container">
-  <h2>General Information:</h2>
+  <h3>General Information:</h3>
   {% if application.late %}
     <p>This application was submitted late.  <a href="{% url ta.views.update_application post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
   {% endif %}
@@ -44,20 +43,20 @@
   </table>
 
   {% if application.config.extra_questions %}
-    <h2>Extra Questions</h2>
+    <h3>Extra Questions</h3>
     {% for question, answer in application.config.extra_questions.items %}
         <p><strong>{{ question }}:</strong> {{answer }}</p>
     {% endfor %}
   {% endif %}
   
-  <h2>Courses Applied for:</h2>
+  <h3>Courses Applied for:</h3>
   <table class="info">
     <tr>
       <th>Course</th>
       <th>Taken</th>
       <th>Experience</th>
     </tr>
-      {% for course in courses %}
+      {% for course in application.courses %}
         <tr>
           <td>{{ course.course }}</td>
           <td>{{ course.get_taken_display }}</td>
@@ -66,22 +65,23 @@
       {% endfor %}
    </table>
 
-  {% if campuses %}
-  <h2>Campus Preference:</h2> 
+  {% if application.campuses %}
+  <h3>Campus Preference:</h3> 
   <table class="info">
-      {% for campus in campuses %}
+      {% for campus in application.campuses %}
         <tr><th>{{ campus.get_campus_display }}</th><td>{{ campus.get_pref_display }}</td></tr>
       {% endfor %}
   </table> 
   {% endif %}  
  
-  {% if skills %}
-  <h2>Skills:</h2>
+  {% if application.skills %}
+  <h3>Skills:</h3>
   <table class="info">
-      {% for skill in skills %}
+      {% for skill in application.skills %}
         <tr><th>{{ skill.skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
       {% endfor %}
   </table>
   {% endif %}
 </div>
+{% endfor %}
 {% endblock %}
