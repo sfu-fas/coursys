@@ -176,6 +176,9 @@ def import_student( program_map, semester_object, dryrun, skip_duplicates, unit,
                         comments="" )
     grad.config['adm_appl_nbr'] = adm_appl_nbr
     grad.config['imported_from'] = "Grad student import " + str(datetime.date.today())
+    email = get_email(emplid)
+    if email:
+        grad.config['applic_email'] = email
     print "Creating new Grad Student"
     print grad
 
@@ -382,3 +385,20 @@ def find_or_generate_person( emplid ):
         except IntegrityError:
             print " Integrity error! " + str(emplid) + " 's userid already exists in the system." 
             return None
+
+def get_email( emplid ):
+    # return the preferred e-mail if it exists for the person with emplid
+    db = coredata.queries.SIMSConn()
+    db.execute("""
+    SELECT 
+        email_addr
+    FROM 
+        ps_email_addresses
+    WHERE 
+        emplid = %s
+        AND
+        pref_email_flag = 'Y'
+        """, (emplid) )
+    for email_address in db:
+        return email_address
+    return None
