@@ -187,7 +187,7 @@ class GradStudent(models.Model):
 
         current_semester = Semester.current() 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
-        all_gs = [status for status in all_gs if status.start < current_semester ]
+        all_gs = [status for status in all_gs if status.start <= current_semester ]
         print all_gs
         
         # current_status
