@@ -180,17 +180,19 @@ class GradStudent(models.Model):
         """
         Update the self.start_semester, self.end_semester, self.current_status fields.
         """
-        all_gs = GradStatus.objects.filter(student=self, hidden=False)
         old = (self.start_semester_id, self.end_semester_id, self.current_status)
         self.start_semester = None
         self.end_semester = None
         self.current_status = None
+
+        current_semester = Semester.current() 
+        all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
+        all_gs = [status for status in all_gs if status.start < current_semester ]
+        print all_gs
         
         # current_status
-        last_status = list(all_gs.filter(end__isnull=True).order_by('-start__name')) \
-                      + list(all_gs.order_by('-start__name', '-end__name'))
-        if len(last_status) > 0:
-            self.current_status = last_status[0].status
+        if len(all_gs) > 0:
+            self.current_status = all_gs[-1].status
         
         # start_semester
         if 'start_semester' in self.config:
@@ -199,15 +201,25 @@ class GradStudent(models.Model):
             else:
                 self.start_semester = None
         else:
-            programs = GradProgramHistory.objects.filter(student=self).order_by('-starting')
-            if programs.count() > 0:
-                self.start_semester = programs[0].start_semester
-            else:
-                programs = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-                if programs.count() > 0:
-                    self.start_semester = programs[0].start
-                else:
-                    self.start_semester = None
+            # take the EARLIEST ACTIVE GRADSTATUS 
+            # then the LATEST CONFIRMED
+            # then the LATEST OFFERED
+            # finally the LATEST APPLICATION
+            # if none of those, then no start_semester could be found. 
+
+            active_statuses = [status for status in all_gs if status.status=='ACTI']
+            confirmed_statuses = [status for status in all_gs if status.status=='CONF']
+            offered_statuses = [status for status in all_gs if status.status=='OFFO']
+            application_statuses = [status for status in all_gs if status.status=='COMP']
+
+            if len(active_statuses) > 0:
+                self.start_semester = active_statuses[0].start
+            elif len(confirmed_statuses) > 0:
+                self.start_semester = confirmed_statuses[-1].start
+            elif len(offered_statuses) > 0:
+                self.start_semester = offered_statuses[-1].start
+            elif len(application_statuses) > 0:
+                self.start_semester = application_statuses[-1].start
 
         # end_semester
         if 'end_semester' in self.config:
@@ -217,9 +229,9 @@ class GradStudent(models.Model):
                 self.end_semester = None
         else:
             if self.current_status in STATUS_DONE:
-                ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
-                if ends.count() > 0:
-                    end_status = ends[0]
+                ends = [status for status in all_gs if status.status in STATUS_DONE]
+                if len(ends) > 0:
+                    end_status = ends[-1]
                     self.end_semester = end_status.start
             else:
                 self.end_semester = None
@@ -566,10 +578,6 @@ class GradProgramHistory(models.Model):
     class Meta:
         ordering = ('-starting',)
     
-    def save(self, *args, **kwargs):
-        super(GradProgramHistory, self).save(*args, **kwargs)
-        self.student.update_status_fields()
-
     def __unicode__(self):
         return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 

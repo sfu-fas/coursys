@@ -271,7 +271,7 @@ def get_grad_table( semester, acad_progs ):
                 prog.acad_prog IN %s             
                 AND prog.prog_status NOT IN ('DC') 
             AND prog.admit_term = %s
-            AND data.appl_fee_status in ('REC', 'WVD', 'PEN')
+            AND data.appl_fee_status in ('REC', 'WVD')
     """, (acad_progs, semester) )
     return [(emplid, adm_appl_nbr, acad_prog) for emplid, adm_appl_nbr, acad_prog in db]
 
