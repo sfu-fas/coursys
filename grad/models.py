@@ -187,12 +187,12 @@ class GradStudent(models.Model):
 
         current_semester = Semester.current() 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
-        all_gs = [status for status in all_gs if status.start <= current_semester ]
+        filtered_status = [status for status in all_gs if status.start <= current_semester ]
         print all_gs
         
         # current_status
         if len(all_gs) > 0:
-            self.current_status = all_gs[-1].status
+            self.current_status = filtered_status[-1].status
         
         # start_semester
         if 'start_semester' in self.config:
