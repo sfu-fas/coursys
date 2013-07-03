@@ -194,7 +194,7 @@ class TAApplicationForm(forms.ModelForm):
     def add_extra_questions(self, posting):
         if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
             for question in posting.config['extra_questions']:
-                self.fields[question] = forms.CharField(label="Extra Question", help_text=question)
+                self.fields[question.encode('ascii', 'ignore')] = forms.CharField(label="Question", help_text=question, widget=forms.Textarea)
         print self.fields
 
     def clean_sin(self):
@@ -209,8 +209,8 @@ class TAApplicationForm(forms.ModelForm):
 
     def clean_base_units(self):
         bu = self.cleaned_data['base_units']
-        if bu > 5 or bu < 0:
-            raise forms.ValidationError("BU ammount must be in the range 0-5")
+        if bu > 5 or bu < 1:
+            raise forms.ValidationError("BU amount must be in the range 1-5")
         return bu
 
 class CoursePreferenceForm(forms.ModelForm):
