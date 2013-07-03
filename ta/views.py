@@ -303,7 +303,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
 
         if ta_form.is_valid() and courses_formset.is_valid():
             app = ta_form.save(commit=False)
-            if 'extra_questions' in posting.config and len('extra_questions') > 0:
+            if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
                 temp = {}
                 for question in posting.config['extra_questions']:
                     temp[question] = ta_form.cleaned_data[question] 
