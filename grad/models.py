@@ -187,12 +187,23 @@ class GradStudent(models.Model):
 
         current_semester = Semester.current() 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
-        all_gs = [status for status in all_gs if status.start < current_semester ]
-        print all_gs
-        
-        # current_status
-        if len(all_gs) > 0:
-            self.current_status = all_gs[-1].status
+
+        # CURRENT STATUS
+        # Okay, this is a strange one, I'll try to explain: 
+        #  We want to filter out any statuses that occur after the current semester,
+        #  because - if a student is active this semester and on-leave next semester
+        #  their current status is active.
+        # However, if their status is Rejected in 1137, their current status is
+        #  "Rejected", even if 1137 hasn't happened yet. As far as I can tell, 
+        #  this is true for all of the registration statuses. 
+        # This partially shows a model problem - registration statuses should have two
+        #  semesters - the semester that the registration takes effect and the 
+        #  semester that the registration is _for_, but.. this kludge should do.  
+        registration_statuses = ["INCO", "COMP", "INRE", "HOLD", "OFFO", "REJE", 
+                                    "DECL", "EXPI", "CONF", "CANC", "ARIV"] 
+        filtered_status = [status for status in all_gs if status.start <= current_semester or status.status in registration_statuses ]
+        if len(filtered_status) > 0:
+            self.current_status = filtered_status[-1].status
         
         # start_semester
         if 'start_semester' in self.config:
