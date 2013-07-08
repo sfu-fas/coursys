@@ -60,7 +60,13 @@ $(document).ready(function() {
 <div class="table_container">
 <table class="info">
 <tbody>
-<tr><th>Student #</th><td>{{grad.person.emplid}} [<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>]</td></tr>
+<tr>
+  <th>Student #</th>
+  <td>{{grad.person.emplid}}
+      [<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>]
+      &nbsp;{{cortezlink|safe}}
+  </td>
+</tr>
 <tr><th>Name</th><td>{{grad.person.sortname_pref}}</td></tr>
 <tr><th>Email</th><td>{{grad.person.email_mailto}}
 {% if grad.applic_email %}(application email: {{grad.applic_email}}){% endif %}	

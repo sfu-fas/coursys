@@ -142,6 +142,11 @@ def view(request, grad_slug, section=None):
                  .filter(program__unit__in=request.units, person=grad.person) \
                  .exclude(id=grad.id)
     context['other_grad'] = other_grad
+    # still useful: but remove cortezlink once cortez is dead.
+    if 'cortezid' in grad.config:
+        context['cortezlink'] = "[<a href='https://cortez.cs.sfu.ca/grad/scripts/grabcurrent.asp?Identifier="+grad.config['cortezid']+"'>OLD cortez record</a>]"
+    else:
+        context['cortezlink'] = ""
 
     return render(request, 'grad/view.html', context)
 
