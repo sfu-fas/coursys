@@ -61,6 +61,10 @@ $(document).ready(function() {
 
 {% block content %}
 
+<div class="instructions">
+{{ instructions }}
+</div>
+
 <div class="form_container">
 <form action="" method="post">{% csrf_token %}
 <fieldset>
@@ -111,7 +115,7 @@ $(document).ready(function() {
 
 </fieldset>
 
-
+{% if not hide_campuses %}
 <fieldset>
     <legend>Campus Preferences</legend>
     <table class="borderless">
@@ -124,6 +128,7 @@ $(document).ready(function() {
     {% endfor %}
     </table>
 </fieldset>
+{% endif %}
 
 {% if skill_values %}
 <fieldset>

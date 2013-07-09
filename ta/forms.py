@@ -395,24 +395,43 @@ class AccountsField(forms.MultiValueField):
         return values
 
 class TAPostingForm(forms.ModelForm):
-    deadline = forms.DateField(label="Acceptance Deadline", help_text='Default deadline for apointees to accept/decline contracts')
-    start = forms.DateField(label="Contract Start", help_text='Default start date for contracts')
-    end = forms.DateField(label="Contract End", help_text='Default end date for contracts')
-    salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
-    scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
-    accounts = AccountsField(label="Position Number", help_text="Default position number for contracts")
-    payperiods = forms.DecimalField(label="Pay periods", help_text='Number of pay periods in the semester',
-            max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
-    contact = forms.ChoiceField(label="Contact Person", help_text="Person to give applicants/offers to ask questions.")
-    max_courses = forms.IntegerField(label="Maximum courses", help_text="The maximum number of courses an applicant can specify.")
-    min_courses = forms.IntegerField(label="Minimum courses", help_text="The minimum number of courses an applicant can specify.")
-    excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions",
-            choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
-    skills = forms.CharField(label="Skills", help_text='Skills to ask applicants about: one per line', required=False,
-                          widget=forms.Textarea())
-    extra_questions = forms.CharField(label="Extra Questions", help_text='Extra questions to ask applicants: one per line', required=False,
-                          widget=forms.Textarea())
-    offer_text = WikiField(label="Offer Text", required=False, help_text='Presented as "More Information About This Offer"; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
+    deadline = forms.DateField(label="Acceptance Deadline", 
+        help_text='Default deadline for apointees to accept/decline contracts')
+    start = forms.DateField(label="Contract Start", 
+        help_text='Default start date for contracts')
+    end = forms.DateField(label="Contract End", 
+        help_text='Default end date for contracts')
+    salary = PayField(label="Salary per BU", 
+        help_text="Default pay rates for contracts")
+    scholarship = PayField(label="Scholarship per BU", 
+        help_text="Default scholarship rates for contracts")
+    accounts = AccountsField(label="Position Number", 
+        help_text="Default position number for contracts")
+    payperiods = forms.DecimalField(label="Pay periods", 
+        help_text='Number of pay periods in the semester',
+        max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
+    contact = forms.ChoiceField(label="Contact Person", 
+        help_text="Person to give applicants/offers to ask questions.")
+    max_courses = forms.IntegerField(label="Maximum courses", 
+        help_text="The maximum number of courses an applicant can specify.")
+    min_courses = forms.IntegerField(label="Minimum courses", 
+        help_text="The minimum number of courses an applicant can specify.")
+    excluded = forms.MultipleChoiceField(
+        help_text="Courses that should <strong>not</strong> be selectable for TA positions",
+        choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
+    skills = forms.CharField(label="Skills", required=False, widget=forms.Textarea(),
+        help_text='Skills to ask applicants about: one per line')
+    extra_questions = forms.CharField(label="Extra Questions", required=False,
+        help_text='Extra questions to ask applicants: one per line',
+        widget=forms.Textarea())
+    instructions = forms.CharField(label="Instructions", 
+        help_text='Additional instructions for students filling out the application.',
+        required=False, widget=forms.Textarea())
+    hide_campuses = forms.BooleanField(label="Hide Campuses", initial=False, 
+        required=False,
+        help_text='Do not prompt students for their Campus choice.')
+    offer_text = WikiField(label="Offer Text", required=False, 
+        help_text='Presented as "More Information About This Offer"; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
 
     # TODO: sanity-check the dates against semester start/end
     
@@ -438,6 +457,8 @@ class TAPostingForm(forms.ModelForm):
         skills = Skill.objects.filter(posting=self.instance)
         self.initial['extra_questions'] = '\n'.join(self.instance.extra_questions())
         self.initial['skills'] = '\n'.join((s.name for s in skills))
+        self.initial['instructions'] = self.instance.instructions()
+        self.initial['hide_campuses'] = self.instance.hide_campuses()
     
     def clean_payperiods(self):
         payperiods = self.cleaned_data['payperiods']
@@ -557,7 +578,16 @@ class TAPostingForm(forms.ModelForm):
         extra_questions = [q.strip() for q in extra_questions.split('\n') if len(q.strip()) > 0 ]
         self.instance.config['extra_questions'] = extra_questions
         return extra_questions
-        
+
+    def clean_instructions(self):
+        instructions = self.cleaned_data['instructions']
+        self.instance.config['instructions'] = instructions
+        return instructions
+
+    def clean_hide_campuses(self):
+        hide_campuses = self.cleaned_data['hide_campuses']
+        self.instance.config['hide_campuses'] = hide_campuses
+        return hide_campuses
 
 class BUForm(forms.Form):
     students = forms.IntegerField(min_value=0, max_value=1000)
