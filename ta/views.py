@@ -502,6 +502,36 @@ def print_all_applications(request,post_slug):
             }
     return render(request, 'ta/print_all_applications.html', context)
 
+@requires_role("TAAD")
+def print_all_applications_by_course(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    
+    # collect all course preferences in a sensible way
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    
+    for offering in offerings: 
+        offering.applications = []
+        applications_for_this_offering = [pref.app for pref in prefs if 
+            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
+        for application in applications_for_this_offering:
+            application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+            application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+            application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+            application.contracts = TAContract.objects.filter(application=application)
+            offering.applications.append(application)
+            
+
+    context = {
+            'offerings': offerings,
+            'posting': posting,
+            }
+    return render(request, 'ta/print_all_applications_by_course.html', context)
+
+
 @login_required
 def view_application(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
