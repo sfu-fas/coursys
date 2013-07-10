@@ -451,7 +451,6 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     'skill_values': skill_values,
                     'skill_choices': LEVEL_CHOICES,
                     'instructions': posting.instructions(),
-                    'hide_campuses': posting.hide_campuses()
                   }
     return render(request, 'ta/new_application.html', context)
 
@@ -1420,6 +1419,50 @@ def generate_csv(request, post_slug):
         csvWriter.writerow(row)
     
     return response
+
+@requires_role("TAAD")
+def generate_csv_by_course(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    
+    # collect all course preferences in a sensible way
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    
+    # generate CSV
+    filename = str(posting.slug) + '_by_course.csv'
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    csvWriter = csv.writer(response)
+    
+    #First csv row: all the course names
+    off = ['Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
+        for question in posting.config['extra_questions']:
+            off.append(question[0:75])
+    csvWriter.writerow(off)
+
+    for offering in offerings: 
+        csvWriter.writerow([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        applications_for_this_offering = [pref.app for pref in prefs if 
+            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
+        for app in applications_for_this_offering:
+            
+            row = [app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
+            if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
+                for question in posting.config['extra_questions']:
+                    try:
+                        row.append(app.config['extra_questions'][question])
+                    except KeyError:
+                        row.append("")
+            
+            csvWriter.writerow(row)
+        csvWriter.writerow([])
+    
+    return response
+
     
 @requires_role("TAAD")
 def view_financial(request, post_slug):

@@ -423,6 +423,7 @@ class TAApplication(models.Model):
     late = models.BooleanField(blank=False, default=False)
     admin_created = models.BooleanField(blank=False, default=False)
     config = JSONField(null=False, blank=False, default={})
+        # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
     class Meta:
         unique_together = (('person', 'posting'),)
