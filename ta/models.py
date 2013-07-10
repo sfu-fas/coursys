@@ -409,7 +409,7 @@ class TAApplication(models.Model):
         help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
-            help_text='Maximum number of base units (BU\'s) you would accept (each BU represents a maximum of 42 hours of work for the semester; 5.0 BU\'s is considered a "full" offer).')
+            help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Additional Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
