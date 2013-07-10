@@ -451,6 +451,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     'skill_values': skill_values,
                     'skill_choices': LEVEL_CHOICES,
                     'instructions': posting.instructions(),
+                    'hide_campuses': posting.hide_campuses()
                   }
     return render(request, 'ta/new_application.html', context)
 
