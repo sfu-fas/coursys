@@ -822,6 +822,9 @@ class GradStatus(models.Model):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
 
     def save(self, close_others=True, *args, **kwargs):
+        if not self.start_date and self.status in STATUS_APPLICANT:
+            self.start_date = datetime.datetime.now()
+
         super(GradStatus, self).save(*args, **kwargs)
 
         if close_others:
