@@ -66,6 +66,7 @@ class Command(BaseCommand):
         special_program_mech = find_or_generate_program( unit_mech, "Special Non-Degree")
         
         # requirements 
+        # TODO : Create a milestone for Thesis Defense
         convocation = {}
         convocation[m_eng_program] = find_or_generate_requirement( m_eng_program, "Convocation ")
         convocation[m_asc_program] = find_or_generate_requirement( m_asc_program, "Convocation ")
@@ -313,8 +314,8 @@ def find_or_generate_semester( name ):
     except Semester.DoesNotExist:
         print "Semester " + name + " does not exist"
         # for the sake of the test system, we should generate these if they don't exist.
-        semester = Semester( name=name, start=datetime.date.today(), end=datetime.date.today() )
-        semester.save()
+        # semester = Semester( name=name, start=datetime.date.today(), end=datetime.date.today() )
+        # semester.save()
     return semester
 
 def clean_semester( semester ):

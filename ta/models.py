@@ -191,6 +191,8 @@ class TAPosting(models.Model):
         # 'offer_text': Text to be displayed when students accept/reject the offer (creole markup)
         # 'export_seq': sequence ID for payroll export (so we can create a unique Batch ID)
         # 'extra_questions': additional questions to ask applicants
+        # 'instructions': instructions for completing the TA Application
+        # 'hide_campuses': whether or not to prompt for Campus
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -207,7 +209,9 @@ class TAPosting(models.Model):
             'contact': None,
             'offer_text': '',
             'export_seq': 0,
-            'extra_questions': []
+            'extra_questions': [],
+            'instructions': '',
+            'hide_campuses': False
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -222,6 +226,8 @@ class TAPosting(models.Model):
     min_courses, set_min_courses = getter_setter('min_courses')
     offer_text, set_offer_text = getter_setter('offer_text')
     extra_questions, set_extra_questions = getter_setter('extra_questions')
+    instructions, set_instructions = getter_setter('instructions')
+    hide_campuses, set_hide_campuses = getter_setter('hide_campuses')
     _, set_contact = getter_setter('contact')
     
     class Meta:
@@ -233,7 +239,6 @@ class TAPosting(models.Model):
         key = self.html_cache_key()
         cache.delete(key)
 
-    
     def short_str(self):
         return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
@@ -404,7 +409,7 @@ class TAApplication(models.Model):
         help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
-            help_text='Maximum number of base units (BU\'s) you would accept (each BU represents a maximum of 42 hours of work for the semester; 5.0 BU\'s is considered a "full" offer).')
+            help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Additional Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
@@ -418,6 +423,7 @@ class TAApplication(models.Model):
     late = models.BooleanField(blank=False, default=False)
     admin_created = models.BooleanField(blank=False, default=False)
     config = JSONField(null=False, blank=False, default={})
+        # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
     class Meta:
         unique_together = (('person', 'posting'),)

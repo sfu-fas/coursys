@@ -187,6 +187,7 @@ class GradStudent(models.Model):
 
         current_semester = Semester.current() 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
+        all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
 
         # CURRENT STATUS
         # Okay, this is a strange one, I'll try to explain: 
@@ -196,14 +197,17 @@ class GradStudent(models.Model):
         # However, if their status is Rejected in 1137, their current status is
         #  "Rejected", even if 1137 hasn't happened yet. As far as I can tell, 
         #  this is true for all of the registration statuses. 
+        # However _HOWEVER_ however, Active statuses have precedence over Applicant statuses.
+        # if a student is Active in 1134 but Complete Application in 1137, they are Active. 
         # This partially shows a model problem - registration statuses should have two
         #  semesters - the semester that the registration takes effect and the 
         #  semester that the registration is _for_, but.. this kludge should do.  
-        registration_statuses = ["INCO", "COMP", "INRE", "HOLD", "OFFO", "REJE", 
-                                    "DECL", "EXPI", "CONF", "CANC", "ARIV"] 
-        filtered_status = [status for status in all_gs if status.start <= current_semester or status.status in registration_statuses ]
-        if len(filtered_status) > 0:
-            self.current_status = filtered_status[-1].status
+        filtered_active_statuses = [status for status in all_gs if status.start <= current_semester and status.status not in STATUS_APPLICANT ]
+        unfiltered_applicant_statuses = [status for status in all_gs_by_date if status.status in STATUS_APPLICANT ]
+        if len(filtered_active_statuses) > 0:
+            self.current_status = filtered_active_statuses[-1].status
+        elif len(unfiltered_applicant_statuses) > 0:
+            self.current_status = unfiltered_applicant_statuses[-1].status
         
         # start_semester
         if 'start_semester' in self.config:

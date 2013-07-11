@@ -302,71 +302,79 @@ def _new_application(request, post_slug, manual=False, userid=None):
             f.fields['course'].choices = course_choices
 
         if ta_form.is_valid() and courses_formset.is_valid():
-            app = ta_form.save(commit=False)
-            if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
-                temp = {}
-                for question in posting.config['extra_questions']:
-                    temp[question] = ta_form.cleaned_data[question] 
-                app.config['extra_questions'] = temp
-
-            # if they gave a SIN, populate the Person record
-            if app.sin and app.sin != ta_form.sin_default:
-                if person.sin() != app.sin:
-                    person.set_sin(app.sin)
-                    person.save()
-            
-            today = datetime.date.today()
-            if(posting.closes < today):
-                app.late = True
-            else:
-                app.late = False
-            app.posting = posting
-            app.person = person
-            if manual:
-                app.admin_create = True
-                
-            app.save()
-            ta_form.save_m2m()
-            
-            # extract campus and skill values; create objects
-            CampusPreference.objects.filter(app=app).delete()
-            for c in used_campuses:
-                val = request.POST.get('campus-'+c, None)
-                if val not in PREFERENCES:
-                    val = 'WIL'
-                cp = CampusPreference(app=app, campus=c, pref=val)
-                cp.save()
-            
-            SkillLevel.objects.filter(app=app).delete()
-            for s in skills:
-                val = request.POST.get('skill-'+str(s.position), None)
-                if val not in LEVELS:
-                    val = 'NONE'
-                sl = SkillLevel(skill=s, app=app, level=val)
-                sl.save()
-            
-            # save course preferences: update existing or create new, as needed
-            old_pref = set(CoursePreference.objects.filter(app=app))
-            used_pref = set()
+            # No duplicates allowed
+            courses = []
             for (rank,form) in enumerate(courses_formset):
-                existing_crs = CoursePreference.objects.filter(app=app, course=form.cleaned_data['course'])
-                if existing_crs:
-                    course = existing_crs[0]
-                    course.exper = form.cleaned_data['exper']
-                    course.taken = form.cleaned_data['taken']
+                courses.append( form.cleaned_data['course'] )
+
+            if len(courses) != len(set(courses)):
+                messages.error(request, "You have selected duplicate courses. Please select 5 different courses. ")
+            else:
+                app = ta_form.save(commit=False)
+                if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
+                    temp = {}
+                    for question in posting.config['extra_questions']:
+                        temp[question] = ta_form.cleaned_data[question] 
+                    app.config['extra_questions'] = temp
+
+                # if they gave a SIN, populate the Person record
+                if app.sin and app.sin != ta_form.sin_default:
+                    if person.sin() != app.sin:
+                        person.set_sin(app.sin)
+                        person.save()
+                
+                today = datetime.date.today()
+                if(posting.closes < today):
+                    app.late = True
                 else:
-                    course = form.save(commit=False)
-                course.app = app
-                course.rank = rank+1
-                course.save()
-                used_pref.add(course)
-            
-            # any removed courses: set to rank=0, but don't delete (since we assume one exists if it has been assigned already)
-            for course in old_pref - used_pref:
-                course.rank = 0
-                course.save()
-            
-            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
+                    app.late = False
+                app.posting = posting
+                app.person = person
+                if manual:
+                    app.admin_create = True
+                    
+                app.save()
+                ta_form.save_m2m()
+                
+                # extract campus and skill values; create objects
+                CampusPreference.objects.filter(app=app).delete()
+                for c in used_campuses:
+                    val = request.POST.get('campus-'+c, None)
+                    if val not in PREFERENCES:
+                        val = 'WIL'
+                    cp = CampusPreference(app=app, campus=c, pref=val)
+                    cp.save()
+                
+                SkillLevel.objects.filter(app=app).delete()
+                for s in skills:
+                    val = request.POST.get('skill-'+str(s.position), None)
+                    if val not in LEVELS:
+                        val = 'NONE'
+                    sl = SkillLevel(skill=s, app=app, level=val)
+                    sl.save()
+                
+                # save course preferences: update existing or create new, as needed
+                old_pref = set(CoursePreference.objects.filter(app=app))
+                used_pref = set()
+                for (rank,form) in enumerate(courses_formset):
+                    existing_crs = CoursePreference.objects.filter(app=app, course=form.cleaned_data['course'])
+                    if existing_crs:
+                        course = existing_crs[0]
+                        course.exper = form.cleaned_data['exper']
+                        course.taken = form.cleaned_data['taken']
+                    else:
+                        course = form.save(commit=False)
+                    course.app = app
+                    course.rank = rank+1
+                    course.save()
+                    used_pref.add(course)
+                
+                # any removed courses: set to rank=0, but don't delete (since we assume one exists if it has been assigned already)
+                for course in old_pref - used_pref:
+                    course.rank = 0
+                    course.save()
+                
+                return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
         
         # redisplaying form: build values for template with entered values
         campus_preferences = []
@@ -442,6 +450,8 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     'campus_pref_choices':PREFERENCE_CHOICES,
                     'skill_values': skill_values,
                     'skill_choices': LEVEL_CHOICES,
+                    'instructions': posting.instructions(),
+                    'hide_campuses': posting.hide_campuses()
                   }
     return render(request, 'ta/new_application.html', context)
 
@@ -492,6 +502,36 @@ def print_all_applications(request,post_slug):
             'posting': posting,
             }
     return render(request, 'ta/print_all_applications.html', context)
+
+@requires_role("TAAD")
+def print_all_applications_by_course(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    
+    # collect all course preferences in a sensible way
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    
+    for offering in offerings: 
+        offering.applications = []
+        applications_for_this_offering = [pref.app for pref in prefs if 
+            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
+        for application in applications_for_this_offering:
+            application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+            application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+            application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+            application.contracts = TAContract.objects.filter(application=application)
+            offering.applications.append(application)
+            
+
+    context = {
+            'offerings': offerings,
+            'posting': posting,
+            }
+    return render(request, 'ta/print_all_applications_by_course.html', context)
+
 
 @login_required
 def view_application(request, post_slug, userid):
@@ -1410,6 +1450,50 @@ def generate_csv(request, post_slug):
         csvWriter.writerow(row)
     
     return response
+
+@requires_role("TAAD")
+def generate_csv_by_course(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    
+    # collect all course preferences in a sensible way
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    
+    # generate CSV
+    filename = str(posting.slug) + '_by_course.csv'
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    csvWriter = csv.writer(response)
+    
+    #First csv row: all the course names
+    off = ['Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
+        for question in posting.config['extra_questions']:
+            off.append(question[0:75])
+    csvWriter.writerow(off)
+
+    for offering in offerings: 
+        csvWriter.writerow([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        applications_for_this_offering = [pref.app for pref in prefs if 
+            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
+        for app in applications_for_this_offering:
+            
+            row = [app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
+            if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
+                for question in posting.config['extra_questions']:
+                    try:
+                        row.append(app.config['extra_questions'][question])
+                    except KeyError:
+                        row.append("")
+            
+            csvWriter.writerow(row)
+        csvWriter.writerow([])
+    
+    return response
+
     
 @requires_role("TAAD")
 def view_financial(request, post_slug):
