@@ -699,7 +699,7 @@ def assign_bus(request, post_slug, course_slug):
 
     # Then, anybody else. 
     for applicant in all_applicants:
-        applicant.course_rank = 0
+        applicant.course_rank = 99
         if applicant not in applicants:
             applicants.append(applicant)
 
