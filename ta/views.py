@@ -305,7 +305,8 @@ def _new_application(request, post_slug, manual=False, userid=None):
             # No duplicates allowed
             courses = []
             for (rank,form) in enumerate(courses_formset):
-                courses.append( form.cleaned_data['course'] )
+                if 'course' in form.cleaned_data:
+                    courses.append( form.cleaned_data['course'] )
 
             if len(courses) != len(set(courses)):
                 messages.error(request, "You have selected duplicate courses. Please select 5 different courses. ")
