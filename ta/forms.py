@@ -255,6 +255,7 @@ class TAContractForm(forms.ModelForm):
     class Meta:
         model = TAContract
         exclude = ['posting', 'application', 'created_by']
+        widgets = {'remarks': forms.Textarea(attrs={'rows': 3, 'cols': 60}), }
         
         
     def clean_pay_per_bu(self):
