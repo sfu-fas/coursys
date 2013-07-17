@@ -25,7 +25,7 @@ function confirmDelete() {
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Plan Information</legend>

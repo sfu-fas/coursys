@@ -1,7 +1,7 @@
 #!/bin/sh
-FASTCGI_ROOT=/home/ggbaker/fastcgi
-APP_ROOT=/home/ggbaker/courses
-LD_LIBRARY_PATH=/home/ggbaker/sqllib/lib64:/home/ggbaker/sqllib/lib32
+FASTCGI_ROOT=/home/coursys/fastcgi
+APP_ROOT=/home/coursys/courses
+LD_LIBRARY_PATH=/home/coursys/sqllib/lib64:/home/coursys/sqllib/lib32
 export LD_LIBRARY_PATH
 kill `cat ${FASTCGI_ROOT}/server.pid`
 chown -R www-data ${FASTCGI_ROOT}

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}{{ owner_sheet.title }}{% endblock %}
+{% block h1 %}Edit {{ owner_sheet.title }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>&gt; {{ owner_sheet.title }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.edit_sheet_info form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Edit Sheet Info</a></li>
+        <li><a href="{% url onlineforms.views.preview_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Preview</a></li>
+        <li class="newsec"><a href="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+    /*store field ids*/  
+    var field_ids = new Array();
+
+    $(document).ready(function() {
+        // activate dataTable ui
+    var oTable = $('#fields_table').dataTable({
+        "bJQueryUI": false,
+        "bSort": false,
+        "bPaginate": false,
+        "bFilter": false,
+        "bInfo": false,
+    });
+
+    {%for field in fields%}
+        field_ids[{{forloop.counter}}-1] = "{{field.modelField.id}}";
+    {%endfor%}
+
+    for(var r = 1; r <= {{fields|length}}; r++)
+    {
+        /* when javascript is enabled, use ajax call to reorder activity */
+        $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', 'javascript:void(0);');
+        $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', 'javascript:void(0);');
+        
+       /* attach position info to the arrow td */
+        $('#arrow' + r).data('pos', r-1);
+    }   
+
+    $('.arrow_up').click(function(){
+         var p = $(this).parent();
+         var i = p.data('pos');          
+         /* post request */
+         if(i > 0){
+            $.post("{% url onlineforms.views.reorder_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",
+                {'id_up': field_ids[i], 'id_down': field_ids[i-1], 'csrfmiddlewaretoken': "{{csrf_token}}"}, 
+                function(data){ /* request success callback: swap rows */                                   
+                     /* swap the content of the current row and the previous row(except for the first column) */       
+                     var row = oTable.fnGetNodes(i);
+                     var pre_row = oTable.fnGetNodes(i-1);
+                     var content = oTable.fnGetData(row);
+                     var pre_content = oTable.fnGetData(pre_row);
+                     var temp;
+                     for (var col=1, len = content.length ; col<len ; col++ )
+                     {  
+                        temp = content[col];
+                        oTable.fnUpdate(pre_content[col], i, col);
+                        oTable.fnUpdate(temp, i-1, col); 
+                     }
+                     /* swap the order of the two ids as well */
+                     temp = field_ids[i];
+                     field_ids[i] = field_ids[i-1];
+                     field_ids[i-1] = temp;                            
+                     
+                     oTable.fnDraw();           
+                 
+                });
+            }
+      });
+     
+    $('.arrow_down').click(function(){
+         var p = $(this).parent();
+         var i = p.data('pos');
+         if(i < {{fields|length}}-1){
+         /* post request */
+            $.post("{% url onlineforms.views.reorder_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",            
+                {'id_up': field_ids[i+1], 'id_down': field_ids[i], 'csrfmiddlewaretoken': "{{csrf_token}}"},
+                function(data){ /* request success callback: swap rows */            
+                     /* swap the content of the current row and the next row(except for the first column) */
+                     var row = oTable.fnGetNodes(i);
+                     var next_row = oTable.fnGetNodes(i+1);
+                     var content = oTable.fnGetData(row);
+                     var next_content = oTable.fnGetData(next_row);                 
+                     var temp;
+                     for (var col=1, len = content.length ; col<len ; col++ )
+                     {  
+                        temp = content[col];
+                        oTable.fnUpdate(next_content[col], i, col);
+                        oTable.fnUpdate(temp, i+1, col); 
+                     }
+                     /* swap the order of the two ids as well */
+                     temp = field_ids[i];
+                     field_ids[i] = field_ids[i+1];
+                     field_ids[i+1] = temp;   
+                                     
+                     oTable.fnDraw();
+                });      
+            }
+      });
+    });
+
+//]]></script>
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class="info">
+        <tr>
+            <th scope="row">On Form</th>
+            <td><a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_sheet.form.title }}</a>
+            	{% if owner_sheet.is_initial %}(initial sheet){% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Visibility</th>
+            <td>{{ owner_sheet.get_can_view_display }}</td>
+        </tr>
+    </table>
+</div>
+<div class="form_container">
+        {% if fields %}
+            <table class="display" id="fields_table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Label</th>
+                        <th>Type</th>
+                        <th>Edit</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                {% for field in fields %}
+                <tr>
+                    <td id = "arrow{{forloop.counter}}">
+                        {% if not forloop.first %}
+                        <a class="arrow_up" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=up&amp;field_slug={{ field.modelField.slug }}">  
+                            <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
+                        </a>
+                        {% else %}
+                           <span class="position_placeholder"></span>
+                        {% endif %}
+                        {% if not forloop.last %}
+                        <a class="arrow_down" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=down&amp;field_slug={{ field.modelField.slug }}">
+                            <span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
+                        </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ field.formField.label }}
+                    </td>
+                    <td>
+                        {{ field.formField.type }}
+                    </td>
+                    <td>
+                        <a href="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.modelField.slug %}">Edit</a>
+                    </td>
+                    <td class="miniaction">
+                        <form action="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}" method="post">{% csrf_token %}
+                        <p> 
+                            <input type="hidden" name="field_id" value="{{field.modelField.id}}" />
+                            <input type="hidden" name="action" value="del" />
+                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this field')" />
+                        </p>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <div>There are currently no fields.</div>
+        {% endif %} 
+
+    
+</div>
+{% endblock %}

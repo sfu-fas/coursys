@@ -19,7 +19,7 @@
 {% block actions %}{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.newgroup course_slug=course.slug %}" method="post">{% csrf_token %}
     <fieldset>
     <legend>Case Cluster</legend>

@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discuss.views.edit_message course_slug=course.slug topic_slug=topic.slug message_slug=message.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Edit Discussion Reply</legend>

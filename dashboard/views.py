@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
+from django.template.base import TemplateDoesNotExist
 from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
@@ -82,7 +83,7 @@ def fake_login(request):
     from django.contrib.auth import login
     from django.contrib.auth.models import User
     hostname = socket.gethostname()
-    if settings.DEPLOYED or hostname.startswith('courses') or not settings.CAS_SERVER_URL.startswith('http://lefty.cmpt.sfu.ca'):
+    if settings.DEPLOYED or hostname.startswith('courses'):
         # make damn sure we're not in production
         raise NotImplementedError
     
@@ -97,8 +98,22 @@ def fake_login(request):
         login(request, user)
         return HttpResponseRedirect('/')
 
-    response = HttpResponse('<form action="">Userid: <input type="text" name="userid" /></form>')
+    response = HttpResponse('<h1>Fake Authenticator</h1><p>Who would you like to be today?</p><form action="">Userid: <input type="text" name="userid" /><br/><input type="submit" value="&quot;Authenticate&quot;" /></form>')
     return response
+
+def fake_logout(request):
+    """
+    Fake logoutiew for devel without access to the fake CAS server
+    """
+    import socket
+    hostname = socket.gethostname()
+    if settings.DEPLOYED or hostname.startswith('courses'):
+        # make sure we're not in production
+        raise NotImplementedError
+    
+    from django.contrib.auth import logout
+    logout(request)
+    return HttpResponseRedirect('/')
 
 
 # copy of django_cas.views.login that doesn't do a message, but does a LogEntry
@@ -810,7 +825,11 @@ def view_doc(request, doc_slug):
             context['act1'] = None
             context['act2'] = None
 
-    return render(request, "docs/doc_" + doc_slug + ".html", context)
+    try:
+        res = render(request, "docs/doc_" + doc_slug + ".html", context)
+    except TemplateDoesNotExist:
+        raise Http404
+    return res
 
 
 # data export views

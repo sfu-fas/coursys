@@ -22,7 +22,7 @@ code.file {
 <body>
 <h1>CourSys Server Config</h1>
 
-<p>This document describes the setup of the <code>courses.cs.sfu.ca</code> server as done in April/May 2011 by Greg Baker.</p>
+<p>This document describes the setup of the <code>courses.cs.sfu.ca</code> server as done in April/May 2011 by Greg Baker, and modified thereafter to reflect reality as closely as possible.</p>
 
 <h2 id="base">Base System Setup</h2>
 <dl>
@@ -58,6 +58,16 @@ connect = onara.cs.sfu.ca:5000</pre></blockquote>
   <p>Copy the <code class="file">/etc/default/stunnel.pem</code> cretificate.</p>
   <blockquote><pre>chmod 0600 /etc/default/stunnel.pem</pre></blockquote>
   </dd>
+
+<dt>User setup</dt>
+  <dd>Created a user who owns the deployed code:
+  <blockquote><pre>adduser coursys
+sudo gpasswd -a coursys admin
+echo "ggbaker@sfu.ca" > /home/coursys/.forward</pre></blockquote>
+  <p>Created a SSH key for that user <a href="https://wiki.sfu.ca/public/index.php/Coursys_Environment_Setup">per Curtis' instructions</a>.
+  <p>Prevented SSH connections as that user by adding this line to <code class="file">/etc/ssh/sshd_config</code>:</p>
+  <blockquote><pre>DenyUsers coursys</pre></blockquote>
+  </dd>
 </dl>
 
 <h2 id="nginx">NGINX Web Server</h2>
@@ -90,7 +100,7 @@ chmod 0711 ~</pre>
   </dd>
 <dt>App startup</dt>
   <dd>Add this to <code class="file">/etc/rc.local</code>:
-  <blockquote><pre>/home/ggbaker/fastcgi/startfs.sh</pre></blockquote>
+  <blockquote><pre>/home/coursys/fastcgi/startfs.sh</pre></blockquote>
   </dd>
 </dl>
 
@@ -98,7 +108,7 @@ chmod 0711 ~</pre>
 <dl>
 <dt>Code</dt>
   <dd>Code checked out from Subversion repository:
-  <blockquote><pre>git clone ssh://www-data@coffee.fas.sfu.ca/home/git/courses -b deployed /home/ggbaker/courses</pre></blockquote>
+  <blockquote><pre>git clone ssh://www-data@coffee.fas.sfu.ca/home/git/courses -b deployed /home/coursys/courses</pre></blockquote>
   <p>But somebody following these instructions: <strong>check correct branch</strong>!  Stable branches are created when serious development is going on&mdash;that might be the right one to use.</p>
   <p>You will need to create a <code class="file">local_settings.py</code> file that correctly sets <code>DATABASES</code> and <code>SVN_DB_CONNECT</code>.</p>
   </dd>
@@ -126,9 +136,10 @@ sudo pip install -r build_deps/deployed_deps.txt</pre></blockquote>
   Create a file <code class="file">~/dbpass</code> with four lines: (1) password for CourSys data view, (2) password for TA database, (3) the password for the app's main database, (4) the password for the reporting database connection.  This file is read by the importer and other scripts (to avoid having those passwords in the Subversion repo).
   <p>This crontab needs to be set to import and backup everything:</p>
   <blockquote><pre>MAILTO=ggbaker@sfu.ca
-0 8 * * * /home/ggbaker/courses/server-setup/do-import.sh
-0 */2 * * * nice ionice -c 3 /home/ggbaker/courses/server-setup/courses-backup >/dev/null
-0,15,30,45 * * * * cd /home/ggbaker/courses/ &amp;&amp; python tools/ping_celery.py 2>/dev/null</pre></blockquote>
+0 8 * * * /home/coursys/courses/server-setup/do-import.sh
+0 */2 * * * nice ionice -c 3 /home/coursys/courses/server-setup/courses-backup >/dev/null
+*/15 * * * * cd /home/coursys/courses/ &amp;&amp; python tools/ping_celery.py 2>/dev/null
+*/15 * * * * cd /home/coursys/courses/ &amp;&amp; python tools/ping_reportingdb.py</pre></blockquote>
   <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a> and the <a href="do-import.sh">import running script</a>.</p>
   <p>There is also a <a href="mkdump">script <code class="file">mkdump</code></a> that will create a database dump if needed.</p>
   </dd>
@@ -140,7 +151,7 @@ sudo pip install -r build_deps/deployed_deps.txt</pre></blockquote>
 <dd>
 <p>Some <a href="https://www.sfu.ca/irp/links/pdaug.html">instructions on reporting database</a> connections are provided by the PDAUG group under the heading &ldquo;Instructions for Connecting to CSRPT&rdquo;. These are for Windows, but were adapted here.</p>
 <p>Installed Ubuntu package <code class="unix">libaio1</code>.</p>
-<p>The installer didn't like my userid being in the group &ldquo;users&rdquo;, so I edited <code class="file">/etc/group</code> and <code class="file">/etc/gpasswd</code> to rename the group &ldquo;allusers&rdquo;. Reverted the change after the install. That's some quality security.</p>
+<!--<p>The installer didn't like my userid being in the group &ldquo;users&rdquo;, so I edited <code class="file">/etc/group</code> and <code class="file">/etc/gpasswd</code> to rename the group &ldquo;allusers&rdquo;. Reverted the change after the install. That's some quality security.</p>-->
 <p>From the <a href="http://www-01.ibm.com/support/docview.wss?rs=71&amp;uid=swg27007053">DB2 downloads page</a>, I downloaded DB2 Version 9.7, fixpack 4, Linux 64-bit, IBM Data Server Client (&ldquo;<code class="file">v9.7fp4_linuxx64_client.tar.gz</code>&rdquo;). Unpack and <code class="unix">./db2_install</code>.
 	[Note that DB2 client location needs to be reflected in <code class="file">startfs.sh</code> described <a href="#fastcgi">above</a>.]</p>
 <p>Once the client is installed, there are some <a href="https://www-304.ibm.com/support/docview.wss?uid=swg21182248">setup steps for remote DB servers</a>:</p>
@@ -154,16 +165,16 @@ sudo pip install -r build_deps/deployed_deps.txt</pre></blockquote>
 . $HOME/sqllib/db2profile
 stty -echo; read -p "Password: " PW; echo; stty echo
 ~/sqllib/bin/db2 CONNECT TO csrpt USER ggbaker USING $PW
-~/sqllib/bin/db2 "SELECT * FROM dbcsown.PS_TERM_TBL WHERE ACAD_YEAR='2012'"</pre></blockquote>
+~/sqllib/bin/db2 "SELECT * FROM dbcsown.PS_TERM_TBL WHERE ACAD_YEAR='2012'" # just a test</pre></blockquote>
 </dd>
 
 <dt>Python DB2 library</dt>
 <dd>
-<p>The Python code requires the <a href="http://sourceforge.net/projects/pydb2/">PyDB2 module</a>. Fetched the source and unpacked.  Edited <code class="file">setup.py</code> so <code>DB2_ROOT="/home/ggbaker/sqllib"</code> and then:</p>
+<p>The Python code requires the <a href="http://sourceforge.net/projects/pydb2/">PyDB2 module</a>. Fetched the source and unpacked.  Edited <code class="file">setup.py</code> so <code>DB2_ROOT="/home/coursys/sqllib"</code> and then:</p>
 <blockquote><pre>sudo apt-get install python-dev
 python setup.py build
 sudo python setup.py install</pre></blockquote>
-<p>To get DB2 working in the virtualenv, I cheated:</p>
+<p>To get DB2 working in the virtualenv (which wasn't necessary on production), I cheated:</p>
 <blockquote><pre>ln -s /usr/local/lib/python2.7/dist-packages/DB2.py ../lib/python2.7/site-packages/
 ln -s /usr/local/lib/python2.7/dist-packages/_db2.so ../lib/python2.7/site-packages/</pre></blockquote>
 
@@ -176,6 +187,7 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 # ctrl-A D [to detach from screen session]</pre></blockquote>
 <p>To get back to the screen session:</p>
 <blockquote><pre>screen -r reportingDB</pre></blockquote>
+<p>It doesn't really matter which user connects (or runs the SSH process), as long as the port is forwarded.</p>
 </dd>
 </dl>
 

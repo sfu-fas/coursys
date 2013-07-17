@@ -2,9 +2,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
-        UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset
-from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
-from courselib.search import get_query
+        UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm
+from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
+        has_formgroup
+from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
         UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
 from advisornotes.models import NonStudent
@@ -15,12 +16,22 @@ import json, datetime
 
 @requires_global_role("SYSA")
 def sysadmin(request):
-    if 'q' in request.GET:
-        userid = request.GET['q']
-        userid = userid.strip()
-        return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': userid}))
-        
-    return render(request, 'coredata/sysadmin.html', {})
+    if 'usersearch' in request.GET:
+        # user search
+        form = SysAdminSearchForm(request.GET)
+        if form.is_valid() and form.cleaned_data['user']:
+            emplid = form.cleaned_data['user'].emplid
+            return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': emplid}))
+    elif 'offeringsearch' in request.GET:
+        # course offering search
+        form = SysAdminSearchForm(request.GET)
+        if form.is_valid() and form.cleaned_data['offering']:
+            offering = form.cleaned_data['offering']
+            return HttpResponseRedirect(reverse(offering_summary, kwargs={'course_slug': offering.slug}))
+    else:
+        form = SysAdminSearchForm()
+    
+    return render(request, 'coredata/sysadmin.html', {'form': form})
 
 @requires_global_role("SYSA")
 def role_list(request):
@@ -134,13 +145,23 @@ def edit_member(request, member_id=None):
 
 @requires_global_role("SYSA")
 def user_summary(request, userid):
-    user = get_object_or_404(Person, userid=userid)
+    query = find_userid_or_emplid(userid)
+    user = get_object_or_404(Person, query)
     
     memberships = Member.objects.filter(person=user)
     roles = Role.objects.filter(person=user).exclude(role="NONE")
     
     context = {'user': user, 'memberships': memberships, 'roles': roles}
     return render(request, "coredata/user_summary.html", context)
+
+@requires_global_role("SYSA")
+def offering_summary(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    
+    staff = Member.objects.filter(offering=offering, role__in=['INST', 'TA'])
+    
+    context = {'offering': offering, 'staff': staff}
+    return render(request, "coredata/offering_summary.html", context)
 
 
 @requires_global_role("SYSA")
@@ -451,9 +472,12 @@ def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
     allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])
+    print has_formgroup(request)
+    print not(roles & allowed)
     if not(roles & allowed):
         # doesn't have any allowed roles
-        return ForbiddenResponse(request, "Not permitted to do student search.")
+        if not has_formgroup(request):
+            return ForbiddenResponse(request, "Not permitted to do student search.")
     
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")

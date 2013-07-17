@@ -43,7 +43,7 @@ function contact_change() {
 {% block editlabel %}Initial Contact Info{% endblock %}
 
 {% block disc_content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.edit_case_info field='contacted' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="contact_change()">{% csrf_token %}
     {{ form.non_field_errors }}
     <div class="discside" id="group_contacted"></div>

@@ -60,25 +60,42 @@ $(document).ready(function() {
 <div class="table_container">
 <table class="info">
 <tbody>
-<tr><th>Student #</th><td>{{grad.person.emplid}} [<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>]</td></tr>
+<tr>
+  <th>Student #</th>
+  <td>{{grad.person.emplid}}
+      [<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>]
+      &nbsp;{{cortezlink|safe}}
+  </td>
+</tr>
 <tr><th>Name</th><td>{{grad.person.sortname_pref}}</td></tr>
 <tr><th>Email</th><td>{{grad.person.email_mailto}}
 {% if grad.applic_email %}(application email: {{grad.applic_email}}){% endif %}	
 </td></tr>
 <tr><th>Current Status</th><td>{{grad.get_current_status_display}} {% if can_edit %}[<a href="{% url grad.views.manage_status grad_slug=grad.slug %}">Update status</a>]{% endif %}</td></tr>
 <tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
-<tr><th>CGPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td></tr>
+<tr><th>CGPA</th><td>{% if grad.person.gpa %}{{grad.person.gpa}} ({{grad.person.ccredits}} credits){% endif %} {% if grad.config.masters_cgpa %} {{grad.config.masters_cgpa}} {% endif %}</td></tr>
 <tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
+<tr><th>Start/End Semesters</th><td>{% if grad.start_semester %}{{ grad.start_semester.name }}{% else %}???{% endif %}&ndash;{% if grad.end_semester %}{{ grad.end_semester.name }}{% else %}present{% endif %}</td></tr>
 <tr><th>Active/Total Semesters</th><td>{{grad.active_semesters_display}}</td></tr>
 {% if other_grad %}<tr><th>Other programs</th><td>{% for g in other_grad %}<a href="{% url grad.views.view grad_slug=g.slug %}">{{g}}</a><br />{% endfor %}</td></tr>{% endif %}
+{% if grad.thesis_type != "Defence" %}<tr><th>{{ grad.thesis_type}}</th><td>{{grad.thesis_summary}}</td></tr> {% endif %}
 </tbody>
 </table>
 </div>
 
-<div class="helptext">
-Last updated {{grad.updated_at}} by
-{% if not grad.modified_by %}{{grad.created_by}}{% else %}{{grad.modified_by}}{% endif %}.
-</div>
+{% if can_edit %}
+<p><strong>Manage:</strong>
+<a href="{% url grad.views.manage_general grad_slug=grad.slug  %}">General Info</a>
+| <a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Requirements</a>
+| <a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Committee</a>
+| <a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Status</a>
+| <a href="{% url grad.views.manage_scholarships grad_slug=grad.slug  %}">Scholarships</a>
+| <a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Other Funding</a>
+| <a href="{% url grad.views.manage_financialcomments grad_slug=grad.slug  %}">Financial Comments</a>
+| <a href="{% url grad.views.manage_letters grad_slug=grad.slug  %}">Letters</a>
+| <a href="{% url grad.views.manage_defence grad_slug=grad.slug  %}">{{ grad.thesis_type }}</a>
+</p>
+{% endif %}
 
 <h2 id="general" class="collapsed"><a href="#!general">General</a></h2>
 <div id="general_content">{{general_content}}</div>
@@ -106,5 +123,4 @@ Last updated {{grad.updated_at}} by
 
 <h2 id="letters" class="collapsed"><a href="#!letters">Letters</a></h2>
 <div id="letters_content">{{letters_content}}</div>
-
 {% endblock %} 

@@ -8,7 +8,7 @@
 
 {% block content %}
 <a class="button" href="{% url submission.views.add_component course_slug=course.slug, activity_slug=activity.slug %}" id="edit_submission_component_add_button">Add Component</a>
-<div id="form_container">
+<div class="form_container">
 {% ifequal component_list|length 0 %}
     <p class="empty">
         No components configured.

@@ -9,7 +9,7 @@
 {% block actions %}{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.new course_slug=course.slug %}" method="post">{% csrf_token %}
     <fieldset>
     <legend>Dishonesty Case</legend>

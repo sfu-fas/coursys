@@ -5,14 +5,9 @@
 
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
-from coredata.models import Member, Person, CourseOffering
+from coredata.models import Member, Person, CourseOffering, ComputingAccount
 
-IMPORT_SEMESTERS = ('1127', '1131')
-
-#FIRSTTERM = "1111"
-#DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
-#FULL_TEST_DATA = "1114-cmpt-120-d100"
-#MIN_TEST_DATA = "1114-cmpt-165-c100"
+IMPORT_SEMESTERS = ('1131', '1134')
 
 fakes = {}
 next_emplid = 100
@@ -132,6 +127,8 @@ def main():
 
     print "giving sysadmin permissions"
     give_sysadmin(['ggbaker'])
+    
+    ComputingAccount.objects.all().delete()
 
 if __name__ == "__main__":
     hostname = socket.gethostname()

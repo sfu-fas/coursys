@@ -1,9 +1,9 @@
 from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
-from grad.models import GradStudent, LetterTemplate, Letter
+from grad.models import GradStudent, Letter
 from django.contrib import messages
 from log.models import LogEntry
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from grad.forms import LetterForm
 import datetime
 from django.core.urlresolvers import reverse
@@ -18,7 +18,6 @@ def copy_letter(request, grad_slug, letter_slug):
                     from_lines=old_letter.from_lines)
     letter.set_use_sig(old_letter.use_sig())
 
-    templates = LetterTemplate.objects.filter(unit=grad.program.unit)
     from_choices = [('', u'\u2014')] \
                     + [(r.person.id, "%s. %s, %s" %
                             (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
@@ -45,7 +44,6 @@ def copy_letter(request, grad_slug, letter_slug):
     context = {
                'form': form,
                'grad' : grad,
-               'templates' : templates,
                'letter': letter,
                }
     return render(request, 'grad/copy_letter.html', context)

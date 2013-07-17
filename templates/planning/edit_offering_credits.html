@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url planning.views.edit_course_offering_credits userid=instructor.userid course_slug=member.offering.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Credits</legend>

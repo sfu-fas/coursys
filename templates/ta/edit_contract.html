@@ -18,21 +18,40 @@
 
 {% block headextra %}
 <script type="text/javascript">
+
     var old_status = {% if old_status %}'{{old_status|escapejs}}'{% else %}null{% endif %};
+
+    var LAB_BONUS = {{LAB_BONUS}};
+    var ids_of_descriptions_with_labs = {{ids_of_descriptions_with_labs|escapejs}};
+
+    function getBonusBUs(){
+        var bonus_bus = 0;
+        $(".desc_select").each(function(i, element){
+            if( ids_of_descriptions_with_labs.indexOf( parseInt($(element).val(), 10) ) != -1){
+                bonus_bus += LAB_BONUS;
+            }
+        });
+        return bonus_bus;
+    }
+
 	function calculate(){
 		var total = 0;
-		for(var i = 0; i < 3; i++){
-			val = parseFloat($('#id_tacourse_set-' + i + '-bu').val())
-			if(val > 0)
-				total += val
-		}
+        $(".bu_inp").each(function(i, element){
+            var val = parseFloat( $(element).val() )
+            if( val > 0 ){
+                total += val
+            }
+        });
+        var before_bonus_bu = total;
+        total += getBonusBUs();
+
 		$('#total_bu').val(total.toFixed(2))   
 		
 		var salary_rate = parseFloat($('#id_pay_per_bu').val())
 		var schol_rate = parseFloat($('#id_scholarship_per_bu').val())
 		var bu = parseFloat($('#total_bu').val())
 		var salary_sem = (bu * salary_rate).toFixed(2)
-		var schol_sem = (bu * schol_rate).toFixed(2)
+		var schol_sem = (before_bonus_bu * schol_rate).toFixed(2)
 		$('#salary_sem').val(salary_sem)
 		$('#schol_sem').val(schol_sem)
 		var salary_bi = (salary_sem / "{{posting.payperiods}}").toFixed(2)
@@ -120,15 +139,11 @@
 			var desc_sel = '#' + this.id.replace('-course','-description')
 			if(cid != ''){//nonempty selection
 				$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid%}",
-				{'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
-				function(data){
-					var val = parseFloat(data.split(',')[0])
-					$(desc_sel).val(data.split(',')[1])
-					$(desc_sel).data('orig', $(desc_sel).val())
-					if($(desc_sel).val()=='OML')
-						val += {{LAB_BONUS}}
-					$(bu_inp).val(val.toFixed(2))
-				})
+                    {'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
+                    function(data){
+                        var val = parseFloat(data)
+                        $(bu_inp).val(val.toFixed(2))
+                    });
 			}
 			else{
 				$(bu_inp).val(0)
@@ -140,26 +155,6 @@
     	$('.desc_select').each(function(){
     		$(this).data('orig', $(this).val())
     	})
-    	//deal with course description change
-    	$('.desc_select').change(function(){
-    		var cid = $(this).val()
-			var course_sel = '#' + this.id.replace('-description','-course')
-			var bu_inp = '#' + this.id.replace('-description','-bu')
-			if(cid == 'OML' && $(bu_inp).val() != '' ){
-				//validate bu value is positive number
-				val = $(bu_inp).val()
-				//if(!isNaN(val))
-				$(bu_inp).val((parseFloat(val) + {{LAB_BONUS}}).toFixed(2))
-			}
-			else if($(this).data('orig') == 'OML' && $(bu_inp).val() != ''){
-				//validate bu value is positive number
-				val = $(bu_inp).val()
-				if(!isNaN(val) && parseFloat(val) >= {{LAB_BONUS}})
-					$(bu_inp).val((parseFloat(val) - {{LAB_BONUS}}).toFixed(2))
-			}
-			$(this).data('orig', $(this).val())
-    	})
-
     	
     	//setting rates per bu based on appt category
     	if("{{ editing }}" == 'False'){
@@ -172,8 +167,9 @@
     	
     	//calcuate event
     	$('#button_cal').click(function(){
-    		if(validate(true))
-    			calculate()
+    		if(validate()){
+                calculate()
+            }
     	})
     	
     	// set up status info
@@ -210,8 +206,11 @@
     </table>
 </div>
 
-<div id="form_container">
+<div class="form_container">
 <form action="" method="post">{% csrf_token %}
+
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
+
 <fieldset class="wide">
 <legend>General Info</legend>
 {%if editing%}

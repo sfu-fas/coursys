@@ -1,17 +1,21 @@
 from django.test import TestCase
-from django.test.client import Client
 from django.core.urlresolvers import reverse
 import json, datetime
 from coredata.models import Person, Semester
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment
-from courselib.testing import basic_page_tests, test_auth
+from courselib.testing import basic_page_tests, test_auth, Client
 from grad.views.view import all_sections
 
 
 class GradTest(TestCase):
     fixtures = ['test_data']
+    
+    def setUp(self):
+        # find a grad student who is owned by CS for testing
+        gs = GradStudent.objects.filter(program__unit__slug='comp')[0]
+        self.gs_userid = gs.person.userid
 
     def test_grad_quicksearch(self):
         """
@@ -28,7 +32,7 @@ class GradTest(TestCase):
         self.assertEqual(response['content-type'], 'application/json')
         # get this grad's slug from the search
         autocomplete = json.loads(response.content)
-        grad_slug = [d['value'] for d in autocomplete if d['value'].startswith('0nnngrad')][0]
+        grad_slug = [d['value'] for d in autocomplete if d['value'].startswith(self.gs_userid)][0]
         
         # search submit with gradstudent slug redirects to page
         response = client.get(reverse('grad.views.quick_search')+'?search='+grad_slug)
@@ -36,14 +40,14 @@ class GradTest(TestCase):
         self.assertTrue(response['location'].endswith( reverse('grad.views.view', kwargs={'grad_slug': grad_slug}) ))
 
         # search submit with non-slug redirects to "did you mean" page
-        response = client.get(reverse('grad.views.quick_search')+'?search=0nnn')
+        response = client.get(reverse('grad.views.quick_search')+'?search=' + self.gs_userid[0:4])
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response['location'].endswith( reverse('grad.views.not_found')+"?search=0nnn" ))
+        self.assertTrue(response['location'].endswith( reverse('grad.views.not_found')+"?search=" + self.gs_userid[0:4] ))
         
         response = client.get(response['location'])
         gradlist = response.context['grads']
         self.assertEqual(len(gradlist), 1)
-        self.assertEqual(gradlist[0], GradStudent.objects.get(person__userid='0nnngrad'))
+        self.assertEqual(gradlist[0], GradStudent.objects.get(person__userid=self.gs_userid))
 
     def test_that_grad_search_returns_200_ok(self):
         """
@@ -91,7 +95,7 @@ class GradTest(TestCase):
 
 
     def __make_test_grad(self):
-        gs = GradStudent.objects.get(person__userid='0nnngrad')
+        gs = GradStudent.objects.get(person__userid=self.gs_userid)
         sem = Semester.current()
         
         # put some data there so there's something to see in the tests (also, the empty <tbody>s don't validate)
@@ -154,9 +158,9 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships', 'new_letter',
+        for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships',
                       'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
-                      'manage_program', 'manage_financialcomments', 'manage_defence']:
+                      'manage_program', 'manage_start_end_semesters', 'manage_financialcomments', 'manage_defence']:
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)
@@ -164,6 +168,11 @@ class GradTest(TestCase):
             except:
                 print "with view==" + repr(view)
                 raise
+
+        url = reverse('grad.views.new_letter', kwargs={'grad_slug': gs.slug, 'letter_template_slug': lt.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
         
     def test_grad_letters(self):
         """
@@ -171,7 +180,7 @@ class GradTest(TestCase):
         """
         client = Client()
         test_auth(client, 'ggbaker')
-        gs = GradStudent.objects.get(person__userid='0nnngrad')
+        gs = GradStudent.objects.get(person__userid=self.gs_userid)
 
         # get template text and make sure substitutions are made
         lt = LetterTemplate.objects.get(label="Funding")

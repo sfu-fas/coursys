@@ -8,6 +8,8 @@ class LogEntry(models.Model):
     description of the activity that has occurred.  The "related_object" should be the object
     that was modified.
     
+    self.userid == '' indicated action by non-logged-in user.
+    
     Sample usage (e.g. editing a student's grade on an assignment)
         activity = NumericActivity.objects.get(...)
         student = Person.objects.get(...)

@@ -5,7 +5,6 @@ from grad.models import GradStudent, CompletedRequirement, Supervisor, Scholarsh
 from ta.models import TACourse
 from ra.models import RAAppointment
 from coredata.queries import grad_student_courses, grad_student_gpas
-import MySQLdb
 
 def escape(s):
     if s is None:
@@ -13,6 +12,7 @@ def escape(s):
     elif type(s) == int:
         return unicode(s)
     else:
+        import MySQLdb
         return "'" + MySQLdb._mysql.escape_string(unicode(s)) + "'"
 
 def escape_all(*ss):
@@ -128,6 +128,17 @@ def generate_progrep_queries(gs):
     for schol in scholarships:
         yield ("INSERT INTO progrep.finsupport (emplid, semester, type, name, amount, bu) VALUES (%s, %s, %s, %s, %s, %s);\n") \
             % escape_all(gs.person.emplid, schol.start_semester.name, 'scholarship', schol.scholarship_type.name, "%.2f"%schol.amount, '')
+
+    otherfunding = OtherFunding.objects.filter(student=gs, removed=False)
+    for other in otherfunding:
+        yield ("INSERT INTO progrep.finsupport (emplid, semester, type, name, amount, bu) VALUES (%s, %s, %s, %s, %s, %s);\n") \
+            % escape_all(gs.person.emplid, other.semester.name, 'other', other.description, "%.2f"%other.amount, '')
+
+    sessionals = gs.sessional_courses()
+    for offering in sessionals:
+        yield ("INSERT INTO progrep.finsupport (emplid, semester, type, name, amount, bu) VALUES (%s, %s, %s, %s, %s, %s);\n") \
+            % escape_all(gs.person.emplid, offering.semester.name, 'sessional', offering.name(), "%.2f"%offering.sessional_pay(), '')
+        
 
     # grades & GPA
     for coursedata in grad_student_courses(gs.person.emplid):

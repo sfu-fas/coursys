@@ -10,7 +10,7 @@
 <li>&gt; Edit {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
 
 {% block content %}
-  <div id="form_container">
+  <div class="form_container">
     <form action="{% url ra.views.edit_account account_slug=account.slug %}" method="post">{% csrf_token %}
       <fieldset style="list-style: none;">
         <legend>Account Information</legend>

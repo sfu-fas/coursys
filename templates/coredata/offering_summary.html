@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Summary of {{offering.name}}, {{offering.semester.label}}{% endblock %}
+{% block h1 %}Summary of {{offering.name}}, {{offering.semester.label}}{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#members').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    } );
+} );
+</script>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; {{offering.name}}, {{offering.semester.label}} Summary</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th scope="row">Title</th>
+                <td>{{ offering.title }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Campus</th>
+                <td>{{ offering.get_campus_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Number of Students</th>
+                <td>{{ offering.student_count }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Course home page</th>
+                <td>{% if offering.config.url %}{{ offering.config.url|urlize }}{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2 id="member">Course Staff</h2>
+
+<ul>
+{% for m in staff %}
+  <li>{{m.person.name}} ({{m.person.email_mailto}}, {{m.get_role_display}})</li>
+{% empty %}
+  <li class="empty">None</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

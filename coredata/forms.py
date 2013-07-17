@@ -29,6 +29,8 @@ class OfferingField(forms.ModelChoiceField):
         super(OfferingField, self).__init__(*args, queryset=CourseOffering.objects.none(), widget=OfferingSelect(attrs={'size': 30}), help_text="Type to search for course offerings.", **kwargs)
         
     def to_python(self, value):
+        if not self.required and not value:
+            return None
         try:
             co = CourseOffering.objects.exclude(component="CAN").get(pk=value, graded=True)
         except (ValueError, CourseOffering.DoesNotExist):
@@ -68,21 +70,6 @@ class UnitForm(forms.ModelForm):
             acad_org = None
         return acad_org
 
-class MemberForm(forms.ModelForm):
-    person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
-    offering = OfferingField()
-    
-    def clean_person(self):
-        userid = self.cleaned_data['person']
-        person = Person.objects.filter(userid=userid)
-        if person:
-            return person[0]
-        else:
-            raise forms.ValidationError, "Userid '%s' is unknown."%(userid)
-    
-    class Meta:
-        model = Member
-        exclude = ('config', 'official_grade')
 
 class PersonForm(forms.ModelForm):
     emplid = forms.CharField(max_length=9,
@@ -158,6 +145,9 @@ class PersonField(forms.CharField):
         if isinstance(value, Person):
             return value
         else:
+            if not self.required and not value:
+                return None
+
             try:
                 return Person.objects.get(emplid=value)
             except (ValueError, Person.DoesNotExist):
@@ -199,6 +189,26 @@ class PersonField(forms.CharField):
         else:
             return value
 
+class SysAdminSearchForm(forms.Form):
+    user = PersonField(required=False)
+    offering = OfferingField(required=False)
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(SysAdminSearchForm, self).is_valid(*args, **kwargs)
+
+class MemberForm(forms.ModelForm):
+    person = PersonField()
+    offering = OfferingField()
+    
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(MemberForm, self).is_valid(*args, **kwargs)
+    
+    class Meta:
+        model = Member
+        exclude = ('config', 'official_grade')
+    
 
 class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")

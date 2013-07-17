@@ -15,7 +15,7 @@ $(document).ready(function() {
 {% block editlabel %}Chair's Meeting/Email Details{% endblock %}
 
 {% block disc_content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.edit_case_info field='chair_meeting' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <p>{{ form.chair_meeting_date.label }}: {{ form.chair_meeting_date }}</p>
     {{form.chair_meeting_date.errors}}

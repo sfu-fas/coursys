@@ -392,6 +392,7 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
     new_activity.id = None
     new_activity.pk = None
     new_activity.activity_ptr_id = None
+    new_activity.slug = None
     if hasattr(new_activity, 'numericactivity_ptr_id'):
         new_activity.numericactivity_ptr_id = None
     if hasattr(new_activity, 'letteractivity_ptr_id'):
@@ -414,9 +415,9 @@ def save_copied_activity(target_activity, model, target_course_offering):
     we have to resolve the conflicts by deleting the old activity that conflicts with the new one
     """
     try:
-        old_activity = model.objects.get(Q(name=target_activity.name) | Q(short_name=target_activity.short_name, 
-                                    deleted = False), 
-            offering = target_course_offering)
+        old_activity = model.objects.get(Q(name=target_activity.name) | 
+                                         Q(short_name=target_activity.short_name, deleted = False), 
+                                        offering = target_course_offering, deleted = False)
     except model.DoesNotExist:
         target_activity.save()
     else:    
@@ -450,6 +451,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_activity_component.id = None
             new_activity_component.pk = None
             new_activity_component.numeric_activity = new_activity
+            new_activity_component.slug = None
             new_activity_component.save()
             #print "-- marking component %s is copied" % new_activity_component            
             for common_problem in CommonProblem.objects.filter(activity_component=activity_component, deleted=False):
@@ -466,6 +468,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_submission_component.id = None
             new_submission_component.pk = None
             new_submission_component.activity = new_activity
+            new_submission_component.slug = None
             new_submission_component.save()
             #print "-- submission component %s is copied" % new_submission_component
     

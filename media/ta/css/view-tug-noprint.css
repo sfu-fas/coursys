@@ -4,10 +4,14 @@
 }
 
 #tugReview ol {
-	/* TODO: look at documentation for what this  should be. */
 	list-style-type: lower-alpha;
 }
 
-/*table td.numeral {
-	border-right: 0px solid white;
-}*/
+#maxHours{
+    display: block;
+}
+
+#prepHours{
+    display: block;
+}
+

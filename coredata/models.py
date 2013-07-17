@@ -210,6 +210,12 @@ class Semester(models.Model):
         The human-readable label for the semester, e.g. "Summer 2010".
         """
         name = str(self.name)
+        if len(name) < 3 or len(name) > 4:
+            return "Invalid"
+        if len(name) == 3:
+            name = "0"+name
+        if name[1] == '8':
+            name = "0" + name[1:]
         year = 1900 + int(name[0:3])
         semester = self.label_lookup[name[3]]
         return semester + " " + str(year)
@@ -491,6 +497,7 @@ class CourseOffering(models.Model):
         # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
+        # 'sessional_pay': amount the sessional was paid (used in grad finances)
     
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
@@ -503,6 +510,7 @@ class CourseOffering(models.Model):
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
+    _, set_sessional_pay = getter_setter('sessional_pay')
     copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
@@ -568,6 +576,16 @@ class CourseOffering(models.Model):
             return True
         else:
             return False
+    def sessional_pay(self):
+        """
+        Pay for the sessional instructor: check self.owner for a value if not set on offering.
+        """
+        if 'sessional_pay' in self.config:
+            return decimal.Decimal(self.config['sessional_pay'])
+        elif 'sessional_pay' in self.owner.config:
+            return decimal.Decimal(self.owner.config['sessional_pay'])
+        else:
+            return 0
     
     def set_course(self, save=True):
         """
@@ -673,7 +691,7 @@ class Member(models.Model):
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
-    bu, set_bu = getter_setter('bu')
+    raw_bu, set_bu = getter_setter('bu')
     _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
@@ -697,6 +715,9 @@ class Member(models.Model):
 
         if others:
             raise ValidationError('There is another membership with this person, offering, and role.  These must be unique for a membership (unless role is "dropped").')
+
+    def bu(self):
+        return decimal.Decimal(unicode(self.raw_bu()))
 
     def teaching_credit(self):
         if 'teaching_credit' in self.config:
@@ -804,7 +825,8 @@ class Unit(models.Model):
         # 'web': URL
         # 'tel': contact phone number
         # 'fax': fax number (may be None)
-        # 'informal_name': formal name of the unit (e.g. "Computing Science").
+        # 'informal_name': formal name of the unit (e.g. "Computing Science")
+        # 'sessional_pay': default amount sessionals are paid (used in grad finances)
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',

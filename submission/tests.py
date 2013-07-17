@@ -1,5 +1,5 @@
 from django.test import *
-from django.test.client import Client
+
 from submission.models import *
 from submission.models.code import SubmittedCode
 from submission.forms import *
@@ -113,7 +113,7 @@ class SubmissionTest(TestCase):
         c3 = Code.Component(activity=a1, title="Code File", position=3, max_size=2000, allowed=".py")
         c3.save()
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
         
         # When no component, should display error message
         url = reverse('submission.views.show_components', kwargs={'course_slug':course.slug, 'activity_slug':a2.slug})
@@ -229,7 +229,7 @@ class SubmissionTest(TestCase):
 
         client = Client()
         # login as "0aaa0", member of group : test_group for assignment1 and assgnment2
-        client.login(ticket = "0aaa0", service = CAS_SERVER_URL)
+        client.login_user("0aaa0")
 
         #submission page for assignment 1
         url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
@@ -258,7 +258,7 @@ class SubmissionTest(TestCase):
         
         # submit as student
         client = Client()
-        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
+        client.login_user("0aaa0")
         url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, '<input type="file" name="%i-code"' % (c.id))

@@ -2,7 +2,7 @@
 # and http://pyparsing.wikispaces.com/file/view/simpleSQL.py
 
 # Usual usage of the parser:
-#   from grades.formulas import *
+#   from grades.formulas import ...
 # for each calculated grade:
 #   parsed_expr = parse(formula)
 # find all NumericActivities for the course and process into format for evaluator:

@@ -16,6 +16,9 @@
 				<a href="{% url ta.views.view_tug course_slug=course.slug userid=ta.person.userid %}">
 					{{ta.person}} 
 				</a> (Last Updated: {% if tug.last_update != None %}{{tug.last_update|date:"D. N j Y"}}{% else %}Unknown{% endif %})
+                {% if tug.expired %}
+                    <span class='warning'> - The number of Base Units available for this student has changed. Please update your TUG. </span> 
+                {% endif %}
 			{% else %}
 				{{ta.person}}{% if not_ta %} - 
 				<a href="{% url ta.views.new_tug course_slug=course.slug userid=ta.person.userid %}">

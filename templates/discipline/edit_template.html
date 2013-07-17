@@ -18,7 +18,7 @@ function confirmSubmit() {
 {% block actions %}{% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
     <form action="{% url discipline.views.edit_template template_id=template.id %}" method="post">{% csrf_token %}
     <fieldset>
     <legend>Template Details</legend>

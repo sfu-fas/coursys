@@ -2,7 +2,7 @@ from django.test import TestCase
 from coredata.models import *
 
 from django.core.urlresolvers import reverse
-from django.test.client import Client
+
 from courselib.testing import *
 from settings import CAS_SERVER_URL
 
@@ -223,7 +223,7 @@ class CoredataTest(TestCase):
 
         # check the front end
         client = Client()
-        client.login(ticket="test1", service=CAS_SERVER_URL)
+        client.login_user("test1")
 
         url = reverse('coredata.views.role_list')
         response = basic_page_tests(self, client, url)
@@ -237,7 +237,7 @@ class CoredataTest(TestCase):
         response = client.post(url, {'person':'33333333', 'role':'FAC'})
         self.assertEquals(response.status_code, 200)
         validate_content(self, response.content, url)
-        self.assertTrue("could not connect to reporting database" in response.content or "Could not find this emplid." in response.content)
+        self.assertTrue("could not import DB2 module" in response.content or "could not connect to reporting database" in response.content or "Could not find this emplid." in response.content)
 
         response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id})
         self.assertEquals(response.status_code, 302)

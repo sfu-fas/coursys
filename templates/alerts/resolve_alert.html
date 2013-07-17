@@ -27,7 +27,7 @@ $(document).ready(function() {
 
 {% block content %}
 
-<div id="form_container">
+<div class="form_container">
 <form action=
 {% if resolve_reopen_or_comment_on == "Resolve" %}
     "{% url alerts.views.resolve_alert alert_type=alert.alerttype.slug alert_id=alert.id %}"

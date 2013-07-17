@@ -11,12 +11,21 @@
 //<![CDATA[
   $(document).ready(function() {
     offering_autocomplete('id_offering');
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    });
   });
 //]]></script>
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div class="form_container">
 <form action="{% if member %}{% url coredata.views.edit_member member_id=member.id %}{% else %}{% url coredata.views.edit_member %}{% endif %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Membership</legend>

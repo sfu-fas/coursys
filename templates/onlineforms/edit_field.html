@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %} Edit Field Type {% endblock %}
+{% block h1 %} Edit Field Type {% endblock %}
+
+{% block headextra %}
+    <!-- Changes must also be applied to new_field.html -->
+    {% if choices %}
+        <script type="text/javascript">
+            $(document).ready(function () {
+
+
+                var choice_count
+                var last_choice = $('input[name^="choice_"]').last()
+
+                if(last_choice.length === 0){
+                    choice_count = 0
+                }else{
+                    choice_count = /\d+/.exec(last_choice[0].name)
+                }
+
+                var r_button = '<input type="button" name="remove_choice" value="Remove"/>';
+
+                $('input[name^="choice_"]').after(r_button)
+                $('input[name^="remove_choice"]').click(function(){
+                    $(this).parents('dd').prev().remove()
+                    $(this).parents('dd').remove()
+                })
+
+                var new_choice_field = function () {
+
+                    new_choice = '<dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
+                            '<div class="field"><input type="text" name="choice_' + choice_count + '" id="id_choice_' + choice_count + '" />'+r_button+'</div>\ ' +
+                            '</dd>'
+
+                    return new_choice
+                }
+
+                $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
+                        '<div class="field"><input type="button" name="Add Choice" value="Add Choice" id="add_button" /></div>\ ' +
+                        '</dd>');
+
+                $("#add_button").click(function () {
+                    choice_count++
+                    while($("#id_choice_"+choice_count).length){
+                        choice_count++
+                    }
+                    $('#add_dt').before(new_choice_field());
+
+                    $('input[name^="remove_choice"]').unbind('click');
+                    $('input[name^="remove_choice"]').click(function(){
+                        $(this).parents('dd').prev().remove()
+                        $(this).parents('dd').remove()
+                    })
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li>&gt; <a
+            href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
+    </li>
+    <li>&gt; Edit Field</li>
+{% endblock %}
+
+{% block content %}
+    <div class="form_container">
+        {% if form.non_field_errors %}
+            <p class="errorindicator">
+                <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation"/>
+                {{ form.non_field_errors }}
+            </p>
+        {% endif %}
+        <form action="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.slug %}"
+              method="post">{% csrf_token %}
+            <fieldset>
+                <legend> Edit Field Type</legend>
+                <ul>
+                    <li>
+                        {{ form|as_dl }}
+                    </li>
+                    <li>
+                        <input class="submit" type="submit" value="Save Changes"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}

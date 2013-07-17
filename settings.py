@@ -13,6 +13,8 @@ sys.path.append( os.path.join(PROJECT_DIR, 'external') )
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
+    ('Curtis Lassam', 'classam@sfu.ca'),
+    ('sumo Kindersley', 'sumo@cs.sfu.ca'),
 )
 
 MANAGERS = ADMINS
@@ -193,11 +195,20 @@ SHORT_DATETIME_FORMAT = "N d Y, H:i"
 GRAD_DATE_FORMAT = "m/d/Y"
 GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 
-if not DEPLOYED and DEBUG and hostname != 'courses':
-    CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
+DISABLE_REPORTING_DB = False
+
+if not DEPLOYED and DEBUG and hostname != 'courses':
+    #CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
+    AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+    MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
+    MIDDLEWARE_CLASSES.remove('django_cas.middleware.CASMiddleware')
+    MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
+    LOGIN_URL = "/fake_login"
+    LOGOUT_URL = "/fake_logout"
+    DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
 
 try:
     from local_settings import *

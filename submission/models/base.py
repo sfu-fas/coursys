@@ -101,7 +101,7 @@ class StudentSubmission(Submission):
     def get_absolute_url(self):
         return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
     def file_slug(self):
-        return self.member.person.userid or self.member.person.emplid
+        return self.member.person.userid or str(self.member.person.emplid)
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)

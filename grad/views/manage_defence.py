@@ -28,6 +28,8 @@ def manage_defence(request, grad_slug):
                 grad.config['thesis_type'] = form.cleaned_data['thesis_type']
                 grad.config['work_title'] = form.cleaned_data['work_title']
                 grad.config['exam_date'] = form.cleaned_data['exam_date']
+                grad.config['thesis_outcome'] = form.cleaned_data['thesis_outcome']
+                grad.config['thesis_location'] = form.cleaned_data['thesis_location']
                 grad.save()
                 
                 if form.cleaned_data['internal']:
@@ -94,6 +96,10 @@ def manage_defence(request, grad_slug):
             initial['work_title'] = grad.config['work_title']
         if 'exam_date' in grad.config:
             initial['exam_date'] = grad.config['exam_date']
+        if 'thesis_outcome' in grad.config:
+            initial['thesis_outcome'] = grad.config['thesis_outcome']
+        if 'thesis_location' in grad.config:
+            initial['thesis_location'] = grad.config['thesis_location']
         internals = Supervisor.objects.filter(student=grad, removed=False, supervisor_type='SFU')
         if internals:
             initial['internal'] = internals[0].supervisor_id

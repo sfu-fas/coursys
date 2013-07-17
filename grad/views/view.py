@@ -36,8 +36,9 @@ def _can_view_student(request, grad_slug, funding=False):
         return students[0], 'student'
         
     # senior supervisors can see their students
-    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN', removed=False).select_related('student')
-    if supervisors:
+    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type__in=['SEN','POT'], removed=False).select_related('student')
+    supervisors = [sup for sup in supervisors if sup.can_view_details()]
+    if request.method=='GET' and supervisors:
         grad = supervisors[0].student
         return grad, 'supervisor'
 
@@ -52,7 +53,12 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
-    context = {'grad': grad, 'index': True, 'can_edit': True, 'authtype': authtype}
+    context = {
+        'grad': grad, 
+        'index': True, 
+        'can_edit': True, 
+        'authtype': authtype }
+
     if authtype in ['supervisor', 'graddir']:
         context['can_edit'] = False
     
@@ -71,6 +77,7 @@ def view(request, grad_slug, section=None):
             programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units).order_by('starting')
             context['programhistory'] = programhistory
             flag_values = grad.flags_and_values()
+            context['extras'] = [ (title, grad.config[field]) for field, title in grad.tacked_on_fields if field in grad.config] 
             context['flag_values'] = flag_values
             return render(request, 'grad/view__general.html', context)
 
@@ -135,6 +142,11 @@ def view(request, grad_slug, section=None):
                  .filter(program__unit__in=request.units, person=grad.person) \
                  .exclude(id=grad.id)
     context['other_grad'] = other_grad
+    # still useful: but remove cortezlink once cortez is dead.
+    if 'cortezid' in grad.config:
+        context['cortezlink'] = "[<a href='https://cortez.cs.sfu.ca/grad/scripts/grabcurrent.asp?Identifier="+grad.config['cortezid']+"'>OLD cortez record</a>]"
+    else:
+        context['cortezlink'] = ""
 
     return render(request, 'grad/view.html', context)
 

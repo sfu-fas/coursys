@@ -4,7 +4,8 @@ from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
-    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment, GRAD_CAMPUS_CHOICES
+    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment, GRAD_CAMPUS_CHOICES, \
+    THESIS_TYPE_CHOICES, THESIS_OUTCOME_CHOICES
 from courselib.forms import StaffSemesterField
 from coredata.models import Person, Semester, Role, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
@@ -175,9 +176,17 @@ class BaseSupervisorsFormSet(BaseModelFormSet):
                     
 
 class GradAcademicForm(ModelForm):
+    sin = forms.CharField( label = 'SIN', help_text='Social Insurance Number', required=False )
+    place_of_birth = forms.CharField(required=False)
+    bachelors_cgpa = forms.CharField(required=False)
+    masters_cgpa = forms.CharField(required=False)
+    progress = forms.CharField(required=False)
+    qualifying_exam_date = forms.DateField(required=False)
+    qualifying_exam_location = forms.CharField(required=False)
+
     class Meta: 
         model = GradStudent
-        fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'comments')
+        fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'comments') 
         widgets = {
                    'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
                    }
@@ -216,7 +225,7 @@ class GradStatusForm(ModelForm):
         
     class Meta:
         model = GradStatus
-        exclude = ('student', 'created_by', 'hidden', 'end')
+        exclude = ('student', 'created_by', 'hidden', 'end', 'start_date')
         hidden = ('id')
         widgets = {
                    'notes': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
@@ -246,7 +255,7 @@ class LetterForm(ModelForm):
                                  help_text='Use the "From" person\'s signature, if on file?')    
     class Meta: 
         model = Letter
-        exclude = ('created_by', 'config')
+        exclude = ('created_by', 'config', 'template')
         widgets = {
                    'student': forms.HiddenInput(),
                    'to_lines': forms.Textarea(attrs={'rows': 4, 'cols': 50}),
@@ -319,11 +328,14 @@ class new_scholarshipTypeForm(ModelForm):
         exclude = ('hidden',)
 
 class GradDefenceForm(forms.Form):
-    thesis_type = forms.ChoiceField(choices=[('T','Thesis'), ('P','Project'), ('E','Extended Essay')],
+    thesis_type = forms.ChoiceField(choices=THESIS_TYPE_CHOICES,
                                     required=True, label='Work type')
     work_title = forms.CharField(help_text='Title of the Thesis/Project/Extended Essay', max_length=300,
                                  widget=forms.TextInput(attrs={'size': 70}))
-    exam_date = forms.DateField(required=False)
+    exam_date = forms.DateField(required=False, help_text="Date of the Examination")
+    thesis_location = forms.CharField(help_text="Location of the Examination", max_length=300, label='Location', 
+                                required=False,
+                                widget=forms.TextInput(attrs={'size':55}))
     
     chair = SupervisorField(required=False, label="Defence chair")
     internal = SupervisorField(required=False, label="SFU examiner")
@@ -336,7 +348,9 @@ class GradDefenceForm(forms.Form):
                                        widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}))
     external_attend = forms.ChoiceField(choices=[('','Unknown'), ('P','In-person'), ('A','in abstentia'), ('T','By teleconference')],
                                     required=False, label='External Attending')
-        
+    
+    thesis_outcome = forms.ChoiceField(choices=THESIS_OUTCOME_CHOICES, required=False, label="Outcome")
+
     def set_supervisor_choices(self, choices):
         """
         Set choices for the supervisor
@@ -346,7 +360,13 @@ class GradDefenceForm(forms.Form):
         self.fields['internal'].fields[0].choices = [("","Other")] + choices
         self.fields['internal'].widget.widgets[0].choices = [("","Other")] + choices
 
-        
+class GradSemesterForm(forms.Form):
+    start_semester = StaffSemesterField(required=False)
+    end_semester = StaffSemesterField(required=False)
+    # I'm commenting the following out because I suspect it will cause confusion. All the guts are there to make it work if needed, though.
+    #ignore = forms.BooleanField(initial=False, required=False,
+    #                            help_text="Ignore the values here and revert to the default values based on the student's statuses.")
+
 
 
 # creates an 'atom' to represent 'Unknown' (but it's not None) 

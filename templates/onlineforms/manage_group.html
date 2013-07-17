@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit {{ group.name }}{% endblock %}
+{% block h1 %}Edit {{ group.name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.manage_groups %}">Form Groups</a></li>
+<li>&gt; Edit {{ group.name }}</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#formgroupmembers').dataTable({
+                "bPaginate": false,
+                "bFilter": false,
+                "bInfo": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
+
+    $('#id_search').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    }); 
+});
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div style="clear: left;">
+	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">
+		{% csrf_token %}
+		 <fieldset style="width: 65%">
+            <legend>Group Information</legend>
+            <ul>
+                <li>
+                    {{form|as_dl}}
+                </li>
+                <li>
+                    <input class="submit" type="submit" value="Update" />
+                </li>
+            </ul>
+        </fieldset>
+	</form>
+</div>
+
+<div style="width: 65%">
+    <h2>Manage Members</h2>
+    <div id="table-container">
+        <table class="display" id="formgroupmembers">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in grouplist %}
+                {% for member in g.members.all %}
+            <tr>
+                <td>
+                    {{ member.first_name }} {{ member.last_name }}
+                </td>
+                <td class="miniaction"> 
+                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.emplid %}" method="post">{% csrf_token %}
+                        <div>
+                            <input type="hidden" name="action" value="remove"/>
+                            <input type="submit" value="remove"/>
+                        </div>
+                    </form>
+                </td>                
+            </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<br />
+<div>
+    <fieldset style="width: 65%">
+        <legend>Add Member</legend>
+        <form action="{% url onlineforms.views.add_group_member formgroup_slug=group.slug %}" method="post">{% csrf_token %}
+            <ul>
+                <li>{{ search|as_dl }}</li>
+                <li><input type="hidden" name="action" value="add" /></li>
+                <li><input class="submit" type="submit" value="Add" /></li>
+            </ul>
+
+        </form>
+    </fieldset>
+
+</div>
+{% endblock %}

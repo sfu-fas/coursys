@@ -40,7 +40,7 @@ $(document).ready(function() {
 <a href="javascript:do_wysiwyg()" id="wysiwyg-on" style="display:none">Switch to WYSIWYG editing</a>
 <a href="javascript:do_wiki()" id="wiki-on" style="display:none">Switch to wikitext editing</a>
 
-<div id="form_container">
+<div class="form_container">
     <form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
     
     <fieldset><legend>Page Details</legend>

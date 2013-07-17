@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.test.client import Client
+
 from settings import CAS_SERVER_URL
 
 from coredata.tests import create_offering
@@ -141,7 +141,7 @@ class GroupTest(TestCase):
             m.save()
         
         client = Client()
-        client.login(ticket=userid1, service=CAS_SERVER_URL)
+        client.login_user(userid1)
         
         # group management screen
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
@@ -182,7 +182,7 @@ class GroupTest(TestCase):
         self.assertEquals(gms[1].confirmed, False)
         
         # log in as userid2 and confirm
-        client.login(ticket=userid2, service=CAS_SERVER_URL)
+        client.login_user(userid2)
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, ", "+userid1)
@@ -197,7 +197,7 @@ class GroupTest(TestCase):
         self.assertEquals(gms[0].confirmed, True)
         
         # log in as userid3 and reject
-        client.login(ticket=userid3, service=CAS_SERVER_URL)
+        client.login_user(userid3)
         url = reverse('groups.views.reject', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = client.post(url)
         self.assertEquals(response.status_code, 302)
@@ -212,7 +212,7 @@ class GroupTest(TestCase):
         gm = GroupMember(group=g, student=m, confirmed=True, activity=a1)
         gm.save()
         
-        client.login(ticket=userid1, service=CAS_SERVER_URL)
+        client.login_user(userid1)
         url = reverse('groups.views.invite', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
         response = client.post(url, {"name": userid4})
         
@@ -243,7 +243,7 @@ class GroupTest(TestCase):
         m.save()
         
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login_user("ggbaker")
         
         # group management screen
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})

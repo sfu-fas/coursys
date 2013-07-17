@@ -10,9 +10,11 @@ from django.core.urlresolvers import reverse
 from coredata.models import Role
 
 @requires_role("GRAD", get_only=["GRPD"])
-def new_letter(request, grad_slug):
+def new_letter(request, grad_slug, letter_template_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    templates = LetterTemplate.objects.filter(unit=grad.program.unit, hidden=False)
+
+    template = get_object_or_404(LetterTemplate, slug=letter_template_slug, unit__in=request.units)
+
     from_choices = [('', u'\u2014')] \
                     + [(r.person.id, "%s. %s, %s" %
                             (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
@@ -31,6 +33,7 @@ def new_letter(request, grad_slug):
             f = form.save(commit=False)
             f.created_by = request.user.username
             f.config.update(ls)
+            f.template = template;
             f.save()
             messages.success(request, "Created new %s letter for %s." % (form.instance.template.label, form.instance.student))
             l = LogEntry(userid=request.user.username,
@@ -45,7 +48,7 @@ def new_letter(request, grad_slug):
     context = {
                'form': form,
                'grad' : grad,
-               'templates' : templates
+               'template' : template
                }
     return render(request, 'grad/new_letter.html', context)
 

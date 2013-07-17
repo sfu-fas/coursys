@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %}{{ form.title }}{% endblock %}
+{% block title %}{{ form.title }}{% endblock %}
+
+{% block headextra %}<script type="text/javascript">
+//<![CDATA[
+    $(document).ready(function() {
+    $('#form_table').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+    });
+
+    });
+
+//]]></script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
+<li>&gt; {{ form.title }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit Form Info</a></li>
+        <li><a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">New Sheet</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class="info">
+        <tr>
+            <th scope="row">Description</th>
+            <td>{{ form.description }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Owner/Manager</th>
+            <td>{{ form.owner }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Unit</th>
+            <td>{{ form.unit }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Initiators</th>
+            <td>{{ form.get_initiators_display }}</td>
+        </tr>
+    </table>
+</div>
+<h2>Sheets</h2>
+<div class="datatable_container">
+    {% if sheets %}
+        <table class="display" id="sheet_table">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Can View</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            {% for sheet in sheets %}
+                <tr>
+                    <td>
+                    	<a href="{% url onlineforms.views.edit_sheet form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a>
+                    	{% if sheet.is_initial %}(initial sheet){% endif %}
+                    </td>
+                    <td>{{ sheet.get_can_view_display_short }}</td>
+                    <td class="miniaction">
+                        {% if sheet.is_initial = 1 %}
+                        <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
+                        <p> 
+                            <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
+                            <input type="hidden" name="action" value="del" />
+                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" disabled="disabled" />
+                        </p>
+                        </form>    
+                        {% else %}
+                        <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
+                        <p> 
+                            <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
+                            <input type="hidden" name="action" value="del" />
+                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" />
+                        </p>
+                        </form>
+                        {%  endif %}
+                    </td>
+                </tr>
+              {% endfor %}
+        </table>
+    {% else %}
+            <p>There are currently no sheets: you must <a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">create at least one sheet</a> for the initial requester to complete.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

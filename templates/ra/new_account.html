@@ -10,7 +10,7 @@
 <li>&gt; New</li>{% endblock %}
 
 {% block content %}
-  <div id="form_container">
+  <div class="form_container">
     <form action="{% url ra.views.new_account %}" method="post">{% csrf_token %}
       <fieldset>
         <legend>Account Information</legend>

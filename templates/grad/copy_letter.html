@@ -3,24 +3,18 @@
 {% load mobile_tags %}
 {% load form_display %}
 
-{% block title %}Copy Letter for {{grad.person.name}}{% endblock %}
-{% block h1 %}Copy Letter for {{grad.person.name}}{% endblock %}
+{% block title %}Copy {{ letter.template.label|title }} Letter{% endblock %}
+{% block h1 %}Copy {{ letter.template.label|title }} Letter{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
 <li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; <a href="{% url grad.views.manage_letters grad_slug=grad.slug%}">Letters</a></li>
-<li>&gt; Copy</li>
+<li>&gt; Copy {{ letter.template.label|title }} Letter</li>
 {% endblock %}
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
 <script type="text/javascript">//<![CDATA[
-	var urlMap = {
-	{% for k in templates %}
-	'{{k.id}}' : '{% url grad.views.get_letter_text grad_slug=grad.slug letter_template_id=k.id %}'
-	{% if not forloop.last %},{% endif %}
-	{% endfor %}
-	};
 
 	$(document).ready(function() {
 		$("#id_date").datepicker({
@@ -52,36 +46,20 @@
 //]]></script>
 {% endblock %}
 {% block content %}
-<div id="form_container">
-	<form action="{% url grad.views.new_letter grad_slug=grad.slug%}" method="post">
+<div class="form_container">
+	<form action="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=letter.template.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
 				Letter Info
 			</legend>
-			{{ form.non_field_errors }}
-			<dl class="dlform">
-				<dt>
-					<label>Template:</label>
-				</dt>
-				<dd>
-					<div class="field">
-						<select name="template" id="id_template">
-							{% for t in templates%}<option value="{{t.id}}"{% if letter.template_id == t.id %} selected="selected"{% endif %}>{{t.label}}</option>
-							{% endfor %}
-						</select>
-						{{form.template.errors}}
-					</div>
-
-				</dd>
-			</dl>
 			<div style="clear: both"></div>
-			{{form|as_dl_excludefields:"template"}}
+            {{form|as_dl}}
 			<p>
 				<input  class="submit"  type="submit" value="Submit" />
 			</p>
 		</fieldset>
 	</form>
-	<a class="button" href="{% url grad.views.index %}">Back</a>
 </div>
+<p class="gradback"><a class="button" href="{% url grad.views.view grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

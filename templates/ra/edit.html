@@ -19,7 +19,7 @@ var payperiods_url = "{% url ra.views.pay_periods %}";
 <li>&gt; Edit</li>{% endblock %}
 
 {% block content %}
-  <div id="form_container">
+  <div class="form_container">
     <form action="{% url ra.views.edit ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
       <fieldset style="list-style: none;">
         <legend>Contract Information</legend>

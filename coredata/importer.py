@@ -58,6 +58,48 @@ def get_combined():
                 CourseOffering.objects.get(slug='2012fa-cmpt-711-g1')
             ]
         },
+        {
+            'subject': 'MACM', 'number': '101', 'section': 'X100',
+            'semester': Semester.objects.get(name="1131"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32755, 'class_nbr': 32755,
+            'title': 'Discrete Math I',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2013sp-macm-101-d1'),
+                CourseOffering.objects.get(slug='2013sp-macm-101-d2')
+            ]
+        },
+        {
+            'subject': 'CMPT', 'number': '125', 'section': 'X100',
+            'semester': Semester.objects.get(name="1131"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32756, 'class_nbr': 32756,
+            'title': 'Intro.Cmpt.Sci/Programming II',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2013sp-cmpt-125-d1'),
+                CourseOffering.objects.get(slug='2013sp-cmpt-126-d1')
+            ]
+        },
+        {
+            'subject': 'CMPT', 'number': '125', 'section': 'X100',
+            'semester': Semester.objects.get(name="1134"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32757, 'class_nbr': 32757,
+            'title': 'Intro.Cmpt.Sci/Programming II',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2013su-cmpt-125-d1'),
+                CourseOffering.objects.get(slug='2013su-cmpt-126-d1')
+            ]
+        },
         ]
     return combined_sections
 
@@ -156,7 +198,35 @@ def create_semesters():
         wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 5, 6))
         wk.save()
 
+    s = Semester.objects.filter(name="1137")
+    if not s:
+        s = Semester(name="1137", start=datetime.date(2013, 9, 4), end=datetime.date(2013, 12, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 9, 3))
+        wk.save()
+    
+    s = Semester.objects.filter(name="1141")
+    if not s:
+        s = Semester(name="1141", start=datetime.date(2014, 1, 7), end=datetime.date(2014, 4, 12))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 1, 7))
+        wk.save()
+        wk = SemesterWeek(semester=s, week=7, monday=datetime.date(2014, 2, 25))
+        wk.save()
 
+    s = Semester.objects.filter(name="1144")
+    if not s:
+        s = Semester(name="1144", start=datetime.date(2014, 5, 6), end=datetime.date(2014, 8, 2))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 5, 6))
+        wk.save()
+    
+    s = Semester.objects.filter(name="1147")
+    if not s:
+        s = Semester(name="1147", start=datetime.date(2014, 9, 4), end=datetime.date(2014, 12, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 9, 3))
+        wk.save()
 
 @transaction.commit_on_success
 def fix_emplid():
@@ -296,7 +366,7 @@ def import_one_offering(strm, subject, number, section):
 def import_offerings(extra_where='1=1', import_semesters=import_semesters):
     db = SIMSConn()
     db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
-               "class_section like '%%00' AND ("+extra_where+")", (import_semesters(),))
+               "(class_section like '__00' OR class_section like '_0__') AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)

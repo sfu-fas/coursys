@@ -51,6 +51,7 @@
 <h2 class="heading">Actions</h2>
 <ul>
 <li><a href="{% url ta.views.generate_csv post_slug=posting.slug %}">Applicant Spreadsheet</a></li>
+<li><a href="{% url ta.views.generate_csv_by_course post_slug=posting.slug %}">Applicant Spreadsheet By Course</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -58,10 +59,18 @@
 {% block content %}
 <div class="datatable_container">
 <table class="display" id="offerings">
-<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Campus</th>
+<thead>
+    <tr>
+    <th scope="col">Offering</th>
+    <th scope="col">Instructor</th>
+    <th scope="col">Enrol</th>
+    <th scope="col">Campus</th>
 	<th scope="col">Assigned</th>
 	<th scope="col">Applicants</th>
-	<th scope="col">Required BU</th><th scope="col">Assigned BU</th><th scope="col">Diff</th><th scope="col">Required @Cap</th></tr></thead>
+	<th scope="col">Required BU</th>
+    <th scope="col">Assigned BU</th>
+    <th scope="col">Diff</th>
+    <th scope="col">Required @Cap</th></tr></thead>
 <tbody>
 {% for o in offerings %}
 <tr>
@@ -75,12 +84,18 @@
   <td>{{o.get_campus_display}}</td>
   <td>
   	{% for tacrs in o.assigned %}
-  	<a href="mailto:{{tacrs.contract.application.person.email}}">{{tacrs.contract.application.person.sortname}}</a>
-  	({{tacrs.bu}}){% if not forloop.last %}, {% endif %}
+    {% if tacrs.bu > 0 %}
+  	    <a href="mailto:{{tacrs.contract.application.person.email}}">{{tacrs.contract.application.person.sortname}}</a>
+  	    ({{tacrs.bu}}){% if not forloop.last %}, {% endif %}
+    {% endif %}
   	{% endfor %}
   </td>
   <td class="num">{{ o|display_applicant_count:posting }}</td>
-  <td class="num">{{ o|display_bu:posting }}</td>
+  <td class="num">{{ o|display_required_bu:posting }}
+    {% if o|display_extra_bu:posting != "0.00" %} 
+        <br/>({{ o|display_default_bu:posting }}+{{o|display_extra_bu:posting}}) 
+        {% endif %}
+  </td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
   <td class="num">{{ o|display_bu_difference:posting }}</td>
   <td class="num">{{ o|display_bu_cap:posting }}</td>
