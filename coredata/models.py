@@ -214,6 +214,8 @@ class Semester(models.Model):
         The human-readable label for the semester, e.g. "Summer 2010".
         """
         name = str(self.name)
+        if len(name) < 3 or len(name) > 4:
+            return "Invalid"
         if len(name) == 3:
             name = "0"+name
         if name[1] == '8':

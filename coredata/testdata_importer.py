@@ -306,6 +306,8 @@ def create_more_data():
     p.save()
     r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='comp'))
     r.save()
+    r = Role(person=p, role="SYSA", unit=Unit.objects.get(slug='comp'))
+    r.save()
     
     fg = FormGroup(name="Admins", unit=Unit.objects.get(slug='comp'))
     fg.save()

@@ -190,6 +190,9 @@ class TAPosting(models.Model):
         # 'min_courses': Minimum number of courses an applicant can select
         # 'offer_text': Text to be displayed when students accept/reject the offer (creole markup)
         # 'export_seq': sequence ID for payroll export (so we can create a unique Batch ID)
+        # 'extra_questions': additional questions to ask applicants
+        # 'instructions': instructions for completing the TA Application
+        # 'hide_campuses': whether or not to prompt for Campus
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -206,6 +209,9 @@ class TAPosting(models.Model):
             'contact': None,
             'offer_text': '',
             'export_seq': 0,
+            'extra_questions': [],
+            'instructions': '',
+            'hide_campuses': False
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -219,6 +225,9 @@ class TAPosting(models.Model):
     max_courses, set_max_courses = getter_setter('max_courses')
     min_courses, set_min_courses = getter_setter('min_courses')
     offer_text, set_offer_text = getter_setter('offer_text')
+    extra_questions, set_extra_questions = getter_setter('extra_questions')
+    instructions, set_instructions = getter_setter('instructions')
+    hide_campuses, set_hide_campuses = getter_setter('hide_campuses')
     _, set_contact = getter_setter('contact')
     
     class Meta:
@@ -230,7 +239,6 @@ class TAPosting(models.Model):
         key = self.html_cache_key()
         cache.delete(key)
 
-    
     def short_str(self):
         return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
@@ -401,7 +409,7 @@ class TAApplication(models.Model):
         help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
-            help_text='Maximum number of base units (BU\'s) you would accept (each BU represents a maximum of 42 hours of work for the semester; 5.0 BU\'s is considered a "full" offer).')
+            help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Additional Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
@@ -414,6 +422,8 @@ class TAApplication(models.Model):
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
     admin_created = models.BooleanField(blank=False, default=False)
+    config = JSONField(null=False, blank=False, default={})
+        # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
     class Meta:
         unique_together = (('person', 'posting'),)
@@ -524,7 +534,10 @@ class TAContract(models.Model):
         # set SIN field on any GradStudent objects for this person
         from grad.models import GradStudent
         for gs in GradStudent.objects.filter(person=self.application.person):
-            if 'sin' not in gs.config:
+            dummy_sins = ['999999999', '000000000', '123456789']
+            if (('sin' not in gs.config 
+                or ('sin' in gs.config and gs.config['sin'] in dummy_sins)) 
+                and not self.sin in dummy_sins ):
                 gs.person.set_sin(self.sin)
                 gs.person.save()
 
@@ -532,9 +545,9 @@ class TAContract(models.Model):
         courses = TACourse.objects.filter(contract=self)
         for crs in courses:
             members = Member.objects.filter(person=self.application.person, offering=crs.course).exclude(role='DROP')
+            # assert( len(members) <= 1 )
             dropped_members = Member.objects.filter(person=self.application.person, offering=crs.course, role='DROP')
             # Should Member just have an optional FK to TACourse rather than getting a copy of the BU? 
-            # TODO: if len(members) or len(dropped_members) > 1, then warning. 
             if (self.status in ['SGN', 'ACC'] and crs.bu > 0) and not members:
                 if dropped_members:
                     m = dropped_members[0]
@@ -567,9 +580,24 @@ class TAContract(models.Model):
                 pass
             
             if self.status in ('CAN', 'REJ'):
+                # These students should be removed from their courses. 
                 crs.bu = 0
                 crs.save()
 
+            # If this course has 0 BUs and a course Member record, clear that record. 
+            if crs.bu == 0 and members:
+                m = members[0]
+                if m.role == 'TA' and m.added_reason == 'CTA':
+                    m.role = 'DROP'
+                    m.save()
+
+        # If they are CTA-added members of any other course this semester, they probably shouldn't be
+        members = Member.objects.filter(person=self.application.person, role='TA', added_reason='CTA', offering__semester=self.posting.semester )
+        courseofferings = [crs.course for crs in courses if crs.bu > 0]
+        for member in members:
+            if member.offering not in courseofferings:
+                member.role = 'DROP'
+                member.save()
 
 
     def first_assign(self, application, posting):
