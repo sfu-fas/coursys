@@ -1405,7 +1405,7 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Categ', 'Program', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
@@ -1418,7 +1418,8 @@ def generate_csv(request, post_slug):
         gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
         if gradstudents:
             gs = min(gradstudents, key=_by_start_semester)
-            program = app.current_program
+            reported_program = app.current_program
+            system_program = gs.program.label
             status = gs.get_current_status_display()
             unit = gs.program.unit.label
             if gs.start_semester:
@@ -1438,7 +1439,7 @@ def generate_csv(request, post_slug):
             elif cp.pref == 'WIL':
                 campuspref += cp.campus[0].lower()
         
-        row = [app.person.sortname(), app.category, program, status, unit, startsem, app.base_units, campuspref]
+        row = [app.person.sortname(), app.category, reported_program, system_program, status, unit, startsem, app.base_units, campuspref]
         
         for off in offerings:
             crs = off.course
