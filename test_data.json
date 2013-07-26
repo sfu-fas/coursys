@@ -217,7 +217,7 @@
  }, 
  {
   "fields": {
-   "monday": "2013-09-03", 
+   "monday": "2013-09-02", 
    "semester": 8, 
    "week": 1
   }, 
@@ -226,7 +226,7 @@
  }, 
  {
   "fields": {
-   "monday": "2014-01-07", 
+   "monday": "2014-01-06", 
    "semester": 9, 
    "week": 1
   }, 
@@ -235,7 +235,7 @@
  }, 
  {
   "fields": {
-   "monday": "2014-02-25", 
+   "monday": "2014-02-24", 
    "semester": 9, 
    "week": 7
   }, 
@@ -244,7 +244,7 @@
  }, 
  {
   "fields": {
-   "monday": "2014-05-06", 
+   "monday": "2014-05-05", 
    "semester": 10, 
    "week": 1
   }, 
@@ -253,7 +253,7 @@
  }, 
  {
   "fields": {
-   "monday": "2014-09-03", 
+   "monday": "2014-09-01", 
    "semester": 11, 
    "week": 1
   }, 

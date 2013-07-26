@@ -234,10 +234,13 @@ class CoredataTest(TestCase):
         url = reverse('coredata.views.new_role')
         response = basic_page_tests(self, client, url)
         
-        response = client.post(url, {'person':'33333333', 'role':'FAC'})
+        response = client.post(url, {'person':'33333333', 'role':'FAC', 'unit': 2})
         self.assertEquals(response.status_code, 200)
         validate_content(self, response.content, url)
-        self.assertTrue("could not import DB2 module" in response.content or "could not connect to reporting database" in response.content or "Could not find this emplid." in response.content)
+        self.assertTrue("could not import DB2 module" in response.content
+                        or "could not connect to reporting database" in response.content
+                        or "Could not find this emplid." in response.content
+                        or "Reporting database access has been disabled" in response.content)
 
         response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id})
         self.assertEquals(response.status_code, 302)
