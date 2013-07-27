@@ -1472,27 +1472,38 @@ def generate_csv_by_course(request, post_slug):
     
     #First csv row: all the course names
     off = ['Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    extra_questions = []
     if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
         for question in posting.config['extra_questions']:
             off.append(question[0:75])
-    csvWriter.writerow(off)
+            extra_questions.append(question)
 
+    offering_rows = []
     for offering in offerings: 
-        csvWriter.writerow([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section])
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
             
             row = [app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
-                for question in posting.config['extra_questions']:
+                for question in extra_questions:
                     try:
                         row.append(app.config['extra_questions'][question])
                     except KeyError:
                         row.append("")
+                for question in app.config['extra_questions']:
+                    if not question in extra_questions:
+                        off.append(question[0:75])
+                        extra_questions.append(question)
+                        row.append(app.config['extra_questions'][question])
             
-            csvWriter.writerow(row)
-        csvWriter.writerow([])
+            offering_rows.append(row)
+        offering_rows.append([])
+
+    csvWriter.writerow(off)
+    for row in offering_rows:
+        csvWriter.writerow(row)
     
     return response
 
