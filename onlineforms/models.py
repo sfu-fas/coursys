@@ -230,7 +230,7 @@ class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False, help_text='The name of this form.')
     owner = models.ForeignKey(FormGroup, help_text='The group of users who own/administrate this form.')
     description = models.CharField(max_length=500, null=False, blank=False, help_text='A brief description of the form that can be displayed to users.')
-    initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
+    initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON", help_text='Who is allowed to fill out the initial sheet? That is, who can initiate a new instance of this form?')
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
