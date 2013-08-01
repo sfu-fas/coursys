@@ -5,3 +5,7 @@
 hr.clear {
     clear: both;
 }
+
+dl.formview dt {
+	margin-top: 0.9em;
+}

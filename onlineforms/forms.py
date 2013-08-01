@@ -57,7 +57,7 @@ class FormForm(ModelForm):
 class NewFormForm(FormForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'initiators', 'config')
+        exclude = ('active', 'original', 'unit', 'initiators', 'config', 'advisor_visible')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -83,15 +83,17 @@ class FieldForm(forms.Form):
 # Administrate forms 
 class AdminAssignForm(forms.Form):
     class FormModelChoiceField(forms.ModelChoiceField):
+        widget = forms.RadioSelect
         def label_from_instance(self, obj):
             return obj.title
 
-    assignee = PersonField(label='Assign to', required=False)
+    assignee = PersonField(label='Assign to', required=True)
 
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
         self.fields.insert(0, label, self.FormModelChoiceField(required=True,
             queryset=query_set,
+            empty_label=None,
             label=label.capitalize()))
 
     def is_valid(self, *args, **kwargs):
