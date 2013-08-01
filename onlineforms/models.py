@@ -160,6 +160,15 @@ class FormFiller(models.Model):
     def email(self):
         formFiller = self.getFormFiller()
         return formFiller.email()
+    def identifier(self):
+        """
+        Identifying string that can be used for slugs
+        """
+        if self.sfuFormFiller:
+            return self.sfuFormFiller.userid_or_emplid()
+        else:
+            return self.nonSFUFormFiller.email() \
+                   .replace('@', '-').replace('.', '-')
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
@@ -415,7 +424,7 @@ class FormSubmission(models.Model):
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
-        return make_slug('submission-' + self.form.slug)
+        return self.initiator.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
@@ -436,7 +445,7 @@ class SheetSubmission(models.Model):
     completed_at = models.DateTimeField(null=True)
     # key = models.CharField()
     def autoslug(self):
-        return make_slug('submission-' + self.sheet.slug)
+        return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
 
     @transaction.commit_on_success

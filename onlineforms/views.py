@@ -639,11 +639,11 @@ def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition
     return response
 
 @requires_formgroup()
-def view_submission(request, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+def view_submission(request, form_slug, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
     sheet_submissions, sheetsWithFiles = _readonly_sheets(form_submission)
 
-    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
+    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 
