@@ -93,6 +93,8 @@ class FileCustomField(FieldBase):
             help_text=self.config['help_text'])
 
     def serialize_field(self, cleaned_data):
+        # TODO: this.
+        raise NotImplementedError, "Still working on file fields"
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
