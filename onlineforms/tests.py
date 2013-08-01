@@ -331,7 +331,7 @@ class ViewTestCase(TestCase):
 
     def test_form_submission_pages(self):
         views = ['view_submission']
-        args = {'form_slug': self.slug_data['form_slug'], 'formsubmit_slug': self.slug_data["formsubmit_slug"]}
+        args = {'formsubmit_slug': self.slug_data["formsubmit_slug"]}
         self.run_basic_page_tests(views, args)
 
     def test_secret_url_pages(self):
@@ -423,9 +423,6 @@ class FieldTestCase(TestCase):
 
     def test_serialize_field(self):
         for (name, field_model) in FIELD_TYPE_MODELS.iteritems():
-            if name == 'FILE':
-                # TODO: reactivate FILE test when working
-                continue
             instance = field_model(self.standard_config)
             self.assertTrue(isinstance(instance.serialize_field("test data"), dict))
 
