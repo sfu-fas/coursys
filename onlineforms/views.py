@@ -4,6 +4,7 @@ from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
@@ -34,6 +35,7 @@ def manage_groups(request):
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def new_group(request):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
@@ -54,6 +56,7 @@ def new_group(request):
     return render(request, 'onlineforms/new_group.html', context)
 
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -74,6 +77,7 @@ def manage_group(request, formgroup_slug):
     return render(request, 'onlineforms/manage_group.html', context)
 
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -95,6 +99,7 @@ def add_group_member(request, formgroup_slug):
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -147,6 +152,7 @@ def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
     return admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=False)
 
 
+@transaction.commit_on_success
 @requires_formgroup()
 def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     admin = get_object_or_404(Person, userid=request.user.username)
@@ -194,6 +200,7 @@ def admin_assign_any_nonsfu(request):
     return admin_assign_any(request, assign_to_sfu_account=False)
 
 
+@transaction.commit_on_success
 @requires_formgroup()
 def admin_assign_any(request, assign_to_sfu_account=True):
     admin = get_object_or_404(Person, userid=request.user.username)
@@ -234,6 +241,7 @@ def admin_assign_any(request, assign_to_sfu_account=True):
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
+@transaction.commit_on_success
 @requires_formgroup()
 def admin_done(request, form_slug, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
@@ -268,6 +276,7 @@ def list_all(request):
 #######################################################################
 # Creating/editing forms
 
+@transaction.commit_on_success
 @requires_formgroup()
 def new_form(request):
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
@@ -307,6 +316,7 @@ def view_form(request, form_slug):
     return render(request, "onlineforms/view_form.html", context)       
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -329,6 +339,7 @@ def edit_form(request, form_slug):
     return render(request, 'onlineforms/edit_form.html', context)
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def new_sheet(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -362,6 +373,7 @@ def preview_sheet(request, form_slug, sheet_slug):
     context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
     return render(request, "onlineforms/preview_sheet.html", context)
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -408,6 +420,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def reorder_field(request, form_slug, sheet_slug):
     """
@@ -437,6 +450,7 @@ def reorder_field(request, form_slug, sheet_slug):
     return ForbiddenResponse(request)
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_sheet_info(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -456,6 +470,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     return render(request, 'onlineforms/edit_sheet_info.html', context)
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def new_field(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -531,6 +546,7 @@ def _clean_config(config):
     return clean_config
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_field(request, form_slug, sheet_slug, field_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -658,6 +674,7 @@ def sheet_submission_via_url(request, secret_url):
     return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
 
 
+@transaction.commit_on_success
 def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
     this_path = request.get_full_path()
@@ -785,7 +802,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
                     # save the data from the fields
                     for name, field in form.fields.items():
-                        # a field can be skipped if we are saving and it is not in the cleaned data
+                        # a field can be skipped if we are saving (not submitting) the form, and it is not in the cleaned data
                         if not('submit' in request.POST) or str(name) in form.cleaned_data:
                             cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
                             # if we already have a field submission, edit it. Otherwise create a new one
