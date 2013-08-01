@@ -7,7 +7,7 @@ from django.forms.widgets import RadioSelect
 from grad.forms import SupervisorWidget
 
 @register.filter
-def as_dl(form, safe=False, excludefields=[], includefields=None):
+def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform'):
     """
     Output a Form as a nice <dl>
     """
@@ -22,7 +22,7 @@ def as_dl(form, safe=False, excludefields=[], includefields=None):
             out.append(unicode(field))
         out.append('</div>')
         
-    out.append('<dl class="dlform">')
+    out.append('<dl class="%s">' % (formclass))
     reqcount = 0
     for field in form.visible_fields():
         if field.name in excludefields or (
@@ -42,7 +42,7 @@ def as_dl(form, safe=False, excludefields=[], includefields=None):
                 labelid += '_0'
             out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
         
-        if isinstance(field.field.widget, forms.widgets.RadioSelect):
+        if isinstance(field.field.widget, (forms.widgets.RadioSelect, forms.widgets.CheckboxSelectMultiple)):
             out.append('<div class="field radio">%s</div>' % (unicode(field)))
         else:
             out.append('<div class="field">%s</div>' % (unicode(field)))
@@ -174,3 +174,8 @@ def as_dl_includefields(form, incl):
     else:
         incllist = incl.split(',')
     return as_dl(form, includefields=incllist)
+
+@register.filter
+def as_dl_onlineforms(form):
+    return as_dl(form)
+    #return as_dl(form, formclass="onlineform")

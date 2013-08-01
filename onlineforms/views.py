@@ -21,6 +21,8 @@ from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
 # TODO: add logging
+# TODO: semester select fieldtype (with future/past config)
+# TODO: allow formatting in explanation blocks?
 
 #######################################################################
 # Group Management
@@ -342,6 +344,7 @@ def new_sheet(request, form_slug):
         other_sheets = Sheet.objects.filter(form=owner_form, active=True).count()
         if other_sheets == 0:
             initial['title'] = owner_form.title
+            initial['can_view'] = 'NON'
         form = SheetForm(initial=initial)
 
     context = {'form': form, 'owner_form': owner_form}

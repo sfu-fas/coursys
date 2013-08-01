@@ -24,7 +24,7 @@
     <form action="#" method="post">{% csrf_token %}
         <fieldset>
             <legend>{{form.title}}</legend>
-            {{form|as_dl}}
+            {{form|as_dl_onlineforms}}
         </fieldset>
     </form>
 {% endblock %}
