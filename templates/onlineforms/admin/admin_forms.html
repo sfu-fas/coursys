@@ -60,17 +60,17 @@
                     <td>{{ form_sub.owner }}</td>
                     <td>{{ form_sub.initiator }}</td>
                     <td>
-                        <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_sub.slug %}">Assign to Person</a>
+                        <a href="{% url onlineforms.views.admin_assign form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">Assign to Person</a>
                     </td>
                     <td class="miniaction">
-                        <form action="{% url onlineforms.views.admin_done formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
+                        <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
                             <div>
                                 <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
                             </div>
                         </form>
                     </td>
                     <td>
-                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
+                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
                     </td>
                 </tr>
               {% endfor %}
@@ -104,7 +104,7 @@
                     <td>{{ form_sub.assigned_to.filler }}</td>
                     <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
                       <td class="miniaction">
-                        <form action="{% url onlineforms.views.admin_done formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
+                        <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
                             <div>
                                 <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
                             </div>
@@ -140,7 +140,7 @@
                     <td>{{ form_sub.initiator }}</td>
                     <td>{{ form_sub.completed_at }}</td>
                     <td>
-                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
+                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
                     </td>
                 </tr>
               {% endfor %}

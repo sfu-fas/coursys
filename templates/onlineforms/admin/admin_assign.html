@@ -49,12 +49,12 @@
         </form>
         <p>
             {% if assign_to_sfu_account %}
-                <a href="{% url onlineforms.views.admin_assign_nonsfu formsubmit_slug=form_submission.slug %}">
-                    Click here to assign to someone without a SFU account.
+                <a href="{% url onlineforms.views.admin_assign_nonsfu form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+                    Assign to someone without a SFU account.
                 </a>
             {% else %}
-                <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_submission.slug %}">
-                    Click here to assign to someone with a SFU account.
+                <a href="{% url onlineforms.views.admin_assign form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+                    Assign to someone with a SFU account.
                 </a>
             {% endif %}
         </p>

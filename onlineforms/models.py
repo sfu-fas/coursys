@@ -144,7 +144,7 @@ class FormFiller(models.Model):
         if self.sfuFormFiller:
             return "%s (%s)" % (self.sfuFormFiller.name(), self.sfuFormFiller.emplid)
         else:
-            return self.nonSFUFormFiller.name()
+            return "%s (external user)" % (self.nonSFUFormFiller.name(),)
     def name(self):
         formFiller = self.getFormFiller()
         return formFiller.name()

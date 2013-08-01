@@ -142,15 +142,15 @@ def admin_list_all(request):
 # Managing submissions & assigning sheets
 
 @requires_formgroup()
-def admin_assign_nonsfu(request, formsubmit_slug):
+def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
     #group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-    return admin_assign(request, formsubmit_slug, assign_to_sfu_account=False)
+    return admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=False)
 
 
 @requires_formgroup()
-def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
+def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     admin = get_object_or_404(Person, userid=request.user.username)
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
 
     # get the next sheet that hasn't been completed (as the default next sheet to assign)
     filled_orders = [val['sheet__order'] for val in
@@ -235,8 +235,8 @@ def admin_assign_any(request, assign_to_sfu_account=True):
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
 @requires_formgroup()
-def admin_done(request, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+def admin_done(request, form_slug, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
     form_submission.status = 'DONE'
     form_submission.save()
     return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
@@ -621,8 +621,8 @@ def _readonly_sheets(form_submission):
 
 
 @requires_formgroup()
-def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition):
-    form_sub = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+def file_field_download(request, form_slug, formsubmit_slug, sheet_id, file_id, disposition):
+    form_sub = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
     sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
     field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
     file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub)

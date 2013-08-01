@@ -38,7 +38,7 @@ class EmployeeSearchForm(forms.Form):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'config')
+        exclude = ('active', 'original', 'unit', 'config', 'advisor_visible')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -103,16 +103,19 @@ class AdminAssignForm(forms.Form):
 
 class AdminAssignForm_nonsfu(ModelForm):
     class FormModelChoiceField(forms.ModelChoiceField):
+        widget = forms.RadioSelect
         def label_from_instance(self, obj):
             return obj.title
 
     class Meta:
         model = NonSFUFormFiller
+        exclude = ('config',)
 
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
         self.fields.insert(0, label, self.FormModelChoiceField(required=True,
             queryset=query_set,
+            empty_label=None,
             label=label.capitalize()))
 
 
