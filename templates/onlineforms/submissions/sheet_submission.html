@@ -39,11 +39,10 @@
             {% csrf_token %}
             {% if nonSFUFormFillerForm %}
                 <fieldset>
-                    <legend>Enter Your Contact Information</legend>
+                    <legend>Your Contact Information</legend>
+                    <p>If you have a SFU account, please <a href="{{ LOGIN_URL }}?next={{this_path}}">login</a>. It will be easier for us and you to keep track of your info if you do.</p>
                     {{ nonSFUFormFillerForm|as_dl_onlineforms }}
                     <input type="hidden" name="add-nonsfu" value="True"/>
-
-                    <p>If you have a SFU account, please <a href="/login/">login</a>.</p>
                 </fieldset>
             {% endif %}
             <fieldset>

@@ -660,6 +660,8 @@ def sheet_submission_via_url(request, secret_url):
 
 def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
+    this_path = request.get_full_path()
+    
     # if no one can fill out this form, stop right now
     if owner_form.initiators == "NON":
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
@@ -858,5 +860,6 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                 'form_submission': form_submission,
                 'filled_sheets': filled_sheets,
                 'alternate_url': alternate_url,
-                'nonSFUFormFillerForm': nonSFUFormFillerForm}
+                'nonSFUFormFillerForm': nonSFUFormFillerForm,
+                'this_path': this_path,}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)
