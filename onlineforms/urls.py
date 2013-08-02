@@ -1,6 +1,14 @@
 from django.conf.urls.defaults import patterns, url
-from courselib.urlparts import USERID_OR_EMPLID, FORM_SLUG, FORMGROUP_SLUG, FORMSUBMIT_SLUG, SHEET_SLUG, FIELD_SLUG, SECRET_SUBMIT_URL, SHEETSUBMIT_SLUG
- 
+from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
+
+FORM_SLUG = '(?P<form_slug>' + SLUG_RE + ')'
+SHEET_SLUG = '(?P<sheet_slug>' + SLUG_RE + ')'
+FIELD_SLUG = '(?P<field_slug>' + SLUG_RE + ')'
+FORMSUBMIT_SLUG = '(?P<formsubmit_slug>' + SLUG_RE + ')'
+SHEETSUBMIT_SLUG = '(?P<sheetsubmit_slug>' + SLUG_RE + ')'
+FORMGROUP_SLUG = '(?P<formgroup_slug>' + SLUG_RE + ')'
+SECRET_SUBMIT_URL = '(?P<secret_url>' + SLUG_RE + ')'
+
 urlpatterns = patterns('',
     url(r'^groups/$', 'onlineforms.views.manage_groups'),
     url(r'^groups/new$', 'onlineforms.views.new_group'),
