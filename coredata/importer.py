@@ -365,8 +365,11 @@ def import_one_offering(strm, subject, number, section):
     
 def import_offerings(extra_where='1=1', import_semesters=import_semesters):
     db = SIMSConn()
+    # special-case ENSC 120 until we can figure out how to get "real" courses with lab-like sections
     db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
-               "(class_section like '__00' OR class_section like '_0__') AND ("+extra_where+")", (import_semesters(),))
+               "(class_section like '__00' OR class_section like '_0__' "
+               "OR (subject='ENSC' and catalog_nbr like '%120%') "
+               ") AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)
