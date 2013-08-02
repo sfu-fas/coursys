@@ -331,7 +331,7 @@ class ViewTestCase(TestCase):
 
     def test_form_submission_pages(self):
         views = ['view_submission']
-        args = {'formsubmit_slug': self.slug_data["formsubmit_slug"]}
+        args = {'form_slug': self.slug_data["form_slug"], 'formsubmit_slug': self.slug_data["formsubmit_slug"]}
         self.run_basic_page_tests(views, args)
 
     def test_secret_url_pages(self):

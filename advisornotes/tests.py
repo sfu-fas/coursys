@@ -49,7 +49,7 @@ class AdvistorNotestest(TestCase):
         redir_url = response['location']
         student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': p1.userid})
         self.assertIn(student_url, redir_url)
-        response = basic_page_tests(self, client, student_url)
+        response = basic_page_tests(self, client, student_url, check_valid=False)
         self.assertEqual(response.status_code, 200)
         new_url = reverse('advisornotes.views.new_note', kwargs={'userid': p1.userid})
         response = basic_page_tests(self, client, new_url)
@@ -61,7 +61,7 @@ class AdvistorNotestest(TestCase):
         redir_url = response['location']
         student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': p2.emplid})
         self.assertIn(student_url, redir_url)
-        response = basic_page_tests(self, client, student_url)
+        response = basic_page_tests(self, client, student_url, check_valid=False)
         self.assertEqual(response.status_code, 200)
         new_url = reverse('advisornotes.views.new_note', kwargs={'userid': p2.emplid})
         response = basic_page_tests(self, client, new_url)
@@ -73,7 +73,7 @@ class AdvistorNotestest(TestCase):
         redir_url = response['location']
         student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': ns.slug})
         self.assertIn(student_url, redir_url)
-        response = basic_page_tests(self, client, student_url)
+        response = basic_page_tests(self, client, student_url, check_valid=False)
         self.assertEqual(response.status_code, 200)
         new_url = reverse('advisornotes.views.new_note', kwargs={'userid': ns.slug})
         response = basic_page_tests(self, client, new_url)
