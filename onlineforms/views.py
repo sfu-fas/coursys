@@ -24,6 +24,7 @@ from django.core.servers.basehttp import FileWrapper
 # TODO: add logging
 # TODO: semester select fieldtype (with future/past config)
 # TODO: allow formatting in explanation blocks?
+# TODO: file fields are broken
 
 #######################################################################
 # Group Management
@@ -747,9 +748,9 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     if request.method == 'POST' and ('save' in request.POST or 'submit' in request.POST):
             # get the info from post
             if 'save' in request.POST:
-                form.fromPostData(request.POST, ignore_required=True)
+                form.fromPostData(request.POST, request.FILES, ignore_required=True)
             elif 'submit' in request.POST:
-                form.fromPostData(request.POST)
+                form.fromPostData(request.POST, request.FILES)
 
             if form.is_valid():
                 # sheet is valid, lets get a form filler (if we don't already have one)

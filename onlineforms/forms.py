@@ -150,7 +150,7 @@ class DynamicForm(forms.Form):
             self.display_fields[self.fields[counter] ] = display_field
 
 
-    def fromPostData(self, post_data, ignore_required=False):
+    def fromPostData(self, post_data, files_data, ignore_required=False):
         self.cleaned_data = {}
         for name, field in self.fields.items():
             try:
@@ -168,6 +168,8 @@ class DynamicForm(forms.Form):
                             cleaned_data = field.clean(relevant_data)
                         else:
                             cleaned_data = field.clean(post_data[str(name)])
+                elif str(name) in files_data:
+                    cleaned_data = field.clean(files_data[str(name)])
                 else:
                     if ignore_required:
                         cleaned_data = ""

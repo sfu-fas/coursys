@@ -93,7 +93,7 @@ class FileCustomField(FieldBase):
             help_text=self.config['help_text'])
 
     def serialize_field(self, cleaned_data):
-        return {'info': cleaned_data}
+        return {} # creation of FieldSubmissionFile handed in the view code
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + 'File title?' + '</p>')
