@@ -9,3 +9,12 @@ hr.clear {
 dl.formview dt {
 	margin-top: 0.9em;
 }
+
+.sheetsub-WAIT {
+  color: #999;
+}
+p.incomplete-warning {
+  text-align: center;
+  font-weight: bold;
+  color: #f00;
+}

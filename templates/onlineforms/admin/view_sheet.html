@@ -1,9 +1,10 @@
 {# be sure to include this if using this fragment: <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />  #}
 
 {% for sheet_sub, fields in sheet_submissions.items %}
-	<form>
+	<form class="sheetsub-{{ sheet_sub.status }}">
 		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub.sheet.title }}</legend>
+			{% if sheet_sub.status != 'DONE' %}<p class="incomplete-warning">This is a draft submission: it has not been completed by the person filling it out, only saved for later.</p>{% endif %}
 			<dl class="dlform formview">
                 <dt><label>Completed by:</label></dt>
                 <dd><p>{{ sheet_sub.filler }}</p></dd>
@@ -24,6 +25,8 @@
                     {% endif %}
                 {% endifequal %}
 			{% endfor %}
+            <dt><label>Completed at:</label></dt>
+            <dd>{% if sheet_sub.status == 'DONE' %}{{sheet_sub.completed_at}}{% else %}Still incomplete.{% endif %}</dd>
 			</dl>
 		</fieldset>
 	</form>

@@ -450,9 +450,12 @@ class SheetSubmission(models.Model):
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
-        super(SheetSubmission, self).save(*args, **kwargs)
         self.completed_at = datetime.datetime.now()
+        super(SheetSubmission, self).save(*args, **kwargs)
         self.form_submission.update_status()
+
+    def __unicode__(self):
+        return "%s by %s" % (self.sheet, self.filler.identifier())
 
     cached_fields = None
     def get_field_submissions(self, refetch=False):

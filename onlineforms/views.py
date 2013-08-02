@@ -610,10 +610,16 @@ def index(request):
     context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
-    
+
+from django.db.models import Q
+is_displayable_sheet_sub = Q(status="DONE") | Q(sheet__is_initial=True)
 def _readonly_sheets(form_submission):
-#sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
+    """
+    Collect sheet subs and other info to display this form submission.
+    """
+    sheet_submissions = SheetSubmission.objects \
+            .filter(form_submission=form_submission) \
+            .filter(is_displayable_sheet_sub)
     sheet_sub_html = {}
     sheetsWithFiles = {}
     for sheet_sub in sheet_submissions:
