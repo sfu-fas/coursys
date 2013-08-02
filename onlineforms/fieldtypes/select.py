@@ -88,7 +88,7 @@ class DropdownSelectField(FieldBase):
 
 
         if not self.config['required']:
-            c.choices.insert(0, ('', '----------'))
+            c.choices.insert(0, ('', u'\u2014'))
 
         return c
 
