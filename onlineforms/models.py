@@ -18,7 +18,7 @@ import datetime, random, sha
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField
 from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
-from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
+from onlineforms.fieldtypes.text import SmallTextField, MediumTextField, LargeTextField, ExplanationTextField, EmailTextField
 
 INITIATOR_CHOICES = [
         ('LOG', 'Logged-in SFU users'),
@@ -63,8 +63,7 @@ FIELD_TYPE_CHOICES = [
 FIELD_TYPES = dict(FIELD_TYPE_CHOICES)
 
 # mapping of field types to FieldType objects that implement their logic
-from onlineforms.fieldtypes import *
-#from onlineforms.fieldtypes.other import DividerField
+#from onlineforms.fieldtypes import *
 FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,

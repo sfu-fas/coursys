@@ -145,7 +145,7 @@ class SemesterField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         queryset = Semester.objects.all().order_by('name')
-        allowed = self.config['allowed_semesters']
+        allowed = self.config.get('allowed_semesters', 'AL')
         current = Semester.current().name
         if allowed == 'AL':
             pass
@@ -161,7 +161,7 @@ class SemesterField(FieldBase):
         the_choices = [(s.name, s.label()) for s in queryset]
 
         widget = forms.Select
-        if self.config['format'] == 'R':
+        if self.config.get('format', 'D') == 'R':
             widget = forms.RadioSelect
 
         c = forms.ChoiceField(required=self.config['required'],
