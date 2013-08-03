@@ -16,7 +16,7 @@ from django.core.mail import EmailMultiAlternatives
 import datetime, random, sha
 
 # choices for Form.initiator field
-from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField
+from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
 from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
 from onlineforms.fieldtypes.text import SmallTextField, MediumTextField, LargeTextField, ExplanationTextField, EmailTextField
 
@@ -56,7 +56,7 @@ FIELD_TYPE_CHOICES = [
         ('URL', 'Web page address (URL)'),
         ('TEXT', 'Explanation block (user enters nothing)'),
         ('DIVI', 'Divider'),
-        #('DATE', 'A date'),
+        ('DATE', 'A date'),
         ('SEM', 'Semester'),
         # more may be added.
         ]
@@ -77,6 +77,7 @@ FIELD_TYPE_MODELS = {
         'URL': URLCustomField,
         'TEXT': ExplanationTextField,
         'DIVI': DividerField,
+        'DATE': DateSelectField,
         'SEM': SemesterField,
         }
 
