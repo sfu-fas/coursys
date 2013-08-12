@@ -1414,11 +1414,14 @@ def generate_csv(request, post_slug):
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
     for app in apps:
+        system_program = ''
+        startsem = ''
+        status = ''
+        unit = ''
         # grad program info
         gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
         if gradstudents:
             gs = min(gradstudents, key=_by_start_semester)
-            reported_program = app.current_program
             system_program = gs.program.label
             status = gs.get_current_status_display()
             unit = gs.program.unit.label
@@ -1426,11 +1429,6 @@ def generate_csv(request, post_slug):
                 startsem = gs.start_semester.name
             else:
                 startsem = ''
-        else:
-            program = ''
-            startsem = ''
-            status = ''
-            unit = ''
         
         campuspref = ''
         for cp in CampusPreference.objects.filter(app=app):
@@ -1439,7 +1437,7 @@ def generate_csv(request, post_slug):
             elif cp.pref == 'WIL':
                 campuspref += cp.campus[0].lower()
         
-        row = [app.person.sortname(), app.category, reported_program, system_program, status, unit, startsem, app.base_units, campuspref]
+        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem, app.base_units, campuspref]
         
         for off in offerings:
             crs = off.course
