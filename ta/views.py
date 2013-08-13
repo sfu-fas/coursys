@@ -1419,9 +1419,9 @@ def generate_csv(request, post_slug):
         status = ''
         unit = ''
         # grad program info
-        gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
-        if gradstudents:
-            gs = min(gradstudents, key=_by_start_semester)
+        gradstudent = GradStudent.get_canonical(app.person, app.posting.semester)
+        if gradstudent and not isinstance(gradstudent, list):
+            gs = gradstudent
             system_program = gs.program.label
             status = gs.get_current_status_display()
             unit = gs.program.unit.label
@@ -1429,6 +1429,11 @@ def generate_csv(request, post_slug):
                 startsem = gs.start_semester.name
             else:
                 startsem = ''
+        elif gradstudent and isinstance(gradstudent, list):
+            system_program = "Multiple"
+            status = "*"
+            unit = "*"
+            startsem = "*"
         
         campuspref = ''
         for cp in CampusPreference.objects.filter(app=app):

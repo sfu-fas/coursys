@@ -175,6 +175,40 @@ class GradStudent(models.Model):
         #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
+    
+    def status_as_of(self, semester):
+        """ Like 'current status', but for an arbitrary semester. 
+        
+            We want to filter out any statuses that occur after the  semester,
+            because - if a student is active this semester (assuming that we are 1134)
+            and on-leave next semester (1137) their current status is active.
+            
+            However, if their status is Rejected Application in 1137, their current 
+            status is "Rejected", even if 1137 hasn't happened yet - but, if their
+            Rejected status was created after the semester that we are asking about (1134),
+            then we should return None. 
+
+            Active statuses have precedence over Applicant statuses.
+            if a student is Active in 1134 but Complete Application in 1137, they are Active. 
+        """
+
+        all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
+        all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
+
+        filtered_active_statuses = [status for status in all_gs if 
+                status.start <= semester 
+                and status.status not in STATUS_APPLICANT ]
+        filtered_applicant_statuses = [status for status in all_gs_by_date if 
+                status.status in STATUS_APPLICANT 
+                and status.start_date 
+                and status.start_date <= semester.end ]
+        if len(filtered_active_statuses) > 0:
+            return filtered_active_statuses[-1].status
+        elif len(filtered_applicant_statuses) > 0:
+            return filtered_applicant_statuses[-1].status
+        else:
+            return None
+
 
     def update_status_fields(self):
         """
@@ -186,29 +220,10 @@ class GradStudent(models.Model):
         self.current_status = None
 
         current_semester = Semester.current() 
-        all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
-        all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
+        self.current_status = self.status_as_of(current_semester)
 
-        # CURRENT STATUS
-        # Okay, this is a strange one, I'll try to explain: 
-        #  We want to filter out any statuses that occur after the current semester,
-        #  because - if a student is active this semester and on-leave next semester
-        #  their current status is active.
-        # However, if their status is Rejected in 1137, their current status is
-        #  "Rejected", even if 1137 hasn't happened yet. As far as I can tell, 
-        #  this is true for all of the registration statuses. 
-        # However _HOWEVER_ however, Active statuses have precedence over Applicant statuses.
-        # if a student is Active in 1134 but Complete Application in 1137, they are Active. 
-        # This partially shows a model problem - registration statuses should have two
-        #  semesters - the semester that the registration takes effect and the 
-        #  semester that the registration is _for_, but.. this kludge should do.  
-        filtered_active_statuses = [status for status in all_gs if status.start <= current_semester and status.status not in STATUS_APPLICANT ]
-        unfiltered_applicant_statuses = [status for status in all_gs_by_date if status.status in STATUS_APPLICANT ]
-        if len(filtered_active_statuses) > 0:
-            self.current_status = filtered_active_statuses[-1].status
-        elif len(unfiltered_applicant_statuses) > 0:
-            self.current_status = unfiltered_applicant_statuses[-1].status
-        
+        all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
+
         # start_semester
         if 'start_semester' in self.config:
             if self.config['start_semester']:
@@ -582,6 +597,48 @@ class GradStudent(models.Model):
             summary += self.config['exam_date'] + " "
         return summary
 
+    @classmethod
+    def get_canonical(cls, person, semester=None):
+        """ 
+        Given a person, as of semester, try to find the student that looks like the most correct record. 
+        
+        This may return None (no correct record)
+        a GradStudent (one correct record. a student should only be ACTIVE, in one program at a time))
+        or
+        a list (multiple records - for example, an applicant in multiple programs.)
+        """
+        
+        if semester == None:
+            semester = Semester.current_semester() 
+
+        student_records = GradStudent.objects.filter(person=person)
+
+        if len(student_records) == 0:
+            return None
+        if len(student_records) == 1:
+            return student_records[0]
+         
+        students_and_statuses = [(gs, gs.status_as_of(semester)) for gs in student_records]
+
+        # Always ignore None records. These students don't have a status for this semester.
+        students_and_statuses = [(student, status) for student, status in students_and_statuses if status != None]
+        statuses = [status for student, status in students_and_statuses]
+
+        # if we have (ACTIVE or APPLICANT) and DONE records, ignore DONE records.
+        def intersect( l1, l2 ):
+            return bool(set(l1) & set(l2))
+
+        if (intersect( STATUS_ACTIVE, statuses ) or 
+            intersect( STATUS_APPLICANT, statuses ) or 
+            'LEAV' in statuses):
+            students_and_statuses = [(student, status) for student, status in 
+                                        students_and_statuses if 
+                                        status not in STATUS_GONE]
+
+        if len(student_records ) == 1:
+            return student_records[0]
+        else:
+            return student_records
 
 class GradProgramHistory(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
