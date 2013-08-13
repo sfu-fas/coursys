@@ -195,15 +195,15 @@ class GradStudent(models.Model):
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
         all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
 
-        filtered_active_statuses = [status for status in all_gs if 
+        filtered_nonapplicant_statuses = [status for status in all_gs if 
                 status.start <= semester 
                 and status.status not in STATUS_APPLICANT ]
         filtered_applicant_statuses = [status for status in all_gs_by_date if 
                 status.status in STATUS_APPLICANT 
                 and status.start_date 
                 and status.start_date <= semester.end ]
-        if len(filtered_active_statuses) > 0:
-            return filtered_active_statuses[-1].status
+        if len(filtered_nonapplicant_statuses) > 0:
+            return filtered_nonapplicant_statuses[-1].status
         elif len(filtered_applicant_statuses) > 0:
             return filtered_applicant_statuses[-1].status
         else:
@@ -600,12 +600,11 @@ class GradStudent(models.Model):
     @classmethod
     def get_canonical(cls, person, semester=None):
         """ 
-        Given a person, as of semester, try to find the student that looks like the most correct record. 
-        
-        This may return None (no correct record)
-        a GradStudent (one correct record. a student should only be ACTIVE, in one program at a time))
-        or
-        a list (multiple records - for example, an applicant in multiple programs.)
+        Given a person, as of semester, try to find the student that looks 
+        like the most correct record. 
+       
+        Returns a list of GradStudents, which may be empty if there are no 
+        canonical records for this student in this semester..
         """
         
         if semester == None:
@@ -613,15 +612,11 @@ class GradStudent(models.Model):
 
         student_records = GradStudent.objects.filter(person=person)
 
-        if len(student_records) == 0:
-            return None
-        if len(student_records) == 1:
-            return student_records[0]
-         
         students_and_statuses = [(gs, gs.status_as_of(semester)) for gs in student_records]
 
         # Always ignore None records. These students don't have a status for this semester.
-        students_and_statuses = [(student, status) for student, status in students_and_statuses if status != None]
+        students_and_statuses = [(student, status) for student, status 
+                in students_and_statuses if status != None]
         statuses = [status for student, status in students_and_statuses]
 
         # if we have (ACTIVE or APPLICANT) and DONE records, ignore DONE records.
@@ -635,10 +630,7 @@ class GradStudent(models.Model):
                                         students_and_statuses if 
                                         status not in STATUS_GONE]
 
-        if len(student_records ) == 1:
-            return student_records[0]
-        else:
-            return student_records
+        return student_records
 
 class GradProgramHistory(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
