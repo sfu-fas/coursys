@@ -17,7 +17,7 @@ from grad.models import GradStudent
 from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester, ComputingAccount, CAMPUSES
 from coredata.queries import add_person, more_personal_info, SIMSProblem
-from grad.models import GradStatus
+from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
     CourseDescriptionForm, LabelledHidden, NewTAContractForm
@@ -40,6 +40,23 @@ def _format_currency(i):
 
 
 def _create_news(person, url, from_user, accept_deadline):
+    
+    # attempt to e-mail the student's supervisor
+    gradstudents = GradStudent.get_canonical(person);
+    if len(gradstudents) > 0: 
+        gradstudent = gradstudents[0]
+        senior_supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type='SEN')
+        supervisor_url = reverse('ta.views.instr_offers')
+        if len(senior_supervisors) > 0:
+            senior_supervisor = senior_supervisors[0].supervisor
+            n = NewsItem( user=senior_supervisor, 
+                            source_app="ta_contract", 
+                            title=u"TA Contract Offer for %s" % person,
+                            url=supervisor_url, 
+                            author=from_user,
+                            content="Your student %s has been offered a TA contract." % person );
+            n.save()
+
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
@@ -1638,5 +1655,4 @@ def instr_offers(request):
     
     context = {'tacrses': tacrses}    
     return render(request, 'ta/instr_offers.html', context)
-
 

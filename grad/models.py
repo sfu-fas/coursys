@@ -608,7 +608,7 @@ class GradStudent(models.Model):
         """
         
         if semester == None:
-            semester = Semester.current_semester() 
+            semester = Semester.current() 
 
         student_records = GradStudent.objects.filter(person=person)
 
