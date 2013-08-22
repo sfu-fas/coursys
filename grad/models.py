@@ -628,7 +628,7 @@ class GradStudent(models.Model):
             'LEAV' in statuses):
             students_and_statuses = [(student, status) for student, status in 
                                         students_and_statuses if 
-                                        status not in STATUS_GONE]
+                                        status not in STATUS_INACTIVE]
 
         return student_records
 
