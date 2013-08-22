@@ -22,7 +22,6 @@ from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
 # TODO: add logging
-# TODO: semester select fieldtype (with future/past config)
 # TODO: allow formatting in explanation blocks?
 # TODO: file fields are broken
 
@@ -47,6 +46,11 @@ def new_group(request):
             form.save()
             name = str(form.cleaned_data['name'])
             formgroup = FormGroup.objects.get(name=name)
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created form group %s (%i)") % (formgroup, formgroup.id),
+                  related_object=formgroup)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup.slug }))
     else:
         form = GroupForm()
@@ -67,6 +71,11 @@ def manage_group(request, formgroup_slug):
         form = EditGroupForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited form group %s (%i)") % (group, group.id),
+                  related_object=group)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     form = EditGroupForm(instance=group)
     grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
@@ -92,6 +101,10 @@ def add_group_member(request, formgroup_slug):
                         # search returns Person object
                         member = search_form.cleaned_data['search']
                         group.members.add(member)
+                        l = LogEntry(userid=request.user.username,
+                             description=("added %s to form group %s") % (member.userid_or_emplid(), group),
+                              related_object=group)
+                        l.save()
                         return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                 else: # if accidentally don't search for anybody
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
