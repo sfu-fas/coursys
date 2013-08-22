@@ -20,7 +20,58 @@ logofile = os.path.join(media_path, 'logo.png')
 
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 
-class LetterPageTemplate(PageTemplate):
+class SFUMediaMixin():
+    def _media_setup(self):
+        "Get all of the media needed for the letterhead"
+        # fonts and logo
+        ttfFile = os.path.join(media_path, 'BemboMTPro-Regular.ttf')
+        pdfmetrics.registerFont(TTFont("BemboMTPro", ttfFile))  
+        ttfFile = os.path.join(media_path, 'BemboMTPro-Bold.ttf')
+        pdfmetrics.registerFont(TTFont("BemboMTPro-Bold", ttfFile))  
+        ttfFile = os.path.join(media_path, 'DINPro-Regular.ttf')
+        pdfmetrics.registerFont(TTFont("DINPro", ttfFile))  
+        ttfFile = os.path.join(media_path, 'DINPro-Bold.ttf')
+        pdfmetrics.registerFont(TTFont("DINPro-Bold", ttfFile))  
+        
+        # graphic standards colours
+        self.sfu_red = CMYKColor(0, 1, 0.79, 0.2)
+        self.sfu_grey = CMYKColor(0, 0, 0.15, 0.82)
+        self.sfu_blue = CMYKColor(1, 0.68, 0, 0.12)
+        
+        # translate digits to old-style numerals (in their Bembo character positions)
+        self.digit_trans = {}
+        for d in range(10):
+            self.digit_trans[48+d] = unichr(0xF643 + d)
+        
+        self.sc_trans_bembo = {}
+        # translate letters to smallcaps characters (in their [strange] Bembo character positions)
+        for d in range(26):
+            if d<3: # A-C
+                offset = d
+            elif d<4: # D
+                offset = d+2
+            elif d<21: # E-U
+                offset = d+3
+            else: # V-Z
+                offset = d+4
+            self.sc_trans_bembo[65+d] = unichr(0xE004 + offset)
+            self.sc_trans_bembo[97+d] = unichr(0xE004 + offset)
+
+    def _drawStringLeading(self, canvas, x, y, text, charspace=0, mode=None):
+        """
+        Draws a string in the current text styles.
+        
+        Duplicate of Canvas.drawString, but passing charspace in when the string is drawn.
+        """
+        t = textobject.PDFTextObject(canvas, x, y)
+        t.setCharSpace(charspace)
+        if mode is not None: t.setTextRenderMode(mode)
+        t.textLine(text)
+        t.setCharSpace(0)
+        canvas.drawText(t)
+
+
+class LetterPageTemplate(PageTemplate, SFUMediaMixin):
     def __init__(self, pagesize, *args, **kwargs):
         self._set_margins(pagesize)
         kwargs['frames'] = [self._create_frame(pagesize)]
@@ -36,19 +87,6 @@ class LetterPageTemplate(PageTemplate):
     def _create_frame(self, pagesize):
         frame = Frame(self.lr_margin, inch, self.para_width, self.pg_h-2*inch)
         return frame
-
-    def _drawStringLeading(self, canvas, x, y, text, charspace=0, mode=None):
-        """
-        Draws a string in the current text styles.
-        
-        Duplicate of Canvas.drawString, but passing charspace in when the string is drawn.
-        """
-        t = textobject.PDFTextObject(canvas, x, y)
-        t.setCharSpace(charspace)
-        if mode is not None: t.setTextRenderMode(mode)
-        t.textLine(text)
-        t.setCharSpace(0)
-        canvas.drawText(t)
 
     def _put_lines(self, doc, canvas, lines, x, y, width, style, font_size, leading):
         """
@@ -140,43 +178,6 @@ class LetterheadTemplate(LetterPageTemplate):
         lines.append(web)
         self._put_lines(doc, c, lines, 6.25*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
         
-class SFUMediaMixin():
-    def _media_setup(self):
-        "Get all of the media needed for the letterhead"
-        # fonts and logo
-        ttfFile = os.path.join(media_path, 'BemboMTPro-Regular.ttf')
-        pdfmetrics.registerFont(TTFont("BemboMTPro", ttfFile))  
-        ttfFile = os.path.join(media_path, 'BemboMTPro-Bold.ttf')
-        pdfmetrics.registerFont(TTFont("BemboMTPro-Bold", ttfFile))  
-        ttfFile = os.path.join(media_path, 'DINPro-Regular.ttf')
-        pdfmetrics.registerFont(TTFont("DINPro", ttfFile))  
-        ttfFile = os.path.join(media_path, 'DINPro-Bold.ttf')
-        pdfmetrics.registerFont(TTFont("DINPro-Bold", ttfFile))  
-        
-        # graphic standards colours
-        self.sfu_red = CMYKColor(0, 1, 0.79, 0.2)
-        self.sfu_grey = CMYKColor(0, 0, 0.15, 0.82)
-        self.sfu_blue = CMYKColor(1, 0.68, 0, 0.12)
-        
-        # translate digits to old-style numerals (in their Bembo character positions)
-        self.digit_trans = {}
-        for d in range(10):
-            self.digit_trans[48+d] = unichr(0xF643 + d)
-        
-        self.sc_trans_bembo = {}
-        # translate letters to smallcaps characters (in their [strange] Bembo character positions)
-        for d in range(26):
-            if d<3: # A-C
-                offset = d
-            elif d<4: # D
-                offset = d+2
-            elif d<21: # E-U
-                offset = d+3
-            else: # V-Z
-                offset = d+4
-            self.sc_trans_bembo[65+d] = unichr(0xE004 + offset)
-            self.sc_trans_bembo[97+d] = unichr(0xE004 + offset)
-
 
 class OfficialLetter(BaseDocTemplate, SFUMediaMixin):
     """
@@ -341,8 +342,83 @@ class LetterContents(object):
         
         return contents
 
+class RAForm(object, SFUMediaMixin):
+    MAIN_WIDTH = 8*inch # size of the main box
 
-class RAForm(object):
+    def __init__(self, ra):
+        self.ra = ra
+        self._media_setup()
+
+    def _checkbox(self, x, y, text="", filled=0, leading=0):
+        self.c.circle(x+1.5*mm, y+1.5*mm, 1.5*mm, stroke=1, fill=filled)
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(x+5*mm, y+0.5*mm+leading, text)
+        
+
+    def draw_pdf(self, outfile):
+        """
+        Generates PDF in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+        self.c.setStrokeColor(black)
+
+        self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
+        self.c.setStrokeColor(black)
+
+        # SFU logo            
+        self.c.drawImage(logofile, x=0, y=247*mm, width=20*mm, height=10*mm)
+        self.c.setFont('BemboMTPro', 10)
+        self.c.setFillColor(self.sfu_red)
+        self._drawStringLeading(self.c, 23*mm, 250*mm, u'Simon Fraser University'.translate(self.sc_trans_bembo), charspace=1.4)
+        self.c.setFont('DINPro', 5)
+        self.c.setFillColor(self.sfu_grey)
+        self._drawStringLeading(self.c, 23*mm, 247.5*mm, u'Engaging the World'.upper(), charspace=2)
+        self.c.setFillColor(black)
+
+        # form header
+        self.c.setFont("Helvetica-Bold", 11)
+        self.c.drawCentredString(self.MAIN_WIDTH/2, 238*mm, "Payroll Appointment Form (PAF): For Non Affiliated Temporary Appointments")
+        self.c.setFont("Helvetica", 5)
+        self.c.drawCentredString(self.MAIN_WIDTH/2, 234.5*mm, "FOR GUIDE FOR THE COMPLETION OF PAYROLL APPOINTMENT FORM (PP4), PLEASE VISIT OUR PAYROLL WEBSITE CLICK HERE")
+        
+        # type of employee checkboxes
+        self.c.setLineWidth(0.5)
+        self.c.rect(0, 198*mm, self.MAIN_WIDTH, 35.5*mm)
+
+        self.c.setFont("Helvetica-Bold", 9)
+        self.c.drawCentredString(self.MAIN_WIDTH/2, 228*mm, "Please Check Appropriate Box")
+        self.c.drawString(2*mm, 222*mm, "Employment Income")
+        self.c.drawCentredString(self.MAIN_WIDTH/2, 222*mm, "Employment Income")
+        self.c.drawString(155*mm, 222*mm, "Scholarship Income")
+
+        self._checkbox(1.5*mm, 216*mm, text="Research Assistant")
+        self._checkbox(1.5*mm, 211*mm, text="Research Services Staff")
+        self._checkbox(1.5*mm, 206*mm, text="Post Doctoral Fellows")
+        self._checkbox(1.5*mm, 201*mm, text="Other Non Continuing")
+        self._checkbox(67*mm, 215.5*mm, text="University Research Assistant (R50.04)", leading=1.5*mm)
+        self.c.setFont("Helvetica", 5)
+        self.c.drawString(72*mm, 215*mm, "Min of 2 years with Benefits")
+        self._checkbox(67*mm, 203*mm, text="University Research Assistant (R50.04)", leading=1.5*mm)
+        self.c.setFont("Helvetica", 5)
+        self.c.drawString(72*mm, 202.5*mm, "Renewal after 2 years with Benefits")
+        self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant")
+        self._checkbox(142*mm, 203*mm, text="National Scholarship")
+        
+        self.c.setFont("Helvetica-Bold", 9)
+        self.c.drawString(1*mm, 193*mm, "Health Benefits")
+        
+        
+        
+        
+        self.c.showPage()
+        self.c.save()
+
+
+
+class RAForm_old(object):
+    """
+    Old FPP4 form. Kept for historical curiosity until such time as we're sure it's not needed anymore.
+    """
     BOX_OFFSET = 0.1*inch # how far boxes are from the edges (i.e. from the larger box)
     ENTRY_SIZE = 0.4*inch # height of a data entry box
     ENTRY_HEIGHT = ENTRY_SIZE + BOX_OFFSET # height difference for adjacent entry boxes
@@ -579,7 +655,7 @@ class RAForm(object):
 
 def ra_form(ra, outfile):
     """
-    Generate FPP4 form for this RAAppointment.
+    Generate PAF form for this RAAppointment.
     """
     form = RAForm(ra)
     return form.draw_pdf(outfile)
