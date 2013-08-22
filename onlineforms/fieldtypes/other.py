@@ -170,7 +170,6 @@ class SemesterField(FieldBase):
             choices=the_choices,
             widget=widget,)
 
-
         if fieldsubmission:
             initial=fieldsubmission.data['info']
             c.initial=initial

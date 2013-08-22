@@ -22,7 +22,6 @@ from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
 # TODO: add logging
-# TODO: semester select fieldtype (with future/past config)
 # TODO: allow formatting in explanation blocks?
 # TODO: file fields are broken
 

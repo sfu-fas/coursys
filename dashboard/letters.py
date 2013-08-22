@@ -935,8 +935,8 @@ class GradeChangeForm(SFUMediaMixin):
         fname = member.person.first_name
         if member.person.middle_name:
             fname += ' ' + member.person.middle_name
-        if member.person.pref_first_name:
-            fname += ' (' + member.person.pref_first_name + ')'
+        #if member.person.pref_first_name:
+        #    fname += ' (' + member.person.pref_first_name + ')'
         self.c.drawString(115*mm, 196*mm, fname)
         
         # term info
