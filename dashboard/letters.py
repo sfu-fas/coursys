@@ -353,6 +353,13 @@ class RAForm(object, SFUMediaMixin):
         self.c.circle(x+1.5*mm, y+1.5*mm, 1.5*mm, stroke=1, fill=filled)
         self.c.setFont("Helvetica", 7)
         self.c.drawString(x+5*mm, y+0.5*mm+leading, text)
+
+    def _box_entry(self, x, y, width, height, content=None):
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+        if content:
+            self.c.setFont("DINPro", 12)
+            self.c.drawString(x+3*mm, y+1.5*mm, content)
         
 
     def draw_pdf(self, outfile):
@@ -384,6 +391,8 @@ class RAForm(object, SFUMediaMixin):
         # type of employee checkboxes
         self.c.setLineWidth(0.5)
         self.c.rect(0, 198*mm, self.MAIN_WIDTH, 35.5*mm)
+        if self.ra.hiring_category == '':
+            fills = []
 
         self.c.setFont("Helvetica-Bold", 9)
         self.c.drawCentredString(self.MAIN_WIDTH/2, 228*mm, "Please Check Appropriate Box")
@@ -404,10 +413,63 @@ class RAForm(object, SFUMediaMixin):
         self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant")
         self._checkbox(142*mm, 203*mm, text="National Scholarship")
         
+        # health/numbers
+        if self.ra.medical_benefits:
+            fills = [1, 0]
+        else:
+            fills = [0, 1]
         self.c.setFont("Helvetica-Bold", 9)
         self.c.drawString(1*mm, 193*mm, "Health Benefits")
+        self._checkbox(1*mm, 187*mm, text="Yes, Eligible for Health Benefits", filled=fills[0])
+        self._checkbox(1*mm, 182*mm, text="No, Not Eligible for Health Benefits", filled=fills[1])
         
+        self.c.setFont("Helvetica-Bold", 9)
+        self.c.drawString(52*mm, 190*mm, "Social Insurance")
+        self.c.drawString(137*mm, 190*mm, "SFUID")
         
+        self._box_entry(83*mm, 188*mm, 51*mm, 6.5*mm, content=unicode(self.ra.sin))
+        self._box_entry(148*mm, 188*mm, 55*mm, 6.5*mm, content=unicode(self.ra.person.emplid))
+        
+        self.c.setLineWidth(1)
+        self.c.line(0, 181*mm, self.MAIN_WIDTH, 181*mm)
+        
+        # personal/position details
+        self.c.setFont("Helvetica", 9)
+        self.c.drawString(3*mm, 176*mm, "Last Name")
+        self.c.drawString(94*mm, 176*mm, "First Name")
+        self.c.drawString(185*mm, 176*mm, "Initial")
+        self._box_entry(1.5*mm, 165*mm, 87*mm, 7.5*mm, content=unicode(self.ra.person.last_name))
+        self._box_entry(92*mm, 165*mm, 86*mm, 7.5*mm, content=unicode(self.ra.person.first_name))
+        mi = None
+        if self.ra.person.middle_name:
+            mi = self.ra.person.middle_name[0]
+        self._box_entry(183*mm, 165*mm, 19*mm, 7.5*mm, content=mi)
+        
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(2.5*mm, 158*mm, "Department")
+        self.c.drawString(117*mm, 158*mm, "Position Title")
+        self._box_entry(30*mm, 156*mm, 83*mm, 6.5*mm, content=self.ra.unit.informal_name())
+        self._box_entry(136*mm, 156*mm, 66*mm, 6.5*mm, content=unicode(self.ra.account.title))
+        
+        # position numbers
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(1.5*mm, 148*mm, "Fund (2 digit)")
+        self.c.drawString(23*mm, 148*mm, "Dept (5 digit)")
+        self.c.drawString(66*mm, 148*mm, "Prjct Num (6 digit)")
+        self.c.drawString(110*mm, 148*mm, "Acct (4 digit)")
+        self.c.drawString(151*mm, 148*mm, "Position Number")
+        self._box_entry(1.5*mm, 139*mm, 16*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
+        self._box_entry(23*mm, 139*mm, 38*mm, 6.5*mm, content=self.ra.unit.deptid())
+        self._box_entry(66*mm, 139*mm, 38*mm, 6.5*mm, content="%06i" % (self.ra.project.project_number))
+        self._box_entry(110*mm, 139*mm, 29*mm, 6.5*mm, content="%06i" % (self.ra.account.account_number))
+        self._box_entry(150*mm, 139*mm, 48*mm, 6.5*mm, content='')
+        
+        # dates
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(1.5*mm, 133*mm, "Start Date")
+        self.c.drawString(73*mm, 133*mm, "End Date")
+        self._box_entry(21.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.start_date).replace('-', '/'))
+        self._box_entry(92.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.end_date).replace('-', '/'))
         
         
         self.c.showPage()
