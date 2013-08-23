@@ -344,6 +344,13 @@ class LetterContents(object):
 
 class RAForm(object, SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
+    ENTRY_FONT = "DINPro"
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName=ENTRY_FONT,
+                                fontSize=10,
+                                leading=11,
+                                alignment=TA_LEFT,
+                                textColor=black)
 
     def __init__(self, ra):
         self.ra = ra
@@ -358,8 +365,8 @@ class RAForm(object, SFUMediaMixin):
         self.c.setLineWidth(1)
         self.c.rect(x, y, width, height)
         if content:
-            self.c.setFont("DINPro", 12)
-            self.c.drawString(x+3*mm, y+1.5*mm, content)
+            self.c.setFont(self.ENTRY_FONT, 12)
+            self.c.drawString(x+3*mm, y+height-4.5*mm, content)
         
 
     def draw_pdf(self, outfile):
@@ -470,7 +477,84 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(73*mm, 133*mm, "End Date")
         self._box_entry(21.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.start_date).replace('-', '/'))
         self._box_entry(92.5*mm, 131.5*mm, 42*mm, 5.5*mm, content=unicode(self.ra.end_date).replace('-', '/'))
+
+        # money
+        if self.ra.pay_frequency == 'L':
+            hourly = ''
+            biweekly = ''
+            biweekhours = ''
+            lumphours = "%i:00" % (self.ra.hours) # I think?
+            lumpsum = "$%.2f" % (self.ra.lump_sum_pay)
+        else:
+            hourly = "$%.2f" % (self.ra.hourly_pay)
+            biweekly = "$%.2f" % (self.ra.biweekly_pay)
+            biweekhours = "%i:00" % (self.ra.hours)
+            lumphours = ''
+            lumpsum = ''
+        if not self.ra.use_hourly():
+            biweekhours = ''
+            lumphours = ''
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(3*mm, 125*mm, "Hourly Rate")
+        self.c.drawString(74*mm, 125*mm, "Bi-weekly Salary")
+        self.c.drawString(142*mm, 125*mm, "Lump Sum Adjustment")
+        self._box_entry(1.5*mm, 117*mm, 61*mm, 6.5*mm, content=hourly)
+        self._box_entry(72.5*mm, 117*mm, 61*mm, 6.5*mm, content=biweekly)
+        self._box_entry(141.5*mm, 117*mm, 61*mm, 6.5*mm, content=lumpsum)
         
+        # Hours
+        self.c.setFont("Helvetica", 5)
+        self.c.drawString(2*mm, 112*mm, "Enter Hourly Rate if paid by the hour. Enter bi-weekly rate")
+        self.c.drawString(2*mm, 109.5*mm, "if salary. DO NOT ENTER BOTH")
+        
+        self.c.drawString(81*mm, 113*mm, "Bi-weekly Hours -")
+        self.c.drawString(81*mm, 110.5*mm, "must reflect number")
+        self.c.drawString(81*mm, 108*mm, "of hours worked on")
+        self.c.drawString(81*mm, 105.5*mm, "bi-weekly basis")
+        self.c.drawString(147*mm, 113*mm, "Lum Sum Hours")
+
+        self.c.drawString(107*mm, 112*mm, "Hours and")
+        self.c.drawString(108*mm, 109.5*mm, "Minutes")
+        self.c.drawString(172*mm, 112*mm, "Hours and")
+        self.c.drawString(173*mm, 109.5*mm, "Minutes")
+        
+        self._box_entry(103*mm, 101*mm, 15.5*mm, 8*mm, content=biweekhours)
+        self._box_entry(168*mm, 101*mm, 15.5*mm, 8*mm, content=lumphours)
+        
+        self.c.setFont("Helvetica", 5)
+        self.c.drawString(1.5*mm, 96*mm, "Notes:")
+        self.c.drawString(23*mm, 96*mm, "Bi-Weekly employment earnings rate must include vacation pay. Hourly rates will automatically have vacation pay added. The employer cost of the statutory benefits will be charged to the account in")
+        self.c.drawString(23*mm, 93*mm, "addition to the earnings rate. Bi-weekly hours must reflect the number of hours worked and must meet legislative requirements for minimum wage.")
+        
+        # Commments
+        self.c.setFont("Helvetica", 9)
+        self.c.drawString(2*mm, 81.5*mm, "Comments:")
+        self.c.setLineWidth(1)
+        self._box_entry(22*mm, 76*mm, 180*mm, 14*mm, content='')
+
+        f = Frame(23*mm, 76*mm, 175*mm, 14*mm)#, showBoundary=1)
+        notes = []
+        if self.ra.pay_frequency != 'L':
+            default_note = "For total amount of $%s over %.1f pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
+        else:
+            default_note = "Lump sum payment of $%s." % (self.ra.lump_sum_pay,)
+        notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
+        notes.append(Spacer(1, 8))
+        notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
+        f.addFromList(notes, self.c)
+        
+        self.c.setFont("Helvetica", 7.5)
+        self.c.drawString(2.5*mm, 72*mm, "As signing authority, I certify that the appointment and its applicable benefits are eligible and for the purpose of the funding. Furthermore, the appointment is NOT for a")
+        self.c.drawString(2.5*mm, 68.5*mm, "family member of the account holder or signing authority. If a family member relationship exists then additional approvals must be attached in accordance with policies")
+        self.c.drawString(2.5*mm, 65*mm, "GP 37 and R10.01. Please see the procedures contained in GP 37 for more information.")
+
+        # signatures
+        self.c.setFont("Helvetica", 9)
+        self.c.drawString(2*mm, 59*mm, "HIRING DEPARTMENT")
+        self.c.drawString(117*mm, 59*mm, "REVIEWED BY")
+        self.c.setFont("Helvetica", 7)
+
+
         
         self.c.showPage()
         self.c.save()
