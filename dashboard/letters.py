@@ -344,7 +344,7 @@ class LetterContents(object):
 
 class RAForm(object, SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
-    ENTRY_FONT = "DINPro"
+    ENTRY_FONT = "Helvetica-Bold"
     NOTE_STYLE = ParagraphStyle(name='Normal',
                                 fontName=ENTRY_FONT,
                                 fontSize=10,
@@ -553,9 +553,32 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(2*mm, 59*mm, "HIRING DEPARTMENT")
         self.c.drawString(117*mm, 59*mm, "REVIEWED BY")
         self.c.setFont("Helvetica", 7)
-
-
+        self.c.drawString(2*mm, 51*mm, "Signing Authority")
+        self.c.drawString(2*mm, 43*mm, "Date")
+        self.c.drawString(98*mm, 51*mm, "Signing Authority")
+        self.c.drawString(98*mm, 43*mm, "Date")
+        self.c.drawString(2*mm, 32.5*mm, "Prepared by/Conact")
+        self.c.drawString(2*mm, 29*mm, "Person (Phone no.)")
+        self.c.drawString(2*mm, 19*mm, "Date")
         
+        self._box_entry(35.5*mm, 49.5*mm, 60*mm, 6*mm, content='')
+        self._box_entry(35.5*mm, 41*mm, 60*mm, 6*mm, content='')
+        self._box_entry(35.5*mm, 25*mm, 60*mm, 14*mm, content='')
+        self._box_entry(35.5*mm, 17*mm, 60*mm, 6*mm, content='')
+        self._box_entry(132*mm, 49.5*mm, 60*mm, 6*mm, content='')
+        self._box_entry(132*mm, 41*mm, 60*mm, 6*mm, content='')
+        
+        # footer
+        self.c.setFont("Helvetica-Bold", 9)
+        self.c.drawCentredString(self.MAIN_WIDTH/2, 12*mm, "PAYROLL WILL ONLY PROCESS COMPLETED FORMS")
+
+        self.c.setFont("Helvetica", 5)
+        self.c.drawString(2*mm, 7.5*mm, "The information on this form is collected under the authority of the University Act (RSBC 1996, C. 468), the Income Tax Act, the Pension Plan Act, the Employment Insurance Act, the Financial Information Act of BC, and the Workers Compensation Act")
+        self.c.drawString(2*mm, 5*mm, "of BC. The information on this form is used by the University for payroll and benefit plan administration, statistical compilations, and operating programs and activities as required by University policies. The information on this form is disclosed to")
+        self.c.drawString(2*mm, 2.5*mm, "government agencies as required by legislation. In accordance with Financial Information Act of BC, your Name, and Remuneration is public information and may be published. If you have any questions about the collection and use of this")
+        self.c.drawString(2*mm, 0*mm, "information, please contact the Manager, Payroll.")
+        self.c.drawString(2*mm, -5*mm, "PAYROLL APPOINTMENT FORM (formerly FPP4) - July 2013 (produced by CourSys RAForm)")
+
         self.c.showPage()
         self.c.save()
 
