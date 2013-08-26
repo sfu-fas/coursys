@@ -1,3 +1,10 @@
+"""
+All of the system's PDF generation lives here.
+
+It's just easier that way: so many imports and commonalities between these chunks of code,
+even though they serve very different parts of the overall system.
+"""
+
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
@@ -826,7 +833,7 @@ def ra_form(ra, outfile):
     """
     Generate PAF form for this RAAppointment.
     """
-    form = RAForm(ra)
+    form = RAForm_old(ra)
     return form.draw_pdf(outfile)
 
 
