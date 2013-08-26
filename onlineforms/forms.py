@@ -4,8 +4,7 @@ from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
-from django.utils.html import escape
-from django.template.defaultfilters import linebreaksbr
+from pages.models import ParserFor
 
 class DividerFieldWidget(forms.TextInput):
     def render(self, name, value, attrs=None):
@@ -14,7 +13,8 @@ class DividerFieldWidget(forms.TextInput):
 
 class ExplanationFieldWidget(forms.Textarea):
     def render(self, name, value, attrs=None):
-        return mark_safe('<div class="explanation_block">%s</div>' % linebreaksbr(escape(self.explanation)))
+        parser = ParserFor(offering=None)
+        return mark_safe('<div class="explanation_block">%s</div>' % parser.text2html(self.explanation))
 
 # Manage groups
 class GroupForm(ModelForm):

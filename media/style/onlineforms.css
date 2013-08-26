@@ -18,3 +18,7 @@ p.incomplete-warning {
   font-weight: bold;
   color: #f00;
 }
+
+form.sheetsub div.explanation_block {
+	color: #999;
+}

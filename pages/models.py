@@ -476,11 +476,16 @@ class ParserFor(object):
         def pagelist_macro(macro, environ, prefix=None):
             return _pagelist(self.offering, self.pageversion, macro, environ, prefix)
 
-        CreoleBase = creoleparser.creole11_base(non_bodied_macros={
+        if self.offering:
+            nb_macros = {
                      'duedate': duedate_macro,
                      'duedatetime': duedatetime_macro,
                      'pagelist': pagelist_macro,
-                     })
+                     }
+        else:
+            nb_macros = None
+        CreoleBase = creoleparser.creole11_base(non_bodied_macros=nb_macros)
+
         class CreoleDialect(CreoleBase):
             codeblock = CodeBlock()
             abbracronym = AbbrAcronym()
