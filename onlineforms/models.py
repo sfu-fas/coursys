@@ -320,6 +320,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
 
     class Meta:
         unique_together = (("form", "slug"),)
+        ordering = ('order',)
 
     @transaction.commit_on_success
     def safe_save(self):
@@ -435,6 +436,9 @@ class FormSubmission(models.Model):
         else:
             self.status = 'WAIT'
         self.save()
+
+    def __unicode__(self):
+        return "%s for %s" % (self.form, self.initiator)
 
 
 class SheetSubmission(models.Model):

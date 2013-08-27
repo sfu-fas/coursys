@@ -24,6 +24,7 @@ from django.core.servers.basehttp import FileWrapper
 # TODO: add logging
 # TODO: allow formatting in explanation blocks?
 # TODO: file fields are broken
+# TODO: authorization checking sweep
 
 #######################################################################
 # Group Management
@@ -127,6 +128,11 @@ def remove_group_member(request, formgroup_slug, userid):
         if 'action' in request.POST:
             if request.POST['action'] == 'remove':
                 group.members.remove(member)
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                    description=("Removed %s from form group %s") % (member.userid_or_emplid(), group),
+                    related_object=group)
+                l.save()
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
     
     groups = FormGroup.objects.filter(unit__in=request.units)
@@ -169,6 +175,9 @@ def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
 @transaction.commit_on_success
 @requires_formgroup()
 def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
+    """
+    Give a sheet on this formsubmission to a user
+    """
     admin = get_object_or_404(Person, userid=request.user.username)
     form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
 
@@ -202,6 +211,12 @@ def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True
         # send email
         if formFiller.full_email() != admin.full_email():
             sheet_submission.email_assigned(request, admin, formFiller)
+
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+            description=("Assigned form sheet %s to %s") % (sheet_submission.sheet, sheet_submission.filler.identifier()),
+            related_object=sheet_submission)
+        l.save()
         messages.success(request, 'Sheet assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
@@ -217,6 +232,9 @@ def admin_assign_any_nonsfu(request):
 @transaction.commit_on_success
 @requires_formgroup()
 def admin_assign_any(request, assign_to_sfu_account=True):
+    """
+    Give a form ('s initial sheet) to a user
+    """
     admin = get_object_or_404(Person, userid=request.user.username)
 
     if assign_to_sfu_account:
@@ -249,6 +267,11 @@ def admin_assign_any(request, assign_to_sfu_account=True):
         # send email
         if formFiller.full_email() != admin.full_email():
             sheet_submission.email_assigned(request, admin, formFiller)
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+            description=("Assigned form %s to %s") % (form, sheet_submission.filler.identifier()),
+            related_object=sheet_submission)
+        l.save()
         messages.success(request, 'Form assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
@@ -261,6 +284,11 @@ def admin_done(request, form_slug, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
     form_submission.status = 'DONE'
     form_submission.save()
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+        description=("Marked form submission %s done.") % (form_submission,),
+        related_object=form_submission)
+    l.save()
     return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
 def _userToFormFiller(user):
@@ -269,6 +297,10 @@ def _userToFormFiller(user):
     except ObjectDoesNotExist:
         form_filler = FormFiller.objects.create(sfuFormFiller=user)
     return form_filler
+
+
+#######################################################################
+# Creating/editing forms
 
 @requires_formgroup()
 def list_all(request):
@@ -279,16 +311,13 @@ def list_all(request):
         if forms:
             form = forms[0]
             form.delete()
-            messages.success(request, 'Removed the Form ')
+            messages.success(request, 'Removed the Form')
         return HttpResponseRedirect(reverse(list_all))
     else:
         form = FormForm()
         context = {'form': form, 'forms': forms}
     return render(request, 'onlineforms/manage_forms.html', context)
 
-
-#######################################################################
-# Creating/editing forms
 
 @transaction.commit_on_success
 @requires_formgroup()

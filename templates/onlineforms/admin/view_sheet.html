@@ -1,7 +1,7 @@
 {# be sure to include this if using this fragment: <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />  #}
 
 {% for sheet_sub, fields in sheet_submissions.items %}
-	<form class="sheetsub-{{ sheet_sub.status }}" action="">
+	<form class="sheetsub sheetsub-{{ sheet_sub.status }}" action="">
 		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub.sheet.title }}</legend>
 			{% if sheet_sub.status != 'DONE' %}<p class="incomplete-warning">This is a draft submission: it has not been completed by the person filling it out, only saved for later.</p>{% endif %}

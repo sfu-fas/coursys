@@ -26,6 +26,23 @@
 </script>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    {% if assign_to_sfu_account %}
+    <li><a href="{% url onlineforms.views.admin_assign_nonsfu form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+    Assign to non-SFU user
+    </a></li>
+    {% else %}
+    <li><a href="{% url onlineforms.views.admin_assign form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+    Assign to an SFU user
+    </a></li>
+    {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
     <div class="form_container">
         {% if form.non_field_errors %}
@@ -47,16 +64,5 @@
                 </ul>
             </fieldset>
         </form>
-        <p>
-            {% if assign_to_sfu_account %}
-                <a href="{% url onlineforms.views.admin_assign_nonsfu form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
-                    Assign to someone without a SFU account.
-                </a>
-            {% else %}
-                <a href="{% url onlineforms.views.admin_assign form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
-                    Assign to someone with a SFU account.
-                </a>
-            {% endif %}
-        </p>
     </div>
 {% endblock %}
