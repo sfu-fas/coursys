@@ -39,6 +39,6 @@ urlpatterns = patterns('',
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + '(?P<sheet_id>\d+)/'+ '(?P<disposition>\w+)/' + '(?P<file_id>\d+)/$', 'onlineforms.views.file_field_download'),
     url(r'^submission/' + SECRET_SUBMIT_URL + '/$', 'onlineforms.views.sheet_submission_via_url'),
-    url(r'^' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission'),
-    url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission'),
+    url(r'^' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission_initial'),
+    url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission_subsequent'),
 )

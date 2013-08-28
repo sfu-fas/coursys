@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.db.models import Q
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
@@ -22,7 +23,6 @@ from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
 # TODO: file fields are broken
-# TODO: authorization checking sweep
 
 #######################################################################
 # Group Management
@@ -166,18 +166,20 @@ def admin_list_all(request):
 
 @requires_formgroup()
 def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
-    #group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-    return admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=False)
+    return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=False)
 
-
-@transaction.commit_on_success
 @requires_formgroup()
 def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
+    return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=True)
+
+@transaction.commit_on_success
+def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     """
     Give a sheet on this formsubmission to a user
     """
     admin = get_object_or_404(Person, userid=request.user.username)
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
 
     # get the next sheet that hasn't been completed (as the default next sheet to assign)
     filled_orders = [val['sheet__order'] for val in
@@ -224,23 +226,24 @@ def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True
 
 @requires_formgroup()
 def admin_assign_any_nonsfu(request):
-    return admin_assign_any(request, assign_to_sfu_account=False)
-
-
-@transaction.commit_on_success
+    return _admin_assign_any(request, assign_to_sfu_account=False)
 @requires_formgroup()
 def admin_assign_any(request, assign_to_sfu_account=True):
+    return _admin_assign_any(request, assign_to_sfu_account=True)
+
+@transaction.commit_on_success
+def _admin_assign_any(request, assign_to_sfu_account=True):
     """
-    Give a form ('s initial sheet) to a user
+    Give a form('s initial sheet) to a user
     """
     admin = get_object_or_404(Person, userid=request.user.username)
 
     if assign_to_sfu_account:
         form = AdminAssignForm(data=request.POST or None, label='form',
-            query_set=Form.objects.filter(active=True))
+            query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
     else:
         form = AdminAssignForm_nonsfu(data=request.POST or None, label='form',
-            query_set=Form.objects.filter(active=True))
+            query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
 
     if request.method == 'POST' and form.is_valid():
         # get the person to assign too
@@ -279,7 +282,8 @@ def admin_assign_any(request, assign_to_sfu_account=True):
 @transaction.commit_on_success
 @requires_formgroup()
 def admin_done(request, form_slug, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
     form_submission.status = 'DONE'
     form_submission.save()
     #LOG EVENT#
@@ -696,7 +700,6 @@ def index(request):
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 
-from django.db.models import Q
 is_displayable_sheet_sub = Q(status="DONE") | Q(sheet__is_initial=True)
 def _readonly_sheets(form_submission):
     """
@@ -730,7 +733,9 @@ def _readonly_sheets(form_submission):
 
 @requires_formgroup()
 def file_field_download(request, form_slug, formsubmit_slug, sheet_id, file_id, disposition):
-    form_sub = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
+    raise NotImplementedError
+    form_sub = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                 owner__in=request.formgroups)
     sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
     field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
     file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub)
@@ -748,7 +753,8 @@ def file_field_download(request, form_slug, formsubmit_slug, sheet_id, file_id, 
 
 @requires_formgroup()
 def view_submission(request, form_slug, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
     sheet_submissions, sheetsWithFiles = _readonly_sheets(form_submission)
 
     context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}
@@ -757,17 +763,34 @@ def view_submission(request, form_slug, formsubmit_slug):
 
 
 def sheet_submission_via_url(request, secret_url):
+    """
+    Sheet submission from a user who has been sent a secret URL
+    """
     sheet_submission_secret_url = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
     sheet_submission_object = sheet_submission_secret_url.sheet_submission
     sheet = sheet_submission_object.sheet
     form_submission = sheet_submission_object.form_submission
     form = form_submission.form
     alternate_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url})
-    return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
+    return _sheet_submission(request, form_slug=form.slug, formsubmit_slug=form_submission.slug,
+                             sheet_slug=sheet.slug, sheetsubmit_slug=sheet_submission_object.slug,
+                             alternate_url=alternate_url)
 
+def sheet_submission_initial(request, form_slug):
+    """
+    Submission from a user who is initiating a new form submission
+    """
+    return _sheet_submission(request, form_slug=form_slug)
+
+def sheet_submission_subsequent(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
+    """
+    Submission by a user who is returning to a partially-completed sheet submission
+    """
+    return _sheet_submission(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug,
+                             sheet_slug=sheet_slug, sheetsubmit_slug=sheetsubmit_slug)
 
 @transaction.commit_on_success
-def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
+def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
     this_path = request.get_full_path()
     
@@ -803,7 +826,8 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
-        sheet_submission = get_object_or_404(SheetSubmission, sheet__original=sheet.original, form_submission=form_submission, slug=sheetsubmit_slug)
+        sheet_submission = get_object_or_404(SheetSubmission, sheet__original=sheet.original,
+                                             form_submission=form_submission, slug=sheetsubmit_slug)
         sheet = sheet_submission.sheet # revert to the old version that the user was working with.
         # check if this sheet has already been filled
         if sheet_submission.status == "DONE":
@@ -939,7 +963,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                             access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
                         else:
                             sheet_submission.email_started(request)
-                            access_url = reverse('onlineforms.views.sheet_submission', kwargs={
+                            access_url = reverse('onlineforms.views.sheet_submission_subsequent', kwargs={
                                 'form_slug': owner_form.slug,
                                 'formsubmit_slug': form_submission.slug,
                                 'sheet_slug': sheet.slug,

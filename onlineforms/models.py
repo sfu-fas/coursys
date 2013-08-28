@@ -52,7 +52,7 @@ FIELD_TYPE_CHOICES = [
         ('SEL1', 'Select with a drop-down menu'),
         ('SELN', 'Select multiple values'),
         ('LIST', 'Enter a list of short responses'),
-        ('FILE', 'Upload a file'),
+        #('FILE', 'Upload a file'),
         ('URL', 'Web page address (URL)'),
         ('TEXT', 'Explanation block (user enters nothing)'),
         ('DIVI', 'Divider'),
@@ -479,7 +479,7 @@ class SheetSubmission(models.Model):
         if secret_urls:
             return reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
         else:
-            return reverse('onlineforms.views.sheet_submission', kwargs={
+            return reverse('onlineforms.views.sheet_submission_subsequent', kwargs={
                                 'form_slug': self.form_submission.form.slug,
                                 'formsubmit_slug': self.form_submission.slug,
                                 'sheet_slug': self.sheet.slug,
