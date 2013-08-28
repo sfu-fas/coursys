@@ -21,8 +21,6 @@ import os
 from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
-# TODO: add logging
-# TODO: allow formatting in explanation blocks?
 # TODO: file fields are broken
 # TODO: authorization checking sweep
 
@@ -302,6 +300,7 @@ def _userToFormFiller(user):
 #######################################################################
 # Creating/editing forms
 
+@transaction.commit_on_success
 @requires_formgroup()
 def list_all(request):
     forms = Form.objects.filter(owner__in=request.formgroups, active=True)
@@ -311,6 +310,11 @@ def list_all(request):
         if forms:
             form = forms[0]
             form.delete()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Deleted form %s.") % (form,),
+                related_object=form)
+            l.save()
             messages.success(request, 'Removed the Form')
         return HttpResponseRedirect(reverse(list_all))
     else:
@@ -331,6 +335,11 @@ def new_form(request):
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
             f.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form %s.") % (f,),
+                related_object=f)
+            l.save()
             return HttpResponseRedirect(reverse(view_form, kwargs={'form_slug':f.slug }))
     else:
         form = NewFormForm()
@@ -345,11 +354,10 @@ def view_form(request, form_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         sheet_id = request.POST['sheet_id']
         sheets = Sheet.objects.filter(id=sheet_id, form=form)
-        # TODO handle the condition where we cant find the field
-        if sheets :       
-                sheet = sheets[0]
-                sheet.delete()
-                messages.success(request, 'Removed the sheet %s.' % (sheet.title))
+        if sheets:
+            sheet = sheets[0]
+            sheet.delete()
+            messages.success(request, 'Removed the sheet "%s".' % (sheet.title))
            
         return HttpResponseRedirect(
             reverse(view_form, kwargs={'form_slug':form.slug }))
@@ -373,6 +381,11 @@ def edit_form(request, form_slug):
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
             f.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Edited form %s.") % (f,),
+                related_object=f)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
@@ -390,7 +403,12 @@ def new_sheet(request, form_slug):
         form = SheetForm(request.POST)
         if form.is_valid():
             sheet = Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
-            messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form sheet %s.") % (sheet,),
+                related_object=sheet)
+            l.save()
+            messages.success(request, 'Successfully created the new sheet "%s' % form.cleaned_data['title'])
             return HttpResponseRedirect(
                 reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet.slug}))
     else:
@@ -445,6 +463,11 @@ def edit_sheet(request, form_slug, sheet_slug):
             field = Field.objects.get(sheet=owner_sheet, original=field.original) # get field on new version, not old
             field.active = False
             field.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Removed form field %s.") % (field,),
+                related_object=field)
+            l.save()
             messages.success(request, 'Removed the field %s.' % (field.label))
         return HttpResponseRedirect(
             reverse(edit_sheet, kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
@@ -504,6 +527,11 @@ def edit_sheet_info(request, form_slug, sheet_slug):
         form = EditSheetForm(request.POST, instance=owner_sheet)
         if form.is_valid():
             new_sheet = owner_sheet.safe_save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Edited form sheet %s.") % (new_sheet,),
+                related_object=new_sheet)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
                 kwargs={'form_slug': owner_form.slug, 'sheet_slug': new_sheet.slug}))
     else:
@@ -530,12 +558,17 @@ def new_field(request, form_slug, sheet_slug):
 
         if form.is_valid():
             new_sheet = owner_sheet.safe_save()
-            Field.objects.create(label=form.cleaned_data['label'],
+            f = Field.objects.create(label=form.cleaned_data['label'],
                     sheet=new_sheet,
                     fieldtype=ftype,
                     config=custom_config,
                     active=True,
                     original=None, )
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form field %s.") % (f,),
+                related_object=f)
+            l.save()
             messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
@@ -560,12 +593,17 @@ def new_field(request, form_slug, sheet_slug):
         # ... unless we don't have to configure. Then don't.
         if not field.configurable:
             new_sheet = owner_sheet.safe_save()
-            Field.objects.create(label='',
+            f = Field.objects.create(label='',
                 sheet=new_sheet,
                 fieldtype=ftype,
                 config={},
                 active=True,
                 original=None, )
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form field %s.") % (f,),
+                related_object=f)
+            l.save()
             messages.success(request, 'Successfully created a new field')
 
             return HttpResponseRedirect(
@@ -616,7 +654,12 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                 active=True,
                 order=field.order,
                 original=field.original)
-            messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Edited form field %s.") % (new_field,),
+                related_object=new_field)
+            l.save()
+            messages.success(request, 'Successfully updated the field "%s"' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
                 reverse('onlineforms.views.edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
@@ -803,7 +846,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
             if form.is_valid():
                 # sheet is valid, lets get a form filler (if we don't already have one)
                 if not formFiller:
-                    # we don't have a form filler from above(could be initial sheet submission)
+                    # we don't have a form filler from above (could be initial sheet submission)
                     # if they provided a non-SFU form use that info, otherwise grab their logged in credentials
                     formFiller = None
                     if 'add-nonsfu' in request.POST and sheet.is_initial and owner_form.initiators == "ANY":
