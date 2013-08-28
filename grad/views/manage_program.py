@@ -11,7 +11,12 @@ from django.core.urlresolvers import reverse
 @requires_role("GRAD", get_only=["GRPD"])
 def manage_program(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    program_choices = [(p.id, unicode(p)) for p in GradProgram.objects.filter(unit__in=request.units)]
+    programs = GradProgram.objects.filter(unit__in=request.units)
+    # If you have access to programs from different units, display them.
+    if len(request.units) > 1:
+        program_choices = [(p.id, unicode(p) + " (" + p.unit.label + ")") for p in programs]
+    else:
+        program_choices = [(p.id, unicode(p)) for p in programs]
     programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units).order_by('starting')
     
     if request.method == 'POST':
