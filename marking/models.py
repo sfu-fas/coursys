@@ -525,8 +525,10 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 dstpath += "_"
             dst = os.path.join(dstpath, dstfile)
             new_v.file_attachment = dst
+            
+            if not os.path.exists(dstpath):
+                os.makedirs(dstpath)
 
-            os.makedirs(dstpath)
             try:
                 os.link(src, dst)
             except:
