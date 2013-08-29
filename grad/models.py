@@ -176,7 +176,7 @@ class GradStudent(models.Model):
 
         super(GradStudent, self).save(*args, **kwargs)
     
-    def status_as_of(self, semester):
+    def status_as_of(self, semester=None):
         """ Like 'current status', but for an arbitrary semester. 
         
             We want to filter out any statuses that occur after the  semester,
@@ -192,16 +192,21 @@ class GradStudent(models.Model):
             if a student is Active in 1134 but Complete Application in 1137, they are Active. 
         """
 
+        filter_future_statuses = True
+        if semester == None: 
+            semester = Semester.current() 
+            filter_future_statuses = False
+
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
         all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
 
         filtered_nonapplicant_statuses = [status for status in all_gs if 
                 status.start <= semester 
                 and status.status not in STATUS_APPLICANT ]
-        filtered_applicant_statuses = [status for status in all_gs_by_date if 
+        filtered_applicant_statuses = [status for status in all_gs_by_date if
                 status.status in STATUS_APPLICANT 
-                and status.start_date 
-                and status.start_date <= semester.end ]
+                and filter_future_statuses == False 
+                or (status.start_date and status.start_date <= semester.end) ]
         if len(filtered_nonapplicant_statuses) > 0:
             return filtered_nonapplicant_statuses[-1].status
         elif len(filtered_applicant_statuses) > 0:
@@ -219,8 +224,7 @@ class GradStudent(models.Model):
         self.end_semester = None
         self.current_status = None
 
-        current_semester = Semester.current() 
-        self.current_status = self.status_as_of(current_semester)
+        self.current_status = self.status_as_of()
 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
 
