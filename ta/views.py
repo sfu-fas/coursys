@@ -1405,7 +1405,7 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Categ', 'Program', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
@@ -1414,22 +1414,26 @@ def generate_csv(request, post_slug):
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
     for app in apps:
+        system_program = ''
+        startsem = ''
+        status = ''
+        unit = ''
         # grad program info
-        gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
-        if gradstudents:
-            gs = min(gradstudents, key=_by_start_semester)
-            program = app.current_program
+        gradstudents = GradStudent.get_canonical(app.person, app.posting.semester)
+        if len(gradstudents) == 1:
+            gs = gradstudents[0]
+            system_program = gs.program.label
             status = gs.get_current_status_display()
             unit = gs.program.unit.label
             if gs.start_semester:
                 startsem = gs.start_semester.name
             else:
                 startsem = ''
-        else:
-            program = ''
-            startsem = ''
-            status = ''
-            unit = ''
+        elif len(gradstudents) > 1:
+            system_program = "Multiple"
+            status = "*"
+            unit = "*"
+            startsem = "*"
         
         campuspref = ''
         for cp in CampusPreference.objects.filter(app=app):
@@ -1438,7 +1442,7 @@ def generate_csv(request, post_slug):
             elif cp.pref == 'WIL':
                 campuspref += cp.campus[0].lower()
         
-        row = [app.person.sortname(), app.category, program, status, unit, startsem, app.base_units, campuspref]
+        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem, app.base_units, campuspref]
         
         for off in offerings:
             crs = off.course
@@ -1471,27 +1475,38 @@ def generate_csv_by_course(request, post_slug):
     
     #First csv row: all the course names
     off = ['Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    extra_questions = []
     if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
         for question in posting.config['extra_questions']:
             off.append(question[0:75])
-    csvWriter.writerow(off)
+            extra_questions.append(question)
 
+    offering_rows = []
     for offering in offerings: 
-        csvWriter.writerow([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section])
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for app in applications_for_this_offering:
             
             row = [app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
             if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
-                for question in posting.config['extra_questions']:
+                for question in extra_questions:
                     try:
                         row.append(app.config['extra_questions'][question])
                     except KeyError:
                         row.append("")
+                for question in app.config['extra_questions']:
+                    if not question in extra_questions:
+                        off.append(question[0:75])
+                        extra_questions.append(question)
+                        row.append(app.config['extra_questions'][question])
             
-            csvWriter.writerow(row)
-        csvWriter.writerow([])
+            offering_rows.append(row)
+        offering_rows.append([])
+
+    csvWriter.writerow(off)
+    for row in offering_rows:
+        csvWriter.writerow(row)
     
     return response
 

@@ -1,7 +1,7 @@
 from courselib.auth import requires_role
 from django.shortcuts import render
-from grad.models import GradStudent, GradProgram, SavedSearch, GradRequirement, ScholarshipType, \
-    Supervisor, STATUS_ACTIVE, STATUS_OBSOLETE, STATUS_CHOICES
+from grad.models import GradStudent, GradFlag, GradProgram, SavedSearch, GradRequirement, \
+    ScholarshipType, Supervisor, STATUS_ACTIVE, STATUS_OBSOLETE, STATUS_CHOICES
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.safestring import mark_safe
 from django.contrib import messages
@@ -105,35 +105,35 @@ def search(request):
     else:
         savedsearch = None
 
-    #if savedsearch is None:
-    #    if len(request.GET) > 0:
-    #        cleaned_get = _get_cleaned_get(request)
-    #        if len(cleaned_get) < len(request.GET):
-    #            return HttpResponseRedirect(reverse(search) + u'?' + cleaned_get.urlencode())
-    #    try:
-    #        savedsearch = SavedSearch.objects.get(person=current_user, query=query_string)
-    #    except SavedSearch.DoesNotExist:
-    #        savedsearch = None
-    
     form = SearchForm(initial={'student_status': STATUS_ACTIVE}) if len(request.GET) == 0 else SearchForm(request.GET)
+
     requirement_choices = [(r['series'], r['description']) for r in
             GradRequirement.objects.filter(program__unit__in=request.units, hidden=False)
             .order_by('description').values('series', 'description').distinct()]
+
     scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]
+
     program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
+
     status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE]
+
     supervisors = Supervisor.objects.filter(student__program__unit__in=request.units, supervisor_type='SEN',
                                             removed=False).select_related('supervisor')
     supervisors = set((s.supervisor for s in supervisors if s.supervisor))
     supervisors = list(supervisors)
     supervisors.sort()
     supervisor_choices = [(p.id, p.sortname()) for p in supervisors]
+
+    grad_flags = GradFlag.objects.filter(unit__in=request.units)
+    grad_flag_choices = [(g.id, g.label) for g in grad_flags]
+
     form.fields['requirements'].choices = requirement_choices
     form.fields['incomplete_requirements'].choices = requirement_choices
     form.fields['scholarshiptype'].choices = scholarshiptype_choices
     form.fields['program'].choices = program_choices
     form.fields['student_status'].choices = status_choices
     form.fields['supervisor'].choices = supervisor_choices
+    form.fields['grad_flags'].choices = grad_flag_choices
     
     if 'sort' in request.GET:
         sort = _parse_sort(request.GET['sort'])
