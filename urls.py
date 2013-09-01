@@ -133,9 +133,11 @@ urlpatterns += patterns('',
     #Discussion
     url(r'^' + COURSE_SLUG + '/discussion/$', 'discuss.views.discussion_index'),
     url(r'^' + COURSE_SLUG + '/discussion/create_topic/$', 'discuss.views.create_topic'),
+    url(r'^' + COURSE_SLUG + '/discussion/subscribe$', 'discuss.views.manage_discussion_subscription'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/$', 'discuss.views.view_topic'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/edit$', 'discuss.views.edit_topic'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/change$', 'discuss.views.change_topic_status'),
+    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/subscribe$', 'discuss.views.manage_topic_subscription'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/remove/(?P<message_slug>' + SLUG_RE + ')$', 'discuss.views.remove_message'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/edit/(?P<message_slug>' + SLUG_RE + ')$', 'discuss.views.edit_message'),
 
@@ -476,39 +478,8 @@ urlpatterns += patterns('',
     #url(r'^advising/problems/(?P<prob_id>\d+)/$', 'advisornotes.views.edit_problem'),
 
     # Online Forms
+    url(r'^forms/', include('onlineforms.urls')),
     
-    url(r'forms/groups/$', 'onlineforms.views.manage_groups'),
-    url(r'forms/groups/new$', 'onlineforms.views.new_group'),
-    url(r'forms/groups/' + FORMGROUP_SLUG + '/$', 'onlineforms.views.manage_group'),
-    url(r'forms/groups/' + FORMGROUP_SLUG + '/add$', 'onlineforms.views.add_group_member'),
-    url(r'forms/groups/' + FORMGROUP_SLUG + '/remove/' + USERID_OR_EMPLID + '/$', 'onlineforms.views.remove_group_member'),
-
-    url(r'forms/admin/$', 'onlineforms.views.admin_list_all'),
-    url(r'forms/admin/assign$', 'onlineforms.views.admin_assign_any'),
-    url(r'forms/admin/assign-nonsfu$', 'onlineforms.views.admin_assign_any_nonsfu'),
-    url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign$', 'onlineforms.views.admin_assign'),
-    url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign-nonsfu$', 'onlineforms.views.admin_assign_nonsfu'),
-    url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign_done$', 'onlineforms.views.admin_done'),
-    
-    url(r'forms/manage/$', 'onlineforms.views.list_all'),
-    url(r'forms/manage/new$', 'onlineforms.views.new_form'),
-    url(r'forms/manage/' + FORM_SLUG + '/$', 'onlineforms.views.view_form'),
-    url(r'forms/manage/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
-    url(r'forms/manage/' + FORM_SLUG + '/new$', 'onlineforms.views.new_sheet'),
-    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/preview$', 'onlineforms.views.preview_sheet'),
-    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/$', 'onlineforms.views.edit_sheet'),
-    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/edit$', 'onlineforms.views.edit_sheet_info'),
-    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/reorder$', 'onlineforms.views.reorder_field'),
-    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/new$', 'onlineforms.views.new_field'),
-    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
-
-    url(r'forms/$', 'onlineforms.views.index'),
-    url(r'forms/view/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
-    url(r'forms/view/' + FORMSUBMIT_SLUG + '/' + '(?P<sheet_id>\d+)/'+ '(?P<disposition>\w+)/' + '(?P<file_id>\d+)/$', 'onlineforms.views.file_field_download'),
-    url(r'forms/submission/' + SECRET_SUBMIT_URL + '/$', 'onlineforms.views.sheet_submission_via_url'),
-    url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission'),
-    url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission'),
-
     # Alerts
 
     url(r'^alerts/new_alerts/$', 'alerts.views.rest_alerts'),

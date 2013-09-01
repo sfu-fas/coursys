@@ -475,11 +475,17 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
         # fix up source and exam activities as best possible
         if activity.numeric_activity:
-            na = NumericActivity.objects.get(offering=course_copy_to, name=activity.numeric_activity.name, deleted=False)
+            try:
+                na = NumericActivity.objects.get(offering=course_copy_to, name=activity.numeric_activity.name, deleted=False)
+            except NumericActivity.DoesNotExist:
+                na = NumericActivity.objects.filter(offering=course_copy_to, deleted=False)[0]
             activity.numeric_activity = na
             
         if activity.exam_activity:
-            a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
+            try:
+                a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
+            except NumericActivity.DoesNotExist:
+                na = NumericActivity.objects.filter(offering=course_copy_to, deleted=False)[0]
             activity.exam_activity = a
         
         activity.save()
