@@ -178,7 +178,8 @@ class DynamicForm(forms.Form):
                 self.cleaned_data[str(name)] = cleaned_data
                 field.initial = cleaned_data
             except forms.ValidationError, e:
-                self.errors[name] = ", ".join(e.messages)
+                #self.errors[name] = ", ".join(e.messages)
+                self.errors[name] = forms.util.ErrorList(e.messages)
                 if str(name) in post_data:
                     field.initial = post_data[str(name)]
                 else:

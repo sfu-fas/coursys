@@ -39,6 +39,7 @@ $(document).ready(function() {
         {% endif %}
 
         {% if sheet %}
+            <div class="form_container">
             {% if form.is_multipart %}
                 <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
             {% else %}
@@ -60,6 +61,7 @@ $(document).ready(function() {
                 <input type="submit" name="save" value="Save for Later" class="submit"/>
             </fieldset>
             </form>
+            </div>
         {% else %}
             <p>This form is empty.</p>
         {% endif %}
