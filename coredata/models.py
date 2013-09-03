@@ -557,7 +557,7 @@ class CourseOffering(models.Model):
     def instructors(self):
         return (m.person for m in self.member_set.filter(role="INST"))
     def instructors_str(self):
-        return ', '.join(p.sortname() for p in self.instructors())
+        return '; '.join(p.sortname() for p in self.instructors())
     def tas(self):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
