@@ -38,7 +38,7 @@ VIEWABLE_CHOICES = [
         ('NON', "Filler can't see any info on other sheets (just name/email of initiator)"),
         ]
 VIEWABLE_SHORT = {
-        'ALL': 'Can view previous submissions',
+        'ALL': 'Can see info on previous sheets',
         'NON': 'Can only see name/email',
         }
 
