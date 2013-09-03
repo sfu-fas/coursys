@@ -62,6 +62,7 @@ class Command(BaseCommand):
             }
         else:
             cmptunit = Unit.objects.get(label="CMPT")
+            mechunit = Unit.objects.get(label="MECH")
             program_map = {
                 'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
                 'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
@@ -69,7 +70,10 @@ class Command(BaseCommand):
                 'CPMCW': GradProgram.objects.get(label="MSc Course", unit=cmptunit),
                 'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
                 'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
-                'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit)
+                'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
+
+                'MSEPH': GradProgram.objects.get(label="Ph.D.", unit=mechunit),
+                'MSEMS': GradProgram.objects.get(label="M.A.Sc.", unit=mechunit),
             }
 
         if semester == None:

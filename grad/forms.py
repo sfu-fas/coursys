@@ -509,6 +509,9 @@ class SearchForm(forms.Form):
     incomplete_requirements = forms.MultipleChoiceField([],
             label='Incomplete requirements', required=False)
 
+    grad_flags = forms.MultipleChoiceField(choices=[],
+            label='Grad Flags', required=False)
+
     is_canadian = NullBooleanSearchField(required=False)
     
     financial_support = forms.MultipleChoiceField((
@@ -552,6 +555,7 @@ class SearchForm(forms.Form):
             'program',
             'campus',
             'supervisor',
+            'grad_flags',
             ]
     requirement_fields = [
             'requirements',
@@ -628,6 +632,12 @@ class SearchForm(forms.Form):
             person_ids = self.cleaned_data['supervisor']
             supervisors = Supervisor.objects.filter(supervisor__in=person_ids, supervisor_type='SEN', removed=False)
             student_ids = [s.student_id for s in supervisors]
+            manual_queries.append( Q(id__in=student_ids) )
+
+        if self.cleaned_data.get('grad_flags', None):
+            flag_ids = self.cleaned_data['grad_flags']
+            gradflagvalues = GradFlagValue.objects.filter(flag__id__in=flag_ids, value=True)
+            student_ids = [gfv.student.id for gfv in gradflagvalues] 
             manual_queries.append( Q(id__in=student_ids) )
         
         if self.cleaned_data.get('financial_support', None) is not None:
