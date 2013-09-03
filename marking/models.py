@@ -484,8 +484,8 @@ def copyCourseSetup(course_copy_from, course_copy_to):
         if activity.exam_activity:
             try:
                 a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
-            except NumericActivity.DoesNotExist:
-                na = NumericActivity.objects.filter(offering=course_copy_to, deleted=False)[0]
+            except Activity.DoesNotExist:
+                na = Activity.objects.get(offering=course_copy_to, deleted=False)[0]
             activity.exam_activity = a
         
         activity.save()
