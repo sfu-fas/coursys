@@ -100,6 +100,10 @@ class Person(models.Model):
         return "%s%s" % (self.first_name[0], self.last_name[0])
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
+    def real_pref_first(self):
+        return self.pref_first_name or self.first_name
+    def name_pref(self):
+        return "%s %s" % (self.real_pref_first(), self.last_name)
     def first_with_pref(self):
         name = self.first_name
         if self.pref_first_name and self.pref_first_name != self.first_name:
@@ -553,7 +557,7 @@ class CourseOffering(models.Model):
     def instructors(self):
         return (m.person for m in self.member_set.filter(role="INST"))
     def instructors_str(self):
-        return ', '.join(p.sortname() for p in self.instructors())
+        return '; '.join(p.sortname() for p in self.instructors())
     def tas(self):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):

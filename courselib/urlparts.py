@@ -48,13 +48,5 @@ LETTER_SLUG = '(?P<letter_slug>' + SLUG_RE + ')'
 LETTER_TEMPLATE_SLUG = '(?P<letter_template_slug>' + SLUG_RE + ')'
 LETTER_TEMPLATE_ID = '(?P<letter_template_id>' + ID_RE + ')'
 
-FORM_SLUG = '(?P<form_slug>' + SLUG_RE + ')'
-SHEET_SLUG = '(?P<sheet_slug>' + SLUG_RE + ')'
-FIELD_SLUG = '(?P<field_slug>' + SLUG_RE + ')'
-FORMSUBMIT_SLUG = '(?P<formsubmit_slug>' + SLUG_RE + ')'
-SHEETSUBMIT_SLUG = '(?P<sheetsubmit_slug>' + SLUG_RE + ')'
-FORMGROUP_SLUG = '(?P<formgroup_slug>' + SLUG_RE + ')'
-SECRET_SUBMIT_URL = '(?P<secret_url>' + SLUG_RE + ')'
-
 ALERT_TYPE_SLUG = '(?P<alert_type>' + SLUG_RE + ')'
 

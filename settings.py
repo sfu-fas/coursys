@@ -200,6 +200,8 @@ LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
 DISABLE_REPORTING_DB = False
 
+AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
+
 if not DEPLOYED and DEBUG and hostname != 'courses':
     #CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)

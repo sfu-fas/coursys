@@ -10,6 +10,14 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'both'});
+});
+//]]></script>
 {% endblock %}
 
 {% block content %}
@@ -39,16 +47,15 @@
             {% csrf_token %}
             {% if nonSFUFormFillerForm %}
                 <fieldset>
-                    <legend>Enter Your Contact Information</legend>
-                    {{ nonSFUFormFillerForm|as_dl }}
+                    <legend>Your Contact Information</legend>
+                    <p>If you have a SFU account, please <a href="{{ LOGIN_URL }}?next={{this_path}}">login</a>. It will be easier for us and you to keep track of your info if you do.</p>
+                    {{ nonSFUFormFillerForm|as_dl_onlineforms }}
                     <input type="hidden" name="add-nonsfu" value="True"/>
-
-                    <p>If you have a SFU account, please <a href="/login/">login</a>.</p>
                 </fieldset>
             {% endif %}
             <fieldset>
                 <legend>{{ sheet.title }}</legend>
-                {{ form|as_dl }}
+                {{ form|as_dl_onlineforms }}
                 <input type="submit" name="submit" value="Complete and Submit" class="submit"/>
                 <input type="submit" name="save" value="Save for Later" class="submit"/>
             </fieldset>

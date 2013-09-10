@@ -472,8 +472,8 @@ def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
     allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])
-    print has_formgroup(request)
-    print not(roles & allowed)
+    #print has_formgroup(request)
+    #print not(roles & allowed)
     if not(roles & allowed):
         # doesn't have any allowed roles
         if not has_formgroup(request):

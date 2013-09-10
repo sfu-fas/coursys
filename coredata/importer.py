@@ -100,6 +100,20 @@ def get_combined():
                 CourseOffering.objects.get(slug='2013su-cmpt-126-d1')
             ]
         },
+        {
+            'subject': 'CMPT', 'number': '125', 'section': 'X100',
+            'semester': Semester.objects.get(name="1137"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32758, 'class_nbr': 32758,
+            'title': 'Intro.Cmpt.Sci/Programming II',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2013fa-cmpt-125-d1'),
+                CourseOffering.objects.get(slug='2013fa-cmpt-126-d1')
+            ]
+        },
         ]
     return combined_sections
 

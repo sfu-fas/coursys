@@ -4,13 +4,23 @@
 {% block title %}Preview {{owner_sheet.title }}{% endblock %}
 {% block h1 %}Preview {{owner_sheet.title }}{% endblock %}
 
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'both'});
+});
+//]]></script>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
-<li>
-    &gt; <a href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
-</li>
+<li>&gt; <a href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a></li>
 <li>&gt; Preview</li>
 {% endblock %}
 
@@ -24,7 +34,7 @@
     <form action="#" method="post">{% csrf_token %}
         <fieldset>
             <legend>{{form.title}}</legend>
-            {{form|as_dl}}
+            {{form|as_dl_onlineforms}}
         </fieldset>
     </form>
 {% endblock %}
