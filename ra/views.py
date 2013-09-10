@@ -118,7 +118,7 @@ def new(request):
     else:
         semester = Semester.next_starting()
         semesterconfig = SemesterConfig.get_config(request.units, semester)
-        raform = RAForm(initial={'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70 })
+        raform = RAForm(initial={'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80 })
         raform.fields['scholarship'].choices = scholarship_choices
         raform.fields['hiring_faculty'].choices = hiring_faculty_choices
         raform.fields['unit'].choices = unit_choices
@@ -133,7 +133,7 @@ def new_student(request, userid):
     semester = Semester.next_starting()
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70 }
+    initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80 }
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
     gss = GradStudent.objects.filter(person=student)
     if gss:
@@ -195,7 +195,7 @@ def reappoint(request, ra_slug):
     semester = Semester.next_starting()
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
-                    'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 70,
+                    'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80,
                     'use_hourly': appointment.use_hourly() })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
     scholarship_choices = [("", "---------")]

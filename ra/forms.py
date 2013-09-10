@@ -31,8 +31,10 @@ class RAForm(forms.ModelForm):
 
     def clean_hours(self):
         data = self.cleaned_data['hours']
-        if int(data) > 70:
-            raise forms.ValidationError("The maximum number of work hours is 70.")
+        if int(data) > 168:
+            raise forms.ValidationError("There are only 168 hours in a week.")
+        if ind(data) < 0:
+            raise forms.ValidationError("One cannot work negative hours.")
         return data
 
     def clean(self):
