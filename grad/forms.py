@@ -433,7 +433,6 @@ COLUMN_CHOICES = (
         ('person.first_name',       'First Name'),
         ('person.pref_first_name',  'Pref First Name'),
         ('person.middle_name',      'Middle Name'),
-        # TODO Include stuff from config eg. email, phone, address
         ('person.emplid',           'Employee ID'),
         ('person.userid',           'User ID'),
         ('email',                   'Email Address'),
@@ -450,7 +449,9 @@ COLUMN_CHOICES = (
         ('completed_req',           'Completed Req'),
         ('gpa',                     'CGPA'),
         ('visa',                    'Visa'),
-        ('gender',                  'Gender')
+        ('gender',                  'Gender'),
+        ('scholarships',            'Scholarships'),
+        ('unit',                    'Unit')
         )
 COLUMN_WIDTHS_DATA = (
         # column widths for Excel export
