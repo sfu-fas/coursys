@@ -11,7 +11,7 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, r
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
@@ -137,7 +137,10 @@ def remove_group_member(request, formgroup_slug, userid):
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
-# Form admin views
+
+#######################################################################
+# Managing submissions & assigning sheets
+
 @requires_formgroup()
 def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
@@ -160,9 +163,6 @@ def admin_list_all(request):
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
-
-#######################################################################
-# Managing submissions & assigning sheets
 
 @requires_formgroup()
 def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
@@ -978,6 +978,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             description=("Sheet submission %s completed by %s") % (sheet_submission.slug, formFiller.email()),
                             related_object=sheet_submission)
                         l.save()
+                        
+                        sheet_submission.email_submitted(request)
 
                         messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                         return HttpResponseRedirect(reverse(index))

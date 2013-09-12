@@ -1,0 +1,3 @@
+{{ initiator }} has completed their part of the {{ form.title }} form.
+
+You can access it at {{ adminurl }}.

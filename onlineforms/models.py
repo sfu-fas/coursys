@@ -510,6 +510,20 @@ class SheetSubmission(models.Model):
         msg.attach_alternative(htmly.render(email_context), "text/html")
         msg.send()
 
+    def email_submitted(self, request):
+        plaintext = get_template('onlineforms/emails/sheet_submitted.txt')
+        htmly = get_template('onlineforms/emails/sheet_submitted.html')
+    
+        full_url = request.build_absolute_uri('onlineforms.views.admin_list_all')
+        email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form})
+        subject = '%s submission' % (self.sheet.form.title)
+        #from_email = self.filler.full_email()
+        from_email = "nobody@courses.cs.sfu.ca"
+        to = [p.full_email() for p in self.sheet.form.owner.members.all()]
+        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, to)
+        msg.attach_alternative(htmly.render(email_context), "text/html")
+        msg.send()
+
 
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
