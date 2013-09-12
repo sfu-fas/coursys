@@ -41,6 +41,7 @@ CODE_TYPES = [
     (".sql", "SQL (.sql)"),
     (".sas", "SAS (.sas)"),
     (".r", "R (.r)"),
+    (".dat", "Binary Output (.dat)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()
