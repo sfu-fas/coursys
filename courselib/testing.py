@@ -4,7 +4,7 @@ import urllib
 from django.core.urlresolvers import reverse
 
 # course with the test data
-TEST_COURSE_SLUG = '2013sp-cmpt-165-d1'
+TEST_COURSE_SLUG = '2013su-cmpt-165-d1'
 
 def validate_content(testcase, data, page_descr="unknown page"):
     """
@@ -34,13 +34,14 @@ def validate_content(testcase, data, page_descr="unknown page"):
         fh.close()
         testcase.fail("Invalid XHTML produced in %s:\n  %s" % (page_descr, str(e)))
 
-def basic_page_tests(testcase, client, url):
+def basic_page_tests(testcase, client, url, check_valid=True):
     """
     Run basic tests on the page: 200 OK, validity.
     """
     response = client.get(url)
     testcase.assertEquals(response.status_code, 200)
-    validate_content(testcase, response.content, url)
+    if check_valid:
+        validate_content(testcase, response.content, url)
     return response
 
 def test_auth(client, userid):

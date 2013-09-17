@@ -13,6 +13,7 @@ CODE_TYPES = [
     (".txt", "Plain Text (.txt)"),
     (".java", "Java Source (.java)"),
     (".class", "Java Bytecode (.class)"),
+    (".hpp", "C++ Header (.hpp)"),
     (".cpp", "C++ (.cpp)"),
     (".cc", "C++ (.cc)"),
     (".c", "C (.c)"),
@@ -40,6 +41,7 @@ CODE_TYPES = [
     (".sql", "SQL (.sql)"),
     (".sas", "SAS (.sas)"),
     (".r", "R (.r)"),
+    (".dat", "Binary Output (.dat)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()

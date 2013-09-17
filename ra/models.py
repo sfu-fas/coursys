@@ -26,6 +26,13 @@ PAY_FREQUENCY_CHOICES = (
     ('L', 'Lump Sum'),
 )
 
+# If a RA is within SEMESTER_SLIDE days of the border
+# of a semester, it is pushed into that semester.
+# This is to prevent RAs that are, for example, 2 days into
+# the Summer semester from being split into two equal-pay
+# chunks. 
+SEMESTER_SLIDE = 15
+
 class Project(models.Model):
     """
     A table to look up the appropriate fund number based on the project number
@@ -75,6 +82,7 @@ DEFAULT_LETTER = [
         """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
         """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation; note that the first $3K total annual income from scholarship sources is not taxable.""",
         """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
+        """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
         """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
     ]
 DEFAULT_LETTER_LUMPSUM = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s."""] \
@@ -190,14 +198,27 @@ class RAAppointment(models.Model):
             start = datetime.date(yr, 9, 1)
             end = datetime.date(yr, 12, 31)
         return start, end
-
         
     def start_semester(self):
         "Guess the starting semester of this appointment"
-        return RAAppointment.semester_guess(self.start_date)
+        start_semester = RAAppointment.semester_guess(self.start_date)
+        # We do this to eliminate hang - if you're starting N days before 
+        # semester 1134, you aren't splitting that payment across 2 semesters. 
+        start, end = RAAppointment.start_end_dates(start_semester)
+        if end - self.start_date < datetime.timedelta(SEMESTER_SLIDE):
+            return start_semester.next_semester()
+        return start_semester
+
     def end_semester(self):
         "Guess the ending semester of this appointment"
-        return RAAppointment.semester_guess(self.end_date)
+        end_semester = RAAppointment.semester_guess(self.end_date)
+        # We do this to eliminate hang - if you're starting N days after 
+        # semester 1134, you aren't splitting that payment across 2 semesters. 
+        start, end = RAAppointment.start_end_dates(end_semester)
+        if self.end_date - start < datetime.timedelta(SEMESTER_SLIDE):
+            return end_semester.previous_semester()
+        return end_semester
+
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1

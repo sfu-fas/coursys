@@ -15,6 +15,7 @@ from manage_requirements import manage_requirements
 from remove_completedrequirement import remove_completedrequirement
 from manage_general import manage_general
 from manage_program import manage_program
+from manage_start_end_semesters import manage_start_end_semesters
 from manage_defence import manage_defence
 from manage_status import manage_status
 from remove_status import remove_status

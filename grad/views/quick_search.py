@@ -22,6 +22,7 @@ for st,_ in STATUS_CHOICES:
         ACTIVE_STATUS_ORDER[st] = 3
     else:
         ACTIVE_STATUS_ORDER[st] = 4
+ACTIVE_STATUS_ORDER[None] = 5
 
 @requires_role("GRAD", get_only=["GRPD"])
 def quick_search(request):

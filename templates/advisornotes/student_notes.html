@@ -8,25 +8,55 @@
 {% endblock %}
 
 {% block headextra %}
+<style type="text/css">
+    .hideshow input{
+        font-size: x-small;
+    }
+    .deleted{
+        background-color: pink;
+    }
+</style>
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
-    	//<![CDATA[
+//<![CDATA[
+    var show_deleted = false;
     $(document).ready(function() {
-        $(".note").collapsible();
-        $(".show").trigger('expand');
-
-        $('.hide-show').click(function(){
-		    var id = $(this).val();
-		    var ch = "no";
-		    if($(this).attr("checked")){
-		    ch="yes"
-		    $("#note-"+id).trigger('collapse_slow');
-		    }
+        $('.delete').click(function(){
+		    var id = $(this).data('id');
+            $("#note-whole-"+id ).addClass('deleted');
+            $("#note-box-"+id+" .delete").hide();
+            $("#note-box-"+id+" .restore").show();
+            if( !show_deleted ){
+                $("#note-whole-"+id).hide();
+            }
 	
 	        $.post("{% url advisornotes.views.student_notes userid=userid%}",
-			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': ch});
-	   });
+			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'yes'});
+        });
+        $('.restore').click(function(){
+		    var id = $(this).data('id');
+            $("#note-whole-"+id ).removeClass('deleted');
+            $("#note-box-"+id+" .delete").show();
+            $("#note-box-"+id+" .restore").hide();
+	
+	        $.post("{% url advisornotes.views.student_notes userid=userid%}",
+			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'no'});
+        });
+        $('.show_deleted').click(function(){
+            show_deleted = true;
+            $('.deleted').show();
+            $('.show_deleted').hide();
+            $('.hide_deleted').show();
+            return false;
+        });
+        $('.hide_deleted').click(function(){
+            show_deleted = false;
+            $('.deleted').hide();
+            $('.show_deleted').show();
+            $('.hide_deleted').hide();
+            return false;
+        });
 	});
 //]]>
 </script>
@@ -46,6 +76,9 @@
         {% if nonstudent %}
         <li><a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a></li>
         {% endif %}
+        <li><a href="#" class='show_deleted'>Show Deleted Notes</a></li> 
+        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li> 
+        
     </ul>
 </div>
 {% endblock %}
@@ -117,14 +150,15 @@
 
 {% if item.note %}
 {% with item.item as note %}
-<h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">
-	{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}
-	{% with "Student was emailed the contents of this note" as email_note %}
-	{% if note.emailed %}
-	<img src="{{ MEDIA_URL }}icons/email.png" alt="{{ email_note }}" title="{{ email_note }}" />
-	{% endif %}
-	{% endwith %}
-	</h2>
+<div id='note-whole-{{note.id}}' class="{% if note.hidden %}deleted{% endif %}" {% if note.hidden %}style="display:none;"{% endif %} >
+<h2 class="note" id="note-{{note.id}}">
+    {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}
+    {% with "Student was emailed the contents of this note" as email_note %}
+    {% if note.emailed %}
+        <img src="{{ MEDIA_URL }}icons/email.png" alt="{{ email_note }}" title="{{ email_note }}" />
+    {% endif %}
+    {% endwith %}
+    </h2>
 <div class="note-box" id="note-box-{{note.id}}">
 
     <div class="note-content">
@@ -138,13 +172,10 @@
     {% endif %}
 
     <p class="hideshow">
-        {% if note.hidden %}
-        <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
-        {% else %}
-        <input type="checkbox" class="hide-show" value="{{note.id}}"/>
-        {% endif %}
-        Hide this note?
+        <input type='button' class='restore' value='Restore this note.' {% if not note.hidden %}style='display:none;'{% endif %} data-id="{{note.id}}" /> 
+        <input type='button' class='delete' value='Delete this note.' {% if note.hidden %}style='display:none;'{% endif %} data-id="{{note.id}}" /> 
     </p>
+</div>
 </div>
 {% endwith %}
 {% else %}

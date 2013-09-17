@@ -32,44 +32,100 @@ def get_combined():
     combined_sections = [
         {
             'subject': 'CMPT', 'number': '419', 'section': 'X100',
-            'semester': Semester.objects.get(name="1127"),
+            'semester': Semester.objects.get(name="1137"),
             'component': 'LEC', 'graded': True, 
-            'crse_id': 32754, 'class_nbr': 32754,
-            'title': 'Bioinformatics (combined sections)',
+            'crse_id': 32759, 'class_nbr': 32759,
+            'title': 'Biomedical Image Computing (combined)',
             'campus': 'BRNBY',
             'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
             'config': {},
             'subsections': [
-                CourseOffering.objects.get(slug='2012fa-cmpt-419-e1'),
-                CourseOffering.objects.get(slug='2012fa-cmpt-829-g1')
+                CourseOffering.objects.get(slug='2013fa-cmpt-419-d1'),
+                CourseOffering.objects.get(slug='2013fa-cmpt-829-g1')
+            ]
+        },
+#        {
+#            'subject': 'CMPT', 'number': '419', 'section': 'X100',
+#            'semester': Semester.objects.get(name="1127"),
+#            'component': 'LEC', 'graded': True, 
+#            'crse_id': 32754, 'class_nbr': 32754,
+#            'title': 'Bioinformatics (combined sections)',
+#            'campus': 'BRNBY',
+#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+#            'config': {},
+#            'subsections': [
+#                CourseOffering.objects.get(slug='2012fa-cmpt-419-e1'),
+#                CourseOffering.objects.get(slug='2012fa-cmpt-829-g1')
+#            ]
+#        },
+#        {
+#            'subject': 'CMPT', 'number': '441', 'section': 'X100',
+#            'semester': Semester.objects.get(name="1127"),
+#            'component': 'LEC', 'graded': True, 
+#            'crse_id': 32753, 'class_nbr': 32753,
+#            'title': 'Computational Biology',
+#            'campus': 'BRNBY',
+#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+#            'config': {},
+#            'subsections': [
+#                CourseOffering.objects.get(slug='2012fa-cmpt-441-d1'),
+#                CourseOffering.objects.get(slug='2012fa-cmpt-711-g1')
+#            ]
+#        },
+#        {
+#            'subject': 'MACM', 'number': '101', 'section': 'X100',
+#            'semester': Semester.objects.get(name="1131"),
+#            'component': 'LEC', 'graded': True, 
+#            'crse_id': 32755, 'class_nbr': 32755,
+#            'title': 'Discrete Math I',
+#            'campus': 'BRNBY',
+#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+#            'config': {},
+#            'subsections': [
+#                CourseOffering.objects.get(slug='2013sp-macm-101-d1'),
+#                CourseOffering.objects.get(slug='2013sp-macm-101-d2')
+#            ]
+#        },
+#        {
+#            'subject': 'CMPT', 'number': '125', 'section': 'X100',
+#            'semester': Semester.objects.get(name="1131"),
+#            'component': 'LEC', 'graded': True, 
+#            'crse_id': 32756, 'class_nbr': 32756,
+#            'title': 'Intro.Cmpt.Sci/Programming II',
+#            'campus': 'BRNBY',
+#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+#            'config': {},
+#            'subsections': [
+#                CourseOffering.objects.get(slug='2013sp-cmpt-125-d1'),
+#                CourseOffering.objects.get(slug='2013sp-cmpt-126-d1')
+#            ]
+#        },
+        {
+            'subject': 'CMPT', 'number': '125', 'section': 'X100',
+            'semester': Semester.objects.get(name="1134"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32757, 'class_nbr': 32757,
+            'title': 'Intro.Cmpt.Sci/Programming II',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2013su-cmpt-125-d1'),
+                CourseOffering.objects.get(slug='2013su-cmpt-126-d1')
             ]
         },
         {
-            'subject': 'CMPT', 'number': '441', 'section': 'X100',
-            'semester': Semester.objects.get(name="1127"),
+            'subject': 'CMPT', 'number': '125', 'section': 'X100',
+            'semester': Semester.objects.get(name="1137"),
             'component': 'LEC', 'graded': True, 
-            'crse_id': 32753, 'class_nbr': 32753,
-            'title': 'Computational Biology',
+            'crse_id': 32758, 'class_nbr': 32758,
+            'title': 'Intro.Cmpt.Sci/Programming II',
             'campus': 'BRNBY',
             'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
             'config': {},
             'subsections': [
-                CourseOffering.objects.get(slug='2012fa-cmpt-441-d1'),
-                CourseOffering.objects.get(slug='2012fa-cmpt-711-g1')
-            ]
-        },
-        {
-            'subject': 'MACM', 'number': '101', 'section': 'X100',
-            'semester': Semester.objects.get(name="1131"),
-            'component': 'LEC', 'graded': True, 
-            'crse_id': 32755, 'class_nbr': 32755,
-            'title': 'Discrete Math I',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2013sp-macm-101-d1'),
-                CourseOffering.objects.get(slug='2013sp-macm-101-d2')
+                CourseOffering.objects.get(slug='2013fa-cmpt-125-d1'),
+                CourseOffering.objects.get(slug='2013fa-cmpt-126-d1')
             ]
         },
         ]
@@ -170,7 +226,35 @@ def create_semesters():
         wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 5, 6))
         wk.save()
 
+    s = Semester.objects.filter(name="1137")
+    if not s:
+        s = Semester(name="1137", start=datetime.date(2013, 9, 4), end=datetime.date(2013, 12, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 9, 3))
+        wk.save()
+    
+    s = Semester.objects.filter(name="1141")
+    if not s:
+        s = Semester(name="1141", start=datetime.date(2014, 1, 7), end=datetime.date(2014, 4, 12))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 1, 7))
+        wk.save()
+        wk = SemesterWeek(semester=s, week=7, monday=datetime.date(2014, 2, 25))
+        wk.save()
 
+    s = Semester.objects.filter(name="1144")
+    if not s:
+        s = Semester(name="1144", start=datetime.date(2014, 5, 6), end=datetime.date(2014, 8, 2))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 5, 6))
+        wk.save()
+    
+    s = Semester.objects.filter(name="1147")
+    if not s:
+        s = Semester(name="1147", start=datetime.date(2014, 9, 4), end=datetime.date(2014, 12, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2014, 9, 3))
+        wk.save()
 
 @transaction.commit_on_success
 def fix_emplid():
@@ -310,7 +394,7 @@ def import_one_offering(strm, subject, number, section):
 def import_offerings(extra_where='1=1', import_semesters=import_semesters):
     db = SIMSConn()
     db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
-               "(class_section like '__00' OR class_section like '_0__') AND ("+extra_where+")", (import_semesters(),))
+               "class_type='E' AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)
@@ -792,6 +876,8 @@ def main():
     if settings.USE_CELERY:
         import djkombu.models
         djkombu.models.Message.objects.cleanup()
+        from djcelery.models import TaskMeta
+        TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
     
     print "People:", len(imported_people)
     print "Course Offerings:", len(offerings)

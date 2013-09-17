@@ -14,6 +14,7 @@ sys.path.append( os.path.join(PROJECT_DIR, 'external') )
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
     ('Curtis Lassam', 'classam@sfu.ca'),
+    ('sumo Kindersley', 'sumo@cs.sfu.ca'),
 )
 
 MANAGERS = ADMINS
@@ -197,6 +198,9 @@ GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
+DISABLE_REPORTING_DB = False
+
+AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 if not DEPLOYED and DEBUG and hostname != 'courses':
     #CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
@@ -206,6 +210,7 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
     LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
+    DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
 
 try:
     from local_settings import *

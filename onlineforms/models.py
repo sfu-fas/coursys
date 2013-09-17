@@ -16,9 +16,9 @@ from django.core.mail import EmailMultiAlternatives
 import datetime, random, sha
 
 # choices for Form.initiator field
-from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField
+from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
 from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
-from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
+from onlineforms.fieldtypes.text import SmallTextField, MediumTextField, LargeTextField, ExplanationTextField, EmailTextField
 
 INITIATOR_CHOICES = [
         ('LOG', 'Logged-in SFU users'),
@@ -52,19 +52,18 @@ FIELD_TYPE_CHOICES = [
         ('SEL1', 'Select with a drop-down menu'),
         ('SELN', 'Select multiple values'),
         ('LIST', 'Enter a list of short responses'),
-        ('FILE', 'Upload a file'),
+        #('FILE', 'Upload a file'),
         ('URL', 'Web page address (URL)'),
         ('TEXT', 'Explanation block (user enters nothing)'),
         ('DIVI', 'Divider'),
-        #('DATE', 'A date'),
-        #('SEM', 'Semester'),
+        ('DATE', 'A date'),
+        ('SEM', 'Semester'),
         # more may be added.
         ]
 FIELD_TYPES = dict(FIELD_TYPE_CHOICES)
 
 # mapping of field types to FieldType objects that implement their logic
-from onlineforms.fieldtypes import *
-#from onlineforms.fieldtypes.other import DividerField
+#from onlineforms.fieldtypes import *
 FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
@@ -78,6 +77,8 @@ FIELD_TYPE_MODELS = {
         'URL': URLCustomField,
         'TEXT': ExplanationTextField,
         'DIVI': DividerField,
+        'DATE': DateSelectField,
+        'SEM': SemesterField,
         }
 
 # mapping of different statuses the forms can be in
@@ -141,8 +142,10 @@ class FormFiller(models.Model):
         return bool(self.sfuFormFiller)
 
     def __unicode__(self):
-        formFiller = self.getFormFiller()
-        return formFiller.__unicode__()
+        if self.sfuFormFiller:
+            return "%s (%s)" % (self.sfuFormFiller.name(), self.sfuFormFiller.emplid)
+        else:
+            return "%s (external user)" % (self.nonSFUFormFiller.name(),)
     def name(self):
         formFiller = self.getFormFiller()
         return formFiller.name()
@@ -158,6 +161,15 @@ class FormFiller(models.Model):
     def email(self):
         formFiller = self.getFormFiller()
         return formFiller.email()
+    def identifier(self):
+        """
+        Identifying string that can be used for slugs
+        """
+        if self.sfuFormFiller:
+            return self.sfuFormFiller.userid_or_emplid()
+        else:
+            return self.nonSFUFormFiller.email() \
+                   .replace('@', '-').replace('.', '-')
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
@@ -230,12 +242,13 @@ class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False, help_text='The name of this form.')
     owner = models.ForeignKey(FormGroup, help_text='The group of users who own/administrate this form.')
     description = models.CharField(max_length=500, null=False, blank=False, help_text='A brief description of the form that can be displayed to users.')
-    initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
+    initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON", help_text='Who is allowed to fill out the initial sheet? That is, who can initiate a new instance of this form?')
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?") # not implemented
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
@@ -307,6 +320,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
 
     class Meta:
         unique_together = (("form", "slug"),)
+        ordering = ('order',)
 
     @transaction.commit_on_success
     def safe_save(self):
@@ -412,7 +426,7 @@ class FormSubmission(models.Model):
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
-        return make_slug('submission-' + self.form.slug)
+        return self.initiator.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
@@ -422,6 +436,9 @@ class FormSubmission(models.Model):
         else:
             self.status = 'WAIT'
         self.save()
+
+    def __unicode__(self):
+        return "%s for %s" % (self.form, self.initiator)
 
 
 class SheetSubmission(models.Model):
@@ -433,14 +450,17 @@ class SheetSubmission(models.Model):
     completed_at = models.DateTimeField(null=True)
     # key = models.CharField()
     def autoslug(self):
-        return make_slug('submission-' + self.sheet.slug)
+        return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
-        super(SheetSubmission, self).save(*args, **kwargs)
         self.completed_at = datetime.datetime.now()
+        super(SheetSubmission, self).save(*args, **kwargs)
         self.form_submission.update_status()
+
+    def __unicode__(self):
+        return "%s by %s" % (self.sheet, self.filler.identifier())
 
     cached_fields = None
     def get_field_submissions(self, refetch=False):
@@ -459,7 +479,7 @@ class SheetSubmission(models.Model):
         if secret_urls:
             return reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_urls[0].key})
         else:
-            return reverse('onlineforms.views.sheet_submission', kwargs={
+            return reverse('onlineforms.views.sheet_submission_subsequent', kwargs={
                                 'form_slug': self.form_submission.form.slug,
                                 'formsubmit_slug': self.form_submission.slug,
                                 'sheet_slug': self.sheet.slug,
@@ -511,7 +531,7 @@ def attachment_upload_to(instance, filename):
 
     
 class FieldSubmissionFile(models.Model):
-    field_submission = models.ForeignKey(FieldSubmission)
+    field_submission = models.ForeignKey(FieldSubmission, unique=True)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     file_attachment = models.FileField(storage=FormSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)

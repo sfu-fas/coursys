@@ -1,4 +1,4 @@
-from discuss.models import DiscussionTopic, DiscussionMessage
+from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription, TopicSubscription
 from django import forms
 from django.forms.widgets import Textarea, TextInput
 import genshi
@@ -96,3 +96,12 @@ class DiscussionMessageForm(forms.ModelForm):
         _content_okay(self.creole, content)
         return content
     
+class DiscussionSubscriptionForm(forms.ModelForm):
+    class Meta:
+        model = DiscussionSubscription
+        exclude = ('member',)
+
+class TopicSubscriptionForm(forms.ModelForm):
+    class Meta:
+        model = TopicSubscription
+        exclude = ('member','topic')

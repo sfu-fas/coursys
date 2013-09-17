@@ -77,6 +77,7 @@ def view(request, grad_slug, section=None):
             programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units).order_by('starting')
             context['programhistory'] = programhistory
             flag_values = grad.flags_and_values()
+            context['extras'] = [ (title, grad.config[field]) for field, title in grad.tacked_on_fields if field in grad.config] 
             context['flag_values'] = flag_values
             return render(request, 'grad/view__general.html', context)
 
@@ -141,6 +142,11 @@ def view(request, grad_slug, section=None):
                  .filter(program__unit__in=request.units, person=grad.person) \
                  .exclude(id=grad.id)
     context['other_grad'] = other_grad
+    # still useful: but remove cortezlink once cortez is dead.
+    if 'cortezid' in grad.config:
+        context['cortezlink'] = "[<a href='https://cortez.cs.sfu.ca/grad/scripts/grabcurrent.asp?Identifier="+grad.config['cortezid']+"'>OLD cortez record</a>]"
+    else:
+        context['cortezlink'] = ""
 
     return render(request, 'grad/view.html', context)
 

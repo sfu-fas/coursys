@@ -31,7 +31,7 @@ class GradProgram(models.Model):
     
     def cmpt_program_type(self):
         """
-        Hack for CMPT progress reports system export.
+REJEck for CMPT progress reports system export.
         """
         if self.label == 'MSc Course':
             return ('MSc', 'Course')
@@ -79,6 +79,18 @@ STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE') # statuses we
 
 GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
 
+THESIS_TYPE_CHOICES = (
+    ('T','Thesis'), 
+    ('P','Project'), 
+    ('E','Extended Essay'))
+
+THESIS_OUTCOME_CHOICES = (
+    ('NONE', "None (No Outcome)"),
+    ('PASS', "Pass (No Changes)"),
+    ('MINR', "Pass (Minor Changes)"),
+    ('DEFR', "Defer (Major Changes)"),
+    ('FAIL', "Fail"))
+
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
@@ -114,13 +126,44 @@ class GradStudent(models.Model):
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
         # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
         # 'work_title': title of the Thesis/Project/Extended Essay
+        # 'exam_date': date of the Thesis/Project/Extended Essay
         # 'applic_email': email address from the application process (where it could be imported)
-    defaults = {'sin': '000000000', 'applic_email': None}
+        # 'start_semester': manually-set value to override the guess made by update_status_fields(). A semester.name (e.g. '1127') or None.
+        # 'end_semester': manually-set value to override the guess made by update_status_fields(). A semester.name (e.g. '1127') or None.
+        # -- added for Engineering --
+        # 'thesis_outcome': outcome of Thesis/Project/Extended Essay
+        # 'thesis_location': location of thesis exam
+        # 'qualifying_exam_date': date of qualifying exam
+        # 'qualifying_exam_location': location of qualifying exam 
+        # 'place_of_birth': place of birth of the grad student
+        # 'bachelors_cgpa' : as a string
+        # 'masters_cgpa' : as a string
+        # 'progress': Progress on M.Eng, Ph.D, or MASc.
+
+    defaults = {'sin': '000000000', 'applic_email': None, 
+        'exam_location':'',
+        'place_of_birth':'', 
+        'bachelors_cgpa':'', 
+        'masters_cgpa':'',
+        'qualifying_exam_date':'',
+        'qualifying_exam_location':'',
+        'progress':''}
+
     #sin, set_sin = getter_setter('sin')
     applic_email, set_applic_email = getter_setter('applic_email')
+    
+    tacked_on_fields = [
+        ('place_of_birth', "Place of Birth"),
+        ('bachelors_cgpa', "Bachelors' CGPA"),
+        ('masters_cgpa', "Masters' CGPA"),
+        ('progress', "Last Progress Report"),
+        ('qualifying_exam_date', "Date of qualifying exam"),
+        ('qualifying_exam_location', "Location of qualifying exam"),
+    ]
 
     def __unicode__(self):
         return u"%s, %s" % (self.person, self.program.label)
+
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
@@ -132,42 +175,100 @@ class GradStudent(models.Model):
         #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
+    
+    def status_as_of(self, semester=None):
+        """ Like 'current status', but for an arbitrary semester. 
+        
+            We want to filter out any statuses that occur after the  semester,
+            because - if a student is active this semester (assuming that we are 1134)
+            and on-leave next semester (1137) their current status is active.
+            
+            However, if their status is Rejected Application in 1137, their current 
+            status is "Rejected", even if 1137 hasn't happened yet - but, if their
+            Rejected status was created after the semester that we are asking about (1134),
+            then we should return None. 
+
+            Active statuses have precedence over Applicant statuses.
+            if a student is Active in 1134 but Complete Application in 1137, they are Active. 
+        """
+
+        filter_future_statuses = True
+        if semester == None: 
+            semester = Semester.current() 
+            filter_future_statuses = False
+
+        all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
+        all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
+
+        filtered_nonapplicant_statuses = [status for status in all_gs if 
+                status.start <= semester 
+                and status.status not in STATUS_APPLICANT ]
+        filtered_applicant_statuses = [status for status in all_gs_by_date if
+                status.status in STATUS_APPLICANT 
+                and filter_future_statuses == False 
+                or (status.start_date and status.start_date <= semester.end) ]
+        if len(filtered_nonapplicant_statuses) > 0:
+            return filtered_nonapplicant_statuses[-1].status
+        elif len(filtered_applicant_statuses) > 0:
+            return filtered_applicant_statuses[-1].status
+        else:
+            return None
+
 
     def update_status_fields(self):
         """
         Update the self.start_semester, self.end_semester, self.current_status fields.
         """
-        all_gs = GradStatus.objects.filter(student=self, hidden=False)
         old = (self.start_semester_id, self.end_semester_id, self.current_status)
         self.start_semester = None
         self.end_semester = None
         self.current_status = None
-        
-        # current_status
-        last_status = list(all_gs.filter(end__isnull=True).order_by('-start__name')) \
-                      + list(all_gs.order_by('-start__name', '-end__name'))
-        if len(last_status) > 0:
-            self.current_status = last_status[0].status
-        
+
+        self.current_status = self.status_as_of()
+
+        all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
+
         # start_semester
-        programs = GradProgramHistory.objects.filter(student=self).order_by('-starting')
-        if programs.count() > 0:
-            self.start_semester = programs[0].start_semester
-        else:
-            programs = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-            if programs.count() > 0:
-                self.start_semester = programs[0].start
+        if 'start_semester' in self.config:
+            if self.config['start_semester']:
+                self.start_semester = Semester.objects.get(name=self.config['start_semester'])
             else:
                 self.start_semester = None
+        else:
+            # take the EARLIEST ACTIVE GRADSTATUS 
+            # then the LATEST CONFIRMED
+            # then the LATEST OFFERED
+            # finally the LATEST APPLICATION
+            # if none of those, then no start_semester could be found. 
+
+            active_statuses = [status for status in all_gs if status.status=='ACTI']
+            confirmed_statuses = [status for status in all_gs if status.status=='CONF']
+            offered_statuses = [status for status in all_gs if status.status=='OFFO']
+            application_statuses = [status for status in all_gs if status.status=='COMP']
+
+            if len(active_statuses) > 0:
+                self.start_semester = active_statuses[0].start
+            elif len(confirmed_statuses) > 0:
+                self.start_semester = confirmed_statuses[-1].start
+            elif len(offered_statuses) > 0:
+                self.start_semester = offered_statuses[-1].start
+            elif len(application_statuses) > 0:
+                self.start_semester = application_statuses[-1].start
 
         # end_semester
-        if self.current_status in STATUS_DONE:
-            ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
-            if ends.count() > 0:
-                end_status = ends[0]
-                self.end_semester = end_status.start
+        if 'end_semester' in self.config:
+            if self.config['end_semester']:
+                self.end_semester = Semester.objects.get(name=self.config['end_semester'])
+            else:
+                self.end_semester = None
         else:
-            self.end_semester = None
+            if self.current_status in STATUS_DONE:
+                ends = [status for status in all_gs if status.status in STATUS_DONE]
+                if len(ends) > 0:
+                    end_status = ends[-1]
+                    self.end_semester = end_status.start
+            else:
+                self.end_semester = None
         
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
             key = 'grad-activesem-%i' % (self.id)
@@ -482,7 +583,58 @@ class GradStudent(models.Model):
             semesters[sem]['other'].append(other)
             
         return semesters
+    
+    def thesis_type(self):
+        if 'thesis_type' in self.config:
+            for code, description in THESIS_TYPE_CHOICES:
+                if self.config['thesis_type'] == code:
+                    return description
+        return "Defence"
 
+    def thesis_summary(self): 
+        summary = ""
+        if 'work_title' in self.config:
+            summary += self.config['work_title'] + " : "
+        if 'thesis_location' in self.config:
+            summary += "(" + self.config['thesis_location'] + ") "
+        if 'exam_date' in self.config:
+            summary += self.config['exam_date'] + " "
+        return summary
+
+    @classmethod
+    def get_canonical(cls, person, semester=None):
+        """ 
+        Given a person, as of semester, try to find the student that looks 
+        like the most correct record. 
+       
+        Returns a list of GradStudents, which may be empty if there are no 
+        canonical records for this student in this semester..
+        """
+        
+        if semester == None:
+            semester = Semester.current() 
+
+        student_records = GradStudent.objects.filter(person=person)
+
+        students_and_statuses = [(gs, gs.status_as_of(semester)) for gs in student_records]
+
+        # Always ignore None records. These students don't have a status for this semester.
+        students_and_statuses = [(student, status) for student, status 
+                in students_and_statuses if status != None]
+        statuses = [status for student, status in students_and_statuses]
+
+        # if we have (ACTIVE or APPLICANT) and DONE records, ignore DONE records.
+        def intersect( l1, l2 ):
+            return bool(set(l1) & set(l2))
+
+        if (intersect( STATUS_ACTIVE, statuses ) or 
+            intersect( STATUS_APPLICANT, statuses ) or 
+            'LEAV' in statuses):
+            students_and_statuses = [(student, status) for student, status in 
+                                        students_and_statuses if 
+                                        status not in STATUS_INACTIVE]
+
+        return student_records
 
 class GradProgramHistory(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
@@ -494,10 +646,6 @@ class GradProgramHistory(models.Model):
     class Meta:
         ordering = ('-starting',)
     
-    def save(self, *args, **kwargs):
-        super(GradProgramHistory, self).save(*args, **kwargs)
-        self.student.update_status_fields()
-
     def __unicode__(self):
         return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 
@@ -527,6 +675,7 @@ LETTER_TAGS = {
 
 SUPERVISOR_TYPE_CHOICES = [
     ('SEN', 'Senior Supervisor'),
+    ('COS', 'Co-senior Supervisor'),
     ('COM', 'Committee Member'),
     ('CHA', 'Defence Chair'),
     ('EXT', 'External Examiner'),
@@ -701,6 +850,7 @@ STATUS_ORDER = {
         'GRAD': 8,
         'GONE': 8,
         'ARSP': 8,
+        None: 9,
         }
 class GradStatus(models.Model):
     """
@@ -725,6 +875,9 @@ class GradStatus(models.Model):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
 
     def save(self, close_others=True, *args, **kwargs):
+        if not self.start_date and self.status in STATUS_APPLICANT:
+            self.start_date = datetime.datetime.now()
+
         super(GradStatus, self).save(*args, **kwargs)
 
         if close_others:
@@ -903,8 +1056,6 @@ class FinancialComment(models.Model):
     def __unicode__(self):
         return "Comment for %s by %s" % (self.student.person.emplid, self.created_by)
 
-
-
 class GradFlag(models.Model):
     unit = models.ForeignKey(Unit)
     label = models.CharField(max_length=100, blank=False, null=False)
@@ -921,10 +1072,6 @@ class GradFlagValue(models.Model):
 
     def __unicode__(self):
         return "%s: %s" % (self.flag.label, self.value)
-    
-
-
-
 
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)

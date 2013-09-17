@@ -14,9 +14,13 @@ from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from creoleparser import text2html
 
+import bu_rules
+
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
 HOURS_PER_BU = 42 # also in media/js/ta.js
+
+HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 
 def _round_hours(val):
     "Round to two decimal places because... come on."
@@ -118,10 +122,13 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
         for f in self.config:
-            if 'weekly' in self.config[f]:
-                self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
-            if 'total' in self.config[f]:
-                self.config[f]['total'] = _round_hours(self.config[f]['total'])
+            # if 'weekly' in False is invalid, so we have to check if self.config[f] is iterable
+            # before we check for 'weekly' or 'total' 
+            if hasattr(self.config[f], '__iter__'):
+                if 'weekly' in self.config[f]:
+                    self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
+                if 'total' in self.config[f]:
+                    self.config[f]['total'] = _round_hours(self.config[f]['total'])
 
         super(TUG, self).save(*args, **kwargs)
         if newsitem:
@@ -130,6 +137,12 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
                     content='Your Time Use Guideline for %s has been changed. If you have not already, please review it with the instructor.' % (self.member.offering.name()),
                     url=self.get_absolute_url())
             n.save()
+
+    def expired( self ):
+        if self.member.offering.labtut():
+            return 'bu' in self.member.config and self.base_units != self.member.bu() - LAB_BONUS_DECIMAL
+        else:
+            return 'bu' in self.member.config and self.base_units != self.member.bu()
             
     def get_absolute_url(self):
         return reverse('ta.views.view_tug', kwargs={
@@ -177,6 +190,9 @@ class TAPosting(models.Model):
         # 'min_courses': Minimum number of courses an applicant can select
         # 'offer_text': Text to be displayed when students accept/reject the offer (creole markup)
         # 'export_seq': sequence ID for payroll export (so we can create a unique Batch ID)
+        # 'extra_questions': additional questions to ask applicants
+        # 'instructions': instructions for completing the TA Application
+        # 'hide_campuses': whether or not to prompt for Campus
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -193,6 +209,9 @@ class TAPosting(models.Model):
             'contact': None,
             'offer_text': '',
             'export_seq': 0,
+            'extra_questions': [],
+            'instructions': '',
+            'hide_campuses': False
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -206,6 +225,9 @@ class TAPosting(models.Model):
     max_courses, set_max_courses = getter_setter('max_courses')
     min_courses, set_min_courses = getter_setter('min_courses')
     offer_text, set_offer_text = getter_setter('offer_text')
+    extra_questions, set_extra_questions = getter_setter('extra_questions')
+    instructions, set_instructions = getter_setter('instructions')
+    hide_campuses, set_hide_campuses = getter_setter('hide_campuses')
     _, set_contact = getter_setter('contact')
     
     class Meta:
@@ -217,7 +239,6 @@ class TAPosting(models.Model):
         key = self.html_cache_key()
         cache.delete(key)
 
-    
     def short_str(self):
         return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
@@ -272,21 +293,8 @@ class TAPosting(models.Model):
         """
         Default BUs to assign for this course offering
         """
-        if count is None:
-            count = offering.enrl_tot
-        level = offering.number[0] + "00"
-        if level not in self.bu_defaults():
-            return decimal.Decimal(0)
-        
-        defaults = self.bu_defaults()[level]
-        defaults.sort()
-        # get highest cutoff <= actual student count
-        last = decimal.Decimal(0)
-        for s,b in defaults:
-            if s > count:
-                return decimal.Decimal(last)
-            last = b
-        return decimal.Decimal(last) # if off the top of scale, return max
+        strategy = bu_rules.get_bu_strategy( self.semester, self.unit )
+        return strategy( self, offering, count )
 
     def required_bu(self, offering, count=None):
         """
@@ -401,7 +409,7 @@ class TAApplication(models.Model):
         help_text='In what department are you a student (e.g. "CMPT", "ENSC", if applicable)?')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN",help_text="Social insurance number (required for receiving payments)")
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
-            help_text='Maximum number of base units (BU\'s) you would accept (each BU represents a maximum of 42 hours of work for the semester; 5.0 BU\'s is considered a "full" offer).')
+            help_text='Maximum number of base units (BU\'s) you would accept. Each BU represents a maximum of 42 hours of work for the semester. TA appointments can consist of 2 to 5 base units and are based on course enrollments and department requirements.')
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Additional Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
@@ -414,6 +422,8 @@ class TAApplication(models.Model):
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
     admin_created = models.BooleanField(blank=False, default=False)
+    config = JSONField(null=False, blank=False, default={})
+        # 'extra_questions' - a dictionary of answers to extra questions. {'How do you feel?': 'Pretty sharp.'} 
  
     class Meta:
         unique_together = (('person', 'posting'),)
@@ -492,6 +502,7 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
     """
+    status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
     posting = models.ForeignKey(TAPosting)
     application = models.ForeignKey(TAApplication)
     sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
@@ -505,7 +516,6 @@ class TAContract(models.Model):
     appt_cond = models.BooleanField(default=False, verbose_name="Conditional")
     appt_tssu = models.BooleanField(default=True, verbose_name="Appointment in TSSU")
     deadline = models.DateField(verbose_name="Acceptance Deadline", help_text='Deadline for the applicant to accept/decline the offer')
-    status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
     remarks = models.TextField(blank=True)
     
     created_by = models.CharField(max_length=8, null=False)
@@ -524,7 +534,10 @@ class TAContract(models.Model):
         # set SIN field on any GradStudent objects for this person
         from grad.models import GradStudent
         for gs in GradStudent.objects.filter(person=self.application.person):
-            if 'sin' not in gs.config:
+            dummy_sins = ['999999999', '000000000', '123456789']
+            if (('sin' not in gs.config 
+                or ('sin' in gs.config and gs.config['sin'] in dummy_sins)) 
+                and not self.sin in dummy_sins ):
                 gs.person.set_sin(self.sin)
                 gs.person.save()
 
@@ -532,23 +545,59 @@ class TAContract(models.Model):
         courses = TACourse.objects.filter(contract=self)
         for crs in courses:
             members = Member.objects.filter(person=self.application.person, offering=crs.course).exclude(role='DROP')
-            if (self.status == 'SGN' and crs.bu > 0) and not members:
-                # signed, but not a member: create
-                m = Member(person=self.application.person, offering=crs.course, role='TA',
+            # assert( len(members) <= 1 )
+            dropped_members = Member.objects.filter(person=self.application.person, offering=crs.course, role='DROP')
+            # Should Member just have an optional FK to TACourse rather than getting a copy of the BU? 
+            if (self.status in ['SGN', 'ACC'] and crs.bu > 0) and not members:
+                if dropped_members:
+                    m = dropped_members[0]
+                    # if this student was added/dropped by the prof, then added_reason might not be CTA
+                    m.added_reason='CTA'
+                    m.role = "TA"
+                else:
+                    # signed, but not a member: create
+                    m = Member(person=self.application.person, offering=crs.course, role='TA',
                            added_reason='CTA', credits=0, career='NONS')
-                m.config['bu'] = crs.bu
+                m.config['bu'] = crs.total_bu
                 m.save()
-            elif (self.status != 'SGN' or crs.bu == 0) and members:
+            elif (self.status in ['SGN', 'ACC'] and crs.bu > 0 ) and members:
+                # change in BU -> change in BU for Member
+                m = members[0]
+                if not 'bu' in m.config or m.config['bu'] != crs.total_bu:
+                    # if this student was added by the prof, then added_reason might not be CTA
+                    m.config['bu'] = crs.total_bu
+                    m.added_reason='CTA'
+                    m.save()
+            elif ( (not self.status in ['SGN', 'ACC']) or crs.bu == 0) and members:
                 # already in course, but status isn't signed: remove
                 m = members[0]
                 if m.role == 'TA' and m.added_reason == 'CTA':
                     m.role = 'DROP'
                     m.save()
+            else: 
+                # (self.status not in ['SGN', 'ACC'] or crs.bu == 0) and not members
+                # there is no contract and this student doesn't exist as a Member in the course
+                pass
             
             if self.status in ('CAN', 'REJ'):
+                # These students should be removed from their courses. 
                 crs.bu = 0
                 crs.save()
 
+            # If this course has 0 BUs and a course Member record, clear that record. 
+            if crs.bu == 0 and members:
+                m = members[0]
+                if m.role == 'TA' and m.added_reason == 'CTA':
+                    m.role = 'DROP'
+                    m.save()
+
+        # If they are CTA-added members of any other course this semester, they probably shouldn't be
+        members = Member.objects.filter(person=self.application.person, role='TA', added_reason='CTA', offering__semester=self.posting.semester )
+        courseofferings = [crs.course for crs in courses if crs.bu > 0]
+        for member in members:
+            if member.offering not in courseofferings:
+                member.role = 'DROP'
+                member.save()
 
 
     def first_assign(self, application, posting):
@@ -571,6 +620,8 @@ class TAContract(models.Model):
 
     def total_bu(self):
         courses = TACourse.objects.filter(contract=self)
+        if self.status in ('CAN', 'REJ'):
+            return 0
         return sum( [course.total_bu for course in courses] )
 
     def prep_bu(self):
@@ -642,7 +693,8 @@ class TACourse(models.Model):
         contract = self.contract
         if contract.status in STATUSES_NOT_TAING:
             return decimal.Decimal(0)
-        total = self.total_bu * (contract.pay_per_bu + contract.scholarship_per_bu)
+        total = self.total_bu * contract.pay_per_bu
+        total += self.bu * contract.scholarship_per_bu
         return total
         
 TAKEN_CHOICES = (

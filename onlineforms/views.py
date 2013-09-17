@@ -4,6 +4,8 @@ from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.db.models import Q
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
@@ -20,7 +22,7 @@ import os
 from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
 
-# TODO: add logging
+# TODO: file fields are broken
 
 #######################################################################
 # Group Management
@@ -32,6 +34,7 @@ def manage_groups(request):
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def new_group(request):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
@@ -42,6 +45,11 @@ def new_group(request):
             form.save()
             name = str(form.cleaned_data['name'])
             formgroup = FormGroup.objects.get(name=name)
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created form group %s (%i)") % (formgroup, formgroup.id),
+                  related_object=formgroup)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup.slug }))
     else:
         form = GroupForm()
@@ -52,6 +60,7 @@ def new_group(request):
     return render(request, 'onlineforms/new_group.html', context)
 
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -61,6 +70,11 @@ def manage_group(request, formgroup_slug):
         form = EditGroupForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited form group %s (%i)") % (group, group.id),
+                  related_object=group)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     form = EditGroupForm(instance=group)
     grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
@@ -72,6 +86,7 @@ def manage_group(request, formgroup_slug):
     return render(request, 'onlineforms/manage_group.html', context)
 
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -80,13 +95,15 @@ def add_group_member(request, formgroup_slug):
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
                 if request.POST['search'] != '':
-                    print "if request post search is NOT empty" 
                     search_form = EmployeeSearchForm(request.POST)
-                    print search_form
                     if search_form.is_valid(): 
                         # search returns Person object
                         member = search_form.cleaned_data['search']
                         group.members.add(member)
+                        l = LogEntry(userid=request.user.username,
+                             description=("added %s to form group %s") % (member.userid_or_emplid(), group),
+                              related_object=group)
+                        l.save()
                         return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                 else: # if accidentally don't search for anybody
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
@@ -95,6 +112,7 @@ def add_group_member(request, formgroup_slug):
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
+@transaction.commit_on_success
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -108,6 +126,11 @@ def remove_group_member(request, formgroup_slug, userid):
         if 'action' in request.POST:
             if request.POST['action'] == 'remove':
                 group.members.remove(member)
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                    description=("Removed %s from form group %s") % (member.userid_or_emplid(), group),
+                    related_object=group)
+                l.save()
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
     
     groups = FormGroup.objects.filter(unit__in=request.units)
@@ -142,15 +165,21 @@ def admin_list_all(request):
 # Managing submissions & assigning sheets
 
 @requires_formgroup()
-def admin_assign_nonsfu(request, formsubmit_slug):
-    #group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-    return admin_assign(request, formsubmit_slug, assign_to_sfu_account=False)
-
+def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
+    return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=False)
 
 @requires_formgroup()
-def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
+def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
+    return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=True)
+
+@transaction.commit_on_success
+def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
+    """
+    Give a sheet on this formsubmission to a user
+    """
     admin = get_object_or_404(Person, userid=request.user.username)
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
 
     # get the next sheet that hasn't been completed (as the default next sheet to assign)
     filled_orders = [val['sheet__order'] for val in
@@ -182,6 +211,12 @@ def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
         # send email
         if formFiller.full_email() != admin.full_email():
             sheet_submission.email_assigned(request, admin, formFiller)
+
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+            description=("Assigned form sheet %s to %s") % (sheet_submission.sheet, sheet_submission.filler.identifier()),
+            related_object=sheet_submission)
+        l.save()
         messages.success(request, 'Sheet assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
@@ -191,19 +226,24 @@ def admin_assign(request, formsubmit_slug, assign_to_sfu_account=True):
 
 @requires_formgroup()
 def admin_assign_any_nonsfu(request):
-    return admin_assign_any(request, assign_to_sfu_account=False)
-
-
+    return _admin_assign_any(request, assign_to_sfu_account=False)
 @requires_formgroup()
 def admin_assign_any(request, assign_to_sfu_account=True):
+    return _admin_assign_any(request, assign_to_sfu_account=True)
+
+@transaction.commit_on_success
+def _admin_assign_any(request, assign_to_sfu_account=True):
+    """
+    Give a form('s initial sheet) to a user
+    """
     admin = get_object_or_404(Person, userid=request.user.username)
 
     if assign_to_sfu_account:
         form = AdminAssignForm(data=request.POST or None, label='form',
-            query_set=Form.objects.filter(active=True))
+            query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
     else:
         form = AdminAssignForm_nonsfu(data=request.POST or None, label='form',
-            query_set=Form.objects.filter(active=True))
+            query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
 
     if request.method == 'POST' and form.is_valid():
         # get the person to assign too
@@ -228,17 +268,29 @@ def admin_assign_any(request, assign_to_sfu_account=True):
         # send email
         if formFiller.full_email() != admin.full_email():
             sheet_submission.email_assigned(request, admin, formFiller)
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+            description=("Assigned form %s to %s") % (form, sheet_submission.filler.identifier()),
+            related_object=sheet_submission)
+        l.save()
         messages.success(request, 'Form assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
+@transaction.commit_on_success
 @requires_formgroup()
-def admin_done(request, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+def admin_done(request, form_slug, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
     form_submission.status = 'DONE'
     form_submission.save()
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+        description=("Marked form submission %s done.") % (form_submission,),
+        related_object=form_submission)
+    l.save()
     return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
 def _userToFormFiller(user):
@@ -248,6 +300,11 @@ def _userToFormFiller(user):
         form_filler = FormFiller.objects.create(sfuFormFiller=user)
     return form_filler
 
+
+#######################################################################
+# Creating/editing forms
+
+@transaction.commit_on_success
 @requires_formgroup()
 def list_all(request):
     forms = Form.objects.filter(owner__in=request.formgroups, active=True)
@@ -257,7 +314,12 @@ def list_all(request):
         if forms:
             form = forms[0]
             form.delete()
-            messages.success(request, 'Removed the Form ')
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Deleted form %s.") % (form,),
+                related_object=form)
+            l.save()
+            messages.success(request, 'Removed the Form')
         return HttpResponseRedirect(reverse(list_all))
     else:
         form = FormForm()
@@ -265,9 +327,7 @@ def list_all(request):
     return render(request, 'onlineforms/manage_forms.html', context)
 
 
-#######################################################################
-# Creating/editing forms
-
+@transaction.commit_on_success
 @requires_formgroup()
 def new_form(request):
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
@@ -279,6 +339,11 @@ def new_form(request):
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
             f.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form %s.") % (f,),
+                related_object=f)
+            l.save()
             return HttpResponseRedirect(reverse(view_form, kwargs={'form_slug':f.slug }))
     else:
         form = NewFormForm()
@@ -293,11 +358,10 @@ def view_form(request, form_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         sheet_id = request.POST['sheet_id']
         sheets = Sheet.objects.filter(id=sheet_id, form=form)
-        # TODO handle the condition where we cant find the field
-        if sheets :       
-                sheet = sheets[0]
-                sheet.delete()
-                messages.success(request, 'Removed the sheet %s.' % (sheet.title))
+        if sheets:
+            sheet = sheets[0]
+            sheet.delete()
+            messages.success(request, 'Removed the sheet "%s".' % (sheet.title))
            
         return HttpResponseRedirect(
             reverse(view_form, kwargs={'form_slug':form.slug }))
@@ -307,6 +371,7 @@ def view_form(request, form_slug):
     return render(request, "onlineforms/view_form.html", context)       
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -320,6 +385,11 @@ def edit_form(request, form_slug):
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
             f.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Edited form %s.") % (f,),
+                related_object=f)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
@@ -329,6 +399,7 @@ def edit_form(request, form_slug):
     return render(request, 'onlineforms/edit_form.html', context)
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def new_sheet(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -336,7 +407,12 @@ def new_sheet(request, form_slug):
         form = SheetForm(request.POST)
         if form.is_valid():
             sheet = Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
-            messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form sheet %s.") % (sheet,),
+                related_object=sheet)
+            l.save()
+            messages.success(request, 'Successfully created the new sheet "%s' % form.cleaned_data['title'])
             return HttpResponseRedirect(
                 reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet.slug}))
     else:
@@ -344,6 +420,7 @@ def new_sheet(request, form_slug):
         other_sheets = Sheet.objects.filter(form=owner_form, active=True).count()
         if other_sheets == 0:
             initial['title'] = owner_form.title
+            initial['can_view'] = 'NON'
         form = SheetForm(initial=initial)
 
     context = {'form': form, 'owner_form': owner_form}
@@ -361,6 +438,7 @@ def preview_sheet(request, form_slug, sheet_slug):
     context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
     return render(request, "onlineforms/preview_sheet.html", context)
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -389,6 +467,11 @@ def edit_sheet(request, form_slug, sheet_slug):
             field = Field.objects.get(sheet=owner_sheet, original=field.original) # get field on new version, not old
             field.active = False
             field.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Removed form field %s.") % (field,),
+                related_object=field)
+            l.save()
             messages.success(request, 'Removed the field %s.' % (field.label))
         return HttpResponseRedirect(
             reverse(edit_sheet, kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
@@ -407,6 +490,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def reorder_field(request, form_slug, sheet_slug):
     """
@@ -436,6 +520,7 @@ def reorder_field(request, form_slug, sheet_slug):
     return ForbiddenResponse(request)
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_sheet_info(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -446,6 +531,11 @@ def edit_sheet_info(request, form_slug, sheet_slug):
         form = EditSheetForm(request.POST, instance=owner_sheet)
         if form.is_valid():
             new_sheet = owner_sheet.safe_save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Edited form sheet %s.") % (new_sheet,),
+                related_object=new_sheet)
+            l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
                 kwargs={'form_slug': owner_form.slug, 'sheet_slug': new_sheet.slug}))
     else:
@@ -455,6 +545,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     return render(request, 'onlineforms/edit_sheet_info.html', context)
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def new_field(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -471,12 +562,17 @@ def new_field(request, form_slug, sheet_slug):
 
         if form.is_valid():
             new_sheet = owner_sheet.safe_save()
-            Field.objects.create(label=form.cleaned_data['label'],
+            f = Field.objects.create(label=form.cleaned_data['label'],
                     sheet=new_sheet,
                     fieldtype=ftype,
                     config=custom_config,
                     active=True,
                     original=None, )
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form field %s.") % (f,),
+                related_object=f)
+            l.save()
             messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
@@ -501,12 +597,17 @@ def new_field(request, form_slug, sheet_slug):
         # ... unless we don't have to configure. Then don't.
         if not field.configurable:
             new_sheet = owner_sheet.safe_save()
-            Field.objects.create(label='',
+            f = Field.objects.create(label='',
                 sheet=new_sheet,
                 fieldtype=ftype,
                 config={},
                 active=True,
                 original=None, )
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Created form field %s.") % (f,),
+                related_object=f)
+            l.save()
             messages.success(request, 'Successfully created a new field')
 
             return HttpResponseRedirect(
@@ -530,6 +631,7 @@ def _clean_config(config):
     return clean_config
 
 
+@transaction.commit_on_success
 @requires_form_admin_by_slug()
 def edit_field(request, form_slug, sheet_slug, field_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -556,7 +658,12 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                 active=True,
                 order=field.order,
                 original=field.original)
-            messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Edited form field %s.") % (new_field,),
+                related_object=new_field)
+            l.save()
+            messages.success(request, 'Successfully updated the field "%s"' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
                 reverse('onlineforms.views.edit_sheet', args=(new_sheet.form.slug, new_sheet.slug)))
@@ -592,14 +699,19 @@ def index(request):
     context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
-    
+
+is_displayable_sheet_sub = Q(status="DONE") | Q(sheet__is_initial=True)
 def _readonly_sheets(form_submission):
-#sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission, status="DONE")
-    sheet_sub_html = {} 
-    sheetsWithFiles = {} 
+    """
+    Collect sheet subs and other info to display this form submission.
+    """
+    sheet_submissions = SheetSubmission.objects \
+            .filter(form_submission=form_submission) \
+            .filter(is_displayable_sheet_sub)
+    sheet_sub_html = {}
+    sheetsWithFiles = {}
     for sheet_sub in sheet_submissions:
-        # get html from feild submissions
+        # get html from field submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
         fields = []
         for field_sub in field_submissions:
@@ -615,14 +727,15 @@ def _readonly_sheets(form_submission):
                     field.html = field.to_html(field_sub)
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
-        return sheet_sub_html, sheetsWithFiles
-    
-    return None, None
+    return sheet_sub_html, sheetsWithFiles
+
 
 
 @requires_formgroup()
-def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition):
-    form_sub = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+def file_field_download(request, form_slug, formsubmit_slug, sheet_id, file_id, disposition):
+    raise NotImplementedError
+    form_sub = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                 owner__in=request.formgroups)
     sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
     field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
     file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub)
@@ -639,27 +752,48 @@ def file_field_download(request, formsubmit_slug, sheet_id, file_id, disposition
     return response
 
 @requires_formgroup()
-def view_submission(request, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+def view_submission(request, form_slug, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
     sheet_submissions, sheetsWithFiles = _readonly_sheets(form_submission)
 
-    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'formsubmit_slug': formsubmit_slug}
+    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 
 
 def sheet_submission_via_url(request, secret_url):
+    """
+    Sheet submission from a user who has been sent a secret URL
+    """
     sheet_submission_secret_url = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
     sheet_submission_object = sheet_submission_secret_url.sheet_submission
     sheet = sheet_submission_object.sheet
     form_submission = sheet_submission_object.form_submission
     form = form_submission.form
     alternate_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url})
-    return sheet_submission(request, form.slug, form_submission.slug, sheet.slug, sheet_submission_object.slug, alternate_url)
+    return _sheet_submission(request, form_slug=form.slug, formsubmit_slug=form_submission.slug,
+                             sheet_slug=sheet.slug, sheetsubmit_slug=sheet_submission_object.slug,
+                             alternate_url=alternate_url)
 
+def sheet_submission_initial(request, form_slug):
+    """
+    Submission from a user who is initiating a new form submission
+    """
+    return _sheet_submission(request, form_slug=form_slug)
 
-def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
+def sheet_submission_subsequent(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
+    """
+    Submission by a user who is returning to a partially-completed sheet submission
+    """
+    return _sheet_submission(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug,
+                             sheet_slug=sheet_slug, sheetsubmit_slug=sheetsubmit_slug)
+
+@transaction.commit_on_success
+def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
+    this_path = request.get_full_path()
+    
     # if no one can fill out this form, stop right now
     if owner_form.initiators == "NON":
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
@@ -692,7 +826,8 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     # get the submission objects(if they exist) and create the form
     if formsubmit_slug and sheetsubmit_slug:
         form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
-        sheet_submission = get_object_or_404(SheetSubmission, sheet__original=sheet.original, form_submission=form_submission, slug=sheetsubmit_slug)
+        sheet_submission = get_object_or_404(SheetSubmission, sheet__original=sheet.original,
+                                             form_submission=form_submission, slug=sheetsubmit_slug)
         sheet = sheet_submission.sheet # revert to the old version that the user was working with.
         # check if this sheet has already been filled
         if sheet_submission.status == "DONE":
@@ -714,7 +849,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
         # get previously filled in sheet's data
         if sheet.can_view == 'ALL':
-            filled_sheets = _readonly_sheets(form_submission)
+            filled_sheets, _ = _readonly_sheets(form_submission)
     else:
         # make sure we are allowed to initiate this form
         if not loggedin_user and owner_form.initiators != "ANY":
@@ -728,14 +863,14 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     if request.method == 'POST' and ('save' in request.POST or 'submit' in request.POST):
             # get the info from post
             if 'save' in request.POST:
-                form.fromPostData(request.POST, ignore_required=True)
+                form.fromPostData(request.POST, request.FILES, ignore_required=True)
             elif 'submit' in request.POST:
-                form.fromPostData(request.POST)
+                form.fromPostData(request.POST, request.FILES)
 
             if form.is_valid():
                 # sheet is valid, lets get a form filler (if we don't already have one)
                 if not formFiller:
-                    # we don't have a form filler from above(could be initial sheet submission)
+                    # we don't have a form filler from above (could be initial sheet submission)
                     # if they provided a non-SFU form use that info, otherwise grab their logged in credentials
                     formFiller = None
                     if 'add-nonsfu' in request.POST and sheet.is_initial and owner_form.initiators == "ANY":
@@ -783,7 +918,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
 
                     # save the data from the fields
                     for name, field in form.fields.items():
-                        # a field can be skipped if we are saving and it is not in the cleaned data
+                        # a field can be skipped if we are saving (not submitting) the form, and it is not in the cleaned data
                         if not('submit' in request.POST) or str(name) in form.cleaned_data:
                             cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
                             # if we already have a field submission, edit it. Otherwise create a new one
@@ -828,7 +963,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                             access_url = reverse('onlineforms.views.sheet_submission_via_url', kwargs={'secret_url': secret_url.key})
                         else:
                             sheet_submission.email_started(request)
-                            access_url = reverse('onlineforms.views.sheet_submission', kwargs={
+                            access_url = reverse('onlineforms.views.sheet_submission_subsequent', kwargs={
                                 'form_slug': owner_form.slug,
                                 'formsubmit_slug': form_submission.slug,
                                 'sheet_slug': sheet.slug,
@@ -858,5 +993,6 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                 'form_submission': form_submission,
                 'filled_sheets': filled_sheets,
                 'alternate_url': alternate_url,
-                'nonSFUFormFillerForm': nonSFUFormFillerForm}
+                'nonSFUFormFillerForm': nonSFUFormFillerForm,
+                'this_path': this_path,}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)

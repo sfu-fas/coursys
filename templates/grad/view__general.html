@@ -61,6 +61,20 @@
 					</dd>
 				</dl></td>
 			</tr>
+            {% if grad.config.sin %}
+            <tr>
+                <td>
+                <dl>
+                    <dt>
+                        <label> SIN : </label>
+                    </dt>
+                    <dd>
+                        {{grad.config.sin }}
+                    </dd>
+                </dl>
+                </td>
+            </tr>
+            {% endif %}
 			<tr>
 				<td>
 				{% for gf, gfv in flag_values %}
@@ -68,6 +82,16 @@
 				{% endfor %}
 				</td>
 			</tr>
+            {% if extras %}
+            <tr>
+                <td>
+                <ul>
+                    {% for extra, value in extras %}
+                    <li><strong class="label">{{extra}}</strong>: <br/>&nbsp;{{value}}</li>
+                    {% endfor %}
+                </ul>
+            </tr>
+            {% endif %}
 			<tr>
 				<td colspan="3">
 				<dl>

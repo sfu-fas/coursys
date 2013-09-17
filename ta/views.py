@@ -5,17 +5,19 @@ from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, has_role, \
-    requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse, NotFoundResponse, HttpError
+    requires_course_staff_or_dept_admn_by_slug, requires_course_instr_or_dept_admn_by_slug, \
+    ForbiddenResponse, NotFoundResponse, HttpError
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
-    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
+    HOLIDAY_HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester, ComputingAccount, CAMPUSES
 from coredata.queries import add_person, more_personal_info, SIMSProblem
-from grad.models import GradStatus
+from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
     CourseDescriptionForm, LabelledHidden, NewTAContractForm
@@ -29,6 +31,7 @@ import datetime, decimal, locale
 import unicodecsv as csv
 from ta.templatetags import ta_display
 import json
+import bu_rules
 
 locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
@@ -37,6 +40,23 @@ def _format_currency(i):
 
 
 def _create_news(person, url, from_user, accept_deadline):
+    
+    # attempt to e-mail the student's supervisor
+    gradstudents = GradStudent.get_canonical(person);
+    if len(gradstudents) > 0: 
+        gradstudent = gradstudents[0]
+        senior_supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type='SEN')
+        supervisor_url = reverse('ta.views.instr_offers')
+        if len(senior_supervisors) > 0:
+            senior_supervisor = senior_supervisors[0].supervisor
+            n = NewsItem( user=senior_supervisor, 
+                            source_app="ta_contract", 
+                            title=u"TA Contract Offer for %s" % person,
+                            url=supervisor_url, 
+                            author=from_user,
+                            content="Your student %s has been offered a TA contract." % person );
+            n.save()
+
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
@@ -89,7 +109,7 @@ def all_tugs_admin(request, semester_name=None):
     return render(request, 'ta/all_tugs_admin.html', context)
 
 
-@requires_course_instr_by_slug
+@requires_course_instr_or_dept_admn_by_slug
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
@@ -103,13 +123,19 @@ def new_tug(request, course_slug, userid):
             tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
-        if has_lab_or_tut:
+        if not member.bu():
             form = TUGForm(offering=course,userid=userid, initial=
-                    {'holiday':{'total':bu-LAB_BONUS_DECIMAL},
+                    {'holiday':{'total': 0},
+                     'base_units': 0})
+        elif has_lab_or_tut:
+            holiday = (bu-LAB_BONUS_DECIMAL) * HOLIDAY_HOURS_PER_BU
+            form = TUGForm(offering=course,userid=userid, initial=
+                    {'holiday':{'total':holiday},
                      'base_units': bu-LAB_BONUS_DECIMAL})
             form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS_DECIMAL)
         else:
-            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
+            holiday = bu * HOLIDAY_HOURS_PER_BU
+            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':holiday}, 'base_units': bu})
     
     if member.bu():
         # we know BUs from the TA application: don't allow editing
@@ -143,20 +169,36 @@ def view_tug(request, course_slug, userid):
     else:
         tug = get_object_or_404(TUG, member=member)
         max_hours = tug.base_units * HOURS_PER_BU
+        iterable_fields = [(_, params) for _, params in tug.config.iteritems() if hasattr(params, '__iter__') ]
+        total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
         has_lab_or_tut = course.labtas()
-        total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in tug.config.iteritems() if params.get('total',0) is not None)
+        expired = tug.expired()
         
-        context = {'tug': tug, 'ta':member, 'course':course, 
-                'maxHours': max_hours, 'totalHours': total_hours,
+        context = {'tug': tug, 
+                'ta':member, 
+                'course':course, 
+                'expired':expired,
+                'max_hours': max_hours, 
+                'total_hours':total_hours,
                 'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut,
+                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
                 'LAB_BONUS': LAB_BONUS_DECIMAL, 'LAB_BONUS_4': LAB_BONUS_DECIMAL+4, 'HOURS_PER_BU': HOURS_PER_BU, 'LAB_BONUS_HOURS': LAB_BONUS_DECIMAL*HOURS_PER_BU, 'HOURS_PER_BU': HOURS_PER_BU,}
         return render(request, 'ta/view_tug.html',context)
 
-@requires_course_instr_by_slug
+@requires_course_instr_or_dept_admn_by_slug
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     tug = get_object_or_404(TUG, member=member)
+    has_lab_or_tut = course.labtas()
+    
+    if member.bu():
+        bu = member.bu()
+        if has_lab_or_tut:
+            bu = member.bu() - LAB_BONUS_DECIMAL
+        holiday = bu * HOLIDAY_HOURS_PER_BU
+        tug.config['holiday']['total'] = holiday
+        tug.base_units = bu
 
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
@@ -269,71 +311,88 @@ def _new_application(request, post_slug, manual=False, userid=None):
             ta_form = TAApplicationForm(request.POST, prefix='ta', instance=application)
         else:
             ta_form = TAApplicationForm(request.POST, prefix='ta')
+        
+        ta_form.add_extra_questions(posting)
+
         courses_formset = CoursesFormSet(request.POST)
         for f in courses_formset:
             f.fields['course'].choices = course_choices
 
         if ta_form.is_valid() and courses_formset.is_valid():
-            app = ta_form.save(commit=False)
-
-            # if they gave a SIN, populate the Person record
-            if app.sin and app.sin != ta_form.sin_default:
-                if person.sin() != app.sin:
-                    person.set_sin(app.sin)
-                    person.save()
-            
-            today = datetime.date.today()
-            if(posting.closes < today):
-                app.late = True
-            else:
-                app.late = False
-            app.posting = posting
-            app.person = person
-            if manual:
-                app.admin_create = True
-                
-            app.save()
-            ta_form.save_m2m()
-            
-            # extract campus and skill values; create objects
-            CampusPreference.objects.filter(app=app).delete()
-            for c in used_campuses:
-                val = request.POST.get('campus-'+c, None)
-                if val not in PREFERENCES:
-                    val = 'WIL'
-                cp = CampusPreference(app=app, campus=c, pref=val)
-                cp.save()
-            
-            SkillLevel.objects.filter(app=app).delete()
-            for s in skills:
-                val = request.POST.get('skill-'+str(s.position), None)
-                if val not in LEVELS:
-                    val = 'NONE'
-                sl = SkillLevel(skill=s, app=app, level=val)
-                sl.save()
-            
-            # save course preferences: update existing or create new, as needed
-            old_pref = set(CoursePreference.objects.filter(app=app))
-            used_pref = set()
+            # No duplicates allowed
+            courses = []
             for (rank,form) in enumerate(courses_formset):
-                existing_crs = CoursePreference.objects.filter(app=app, course=form.cleaned_data['course'])
-                if existing_crs:
-                    course = existing_crs[0]
-                    course.exper = form.cleaned_data['exper']
-                    course.taken = form.cleaned_data['taken']
+                if 'course' in form.cleaned_data:
+                    courses.append( form.cleaned_data['course'] )
+
+            if len(courses) != len(set(courses)):
+                messages.error(request, "You have selected duplicate courses. Please select 5 different courses. ")
+            else:
+                app = ta_form.save(commit=False)
+                if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
+                    temp = {}
+                    for question in posting.config['extra_questions']:
+                        temp[question] = ta_form.cleaned_data[question] 
+                    app.config['extra_questions'] = temp
+
+                # if they gave a SIN, populate the Person record
+                if app.sin and app.sin != ta_form.sin_default:
+                    if person.sin() != app.sin:
+                        person.set_sin(app.sin)
+                        person.save()
+                
+                today = datetime.date.today()
+                if(posting.closes < today):
+                    app.late = True
                 else:
-                    course = form.save(commit=False)
-                course.app = app
-                course.rank = rank+1
-                course.save()
-                used_pref.add(course)
-            
-            # any removed courses: set to rank=0, but don't delete (since we assume one exists if it has been assigned already)
-            for course in old_pref - used_pref:
-                course.rank = 0
-                course.save()
-            
-            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
+                    app.late = False
+                app.posting = posting
+                app.person = person
+                if manual:
+                    app.admin_create = True
+                    
+                app.save()
+                ta_form.save_m2m()
+                
+                # extract campus and skill values; create objects
+                CampusPreference.objects.filter(app=app).delete()
+                for c in used_campuses:
+                    val = request.POST.get('campus-'+c, None)
+                    if val not in PREFERENCES:
+                        val = 'WIL'
+                    cp = CampusPreference(app=app, campus=c, pref=val)
+                    cp.save()
+                
+                SkillLevel.objects.filter(app=app).delete()
+                for s in skills:
+                    val = request.POST.get('skill-'+str(s.position), None)
+                    if val not in LEVELS:
+                        val = 'NONE'
+                    sl = SkillLevel(skill=s, app=app, level=val)
+                    sl.save()
+                
+                # save course preferences: update existing or create new, as needed
+                old_pref = set(CoursePreference.objects.filter(app=app))
+                used_pref = set()
+                for (rank,form) in enumerate(courses_formset):
+                    existing_crs = CoursePreference.objects.filter(app=app, course=form.cleaned_data['course'])
+                    if existing_crs:
+                        course = existing_crs[0]
+                        course.exper = form.cleaned_data['exper']
+                        course.taken = form.cleaned_data['taken']
+                    else:
+                        course = form.save(commit=False)
+                    course.app = app
+                    course.rank = rank+1
+                    course.save()
+                    used_pref.add(course)
+                
+                # any removed courses: set to rank=0, but don't delete (since we assume one exists if it has been assigned already)
+                for course in old_pref - used_pref:
+                    course.rank = 0
+                    course.save()
+                
+                return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
         
         # redisplaying form: build values for template with entered values
         campus_preferences = []
@@ -358,6 +417,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         # editing: build initial form from existing values
         
         ta_form = TAApplicationForm(prefix='ta', instance=application)
+        ta_form.add_extra_questions(posting)
         cp_init = [{'course': cp.course, 'taken': cp.taken, 'exper':cp.exper} for cp in old_coursepref]
         search_form = None
         courses_formset = CoursesFormSet(initial=cp_init)
@@ -390,6 +450,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
         for f in courses_formset:
             f.fields['course'].choices = course_choices
         ta_form = TAApplicationForm(prefix='ta', initial={'sin': sin})
+        ta_form.add_extra_questions(posting)
         campus_preferences = [(lbl, name, 'WIL') for lbl,name in CAMPUS_CHOICES if lbl in used_campuses]
         skill_values = [(s.position, s.name, 'NONE') for s in skills]
         today = datetime.date.today()
@@ -407,6 +468,8 @@ def _new_application(request, post_slug, manual=False, userid=None):
                     'campus_pref_choices':PREFERENCE_CHOICES,
                     'skill_values': skill_values,
                     'skill_choices': LEVEL_CHOICES,
+                    'instructions': posting.instructions(),
+                    'hide_campuses': posting.hide_campuses()
                   }
     return render(request, 'ta/new_application.html', context)
 
@@ -440,6 +503,53 @@ def view_all_applications(request,post_slug):
             'posting': posting,
             }
     return render(request, 'ta/view_all_applications.html', context)
+
+@requires_role("TAAD")
+def print_all_applications(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    applications = TAApplication.objects.filter(posting=posting)
+
+    for application in applications:
+        application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+        application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+        application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+        application.contracts = TAContract.objects.filter(application=application)
+
+    context = {
+            'applications': applications,
+            'posting': posting,
+            }
+    return render(request, 'ta/print_all_applications.html', context)
+
+@requires_role("TAAD")
+def print_all_applications_by_course(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    
+    # collect all course preferences in a sensible way
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    
+    for offering in offerings: 
+        offering.applications = []
+        applications_for_this_offering = [pref.app for pref in prefs if 
+            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
+        for application in applications_for_this_offering:
+            application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+            application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+            application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+            application.contracts = TAContract.objects.filter(application=application)
+            offering.applications.append(application)
+            
+
+    context = {
+            'offerings': offerings,
+            'posting': posting,
+            }
+    return render(request, 'ta/print_all_applications_by_course.html', context)
+
 
 @login_required
 def view_application(request, post_slug, userid):
@@ -575,7 +685,7 @@ def assign_bus(request, post_slug, course_slug):
                     ta_course.description = ta_course.default_description()
                     ta_course.save()
                     # this requires that the contract be re-signed
-                    ta_course.contract.status = 'OPN'
+                    ta_course.contract.status = 'NEW'
                     ta_course.contract.save()
 
         return HttpResponse(json.dumps(response_data), mimetype='application/json')
@@ -606,7 +716,7 @@ def assign_bus(request, post_slug, course_slug):
 
     # Then, anybody else. 
     for applicant in all_applicants:
-        applicant.course_rank = 0
+        applicant.course_rank = 99
         if applicant not in applicants:
             applicants.append(applicant)
 
@@ -659,7 +769,9 @@ def assign_bus(request, post_slug, course_slug):
                         #create new TAContract if there isn't one
                         contracts = TAContract.objects.filter(application=applicants[i], posting=posting)
                         if contracts.count() > 0: #count is 1
+                            # if we've added to the contract, we've invalidated it. 
                             contract = contracts[0]
+                            contract.status = "NEW"
                         else:
                             contract = TAContract(created_by=request.user.username)
                             contract.first_assign(applicants[i], posting)
@@ -673,11 +785,19 @@ def assign_bus(request, post_slug, course_slug):
                             formset[i]._errors['bu'] = formset[i].error_class(["Can't find a contract description to assign to the contract."])
                         else:
                             tacourse.save()
+                            contract.save()
                 else: 
                     #update bu for existing TACourse
                     if formset[i]['bu'].value() != '' and formset[i]['bu'].value() != '0':
-                        applicant.assigned_course.bu = formset[i]['bu'].value()
-                        applicant.assigned_course.save()                        
+                        old_bu = decimal.Decimal(formset[i]['bu'].value())
+                        new_bu = applicant.assigned_course.bu
+                        if old_bu != new_bu:
+                            applicant.assigned_course.bu = formset[i]['bu'].value()
+                            applicant.assigned_course.save()                        
+                            # if we've changed the contract, we've invalidated it. 
+                            contract = applicant.assigned_course.contract
+                            contract.status = "NEW"
+                            contract.save()
                     #unassign bu to this offering for this applicant
                     else:
                         course = applicant.assigned_course
@@ -796,7 +916,7 @@ def contracts_csv(request, post_slug):
         benefits = 'Y'
         schol_rate = 'TSCH' if c.scholarship_per_bu else ''
         salary_total = total_bu * c.pay_per_bu
-        schol_total = total_bu * c.scholarship_per_bu
+        schol_total = bu * c.scholarship_per_bu
         if prep_units == 0:
             prep_units = ''
         
@@ -833,12 +953,13 @@ def accept_contract(request, post_slug, userid, preview=False):
         
     courses = TACourse.objects.filter(contract=contract)
     total = contract.total_bu()
+    bu = contract.bu()
     
     #this could be refactored used in multiple places
     pp = posting.payperiods()
     pdead = posting.config['deadline']
     salary_sem = (total*contract.pay_per_bu)
-    schol_sem = (total*contract.scholarship_per_bu)
+    schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
@@ -900,10 +1021,11 @@ def view_contract(request, post_slug, userid):
     courses = TACourse.objects.filter(contract=contract)
     
     total = contract.total_bu()
+    bu = contract.bu()
     
     pp = posting.payperiods()
     salary_sem = (total*contract.pay_per_bu)
-    schol_sem = (total*contract.scholarship_per_bu)
+    schol_sem = (bu*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
@@ -1062,8 +1184,8 @@ def edit_contract(request, post_slug, userid):
                 if grad.count()>0:
                     grad[0].config['sin'] = request.POST['sin']
                 
-                contract.save()
                 formset.save()
+                contract.save()
 
                 if not editing:
                     messages.success(request, u"Created TA Contract for %s for %s." % (contract.application.person, posting))
@@ -1202,8 +1324,10 @@ def edit_posting(request, post_slug=None):
 @requires_role("TAAD")
 def posting_admin(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    default_visible = bu_rules.does_bu_strategy_involve_defaults(posting.semester, posting.unit) 
 
-    context = {'posting': posting}
+    context = {'posting': posting, 
+               'default_visible': default_visible }
     return render(request, 'ta/posting_admin.html', context)
 
 
@@ -1298,7 +1422,7 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Categ', 'Program', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
@@ -1307,22 +1431,26 @@ def generate_csv(request, post_slug):
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
     for app in apps:
+        system_program = ''
+        startsem = ''
+        status = ''
+        unit = ''
         # grad program info
-        gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
-        if gradstudents:
-            gs = min(gradstudents, key=_by_start_semester)
-            program = gs.program.label
+        gradstudents = GradStudent.get_canonical(app.person, app.posting.semester)
+        if len(gradstudents) == 1:
+            gs = gradstudents[0]
+            system_program = gs.program.label
             status = gs.get_current_status_display()
             unit = gs.program.unit.label
             if gs.start_semester:
                 startsem = gs.start_semester.name
             else:
                 startsem = ''
-        else:
-            program = ''
-            startsem = ''
-            status = ''
-            unit = ''
+        elif len(gradstudents) > 1:
+            system_program = "Multiple"
+            status = "*"
+            unit = "*"
+            startsem = "*"
         
         campuspref = ''
         for cp in CampusPreference.objects.filter(app=app):
@@ -1331,7 +1459,7 @@ def generate_csv(request, post_slug):
             elif cp.pref == 'WIL':
                 campuspref += cp.campus[0].lower()
         
-        row = [app.person.sortname(), app.category, program, status, unit, startsem, app.base_units, campuspref]
+        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem, app.base_units, campuspref]
         
         for off in offerings:
             crs = off.course
@@ -1344,6 +1472,61 @@ def generate_csv(request, post_slug):
         csvWriter.writerow(row)
     
     return response
+
+@requires_role("TAAD")
+def generate_csv_by_course(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    
+    # collect all course preferences in a sensible way
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
+    
+    # generate CSV
+    filename = str(posting.slug) + '_by_course.csv'
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    csvWriter = csv.writer(response)
+    
+    #First csv row: all the course names
+    off = ['Name', 'Student ID', 'Email', 'Category', 'Program', 'BU']
+    extra_questions = []
+    if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
+        for question in posting.config['extra_questions']:
+            off.append(question[0:75])
+            extra_questions.append(question)
+
+    offering_rows = []
+    for offering in offerings: 
+        offering_rows.append([offering.course.subject + " " + offering.course.number + " " + offering.section])
+        applications_for_this_offering = [pref.app for pref in prefs if 
+            (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
+        for app in applications_for_this_offering:
+            
+            row = [app.person.sortname(), app.person.emplid, app.person.email(), app.category, app.current_program, app.base_units]
+            if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0 and 'extra_questions' in app.config:
+                for question in extra_questions:
+                    try:
+                        row.append(app.config['extra_questions'][question])
+                    except KeyError:
+                        row.append("")
+                for question in app.config['extra_questions']:
+                    if not question in extra_questions:
+                        off.append(question[0:75])
+                        extra_questions.append(question)
+                        row.append(app.config['extra_questions'][question])
+            
+            offering_rows.append(row)
+        offering_rows.append([])
+
+    csvWriter.writerow(off)
+    for row in offering_rows:
+        csvWriter.writerow(row)
+    
+    return response
+
     
 @requires_role("TAAD")
 def view_financial(request, post_slug):
@@ -1472,5 +1655,4 @@ def instr_offers(request):
     
     context = {'tacrses': tacrses}    
     return render(request, 'ta/instr_offers.html', context)
-
 

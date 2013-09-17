@@ -415,9 +415,9 @@ def save_copied_activity(target_activity, model, target_course_offering):
     we have to resolve the conflicts by deleting the old activity that conflicts with the new one
     """
     try:
-        old_activity = model.objects.get(Q(name=target_activity.name) | Q(short_name=target_activity.short_name, 
-                                    deleted = False), 
-            offering = target_course_offering)
+        old_activity = model.objects.get(Q(name=target_activity.name) | 
+                                         Q(short_name=target_activity.short_name, deleted = False), 
+                                        offering = target_course_offering, deleted = False)
     except model.DoesNotExist:
         target_activity.save()
     else:    
@@ -475,11 +475,17 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
         # fix up source and exam activities as best possible
         if activity.numeric_activity:
-            na = NumericActivity.objects.get(offering=course_copy_to, name=activity.numeric_activity.name, deleted=False)
+            try:
+                na = NumericActivity.objects.get(offering=course_copy_to, name=activity.numeric_activity.name, deleted=False)
+            except NumericActivity.DoesNotExist:
+                na = NumericActivity.objects.filter(offering=course_copy_to, deleted=False)[0]
             activity.numeric_activity = na
             
         if activity.exam_activity:
-            a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
+            try:
+                a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
+            except Activity.DoesNotExist:
+                a = Activity.objects.filter(offering=course_copy_to, deleted=False)[0]
             activity.exam_activity = a
         
         activity.save()
@@ -525,8 +531,10 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 dstpath += "_"
             dst = os.path.join(dstpath, dstfile)
             new_v.file_attachment = dst
+            
+            if not os.path.exists(dstpath):
+                os.makedirs(dstpath)
 
-            os.makedirs(dstpath)
             try:
                 os.link(src, dst)
             except:

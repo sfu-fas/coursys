@@ -2,10 +2,9 @@ from coredata.forms import PersonField
 from django import forms
 from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
-from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, INITIATOR_CHOICES, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
+from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
-from django.utils.html import escape
-from django.template.defaultfilters import linebreaksbr
+from pages.models import ParserFor
 
 class DividerFieldWidget(forms.TextInput):
     def render(self, name, value, attrs=None):
@@ -14,7 +13,8 @@ class DividerFieldWidget(forms.TextInput):
 
 class ExplanationFieldWidget(forms.Textarea):
     def render(self, name, value, attrs=None):
-        return mark_safe('<div class="explanation_block">%s</div>' % linebreaksbr(escape(self.explanation)))
+        parser = ParserFor(offering=None)
+        return mark_safe('<div class="explanation_block">%s</div>' % parser.text2html(self.explanation))
 
 # Manage groups
 class GroupForm(ModelForm):
@@ -38,7 +38,7 @@ class EmployeeSearchForm(forms.Form):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'config')
+        exclude = ('active', 'original', 'unit', 'config', 'advisor_visible')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -51,13 +51,13 @@ class FormForm(ModelForm):
         initiators = self.cleaned_data['initiators']
         form = self._get()
         if initiators != 'NON' and not Sheet.objects.filter(form=form, is_initial=True, active=True):
-            raise forms.ValidationError, "No initial sheet: can't activate"
+            raise forms.ValidationError, "Can't activate until you have created at least one sheet to be filled out."
         return initiators
 
 class NewFormForm(FormForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'initiators', 'config')
+        exclude = ('active', 'original', 'unit', 'initiators', 'config', 'advisor_visible')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -83,15 +83,17 @@ class FieldForm(forms.Form):
 # Administrate forms 
 class AdminAssignForm(forms.Form):
     class FormModelChoiceField(forms.ModelChoiceField):
+        widget = forms.RadioSelect
         def label_from_instance(self, obj):
             return obj.title
 
-    assignee = PersonField(label='Assign to', required=False)
+    assignee = PersonField(label='Assign to', required=True)
 
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
         self.fields.insert(0, label, self.FormModelChoiceField(required=True,
             queryset=query_set,
+            empty_label=None,
             label=label.capitalize()))
 
     def is_valid(self, *args, **kwargs):
@@ -101,16 +103,19 @@ class AdminAssignForm(forms.Form):
 
 class AdminAssignForm_nonsfu(ModelForm):
     class FormModelChoiceField(forms.ModelChoiceField):
+        widget = forms.RadioSelect
         def label_from_instance(self, obj):
             return obj.title
 
     class Meta:
         model = NonSFUFormFiller
+        exclude = ('config',)
 
     def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
         self.fields.insert(0, label, self.FormModelChoiceField(required=True,
             queryset=query_set,
+            empty_label=None,
             label=label.capitalize()))
 
 
@@ -145,7 +150,7 @@ class DynamicForm(forms.Form):
             self.display_fields[self.fields[counter] ] = display_field
 
 
-    def fromPostData(self, post_data, ignore_required=False):
+    def fromPostData(self, post_data, files_data, ignore_required=False):
         self.cleaned_data = {}
         for name, field in self.fields.items():
             try:
@@ -163,6 +168,8 @@ class DynamicForm(forms.Form):
                             cleaned_data = field.clean(relevant_data)
                         else:
                             cleaned_data = field.clean(post_data[str(name)])
+                elif str(name) in files_data:
+                    cleaned_data = field.clean(files_data[str(name)])
                 else:
                     if ignore_required:
                         cleaned_data = ""

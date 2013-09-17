@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
+from django.template.base import TemplateDoesNotExist
 from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
@@ -74,13 +75,19 @@ def index_full(request):
     return render(request, "dashboard/index_full.html", context)
 
 
-def fake_login(request):
+def fake_login(request, next_page=None):
     """
     Fake login view for devel without access to the fake CAS server
     """
     import socket
     from django.contrib.auth import login
     from django.contrib.auth.models import User
+
+    if not next_page and 'next' in request.GET:
+        next_page = request.GET['next']
+    if not next_page:
+        next_page = '/'
+
     hostname = socket.gethostname()
     if settings.DEPLOYED or hostname.startswith('courses'):
         # make damn sure we're not in production
@@ -95,9 +102,9 @@ def fake_login(request):
             user.save()
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
-        return HttpResponseRedirect('/')
+        return HttpResponseRedirect(next_page)
 
-    response = HttpResponse('<h1>Fake Authenticator</h1><p>Who would you like to be today?</p><form action="">Userid: <input type="text" name="userid" /><br/><input type="submit" value="&quot;Authenticate&quot;" /></form>')
+    response = HttpResponse('<h1>Fake Authenticator</h1><p>Who would you like to be today?</p><form action="">Userid: <input type="text" name="userid" /><br/><input type="submit" value="&quot;Authenticate&quot;" /><input type="hidden" name="next" value="%s" /></form>' % (next_page))
     return response
 
 def fake_logout(request):
@@ -120,8 +127,11 @@ from django_cas.views import _redirect_url, _service_url, _login_url, HttpRespon
 def login(request, next_page=None, required=False):
     """Forwards to CAS login URL or verifies CAS ticket"""
 
+    if not next_page and 'next' in request.GET:
+        next_page = request.GET['next']
     if not next_page:
         next_page = _redirect_url(request)
+
     if request.user.is_authenticated():
         #message = "You are logged in as %s." % request.user.username
         #request.user.message_set.create(message=message)
@@ -824,7 +834,11 @@ def view_doc(request, doc_slug):
             context['act1'] = None
             context['act2'] = None
 
-    return render(request, "docs/doc_" + doc_slug + ".html", context)
+    try:
+        res = render(request, "docs/doc_" + doc_slug + ".html", context)
+    except TemplateDoesNotExist:
+        raise Http404
+    return res
 
 
 # data export views

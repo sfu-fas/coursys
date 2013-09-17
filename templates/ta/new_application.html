@@ -22,6 +22,13 @@ div#phones li {
   margin: 0;
   padding: 0;
 }
+textarea {
+  width: 70%;
+  height: 30px;
+}
+dd{
+  margin-bottom: 30px;
+}
 </style>
 <script type="text/javascript">
 //<![CDATA[
@@ -53,6 +60,10 @@ $(document).ready(function() {
 //]]></script>{% endblock %}
 
 {% block content %}
+
+<div class="instructions">
+{{ instructions }}
+</div>
 
 <div class="form_container">
 <form action="" method="post">{% csrf_token %}
@@ -104,7 +115,7 @@ $(document).ready(function() {
 
 </fieldset>
 
-
+{% if not hide_campuses %}
 <fieldset>
     <legend>Campus Preferences</legend>
     <table class="borderless">
@@ -117,6 +128,7 @@ $(document).ready(function() {
     {% endfor %}
     </table>
 </fieldset>
+{% endif %}
 
 {% if skill_values %}
 <fieldset>

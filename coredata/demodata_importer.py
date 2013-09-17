@@ -9,11 +9,6 @@ from coredata.models import Member, Person, CourseOffering, ComputingAccount
 
 IMPORT_SEMESTERS = ('1131', '1134')
 
-#FIRSTTERM = "1111"
-#DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
-#FULL_TEST_DATA = "1114-cmpt-120-d100"
-#MIN_TEST_DATA = "1114-cmpt-165-c100"
-
 fakes = {}
 next_emplid = 100
 
@@ -134,6 +129,8 @@ def main():
     if not Person.objects.filter(userid='ggbaker'):
         Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
     give_sysadmin(['ggbaker'])
+    
+    ComputingAccount.objects.all().delete()
 
     ComputingAccount.objects.all().delete()
 

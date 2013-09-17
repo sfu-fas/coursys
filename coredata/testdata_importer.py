@@ -292,19 +292,21 @@ def create_more_data():
     r.save()
     sp = SemesterPlan(semester=Semester.objects.get(name='1127'), name='Test Plan', unit=Unit.objects.get(slug='comp'), slug='test-plan')
     sp.save()
-    o = PlannedOffering(plan=sp, course=Course.objects.get(slug='cmpt-102'), section='D100', campus='BRNBY', enrl_cap=100)
-    o.save()
+    #o = PlannedOffering(plan=sp, course=Course.objects.get(slug='cmpt-102'), section='D100', campus='BRNBY', enrl_cap=100)
+    #o.save()
     PlanningCourse.create_for_unit(Unit.objects.get(slug='comp'))
     te = TeachingEquivalent(pk=1, instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name='1127'), credits_numerator=1, credits_denominator=1, summary="Foo", status='UNCO')
     te.save()
     ti = TeachingIntention(instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name='1127'), count=2)
     ti.save()
-    tc = TeachingCapability(instructor=Person.objects.get(userid='ggbaker'), course=Course.objects.get(slug='cmpt-102'), note='foo')
-    tc.save()
+    #tc = TeachingCapability(instructor=Person.objects.get(userid='ggbaker'), course=Course.objects.get(slug='cmpt-102'), note='foo')
+    #tc.save()
 
     p = Person(userid='classam', emplid='200002389', first_name='Curtis', last_name='Lassam')
     p.save()
     r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=p, role="SYSA", unit=Unit.objects.get(slug='comp'))
     r.save()
     
     fg = FormGroup(name="Admins", unit=Unit.objects.get(slug='comp'))
@@ -408,8 +410,8 @@ def main():
         Person(userid='popowich', first_name='Fred', last_name='Popowich', emplid='000001236').save()
     
     # fix their emplids so they identify with real people during the import
-    update_amaint_userids()
-    fix_emplid()
+    #update_amaint_userids()
+    #fix_emplid()
     
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around

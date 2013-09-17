@@ -239,6 +239,19 @@ def requires_course_staff_or_dept_admn_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
+def requires_course_instr_or_dept_admn_by_slug(function=None, login_url=None):
+    """
+    Allows access if user is an instructor from course indicated by 'course_slug'
+    *or* if they are the departmental admin for the course's department 
+    """
+    def test_func(request, **kwargs):
+        return is_course_instr_by_slug(request, **kwargs) or is_dept_admn_by_slug(request, **kwargs)
+    actual_decorator = user_passes_test(test_func, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
 
 def is_discipline_user(request, course_slug, **kwargs):
     """

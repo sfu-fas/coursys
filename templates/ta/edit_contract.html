@@ -42,6 +42,7 @@
                 total += val
             }
         });
+        var before_bonus_bu = total;
         total += getBonusBUs();
 
 		$('#total_bu').val(total.toFixed(2))   
@@ -50,7 +51,7 @@
 		var schol_rate = parseFloat($('#id_scholarship_per_bu').val())
 		var bu = parseFloat($('#total_bu').val())
 		var salary_sem = (bu * salary_rate).toFixed(2)
-		var schol_sem = (bu * schol_rate).toFixed(2)
+		var schol_sem = (before_bonus_bu * schol_rate).toFixed(2)
 		$('#salary_sem').val(salary_sem)
 		$('#schol_sem').val(schol_sem)
 		var salary_bi = (salary_sem / "{{posting.payperiods}}").toFixed(2)
@@ -207,6 +208,9 @@
 
 <div class="form_container">
 <form action="" method="post">{% csrf_token %}
+
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
+
 <fieldset class="wide">
 <legend>General Info</legend>
 {%if editing%}

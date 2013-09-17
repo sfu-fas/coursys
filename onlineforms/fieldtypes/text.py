@@ -1,10 +1,9 @@
-from django.db.models.fields import TextField
-from django.forms.fields import EmailField, CharField
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from django.template.defaultfilters import linebreaksbr
+from pages.models import ParserFor
 
 class SmallTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 100}
@@ -180,7 +179,8 @@ class EmailTextField(FieldBase):
 class ExplanationTextField(FieldBase):
     class ExplanationTextConfigForm(FieldConfigForm):
         text_explanation = forms.CharField(required=True, max_length=10000,
-            widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))
+            widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
+            help_text='Text to display to the user; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
         def __init__(self, *args, **kwargs):
             super(self.__class__, self).__init__(*args, **kwargs)
             del self.fields['help_text']
@@ -207,5 +207,6 @@ class ExplanationTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + linebreaksbr(escape(self.config['text_explanation'])) + '</p>')
+        parser = ParserFor(offering=None)
+        return mark_safe('<div class="explanation_block">' + parser.text2html(self.config['text_explanation']) + '</div>')
 
