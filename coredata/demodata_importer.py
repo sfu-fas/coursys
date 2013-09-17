@@ -5,7 +5,7 @@
 
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
-from coredata.models import Member, Person, CourseOffering
+from coredata.models import Member, Person, CourseOffering, ComputingAccount
 
 IMPORT_SEMESTERS = ('1131', '1134')
 
@@ -131,7 +131,11 @@ def main():
     create_others()
 
     print "giving sysadmin permissions"
+    if not Person.objects.filter(userid='ggbaker'):
+        Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
     give_sysadmin(['ggbaker'])
+
+    ComputingAccount.objects.all().delete()
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
