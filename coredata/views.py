@@ -114,7 +114,7 @@ def edit_unit(request, unit_slug=None):
 
 @requires_global_role("SYSA")
 def members_list(request):
-    members = Member.objects.exclude(added_reason="AUTO")
+    members = Member.objects.exclude(added_reason="AUTO").exclude(added_reason="CTA")
     return render(request, 'coredata/members_list.html', {'members': members})
 
 
@@ -471,9 +471,7 @@ def course_search(request):
 def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])
-    #print has_formgroup(request)
-    #print not(roles & allowed)
+    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA'])
     if not(roles & allowed):
         # doesn't have any allowed roles
         if not has_formgroup(request):
