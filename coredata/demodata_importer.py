@@ -126,8 +126,12 @@ def main():
     create_others()
 
     print "giving sysadmin permissions"
+    if not Person.objects.filter(userid='ggbaker'):
+        Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
     give_sysadmin(['ggbaker'])
     
+    ComputingAccount.objects.all().delete()
+
     ComputingAccount.objects.all().delete()
 
 if __name__ == "__main__":
