@@ -703,12 +703,13 @@ is_displayable_sheet_sub = Q(status="DONE") | Q(sheet__is_initial=True)
 def _readonly_sheets(form_submission):
     """
     Collect sheet subs and other info to display this form submission.
+    
+    File upload fields are annotated with the FieldSubmissionFile object
     """
     sheet_submissions = SheetSubmission.objects \
             .filter(form_submission=form_submission) \
             .filter(is_displayable_sheet_sub)
     sheet_sub_html = {}
-    sheetsWithFiles = {}
     for sheet_sub in sheet_submissions:
         # get html from field submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
@@ -717,46 +718,58 @@ def _readonly_sheets(form_submission):
             field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
             field.fieldtype = field_sub.field.fieldtype
             if field.configurable:
-                field.label = field.config['label']
                 if field.fieldtype == "FILE":
-                    # file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub.id)
-                    sheetsWithFiles[sheet_sub.id] = field_sub.id
-                    # skip method for field.html = field.to_html(fileField)                    
-                else:
-                    field.html = field.to_html(field_sub)
+                    # get the most recent FieldSubmissionFile for this field_sub
+                    file_subs = FieldSubmissionFile.objects.filter(field_submission=field_sub) \
+                                .order_by('-created_at')[0:1]
+                    if file_subs:
+                        field_sub.file_sub = file_subs[0]
+                    else:
+                        field_sub.file_sub = None
+
+                field.label = field.config['label']
+                field.html = field.to_html(field_sub)
+
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
-    return sheet_sub_html, sheetsWithFiles
+    return sheet_sub_html
 
 
 
 @requires_formgroup()
-def file_field_download(request, form_slug, formsubmit_slug, sheet_id, file_id, disposition):
-    raise NotImplementedError
-    form_sub = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                 owner__in=request.formgroups)
-    sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
-    field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
-    file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub)
+def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
+    file_sub =  get_object_or_404(FieldSubmissionFile,
+                                  field_submission__sheet_submission__form_submission=form_submission,
+                                  id=file_id)
+    file_path = file_sub.file_attachment.file.name
+    filename = os.path.basename(file_path)
 
-    file_path = os.path.join(settings.PROJECT_DIR, 'submitted_files') + '/' + str(file_sub.file_attachment)
-    f = open(file_path, 'r')
-    path = os.path.basename(file_path)
-    file_name,file_extension = os.path.splitext(path)
-    response = HttpResponse(FileWrapper(f), content_type=file_sub.file_mediatype)
-    """
-    using strings for request[CD] doesn't work - following idea from a pages.view where disposition is just called as "attachment"
-    """
-    response['Content-Disposition'] = disposition + '; filename=' + file_name + file_extension
+    file_sub.file_attachment.file.open()
+    response = HttpResponse(file_sub.file_attachment.file, content_type=file_sub.file_mediatype)
+    
+    if action == 'download':
+        disposition = 'download'
+    else:
+        disposition = 'inline'
+    
+    response['Content-Disposition'] = disposition + '; filename=' + filename
     return response
+
 
 @requires_formgroup()
 def view_submission(request, form_slug, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
                                         owner__in=request.formgroups)
-    sheet_submissions, sheetsWithFiles = _readonly_sheets(form_submission)
+    sheet_submissions = _readonly_sheets(form_submission)
 
-    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}
+    context = {
+               'form': form_submission.form,
+               'sheet_submissions': sheet_submissions,
+               'form_slug': form_slug,
+               'formsubmit_slug': formsubmit_slug,
+               }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 
@@ -848,7 +861,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
         # get previously filled in sheet's data
         if sheet.can_view == 'ALL':
-            filled_sheets, _ = _readonly_sheets(form_submission)
+            filled_sheets = _readonly_sheets(form_submission)
     else:
         # make sure we are allowed to initiate this form
         if not loggedin_user and owner_form.initiators != "ANY":

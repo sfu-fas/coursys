@@ -99,7 +99,12 @@ class FileCustomField(FieldBase):
         return {} # creation of FieldSubmissionFile handed in the view code
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + 'File title?' + '</p>')
+        if hasattr(fieldsubmission, 'file_sub') and fieldsubmission.file_sub:
+            return mark_safe('<p>Uploaded file <a href="%s">%s</a></p>'
+                             % (escape(fieldsubmission.file_sub.get_file_url()),
+                                escape(fieldsubmission.file_sub.display_filename())))
+        else:
+            return mark_safe('<p class="empty">No file submitted.</p>')
 
 
 class URLCustomField(FieldBase):

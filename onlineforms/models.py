@@ -52,7 +52,7 @@ FIELD_TYPE_CHOICES = [
         ('SEL1', 'Select with a drop-down menu'),
         ('SELN', 'Select multiple values'),
         ('LIST', 'Enter a list of short responses'),
-        #('FILE', 'Upload a file'),
+        ('FILE', 'Upload a file'),
         ('URL', 'Web page address (URL)'),
         ('TEXT', 'Explanation block (user enters nothing)'),
         ('DIVI', 'Divider'),
@@ -536,9 +536,10 @@ def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
-
     fullpath = os.path.join(
             'forms',
+            instance.field_submission.sheet_submission.form_submission.form.slug,
+            instance.field_submission.sheet_submission.form_submission.slug,
             datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.field_submission_id),
             filename.encode('ascii', 'ignore'))
     return fullpath
@@ -550,6 +551,15 @@ class FieldSubmissionFile(models.Model):
     file_attachment = models.FileField(storage=FormSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
+    
+    def get_file_url(self):
+        return reverse('onlineforms.views.file_field_download',
+                       kwargs={'form_slug': self.field_submission.sheet_submission.sheet.form.slug,
+                               'formsubmit_slug': self.field_submission.sheet_submission.form_submission.slug,
+                               'file_id': self.id,
+                               'action': 'get'})
+    def display_filename(self):
+        return os.path.basename(self.file_attachment.file.name)
 
 class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
