@@ -15,7 +15,8 @@ from submission.models.pdf import PDFComponent
 from planning.models import SemesterPlan, PlannedOffering, PlanningCourse, TeachingEquivalent, TeachingCapability, TeachingIntention
 from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
-from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType, Supervisor, GradRequirement
+from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType, \
+        Supervisor, GradRequirement, GradFlag
 from discipline.models import DisciplineTemplate
 from ra.models import Account
 from onlineforms.models import FormGroup, Form, Sheet, Field, FormSubmission, SheetSubmission, FieldSubmission
@@ -179,6 +180,8 @@ def create_grads():
     gp.save()
     st = ScholarshipType(unit=Unit.objects.get(slug='comp'), name="Some Scholarship")
     st.save()
+    gf = GradFlag(unit=Unit.objects.get(slug='comp'), label='Special Specialist Program')
+    gf.save()
     
     programs = list(GradProgram.objects.all())
     supervisors = list(set([m.person for m in Member.objects.filter(offering__owner__slug='comp', role='INST')]))
@@ -355,6 +358,7 @@ def serialize(filename):
             GradStudent.objects.all(),
             GradStatus.objects.all(),
             GradRequirement.objects.all(),
+            GradFlag.objects.all(),
             Supervisor.objects.all(),
             ScholarshipType.objects.all(),
             DisciplineTemplate.objects.all(),
