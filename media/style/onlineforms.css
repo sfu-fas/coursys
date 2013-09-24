@@ -22,3 +22,12 @@ p.incomplete-warning {
 form.sheetsub div.explanation_block {
 	color: #999;
 }
+fieldset label.sublabel {
+	position: static;
+    display: inline;
+    width: auto;
+    float: none;
+    margin-right: 0;
+    line-height: 1em;
+    text-align: left;
+}

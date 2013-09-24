@@ -84,8 +84,8 @@ class ListField(FieldBase):
 
 
 class _ClearableFileInput(forms.ClearableFileInput):
-    template_with_initial = u'<div>Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
-    template_with_clear = u'<br />%(clear)s <label for="%(clear_checkbox_id)s">Remove file</label>'
+    template_with_initial = u'<div class="inputfield">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
+    template_with_clear = u'<br /> %(clear)s <label class="sublabel" for="%(clear_checkbox_id)s">Remove current file</label>'
 
     def render(self, name, value, attrs=None):
         name = unicode(name)
