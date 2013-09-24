@@ -703,8 +703,6 @@ is_displayable_sheet_sub = Q(status="DONE") | Q(sheet__is_initial=True)
 def _readonly_sheets(form_submission):
     """
     Collect sheet subs and other info to display this form submission.
-    
-    File upload fields are annotated with the FieldSubmissionFile object
     """
     sheet_submissions = SheetSubmission.objects \
             .filter(form_submission=form_submission) \
@@ -718,15 +716,6 @@ def _readonly_sheets(form_submission):
             field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
             field.fieldtype = field_sub.field.fieldtype
             if field.configurable:
-                if field.fieldtype == "FILE":
-                    # get the most recent FieldSubmissionFile for this field_sub
-                    file_subs = FieldSubmissionFile.objects.filter(field_submission=field_sub) \
-                                .order_by('-created_at')[0:1]
-                    if file_subs:
-                        field_sub.file_sub = file_subs[0]
-                    else:
-                        field_sub.file_sub = None
-
                 field.label = field.config['label']
                 field.html = field.to_html(field_sub)
 

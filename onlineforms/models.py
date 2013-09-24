@@ -529,6 +529,25 @@ class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
     data = JSONField(null=False, blank=False, default={})
+    
+    __file_sub_cache = None
+    def file_sub(self):
+        """
+        Return the (most recent) FieldSubmissionFile associated with this FieldSubmission, or None
+        """
+        assert self.field.fieldtype == 'FILE'
+        if self.__file_sub_cache:
+            # don't look up the same thing a lot unnecessarily
+            return self.__file_sub_cache
+        
+        file_subs = FieldSubmissionFile.objects.filter(field_submission=self) \
+                    .order_by('-created_at')[0:1]
+        if file_subs:
+            self.__file_sub_cache = file_subs[0]
+            return self.__file_sub_cache
+        else:
+            return None
+        
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
