@@ -84,8 +84,8 @@ class ListField(FieldBase):
 
 
 class _ClearableFileInput(forms.ClearableFileInput):
-    template_with_initial = u'<div class="inputfield">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
-    template_with_clear = u'<br /> %(clear)s <label class="sublabel" for="%(clear_checkbox_id)s">Remove current file</label>'
+    template_with_initial = u'<div class="formfileinput">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
+    template_with_clear = u'<br /><label class="sublabel" for="%(clear_checkbox_id)s">Remove current file:</label> %(clear)s'
 
     def render(self, name, value, attrs=None):
         name = unicode(name)
@@ -129,8 +129,10 @@ class FileCustomField(FieldBase):
             help_text=self.config['help_text'],
             widget=_ClearableFileInput())
         if fieldsubmission:
-            f.initial = fieldsubmission.file_sub().file_attachment
-            f.initial.file_sub = fieldsubmission.file_sub()
+            file_sub = fieldsubmission.file_sub()
+            if file_sub:
+                f.initial = file_sub.file_attachment
+                f.initial.file_sub = fieldsubmission.file_sub()
         return f
 
     def serialize_field(self, cleaned_data):

@@ -929,12 +929,32 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             else:
                                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheet_submission, data=cleaned_data)
                             fieldSubmission.save()
+                            
                             # save files
                             if isinstance(field, FileField):
+                                # remove old files if asked
+                                if request.POST.get(str(name)+"-clear", False):
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
+                                    for fsf in old_fsf:
+                                        fsf.file_attachment.delete()
+                                        fsf.delete()
+                                
+                                # save the new submission
                                 if str(name) in request.FILES:
+
                                     new_file = request.FILES[str(name)]
-                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
+                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission,
+                                                                              file_attachment=new_file,
+                                                                              file_mediatype=new_file.content_type)
                                     new_file_submission.save()
+                                    
+                                    # delete any old files for this fieldsub
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission) \
+                                              .exclude(id=new_file_submission.id)
+                                    for fsf in old_fsf:
+                                        fsf.file_attachment.delete()
+                                        fsf.delete()
+
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
                                 description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
