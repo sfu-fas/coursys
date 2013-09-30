@@ -65,8 +65,8 @@ class Page(models.Model):
         # p.config['editdate']: date after which is page is editable
     
     defaults = {'releasedate': None, 'editdate': None}
-    releasedate_txt, set_releasedate = getter_setter('releasedate')
-    editdate_txt, set_editdate = getter_setter('editdate')
+    releasedate_txt, set_releasedate_txt = getter_setter('releasedate')
+    editdate_txt, set_editdate_txt = getter_setter('editdate')
 
     class Meta:
         ordering = ['label']
@@ -88,6 +88,15 @@ class Page(models.Model):
             return None
         else:
             return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+    def set_releasedate(self, val):
+        if isinstance(val, datetime.date):
+            val = val.strftime("%Y-%m-%d")
+        self.set_releasedate_txt(val)
+    def set_editdate(self, val):
+        if isinstance(val, datetime.date):
+            val = val.strftime("%Y-%m-%d")
+        self.set_editdate_txt(val)
+            
 
     def get_absolute_url(self):
         if self.label == 'Index':

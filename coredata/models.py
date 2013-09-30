@@ -289,9 +289,12 @@ class Semester(models.Model):
         
         date = base.monday + datetime.timedelta(days=7 * (wk - base.week) + wkday)
         # construct the datetime from date and time.
-        dt = datetime.datetime(year=date.year, month=date.month, day=date.day,
-            hour=time.hour, minute=time.minute, second=time.second,
-            microsecond=time.microsecond, tzinfo=time.tzinfo)
+        if time:
+            dt = datetime.datetime(year=date.year, month=date.month, day=date.day,
+                hour=time.hour, minute=time.minute, second=time.second,
+                microsecond=time.microsecond, tzinfo=time.tzinfo)
+        else:
+            dt = datetime.date(year=date.year, month=date.month, day=date.day)
         return dt
 
     def previous_semester(self):
