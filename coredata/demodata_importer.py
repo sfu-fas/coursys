@@ -132,7 +132,6 @@ def main():
     
     ComputingAccount.objects.all().delete()
 
-    ComputingAccount.objects.all().delete()
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
