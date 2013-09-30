@@ -451,7 +451,7 @@ COLUMN_CHOICES = (
         ('visa',                    'Visa'),
         ('gender',                  'Gender'),
         ('scholarships',            'Scholarships'),
-        ('unit',                    'Unit')
+        ('unit',                    'Unit'),
         )
 COLUMN_WIDTHS_DATA = (
         # column widths for Excel export
@@ -477,6 +477,8 @@ COLUMN_WIDTHS_DATA = (
         ('gpa',                     2000),
         ('visa',                    3000),
         ('gender',                  2000),
+        ('scholarships',            10000),
+        ('unit',                    3000),
         )
 COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 

@@ -18,7 +18,7 @@
         $('#sheet_table').dataTable({
                         "bPaginate": false,
                         "bJQueryUI": true,
-                        "aaSorting": [[0, "asc"]],
+                        "aaSorting": [[2, "asc"]],
         }); 
     });
 </script>
@@ -41,8 +41,34 @@
 {% endif %}
 {% endblock %}
 
+
+
 {% block content %}
-<h2>Available forms</h2>
+{% if sheet_submissions %}
+<h2 id="assigned">Assigned Forms</h2>
+<div class="datatable_container">
+    <table class="display" id="sheet_table">
+        <thead>
+            <tr>
+                <th scope="col">Your Sheet</th>
+                <th scope="col">Form</th>
+                <th scope="col">Waiting Since</th>
+            </tr>
+        </thead>
+        {% for sheet_sub in sheet_submissions %}
+            <tr>
+                <td><a href="{% url onlineforms.views.sheet_submission_subsequent form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
+                <td>{{ sheet_sub.form_submission.form.title }} (from {{ sheet_sub.form_submission.initiator.name }})</td>
+                <td><span class="sort">{{ sheet_sub.given_at.isoformat }}</span>{{ sheet_sub.given_at }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+
+
+<h2 id="new">Available forms</h2>
  	<p>These forms can be filled out and submitted online:</p>
     {% if forms %}
         <ul>
@@ -54,23 +80,4 @@
             <p class="empty">There are currently no forms.</p>
     {% endif %}
 
-{% if sheet_submissions %}
-<h2>Assigned Forms</h2>
-<div class="datatable_container">
-    <table class="display" id="sheet_table">
-        <thead>
-            <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Form</th>
-            </tr>
-        </thead>
-        {% for sheet_sub in sheet_submissions %}
-            <tr>
-                <td><a href="{% url onlineforms.views.sheet_submission_subsequent form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
-                <td>{{ sheet_sub.form_submission.form.title }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-</div>
-{% endif %}
 {% endblock %}

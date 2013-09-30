@@ -11,7 +11,7 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, r
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile, FIELD_TYPE_CHOICES
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
@@ -137,7 +137,10 @@ def remove_group_member(request, formgroup_slug, userid):
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
-# Form admin views
+
+#######################################################################
+# Managing submissions & assigning sheets
+
 @requires_formgroup()
 def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
@@ -160,9 +163,6 @@ def admin_list_all(request):
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
-
-#######################################################################
-# Managing submissions & assigning sheets
 
 @requires_formgroup()
 def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
@@ -483,10 +483,9 @@ def edit_sheet(request, form_slug, sheet_slug):
     # a list of dictionaries containing the field model object(for editing) and the field form object(for display)
     modelFormFields = []
     for (counter, field) in enumerate(form):
-        field.type =  dict(FIELD_TYPE_CHOICES)[fields[counter].fieldtype]
+        field.type =  FIELD_TYPES[fields[counter].fieldtype]
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
- 
     context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
 
@@ -709,7 +708,6 @@ def _readonly_sheets(form_submission):
             .filter(form_submission=form_submission) \
             .filter(is_displayable_sheet_sub)
     sheet_sub_html = {}
-    sheetsWithFiles = {}
     for sheet_sub in sheet_submissions:
         # get html from field submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
@@ -719,45 +717,48 @@ def _readonly_sheets(form_submission):
             field.fieldtype = field_sub.field.fieldtype
             if field.configurable:
                 field.label = field.config['label']
-                if field.fieldtype == "FILE":
-                    # file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub.id)
-                    sheetsWithFiles[sheet_sub.id] = field_sub.id
-                    # skip method for field.html = field.to_html(fileField)                    
-                else:
-                    field.html = field.to_html(field_sub)
+                field.html = field.to_html(field_sub)
+
             fields.append(field)
         sheet_sub_html[sheet_sub] = fields
-    return sheet_sub_html, sheetsWithFiles
+    return sheet_sub_html
 
 
 
 @requires_formgroup()
-def file_field_download(request, form_slug, formsubmit_slug, sheet_id, file_id, disposition):
-    raise NotImplementedError
-    form_sub = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                 owner__in=request.formgroups)
-    sheet_sub = SheetSubmission.objects.get(pk=sheet_id, form_submission=form_sub)
-    field_sub = FieldSubmission.objects.get(sheet_submission=sheet_sub)
-    file_sub = FieldSubmissionFile.objects.get(field_submission=field_sub)
+def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
+    file_sub =  get_object_or_404(FieldSubmissionFile,
+                                  field_submission__sheet_submission__form_submission=form_submission,
+                                  id=file_id)
+    file_path = file_sub.file_attachment.file.name
+    filename = os.path.basename(file_path)
 
-    file_path = os.path.join(settings.PROJECT_DIR, 'submitted_files') + '/' + str(file_sub.file_attachment)
-    f = open(file_path, 'r')
-    path = os.path.basename(file_path)
-    file_name,file_extension = os.path.splitext(path)
-    response = HttpResponse(FileWrapper(f), content_type=file_sub.file_mediatype)
-    """
-    using strings for request[CD] doesn't work - following idea from a pages.view where disposition is just called as "attachment"
-    """
-    response['Content-Disposition'] = disposition + '; filename=' + file_name + file_extension
+    file_sub.file_attachment.file.open()
+    response = HttpResponse(file_sub.file_attachment.file, content_type=file_sub.file_mediatype)
+    
+    if action == 'download':
+        disposition = 'download'
+    else:
+        disposition = 'inline'
+    
+    response['Content-Disposition'] = disposition + '; filename=' + filename
     return response
+
 
 @requires_formgroup()
 def view_submission(request, form_slug, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
                                         owner__in=request.formgroups)
-    sheet_submissions, sheetsWithFiles = _readonly_sheets(form_submission)
+    sheet_submissions = _readonly_sheets(form_submission)
 
-    context = {'form': form_submission.form, 'sheet_submissions': sheet_submissions, 'sheetsWithFiles': sheetsWithFiles, 'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}
+    context = {
+               'form': form_submission.form,
+               'sheet_submissions': sheet_submissions,
+               'form_slug': form_slug,
+               'formsubmit_slug': formsubmit_slug,
+               }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 
@@ -849,7 +850,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
         # get previously filled in sheet's data
         if sheet.can_view == 'ALL':
-            filled_sheets, _ = _readonly_sheets(form_submission)
+            filled_sheets = _readonly_sheets(form_submission)
     else:
         # make sure we are allowed to initiate this form
         if not loggedin_user and owner_form.initiators != "ANY":
@@ -928,12 +929,32 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             else:
                                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheet_submission, data=cleaned_data)
                             fieldSubmission.save()
+                            
                             # save files
                             if isinstance(field, FileField):
+                                # remove old files if asked
+                                if request.POST.get(str(name)+"-clear", False):
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
+                                    for fsf in old_fsf:
+                                        fsf.file_attachment.delete()
+                                        fsf.delete()
+                                
+                                # save the new submission
                                 if str(name) in request.FILES:
+
                                     new_file = request.FILES[str(name)]
-                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
+                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission,
+                                                                              file_attachment=new_file,
+                                                                              file_mediatype=new_file.content_type)
                                     new_file_submission.save()
+                                    
+                                    # delete any old files for this fieldsub
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission) \
+                                              .exclude(id=new_file_submission.id)
+                                    for fsf in old_fsf:
+                                        fsf.file_attachment.delete()
+                                        fsf.delete()
+
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
                                 description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
@@ -979,6 +1000,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             description=("Sheet submission %s completed by %s") % (sheet_submission.slug, formFiller.email()),
                             related_object=sheet_submission)
                         l.save()
+                        
+                        sheet_submission.email_submitted(request)
 
                         messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                         return HttpResponseRedirect(reverse(index))

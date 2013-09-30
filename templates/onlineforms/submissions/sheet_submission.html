@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block h1 %} {{ owner_form.title }} submission{% endblock %}
-{% block title %} {{ owner_form.title }} submission {% endblock %}
+{% block h1 %} {{ owner_form.title }}  [{{sheet.form.unit.label}}]{% endblock %}
+{% block title %} {{ owner_form.title }}  [{{sheet.form.unit.label}}] {% endblock %}
 
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-    <li>&gt; {{ sheet.title }} submission</li>
+    <li>&gt; {{ sheet.title }} [{{sheet.form.unit.label}}]</li>
 {% endblock %}
 
 {% block headextra %}
@@ -31,7 +31,7 @@ $(document).ready(function() {
         {% endif %}
 
         {% if form_submission %}
-            <p><strong>Form Initiator:</strong> {{ form_submission.initiator.name }}, {{ form_submission.initiator.email_mailto }}</p>
+            <p><strong>Submission from:</strong> {{ form_submission.initiator.name }}, {{ form_submission.initiator.email_mailto }}</p>
         {% endif %}
 
         {% if filled_sheets %}
@@ -39,6 +39,7 @@ $(document).ready(function() {
         {% endif %}
 
         {% if sheet %}
+            <div class="form_container">
             {% if form.is_multipart %}
                 <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
             {% else %}
@@ -60,6 +61,7 @@ $(document).ready(function() {
                 <input type="submit" name="save" value="Save for Later" class="submit"/>
             </fieldset>
             </form>
+            </div>
         {% else %}
             <p>This form is empty.</p>
         {% endif %}

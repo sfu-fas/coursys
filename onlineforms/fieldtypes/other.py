@@ -7,7 +7,7 @@ from django.template import defaultfilters
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 from coredata.models import Semester
-import datetime
+import datetime, os
 
 class CustomMultipleInputField(fields.MultiValueField):
     def __init__(self, name="", max=20, min=2, other_required=False, *args, **kwargs):
@@ -83,6 +83,39 @@ class ListField(FieldBase):
         return mark_safe(html)
 
 
+class _ClearableFileInput(forms.ClearableFileInput):
+    template_with_initial = u'<div class="formfileinput">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
+    template_with_clear = u'<br /><label class="sublabel" for="%(clear_checkbox_id)s">Remove current file:</label> %(clear)s'
+
+    def render(self, name, value, attrs=None):
+        name = unicode(name)
+        substitutions = {
+            'initial_text': self.initial_text,
+            'input_text': self.input_text,
+            'clear_template': '',
+            'clear_checkbox_label': self.clear_checkbox_label,
+        }
+        template = u'%(input)s'
+        substitutions['input'] = super(forms.ClearableFileInput, self).render(name, value, attrs)
+
+        if value and hasattr(value, "url"):
+            template = self.template_with_initial
+            substitutions['initial'] = (u'<a href="%s">%s</a>'
+                                        % (escape(value.file_sub.get_file_url()),
+                                           escape(value.file_sub.display_filename())))
+            if not self.is_required:
+                checkbox_name = self.clear_checkbox_name(name)
+                checkbox_id = self.clear_checkbox_id(checkbox_name)
+                substitutions['clear_checkbox_name'] = escape(checkbox_name)
+                substitutions['clear_checkbox_id'] = escape(checkbox_id)
+                substitutions['clear'] = forms.CheckboxInput().render(checkbox_name, False, attrs={'id': checkbox_id})
+                substitutions['clear_template'] = self.template_with_clear % substitutions
+
+        return mark_safe(template % substitutions)
+
+
+
+
 class FileCustomField(FieldBase):
     class FileConfigForm(FieldConfigForm):
         pass
@@ -91,15 +124,28 @@ class FileCustomField(FieldBase):
         return self.FileConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        return forms.FileField(required=self.config['required'],
+        f = forms.FileField(required=self.config['required'],
             label=self.config['label'],
-            help_text=self.config['help_text'])
+            help_text=self.config['help_text'],
+            widget=_ClearableFileInput())
+        if fieldsubmission:
+            file_sub = fieldsubmission.file_sub()
+            if file_sub:
+                f.initial = file_sub.file_attachment
+                f.initial.file_sub = fieldsubmission.file_sub()
+        return f
 
     def serialize_field(self, cleaned_data):
         return {} # creation of FieldSubmissionFile handed in the view code
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + 'File title?' + '</p>')
+        file_sub = fieldsubmission.file_sub()
+        if file_sub:
+            return mark_safe('<p>Uploaded file <a href="%s">%s</a></p>'
+                             % (escape(file_sub.get_file_url()),
+                                escape(file_sub.display_filename())))
+        else:
+            return mark_safe('<p class="empty">No file submitted.</p>')
 
 
 class URLCustomField(FieldBase):

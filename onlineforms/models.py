@@ -38,7 +38,7 @@ VIEWABLE_CHOICES = [
         ('NON', "Filler can't see any info on other sheets (just name/email of initiator)"),
         ]
 VIEWABLE_SHORT = {
-        'ALL': 'Can view previous submissions',
+        'ALL': 'Can see info on previous sheets',
         'NON': 'Can only see name/email',
         }
 
@@ -52,7 +52,7 @@ FIELD_TYPE_CHOICES = [
         ('SEL1', 'Select with a drop-down menu'),
         ('SELN', 'Select multiple values'),
         ('LIST', 'Enter a list of short responses'),
-        #('FILE', 'Upload a file'),
+        ('FILE', 'Upload a file'),
         ('URL', 'Web page address (URL)'),
         ('TEXT', 'Explanation block (user enters nothing)'),
         ('DIVI', 'Divider'),
@@ -510,11 +510,44 @@ class SheetSubmission(models.Model):
         msg.attach_alternative(htmly.render(email_context), "text/html")
         msg.send()
 
+    def email_submitted(self, request):
+        plaintext = get_template('onlineforms/emails/sheet_submitted.txt')
+        htmly = get_template('onlineforms/emails/sheet_submitted.html')
+    
+        full_url = request.build_absolute_uri('onlineforms.views.admin_list_all')
+        email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form})
+        subject = '%s submission' % (self.sheet.form.title)
+        #from_email = self.filler.full_email()
+        from_email = "nobody@courses.cs.sfu.ca"
+        to = [p.full_email() for p in self.sheet.form.owner.members.all()]
+        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, to)
+        msg.attach_alternative(htmly.render(email_context), "text/html")
+        msg.send()
+
 
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
     data = JSONField(null=False, blank=False, default={})
+    
+    __file_sub_cache = None
+    def file_sub(self):
+        """
+        Return the (most recent) FieldSubmissionFile associated with this FieldSubmission, or None
+        """
+        assert self.field.fieldtype == 'FILE'
+        if self.__file_sub_cache:
+            # don't look up the same thing a lot unnecessarily
+            return self.__file_sub_cache
+        
+        file_subs = FieldSubmissionFile.objects.filter(field_submission=self) \
+                    .order_by('-created_at')[0:1]
+        if file_subs:
+            self.__file_sub_cache = file_subs[0]
+            return self.__file_sub_cache
+        else:
+            return None
+        
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -522,9 +555,10 @@ def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
-
     fullpath = os.path.join(
             'forms',
+            instance.field_submission.sheet_submission.form_submission.form.slug,
+            instance.field_submission.sheet_submission.form_submission.slug,
             datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.field_submission_id),
             filename.encode('ascii', 'ignore'))
     return fullpath
@@ -536,6 +570,15 @@ class FieldSubmissionFile(models.Model):
     file_attachment = models.FileField(storage=FormSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
+    
+    def get_file_url(self):
+        return reverse('onlineforms.views.file_field_download',
+                       kwargs={'form_slug': self.field_submission.sheet_submission.sheet.form.slug,
+                               'formsubmit_slug': self.field_submission.sheet_submission.form_submission.slug,
+                               'file_id': self.id,
+                               'action': 'get'})
+    def display_filename(self):
+        return os.path.basename(self.file_attachment.file.name)
 
 class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
