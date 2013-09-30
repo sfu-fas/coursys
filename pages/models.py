@@ -58,8 +58,14 @@ class Page(models.Model):
     can_read = models.CharField(max_length=4, choices=READ_ACL_CHOICES, default="ALL",
         help_text="Who should be able to view this page?")
     can_write = models.CharField(max_length=4, choices=WRITE_ACL_CHOICES, default="STAF",
-        verbose_name="Can change", help_text="Who should be able to edit this page?")    
+        verbose_name="Can change", help_text="Who should be able to edit this page?")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+        # p.config['releasedate']: date after which is page is visible
+        # p.config['editdate']: date after which is page is editable
+    
+    defaults = {'releasedate': None, 'editdate': None}
+    releasedate_txt, set_releasedate = getter_setter('releasedate')
+    editdate_txt, set_editdate = getter_setter('editdate')
 
     class Meta:
         ordering = ['label']
@@ -69,7 +75,19 @@ class Page(models.Model):
         assert self.label_okay(self.label) is None
         super(Page, self).save(*args, **kwargs)
 
-    
+    def releasedate(self):
+        d = self.releasedate_txt()
+        if d is None:
+            return None
+        else:
+            return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+    def editdate(self):
+        d = self.editdate_txt()
+        if d is None:
+            return None
+        else:
+            return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+
     def get_absolute_url(self):
         if self.label == 'Index':
             return reverse('pages.views.index_page', kwargs={'course_slug': self.offering.slug})

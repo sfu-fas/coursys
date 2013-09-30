@@ -21,6 +21,8 @@ $(document).ready(function() {
 	} else {
 		$('#wysiwyg-on').show();
 	}
+	$('#id_releasedate').datepicker({'dateFormat': 'yy-mm-dd'});
+	$('#id_editdate').datepicker({'dateFormat': 'yy-mm-dd'});
 } );
 </script>
 {% endblock %}

@@ -24,6 +24,10 @@ class CommentField(forms.CharField):
 
 class EditPageFileForm(forms.ModelForm):
     markup = forms.CharField(initial="wiki", widget=forms.HiddenInput())
+    releasedate = forms.DateField(initial=None, required=False, label="Release Date",
+                help_text='Date the "can read" permissions take effect. Leave blank for no timed-release. Pages can always be viewed by instructors and TAs.')
+    editdate = forms.DateField(initial=None, required=False, label="Editable Date",
+                help_text='Date the "can change" permissions take effect. Leave blank for no timed-release. Pages can always be edited by instructors.')
     def __init__(self, offering, *args, **kwargs):
         super(EditPageFileForm, self).__init__(*args, **kwargs)
         # force the right course offering into place

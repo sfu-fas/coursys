@@ -11,14 +11,23 @@ from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse
 from importer import HTMLWiki
-import json
+import json, datetime
 
-def _check_allowed(request, offering, acl_value):
+def _check_allowed(request, offering, acl_value, date=None):
     """
     Check to see if the person is allowed to do this Page action.
 
     Returns Member object if possible; True if non-member who is allowed, or None if not allowed.
     """
+    if date and datetime.date.today() < date:
+        # release date hasn't passed: upgrade the security level accordingly.
+        if acl_value == 'NONE':
+            acl_value = 'NONE' 
+        elif acl_value == 'STAF':
+            acl_value = 'INST'
+        else:
+            acl_value = 'STAF'
+    
     members = Member.objects.filter(person__userid=request.user.username, offering=offering)
     if not members:
         if acl_value=='ALL':
@@ -61,7 +70,7 @@ def view_page(request, course_slug, page_label):
     pages = Page.objects.filter(offering=offering, label=page_label)
     if not pages:
         # missing page: do something more clever than the standard 404
-        member = _check_allowed(request, offering, offering.page_creators()) # users who can creat
+        member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
         can_create = bool(member)
         context = {'offering': offering, 'can_create': can_create, 'page_label': page_label}
         return render(request, 'pages/missing_page.html', context, status=404)
@@ -70,13 +79,13 @@ def view_page(request, course_slug, page_label):
     
     version = page.current_version()
     
-    member = _check_allowed(request, offering, page.can_read)
+    member = _check_allowed(request, offering, page.can_read, page.releasedate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, 'Not allowed to view this page')
     
     if request.user.is_authenticated():
-        editor = _check_allowed(request, offering, page.can_write)
+        editor = _check_allowed(request, offering, page.can_write, page.editdate())
         can_edit = bool(editor)
     else:
         can_edit = False
@@ -107,7 +116,7 @@ def _get_file(request, course_slug, page_label, disposition):
     if not version.is_filepage():
         return NotFoundResponse(request)
     
-    member = _check_allowed(request, offering, page.can_read)
+    member = _check_allowed(request, offering, page.can_read, page.releasedate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, 'Not allowed to view this page')
@@ -122,7 +131,7 @@ def _get_file(request, course_slug, page_label, disposition):
 def page_history(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     page = get_object_or_404(Page, offering=offering, label=page_label)
-    member = _check_allowed(request, offering, page.can_write)
+    member = _check_allowed(request, offering, page.can_write, page.editdate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, "Not allowed to view this page's history")
@@ -136,7 +145,7 @@ def page_history(request, course_slug, page_label):
 def page_version(request, course_slug, page_label, version_id):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     page = get_object_or_404(Page, offering=offering, label=page_label)
-    member = _check_allowed(request, offering, page.can_write)
+    member = _check_allowed(request, offering, page.can_write, page.editdate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, "Not allowed to view this page's history")
@@ -171,11 +180,11 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     if page_label:
         page = get_object_or_404(Page, offering=offering, label=page_label)
         version = page.current_version()
-        member = _check_allowed(request, offering, page.can_write)
+        member = _check_allowed(request, offering, page.can_write, page.editdate())
     else:
         page = None
         version = None
-        member = _check_allowed(request, offering, offering.page_creators()) # users who can create
+        member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
     
     # make sure we're looking at the right "kind" (page/file)
     if not kind:
@@ -190,9 +199,11 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, 'Not allowed to edit/create this '+kind+'.')
+    restricted = False
     if member.role == 'STUD':
         # students get the restricted version of the form
         Form = Form.restricted_form
+        restricted = True
     
     if request.method == 'POST':
         form = Form(instance=page, offering=offering, data=request.POST, files=request.FILES)
@@ -203,11 +214,21 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             if 'label' not in form.cleaned_data:
                 # happens when student edits an existing page
                 instance.label = page.label
-                instance.save()
             if 'can_write' not in form.cleaned_data:
                 # happens only when students create a page
                 instance.can_write = 'STUD'
-                instance.save()
+            
+            if not restricted and 'releasedate' in form.cleaned_data:
+                instance.set_releasedate(form.cleaned_data['releasedate'])
+            elif not restricted:
+                instance.set_releasedate(None)
+
+            if not restricted and 'editdate' in form.cleaned_data:
+                instance.set_editdate(form.cleaned_data['editdate'])
+            elif not restricted:
+                instance.set_editdate(None)
+
+            instance.save()
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,

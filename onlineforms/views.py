@@ -19,10 +19,6 @@ from coredata.models import Person, Role
 from log.models import LogEntry
 
 import os
-from django.conf import settings
-from django.core.servers.basehttp import FileWrapper
-
-# TODO: file fields are broken
 
 #######################################################################
 # Group Management
