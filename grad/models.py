@@ -684,12 +684,13 @@ SUPERVISOR_TYPE_CHOICES = [
     ]
 SUPERVISOR_TYPE_ORDER = {
     'SEN': 1,
-    'COM': 3,
-    'CHA': 4,
-    'EXT': 5,
-    'SFU': 6,
-    'POTTrue': 7, # potential with committee
-    'POTFalse': 2, # potential without committee
+    'COS': 2,
+    'COM': 4,
+    'CHA': 5,
+    'EXT': 6,
+    'SFU': 7,
+    'POTTrue': 8, # potential with committee
+    'POTFalse': 3, # potential without committee
     }
 
 class Supervisor(models.Model):
