@@ -39,8 +39,10 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+{% if kind != "File" %}
 <a href="javascript:do_wysiwyg()" id="wysiwyg-on" style="display:none">Switch to WYSIWYG editing</a>
 <a href="javascript:do_wiki()" id="wiki-on" style="display:none">Switch to wikitext editing</a>
+{% endif %}
 
 <div class="form_container">
     <form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}

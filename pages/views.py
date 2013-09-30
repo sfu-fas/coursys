@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
+#from django.views.decorators.csrf import csrf_exempt
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
 from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
@@ -18,11 +18,13 @@ def _check_allowed(request, offering, acl_value, date=None):
     Check to see if the person is allowed to do this Page action.
 
     Returns Member object if possible; True if non-member who is allowed, or None if not allowed.
+    
+    If a release date is given and is in the future, acl_value is tightened accordingly.
     """
     if date and datetime.date.today() < date:
         # release date hasn't passed: upgrade the security level accordingly.
         if acl_value == 'NONE':
-            acl_value = 'NONE' 
+            pass
         elif acl_value == 'STAF':
             acl_value = 'INST'
         else:

@@ -27,7 +27,7 @@ class EditPageFileForm(forms.ModelForm):
     releasedate = forms.DateField(initial=None, required=False, label="Release Date",
                 help_text='Date the "can read" permissions take effect. Leave blank for no timed-release. Pages can always be viewed by instructors and TAs.')
     editdate = forms.DateField(initial=None, required=False, label="Editable Date",
-                help_text='Date the "can change" permissions take effect. Leave blank for no timed-release. Pages can always be edited by instructors.')
+                help_text='Date the "can change" permissions take effect. Leave blank for no timed-release. Pages can always be edited by instructors and TAs.')
     def __init__(self, offering, *args, **kwargs):
         super(EditPageFileForm, self).__init__(*args, **kwargs)
         # force the right course offering into place
@@ -39,6 +39,8 @@ class EditPageFileForm(forms.ModelForm):
             self.initial['title'] = self.instance.current_version().title
             self.initial['wikitext'] = self.instance.current_version().wikitext
             self.initial['math'] = self.instance.current_version().math()
+            self.initial['releasedate'] = self.instance.releasedate()
+            self.initial['editdate'] = self.instance.editdate()
         
         # tidy up ACL choices: remove NONE
         self.fields['can_read'].choices = [(v,l) for (v,l) in self.fields['can_read'].choices
@@ -121,6 +123,8 @@ class EditPageFormRestricted(EditPageForm):
             # can't change label, but can set for a new page
             del self.fields['label']
         del self.fields['can_write']
+        del self.fields['releasedate']
+        del self.fields['editdate']
 
 EditPageForm.restricted_form = EditPageFormRestricted
 

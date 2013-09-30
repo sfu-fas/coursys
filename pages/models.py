@@ -18,6 +18,7 @@ WRITE_ACL_CHOICES = [
     ('STAF', 'instructor and TAs'),
     ('STUD', 'students, instructor, TAs') ]
 READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('ALL', 'anybody')]
+ACL_DESC = dict(READ_ACL_CHOICES)
 
 MEMBER_ROLES = { # map from ACL roles to allowed Member roles
         'NONE': set(),
@@ -123,6 +124,17 @@ class Page(models.Model):
             cache.set(key, v, 3600) # expired when a PageVersion is saved
             return v
 
+    def release_message(self):
+        return self._release_message(self.releasedate(), self.can_read, "viewable")
+    def _release_message(self, date, acl_value, attrib):
+        today = datetime.date.today()
+        if not date:
+            return None
+        elif date > today:
+            return "This page has not yet been released. It will be %s by %s as of %s." % (attrib, ACL_DESC[acl_value], date)
+        else:
+            #return "This page was made %s automatically on %s." % (attrib, date)
+            return None
 
 
 class PageVersion(models.Model):
