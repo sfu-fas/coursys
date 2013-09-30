@@ -7,7 +7,7 @@ import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
 from coredata.models import Member, Person, CourseOffering, ComputingAccount
 
-IMPORT_SEMESTERS = ('1131', '1134')
+IMPORT_SEMESTERS = ('1137', '1141')
 
 fakes = {}
 next_emplid = 100
