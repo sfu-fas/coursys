@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Unreleased Page{% endblock %}
+{% block h1 %}Unreleased Page{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; {{page_label}}</li>{% endblock %}
+
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<p>This page is configured become visible on {{ releasedate }}.</p>
+
+{% endblock %}
