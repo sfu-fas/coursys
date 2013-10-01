@@ -588,6 +588,10 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     """
     Make sure this member exists with the right properties.
     """
+    if person.emplid == 200133427:
+        # this is the generic "Faculty" placeholder. Ignore him: he's ugly.
+        return
+    
     m_old = Member.objects.filter(person=person, offering=offering)
 
     if len(m_old)>1:
