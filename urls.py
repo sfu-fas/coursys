@@ -483,6 +483,8 @@ urlpatterns += patterns('',
     # Alerts
     url(r'^alerts/', include('alerts.urls')),
 
+    url(r'^reports/', include('reports.urls'))
+
 )
 
 if not settings.DEPLOYED:

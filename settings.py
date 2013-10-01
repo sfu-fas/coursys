@@ -116,6 +116,7 @@ INSTALLED_APPS = (
     'ra',
     'advisornotes',
     'alerts',
+    'reports',
     'discuss',
     'booking',
     'techreq',
