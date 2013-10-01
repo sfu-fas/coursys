@@ -339,9 +339,12 @@ def get_group_mark_by_id(activity, group, activity_mark_id):
 def get_group_mark(activity, group, include_all = False):
     
     current_mark = None
-    all_marks = GroupActivityMark.objects.filter(group = group, numeric_activity = activity)    
+    if isinstance(activity, LetterActivity):
+        all_marks = GroupActivityMark_LetterGrade.objects.filter(group=group, letter_activity=activity)
+    else:
+        all_marks = GroupActivityMark.objects.filter(group=group, numeric_activity=activity)
     
-    if all_marks.count() != 0 : 
+    if all_marks.count() != 0: 
         current_mark = all_marks.latest('created_at')
    
     if not include_all:

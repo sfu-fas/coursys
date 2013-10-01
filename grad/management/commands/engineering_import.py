@@ -115,9 +115,9 @@ class Command(BaseCommand):
                 if degree in ["m.eng.", "m.eng"]:
                     program = m_eng_program_mech
                 elif degree in ["ph.d.", "ph.d"]:
-                    program = m_asc_program_mech
-                elif degree in ['m.a.sc.', 'm.a.sc', 'masc']:
                     program = phd_program_mech
+                elif degree in ['m.a.sc.', 'm.a.sc', 'masc']:
+                    program = m_asc_program_mech
                 elif degree in ['special non-degree', 'special nondegree']:
                     program = special_program_mech
                 else: 
