@@ -510,19 +510,11 @@ def copyCourseSetup(course_copy_from, course_copy_to):
         
         # if there are release dates, adapt to new semester
         if new_p.releasedate():
-            try:
-                week, wkday = course_copy_from.semester.week_weekday(new_p.releasedate())
-            except ValueError:
-                week = 1
-                wkday = 0
+            week, wkday = course_copy_from.semester.week_weekday(new_p.releasedate())
             new_date = course_copy_to.semester.duedate(week, wkday, None)
             new_p.set_releasedate(new_date)
         if new_p.editdate():
-            try:
-                week, wkday = course_copy_from.semester.week_weekday(new_p.editdate())
-            except ValueError:
-                week = 1
-                wkday = 0
+            week, wkday = course_copy_from.semester.week_weekday(new_p.editdate())
             new_date = course_copy_to.semester.duedate(week, wkday, None)
             new_p.set_editdate(new_date)
         

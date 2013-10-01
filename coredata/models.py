@@ -266,7 +266,9 @@ class Semester(models.Model):
                 break
 
         if base is None:
-            raise ValueError, "Date seems to be before the start of semester."
+            ##raise ValueError, "Date seems to be before the start of semester."
+            # might as well do something with the before-semester case.
+            return 1,0
 
         diff = date - base.monday
         diff = int(round(diff.days + diff.seconds / 86400.0) + 0.5) # convert to number of days, rounding off any timezone stuff
