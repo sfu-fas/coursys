@@ -1092,26 +1092,26 @@ def _mark_all_groups_letter(request, course, activity):
             updated = 0
             i = -1
             for group in groups:
-               i += 1
-	       act_mark=current_act_marks[i]
-               new_value = rows[i]['form'].cleaned_data['value']
-               if new_value not in LETTER_GRADE_CHOICES_IN: 
-                   continue
-               if act_mark!= None and act_mark.letter_grade == new_value:
-                  # if any of the group members originally has a grade status other than 'GRAD'
-                  # so do not override the status
-                   continue
-               #if act_mark == None:
-                   #act_mark = LetterGrade(activity = activity, member = all_members[i])       
-               act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
-               act_mark.setMark(new_value)
-               act_mark.save()
+                i += 1
+                act_mark=current_act_marks[i]
+                new_value = rows[i]['form'].cleaned_data['value']
+                if new_value not in LETTER_GRADE_CHOICES_IN: 
+                    continue
+                if act_mark!= None and act_mark.letter_grade == new_value:
+                    # if any of the group members originally has a grade status other than 'GRAD'
+                    # so do not override the status
+                    continue
+                #if act_mark == None:
+                #act_mark = LetterGrade(activity = activity, member = all_members[i])       
+                act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
+                act_mark.setMark(new_value)
+                act_mark.save()
 
-               #LOG EVENT
-               l = LogEntry(userid=request.user.username,
+                #LOG EVENT
+                l = LogEntry(userid=request.user.username,
                      description=("bulk marked %s for group '%s': %s") % (activity, group.name, new_value),
                      related_object=act_mark)
-               l.save()                  
+                l.save()                  
                  
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
@@ -1120,14 +1120,14 @@ def _mark_all_groups_letter(request, course, activity):
             return _redirct_response(request, course.slug, activity.slug)   
         
     else: # for GET request
-       for group in groups: 
-           act_mark = get_group_mark(activity, group)         
-           if act_mark == None:
+        for group in groups:
+            act_mark = get_group_mark(activity, group)
+            if act_mark == None:
                 current_grade = 'no grade'
-           else:
-                current_grade = act_mark.letter_grade
-           entry_form = MarkEntryForm_LetterGrade(prefix = group.name)                                    
-           rows.append({'group': group, 'current_grade' : current_grade, 'form' : entry_form}) 
+            else:
+                current_grade = act_mark.mark
+            entry_form = MarkEntryForm_LetterGrade(prefix=group.name)                                    
+            rows.append({'group': group, 'current_grade' : current_grade, 'form' : entry_form}) 
         
     
     if error_info:
