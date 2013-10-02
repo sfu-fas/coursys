@@ -84,6 +84,11 @@ def view_page(request, course_slug, page_label):
     member = _check_allowed(request, offering, page.can_read, page.releasedate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
+        if _check_allowed(request, offering, page.can_read, None):
+            # would be allowed without the date restriction: report that nicely
+            context = {'offering': offering, 'page_label': page_label, 'releasedate': page.releasedate(),
+                       'page_label': page.label}
+            return render(request, 'pages/unreleased_page.html', context, status=403)
         return ForbiddenResponse(request, 'Not allowed to view this page')
     
     if request.user.is_authenticated():
