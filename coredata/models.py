@@ -515,7 +515,7 @@ class CourseOffering(models.Model):
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
-    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion'] # fields that should be copied when instructor does "copy course setup"
+    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
         # changed slug format for fall 2011
