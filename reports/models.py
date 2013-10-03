@@ -11,7 +11,6 @@ REPORT_LOCATION = os.path.join( '.', 'reports', 'reportlib', 'reports' )
 class Report(models.Model):
     name = models.CharField(help_text="Name of the report.", max_length=150, null=False)
     description = models.TextField(help_text="Description of the report.", null=True, blank=True)
-    last_run = models.DateTimeField(null=True, default=None)
 
     hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
@@ -39,11 +38,9 @@ class HardcodedReport(models.Model):
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
-    
-    # TODO: on save, make sure that this report exists in that file location
-
     def run(self):
         """ execute the code in this file """ 
+        print "things happen now!"
         # TODO put code in here
         return 
 

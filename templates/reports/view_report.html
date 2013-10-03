@@ -17,7 +17,7 @@
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
         <li><a href="#">New Schedule Rule</a></li>
         <li><a href="#">New Access Rule</a></li>
-        <li><a href="#">Run This Report Right Now</a></li>
+        <li><a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
 </div>
 {% endblock %}

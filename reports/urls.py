@@ -8,5 +8,6 @@ urlpatterns = patterns('',
     url(r'^new$', 'reports.views.new_report'),
     url(r'^type/' + REPORT_SLUG + '$', 'reports.views.view_report'),
     url(r'^type/' + REPORT_SLUG + '/component/new$', 'reports.views.new_component'),
-    url(r'^type/' + REPORT_SLUG + '/component/delete/(?P<component_id>\d+)$', 'reports.views.delete_component')
+    url(r'^type/' + REPORT_SLUG + '/component/delete/(?P<component_id>\d+)$', 'reports.views.delete_component'),
+    url(r'^type/' + REPORT_SLUG + '/run$', 'reports.views.run'),
 )

@@ -56,10 +56,14 @@ def new_component(request, report):
     return render(request, 'reports/new_component.html', {'form': form, 'report': report })
 
 def delete_component(request, report, component_id):
-    print 'hello'
-    print component_id
     report = get_object_or_404(Report, slug=report)
     component = get_object_or_404(HardcodedReport, id=int(component_id))
     
     component.delete()
+    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+
+def run(request, report):
+    report = get_object_or_404(Report, slug=report)
+    report.run()
+    messages.success(request, "Thing happened.")
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
