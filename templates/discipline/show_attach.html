@@ -5,7 +5,7 @@
 
 {% block title %}Dishonesty Case for {{case.student.name}}: Attached Files{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Attached Files{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li><li>&gt; Attached Files</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Dishonesty Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li><li>&gt; Attached Files</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
