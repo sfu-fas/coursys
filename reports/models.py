@@ -6,10 +6,12 @@ from courselib.slugs import make_slug
 import datetime
 import os
 
+REPORT_LOCATION = os.path.join( '.', 'reports', 'reportlib', 'reports' )
+
 class Report(models.Model):
     name = models.CharField(help_text="Name of the report.", max_length=150, null=False)
     description = models.TextField(help_text="Description of the report.", null=True, blank=True)
-    last_run = models.DateTimeField()
+    last_run = models.DateTimeField(null=True, default=None)
 
     hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
@@ -25,15 +27,18 @@ class Report(models.Model):
             child.run()
         return
 
+def all_reports():
+    return [(thing, thing) for thing in os.listdir(REPORT_LOCATION) if thing.endswith(".py")]
+
 class HardcodedReport(models.Model):
     report = models.ForeignKey(Report)
-    file_location = models.CharField(help_text="The location of this report, on disk.", max_length=80, null=False)
+    file_location = models.CharField(help_text="The location of this report, on disk.", 
+        max_length=80, choices=all_reports(), null=False)
 
     hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # TODO: Classmethod: produce a list of all valid HardcodedReports
     
     # TODO: on save, make sure that this report exists in that file location
 

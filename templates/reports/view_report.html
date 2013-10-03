@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Report: {{report.name}}{% endblock %}
+{% block h1 %}Report: {{report.name}} {% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url reports.views.view_reports %}">Reports</a></li> 
+<li>&gt; {{report.name}} </li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
+        <li><a href="#">New Schedule Rule</a></li>
+        <li><a href="#">New Access Rule</a></li>
+        <li><a href="#">Run This Report Right Now</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<em>{{report.description}}</em>
+
+<h2>Report Components</h2>
+
+<ul>
+{% for component in components %}
+    <li>{{component.file_location}} - <small><a href="{% url reports.views.delete_component report=report.slug component_id=component.id %}">Delete</a></small></li>
+{% endfor %}
+</ul>
+
+<h2>Schedule Rules</h2>
+
+<h2>Access Rules</h2>
+
+<h2>Results</h2>
+
+
+{% endblock %}

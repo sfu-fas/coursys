@@ -14,7 +14,7 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="#">New Report</a></li>
+        <li><a href="{% url reports.views.new_report %}">New Report</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -23,7 +23,7 @@
 
 <ul>
 {% for report in reports %}
-    <li>{{report.name}}</li> 
+    <li><a href="{% url reports.views.view_report report=report.slug%}">{{report.name}}</a></li> 
 {% endfor %}
 </ul>
 
