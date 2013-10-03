@@ -29,10 +29,10 @@
         <div class="table_container">
         <table class="info">
             {% block studentinfo %}{% if activity.group %}<tr><th scope="row">Last Submitter:</th><td>{{student.name}}</td></tr>{% endif %}{% endblock %}
-            {% if group %}
+            {% if activity.group %}
             <tr>
                 <th scope="row">Group:</th>
-                <td>{{group.name}}</td>
+                <td>{% if group %}{{group.name}}{% else %}<span class="empty">No group</span>{% endif %}</td>
             </tr>
             {% endif %}
             <tr>
@@ -54,6 +54,10 @@
 
         {% if cansubmit %}
         {% if not is_staff %}
+            {% if activity.group and not group %}
+            <p>This is a group-based activity: you cannot submit because you aren't in a group.</p>
+            <p>You need to <a href="{% url groups.views.groupmanage course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
+            {% else %}
             <div id="submission_form_container">
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <fieldset>
@@ -73,6 +77,7 @@
 
             </form>
             </div>
+            {% endif %}
         {% endif %}
         {% endif %}
 
