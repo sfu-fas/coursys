@@ -50,7 +50,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         late = submission.created_at - activity.due_date
     else:
         late = 0
-        
+    
     if activity.group:
         gm = GroupMember.objects.filter(student__person=student, activity=activity, confirmed=True)
         if gm:
@@ -58,8 +58,8 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             member = gm[0].student
         else:
             group = None
-            cansubmit = False
-            messages.add_message(request, messages.INFO, "This is a group submission. You cannot submit since you aren't in a group.")
+            #cansubmit = False
+            #messages.add_message(request, messages.INFO, "This is a group submission. You cannot submit since you aren't in a group.")
     else:
         group = None
 
