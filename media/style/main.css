@@ -22,6 +22,10 @@ blockquote {
 dd {
 	margin: 0 2.5em;
 }
+div#main dl.docs dd>p:first-child {
+	margin-top: 0;
+	padding-top: 0;
+}
 pre {
 	font-family: monospace;
 }
