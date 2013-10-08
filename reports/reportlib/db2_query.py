@@ -1,5 +1,6 @@
 from query import Query
 from django.conf import settings
+from coredata.queries import SIMSProblem
 
 import semester
 import datetime
@@ -28,7 +29,6 @@ class NotConnected(Exception):
 class DB2_Query(Query):
     
     db = False
-    verbose = True
     
     @staticmethod
     def connect():
@@ -44,36 +44,30 @@ class DB2_Query(Query):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem, "Reporting database access has been disabled in this deployment."
         try:
-            passfile = open(self.dbpass_file)
+            passfile = open(settings.DB_PASS_FILE)
             _ = passfile.next()
             _ = passfile.next()
             _ = passfile.next()
-            simspasswd = passfile.next().strip()
+            sims_passwd = passfile.next().strip()
         except IOError:
-            simspasswd = ''
+            print settings.DB_PASS_FILE + " not found"
+            raise SIMSProblem, "Reporting database access requires a password file." 
+            sims_passwd = ''
+
+        sims_user = settings.SIMS_USER
+        sims_db_name = settings.SIMS_DB_NAME
+        sims_db_schema = settings.SIMS_DB_SCHEMA
         
         import DB2
-        SIMSConn.DatabaseError = DB2.DatabaseError
-        SIMSConn.DB2Error = DB2.Error
-        dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=simspasswd)
+        dbconn = DB2.connect(dsn=sims_db_name, uid=sims_user, pwd=sims_passwd)
         cursor = dbconn.cursor()
-        cursor.execute("SET SCHEMA "+self.schema)
-        return dbconn, cursor
+        cursor.execute("SET SCHEMA "+sims_db_schema)
+        DB2_Query.db = dbconn
 
-        DB2_Query.db = DB2.connect(
-            dsn= options['database'], 
-            uid= options['username'], 
-            pwd= options['password'])
-        
-        cursor = DB2_Query.db.cursor()
-        cursor.execute("SET SCHEMA " + options['schema'])
-
-        verbose = options['verbose']
-
-    def __init__(self, query_args={}, verbose=True):
+    def __init__(self, query_args={}):
         if not self.db:
             raise NotConnected("Please call DB2_Query.connect before creating any DB2 query objects.")
-        super(DB2_Query, self).__init__(self.db, DB2_Query.clean_input, DB2_Query.clean_output, query_args, self.verbose)
+        super(DB2_Query, self).__init__(self.db, DB2_Query.clean_input, DB2_Query.clean_output, query_args)
 
     def result(self):
         return super(DB2_Query, self).result()
@@ -116,7 +110,7 @@ class DB2_Query(Query):
     @staticmethod
     def clean_output(argument):
         if type( argument ) is str: 
-            return unicode(argument.strip(), 'utf-8')
+            return unicode(argument.strip(), 'utf-8', 'replace')
         else:
             return argument
 

@@ -3,6 +3,28 @@
 {% block h1 %}Report: {{report.name}} {% endblock %}
 
 {% block headextra %}
+<style>
+.results{
+    padding-left: 0;
+}
+.success{
+    background-color: green;
+    font-weight: bold;
+    padding: 5px;
+    margin-bottom: 5px;
+    list-style-type: none;
+}
+.fail{
+    background-color: #222;
+    font-weight: bold;
+    padding: 5px;
+    margin-bottom: 5px;
+    list-style-type: none;
+}
+.success a, .fail a{
+    color: white;
+}
+</style>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -39,6 +61,12 @@
 <h2>Access Rules</h2>
 
 <h2>Results</h2>
-
+<ul class='results'>
+{% for run in runs %}
+    <li class='{{run.success|yesno:"success,fail,other"}}'>
+        <a href="{% url reports.views.view_run report=report.slug run=run.slug %}">{{run.created_at}}</a>
+    </li>
+{% endfor %}
+</ul>
 
 {% endblock %}

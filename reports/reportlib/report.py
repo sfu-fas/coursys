@@ -1,13 +1,16 @@
-from title_and_description import TitleAndDescription
-import schedule
+from db2_query import DB2_Query
 
-class Report( TitleAndDescription ):
+class Report():
     """ The base class from which Report objects are derived. 
     
-    Override 'title', 'description', 'users', schedule, 'run()' in children. """
+    Override 'run()' in children. """
 
-    def __init__(self):
+    def __init__(self, logger):
         self.artifacts = []
+        self.logger = logger
+        DB2_Query.set_logger(logger)
+        DB2_Query.connect()
+        DB2_Query.clear_expired_members_from_cache()
         pass
 
     def run(self):

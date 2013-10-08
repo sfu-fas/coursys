@@ -9,23 +9,32 @@ import shutil
 import string
 
 from table import Table
-from title_and_description import TitleAndDescription
 
 no_function = lambda x: x
 
-class __BaseQuery(TitleAndDescription):
+class DefaultLog(object):
+    def __init__(self):
+        pass
+    def log(self, x):
+        print x
+
+class BaseQuery(object):
     """ The base class for queries. Performs a simple DB query. """
 
-    title = "Base Query"
-    description = "This is a plain-text description of what the query does."
     query = string.Template(
         """
         SELECT emplid FROM ps_stdnt_car_term
         FETCH FIRST 10 ROWS ONLY
         """)
     default_arguments = { } 
+    filename="query"
+    logger = DefaultLog()
 
-    def __init__(self, db, input_clean_function=no_function, output_clean_function=no_function, query_args={}, verbose=True):
+    @classmethod
+    def set_logger(cls, logger):
+        BaseQuery.logger = logger
+
+    def __init__(self, db, input_clean_function=no_function, output_clean_function=no_function, query_args={}):
         """ 
             db - a PEP-249 compliant DB connection.
             input_clean_function - a function to convert arguments into 
@@ -44,7 +53,6 @@ class __BaseQuery(TitleAndDescription):
             self.arguments[arg] = input_clean_function(self.arguments[arg])
         self.output_clean_function = output_clean_function
 
-        self.verbose = verbose
 
     @property
     def complete_query(self):
@@ -53,9 +61,8 @@ class __BaseQuery(TitleAndDescription):
     def result(self):
         """ Perform the query, and return the result as a Table object """
 
-        if self.verbose:
-            print "With arguments: ", self.arguments
-            print "Running query: \n", self.complete_query
+        BaseQuery.logger.log( "With arguments: " + str(self.arguments) )
+        BaseQuery.logger.log( "Running query: \n" + str(self.complete_query) )
 
         cursor = self.db_connection.cursor()
 
@@ -63,12 +70,9 @@ class __BaseQuery(TitleAndDescription):
         cursor.execute( self.complete_query ) 
         self.elapsed_time = time.time() - start_time
 
-        if self.verbose:
-            print self.elapsed_time, "seconds"
+        BaseQuery.logger.log( str(self.elapsed_time) + " seconds" )
 
         results_table = Table()
-        results_table.title = self.title + " Result" 
-        results_table.description = self.description 
         
         for col in cursor.description:
             results_table.append_column( col[0] )
@@ -80,15 +84,20 @@ class __BaseQuery(TitleAndDescription):
 
         self.rows_fetched = len(results_table) 
 
-        if self.verbose:
-            print self.rows_fetched, "rows fetched"
+        BaseQuery.logger.log( str(self.rows_fetched) + " rows fetched" )
 
         return results_table
 
     def __hash__(self):
         return hash(self.complete_query )
 
-class CachedQuery(__BaseQuery):
+def force_dir( path ):
+    """ Forces an empty directory to exist at path (if possible.) """
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+class CachedQuery(BaseQuery):
     """ Decorates the base query with a file caching layer.
     
         Children of CachedQuery can modify how long the query is cached for 
@@ -99,9 +108,11 @@ class CachedQuery(__BaseQuery):
     
     @property
     def query_filename(self):
+        force_dir( "cache" )
         return os.path.join( "cache",  self.filename + str(hash(self)) + ".query")
     @property
     def result_filename(self):
+        force_dir( "cache" )
         return os.path.join( "cache", self.filename + str(hash(self)) + ".result")
 
     def is_cached_on_file(self):
@@ -111,8 +122,7 @@ class CachedQuery(__BaseQuery):
                 expires = iso8601.parse_date(obj['expires'])
                 if pytz.UTC.localize(datetime.datetime.now()) < expires:
                     return True
-                elif self.verbose:
-                    print "Cache expired."
+                BaseQuery.logger.log("Cache expired.")
         return False
     
     def serialize_query(self):
@@ -138,7 +148,7 @@ class CachedQuery(__BaseQuery):
         self.cached_result.to_csv(self.result_filename)
 
     def load_result(self):
-        self.cached_result = Table.from_csv(self.result_filename, self.title + " Result", self.description)
+        self.cached_result = Table.from_csv(self.result_filename)
 
     def return_cached_result(self):
         return copy.deepcopy( self.cached_result )
@@ -146,13 +156,11 @@ class CachedQuery(__BaseQuery):
     def result(self):
         """ Wraps the 'result' function in caching code."""
         if hasattr(self, 'cached_result'):
-            if self.verbose:
-                print " -- Loading from cache -- "
+            CachedQuery.logger.log( " -- Loading from cache -- " )
             return self.return_cached_result()
         if self.is_cached_on_file():
-            if self.verbose:
-                print "With arguments: ", self.arguments
-                print " -- Loading from file: "+self.query_filename+"  -- "
+            CachedQuery.logger.log( "With arguments: " + str(self.arguments) )
+            CachedQuery.logger.log( " -- Loading from file: " + str(self.query_filename) + " --" )
             self.load_query()
             self.load_result()
             return self.return_cached_result()
@@ -165,7 +173,9 @@ class CachedQuery(__BaseQuery):
     @staticmethod
     def clear_expired_members_from_cache():
         """ Remove any files from the cache if they've expired. """
-        print "Looking for expired cache members..."
+        CachedQuery.logger.log( "Looking for expired cache members..." )
+        if not os.path.isdir("cache"):
+            return 
         for cache_file in os.listdir( "cache" ):
             cache_file = os.path.join( "cache", cache_file )
             if cache_file.endswith('.query') and os.path.isfile( cache_file ):
@@ -176,7 +186,7 @@ class CachedQuery(__BaseQuery):
                         result_file = cache_file.replace('.query', '.result')
                         os.remove( cache_file ) 
                         os.remove( result_file )
-                        print "Deleting expired cache: " + cache_file + ", " + result_file
+                        CachedQuery.logger.log( "Deleting expired cache: " + cache_file + ", " + result_file )
 
 class Query(CachedQuery):
     pass

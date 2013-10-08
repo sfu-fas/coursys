@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Report: {{report.name}}, Result: {{result.name}} {{ result.created_at }}{% endblock %}
+{% block h1 %}Result: {{result.name}} {{ result.created_at }} {% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.datatable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url reports.views.view_reports %}">Reports</a></li> 
+<li>&gt; <a href="{% url reports.views.view_report report=report.slug %}">{{report.name}}</a> </li>
+<li>&gt; <a href="{% url reports.views.view_run report=report.slug run=run.slug %}">Run: {{ run.created_at }}</a> </li>
+<li>&gt; Result: {{result.name}} {{result.created_at}} </li> 
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<table class='datatable'>
+<thead>
+{% for column in result.table_rendered.headers %}
+    <th>{{column}}</th>
+{% endfor %}
+</thead>
+<tbody>
+{% for row in result.table_rendered.rows %}
+    <tr>
+    {% for column in row %}
+        <td>{{column}}</td> 
+    {% endfor %}
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}

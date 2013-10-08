@@ -1,4 +1,4 @@
-from models import Report, HardcodedReport
+from models import Report, HardcodedReport, Result, Run
 from forms import ReportForm, HardcodedReportForm
 from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
 from django.http import HttpResponse
@@ -31,8 +31,9 @@ def view_report(request, report):
     report = get_object_or_404(Report, slug=report) 
     
     components = HardcodedReport.objects.filter(report=report)
+    runs = Run.objects.filter(report=report).order_by("created_at")
 
-    return render(request, 'reports/view_report.html', {'report':report, 'components':components})
+    return render(request, 'reports/view_report.html', {'report':report, 'runs':runs, 'components':components})
 
 def new_component(request, report):
     report = get_object_or_404(Report, slug=report) 
@@ -64,6 +65,24 @@ def delete_component(request, report, component_id):
 
 def run(request, report):
     report = get_object_or_404(Report, slug=report)
-    report.run()
-    messages.success(request, "Thing happened.")
-    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    run = report.run()
+    if( run.success ):
+        messages.success(request, "Run Succeeded!")
+    else: 
+        messages.error(request, "Run Failed!")
+    return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
+
+def view_run(request, report, run):
+    run = get_object_or_404(Run, slug=run)
+    report = run.report
+    runlines = run.getLines()
+    results = Result.objects.filter( run=run )
+    
+    return render(request, 'reports/view_run.html', {'report':report, 'run': run, 'runlines':runlines, 'results':results})
+
+def view_result(request, report, run, result):
+    run = get_object_or_404(Run, slug=run)
+    report = run.report
+    result = get_object_or_404(Result, id=result)
+    
+    return render(request, 'reports/view_result.html', {'report':report, 'run': run, 'result':result})

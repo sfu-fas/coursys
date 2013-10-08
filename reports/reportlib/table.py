@@ -1,12 +1,8 @@
 import pprint 
 import csv
-from title_and_description import TitleAndDescription
 
-class Table(TitleAndDescription):
+class Table():
     EMPTY = "" 
-
-    title = "A table"
-    description = "A longer description of what the table contains."
 
     def __init__(self):
         self.headers = []
@@ -107,8 +103,6 @@ class Table(TitleAndDescription):
         """ Produce a new table, containing only the listed columns. """
 
         t = Table()
-        t.title = self.title + " *"
-        t.description = self.description
         for row_map in self.row_maps():
             new_row = []
             for column in list_of_columns:
@@ -458,18 +452,14 @@ class Table(TitleAndDescription):
         >>> t.append_column("LastName")
         >>> t.append_row( ["Curtis", "Lassam"] )
         >>> t.append_row( ["Jonathan", "Lassam"] )
-        >>> t.title="Hi"
-        >>> t.description="Whoa"
         >>> t.to_dict()
-        {'headers': ['FirstName', 'LastName'], 'rows': [['Curtis', 'Lassam'], ['Jonathan', 'Lassam']], 'description': 'Whoa', 'title': 'Hi'}
+        {'headers': ['FirstName', 'LastName'], 'rows': [['Curtis', 'Lassam'], ['Jonathan', 'Lassam']]}
 
         """
 
         obj = {}
         obj['headers'] = self.headers
         obj['rows'] = self.rows
-        obj['title'] = self.title
-        obj['description'] = self.description
         return obj
     
     @staticmethod
@@ -478,7 +468,7 @@ class Table(TitleAndDescription):
 
         Used for deserialization.
 
-        >>> obj = {'headers': ['FirstName', 'LastName'], 'rows': [['Curtis', 'Lassam'], ['Jonathan', 'Lassam']], 'description': 'Whoa', 'title': 'Hi'}
+        >>> obj = {'headers': ['FirstName', 'LastName'], 'rows': [['Curtis', 'Lassam'], ['Jonathan', 'Lassam']]}
 
         >>> print Table.from_dict( obj ) 
         FirstName | LastName
@@ -491,8 +481,6 @@ class Table(TitleAndDescription):
             table.append_column( header )
         for row in obj['rows']:
             table.append_row( row )
-        table.title = obj['title']
-        table.description = obj['description']
         return table
 
     def __repr__(self):
@@ -576,14 +564,12 @@ class Table(TitleAndDescription):
             writer.writerow( [Table.utf8(x) for x in row] )
     
     @staticmethod
-    def from_csv(location, title="", description=""):
+    def from_csv(location):
         """ Load the table from a csv file. """
         #reader = unicode_csv.UnicodeCsvReader( open(location, 'rb') )
         reader = csv.reader( open(location, 'rb') )
         
         new_table = Table()
-        new_table.title = title 
-        new_table.description = description 
         
         for row in reader:
             for column in row:
