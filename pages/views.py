@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from django.views.decorators.csrf import csrf_exempt
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
 from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
@@ -342,6 +343,10 @@ def import_site(request, course_slug):
 
 
 
+
+
+
+
 from django.forms import ValidationError
 from coredata.models import Person
 from pages.models import ACL_DESC, WRITE_ACL_DESC
@@ -373,7 +378,9 @@ def _pages_from_json(request, offering, data):
         raise ValidationError(u'Person with that userid does not exist.')
     
     if 'pages-token' not in user.config or user.config['pages-token'] != data['token']:
-        raise ValidationError(u'Could not validate authentication token.')
+        e = ValidationError(u'Could not validate authentication token.')
+        e.status = 403
+        raise e
     
     # if we get this far, the user is authenticated and we can start processing the pages...
     
@@ -405,7 +412,8 @@ def _pages_from_json(request, offering, data):
             m = _check_allowed(fake_request, offering, offering.page_creators())
         if not m:
             raise ValidationError(u'You can\'t edit page #%i.' % (i))
-                
+        
+        # handle Page attributes
         if 'can_read' in pdata:
             if type(pdata['can_read']) != unicode or pdata['can_read'] not in ACL_DESC:
                 raise ValidationError(u'Page #%i "can_read" value must be one of %s.'
@@ -459,11 +467,10 @@ def _pages_from_json(request, offering, data):
         if 'wikitext-base64' in pdata:
             if type(pdata['wikitext-base64']) != unicode:
                 raise ValidationError(u'Page #%i "wikitext-base64" value must be a string.' % (i))
-            
             try:
                 wikitext = base64.b64decode(pdata['wikitext-base64'])
             except TypeError:
-                raise ValidationError(u'Page #%i "wikitext-base64" contains base BASE64 data.' % (i))
+                raise ValidationError(u'Page #%i "wikitext-base64" contains bad base BASE64 data.' % (i))
             
             ver.wikitext = wikitext
         elif 'wikitext' in pdata:
@@ -480,24 +487,31 @@ def _pages_from_json(request, offering, data):
     
     
 
-# curl -i -X POST -H "Content-Type: application/json" -d @pages-import.json http://localhost:8000/2013fa-cmpt-165-d1/pages/_push
-
-from django.views.decorators.csrf import csrf_exempt
+# testing like this:
+# curl -i -X POST -H "Content-Type: application/json" -d @pages-import.json http://localhost:8000/2013su-cmpt-165-d1/pages/_push
 @csrf_exempt
 @transaction.commit_on_success
 def api_import(request, course_slug):
+    """
+    API to allow automated Pages updates
+    """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     
     if request.method != 'POST':
         return HttpError(request, status=405, title="Method not allowed", error="This URL accepts only POST requests", errormsg=None, simple=True)
+    if request.META['CONTENT_TYPE'] != 'application/json':
+        return HttpError(request, status=415, title='Unsupported Media Type', error="Media type of request must be 'application/json'.", simple=True)
     
     data = request.read()
     try:
         _pages_from_json(request, offering, data)
     except ValidationError as e:
-        return HttpError(request, status=400, title='Bad request', error=e.messages[0], simple=True)
+        status = 400
+        if hasattr(e, 'status'):
+            status = e.status
+        return HttpError(request, status=status, title='Bad request', error=e.messages[0], simple=True)
 
-    return HttpResponse()
+    return HttpError(request, status=200, title='Success', error='Page import successful.', simple=True)
 
 
 
