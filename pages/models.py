@@ -19,6 +19,7 @@ WRITE_ACL_CHOICES = [
     ('STUD', 'students, instructor, TAs') ]
 READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('ALL', 'anybody')]
 ACL_DESC = dict(READ_ACL_CHOICES)
+WRITE_ACL_DESC = dict(WRITE_ACL_CHOICES)
 
 MEMBER_ROLES = { # map from ACL roles to allowed Member roles
         'NONE': set(),

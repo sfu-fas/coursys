@@ -37,8 +37,13 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
-def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None):
-    resp = render_to_response('error.html', {'title': title, 'error': error, 'errormsg': errormsg}, context_instance=RequestContext(request))
+def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False):
+    if simple:
+        # this case is intended to produce human-readable HTML for API errors
+        template = 'simple-error.html'
+    else:
+        template = 'error.html'
+    resp = render_to_response(template, {'title': title, 'error': error, 'errormsg': errormsg}, context_instance=RequestContext(request))
     resp.status_code = status
     return resp
 
