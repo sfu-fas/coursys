@@ -380,6 +380,7 @@ from django.forms import ValidationError
 from coredata.models import Person
 from pages.models import ACL_DESC, WRITE_ACL_DESC
 import base64
+@transaction.commit_on_success
 def _pages_from_json(request, offering, data):
     try:
         data = data.decode('utf-8')
@@ -463,6 +464,8 @@ def _pages_from_json(request, offering, data):
                 raise ValidationError(u'Page #%i "new_label" value must be a string.' % (i))
             if m.role == 'STUD':
                 raise ValidationError(u'Page #%i: students can\'t change label value.' % (i))
+            if Page.objects.filter(offering=offering, label=pdata['new_label']):
+                raise ValidationError(u'Page #%i: there is already a page with that "new_label".' % (i))
 
             page.label = pdata['new_label']
 
@@ -519,7 +522,6 @@ def _pages_from_json(request, offering, data):
 # testing like this:
 # curl -i -X POST -H "Content-Type: application/json" -d @pages-import.json http://localhost:8000/2013su-cmpt-165-d1/pages/_push
 @csrf_exempt
-@transaction.commit_on_success
 def api_import(request, course_slug):
     """
     API to allow automated Pages updates

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}CourSys: Pages API{% endblock %}
+{% block h1 %}CourSys: Pages API{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Pages API</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<h2 id="json">API Basics</h2>
+<p>You can upload page content to your <a href="{% url dashboard.views.view_doc doc_slug='pages' %}">course pages</a>. To do this, you need to make a POST request to a URL like this:</p>
+<blockquote>
+<pre>{{BASE_ABS_URL}}{% if course %}{% url pages.views.api_import course_slug=course.slug %}{% else %}{% url pages.views.api_import course_slug=cslug %}{% endif %}</pre>
+</blockquote>
+<p>For example, create the relevant data in a file <code>pages-data.json</code> and use the Unix <code>curl</code> command like this:</p>
+<blockquote>
+<pre>curl -X POST -H "Content-Type: application/json" -d @pages-data.json {{BASE_ABS_URL}}{% if course %}{% url pages.views.api_import course_slug=course.slug %}{% else %}{% url pages.views.api_import course_slug=cslug %}{% endif %}</pre>
+</blockquote>
+
+
+<h2 id="json">JSON Format</h2>
+<p>The content of the POST request must be <a href="http://www.json.org/">JSON</a> (UTF-8 encoded, with type <code>application/json</code>) with content like the following:</p>
+<blockquote><pre>{
+  "userid": "{{ userid }}",
+  "token": "00000000000000000000000000000000",
+  "pages": [
+    {
+      "label": "Index",
+      "title": "The Coursé Page",
+      "wikitext": "This is some **new** content for the page.\n\nParagraph 2."
+      "comment": "page edit comment",
+      "can_read": "ALL",
+      "can_write": "INST",
+      "use_math": true
+    },
+    {
+      "label": "ExistingPage",
+      "new_label": "PageRenamedByThisOperation",
+      "title": "Another Page",
+      "wikitext-base64": "SSdtIC8vaW1wcmVzc2VkLy8gdGhhdCB5b3UgZGVjb2RlZCBcKHRee2h9aV9zXCkhIQ==",
+    }
+  ]
+}</pre></blockquote>
+
+<p>The fields <code>"userid"</code> (your userid) and <code>"token"</code> (your access token) are required.
+The <code>"pages"</code> array is a list of objects describing changes/creation of pages.</p>
+<p>The fields for each page are:</p>
+<dl>
+  <dt><code>"label"</code> (required)</dt>
+  <dd>The label for the page you're creating/updating. This is the last component of the URL for that page. If no page exists with this label, it will be created.</dd>
+  <dt><code>"new_label"</code></dt>
+  <dd>If you would like to rename the page, this is the new label.</dd>
+  <dt><code>"title"</code> (required for new pages)</dt>
+  <dd>The (new) title for the page.</dd>
+  <dt><code>"wikitext"</code> (required for new pages)</dt>
+  <dd>The <a href="{% url dashboard.views.view_doc doc_slug='pages' %}#creole">wiki-creole</a> content for the page (appropriately escaped for inclusion in JSON, of course).</dd>
+  <dt><code>"wikitext-base64"</code></dt>
+  <dd>The wikitext as above, but BASE64-encoded. (Takes precedence over <code>"wikitext"</code> if it's given.)</dd>
+  <dt><code>"comment"</code></dt>
+  <dd>The comment for the revision.</dd>
+  <dt><code>"can_read"</code></dt>
+  <dd>Who should have permission to view this page? Values are
+  	<code>"ALL"</code> (everybody, whether logged in or not),
+  	<code>"STUD"</code> (students and staff of the course),
+  	<code>"STAF"</code> (staff of the course: instructor and TAs),
+  	<code>"INST"</code> (only the instructor).
+  	The default is <code>"STUD"</code>.</dd>
+  <dt><code>"can_write"</code></dt>
+  <dd>Who can edit the page? Same as <code>"can_read"</code> except <code>"ALL"</code> is not allowed. The default is <code>"STAF"</code>.</dd>
+  <dt><code>"use_math"</code></dt>
+  <dd>A boolean indicating whether <a href="http://www.mathjax.org/">MathJax</a> should be turned on for displaying this page or not. Default is off.</dd>
+
+</dl>
+
+<h2 id="token">Access Token</h2>
+<p>There is no user interface to create an access token for the API. Email Greg Baker (<a href="mailto:ggbaker@sfu.ca">ggbaker@sfu.ca</a>) to get one.</p>
+
+
+
+
+
+{% endblock %}

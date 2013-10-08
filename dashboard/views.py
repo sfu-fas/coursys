@@ -776,7 +776,7 @@ def view_doc(request, doc_slug):
     context = {'BASE_ABS_URL': settings.BASE_ABS_URL}
     
     # set up useful context variables for this doc
-    if doc_slug == "submission":
+    if doc_slug in ["submission", "pages-api"]:
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
         offerings = [m.offering for m in instructor]
         activities = Activity.objects.filter(offering__in=offerings).annotate(Count('submissioncomponent')).order_by('-offering__semester', '-due_date')
@@ -791,6 +791,8 @@ def view_doc(request, doc_slug):
         else:
             sem = Semester.objects.all().reverse()[0]
             context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+        
+        context['userid'] = request.user.username
 
     elif doc_slug == "impersonate":
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
