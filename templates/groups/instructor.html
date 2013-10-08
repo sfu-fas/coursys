@@ -74,7 +74,7 @@ $(document).ready(function() {
 <h2 id="data">Group Data</h2>
 <div>
 <p>This is a machine-readable list of group members that you can copy-and-paste. [Does this format make sense? Anybody want something different?]</p>
-<blockquote><pre>{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}
+<blockquote><pre>{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}{% if course.uses_svn %}; {{info.group.svn_url}}{% endif %}
 {% endfor %}</pre></blockquote>
 
 </div>
