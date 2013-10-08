@@ -789,10 +789,10 @@ def view_doc(request, doc_slug):
         elif offerings:
             context['course'] = offerings[0]
         else:
-            sem = Semester.objects.all().reverse()[0]
-            context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+            sem = Semester.current()
+            context['cslug'] = sem.slugform() + '-cmpt-001-d1' # a sample contemporary course slug 
         
-        context['userid'] = request.user.username
+        context['userid'] = request.user.username or 'userid'
 
     elif doc_slug == "impersonate":
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
@@ -806,8 +806,8 @@ def view_doc(request, doc_slug):
             if students:
                 context['student'] = students[0]
         else:
-            sem = Semester.objects.all().reverse()[0]
-            context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+            sem = Semester.current()
+            context['cslug'] = sem.slugform() + '-cmpt-001-d1' # a sample contemporary course slug 
 
     elif doc_slug == "calc_numeric":
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
