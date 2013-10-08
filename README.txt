@@ -10,12 +10,19 @@ groups: handling groups so assignments can be group-based
 log: finer-grained logging for the system
 marking: finer-grained marking with a rubric
 mobile: some read-only views for mobile devices
-planning: planning of courses, assigning instructors, etc.
 submission: submission of work (for later grading)
 ta: management of TA applications and assignment
 grad: grade student database
 ra: research assistant database and appointments
 advisornotes: advisor notepads for student advising
+discuss: discussion forum for course offerings
+pages: wiki-like course web pages
+onlineforms: configurable and fillable online forms
+alerts: automated student problem alerts
+planning: planning of courses, assigning instructors, etc.
+techreq: collection of technical requirements for courses
+booking: booking system for advisors
+
 
 OTHER TOP-LEVEL FILES/DIRECTORIES
 courselib: various library code for the system

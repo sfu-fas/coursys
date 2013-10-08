@@ -189,7 +189,7 @@ class PagesTest(TestCase):
         c = Client()
         url = reverse('pages.views.api_import', kwargs={'course_slug': crs.slug})
         response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
-        self.assertEquals(response.status_code, 400)
+        self.assertEquals(response.status_code, 403)
         
         # create token and try again
         person.config['pages-token'] = token
