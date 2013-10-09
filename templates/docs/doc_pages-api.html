@@ -33,14 +33,14 @@
       "wikitext": "This is some **new** content for the page.\n\nParagraph 2."
       "comment": "page edit comment",
       "can_read": "ALL",
-      "can_write": "INST",
-      "use_math": true
+      "can_write": "INST"
     },
     {
       "label": "ExistingPage",
       "new_label": "PageRenamedByThisOperation",
       "title": "Another Page",
       "wikitext-base64": "SSdtIC8vaW1wcmVzc2VkLy8gdGhhdCB5b3UgZGVjb2RlZCBcKHRee2h9aV9zXCkhIQ==",
+      "use_math": true
     }
   ]
 }</pre></blockquote>
@@ -54,9 +54,9 @@ The <code>"pages"</code> array is a list of objects describing changes/creation 
   <dt><code>"new_label"</code></dt>
   <dd>If you would like to rename the page, this is the new label.</dd>
   <dt><code>"title"</code> (required for new pages)</dt>
-  <dd>The (new) title for the page.</dd>
+  <dd>The (new) title for the page. Default is unchanged from the previous revision.</dd>
   <dt><code>"wikitext"</code> (required for new pages)</dt>
-  <dd>The <a href="{% url dashboard.views.view_doc doc_slug='pages' %}#creole">wiki-creole</a> content for the page (appropriately escaped for inclusion in JSON, of course).</dd>
+  <dd>The <a href="{% url dashboard.views.view_doc doc_slug='pages' %}#creole">wiki-creole</a> content for the page (appropriately escaped for inclusion in JSON, of course). Default is unchanged from previous revision.</dd>
   <dt><code>"wikitext-base64"</code></dt>
   <dd>The wikitext as above, but BASE64-encoded. (Takes precedence over <code>"wikitext"</code> if it's given.)</dd>
   <dt><code>"comment"</code></dt>
@@ -67,9 +67,9 @@ The <code>"pages"</code> array is a list of objects describing changes/creation 
   	<code>"STUD"</code> (students and staff of the course),
   	<code>"STAF"</code> (staff of the course: instructor and TAs),
   	<code>"INST"</code> (only the instructor).
-  	The default is <code>"STUD"</code>.</dd>
+  	The default is same as previous revision or <code>"STUD"</code> for new pages.</dd>
   <dt><code>"can_write"</code></dt>
-  <dd>Who can edit the page? Same as <code>"can_read"</code> except <code>"ALL"</code> is not allowed. The default is <code>"STAF"</code>.</dd>
+  <dd>Who can edit the page? Same as <code>"can_read"</code> except <code>"ALL"</code> is not allowed. The default is same as previous revision or <code>"STAF"</code> for new pages.</dd>
   <dt><code>"use_math"</code></dt>
   <dd>A boolean indicating whether <a href="http://www.mathjax.org/">MathJax</a> should be turned on for displaying this page or not. Default is off.</dd>
 
