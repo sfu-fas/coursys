@@ -24,20 +24,36 @@ from icalendar import Calendar, Event
 import pytz, os
 
 
-def _display_membership(m, today, student_cutoff):
-    """
-    Logic to select memberships that should display
-    """
-    if m.role in ['TA', 'INST', 'APPR']:
-        # staff see the whole initial selection
-        return True
+def _get_memberships(userid):
+    today = datetime.date.today()
+    past1 = today - datetime.timedelta(days=365) # 1 year ago
+    past2 = today - datetime.timedelta(days=730) # 2 years ago
+    memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
+            .filter(offering__graded=True, person__userid=userid) \
+            .annotate(num_activities=Count('offering__activity')) \
+            .select_related('offering','offering__semester')
 
-    # only display if activities have been defined
-    active = m.num_activities>0
-    # shorter history; no future courses
-    date_okay = m.offering.semester.end >= student_cutoff and m.offering.semester.start <= today
+    memberships = list(memberships) # get out of the database and do this locally
 
-    return active and date_okay
+    # students don't see non-active courses or future courses
+    memberships = [m for m in memberships if
+                    m.role in ['TA', 'INST', 'APPR']
+                    or (m.num_activities > 0
+                        and m.offering.semester.start <= today)]
+
+    count1 = len(memberships)
+    # exclude everything from more than 2 years ago
+    memberships = [m for m in memberships if m.offering.semester.end >= past2]
+
+    # students don't see as far in the past
+    memberships = [m for m in memberships if
+                    m.role in ['TA', 'INST', 'APPR']
+                    or m.offering.semester.end >= past1]
+    count2 = len(memberships)
+
+    # have courses been excluded because of date?
+    excluded = (count1-count2) != 0
+    return memberships, excluded
 
 @login_required
 def index(request):
@@ -50,7 +66,7 @@ def index(request):
             return HttpResponseRedirect(reverse('mobile.views.index'))
         
     userid = request.user.username
-    memberships = _get_memberships(userid)
+    memberships, excluded = _get_memberships(userid)
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
@@ -58,7 +74,7 @@ def index(request):
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
     
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad,
-               'has_grads': has_grads}
+               'has_grads': has_grads, 'excluded': excluded}
     return render(request, "dashboard/index.html", context)
 
 @login_required
@@ -68,10 +84,9 @@ def index_full(request):
             .filter(offering__graded=True, person__userid=userid) \
             .annotate(num_activities=Count('offering__activity')) \
             .select_related('offering','offering__semester')
-    #memberships = [m for m in memberships if m.role in ['TA', 'INST', 'APPR'] or m.num_activities>0]
-    staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
-    
-    context = {'memberships': memberships, 'staff_memberships': staff_memberships}
+    memberships = [m for m in memberships if m.role in ['TA', 'INST', 'APPR'] or m.num_activities>0]
+
+    context = {'memberships': memberships}
     return render(request, "dashboard/index_full.html", context)
 
 
@@ -210,17 +225,6 @@ def config(request):
              'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
     return render(request, "dashboard/config.html", context)
 
-def _get_memberships(userid):
-    today = datetime.date.today()
-    past1 = today - datetime.timedelta(days=365) # 1 year ago
-    past2 = today - datetime.timedelta(days=730) # 2 years ago
-    memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
-            .filter(offering__graded=True, person__userid=userid) \
-            .filter(offering__semester__end__gte=past2) \
-            .annotate(num_activities=Count('offering__activity')) \
-            .select_related('offering','offering__semester')
-    memberships = [m for m in memberships if _display_membership(m, today, past1)]
-    return memberships
 
 def _get_news_list(userid, count):
     past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
