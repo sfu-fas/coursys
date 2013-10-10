@@ -721,11 +721,34 @@ def _readonly_sheets(form_submission):
     return sheet_sub_html
 
 
+def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
+    """
+    If this user is allowed to view this FormSubmission, return it, or None if not.
+    Also returns is_advisor, boolean as appropriate.
+    """
+    # can access if in owning formgroup
+    formgroups = FormGroup.objects.filter(members__userid=request.user.username)
+    form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=formgroups)
+    is_advisor = False
+    if not form_submissions:
+        # advisors can access relevant completed forms
+        advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
+        units = set(r.unit for r in advisor_roles)
+        form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
+                                        form__unit__in=units, form__advisor_visible=True, status='DONE')
+        is_advisor = True
 
-@requires_formgroup()
+    if not form_submissions:
+        return None, None
+
+    return form_submissions[0], is_advisor
+
+@login_required
 def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                        owner__in=request.formgroups)
+    form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+    if not form_submission:
+        raise Http404
     file_sub =  get_object_or_404(FieldSubmissionFile,
                                   field_submission__sheet_submission__form_submission=form_submission,
                                   id=file_id)
@@ -746,23 +769,10 @@ def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
 
 @login_required
 def view_submission(request, form_slug, formsubmit_slug):
-    # can access if in owning formgroup
-    formgroups = FormGroup.objects.filter(members__userid=request.user.username)
-    form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
-                                        owner__in=formgroups)
-    is_advisor = False
-    if not form_submissions:
-        # advisors can access relevant completed forms
-        advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
-        units = set(r.unit for r in advisor_roles)
-        form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
-                                        form__unit__in=units, form__advisor_visible=True, status='DONE')
-        is_advisor = True
-
-    if not form_submissions:
+    form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+    if not form_submission:
         raise Http404
 
-    form_submission = form_submissions[0]
     sheet_submissions = _readonly_sheets(form_submission)
 
     context = {
