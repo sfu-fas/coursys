@@ -28,6 +28,7 @@ $(document).ready(function() {
     <li><a href="{% url dashboard.views.config %}">User Configuration</a></li>
     <!--li><a href="{% url onlineforms.views.index %}">Online Forms</a></li>-->
     <li><a href="{% url dashboard.views.calendar %}">View Calendar</a></li>
+    {% if excluded %}<li><a href="{% url dashboard.views.index_full %}">View older courses</a></li>{% endif %}
     <!--{% if 'FAC' in roles or 'SESS' in roles or 'COOP' in roles %}<li><a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li>{% endif %}-->
     <!--{% if 'PLAN' in roles %}<li><a href="{% url planning.views.admin_index %}">Course Planning</a></li>{% endif %}-->   
     <!--<li><a href="{% url planning.views.plans_index %}">Semester Plans</a></li>-->
@@ -88,7 +89,6 @@ $(document).ready(function() {
     <li><a href="{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
   {% endfor %}
   </ul>
-{% if excluded %}<p class="helptext"><a href="{% url dashboard.views.index_full %}">Older courses</a> can be viewed as well.</p>{% endif %}
 {% endfor %}
 
 {% endblock %}
