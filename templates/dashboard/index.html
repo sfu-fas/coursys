@@ -76,7 +76,6 @@ $(document).ready(function() {
     </div>
     </div>
   {% endfor %}
-   
 </div>
 {% endif %}
 
@@ -89,6 +88,7 @@ $(document).ready(function() {
     <li><a href="{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
   {% endfor %}
   </ul>
+{% if excluded %}<p class="helptext"><a href="{% url dashboard.views.index_full %}">Older courses</a> can be viewed as well.</p>{% endif %}
 {% endfor %}
 
 {% endblock %}
