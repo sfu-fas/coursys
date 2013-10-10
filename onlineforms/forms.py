@@ -38,7 +38,7 @@ class EmployeeSearchForm(forms.Form):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'config', 'advisor_visible')
+        exclude = ('active', 'original', 'unit', 'config')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -57,7 +57,7 @@ class FormForm(ModelForm):
 class NewFormForm(FormForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'initiators', 'config', 'advisor_visible')
+        exclude = ('active', 'original', 'unit', 'initiators', 'config')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }

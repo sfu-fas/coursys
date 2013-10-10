@@ -248,7 +248,7 @@ class Form(models.Model, _FormCoherenceMixin):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?") # not implemented
+    advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?")
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)

@@ -145,11 +145,11 @@
     </table>
 </div>
 
-{%if items %}
+{% if items %}
 {% for item in items %}
 
-{% if item.note %}
-{% with item.item as note %}
+{% if item.entry_type == 'NOTE' %}
+{% with item as note %}
 <div id='note-whole-{{note.id}}' class="{% if note.hidden %}deleted{% endif %}" {% if note.hidden %}style="display:none;"{% endif %} >
 <h2 class="note" id="note-{{note.id}}">
     {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}
@@ -178,9 +178,25 @@
 </div>
 </div>
 {% endwith %}
-{% else %}
-{% with item.item as alert %}
-<h2 style="padding-left: 15px; line-height: 1.6; color: gray;">
+{% endif %}
+
+{% if item.entry_type == 'FORM' %}
+{% with item as formsub %}
+<div id='form-whole-{{formsub.id}}'>
+<h2 class="note" id="form-{{formsub.id}}">Online form submission: {{formsub.created_at}}</h2>
+<div class="note-box" id="form-box-{{formsub.id}}">
+<div class="note-content">
+  <p><a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
+      &rdquo;{{formsub.form.title}}&rdquo; submission.</a></p>
+</div>
+</div>
+</div>
+{% endwith %}
+{% endif %}
+
+{% if item.entry_type == 'ALERT' %}
+{% with item as alert %}
+<h2 id="alert-whole-{{alert.id}}" style="padding-left: 15px; line-height: 1.6; color: gray;">
 	{{ alert.created_at }} -
 	<a href="{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}" 
         {% if alert.resolved %}style="color: green;">{% else %}style="color: #B5111B;">{% endif %}
@@ -208,10 +224,10 @@
 
 
 {% endfor %}
-{%else%}
+{% else %}
 <p>
     No notes or problems
 </p>
-{%endif%}
+{% endif %}
 
 {%endblock content%}

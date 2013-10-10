@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django import forms
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
@@ -743,17 +744,34 @@ def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
     return response
 
 
-@requires_formgroup()
+@login_required
 def view_submission(request, form_slug, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                        owner__in=request.formgroups)
+    # can access if in owning formgroup
+    formgroups = FormGroup.objects.filter(members__userid=request.user.username)
+    form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=formgroups)
+    is_advisor = False
+    if not form_submissions:
+        # advisors can access relevant completed forms
+        advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
+        units = set(r.unit for r in advisor_roles)
+        form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
+                                        form__unit__in=units, form__advisor_visible=True, status='DONE')
+        is_advisor = True
+
+    if not form_submissions:
+        raise Http404
+
+    form_submission = form_submissions[0]
     sheet_submissions = _readonly_sheets(form_submission)
 
     context = {
                'form': form_submission.form,
+               'form_sub': form_submission,
                'sheet_submissions': sheet_submissions,
                'form_slug': form_slug,
                'formsubmit_slug': formsubmit_slug,
+               'is_advisor': is_advisor,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 

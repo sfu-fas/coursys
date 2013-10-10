@@ -11,19 +11,21 @@ from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
 from courselib.search import find_userid_or_emplid, get_query
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMessage
 from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.text import wrap
 from django.views.decorators.csrf import csrf_exempt
 from log.models import LogEntry
+from onlineforms.models import FormSubmission
 import datetime
 import json
 import rest
 from timeit import itertools
-from django.db import transaction
 
 
 def _redirect_to_notes(student):
@@ -138,7 +140,7 @@ def _email_student_note(note):
 def new_note(request, userid):
     try:
         student = Person.objects.get(find_userid_or_emplid(userid))
-    except ObjectDoesNotExist:
+    except Person.DoesNotExist:
         student = get_object_or_404(NonStudent, slug=userid)
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
@@ -277,7 +279,7 @@ def student_notes(request, userid):
 
     try:
         student = Person.objects.get(find_userid_or_emplid(userid))
-    except ObjectDoesNotExist:
+    except Person.DoesNotExist:
         student = get_object_or_404(NonStudent, slug=userid)
 
     if request.POST and 'note_id' in request.POST:
@@ -289,20 +291,26 @@ def student_notes(request, userid):
     if isinstance(student, Person):
         notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
         alerts = Alert.objects.filter(person=student, alerttype__unit__in=request.units, hidden=False).order_by("-created_at")
-        models = list(itertools.chain(notes, alerts))
-        #models = list(itertools.chain(notes))
-        models.sort(key=lambda x: x.created_at, reverse=True)
-        items = []
-        for model in models:
-            item = {'item': model, 'note': isinstance(model, AdvisorNote)}
-            items.append(item)
+        form_subs = FormSubmission.objects.filter(initiator__sfuFormFiller=student, form__unit__in=request.units,
+                                                  form__advisor_visible=True, status='DONE')
+
+        # decorate with .entry_type (and .created_at if not present so we can sort nicely)
+        for n in notes:
+            n.entry_type = 'NOTE'
+        for a in alerts:
+            a.entry_type = 'ALERT'
+        for fs in form_subs:
+            fs.entry_type = 'FORM'
+            fs.created_at = fs.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
+
+        items = list(itertools.chain(notes, alerts, form_subs))
+        items.sort(key=lambda x: x.created_at, reverse=True)
         nonstudent = False
     else:
         notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
-        items = []
-        for note in notes:
-            item = {'item': note, 'note': True}
-            items.append(item)
+        for n in notes:
+            n.entry_type = 'NOTE'
+        items = notes
         nonstudent = True
 
     template = 'advisornotes/student_notes.html'
