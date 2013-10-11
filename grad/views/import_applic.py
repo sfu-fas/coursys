@@ -10,7 +10,7 @@ from django.conf import settings
 from index import index
 
 @requires_role("GRAD", get_only=["GRPD"])
-def import_applic(request):
+def XXX_import_applic(request):
     unit_choices = [(u.id, u.name) for u in request.units]
     semester_choices = [(s.id, s.label()) for s in Semester.objects.filter()]
     if request.method == 'POST':
