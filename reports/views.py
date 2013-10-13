@@ -1,4 +1,4 @@
-from models import Report, HardcodedReport, Result, Run
+from models import Report, HardcodedReport, Result, Run, RunLine
 from forms import ReportForm, HardcodedReportForm
 from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
 from django.http import HttpResponse
@@ -64,6 +64,7 @@ def delete_component(request, report, component_id):
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
 def run(request, report):
+    """ Actually execute the report. """
     report = get_object_or_404(Report, slug=report)
     run = report.run()
     if( run.success ):
@@ -79,6 +80,21 @@ def view_run(request, report, run):
     results = Result.objects.filter( run=run )
     
     return render(request, 'reports/view_run.html', {'report':report, 'run': run, 'runlines':runlines, 'results':results})
+
+def delete_run(request, report, run):
+    run = get_object_or_404(Run, slug=run)
+    report = run.report
+    runlines = RunLine.objects.filter( run=run )
+    results = Result.objects.filter( run=run )
+
+    for result in results: 
+        result.delete()
+    for line in runlines:
+        line.delete()
+    run.delete()
+
+    messages.success(request, "Run Deleted!")
+    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
 def view_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)

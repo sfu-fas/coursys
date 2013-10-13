@@ -7,21 +7,21 @@
 .results{
     padding-left: 0;
 }
-.success{
+.results .success{
     background-color: green;
     font-weight: bold;
     padding: 5px;
     margin-bottom: 5px;
     list-style-type: none;
 }
-.fail{
+.results .fail{
     background-color: #222;
     font-weight: bold;
     padding: 5px;
     margin-bottom: 5px;
     list-style-type: none;
 }
-.success a, .fail a{
+.results .success a, .results .fail a{
     color: white;
 }
 </style>
@@ -65,6 +65,7 @@
 {% for run in runs %}
     <li class='{{run.success|yesno:"success,fail,other"}}'>
         <a href="{% url reports.views.view_run report=report.slug run=run.slug %}">{{run.created_at}}</a>
+        <a style='float:right' href="{% url reports.views.delete_run report=report.slug run=run.slug %}"><small>Delete</small></a>
     </li>
 {% endfor %}
 </ul>

@@ -40,6 +40,8 @@ def report_map(report_location, logger):
         return reportlib.reports.FasStudentReport(logger)
     if report_location == 'immediate_retake_report.py':
         return reportlib.reports.ImmediateRetakeReport(logger)
+    if report_location == 'five_retakes.py':
+        return reportlib.reports.FiveRetakeReport(logger)
 
 class RunLineLogger(object):
     def __init__(self, run):
@@ -77,7 +79,7 @@ class HardcodedReport(models.Model):
         except Exception as e:
             logger.log("ERROR: " + str(e) )
             type_, value_, traceback_ = sys.exc_info()
-            logger.log( traceback.format_tb( traceback_ ))
+            logger.log( ",".join(traceback.format_tb( traceback_ )) )
         return r
 
 class AccessRule(models.Model):
@@ -150,7 +152,7 @@ class Run(models.Model):
         r.save()
     
     def getLines(self):
-        return [ (line.created_at, line.description) for line in RunLine.objects.filter(run=self).order_by('-created_at')]
+        return [ (line.created_at, line.description) for line in RunLine.objects.filter(run=self).order_by('created_at')]
 
 class RunLine(models.Model):
     run = models.ForeignKey(Run)

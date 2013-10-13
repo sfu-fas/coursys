@@ -27,8 +27,7 @@ class StudentCourseQuery(DB2_Query):
         enrl.class_nbr = class.class_nbr 
         AND enrl.strm = class.strm
     WHERE 
-        enrl.earn_credit = 'Y'
-        AND enrl.stdnt_enrl_status = 'E'
+        enrl.stdnt_enrl_status = 'E'
         AND class.class_type = 'E'
         AND enrl.strm = $semester
         AND enrl.crse_grade_input not in ('AU', 'W', 'WD', 'WE', 'IP', ' ')
