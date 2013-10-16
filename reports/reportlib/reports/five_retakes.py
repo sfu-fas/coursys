@@ -70,11 +70,12 @@ class FiveRetakeReport( Report ):
         output_table = Table()
         output_table.title = "Retake Report"
         output_table.append_column("EMPLID")
+        output_table.append_column("N_RETAKES")
         output_table.append_column("RETAKES")
         
         for key, value in student_retakes.iteritems():
             if len(value) > 1:
-                output_table.append_row( [ key, value ] )
+                output_table.append_row( [ key, len(value), value ] )
         
         email_query = EmailQuery()
         email = email_query.result()
@@ -85,5 +86,6 @@ class FiveRetakeReport( Report ):
         
         output_table.left_join( names, "EMPLID" )
         output_table.left_join( email, "EMPLID" )
+        output_table = output_table.subset( ['EMPLID', 'N_RETAKES', 'RETAKES', 'NAME_DISPLAY', 'EMAIL_ADDR'] )
 
         self.artifacts.append(output_table)
