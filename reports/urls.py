@@ -15,4 +15,5 @@ urlpatterns = patterns('',
     url(r'^type/' + REPORT_SLUG + '/run/' + RUN_SLUG + '$', 'reports.views.view_run'),
     url(r'^type/' + REPORT_SLUG + '/run/delete/' + RUN_SLUG + '$', 'reports.views.delete_run'),
     url(r'^type/' + REPORT_SLUG + '/run/' + RUN_SLUG + '/' + RESULT_SLUG + "$", 'reports.views.view_result'),
+    url(r'^type/' + REPORT_SLUG + '/run/' + RUN_SLUG + '/' + RESULT_SLUG + "/csv$", 'reports.views.csv_result'),
 )

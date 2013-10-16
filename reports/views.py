@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.template import Template, Context
 from django.forms.util import ErrorList
+import unicodecsv as csv
 import datetime
 
 def view_reports(request):
@@ -102,3 +103,20 @@ def view_result(request, report, run, result):
     result = get_object_or_404(Result, id=result)
     
     return render(request, 'reports/view_result.html', {'report':report, 'run': run, 'result':result})
+
+def csv_result(request, report, run, result):
+    run = get_object_or_404(Run, slug=run)
+    report = run.report
+    result = get_object_or_404(Result, id=result)
+
+    filename = str(report.slug) + '.csv'
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    csvWriter = csv.writer(response)
+
+    table = result.table_rendered()
+    csvWriter.writerow(table.headers)
+    for row in table.rows: 
+        csvWriter.writerow(row)
+    
+    return response
