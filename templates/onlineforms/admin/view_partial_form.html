@@ -34,5 +34,11 @@
 	{% if sheet_submissions %}
 	    {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug %}
     {% endif %}
-    </div>
+</div>
+{% if can_admin %}
+<p><a href="{% url onlineforms.views.admin_assign form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">Assign next sheet</a></p>
+<form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
+<div><input type="submit" onclick="return confirmSubmit('Mark this form as completed')" value="Mark as done" /></div>
+</form>
+{% endif %}
 {% endblock %}

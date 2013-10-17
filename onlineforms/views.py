@@ -782,6 +782,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                'form_slug': form_slug,
                'formsubmit_slug': formsubmit_slug,
                'is_advisor': is_advisor,
+               'can_admin': (not is_advisor and form_submission.status != 'DONE'),
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
