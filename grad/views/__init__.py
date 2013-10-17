@@ -28,7 +28,7 @@ from new_program import new_program
 from programs import programs
 from requirements import requirements
 from new_requirement import new_requirement
-from import_applic import import_applic
+#from import_applic import import_applic
 from progress_reports import progress_reports
 from letter_templates import letter_templates
 from new_letter_template import new_letter_template
