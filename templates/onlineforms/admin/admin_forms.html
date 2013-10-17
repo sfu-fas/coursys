@@ -64,7 +64,7 @@
                     <td class="miniaction">
                         <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
                             <div>
-                                <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
+                                <input type="submit" onclick="return confirmSubmit('Mark this form as completed')" value="Done" />
                             </div>
                         </form>
                     </td>
