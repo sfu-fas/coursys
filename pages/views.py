@@ -517,7 +517,8 @@ def _pages_from_json(request, offering, data):
         
         ver.save()
     
-    
+    return user
+
 
 # testing like this:
 # curl -i -X POST -H "Content-Type: application/json" -d @pages-import.json http://localhost:8000/2013su-cmpt-165-d1/pages/_push
@@ -535,7 +536,13 @@ def api_import(request, course_slug):
     
     data = request.read()
     try:
-        _pages_from_json(request, offering, data)
+        user = _pages_from_json(request, offering, data)
+        #LOG EVENT#
+        l = LogEntry(userid=user.userid,
+              description="API import of pages in %s." % (offering,),
+              related_object=offering)
+        l.save()
+
     except ValidationError as e:
         status = 400
         if hasattr(e, 'status'):
