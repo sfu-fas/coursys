@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'booking',
     'techreq',
     'onlineforms',
+    'faculty',
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
