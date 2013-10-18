@@ -4,6 +4,7 @@ from timezones.fields import TimeZoneField
 from coredata.models import Member, CourseOffering
 from dashboard.models import *
 from django.db import transaction
+from django.db.models import Count
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.cache import cache
@@ -401,6 +402,12 @@ def all_activities_filter(offering, slug=None):
     This isn't pretty, but it will do the job.
     """
     #key = "all_act_filt" + '_' + offering.slug
+
+    # make sure activity positions are doing okay
+    duplicate_pos = Activity.objects.filter(offering=offering).values("position").annotate(count=Count('id')).order_by().filter(count__gt=1)
+    if duplicate_pos:
+        neaten_activity_positions(offering)
+
     filter_args = {'offering':offering}
     if slug:
         filter_args['slug'] = slug

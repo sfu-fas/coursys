@@ -481,6 +481,9 @@ urlpatterns += patterns('',
     # Online Forms
     url(r'^forms/', include('onlineforms.urls')),
     
+    # Online Forms
+    url(r'^faculty/', include('faculty.urls')),
+
     # Alerts
 
     url(r'^alerts/new_alerts/$', 'alerts.views.rest_alerts'),

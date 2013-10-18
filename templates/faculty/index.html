@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Faculty Summaries{% endblock %}
+{% block h1 %}Faculty Summaries{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#facultytable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; Faculty Summaries</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+<table id="facultytable" class="display">
+  <thead><tr><th scope="col">Name</th><th scope="col">Unit</th></tr></thead>
+  <tbody>
+  {% for r in fac_roles %}
+  <tr>
+  <td><a href="{% url faculty.views.summary userid=r.person.userid_or_emplid %}">{{r.person.sortname}}</a></td>
+  <td>{{ r.unit.name }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
