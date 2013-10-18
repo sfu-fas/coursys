@@ -16,8 +16,20 @@
         // activate dataTable ui
 	var oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
-		"bSort": false,
+		"bSort": true,
 		"bPaginate": false,
+		"aaSorting": [[0, "asc"]],
+		"fnDrawCallback": enable_disable_ordering,
+		"aoColumns": [
+		    null,
+		    null,
+		    null,
+		    {"sType": "numnull"},
+		    null,
+		    {"sType": "numnull"},
+		    null,
+		    null,
+		],
 	});
 	
 	// The following code deals with activity reordering
@@ -205,6 +217,7 @@
             {% with activity_info.activity as activity %}
             <tr>
                 <td id = "arrow{{forloop.counter}}">
+                    <span class="sort">{{ activity.position }}</span>
                     {% if not forloop.first %}
 		    <a class="arrow_up" href="{% url grades.views.course_info course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">  
 		       <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
@@ -219,7 +232,7 @@
 		    {% endif %}
                 </td>
                 <td scope="row">
-                        <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
+                <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
                 </td>
                 
                 <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
@@ -250,7 +263,7 @@
                 <td>&mdash;</td>
                 {% endifnotequal %}
                 <td class="{{activity.status|lower}}">{{ activity.get_status_display }}</td>
-                <td class="{{activity.due_class}}">{{ activity.due_date }}</td>
+                <td class="{{activity.due_class}}"><span class="sort">{{ activity.due_date.isoformat }}</span>{{ activity.due_date }}</td>
             </tr>
             {% endwith %}
           {% endfor %}
