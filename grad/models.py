@@ -551,6 +551,8 @@ class GradStudent(models.Model):
             st = ra.start_semester()
             en = ra.end_semester()
             ra.semlength = ra.semester_length()
+            if ra.semlength == 0:
+                ra.semlength = 1
             ra.semvalue = ra.lump_sum_pay / ra.semlength
             ra.promiseeligible = True
             sem = st
