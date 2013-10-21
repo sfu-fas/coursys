@@ -1,9 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django import forms
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Q
@@ -879,7 +881,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
     else:
         # make sure we are allowed to initiate this form
         if not loggedin_user and owner_form.initiators != "ANY":
-            return ForbiddenResponse(request)
+            return redirect_to_login(request.path)
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
         form_submission = None
