@@ -514,7 +514,9 @@ class SheetSubmission(models.Model):
         plaintext = get_template('onlineforms/emails/sheet_submitted.txt')
         htmly = get_template('onlineforms/emails/sheet_submitted.html')
     
-        full_url = request.build_absolute_uri('onlineforms.views.admin_list_all')
+        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+                                    kwargs={'form_slug': self.sheet.form.slug,
+                                            'formsubmit_slug': self.form_submission.slug}))
         email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form})
         subject = '%s submission' % (self.sheet.form.title)
         #from_email = self.filler.full_email()
