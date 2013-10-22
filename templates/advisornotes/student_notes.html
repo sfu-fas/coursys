@@ -188,6 +188,7 @@
 <div class="note-content">
   <p><a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
       &rdquo;{{formsub.form.title}}&rdquo; submission.</a></p>
+  {% if formsub.status != 'DONE' %}<p>Note: form has not yet been completed.</p>{% endif %}
 </div>
 </div>
 </div>

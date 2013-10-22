@@ -755,7 +755,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
         advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
         units = set(r.unit for r in advisor_roles)
         form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
-                                        form__unit__in=units, form__advisor_visible=True, status='DONE')
+                                        form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
 
     if not form_submissions:
