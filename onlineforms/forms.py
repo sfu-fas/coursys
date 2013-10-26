@@ -119,6 +119,24 @@ class AdminAssignForm_nonsfu(ModelForm):
             label=label.capitalize()))
 
 
+class CloseFormForm(forms.Form):
+    summary = forms.CharField(required=True,
+                help_text="Summary of the form, for advisors (and emailing to student if you select below).",
+                widget=forms.TextInput(attrs={'size': '70'})
+                )
+    email = forms.BooleanField(initial=False, required=False, help_text="Would you like to email the summary to the student?")
+    
+    def __init__(self, advisor_visible, *args, **kwargs):
+        super(CloseFormForm, self).__init__(*args, **kwargs)
+        if not advisor_visible:
+            # only care about these fields for advisor-visible things
+            del self.fields['summary']
+            del self.fields['email']
+            
+
+
+
+
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title

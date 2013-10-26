@@ -13,7 +13,9 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, r
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
 
-from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
+from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
+    EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
+    AdminAssignForm_nonsfu, CloseFormForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
@@ -283,8 +285,12 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
 def admin_done(request, form_slug, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
                                         owner__in=request.formgroups)
-    form_submission.status = 'DONE'
-    form_submission.save()
+    #form_submission.status = 'DONE'
+    #form_submission.save()
+    
+    close_form = CloseFormForm(data=request.POST, advisor_visible=form_submission.form.advisor_visible)
+    raise NotImplementedError
+    
     #LOG EVENT#
     l = LogEntry(userid=request.user.username,
         description=("Marked form submission %s done.") % (form_submission,),
@@ -776,6 +782,7 @@ def view_submission(request, form_slug, formsubmit_slug):
         raise Http404
 
     sheet_submissions = _readonly_sheets(form_submission)
+    close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible)
 
     context = {
                'form': form_submission.form,
@@ -785,6 +792,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                'formsubmit_slug': formsubmit_slug,
                'is_advisor': is_advisor,
                'can_admin': (not is_advisor and form_submission.status != 'DONE'),
+               'close_form': close_form,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 

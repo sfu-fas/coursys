@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block h1 %} View {{ form.title }} {% endblock %}
-{% block title %} View {{ form.title }}  {% endblock %}
+{% block h1 %}View {{ form.title }}{% endblock %}
+{% block title %}View {{ form.title }}{% endblock %}
 
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
@@ -36,9 +36,20 @@
     {% endif %}
 </div>
 {% if can_admin %}
+<div class="form_container" style="margin-top:5em;">
+    <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+    
+    <fieldset><legend>Mark Completed</legend>
+    {{close_form|as_dl}}
+
+    <p><input class="submit" type="submit" value="Mark as done" /></p>
+    </fieldset>
+
+    </form>
+</div>
+
+<!--
 <p><a href="{% url onlineforms.views.admin_assign form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">Assign next sheet</a></p>
-<form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
-<div><input type="submit" onclick="return confirmSubmit('Mark this form as completed')" value="Mark as done" /></div>
-</form>
+-->
 {% endif %}
 {% endblock %}
