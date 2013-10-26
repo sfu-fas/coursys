@@ -301,7 +301,7 @@ def student_notes(request, userid):
             a.entry_type = 'ALERT'
         for fs in form_subs:
             fs.entry_type = 'FORM'
-            fs.created_at = fs.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
+            fs.created_at = fs.last_sheet_completion()
 
         items = list(itertools.chain(notes, alerts, form_subs))
         items.sort(key=lambda x: x.created_at, reverse=True)

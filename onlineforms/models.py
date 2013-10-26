@@ -439,6 +439,9 @@ class FormSubmission(models.Model):
 
     def __unicode__(self):
         return "%s for %s" % (self.form, self.initiator)
+    
+    def last_sheet_completion(self):
+        return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
 
 
 class SheetSubmission(models.Model):
