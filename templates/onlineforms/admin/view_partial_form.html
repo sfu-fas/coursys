@@ -37,20 +37,21 @@
 </div>
 <p>Current status: {{ form_sub.get_status_display }}</p>
 {% if can_admin %}
-<div class="form_container" style="margin-top:5em;" id="completed">
+<div class="form_container" id="assign" style="margin-top:5em;">
+    <form action="assiogn" method="post" enctype="multipart/form-data">
+    <fieldset><legend>Assign Next Sheet</legend>
+    <p style="margin-bottom: 1em;"><a href="{% url onlineforms.views.admin_assign form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Assign the next sheet of this form</a></p>
+    </fieldset>
+    </form>
+</div>
+<div class="form_container" id="completed">
     <form action="#completed" method="post" enctype="multipart/form-data">{% csrf_token %}
-    
     <fieldset><legend>Mark Completed</legend>
-    {{close_form|as_dl}}
-
+    {{ close_form|as_dl }}
     <p><input class="submit" type="submit" value="Mark as done" /></p>
     </fieldset>
-
     </form>
 </div>
 
-<!--
-<p><a href="{% url onlineforms.views.admin_assign form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">Assign next sheet</a></p>
--->
 {% endif %}
 {% endblock %}

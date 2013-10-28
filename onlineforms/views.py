@@ -786,7 +786,7 @@ def view_submission(request, form_slug, formsubmit_slug):
     can_admin = not is_advisor and form_submission.status != 'DONE'
 
     if request.method == 'POST' and can_admin:
-        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST)
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST, prefix='close')
         if close_form.is_valid():
             admin = Person.objects.get(userid=request.user.username)
             form_submission.set_summary(close_form.cleaned_data['summary'])
@@ -809,7 +809,8 @@ def view_submission(request, form_slug, formsubmit_slug):
             return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     elif can_admin:
-        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible)
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, prefix='close')
+        #assign_form = AdminAssignForm(label="form", query_set=Sheet.objects.filter(form=form_submission.form, active=True), prefix='assign')
     else:
         close_form = None
 
@@ -822,6 +823,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                'is_advisor': is_advisor,
                'can_admin': can_admin,
                'close_form': close_form,
+               #'assign_form': assign_form,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 

@@ -76,7 +76,7 @@
                     <li>
                         {{ form|as_dl }}
                     </li>
-                    <li id="frequent"></li>
+                    {% if assign_to_sfu_account %}<li id="frequent"></li>{% endif %}
                     <li>
                         <input class="submit" type="submit" value="Submit"/>
                     </li>
