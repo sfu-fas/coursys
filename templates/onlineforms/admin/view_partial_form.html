@@ -36,8 +36,8 @@
     {% endif %}
 </div>
 {% if can_admin %}
-<div class="form_container" style="margin-top:5em;">
-    <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<div class="form_container" style="margin-top:5em;" id="completed">
+    <form action="#completed" method="post" enctype="multipart/form-data">{% csrf_token %}
     
     <fieldset><legend>Mark Completed</legend>
     {{close_form|as_dl}}

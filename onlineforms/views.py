@@ -280,23 +280,6 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
-@transaction.commit_on_success
-@requires_formgroup()
-def admin_done(request, form_slug, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                        owner__in=request.formgroups)
-    #form_submission.status = 'DONE'
-    #form_submission.save()
-    
-    close_form = CloseFormForm(data=request.POST, advisor_visible=form_submission.form.advisor_visible)
-    raise NotImplementedError
-    
-    #LOG EVENT#
-    l = LogEntry(userid=request.user.username,
-        description=("Marked form submission %s done.") % (form_submission,),
-        related_object=form_submission)
-    l.save()
-    return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
 def _userToFormFiller(user):
     try:
@@ -775,6 +758,7 @@ def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
     return response
 
 
+@transaction.commit_on_success
 @login_required
 def view_submission(request, form_slug, formsubmit_slug):
     form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
@@ -782,7 +766,29 @@ def view_submission(request, form_slug, formsubmit_slug):
         raise Http404
 
     sheet_submissions = _readonly_sheets(form_submission)
-    close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible)
+    can_admin = not is_advisor and form_submission.status != 'DONE'
+
+    if request.method == 'POST' and can_admin:
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST)
+        if close_form.is_valid():
+            print close_form.cleaned_data
+            form_submission.set_summary(close_form.cleaned_data['summary'])
+            form_submission.set_emailed(close_form.cleaned_data['email'])
+            form_submission.save()
+
+            if close_form.cleaned_data['email']:
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Marked form submission %s done.") % (form_submission,),
+                related_object=form_submission)
+            l.save()
+            #return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    elif can_admin:
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible)
+    else:
+        close_form = None
 
     context = {
                'form': form_submission.form,
@@ -791,7 +797,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                'form_slug': form_slug,
                'formsubmit_slug': formsubmit_slug,
                'is_advisor': is_advisor,
-               'can_admin': (not is_advisor and form_submission.status != 'DONE'),
+               'can_admin': can_admin,
                'close_form': close_form,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
