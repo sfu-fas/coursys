@@ -440,10 +440,12 @@ class FormSubmission(models.Model):
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
         # 'summary': summery of the form entered when closing it
         # 'emailed': True if the initiator was emailed when the form was closed
+        # 'closer': coredata.Person.id of the person that marked the formsub as DONE
 
-    defaults = {'summary': '', 'emailed': False}
+    defaults = {'summary': '', 'emailed': False, 'closer': None}
     summary, set_summary = getter_setter('summary')
     emailed, set_emailed = getter_setter('emailed')
+    closer_id, set_closer = getter_setter('closer')
 
     def update_status(self):
         sheet_submissions = SheetSubmission.objects.filter(form_submission=self) 
@@ -455,9 +457,25 @@ class FormSubmission(models.Model):
 
     def __unicode__(self):
         return "%s for %s" % (self.form, self.initiator)
+
+    def closer(self):
+        return Person.objects.get(id=self.closer_id())
     
     def last_sheet_completion(self):
         return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
+
+    def email_notify_completed(self, request, admin):
+        plaintext = get_template('onlineforms/emails/notify_completed.txt')
+        html = get_template('onlineforms/emails/notify_completed.html')
+
+        email_context = Context({'formsub': self, 'admin': admin})
+        subject = '%s submission complete' % (self.form.title)
+        from_email = admin.full_email()
+        to = self.initiator.full_email()
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                     from_email=from_email, to=[to], bcc=[admin.full_email()])
+        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.send()
 
 
 class SheetSubmission(models.Model):
@@ -564,6 +582,8 @@ class SheetSubmission(models.Model):
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, to)
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
+
+
 
 
 class FieldSubmission(models.Model):

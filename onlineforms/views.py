@@ -788,19 +788,25 @@ def view_submission(request, form_slug, formsubmit_slug):
     if request.method == 'POST' and can_admin:
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST)
         if close_form.is_valid():
-            print close_form.cleaned_data
+            admin = Person.objects.get(userid=request.user.username)
             form_submission.set_summary(close_form.cleaned_data['summary'])
             form_submission.set_emailed(close_form.cleaned_data['email'])
+            form_submission.set_closer(admin.id)
+            form_submission.status = 'DONE'
             form_submission.save()
 
             if close_form.cleaned_data['email']:
+                form_submission.email_notify_completed(request, admin)
+                messages.success(request, 'Form submission marked as completed; initiator informed by email.')
+            else:
+                messages.success(request, 'Form submission marked as completed.')
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                 description=("Marked form submission %s done.") % (form_submission,),
                 related_object=form_submission)
             l.save()
-            #return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     elif can_admin:
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible)

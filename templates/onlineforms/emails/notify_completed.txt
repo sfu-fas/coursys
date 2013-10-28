@@ -1,0 +1,3 @@
+Your submission for {{ formsub.form.title }} has been completed by {{ admin.name }} with this summary:
+
+{{ formsub.summary }}
