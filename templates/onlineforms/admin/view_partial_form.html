@@ -35,6 +35,7 @@
 	    {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug %}
     {% endif %}
 </div>
+<p>Current status: {{ form_sub.get_status_display }}</p>
 {% if can_admin %}
 <div class="form_container" style="margin-top:5em;">
     <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}

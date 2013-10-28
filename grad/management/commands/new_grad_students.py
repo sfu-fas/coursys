@@ -62,7 +62,7 @@ class Command(BaseCommand):
             }
         else:
             cmptunit = Unit.objects.get(label="CMPT")
-            mechunit = Unit.objects.get(label="MECH")
+            mechunit = Unit.objects.get(label="MSE")
             program_map = {
                 'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
                 'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
@@ -275,7 +275,8 @@ def get_grad_table( semester, acad_progs ):
                 prog.acad_prog IN %s             
                 AND prog.prog_status NOT IN ('DC') 
             AND prog.admit_term = %s
-            AND data.appl_fee_status in ('REC', 'WVD')
+            AND ( data.appl_fee_status in ('REC', 'WVD')
+                  OR data.adm_appl_ctr in ('GRAW') )
     """, (acad_progs, semester) )
     return [(emplid, adm_appl_nbr, acad_prog) for emplid, adm_appl_nbr, acad_prog in db]
 

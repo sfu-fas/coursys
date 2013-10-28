@@ -184,7 +184,7 @@ class FormGroup(models.Model):
     """
     unit = models.ForeignKey(Unit)
     name = models.CharField(max_length=60, null=False, blank=False)
-    members = models.ManyToManyField(Person)
+    members = models.ManyToManyField(Person) # , through='FormGroup_Member'
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
@@ -197,6 +197,15 @@ class FormGroup(models.Model):
         return "%s, %s" % (self.name, self.unit.label)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+
+class FormGroupMember(models.Model):
+    person = models.ForeignKey(Person)
+    formgroup = models.ForeignKey(FormGroup)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+
+    class Meta:
+        unique_together = (("person", "formgroup"),)
+
 
 class _FormCoherenceMixin(object):
     """
@@ -517,7 +526,9 @@ class SheetSubmission(models.Model):
         plaintext = get_template('onlineforms/emails/sheet_submitted.txt')
         htmly = get_template('onlineforms/emails/sheet_submitted.html')
     
-        full_url = request.build_absolute_uri('onlineforms.views.admin_list_all')
+        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+                                    kwargs={'form_slug': self.sheet.form.slug,
+                                            'formsubmit_slug': self.form_submission.slug}))
         email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form})
         subject = '%s submission' % (self.sheet.form.title)
         #from_email = self.filler.full_email()

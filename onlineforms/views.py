@@ -8,7 +8,9 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
@@ -22,7 +24,7 @@ from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_she
 
 from coredata.models import Person, Role
 from log.models import LogEntry
-
+import json
 import os
 
 #######################################################################
@@ -190,9 +192,10 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
                    .order_by('order')
     default_sheet = later_sheets[0] if later_sheets else None
 
+    sheets = Sheet.objects.filter(form=form_submission.form, active=True)
     assign_args = {'data': request.POST or None,
                     'label': 'sheet',
-                    'query_set': Sheet.objects.filter(form=form_submission.form, active=True),
+                    'query_set': sheets,
                     'initial': {'sheet': default_sheet}}
     form = AdminAssignForm(**assign_args) if assign_to_sfu_account else AdminAssignForm_nonsfu(**assign_args)
 
@@ -221,7 +224,21 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
         messages.success(request, 'Sheet assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
-    context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account}
+    # collect dictionary of frequent fillers of each form, for convenience links
+    frequent_fillers = ((s, SheetSubmission.objects.filter(sheet__original=s.original)
+                     .exclude(filler__sfuFormFiller=None)
+                     .values('filler__sfuFormFiller', 'filler__sfuFormFiller__emplid', 'filler__sfuFormFiller__first_name', 'filler__sfuFormFiller__last_name')
+                     .annotate(count=Count('filler'))
+                     .order_by('-count')[:5])
+                    for s in sheets)
+    frequent_fillers = dict(((s.id,[
+            {'emplid': d['filler__sfuFormFiller__emplid'],
+             'name': conditional_escape(d['filler__sfuFormFiller__first_name'] + ' ' + d['filler__sfuFormFiller__last_name'])}
+            for d in ssc])
+         for s, ssc in frequent_fillers))
+
+    context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account,
+               'frequent_fillers': mark_safe(json.dumps(frequent_fillers))}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
 
@@ -744,7 +761,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
         advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
         units = set(r.unit for r in advisor_roles)
         form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
-                                        form__unit__in=units, form__advisor_visible=True, status='DONE')
+                                        form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
 
     if not form_submissions:
