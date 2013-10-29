@@ -8,19 +8,23 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
 
-from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
+from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
+    EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
+    AdminAssignForm_nonsfu, CloseFormForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
 from coredata.models import Person, Role
 from log.models import LogEntry
-
+import json
 import os
 
 #######################################################################
@@ -188,9 +192,10 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
                    .order_by('order')
     default_sheet = later_sheets[0] if later_sheets else None
 
+    sheets = Sheet.objects.filter(form=form_submission.form, active=True)
     assign_args = {'data': request.POST or None,
                     'label': 'sheet',
-                    'query_set': Sheet.objects.filter(form=form_submission.form, active=True),
+                    'query_set': sheets,
                     'initial': {'sheet': default_sheet}}
     form = AdminAssignForm(**assign_args) if assign_to_sfu_account else AdminAssignForm_nonsfu(**assign_args)
 
@@ -219,7 +224,21 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
         messages.success(request, 'Sheet assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
-    context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account}
+    # collect dictionary of frequent fillers of each form, for convenience links
+    frequent_fillers = ((s, SheetSubmission.objects.filter(sheet__original=s.original)
+                     .exclude(filler__sfuFormFiller=None)
+                     .values('filler__sfuFormFiller', 'filler__sfuFormFiller__emplid', 'filler__sfuFormFiller__first_name', 'filler__sfuFormFiller__last_name')
+                     .annotate(count=Count('filler'))
+                     .order_by('-count')[:5])
+                    for s in sheets)
+    frequent_fillers = dict(((s.id,[
+            {'emplid': d['filler__sfuFormFiller__emplid'],
+             'name': conditional_escape(d['filler__sfuFormFiller__first_name'] + ' ' + d['filler__sfuFormFiller__last_name'])}
+            for d in ssc])
+         for s, ssc in frequent_fillers))
+
+    context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account,
+               'frequent_fillers': mark_safe(json.dumps(frequent_fillers))}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
 
@@ -278,19 +297,6 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
-@transaction.commit_on_success
-@requires_formgroup()
-def admin_done(request, form_slug, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                        owner__in=request.formgroups)
-    form_submission.status = 'DONE'
-    form_submission.save()
-    #LOG EVENT#
-    l = LogEntry(userid=request.user.username,
-        description=("Marked form submission %s done.") % (form_submission,),
-        related_object=form_submission)
-    l.save()
-    return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
 def _userToFormFiller(user):
     try:
@@ -738,7 +744,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
         advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
         units = set(r.unit for r in advisor_roles)
         form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
-                                        form__unit__in=units, form__advisor_visible=True, status='DONE')
+                                        form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
 
     if not form_submissions:
@@ -769,6 +775,7 @@ def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
     return response
 
 
+@transaction.commit_on_success
 @login_required
 def view_submission(request, form_slug, formsubmit_slug):
     form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
@@ -776,6 +783,36 @@ def view_submission(request, form_slug, formsubmit_slug):
         raise Http404
 
     sheet_submissions = _readonly_sheets(form_submission)
+    can_admin = not is_advisor and form_submission.status != 'DONE'
+
+    if request.method == 'POST' and can_admin:
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST, prefix='close')
+        if close_form.is_valid():
+            admin = Person.objects.get(userid=request.user.username)
+            form_submission.set_summary(close_form.cleaned_data['summary'])
+            form_submission.set_emailed(close_form.cleaned_data['email'])
+            form_submission.set_closer(admin.id)
+            form_submission.status = 'DONE'
+            form_submission.save()
+
+            if close_form.cleaned_data['email']:
+                form_submission.email_notify_completed(request, admin)
+                messages.success(request, 'Form submission marked as completed; initiator informed by email.')
+            else:
+                messages.success(request, 'Form submission marked as completed.')
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Marked form submission %s done.") % (form_submission,),
+                related_object=form_submission)
+            l.save()
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    elif can_admin:
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, prefix='close')
+        #assign_form = AdminAssignForm(label="form", query_set=Sheet.objects.filter(form=form_submission.form, active=True), prefix='assign')
+    else:
+        close_form = None
 
     context = {
                'form': form_submission.form,
@@ -784,7 +821,9 @@ def view_submission(request, form_slug, formsubmit_slug):
                'form_slug': form_slug,
                'formsubmit_slug': formsubmit_slug,
                'is_advisor': is_advisor,
-               'can_admin': (not is_advisor and form_submission.status != 'DONE'),
+               'can_admin': can_admin,
+               'close_form': close_form,
+               #'assign_form': assign_form,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 

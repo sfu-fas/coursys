@@ -9,7 +9,7 @@
         $('#pend_table').dataTable({
                     "bPaginate": false,
                     "bJQueryUI": true,
-                    "aaSorting": [[0, "asc"]],
+                    "aaSorting": [[2, "asc"]],
         });
         $('#wait_table').dataTable({
                     "bPaginate": false,
@@ -19,7 +19,7 @@
         $('#done_table').dataTable({
                     "bPaginate": false,
                     "bJQueryUI": true,
-                    "aaSorting": [[2, "asc"]],
+                    "aaSorting": [[2, "desc"]],
         });
     });
 </script>
@@ -47,30 +47,16 @@
         <table class="display" id="pend_table">
             <thead>
                 <tr>
-                    <th scope="col">Title</th>
+                    <th scope="col">Form</th>
                     <th scope="col">Initiator</th>
-                    <th scope="col">Assign</th>
-                    <th scope="col">Done</th>
-                    <th scope="col">View Form</th>
+                    <th scope="col">Last Submission</th>
                 </tr>
             </thead>
             {% for form_sub in pend_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
-                    <td>{{ form_sub.initiator }}</td>
-                    <td>
-                        <a href="{% url onlineforms.views.admin_assign form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">Assign to Person</a>
-                    </td>
-                    <td class="miniaction">
-                        <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
-                            <div>
-                                <input type="submit" onclick="return confirmSubmit('Mark this form as completed')" value="Done" />
-                            </div>
-                        </form>
-                    </td>
-                    <td>
-                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
-                    </td>
+                    <td><a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                    <td><span class="sort">{{ form_sub.last_sheet_completion.isoformat }}</span>{{ form_sub.last_sheet_completion }}</td>
                 </tr>
               {% endfor %}
         </table>
@@ -85,32 +71,20 @@
         <table class="display" id="wait_table">
             <thead>
                 <tr>
-                    <th scope="col">Title</th>
+                    <th scope="col">Form</th>
                     <th scope="col">Initiator</th>
-                    <th scope="col">Sheet</th>
+                    <th scope="col">Waiting Sheet</th>
                     <th scope="col">Assigned to</th>
                     <th scope="col">Elapsed Time</th>
-                    <th scope="col">Done</th>
-                    <th scope="col">View Form</th>    
                 </tr>
             </thead>
             {% for form_sub in wait_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
-                    <td>{{ form_sub.initiator }}</td>
+                    <td><a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                     <td>{{ form_sub.assigned_to.sheet.title }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
                     <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
-                      <td class="miniaction">
-                        <form action="{% url onlineforms.views.admin_done form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
-                            <div>
-                                <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
-                            </div>
-                        </form>
-                    </td>
-                    <td>
-                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
-                    </td>
                 </tr>
               {% endfor %}
         </table>

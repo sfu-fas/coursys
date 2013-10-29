@@ -26,7 +26,6 @@ $(document).ready(function() {
     <ul>
     <li><a href="{% url dashboard.views.news_list %}">All News Items</a></li>
     <li><a href="{% url dashboard.views.config %}">User Configuration</a></li>
-    <!--li><a href="{% url onlineforms.views.index %}">Online Forms</a></li>-->
     <li><a href="{% url dashboard.views.calendar %}">View Calendar</a></li>
     {% if excluded %}<li><a href="{% url dashboard.views.index_full %}">View Older Courses</a></li>{% endif %}
     <!--{% if 'FAC' in roles or 'SESS' in roles or 'COOP' in roles %}<li><a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li>{% endif %}-->
@@ -40,6 +39,7 @@ $(document).ready(function() {
     {% endif %}
     {% if 'FAC' in roles or 'SESS' in roles or 'INST' in roles %}<li><a href="{% url ta.views.instr_offers %}">TA Offers</a></li>{% endif %}
     {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.advising %}">Advisor Notes</a></li>{% endif %}
+    {% if form_groups %}<li><a href="{% url onlineforms.views.index %}">Online Forms</a></li>{% endif %}
     {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url grad.views.index %}">Grad Students</a></li>{% endif %}
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url ra.views.search %}">Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url ta.views.all_tugs_admin %}">Time Use Guidelines</a></li>{% endif %}
