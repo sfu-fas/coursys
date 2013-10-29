@@ -405,8 +405,6 @@ class RAForm(object, SFUMediaMixin):
         # type of employee checkboxes
         self.c.setLineWidth(0.5)
         self.c.rect(0, 198*mm, self.MAIN_WIDTH, 35.5*mm)
-        if self.ra.hiring_category == '':
-            fills = []
 
         self.c.setFont("Helvetica-Bold", 9)
         self.c.drawCentredString(self.MAIN_WIDTH/2, 228*mm, "Please Check Appropriate Box")
@@ -414,18 +412,19 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawCentredString(self.MAIN_WIDTH/2, 222*mm, "Employment Income")
         self.c.drawString(155*mm, 222*mm, "Scholarship Income")
 
-        self._checkbox(1.5*mm, 216*mm, text="Research Assistant")
-        self._checkbox(1.5*mm, 211*mm, text="Research Services Staff")
-        self._checkbox(1.5*mm, 206*mm, text="Post Doctoral Fellows")
-        self._checkbox(1.5*mm, 201*mm, text="Other Non Continuing")
-        self._checkbox(67*mm, 215.5*mm, text="University Research Assistant (R50.04)", leading=1.5*mm)
+        cat = self.ra.hiring_category
+        self._checkbox(1.5*mm, 216*mm, text="Research Assistant", filled=(cat=='RA'))
+        self._checkbox(1.5*mm, 211*mm, text="Research Services Staff", filled=(cat=='RSS'))
+        self._checkbox(1.5*mm, 206*mm, text="Post Doctoral Fellows", filled=(cat=='PDF'))
+        self._checkbox(1.5*mm, 201*mm, text="Other Non Continuing", filled=(cat=='ONC'))
+        self._checkbox(67*mm, 215.5*mm, text="University Research Assistant (R50.04)", leading=1.5*mm, filled=(cat=='RA2'))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(72*mm, 215*mm, "Min of 2 years with Benefits")
-        self._checkbox(67*mm, 203*mm, text="University Research Assistant (R50.04)", leading=1.5*mm)
+        self._checkbox(67*mm, 203*mm, text="University Research Assistant (R50.04)", leading=1.5*mm, filled=(cat=='RAR'))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(72*mm, 202.5*mm, "Renewal after 2 years with Benefits")
-        self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant")
-        self._checkbox(142*mm, 203*mm, text="National Scholarship")
+        self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant", filled=(cat=='GRA'))
+        self._checkbox(142*mm, 203*mm, text="National Scholarship", filled=(cat=='NS'))
         
         # health/numbers
         if self.ra.medical_benefits:
@@ -833,7 +832,7 @@ def ra_form(ra, outfile):
     """
     Generate PAF form for this RAAppointment.
     """
-    form = RAForm_old(ra)
+    form = RAForm(ra)
     return form.draw_pdf(outfile)
 
 

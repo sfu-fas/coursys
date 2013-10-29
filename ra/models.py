@@ -13,8 +13,18 @@ HIRING_CATEGORY_CHOICES = (
     ('E', 'Grad Employee'),
     ('N', 'Non-Student'),
     ('S', 'Grad Scholarship'),
+    ('RA', 'Research Assistant'),
+    ('RSS', 'Research Services Staff'),
+    ('PDF', 'Post Doctoral Fellow'),
+    ('ONC', 'Other Non Continuing'),
+    ('RA2', 'University Research Assistant (Min of 2 years with Benefits)'),
+    ('RAR', 'University Research Assistant (Renewal after 2 years with Benefits)'),
+    ('GRA', 'Graduate Research Assistant'),
+    ('NS', 'National Scholarship'),
     )
-    
+HIRING_CATEGORY_DISABLED = set(['U','E','N','S']) # hiring categories that cannot be selected for new contracts
+
+
 #PAY_TYPE_CHOICES = (
 #    ('H', 'Hourly'),
 #    ('B', 'Biweekly'),
@@ -98,7 +108,7 @@ class RAAppointment(models.Model):
     sin = models.PositiveIntegerField(null=True, blank=True)
     hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty')
     unit = models.ForeignKey(Unit, help_text='The unit that owns the appointment', null=False, blank=False)
-    hiring_category = models.CharField(max_length=60, choices=HIRING_CATEGORY_CHOICES, default='S')
+    hiring_category = models.CharField(max_length=60, choices=HIRING_CATEGORY_CHOICES, default='GRA')
     scholarship = models.ForeignKey(Scholarship, null=True, blank=True, help_text='Scholarship associated with this appointment. Optional.')
     project = models.ForeignKey(Project, null=False, blank=False)
     account = models.ForeignKey(Account, null=False, blank=False)

@@ -1,5 +1,5 @@
 from django import forms
-from ra.models import RAAppointment, Account, Project
+from ra.models import RAAppointment, Account, Project, HIRING_CATEGORY_DISABLED
 from coredata.models import Person, Semester, Unit
 from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
@@ -11,6 +11,12 @@ class RAForm(forms.ModelForm):
     use_hourly = forms.BooleanField(label='Use Hourly Rate', initial=False, required=False,
                                     help_text='Should the hourly rate be displayed on the contract?')
     #scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
+
+    def __init__(self, *args, **kwargs):
+        super(RAForm, self).__init__(*args, **kwargs)
+        choices = self.fields['hiring_category'].choices
+        choices = [(k,v) for k,v in choices if k not in HIRING_CATEGORY_DISABLED]
+        self.fields['hiring_category'].choices = choices
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
