@@ -385,15 +385,17 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     if (needed == ALLFIELDS or 'programs' in needed) and 'programs' not in exclude:
         programs = []
         data['programs'] = programs
-        db.execute("SELECT apt.acad_plan, apt.descr, apt.trnscr_descr from "
-                   "(select max(effdt) as effdt from ps_acad_plan where emplid=%s) as last, "
-                   "(select effdt, max(effseq) as effseq from ps_acad_plan where emplid=%s GROUP BY effdt) as seq, "
-                   "ps_acad_plan as ap, "
-                   "ps_acad_plan_tbl as apt, "
-                   "(select acad_plan, max(effdt) as effdt from ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
-                   "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt AND seq.effdt=last.effdt AND seq.effseq=ap.effseq "
-                   "AND apt.effdt=lastplan.effdt AND lastplan.acad_plan=ap.acad_plan "
-                   "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid), str(emplid)))
+        db.execute("""SELECT apt.acad_plan, apt.descr, apt.trnscr_descr FROM
+                  ps_acad_plan AS ap,
+                  ps_acad_plan_tbl AS apt
+                WHERE apt.acad_plan=ap.acad_plan AND apt.eff_status='A'
+                  AND ap.stdnt_car_nbr=(SELECT MAX(stdnt_car_nbr) FROM ps_acad_plan WHERE emplid=ap.emplid)
+                  AND ap.effdt=(SELECT MAX(effdt) FROM ps_acad_plan WHERE emplid=ap.emplid AND stdnt_car_nbr=ap.stdnt_car_nbr)
+                  AND ap.effseq=(SELECT MAX(effseq) FROM ps_acad_plan WHERE emplid=ap.emplid AND stdnt_car_nbr=ap.stdnt_car_nbr AND effdt=ap.effdt)
+                  AND apt.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=ap.acad_plan AND eff_status='A')
+                  AND ap.emplid=%s
+                ORDER BY ap.plan_sequence
+                """, (str(emplid),))
         #  AND apt.trnscr_print_fl='Y'
         for acad_plan, descr, transcript in db:
             label = transcript or descr
