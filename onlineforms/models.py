@@ -185,7 +185,7 @@ class FormGroup(models.Model):
     """
     unit = models.ForeignKey(Unit)
     name = models.CharField(max_length=60, null=False, blank=False)
-    members = models.ManyToManyField(Person) # , through='FormGroup_Member'
+    members = models.ManyToManyField(Person, through='FormGroupMember') #
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
@@ -205,6 +205,7 @@ class FormGroupMember(models.Model):
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     class Meta:
+        db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without through that existed previously
         unique_together = (("person", "formgroup"),)
 
 
