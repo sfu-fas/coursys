@@ -23,7 +23,7 @@ class FiveRetakeReport( Report ):
         
         def subject_in_fas( row_map ):
             """ Discards courses that aren't in CMPT, MACM, or ENSC """
-            return row_map["SUBJECT"] in ["CMPT", "MACM", "ENSC"]
+            return row_map["SUBJECT"] in ["CMPT", "MACM", "MSE", "ENSC"]
         
         def ignore_repeatable_courses( row_map ):
             """ Discards courses that are flagged as 'repeatable' """
