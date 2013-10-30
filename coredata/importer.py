@@ -29,6 +29,9 @@ sysadmin = ["ggbaker"]
 # plus 'subsections' list of sections we're combining.
 
 def get_combined():
+    
+    # IMPORTANT: When combining sections in the future, ensure that the created
+    #            section has 'owner': Unit(~CMPT~) 
     combined_sections = [
         {
             'subject': 'CMPT', 'number': '419', 'section': 'X100',
