@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
     AdminAssignForm_nonsfu, CloseFormForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
@@ -101,11 +101,12 @@ def add_group_member(request, formgroup_slug):
                     search_form = EmployeeSearchForm(request.POST)
                     if search_form.is_valid(): 
                         # search returns Person object
-                        member = search_form.cleaned_data['search']
-                        group.members.add(member)
+                        person = search_form.cleaned_data['search']
+                        member = FormGroupMember(person=person, formgroup=group)
+                        member.save()
                         l = LogEntry(userid=request.user.username,
-                             description=("added %s to form group %s") % (member.userid_or_emplid(), group),
-                              related_object=group)
+                             description=("added %s to form group %s") % (person.userid_or_emplid(), group),
+                              related_object=member)
                         l.save()
                         return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                 else: # if accidentally don't search for anybody
@@ -119,7 +120,8 @@ def add_group_member(request, formgroup_slug):
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-    member = Person.objects.get(emplid=userid)
+    person = get_object_or_404(Person, emplid=userid)
+    member = get_object_or_404(FormGroupMember, person=person, formgroup=group)
 
     if group.unit not in request.units:
         return ForbiddenResponse(request)
@@ -128,10 +130,10 @@ def remove_group_member(request, formgroup_slug, userid):
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'remove':
-                group.members.remove(member)
+                member.delete()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=("Removed %s from form group %s") % (member.userid_or_emplid(), group),
+                    description=("Removed %s from form group %s") % (person.userid_or_emplid(), group),
                     related_object=group)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))

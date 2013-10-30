@@ -283,9 +283,12 @@ class DateSelectField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        d = datetime.datetime.strptime(fieldsubmission.data['info'], '%Y-%m-%d').date()
-        df = escape(defaultfilters.date(d))
-        return mark_safe('<p>' + escape(df) + '</p>')
+        if fieldsubmission.data['info']:
+            d = datetime.datetime.strptime(fieldsubmission.data['info'], '%Y-%m-%d').date()
+            df = escape(defaultfilters.date(d))
+            return mark_safe('<p>' + escape(df) + '</p>')
+        else:
+            return mark_safe('<p class="empty">No date entered.</p>')
 
 
 class DividerField(FieldBase):
