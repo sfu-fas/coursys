@@ -108,12 +108,12 @@ class CachedQuery(BaseQuery):
     
     @property
     def query_filename(self):
-        force_dir( "cache" )
-        return os.path.join( "cache",  self.filename + str(hash(self)) + ".query")
+        force_dir( os.path.join("reports", "cache"))
+        return os.path.join( "reports", "cache",  self.filename + str(hash(self)) + ".query")
     @property
     def result_filename(self):
-        force_dir( "cache" )
-        return os.path.join( "cache", self.filename + str(hash(self)) + ".result")
+        force_dir( os.path.join("reports", "cache"))
+        return os.path.join( "reports", "cache", self.filename + str(hash(self)) + ".result")
 
     def is_cached_on_file(self):
         if os.path.exists( self.query_filename ):

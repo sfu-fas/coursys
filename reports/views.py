@@ -1,5 +1,5 @@
-from models import Report, HardcodedReport, Result, Run, RunLine
-from forms import ReportForm, HardcodedReportForm
+from models import Report, HardcodedReport, Result, Run, RunLine, Query
+from forms import ReportForm, HardcodedReportForm, QueryForm
 from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -10,10 +10,12 @@ from django.forms.util import ErrorList
 import unicodecsv as csv
 import datetime
 
+@requires_role('REPR')
 def view_reports(request):
     reports = Report.objects.filter(hidden=False)
     return render(request, 'reports/view_reports.html', {'reports':reports})
 
+@requires_role('REPR')
 def new_report(request):     
     if request.method == 'POST':
         form = ReportForm(request.POST)
@@ -22,23 +24,31 @@ def new_report(request):
             f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new report: %s." % f.name)
-            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':f.slug}))
+            return HttpResponseRedirect(reverse('reports.views.view_report', 
+                                                    kwargs={'report':f.slug}))
     else:
         form = ReportForm()
 
     return render(request, 'reports/new_report.html', {'form': form })
 
+@requires_role('REPR')
 def view_report(request, report):
     report = get_object_or_404(Report, slug=report) 
     
     components = HardcodedReport.objects.filter(report=report)
+    queries = Query.objects.filter(report=report)
     runs = Run.objects.filter(report=report).order_by("created_at")
 
-    return render(request, 'reports/view_report.html', {'report':report, 'runs':runs, 'components':components})
+    return render(request, 'reports/view_report.html', {'report':report, 
+                                                        'queries':queries, 
+                                                        'runs':runs, 
+                                                        'components':components})
 
+@requires_role('REPR')
 def new_component(request, report):
     report = get_object_or_404(Report, slug=report) 
-    file_locations = [component.file_location for component in HardcodedReport.objects.filter(report=report)]
+    file_locations = [component.file_location for component in 
+                            HardcodedReport.objects.filter(report=report)]
 
     if request.method == 'POST':
         form = HardcodedReportForm(request.POST)
@@ -57,13 +67,58 @@ def new_component(request, report):
 
     return render(request, 'reports/new_component.html', {'form': form, 'report': report })
 
+@requires_role('REPR')
 def delete_component(request, report, component_id):
     report = get_object_or_404(Report, slug=report)
     component = get_object_or_404(HardcodedReport, id=int(component_id))
     
     component.delete()
+    messages.success(request, "Deleted component")
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
+@requires_role('REPR')
+def new_query(request, report, query_id=None):
+    report = get_object_or_404(Report, slug=report) 
+    if query_id:
+        query = get_object_or_404(Query, id=int(query_id))
+
+    if request.method == 'POST':
+        form = QueryForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.report = report
+            f.created_by = request.user.username
+            f.save()
+            if query_id:
+                query.delete()
+                messages.success(request, "Edited query: %s" % f.query)
+            else:
+                messages.success(request, "Created new report query: %s" % f.query)
+            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    else:
+        if query_id:
+            form = QueryForm(instance=query)
+        else:
+            form = QueryForm()
+
+    return render(request, 'reports/new_query.html', {'form': form, 'report': report, 'query_id':query_id })
+
+@requires_role('REPR')
+def edit_query(request, report, query_id):
+    report = get_object_or_404(Report, slug=report)
+    
+
+@requires_role('REPR')
+def delete_query(request, report, query_id):
+    report = get_object_or_404(Report, slug=report)
+    query = get_object_or_404(Query, id=int(query_id))
+    
+    query.delete()
+    messages.success(request, "Deleted query")
+    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    
+
+@requires_role('REPR')
 def run(request, report):
     """ Actually execute the report. """
     report = get_object_or_404(Report, slug=report)
@@ -74,6 +129,7 @@ def run(request, report):
         messages.error(request, "Run Failed!")
     return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
 
+@requires_role('REPR')
 def view_run(request, report, run):
     run = get_object_or_404(Run, slug=run)
     report = run.report
@@ -82,6 +138,7 @@ def view_run(request, report, run):
     
     return render(request, 'reports/view_run.html', {'report':report, 'run': run, 'runlines':runlines, 'results':results})
 
+@requires_role('REPR')
 def delete_run(request, report, run):
     run = get_object_or_404(Run, slug=run)
     report = run.report
@@ -97,6 +154,7 @@ def delete_run(request, report, run):
     messages.success(request, "Run Deleted!")
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
+@requires_role('REPR')
 def view_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)
     report = run.report
@@ -104,6 +162,7 @@ def view_result(request, report, run, result):
     
     return render(request, 'reports/view_result.html', {'report':report, 'run': run, 'result':result})
 
+@requires_role('REPR')
 def csv_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)
     report = run.report

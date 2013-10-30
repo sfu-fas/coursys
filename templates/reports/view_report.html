@@ -37,6 +37,7 @@
     <h2>Actions</h2>
     <ul>
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
+        <li><a href="{% url reports.views.new_query report=report.slug %}">New Query</a></li>
         <li><a href="#">New Schedule Rule</a></li>
         <li><a href="#">New Access Rule</a></li>
         <li><a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
@@ -53,6 +54,16 @@
 <ul>
 {% for component in components %}
     <li>{{component.file_location}} - <small><a href="{% url reports.views.delete_component report=report.slug component_id=component.id %}">Delete</a></small></li>
+{% endfor %}
+</ul>
+
+<h2>Queries</h2>
+<ul>
+{% for query in queries %}
+    <li><strong>{{query.name}} </strong> 
+        <pre>{{query.query}}</pre> - 
+        <small><a href="{% url reports.views.delete_query report=report.slug query_id=query.id %}">Delete</a></small> | 
+        <small><a href="{% url reports.views.new_query report=report.slug query_id=query.id %}">Edit</a></small></li> 
 {% endfor %}
 </ul>
 
