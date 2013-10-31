@@ -883,13 +883,16 @@ class Unit(models.Model):
         return decendants
 
     @classmethod
-    def sub_unit_ids(cls, units):
+    def sub_unit_ids(cls, units, by_id=False):
         """
         Get the Unit.id values for all decendants of the given list of unit.id values.
         
         Cached so we can avoid the work when possible.
         """
-        unitids = sorted(list(set(u.id for u in units)))
+        if by_id:
+            unitids = sorted(list(set(units)))
+        else:
+            unitids = sorted(list(set(u.id for u in units)))
         key = 'subunits-' + str(unitids)
         res = cache.get(key)
         if res:

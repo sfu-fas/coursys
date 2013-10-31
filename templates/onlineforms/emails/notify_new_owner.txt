@@ -1,0 +1,3 @@
+The form {{ formsub.form.title }} initiated by {{ formsub.initiator.name }} has been given to the group {{ formsub.owner.name }} by {{ admin.name }}.
+
+You can access it at {{ adminurl }}.

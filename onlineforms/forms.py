@@ -120,6 +120,13 @@ class AdminAssignForm_nonsfu(ModelForm):
             empty_label=None,
             label=label.capitalize()))
 
+class ChangeOwnerForm(forms.Form):
+    new_group = forms.ModelChoiceField(queryset=None, required=True,
+                    help_text="Form group that should take ownership of this form submission")
+    def __init__(self, queryset, *args, **kwargs):
+        super(ChangeOwnerForm, self).__init__(*args, **kwargs)
+        self.fields['new_group'].queryset = queryset
+
 
 class CloseFormForm(forms.Form):
     summary = forms.CharField(required=True,

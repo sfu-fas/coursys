@@ -482,6 +482,25 @@ class FormSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
+    def email_notify_new_owner(self, request, admin):
+        plaintext = get_template('onlineforms/emails/notify_new_owner.txt')
+        html = get_template('onlineforms/emails/notify_new_owner.html')
+
+        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+                                    kwargs={'form_slug': self.form.slug,
+                                            'formsubmit_slug': self.slug}))
+        email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
+        subject = '%s submission transferred' % (self.form.title)
+        from_email = admin.full_email()
+        to = [m.person.full_email()
+              for m
+              in self.owner.formgroupmember_set.all()
+              if m.email()]
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                     from_email=from_email, to=to, bcc=[admin.full_email()])
+        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.send()
+
 
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission)

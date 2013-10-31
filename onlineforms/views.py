@@ -17,12 +17,12 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
-    AdminAssignForm_nonsfu, CloseFormForm
+    AdminAssignForm_nonsfu, CloseFormForm, ChangeOwnerForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
-from coredata.models import Person, Role
+from coredata.models import Person, Role, Unit
 from log.models import LogEntry
 import json
 import os
@@ -298,6 +298,37 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
 
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
+
+@requires_formgroup()
+def admin_change_owner(request, form_slug, formsubmit_slug):
+    admin = get_object_or_404(Person, userid=request.user.username)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
+
+    # Can assign to groups in Units where I'm in a FormGroup, or and subunits of them.
+    unit_ids = set(FormGroupMember.objects.filter(person=admin).values_list('formgroup__unit', flat=True))
+    sub_unit_ids = Unit.sub_unit_ids(unit_ids, by_id=True)
+    allowed_groups = FormGroup.objects.filter(unit__id__in=sub_unit_ids).exclude(id=form_submission.owner_id)
+
+    if request.method == 'POST':
+        form = ChangeOwnerForm(data=request.POST, queryset=allowed_groups)
+        if form.is_valid():
+            new_g = form.cleaned_data['new_group']
+            form_submission.owner = new_g
+            form_submission.email_notify_new_owner(request, admin)
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Gave ownership of form sub %s; %s to %s" % (form_submission.form.slug, form_submission.slug, new_g.name)),
+                related_object=form_submission)
+            l.save()
+            messages.success(request, 'Form given to %s.' % (new_g.name))
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    else:
+        form = ChangeOwnerForm(queryset=allowed_groups)
+
+    context = {'form': form, 'formsub': form_submission}
+    return render(request, "onlineforms/admin/admin_change_owner.html", context)
 
 
 def _userToFormFiller(user):
