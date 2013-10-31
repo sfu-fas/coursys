@@ -60,18 +60,18 @@ $(document).ready(function() {
         <thead>
             <tr>
                 <th scope="col">Name</th>
+                <th scope="col">Email?</th>
                 <th scope="col">Remove</th>
             </tr>
         </thead>
         <tbody>
             {% for g in grouplist %}
-                {% for member in g.members.all %}
+                {% for member in g.formgroupmember_set.all %}
             <tr>
-                <td>
-                    {{ member.first_name }} {{ member.last_name }}
-                </td>
+                <td>{{ member.person.first_name }} {{ member.person.last_name }}</td>
+                <td>{{ member.email|yesno }}</td>
                 <td class="miniaction"> 
-                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.emplid %}" method="post">{% csrf_token %}
+                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.person.emplid %}" method="post">{% csrf_token %}
                         <div>
                             <input type="hidden" name="action" value="remove"/>
                             <input type="submit" value="remove"/>

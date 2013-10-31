@@ -29,6 +29,8 @@ class EditGroupForm(ModelForm):
 
 class EmployeeSearchForm(forms.Form):
     search = PersonField()
+    email = forms.BooleanField(required=False, initial=True,
+            help_text="Should this member be emailed when submissions come in?")
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

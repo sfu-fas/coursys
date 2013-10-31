@@ -203,9 +203,13 @@ class FormGroupMember(models.Model):
     person = models.ForeignKey(Person)
     formgroup = models.ForeignKey(FormGroup)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'email': should this member receive emails on completed sheets?
+
+    defaults = {'email': True}
+    email, set_email = getter_setter('email')
 
     class Meta:
-        db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without through that existed previously
+        db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without "through=" that existed previously
         unique_together = (("person", "formgroup"),)
 
 

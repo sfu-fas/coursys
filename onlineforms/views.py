@@ -93,7 +93,6 @@ def manage_group(request, formgroup_slug):
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
@@ -102,7 +101,9 @@ def add_group_member(request, formgroup_slug):
                     if search_form.is_valid(): 
                         # search returns Person object
                         person = search_form.cleaned_data['search']
+                        email = search_form.cleaned_data['email']
                         member = FormGroupMember(person=person, formgroup=group)
+                        member.set_email(email)
                         member.save()
                         l = LogEntry(userid=request.user.username,
                              description=("added %s to form group %s") % (person.userid_or_emplid(), group),
@@ -112,9 +113,8 @@ def add_group_member(request, formgroup_slug):
                 else: # if accidentally don't search for anybody
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
     
-    groups = FormGroup.objects.filter(unit__in=request.units)
-    context = {'groups': groups}
-    return render(request, 'onlineforms/manage_groups.html', context)
+    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+
 
 @transaction.commit_on_success
 @requires_role('ADMN')
