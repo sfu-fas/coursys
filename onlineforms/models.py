@@ -583,7 +583,10 @@ class SheetSubmission(models.Model):
         subject = '%s submission' % (self.sheet.form.title)
         #from_email = self.filler.full_email()
         from_email = "nobody@courses.cs.sfu.ca"
-        to = [p.full_email() for p in self.sheet.form.owner.members.all()]
+        to = [m.person.full_email()
+              for m
+              in self.sheet.form.owner.formgroupmember_set.all()
+              if m.email()]
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, to)
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
