@@ -57,7 +57,7 @@ def course_members(class_nbr, strm):
     return [emplid for emplid, in db]
 
 def course_plans(class_nbr, strm, dt):
-    return [(class_nbr, strm, emplid, ','.join(plan_as_of(dt, emplid))) for emplid in course_members(class_nbr, strm)]
+    return [(class_nbr, strm, emplid, ','.join(plans_as_of(dt, emplid))) for emplid in course_members(class_nbr, strm)]
 
 @memoize
 def all_courses(strm):
@@ -112,7 +112,7 @@ def main():
     out.writerow(['Semester', 'Subject', 'Number', 'Section', 'Campus', 'Enrol', 'Programs'])
     
     programs_seen = set()
-    for strm in [1131, 1134, 1137]:
+    for strm in [1111,1114,1117, 1121,1124,1127, 1131,1134,1137]:
         progs = semester_students(out, strm)
         programs_seen |= progs
     plans_desc(programs_seen)
