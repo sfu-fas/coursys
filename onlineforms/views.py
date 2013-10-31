@@ -316,6 +316,8 @@ def admin_change_owner(request, form_slug, formsubmit_slug):
             new_g = form.cleaned_data['new_group']
             form_submission.owner = new_g
             form_submission.email_notify_new_owner(request, admin)
+            form_submission.save()
+
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                 description=("Gave ownership of form sub %s; %s to %s" % (form_submission.form.slug, form_submission.slug, new_g.name)),
