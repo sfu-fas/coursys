@@ -28,7 +28,7 @@ class EditGroupForm(ModelForm):
         fields = ('name',)
 
 class EmployeeSearchForm(forms.Form):
-    search = PersonField()
+    search = PersonField(label="Person")
     email = forms.BooleanField(required=False, initial=True,
             help_text="Should this member be emailed when submissions come in?")
 

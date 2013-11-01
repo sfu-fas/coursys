@@ -200,6 +200,11 @@ class FormGroup(models.Model):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
 class FormGroupMember(models.Model):
+    """
+    Member of a FormGroup. Upgraded for simple ManyToManyField so we have the .config
+
+    Do not use as a foreign key: is deleted when people leave the FormGroup
+    """
     person = models.ForeignKey(Person)
     formgroup = models.ForeignKey(FormGroup)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
@@ -211,6 +216,9 @@ class FormGroupMember(models.Model):
     class Meta:
         db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without "through=" that existed previously
         unique_together = (("person", "formgroup"),)
+
+    def __unicode__(self):
+        return "%s in %s" % (self.person.name(), self.formgroup.name)
 
 
 class _FormCoherenceMixin(object):

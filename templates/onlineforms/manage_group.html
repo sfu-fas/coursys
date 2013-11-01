@@ -65,10 +65,9 @@ $(document).ready(function() {
             </tr>
         </thead>
         <tbody>
-            {% for g in grouplist %}
-                {% for member in g.formgroupmember_set.all %}
+            {% for member in groupmembers %}
             <tr>
-                <td>{{ member.person.first_name }} {{ member.person.last_name }}</td>
+                <td>{{ member.person.sortname }}</td>
                 <td>{{ member.email|yesno }}</td>
                 <td class="miniaction"> 
                     <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.person.emplid %}" method="post">{% csrf_token %}
@@ -79,7 +78,6 @@ $(document).ready(function() {
                     </form>
                 </td>                
             </tr>
-                {% endfor %}
             {% endfor %}
         </tbody>
     </table>

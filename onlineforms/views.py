@@ -67,6 +67,7 @@ def new_group(request):
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    groupmembers = FormGroupMember.objects.filter(formgroup=group).order_by('person__last_name')
 
     # for editting group name
     if request.method == 'POST':
@@ -80,12 +81,11 @@ def manage_group(request, formgroup_slug):
             l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     form = EditGroupForm(instance=group)
-    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
 
     # below is for finding person thru coredata/personfield and adding to group
     search_form = EmployeeSearchForm()
 
-    context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form }
+    context = {'form': form, 'group': group, 'groupmembers': groupmembers, 'search': search_form }
     return render(request, 'onlineforms/manage_group.html', context)
 
 
