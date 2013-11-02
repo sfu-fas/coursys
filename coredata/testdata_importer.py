@@ -234,6 +234,32 @@ def create_grad_templ():
         t = LetterTemplate(**data)
         t.save()
 
+from ta.models import TAPosting, TAApplication
+def create_ta_data():
+    s = Semester.objects.get(name=TEST_SEMESTER).next_semester()
+    acc = Account.objects.all()[0]
+    post = TAPosting(semester=s, unit=Unit.objects.get(slug='comp'))
+    post.opens = s.start - datetime.timedelta(100)
+    post.closes = s.start - datetime.timedelta(20)
+    post.set_salary([972,972,972,972])
+    post.set_scholarship([135,340,0,0])
+    post.set_accounts([acc.id]*4)
+    post.set_start(s.start)
+    post.set_end(s.end)
+    post.set_deadline(s.start - datetime.timedelta(10))
+    post.set_payperiods(7.5)
+    post.set_contact(Person.objects.get(userid='dixon').id)
+    post.set_offer_text("This is your TA offer.\n\nThere are various conditions that are too numerous to list here.")
+    post.save()
+
+    for p in Person.objects.filter(userid__endswith='grad'):
+        app = TAApplication(posting=post, person=p, person=random.choice(['GTA1','GTA2']), current_program='CMPT', sin='123456789',
+                            base_units=random.choice([3,4,5]))
+        app.save()
+        #CoursePreference
+
+
+
 
 def create_more_data():
     """
@@ -331,6 +357,8 @@ def create_more_data():
     fld3.save()
 
 
+
+
 def serialize(filename):
     """
     output JSON of everything we created
@@ -381,6 +409,8 @@ def serialize(filename):
             FormSubmission.objects.all(),
             SheetSubmission.objects.all(),
             FieldSubmission.objects.all(),
+            TAPosting.objects.all(),
+            TAApplication.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -460,6 +490,8 @@ def main():
     print "creating fake classess"
     create_classes()
     create_test_classes()
+
+    print "creating other data"
     create_others()
     create_grad_templ()
     create_more_data()
@@ -467,6 +499,7 @@ def main():
     
     print "creating grad students"
     create_grads()
+    create_ta_data()
 
     print "giving sysadmin permissions"
     give_sysadmin(['ggbaker', 'sumo'])
