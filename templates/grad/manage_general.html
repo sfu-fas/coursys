@@ -33,10 +33,8 @@
 			{% if flagforms %}
 			<dl class="dlform">
 			{% for field,f in flagforms %}
-				<div class="field">
-			 	<dt><label for="id_special_arrangements">{{field.label}}:</label></dt>
+			 	<dt><label>{{field.label}}:</label></dt>
 			 	<dd>{{f.value}}</dd>
-				</div>
 			{% endfor %}
 			</dl>
 			{% endif %}

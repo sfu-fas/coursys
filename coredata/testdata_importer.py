@@ -19,10 +19,12 @@ from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, Sc
         Supervisor, GradRequirement, GradFlag
 from discipline.models import DisciplineTemplate
 from ra.models import Account
-from onlineforms.models import FormGroup, Form, Sheet, Field, FormSubmission, SheetSubmission, FieldSubmission
+from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field, FormSubmission, SheetSubmission, FieldSubmission
 from courselib.testing import TEST_COURSE_SLUG
 
 FULL_TEST_DATA = TEST_COURSE_SLUG
+NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151] # at least two years in past and one in future
+TEST_SEMESTER = 1137
 
 def get_combined():
     combined_sections = [
@@ -293,14 +295,14 @@ def create_more_data():
     p.save()
     r = Role(person=p, role="TADM", unit=Unit.objects.get(slug='comp'))
     r.save()
-    sp = SemesterPlan(semester=Semester.objects.get(name='1127'), name='Test Plan', unit=Unit.objects.get(slug='comp'), slug='test-plan')
+    sp = SemesterPlan(semester=Semester.objects.get(name=TEST_SEMESTER), name='Test Plan', unit=Unit.objects.get(slug='comp'), slug='test-plan')
     sp.save()
     #o = PlannedOffering(plan=sp, course=Course.objects.get(slug='cmpt-102'), section='D100', campus='BRNBY', enrl_cap=100)
     #o.save()
     PlanningCourse.create_for_unit(Unit.objects.get(slug='comp'))
-    te = TeachingEquivalent(pk=1, instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name='1127'), credits_numerator=1, credits_denominator=1, summary="Foo", status='UNCO')
+    te = TeachingEquivalent(pk=1, instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), credits_numerator=1, credits_denominator=1, summary="Foo", status='UNCO')
     te.save()
-    ti = TeachingIntention(instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name='1127'), count=2)
+    ti = TeachingIntention(instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), count=2)
     ti.save()
     #tc = TeachingCapability(instructor=Person.objects.get(userid='ggbaker'), course=Course.objects.get(slug='cmpt-102'), note='foo')
     #tc.save()
@@ -314,9 +316,9 @@ def create_more_data():
     
     fg = FormGroup(name="Admins", unit=Unit.objects.get(slug='comp'))
     fg.save()
-    fg.members = [Person.objects.get(userid='ggbaker'), Person.objects.get(userid='classam')]
-    fg.save()
-    
+    FormGroupMember(formgroup=fg, person=Person.objects.get(userid='ggbaker')).save()
+    FormGroupMember(formgroup=fg, person=Person.objects.get(userid='classam')).save()
+
     f1 = Form(title="Simple Form", owner=fg, unit=fg.unit, description="Simple test form.", initiators='ANY')
     f1.save()
     s1 = Sheet(form=f1, title="Initial sheet")
@@ -372,6 +374,7 @@ def serialize(filename):
             TeachingIntention.objects.all(),
             TeachingCapability.objects.all(),
             FormGroup.objects.all(),
+            FormGroupMember.objects.all(),
             Form.objects.all(),
             Sheet.objects.all(),
             Field.objects.all(),
@@ -392,27 +395,36 @@ def import_semesters():
     sems = Semester.objects.filter(end__gte=past_cutoff)
     return tuple(s.name for s in sems)
 
+def create_fake_semester(strm):
+    """
+    Create a close-enough Semester object for testing
+    """
+    strm = str(strm)
+    s = Semester(name=strm)
+    yr = int(strm[0:3]) + 1900
+    if strm[3] == '1':
+        mo = 1
+    elif strm[3] == '4':
+        mo = 5
+    elif strm[3] == '7':
+        mo = 9
+
+    s.start = datetime.date(yr,mo,5)
+    s.end = datetime.date(yr,mo+3,1)
+    s.save()
+
+    sw = SemesterWeek(semester=s, week=1)
+    mon = s.start
+    while mon.weekday() != 0:
+        mon -= datetime.timedelta(days=1)
+    sw.monday = mon
+    sw.save()
+
+
 def main():
-    create_semesters()
-    s = Semester(name="1111", start=datetime.date(2011, 1, 9), end=datetime.date(2011, 4, 8))
-    s.save()
-    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 1, 3))
-    wk.save()
-    s = Semester(name="1107", start=datetime.date(2010, 8, 9), end=datetime.date(2011, 12, 8))
-    s.save()
-    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 9, 6))
-    wk.save()
-    
-    # make sure these people are here, since we need them
-    if not Person.objects.filter(userid='ggbaker'):
-        Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
-    if not Person.objects.filter(userid='dixon'):
-        Person(userid='dixon', first_name='Tony', last_name='Dixon', emplid='000001234').save()
-    if not Person.objects.filter(userid='diana'):
-        Person(userid='diana', first_name='Diana', last_name='Cukierman', emplid='000001235').save()
-    if not Person.objects.filter(userid='popowich'):
-        Person(userid='popowich', first_name='Fred', last_name='Popowich', emplid='000001236').save()
-    
+    for strm in NEEDED_SEMESTERS:
+        create_fake_semester(strm)
+
     # fix their emplids so they identify with real people during the import
     #update_amaint_userids()
     #fix_emplid()
@@ -420,6 +432,8 @@ def main():
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around
     offerings = import_offerings(import_semesters=import_semesters, extra_where=
+        #"(subject='CMPT' AND (catalog_nbr LIKE '%%165%%')) "
+        #"OR (subject='ENSC' AND (catalog_nbr LIKE '%% 100%%')) "
         "(subject='CMPT' AND (catalog_nbr LIKE '%% 1%%' OR catalog_nbr LIKE '%% 2%%')) "
         "OR (subject='ENSC' AND (catalog_nbr LIKE '%% 2_5%%')) "
         )
@@ -429,10 +443,20 @@ def main():
     print "importing course members"
     for o in offerings:
         import_offering_members(o, students=False)
-    
+
     # should now have all the "real" people: fake their emplids
     fake_emplids()
-    
+
+    # make sure these people are here, since we need them
+    if not Person.objects.filter(userid='ggbaker'):
+        Person(userid='ggbaker', first_name='Gregory', last_name='Baker', emplid='000001233').save()
+    if not Person.objects.filter(userid='dixon'):
+        Person(userid='dixon', first_name='Tony', last_name='Dixon', emplid='000001234').save()
+    if not Person.objects.filter(userid='diana'):
+        Person(userid='diana', first_name='Diana', last_name='Cukierman', emplid='000001235').save()
+    if not Person.objects.filter(userid='popowich'):
+        Person(userid='popowich', first_name='Fred', last_name='Popowich', emplid='000001236').save()
+
     print "creating fake classess"
     create_classes()
     create_test_classes()
