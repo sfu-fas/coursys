@@ -47,7 +47,7 @@
 <div class="form_container" id="completed">
     <form action="#completed" method="post" enctype="multipart/form-data">{% csrf_token %}
     <fieldset><legend>Mark Completed</legend>
-    {{ close_form|as_dl }}
+    {% if close_form.used %}{{ close_form|as_dl }}{% endif %}
     <p><input class="submit" type="submit" value="Mark as done" /></p>
     </fieldset>
     </form>

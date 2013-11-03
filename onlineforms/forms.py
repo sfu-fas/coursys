@@ -137,10 +137,12 @@ class CloseFormForm(forms.Form):
     
     def __init__(self, advisor_visible, *args, **kwargs):
         super(CloseFormForm, self).__init__(*args, **kwargs)
+        self.used = True
         if not advisor_visible:
             # only care about these fields for advisor-visible things
             del self.fields['summary']
             del self.fields['email']
+            self.used = False
             
 
 

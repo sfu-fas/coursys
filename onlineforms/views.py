@@ -845,7 +845,6 @@ def view_submission(request, form_slug, formsubmit_slug):
 
     elif can_admin:
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, prefix='close')
-        #assign_form = AdminAssignForm(label="form", query_set=Sheet.objects.filter(form=form_submission.form, active=True), prefix='assign')
     else:
         close_form = None
 
@@ -858,7 +857,6 @@ def view_submission(request, form_slug, formsubmit_slug):
                'is_advisor': is_advisor,
                'can_admin': can_admin,
                'close_form': close_form,
-               #'assign_form': assign_form,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
