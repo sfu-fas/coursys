@@ -17,9 +17,10 @@ from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
 from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType, \
         Supervisor, GradRequirement, GradFlag
+from grad.forms import possible_supervisor_people
 from discipline.models import DisciplineTemplate
 from ta.models import CourseDescription, TAPosting, TAApplication, CoursePreference, TAContract, TACourse, TAKEN_CHOICES, EXPER_CHOICES
-from ra.models import Account
+from ra.models import Account, RAAppointment, Project, SemesterConfig, HIRING_CATEGORY_CHOICES, HIRING_CATEGORY_DISABLED
 from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field, FormSubmission, SheetSubmission, FieldSubmission
 from courselib.testing import TEST_COURSE_SLUG
 
@@ -284,8 +285,6 @@ def create_ta_data():
                 tac.description = tac.default_description()
                 tac.save()
 
-from ra.models import RAAppointment, Project, SemesterConfig, HIRING_CATEGORY_CHOICES, HIRING_CATEGORY_DISABLED
-from grad.forms import possible_supervisor_people
 def create_ra_data():
     unit = Unit.objects.get(slug='cmpt')
     s = Semester.objects.get(name=TEST_SEMESTER)
@@ -397,8 +396,11 @@ def create_more_data():
     r.save()
     r = Role(person=p, role="SYSA", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    
-    fg = FormGroup(name="Admins", unit=Unit.objects.get(slug='cmpt'))
+
+
+def create_form_data():
+    unit = Unit.objects.get(slug='cmpt')
+    fg = FormGroup(name="Admins", unit=unit)
     fg.save()
     FormGroupMember(formgroup=fg, person=Person.objects.get(userid='ggbaker')).save()
     FormGroupMember(formgroup=fg, person=Person.objects.get(userid='classam')).save()
@@ -413,6 +415,23 @@ def create_more_data():
     fld2.save()
     fld3 = Field(label='Second Favorite Color', sheet=s1, fieldtype='SMTX', config={"min_length": 1, "required": False, "max_length": "100", 'label': 'Second Favorite Color', "help_text":''})
     fld3.save()
+
+    f2 = Form(title="Appeal Form", owner=fg, unit=fg.unit, description="An all-purpose appeal form to appeal things with", initiators='LOG', advisor_visible=True)
+    f2.save()
+    s2 = Sheet(form=f2, title="Student Appeal")
+    s2.save()
+    fld4 = Field(label='Appeal', sheet=s2, fieldtype='SMTX', config={"min_length": 1, "required": True, "max_length": "100", 'label': 'Appeal', "help_text":'What do you want to appeal?'})
+    fld4.save()
+    fld4 = Field(label='Reasons', sheet=s2, fieldtype='LGTX', config={"min_length": 1, "required": True, "max_length": "1000", 'label': 'Reasons', "help_text":'Why do you think you deserve it?'})
+    fld4.save()
+    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={ "required": False, 'label': 'Prediction', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
+    fld5.save()
+    s3 = Sheet(form=f2, title="Decision")
+    s3.save()
+    fld5 = Field(label='Decision', sheet=s3, fieldtype='RADI', config={ "required": True, 'label': 'Decision', "help_text":"Do you approve this appeal?", "choice_1": "Yes", "choice_2": "No", "choice_3": "See comments"})
+    fld5.save()
+    fld6 = Field(label='Comments', sheet=s3, fieldtype='MDTX', config={"min_length": 1, "required": False, "max_length": "1000", 'label': 'Comments', "help_text":'Any additional comments'})
+    fld6.save()
 
 
 
@@ -571,6 +590,7 @@ def main():
     create_others()
     create_grad_templ()
     create_more_data()
+    create_form_data()
     combine_sections(get_combined())
     
     print "creating grad students"
