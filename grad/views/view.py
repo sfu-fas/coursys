@@ -15,6 +15,13 @@ def _can_view_student(request, grad_slug, funding=False):
     
     Return None if no condition is met
     """
+    # senior supervisors can see their students
+    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type__in=['SEN','POT'], removed=False).select_related('student')
+    supervisors = [sup for sup in supervisors if sup.can_view_details()]
+    if request.method=='GET' and supervisors:
+        grad = supervisors[0].student
+        return grad, 'supervisor'
+
     # grad admins can view within their unit
     if has_role('GRAD', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
@@ -35,13 +42,6 @@ def _can_view_student(request, grad_slug, funding=False):
     if request.method=='GET' and students:
         return students[0], 'student'
         
-    # senior supervisors can see their students
-    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type__in=['SEN','POT'], removed=False).select_related('student')
-    supervisors = [sup for sup in supervisors if sup.can_view_details()]
-    if request.method=='GET' and supervisors:
-        grad = supervisors[0].student
-        return grad, 'supervisor'
-
     return None, None
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
@@ -148,9 +148,12 @@ def view(request, grad_slug, section=None):
             resp = view(request, grad_slug, section=s)
             context[s+'_content'] = mark_safe(resp.content)
 
-    other_grad = GradStudent.objects \
+    if hasattr(request, 'units'):
+        other_grad = GradStudent.objects \
                  .filter(program__unit__in=request.units, person=grad.person) \
                  .exclude(id=grad.id)
+    else:
+        other_grad = []
     context['other_grad'] = other_grad
 
     return render(request, 'grad/view.html', context)

@@ -834,6 +834,7 @@ class Unit(models.Model):
         # 'web': URL
         # 'tel': contact phone number
         # 'fax': fax number (may be None)
+        # 'deptid': department ID for finances
         # 'informal_name': formal name of the unit (e.g. "Computing Science")
         # 'sessional_pay': default amount sessionals are paid (used in grad finances)
     

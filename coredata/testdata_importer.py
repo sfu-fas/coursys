@@ -18,6 +18,7 @@ from groups.models import Group, GroupMember
 from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType, \
         Supervisor, GradRequirement, GradFlag
 from discipline.models import DisciplineTemplate
+from ta.models import CourseDescription, TAPosting, TAApplication, CoursePreference, TAContract, TACourse, TAKEN_CHOICES, EXPER_CHOICES
 from ra.models import Account
 from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field, FormSubmission, SheetSubmission, FieldSubmission
 from courselib.testing import TEST_COURSE_SLUG
@@ -45,6 +46,10 @@ def test_class_1(slug):
     for i in range(20):
         lab = "D1%02i" % (random.randint(1,4))
         p = Person.objects.get(userid="0aaa%i"%(i))
+        if Member.objects.filter(person=p, offering=crs, role="STUD"):
+            # randomly added by other student-adder: skip
+            continue
+
         m = Member(person=p, offering=crs, role="STUD", credits=3, career="UGRD", added_reason="AUTO",
                 labtut_section=lab)
         m.save()
@@ -130,31 +135,31 @@ def create_others():
     """
     p = Person(emplid=fake_emplid(), first_name="Susan", last_name="Kindersley", pref_first_name="sumo", userid="sumo")
     p.save()
-    r = Role(person=p, role="GRAD", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="GRAD", unit=Unit.objects.get(slug='cmpt'))
     r.save()
     p = Person(emplid=fake_emplid(), first_name="Danyu", last_name="Zhao", pref_first_name="Danyu", userid="dzhao")
     p.save()
-    r = Role(person=p, role="ADVS", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="ADVS", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=Person.objects.get(userid='dixon'), role="PLAN", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=Person.objects.get(userid='dixon'), role="PLAN", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=Person.objects.get(userid='ggbaker'), role="FAC", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=Person.objects.get(userid='ggbaker'), role="FAC", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=Person.objects.get(userid='dixon'), role="FAC", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=Person.objects.get(userid='dixon'), role="FAC", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=Person.objects.get(userid='diana'), role="FAC", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=Person.objects.get(userid='diana'), role="FAC", unit=Unit.objects.get(slug='cmpt'))
     r.save()
 
     p = Person.objects.get(userid='ggbaker')
-    r = Role(person=p, role="GRAD", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="GRAD", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=p, role="ADMN", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="ADMN", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=p, role="TAAD", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="TAAD", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=p, role="FUND", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="FUND", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=Unit.objects.get(slug='cmpt'))
     r.save()
 
 
@@ -162,31 +167,31 @@ def create_grads():
     """
     Put the grad students created before into GradStudent records.
     """
-    gp = GradProgram(unit=Unit.objects.get(slug='comp'), label='MSc Project', description='MSc Project option')
+    gp = GradProgram(unit=Unit.objects.get(slug='cmpt'), label='MSc Project', description='MSc Project option')
     gp.save()
     req = GradRequirement(program=gp, description='Formed Committee')
     req.save()
-    gp = GradProgram(unit=Unit.objects.get(slug='comp'), label='MSc Thesis', description='MSc Thesis option')
+    gp = GradProgram(unit=Unit.objects.get(slug='cmpt'), label='MSc Thesis', description='MSc Thesis option')
     gp.save()
     req = GradRequirement(program=gp, description='Formed Committee')
     req.save()
-    gp = GradProgram(unit=Unit.objects.get(slug='comp'), label='PhD', description='PhD')
+    gp = GradProgram(unit=Unit.objects.get(slug='cmpt'), label='PhD', description='PhD')
     gp.save()
     req = GradRequirement(program=gp, description='Defended Thesis')
     req.save()
     req = GradRequirement(program=gp, description='Formed Committee')
     req.save()
-    gp = GradProgram(unit=Unit.objects.get(slug='eng'), label='MEng', description='Masters in Engineering')
+    gp = GradProgram(unit=Unit.objects.get(slug='ensc'), label='MEng', description='Masters in Engineering')
     gp.save()
-    gp = GradProgram(unit=Unit.objects.get(slug='eng'), label='PhD', description='PhD')
+    gp = GradProgram(unit=Unit.objects.get(slug='ensc'), label='PhD', description='PhD')
     gp.save()
-    st = ScholarshipType(unit=Unit.objects.get(slug='comp'), name="Some Scholarship")
+    st = ScholarshipType(unit=Unit.objects.get(slug='cmpt'), name="Some Scholarship")
     st.save()
-    gf = GradFlag(unit=Unit.objects.get(slug='comp'), label='Special Specialist Program')
+    gf = GradFlag(unit=Unit.objects.get(slug='cmpt'), label='Special Specialist Program')
     gf.save()
     
     programs = list(GradProgram.objects.all())
-    supervisors = list(set([m.person for m in Member.objects.filter(offering__owner__slug='comp', role='INST')]))
+    supervisors = list(set([m.person for m in Member.objects.filter(offering__owner__slug='cmpt', role='INST')]))
     for p in Person.objects.filter(userid__endswith='grad'):
         gp = random.choice(programs)
         campus = random.choice(list(CAMPUSES))
@@ -217,15 +222,15 @@ def create_grads():
 
 def create_grad_templ():
     templates = [
-                 {"unit": Unit.objects.get(slug='comp'),
+                 {"unit": Unit.objects.get(slug='cmpt'),
                   "label": "offer",
                   "content": "Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is good news. Really."
                   },
-                 {"unit": Unit.objects.get(slug='comp'),
+                 {"unit": Unit.objects.get(slug='cmpt'),
                   "label": "visa",
                   "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is currently enrolled as a full time student in the {{program}} in the School of Computing Science at SFU."
                   },
-                 {"unit": Unit.objects.get(slug='comp'),
+                 {"unit": Unit.objects.get(slug='cmpt'),
                   "label": "Funding",
                   "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is a student in the School of Computing Science's {{program}} program. {{He_She}} has been employed as follows:\r\n\r\n{% if tafunding %}Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ tafunding }}{% endif %}\r\n{% if rafunding %}Research assistants assist/provide research services to faculty. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ rafunding }}{% endif %}\r\n{% if scholarships %}{{title}} {{last_name}} has received the following scholarships:\r\n\r\n{{ scholarships }}{% endif %}\r\n\r\n{{title}} {{last_name}} is making satisfactory progress."
                   },
@@ -234,30 +239,83 @@ def create_grad_templ():
         t = LetterTemplate(**data)
         t.save()
 
-from ta.models import TAPosting, TAApplication
 def create_ta_data():
+    unit = Unit.objects.get(slug='cmpt')
     s = Semester.objects.get(name=TEST_SEMESTER).next_semester()
-    acc = Account.objects.all()[0]
-    post = TAPosting(semester=s, unit=Unit.objects.get(slug='comp'))
+    admin = Person.objects.get(userid='dixon')
+    CourseDescription(unit=unit, description="Office/Marking", labtut=False).save()
+    CourseDescription(unit=unit, description="Office/Marking/Lab", labtut=True).save()
+
+    post = TAPosting(semester=s, unit=unit)
     post.opens = s.start - datetime.timedelta(100)
     post.closes = s.start - datetime.timedelta(20)
     post.set_salary([972,972,972,972])
     post.set_scholarship([135,340,0,0])
-    post.set_accounts([acc.id]*4)
+    post.set_accounts([Account.objects.get(account_number=12345).id, Account.objects.get(account_number=12346).id, Account.objects.get(account_number=12347).id, Account.objects.get(account_number=12348).id])
     post.set_start(s.start)
     post.set_end(s.end)
     post.set_deadline(s.start - datetime.timedelta(10))
     post.set_payperiods(7.5)
-    post.set_contact(Person.objects.get(userid='dixon').id)
-    post.set_offer_text("This is your TA offer.\n\nThere are various conditions that are too numerous to list here.")
+    post.set_contact(admin.id)
+    post.set_offer_text("This is **your** TA offer.\n\nThere are various conditions that are too numerous to list here.")
     post.save()
+    offerings = list(post.selectable_offerings())
 
     for p in Person.objects.filter(userid__endswith='grad'):
-        app = TAApplication(posting=post, person=p, person=random.choice(['GTA1','GTA2']), current_program='CMPT', sin='123456789',
+        app = TAApplication(posting=post, person=p, category=random.choice(['GTA1','GTA2']), current_program='CMPT', sin='123456789',
                             base_units=random.choice([3,4,5]))
         app.save()
-        #CoursePreference
+        will_ta = []
+        for i,o in enumerate(random.sample(offerings, 5)):
+            t = random.choice(TAKEN_CHOICES)[0]
+            e = random.choice(EXPER_CHOICES)[0]
+            cp = CoursePreference(app=app, course=o.course, rank=i+1, taken=t, exper=e)
+            cp.save()
 
+            if random.random() < 0.07*(5-i):
+                will_ta.append(o)
+
+        if will_ta and random.random() < 0.75:
+            c = TAContract(status=random.choice(['NEW','OPN','ACC']))
+            c.first_assign(app, post)
+            c.save()
+            for o in will_ta:
+                tac = TACourse(course=o, contract=c, bu=app.base_units)
+                tac.description = tac.default_description()
+                tac.save()
+
+from ra.models import RAAppointment, Project, SemesterConfig, HIRING_CATEGORY_CHOICES, HIRING_CATEGORY_DISABLED
+from grad.forms import possible_supervisor_people
+def create_ra_data():
+    unit = Unit.objects.get(slug='cmpt')
+    s = Semester.objects.get(name=TEST_SEMESTER)
+    superv = list(possible_supervisor_people([unit]))
+    empl = list(itertools.chain(Person.objects.filter(userid__endswith='grad'), random.sample(Person.objects.filter(last_name='Student'), 10)))
+    cats = [c for c,d in HIRING_CATEGORY_CHOICES if c not in HIRING_CATEGORY_DISABLED]
+    config = SemesterConfig.get_config([unit], s)
+
+    acct = Account(account_number=12349, position_number=12349, title='NSERC RA', unit=unit)
+    acct.save()
+    proj1 = Project(project_number=987654, fund_number=31, unit=unit)
+    proj1.save()
+    proj2 = Project(project_number=876543, fund_number=13, unit=unit)
+    proj2.save()
+
+    for i in range(30):
+        p = random.choice(empl)
+        s = random.choice(superv)
+        c = random.choice(cats)
+        freq = random.choice(['B', 'L'])
+        if freq == 'B':
+            payargs = {'lump_sum_pay': 10000, 'biweekly_pay': 1250, 'pay_periods': 8, 'hourly_pay': 31, 'hours': 40}
+        else:
+            payargs = {'lump_sum_pay': 4000, 'biweekly_pay': 0, 'pay_periods': 8, 'hourly_pay': 0, 'hours': 0}
+        ra = RAAppointment(person=p, sin=123456789, hiring_faculty=s, unit=unit, hiring_category=c,
+                           project=random.choice([proj1,proj2]), account=acct, pay_frequency=freq,
+                           start_date=config.start_date(), end_date=config.end_date(),
+                           **payargs)
+        ra.set_use_hourly(random.choice([True, False]))
+        ra.save()
 
 
 
@@ -298,7 +356,7 @@ def create_more_data():
         t = DisciplineTemplate(**data)
         t.save()
 
-    cmpt = Unit.objects.get(slug='comp')
+    cmpt = Unit.objects.get(slug='cmpt')
     a = Account(account_number=12345, position_number=12345, title='MSc TA', unit=cmpt)
     a.save()
     a = Account(account_number=12346, position_number=12346, title='PhD TA', unit=cmpt)
@@ -319,13 +377,13 @@ def create_more_data():
     
     p = Person(userid='teachadm', emplid='200002388', first_name='Teaching', last_name='Admin')
     p.save()
-    r = Role(person=p, role="TADM", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="TADM", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    sp = SemesterPlan(semester=Semester.objects.get(name=TEST_SEMESTER), name='Test Plan', unit=Unit.objects.get(slug='comp'), slug='test-plan')
+    sp = SemesterPlan(semester=Semester.objects.get(name=TEST_SEMESTER), name='Test Plan', unit=Unit.objects.get(slug='cmpt'), slug='test-plan')
     sp.save()
     #o = PlannedOffering(plan=sp, course=Course.objects.get(slug='cmpt-102'), section='D100', campus='BRNBY', enrl_cap=100)
     #o.save()
-    PlanningCourse.create_for_unit(Unit.objects.get(slug='comp'))
+    PlanningCourse.create_for_unit(Unit.objects.get(slug='cmpt'))
     te = TeachingEquivalent(pk=1, instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), credits_numerator=1, credits_denominator=1, summary="Foo", status='UNCO')
     te.save()
     ti = TeachingIntention(instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), count=2)
@@ -335,12 +393,12 @@ def create_more_data():
 
     p = Person(userid='classam', emplid='200002389', first_name='Curtis', last_name='Lassam')
     p.save()
-    r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    r = Role(person=p, role="SYSA", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=p, role="SYSA", unit=Unit.objects.get(slug='cmpt'))
     r.save()
     
-    fg = FormGroup(name="Admins", unit=Unit.objects.get(slug='comp'))
+    fg = FormGroup(name="Admins", unit=Unit.objects.get(slug='cmpt'))
     fg.save()
     FormGroupMember(formgroup=fg, person=Person.objects.get(userid='ggbaker')).save()
     FormGroupMember(formgroup=fg, person=Person.objects.get(userid='classam')).save()
@@ -411,6 +469,13 @@ def serialize(filename):
             FieldSubmission.objects.all(),
             TAPosting.objects.all(),
             TAApplication.objects.all(),
+            CoursePreference.objects.all(),
+            CourseDescription.objects.all(),
+            TAContract.objects.all(),
+            TACourse.objects.all(),
+            RAAppointment.objects.all(),
+            Project.objects.all(),
+            SemesterConfig.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -450,15 +515,26 @@ def create_fake_semester(strm):
     sw.monday = mon
     sw.save()
 
+def create_units():
+    univ = Unit.objects.get(label='UNIV')
+    fas = Unit(label='FAS', name='Faculty of Applied Sciences', parent=univ).save()
+    ensc = Unit(label='ENSC', name='School of Engineering Science', parent=fas, acad_org='ENG SCI').save()
+    cmpt = Unit(label='CMPT', name='School of Computing Science', parent=fas, acad_org='COMP SCI')
+    cmpt.set_address(['9971 Applied Sciences Building', '8888 University Drive, Burnaby, BC', 'Canada V5A 1S6'])
+    cmpt.set_email('csdept@sfu.ca')
+    cmpt.set_web('http://www.cs.sfu.ca/')
+    cmpt.set_tel('778-782-4277')
+    cmpt.set_fax('778-782-3045')
+    cmpt.set_informal_name('Computing Science')
+    cmpt.config['sessional_pay'] = 10000
+    cmpt.set_deptid('12345')
+    cmpt.save()
 
 def main():
     for strm in NEEDED_SEMESTERS:
         create_fake_semester(strm)
+    create_units()
 
-    # fix their emplids so they identify with real people during the import
-    #update_amaint_userids()
-    #fix_emplid()
-    
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around
     offerings = import_offerings(import_semesters=import_semesters, extra_where=
@@ -500,6 +576,7 @@ def main():
     print "creating grad students"
     create_grads()
     create_ta_data()
+    create_ra_data()
 
     print "giving sysadmin permissions"
     give_sysadmin(['ggbaker', 'sumo'])

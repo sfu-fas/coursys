@@ -472,7 +472,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(110*mm, 148*mm, "Acct (4 digit)")
         self.c.drawString(151*mm, 148*mm, "Position Number")
         self._box_entry(1.5*mm, 139*mm, 16*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
-        self._box_entry(23*mm, 139*mm, 38*mm, 6.5*mm, content=self.ra.unit.deptid())
+        self._box_entry(23*mm, 139*mm, 38*mm, 6.5*mm, content=unicode(self.ra.unit.deptid()))
         self._box_entry(66*mm, 139*mm, 38*mm, 6.5*mm, content="%06i" % (self.ra.project.project_number))
         self._box_entry(110*mm, 139*mm, 29*mm, 6.5*mm, content="%06i" % (self.ra.account.account_number))
         self._box_entry(150*mm, 139*mm, 48*mm, 6.5*mm, content='')
