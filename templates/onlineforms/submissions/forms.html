@@ -80,4 +80,13 @@
             <p class="empty">There are currently no forms.</p>
     {% endif %}
 
+    {% if other_forms %}
+ 	<p>These forms are also available if you log in with your SFU account:</p>
+    <ul>
+        {% for form in other_forms %}
+        <li><a href="{% url onlineforms.views.sheet_submission_initial form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
 {% endblock %}
