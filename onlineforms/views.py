@@ -1040,19 +1040,17 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                 
                                 # save the new submission
                                 if str(name) in request.FILES:
-
                                     new_file = request.FILES[str(name)]
-                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission,
-                                                                              file_attachment=new_file,
-                                                                              file_mediatype=new_file.content_type)
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
+                                    if old_fsf:
+                                        new_file_submission = old_fsf[0]
+                                        new_file_submission.file_attachment.delete()
+                                    else:
+                                        new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission)
+
+                                    new_file_submission.file_attachment = new_file
+                                    new_file_submission.file_mediatype = new_file.content_type
                                     new_file_submission.save()
-                                    
-                                    # delete any old files for this fieldsub
-                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission) \
-                                              .exclude(id=new_file_submission.id)
-                                    for fsf in old_fsf:
-                                        fsf.file_attachment.delete()
-                                        fsf.delete()
 
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
