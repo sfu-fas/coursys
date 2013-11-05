@@ -426,7 +426,7 @@ def create_form_data():
     fld4.save()
     fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={ "required": False, 'label': 'Prediction', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
     fld5.save()
-    s3 = Sheet(form=f2, title="Decision")
+    s3 = Sheet(form=f2, title="Decision", can_view="ALL")
     s3.save()
     fld5 = Field(label='Decision', sheet=s3, fieldtype='RADI', config={ "required": True, 'label': 'Decision', "help_text":"Do you approve this appeal?", "choice_1": "Yes", "choice_2": "No", "choice_3": "See comments"})
     fld5.save()

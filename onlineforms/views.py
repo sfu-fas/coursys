@@ -764,7 +764,7 @@ def _readonly_sheets(form_submission):
     return sheet_sub_html
 
 
-def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
+def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=None):
     """
     If this user is allowed to view this FormSubmission, return it, or None if not.
     Also returns is_advisor, boolean as appropriate.
@@ -782,6 +782,31 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
                                         form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
 
+    if file_id:
+        # expanded permissions for files: filler of this and other sheets.
+        fsfs = FieldSubmissionFile.objects.filter(
+                                field_submission__sheet_submission__form_submission__slug=formsubmit_slug,
+                                id=file_id).select_related('field_submission__sheet_submission__form_submission',
+                                                           'field_submission__sheet_submission__sheet')
+        if fsfs:
+            fsf = fsfs[0]
+            formsub = fsf.field_submission.sheet_submission.form_submission
+            sheetsub = fsf.field_submission.sheet_submission
+            this_sub = SheetSubmission.objects.filter(form_submission=formsub,
+                    id=sheetsub.id,
+                    filler__sfuFormFiller__userid=request.user.username)
+            if this_sub:
+                # this is the filler of this sheet: they can see it.
+                form_submissions = [formsub]
+
+            later_sheets = SheetSubmission.objects.filter(form_submission=formsub,
+                    filler__sfuFormFiller__userid=request.user.username,
+                    sheet__order__gte=sheetsub.sheet.order,
+                    sheet__can_view='ALL')
+            if later_sheets:
+                # this is the filler of a later sheet who can view the other parts
+                form_submissions = [formsub]
+
     if not form_submissions:
         return None, None
 
@@ -789,7 +814,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
 
 @login_required
 def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
-    form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
     if not form_submission:
         raise Http404
     file_sub =  get_object_or_404(FieldSubmissionFile,
