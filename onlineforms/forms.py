@@ -1,5 +1,6 @@
 from coredata.forms import PersonField
 from django import forms
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
@@ -188,6 +189,19 @@ class DynamicForm(forms.Form):
                     relevant_data[str(name)] = u''
                     relevant_data['required'] = ignore_required
                     cleaned_data = field.compress(relevant_data)
+                elif isinstance(field, forms.FileField):
+                    if str(name) in files_data:
+                        cleaned_data = field.clean(files_data[str(name)])
+                    elif field.filesub:
+                        # we have no new file, but an old file submission: fake it into place
+                        fs = field.filesub
+                        cleaned_data = SimpleUploadedFile(name=fs.file_attachment.name,
+                                            content=fs.file_attachment.read(),
+                                            content_type=fs.file_mediatype)
+                    elif ignore_required:
+                        cleaned_data = ""
+                    else:
+                        cleaned_data = field.clean("")
                 elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
@@ -197,8 +211,6 @@ class DynamicForm(forms.Form):
                             cleaned_data = field.clean(relevant_data)
                         else:
                             cleaned_data = field.clean(post_data[str(name)])
-                elif str(name) in files_data:
-                    cleaned_data = field.clean(files_data[str(name)])
                 else:
                     if ignore_required:
                         cleaned_data = ""

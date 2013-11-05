@@ -824,13 +824,17 @@ def view_submission(request, form_slug, formsubmit_slug):
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST, prefix='close')
         if close_form.is_valid():
             admin = Person.objects.get(userid=request.user.username)
-            form_submission.set_summary(close_form.cleaned_data['summary'])
-            form_submission.set_emailed(close_form.cleaned_data['email'])
+            email = False
+            if 'summary' in close_form.cleaned_data:
+                form_submission.set_summary(close_form.cleaned_data['summary'])
+            if 'email' in close_form.cleaned_data:
+                form_submission.set_emailed(close_form.cleaned_data['email'])
+                email = close_form.cleaned_data['email']
             form_submission.set_closer(admin.id)
             form_submission.status = 'DONE'
             form_submission.save()
 
-            if close_form.cleaned_data['email']:
+            if email:
                 form_submission.email_notify_completed(request, admin)
                 messages.success(request, 'Form submission marked as completed; initiator informed by email.')
             else:
@@ -1044,7 +1048,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                     old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
                                     if old_fsf:
                                         new_file_submission = old_fsf[0]
-                                        new_file_submission.file_attachment.delete()
+                                        #new_file_submission.file_attachment.delete()
                                     else:
                                         new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission)
 
