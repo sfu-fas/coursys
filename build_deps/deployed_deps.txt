@@ -5,4 +5,4 @@ flup==1.0.2
 python-memcached==1.44
 django-celery-email==0.1.1
 django-celery==2.3.0
-django-kombu==0.9.4
+#django-kombu==0.9.4
