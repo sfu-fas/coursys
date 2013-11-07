@@ -14,7 +14,7 @@ from django.db.utils import IntegrityError
 from django.contrib.sessions.models import Session
 from django.conf import settings
 from courselib.svn import update_offering_repositories
-from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
+from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, random
 
 today = datetime.date.today()
@@ -420,7 +420,8 @@ def get_person_grad(emplid, commit=True, force=False):
     if random.random() < 0.95 and not force and 'lastimportgrad' in p.config \
             and time.time() - p.config['lastimportgrad'] < IMPORT_THRESHOLD:
         return p
-    
+   
+    create_or_update_student(emplid)
     data = grad_student_info(emplid)
     p.config.update(data)
 

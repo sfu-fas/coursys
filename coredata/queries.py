@@ -914,6 +914,29 @@ def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
     db.execute(query, (str(emplid), str(acad_prog), str(start_semester), str(end_semester)))
     return [x[0] for x in list(db)]
 
+@SIMS_problem_handler
+def get_adm_appl_nbrs( emplid ):
+    """
+    Given an acad_prog, find all adm_appl_nbr s
+    """
+    db = SIMSConn()
+    query = """
+        SELECT DISTINCT 
+            prog.adm_appl_nbr,
+            prog.acad_prog 
+        FROM dbcsown.ps_adm_appl_prog prog
+        LEFT JOIN dbcsown.ps_adm_appl_data data
+            ON prog.adm_appl_nbr = data.adm_appl_nbr
+        WHERE 
+            prog.emplid = %s
+                AND prog.prog_status NOT IN ('DC') 
+            AND ( data.appl_fee_status in ('REC', 'WVD')
+                  OR data.adm_appl_ctr in ('GRAW') )
+        """
+    db.execute(query, (str(emplid),))
+    return list(db)
+    return [str(x[0]) for x in list(db)]
+
 def find_or_generate_person( emplid ):
     # return a Person object, even if you have to make it yourself
     # throws IntegrityError, SIMSProblem

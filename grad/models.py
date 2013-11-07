@@ -12,6 +12,7 @@ import settings
 from collections import defaultdict
 many_newlines = re.compile(r'\n{3,}')
 
+IGNORE_CMPT_STUDENTS = True
 def create_or_update_student( emplid, dryrun=True ):
     """
         Given an emplid, create (or update) a GradStudent record.
@@ -29,6 +30,7 @@ def create_or_update_student( emplid, dryrun=True ):
     # split the programs into groups based on completion status
     groups = split_timeline_into_groups(timeline)
 
+    adm_appl_nbrs = [] 
     for group_no, group in groups.iteritems(): 
         print "\tGroup: ", group_no
 
@@ -39,6 +41,14 @@ def create_or_update_student( emplid, dryrun=True ):
         first_program = group[0]
         last_program = group[-1]
         all_previous_programs = group[:-1]
+
+        if IGNORE_CMPT_STUDENTS and first_program['program_code'].startswith("CP"):
+            print "\tIgnoring CMPT data" 
+            continue
+
+        for program in group:
+            if 'adm_appl_nbr' in program:
+                adm_appl_nbrs.append(str(program['adm_appl_nbr']))
 
         last_program_object = prog_map[last_program['program_code']]
         
@@ -53,12 +63,28 @@ def create_or_update_student( emplid, dryrun=True ):
             # create a new GradStudent
         elif len(gradstudents) > 1:
             print "\tRECOVERABLE ERROR: Found more than one GradStudent record"
-            student = gradstudents[0]
+            if 'adm_appl_nbr' in first_program: 
+                with_adm_appl = [x for x in gradstudents if 
+                                    'adm_appl_nbr' in x.config 
+                                    and x.config['adm_appl_nbr'] == first_program['adm_appl_nbr'] ]
+                if len(with_adm_appl) > 0: 
+                    student = with_adm_appl[0]
+                    print "\t picking the one with adm_appl_nbr match: ", first_program['adm_appl_nbr']
+                else:
+                    student = gradstudents[0] 
+                    print "\t no matching adm_appl_nbr found, going with ", student
+            else:
+                student = gradstudents[0]
+                print "\t no matching adm_appl_nbr found, going with ", student
         else: 
             print "\tGrad student found"
             student = gradstudents[0]
 
         statuses_to_save = []
+        if 'adm_appl_nbr' in first_program:
+            student.config['adm_appl_nbr'] = first_program['adm_appl_nbr']
+            if not dryrun:
+                student.save()
         if 'admission_records' in first_program:
             admission_records = first_program['admission_records']
             admission_statuses = admission_records_to_grad_statuses( admission_records, student )
@@ -115,6 +141,9 @@ def create_or_update_student( emplid, dryrun=True ):
                 # Withdrawn!
                 created_status = find_or_create_status( student, 'WIDR', end_semester_object )
             statuses_to_save.append(created_status)
+        
+        if not dryrun:
+            GradStatus.overrun(student, statuses_to_save)
 
         first_day_of_first_semester = Semester.objects.get( name=first_program['start'] ).start
         last_day_of_last_semester = Semester.objects.get( name=last_program['end'] ).end
@@ -132,18 +161,41 @@ def create_or_update_student( emplid, dryrun=True ):
             supervisors_to_add.append(s)
 
         if not dryrun: 
-            existing_statuses = GradStatus.objects.filter(student=student)
-            statuses_to_save_tuple = [(s.status, str(s.start.name)) for s in statuses_to_save]
-            statuses_to_remove = []
-            for existing_status in existing_statuses:
-                if (existing_status.status, str(existing_status.start.name)) not in statuses_to_save_tuple:
-                    print "Removing Status:", existing_status, existing_status.start
-                    existing_status.hidden = True
-                    existing_status.save()
-            for status in statuses_to_save:
-                status.save()
             for supervisor in supervisors_to_add:
                 supervisor.save()
+    
+    #create records for any spare adm_appl_nbrs
+    all_adm_appl_nbrs = coredata.queries.get_adm_appl_nbrs(emplid)
+    print "\t All Adm Appl Nbrs: ", all_adm_appl_nbrs
+    remaining_adm_appl_nbrs = [a for a in all_adm_appl_nbrs if a not in adm_appl_nbrs]
+
+    for adm_appl_nbr, program_code in remaining_adm_appl_nbrs:
+        print "\tAdm Appl Nbr: ", adm_appl_nbr
+        
+        if IGNORE_CMPT_STUDENTS and program_code.startswith("CP"):
+            print "\tIgnoring CMPT data" 
+            continue
+
+        program = prog_map[program_code] 
+        
+        gradstudents = GradStudent.objects.filter(person=person, program=program)
+
+        with_adm_appl = [s for s in gradstudents if 'adm_appl_nbr' in s.config and 
+                                                    s.config['adm_appl_nbr'] == adm_appl_nbr ]
+
+        if len(with_adm_appl) == 0:
+            print "\tNot found." 
+            student = GradStudent.create( person, program )
+            if not dryrun:
+                student.save()
+        else:
+            print "\t Found." 
+
+        admission_records = coredata.queries.get_admission_records( emplid, adm_appl_nbr )
+        admission_statuses = admission_records_to_grad_statuses( admission_records, student )
+        
+        if not dryrun:
+            GradStatus.overrun(student, admission_statuses)
 
 def split_timeline_into_groups( timeline ):
     """
@@ -1215,6 +1267,22 @@ class GradStatus(models.Model):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.status]
+
+    @classmethod
+    def overrun(cls, student, statuses_to_save):
+        """
+        For this GradStudent object, write new statuses over the existing set of statuses. 
+        """
+        existing_statuses = GradStatus.objects.filter(student=student)
+        statuses_to_save_tuple = [(s.status, str(s.start.name)) for s in statuses_to_save]
+        statuses_to_remove = []
+        for existing_status in existing_statuses:
+            if (existing_status.status, str(existing_status.start.name)) not in statuses_to_save_tuple:
+                print "Removing Status:", existing_status, existing_status.start
+                existing_status.hidden = True
+                existing_status.save()
+        for status in statuses_to_save:
+            status.save()
 
 """
 Letters
