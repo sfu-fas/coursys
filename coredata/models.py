@@ -368,8 +368,21 @@ class Semester(models.Model):
         
         name = "%03d%1d" % ((year - 1900), sem)
         return Semester.objects.get(name=name)
-        
 
+    @classmethod
+    def range(cls, start, end):
+        """
+        Produce a list of semesters from start to end. 
+        >>> [x for x in Semester.range( '1121', '1137' )]
+        [ '1121', '1124', '1127', '1131', '1134', '1137' ]
+
+        Will run forever or fail if the end semester is not a valid semester. 
+        """
+        current_semester = Semester.objects.get(name=start)
+        while current_semester.name != end:
+            yield str(current_semester.name)
+            current_semester = current_semester.offset(1) 
+        yield str(current_semester.name)
 
 class SemesterWeek(models.Model):
     """

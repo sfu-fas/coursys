@@ -7,7 +7,303 @@ from courselib.json_fields import getter_setter
 from jsonfield import JSONField
 from pages.models import _normalize_newlines
 import re, itertools, datetime
+import coredata.queries
+import settings
+from collections import defaultdict
 many_newlines = re.compile(r'\n{3,}')
+
+def create_or_update_student( emplid, dryrun=True ):
+    """
+        Given an emplid, create (or update) a GradStudent record.
+        If dryrun is true, do not call any .save() calls. 
+    """
+    print "Create/Update Student: ", emplid
+
+    person = coredata.queries.find_or_generate_person( emplid )
+    print "\t", person
+
+    prog_map = program_map()
+    timeline = coredata.queries.get_timeline(emplid)
+    # strip any programs from the timeline that aren't our grad programs
+    timeline = [x for x in timeline if x['program_code'] in prog_map.keys()]
+    # split the programs into groups based on completion status
+    groups = split_timeline_into_groups(timeline)
+
+    for group_no, group in groups.iteritems(): 
+        print "\tGroup: ", group_no
+
+        # ignore empty groups 
+        if len(group) < 1:
+            continue
+
+        first_program = group[0]
+        last_program = group[-1]
+        all_previous_programs = group[:-1]
+
+        last_program_object = prog_map[last_program['program_code']]
+        
+        # does this person/program already exist? 
+        gradstudents = GradStudent.objects.filter(person=person, program=last_program_object)
+       
+        if len(gradstudents) < 1:
+            print "\tGrad student not found, creating"
+            student = GradStudent.create( person, last_program_object )
+            if not dryrun:
+                student.save()
+            # create a new GradStudent
+        elif len(gradstudents) > 1:
+            print "\tRECOVERABLE ERROR: Found more than one GradStudent record"
+            student = gradstudents[0]
+        else: 
+            print "\tGrad student found"
+            student = gradstudents[0]
+
+        statuses_to_save = []
+        if 'admission_records' in first_program:
+            admission_records = first_program['admission_records']
+            admission_statuses = admission_records_to_grad_statuses( admission_records, student )
+            for status in admission_statuses:
+                statuses_to_save.append(status)
+
+        # create a GradProgramHistory for every previous program
+        for program in all_previous_programs: 
+            program_object = prog_map[program['program_code']]
+            start_semester = Semester.objects.get(name=program['start'])
+            try:
+                gph = GradProgramHistory.objects.get(
+                    student = student, 
+                    program = program_object,
+                    start_semester = start_semester )
+                print "\tFound Program History:", gph
+            except GradProgramHistory.DoesNotExist:
+                gph = GradProgramHistory(
+                    student = student, 
+                    program = program_object,
+                    start_semester = start_semester )
+                print "\tCreating Program History:", gph
+                if not dryrun:
+                    gph.save()
+
+        # find/create a GradStatus "Active" at the first semester
+        active_status = find_or_create_status( student, 'ACTI', Semester.objects.get(name=first_program['start']))
+        statuses_to_save.append(active_status)
+
+        on_leaves = coredata.queries.merge_leaves(group)
+        
+        # for every on-leave, create an LEAV status for the student
+        # when that leave ends, create an ACTI status for the student 
+        for leave_start_semester, leave_end_semester in on_leaves: 
+            start_semester_object = Semester.objects.get(name=leave_start_semester)
+            end_semester_object = Semester.objects.get(name=leave_end_semester)
+            on_leave_status = find_or_create_status( student, 'LEAV', start_semester_object )
+            statuses_to_save.append(on_leave_status)
+            next_semester_object = end_semester_object.offset(1)
+            if int(next_semester_object.name) < int(last_program['end']):
+                active_again_status = find_or_create_status( student, 'ACTI', next_semester_object )
+                statuses_to_save.append(active_again_status) 
+
+        # how did this end? 
+        if 'how_did_it_end' in last_program and last_program['how_did_it_end']:
+            end_code = last_program['how_did_it_end']['code']
+            end_semester = last_program['how_did_it_end']['semester']
+            end_semester_object = Semester.objects.get(name=end_semester)
+    
+            if end_code == "COMP":
+                # Graduated! 
+                created_status = find_or_create_status( student, 'GRAD', end_semester_object )
+            if end_code == "DISC":
+                # Withdrawn!
+                created_status = find_or_create_status( student, 'WIDR', end_semester_object )
+            statuses_to_save.append(created_status)
+
+        first_day_of_first_semester = Semester.objects.get( name=first_program['start'] ).start
+        last_day_of_last_semester = Semester.objects.get( name=last_program['end'] ).end
+
+        supervisory_committee = coredata.queries.get_supervisory_committee( 
+            emplid, first_day_of_first_semester, last_day_of_last_semester )
+
+        supervisors_to_add = []
+        for supervisor_sims, supervisor_emplid in supervisory_committee:
+            supervisor = coredata.queries.find_or_generate_person( supervisor_emplid )
+            supervisor_type = supervisor_sims_to_supervisor_type( supervisor_sims )
+            if not supervisor_type:
+                continue
+            s = find_or_create_supervisor( student, supervisor_type, supervisor )
+            supervisors_to_add.append(s)
+
+        if not dryrun: 
+            existing_statuses = GradStatus.objects.filter(student=student)
+            statuses_to_save_tuple = [(s.status, str(s.start.name)) for s in statuses_to_save]
+            statuses_to_remove = []
+            for existing_status in existing_statuses:
+                if (existing_status.status, str(existing_status.start.name)) not in statuses_to_save_tuple:
+                    print "Removing Status:", existing_status, existing_status.start
+                    existing_status.hidden = True
+                    existing_status.save()
+            for status in statuses_to_save:
+                status.save()
+            for supervisor in supervisors_to_add:
+                supervisor.save()
+
+def split_timeline_into_groups( timeline ):
+    """
+        If we have a timeline containing
+        CPMSC - 1094-1097 
+        CPMZU - 1097-1127 - graduated,
+        CPPHD - 1134-1147,
+        then we want to separate this student into two groups
+        {
+            '0': [ {CPMSC...}, {CPMZU...} ], 
+            '1': [ {CPPHD...} ]
+        }
+    """
+    prog_groups = defaultdict(list)
+    last_group = 0
+    for program in timeline: 
+        prog_groups[last_group].append( program )
+        if 'how_did_it_end' in program and program['how_did_it_end']: 
+            last_group = last_group + 1
+
+    return prog_groups
+            
+def program_map():
+    """
+    Return a dict mapping SIMS's ACAD_PROG to GradProgram
+    i.e.:
+        { 'CPPHD': GradProgram.objects.get(label='PhD'... ) }
+    """
+    if settings.DEBUG:
+        cmptunit = Unit.objects.get(label="COMP")
+        program_map = {
+            'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
+            'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
+            'CPMSC': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+            'CPMCW': GradProgram.objects.get(label="MSc Project", unit=cmptunit),
+            'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+            'CPGND': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+            'CPGQL': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit)
+        }
+    else:
+        cmptunit = Unit.objects.get(label="CMPT")
+        mechunit = Unit.objects.get(label="MSE")
+        program_map = {
+            'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
+            'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
+            'CPMSC': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+            'CPMCW': GradProgram.objects.get(label="MSc Course", unit=cmptunit),
+            'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+            'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
+            'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
+
+            'MSEPH': GradProgram.objects.get(label="Ph.D.", unit=mechunit),
+            'MSEMS': GradProgram.objects.get(label="M.A.Sc.", unit=mechunit),
+        }
+    return program_map
+
+def get_admission_status_code( admission_action, admitted=False ):
+    """ 
+        Convert a SIMS admission applicant "action" code 
+        (e.g. "ADMT")
+        into a Coursys Status Code
+        (e.g. "OFFO")
+    """
+    if admission_action in ["ADMT", "COND"]:
+        return "OFFO"
+    if admission_action == "APPL":
+        return "COMP"
+    if admission_action == "MATR":
+        return "CONF"
+    if admission_action == "DENY":
+        return "REJE"
+    if admission_action in ["WAPP", "WADM"]:
+        if admitted: 
+            return "DECL"
+        else:
+            return "EXPI"
+    return None
+
+def admission_records_to_grad_statuses( admission_records, student ):
+    """
+        Convert a list of admission records:
+        [
+            ('ADMIT', datetime.date('2012-10-10'), '1124'),
+            ('MATR', datetime.date('2012-11-11'), '1124')
+        ]
+        into a list of GradStatus objects:
+        [
+            <GradStatus 'OFFO' 1124>,
+            <GradStatus 'CONF' 1124>
+        ]
+    """
+    return_list = []
+    admitted = False
+    for action, date, semester in admission_records:
+        status_code = get_admission_status_code( action, admitted )
+        if status_code == "OFFO": 
+            admitted = True
+        if status_code == None:
+            continue
+        semester_object = Semester.objects.get(name=semester)
+        gs = find_or_create_status( student, status_code, semester_object )
+        return_list.append(gs)
+    return return_list 
+
+def find_or_create_status( student, status, semester): 
+    try:
+        active_status = GradStatus.objects.get(
+            student = student,
+            status = status, 
+            start = semester)
+        active_status.hidden = False
+        print "\tFound Status: ", status, active_status.start
+    except GradStatus.DoesNotExist:
+        active_status = GradStatus(
+            student = student,
+            status = status, 
+            start = semester)
+        print "\tCreated Status: ", status, active_status.start
+    return active_status
+
+def supervisor_sims_to_supervisor_type( supervisor_sims ):
+    """
+        supervisor_sims is 'Senior Supervisor', 'Supervisor', 'Internal Examiner', etc.
+
+        convert these into one of our supervisor codes - e.g. "SEN" for Senior Supervisor
+    """
+    supervisor_sims = str(supervisor_sims)
+    if supervisor_sims in [ "Chair", 
+                            "Committee Chair",
+                            "Chair of Nominating Committee",
+                            "Co-Chair" ]:
+        return 'CHA'
+    if supervisor_sims == "Internal Examiner":
+        return 'SFU'
+    if supervisor_sims == "External Examiner":
+        return 'EXT'
+    if supervisor_sims in [ "Committee Member",
+                            "Generic Committee Member",
+                            "Member", 
+                            "Member of Committee" ]:
+        return 'COM'
+    if supervisor_sims == "Senior Supervisor": 
+        return 'SEN'
+    if supervisor_sims == "Supervisor":
+        return 'COS'
+    if supervisor_sims == "Admission Staff Support":
+        return None
+
+def find_or_create_supervisor( student, supervisor_type, supervisor ):
+    try:
+        s = Supervisor.objects.get(student=student, 
+                                    supervisor=supervisor,
+                                    supervisor_type=supervisor_type )
+        print "\tFound Supervisor:", s
+    except Supervisor.DoesNotExist:
+        s = Supervisor(student=student,
+                        supervisor=supervisor, 
+                        supervisor_type=supervisor_type )
+        print "\tCreated Supervisor:", s
+    return s
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
@@ -31,7 +327,7 @@ class GradProgram(models.Model):
     
     def cmpt_program_type(self):
         """
-REJEck for CMPT progress reports system export.
+        REJEck for CMPT progress reports system export.
         """
         if self.label == 'MSc Course':
             return ('MSc', 'Course')
@@ -638,6 +934,25 @@ class GradStudent(models.Model):
 
         return student_records
 
+    @classmethod
+    def create( cls, person, program ):
+        emplid = person.emplid 
+        mother_tongue = coredata.queries.get_mother_tongue( emplid )
+        passport_issued_by = coredata.queries.get_passport_issued_by( emplid )
+
+        if passport_issued_by == "Canada":
+            is_canadian = True
+        elif coredata.queries.holds_resident_visa( emplid ):
+            is_canadian = True
+        else:
+            is_canadian = False
+
+        return GradStudent(person=person, 
+            program=program,
+            mother_tongue=mother_tongue, 
+            passport_issued_by=passport_issued_by,
+            is_canadian=is_canadian)
+        
 class GradProgramHistory(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
