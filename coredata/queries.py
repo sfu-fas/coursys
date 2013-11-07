@@ -387,15 +387,17 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     if (needed == ALLFIELDS or 'programs' in needed) and 'programs' not in exclude:
         programs = []
         data['programs'] = programs
-        db.execute("SELECT apt.acad_plan, apt.descr, apt.trnscr_descr from "
-                   "(select max(effdt) as effdt from ps_acad_plan where emplid=%s) as last, "
-                   "(select effdt, max(effseq) as effseq from ps_acad_plan where emplid=%s GROUP BY effdt) as seq, "
-                   "ps_acad_plan as ap, "
-                   "ps_acad_plan_tbl as apt, "
-                   "(select acad_plan, max(effdt) as effdt from ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
-                   "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt AND seq.effdt=last.effdt AND seq.effseq=ap.effseq "
-                   "AND apt.effdt=lastplan.effdt AND lastplan.acad_plan=ap.acad_plan "
-                   "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid), str(emplid)))
+        db.execute("""
+            SELECT plantbl.acad_plan, plantbl.descr, plantbl.trnscr_descr
+            FROM ps_acad_prog prog, ps_acad_plan plan, ps_acad_plan_tbl AS plantbl
+            WHERE prog.emplid=plan.emplid AND prog.acad_career=plan.acad_career AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
+              AND plantbl.acad_plan=plan.acad_plan
+              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
+              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
+              AND plantbl.effdt=(SELECT MAX(effdt) FROM dbcsown.ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
+              AND prog.prog_status='AC' AND plantbl.eff_status='A'
+              AND prog.emplid=%s
+            ORDER BY plan.plan_sequence""", (str(emplid),))
         #  AND apt.trnscr_print_fl='Y'
         for acad_plan, descr, transcript in db:
             label = transcript or descr

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Give submission away for {{ formsub.form.title }} {% endblock %}
+{% block h1 %}Give submission away for {{ formsub.form.title }} {% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">View {{ formsub.form.title }}</a></li>
+    <li>&gt; Give</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div class="form_container" id="give">
+    <form action="#give" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <fieldset><legend>Give Away</legend>
+    {{ form|as_dl }}
+    <p><input class="submit" type="submit" value="Give" /></p>
+    </fieldset>
+    </form>
+</div>
+{% endblock %}

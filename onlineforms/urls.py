@@ -21,6 +21,7 @@ urlpatterns = patterns('',
     url(r'^admin/assign-nonsfu$', 'onlineforms.views.admin_assign_any_nonsfu'),
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign$', 'onlineforms.views.admin_assign'),
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign-nonsfu$', 'onlineforms.views.admin_assign_nonsfu'),
+    url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/give', 'onlineforms.views.admin_change_owner'),
     #url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign_done$', 'onlineforms.views.admin_done'),
     
     url(r'^manage/$', 'onlineforms.views.list_all'),

@@ -38,13 +38,29 @@ def validate_credentials(data):
         raise ValidationError("The key 'unit' is not present.")
 
     if  _check_token(person, secret, 'problems-token'):
-        person = Person.objects.get(userid=person)
-        unit = Unit.objects.get(label=unit)
-        return person, unit, 'problems-token'
+        try:
+            person = Person.objects.get(userid=person)
+        except Person.DoesNotExist:
+            person = None
+        try:
+            unit = Unit.objects.get(label=unit)
+        except Unit.DoesNotExist:
+            unit = None
+
+        if person and unit:
+            return person, unit, 'problems-token'
 
     if  _check_token(person, secret, 'advisor-token'):
-        person = Person.objects.get(userid=person)
-        unit = Unit.objects.get(label=unit)
-        return person, unit, 'advisor-token'
+        try:
+            person = Person.objects.get(userid=person)
+        except Person.DoesNotExist:
+            person = None
+        try:
+            unit = Unit.objects.get(label=unit)
+        except Unit.DoesNotExist:
+            unit = None
+
+        if person and unit:
+            return person, unit, 'advisor-token'
     
     raise ValidationError(_token_not_found)

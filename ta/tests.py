@@ -19,7 +19,7 @@ class ApplicationTest(TestCase):
         s = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
         s.save()
     
-        unit = Unit.objects.get(label="COMP")
+        unit = Unit.objects.get(label="CMPT")
         self.co1 = CourseOffering(owner=unit, subject="CMPT", number="120", section="D100", semester=s, component="LEC",
                             graded=True, crse_id=11111, class_nbr=22222, campus='BRNBY', title="Computer Stuff",
                             enrl_cap=100, enrl_tot=99, wait_tot=2)
@@ -33,7 +33,7 @@ class ApplicationTest(TestCase):
     def test_application(self):
         p = Person.objects.get(emplid=210012345)
         s = Semester.objects.get(name="1077")
-        unit = Unit.objects.get(label="COMP")
+        unit = Unit.objects.get(label="CMPT")
         d = CourseDescription(unit=unit, description="Lab TA", labtut=True)
         d.save()
         d = CourseDescription(unit=unit, description="Office Hours", labtut=False)

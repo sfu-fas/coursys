@@ -678,20 +678,27 @@ def rest_notes(request):
     if request.method != 'POST':
         resp = HttpResponse(content='Only POST requests allowed', status=405)
         resp['Allow'] = 'POST'
+        transaction.rollback()
         return resp
 
     if request.META['CONTENT_TYPE'] != 'application/json' and not request.META['CONTENT_TYPE'].startswith('application/json;'):
+        transaction.rollback()
         return HttpResponse(content='Contents must be JSON (application/json)', status=415)
 
     try:
         rest.new_advisor_notes(request.raw_post_data)
     except UnicodeDecodeError:
+        transaction.rollback()
         return HttpResponse(content='Bad UTF-8 encoded text', status=400)
     except ValueError:
+        transaction.rollback()
         return HttpResponse(content='Bad JSON in request body', status=400)
     except ValidationError as e:
         transaction.rollback()
         return HttpResponse(content=e.messages[0], status=422)
+    except Exception as e:
+        transaction.rollback()
+        raise
 
     transaction.commit()
     return HttpResponse(status=200)

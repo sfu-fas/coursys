@@ -472,7 +472,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(110*mm, 148*mm, "Acct (4 digit)")
         self.c.drawString(151*mm, 148*mm, "Position Number")
         self._box_entry(1.5*mm, 139*mm, 16*mm, 6.5*mm, content="%i" % (self.ra.project.fund_number))
-        self._box_entry(23*mm, 139*mm, 38*mm, 6.5*mm, content=self.ra.unit.deptid())
+        self._box_entry(23*mm, 139*mm, 38*mm, 6.5*mm, content=unicode(self.ra.unit.deptid()))
         self._box_entry(66*mm, 139*mm, 38*mm, 6.5*mm, content="%06i" % (self.ra.project.project_number))
         self._box_entry(110*mm, 139*mm, 29*mm, 6.5*mm, content="%06i" % (self.ra.account.account_number))
         self._box_entry(150*mm, 139*mm, 48*mm, 6.5*mm, content='')
@@ -489,17 +489,24 @@ class RAForm(object, SFUMediaMixin):
             hourly = ''
             biweekly = ''
             biweekhours = ''
-            lumphours = "%i:00" % (self.ra.hours) # I think?
+            if self.ra.lump_sum_hours and self.ra.use_hourly():
+                lumphours = unicode(self.ra.lump_sum_hours)
+            else:
+                lumphours = ''
             lumpsum = "$%.2f" % (self.ra.lump_sum_pay)
-        else:
+        elif self.ra.use_hourly():
             hourly = "$%.2f" % (self.ra.hourly_pay)
+            biweekly = ""
+            biweekhours = "%i:00" % (self.ra.hours)
+            lumphours = ''
+            lumpsum = ''
+        else: # biweekly, not hourly
+            hourly = ""
             biweekly = "$%.2f" % (self.ra.biweekly_pay)
             biweekhours = "%i:00" % (self.ra.hours)
             lumphours = ''
             lumpsum = ''
-        if not self.ra.use_hourly():
-            biweekhours = ''
-            lumphours = ''
+
         self.c.setFont("Helvetica", 7)
         self.c.drawString(3*mm, 125*mm, "Hourly Rate")
         self.c.drawString(74*mm, 125*mm, "Bi-weekly Salary")

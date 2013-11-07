@@ -17,12 +17,12 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
-    AdminAssignForm_nonsfu, CloseFormForm
+    AdminAssignForm_nonsfu, CloseFormForm, ChangeOwnerForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
-from coredata.models import Person, Role
+from coredata.models import Person, Role, Unit
 from log.models import LogEntry
 import json
 import os
@@ -67,6 +67,7 @@ def new_group(request):
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    groupmembers = FormGroupMember.objects.filter(formgroup=group).order_by('person__last_name')
 
     # for editting group name
     if request.method == 'POST':
@@ -80,12 +81,11 @@ def manage_group(request, formgroup_slug):
             l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     form = EditGroupForm(instance=group)
-    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
 
     # below is for finding person thru coredata/personfield and adding to group
     search_form = EmployeeSearchForm()
 
-    context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form }
+    context = {'form': form, 'group': group, 'groupmembers': groupmembers, 'search': search_form }
     return render(request, 'onlineforms/manage_group.html', context)
 
 
@@ -93,7 +93,6 @@ def manage_group(request, formgroup_slug):
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
@@ -102,7 +101,9 @@ def add_group_member(request, formgroup_slug):
                     if search_form.is_valid(): 
                         # search returns Person object
                         person = search_form.cleaned_data['search']
+                        email = search_form.cleaned_data['email']
                         member = FormGroupMember(person=person, formgroup=group)
+                        member.set_email(email)
                         member.save()
                         l = LogEntry(userid=request.user.username,
                              description=("added %s to form group %s") % (person.userid_or_emplid(), group),
@@ -112,9 +113,8 @@ def add_group_member(request, formgroup_slug):
                 else: # if accidentally don't search for anybody
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
     
-    groups = FormGroup.objects.filter(unit__in=request.units)
-    context = {'groups': groups}
-    return render(request, 'onlineforms/manage_groups.html', context)
+    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+
 
 @transaction.commit_on_success
 @requires_role('ADMN')
@@ -298,6 +298,39 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
 
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
+
+@requires_formgroup()
+def admin_change_owner(request, form_slug, formsubmit_slug):
+    admin = get_object_or_404(Person, userid=request.user.username)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
+
+    # Can assign to groups in Units where I'm in a FormGroup, or and subunits of them.
+    unit_ids = set(FormGroupMember.objects.filter(person=admin).values_list('formgroup__unit', flat=True))
+    sub_unit_ids = Unit.sub_unit_ids(unit_ids, by_id=True)
+    allowed_groups = FormGroup.objects.filter(unit__id__in=sub_unit_ids).exclude(id=form_submission.owner_id)
+
+    if request.method == 'POST':
+        form = ChangeOwnerForm(data=request.POST, queryset=allowed_groups)
+        if form.is_valid():
+            new_g = form.cleaned_data['new_group']
+            form_submission.owner = new_g
+            form_submission.email_notify_new_owner(request, admin)
+            form_submission.save()
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Gave ownership of form sub %s; %s to %s" % (form_submission.form.slug, form_submission.slug, new_g.name)),
+                related_object=form_submission)
+            l.save()
+            messages.success(request, 'Form given to %s.' % (new_g.name))
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    else:
+        form = ChangeOwnerForm(queryset=allowed_groups)
+
+    context = {'form': form, 'formsub': form_submission}
+    return render(request, "onlineforms/admin/admin_change_owner.html", context)
 
 
 def _userToFormFiller(user):
@@ -731,7 +764,7 @@ def _readonly_sheets(form_submission):
     return sheet_sub_html
 
 
-def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
+def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=None):
     """
     If this user is allowed to view this FormSubmission, return it, or None if not.
     Also returns is_advisor, boolean as appropriate.
@@ -749,6 +782,31 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
                                         form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
 
+    if file_id:
+        # expanded permissions for files: filler of this and other sheets.
+        fsfs = FieldSubmissionFile.objects.filter(
+                                field_submission__sheet_submission__form_submission__slug=formsubmit_slug,
+                                id=file_id).select_related('field_submission__sheet_submission__form_submission',
+                                                           'field_submission__sheet_submission__sheet')
+        if fsfs:
+            fsf = fsfs[0]
+            formsub = fsf.field_submission.sheet_submission.form_submission
+            sheetsub = fsf.field_submission.sheet_submission
+            this_sub = SheetSubmission.objects.filter(form_submission=formsub,
+                    id=sheetsub.id,
+                    filler__sfuFormFiller__userid=request.user.username)
+            if this_sub:
+                # this is the filler of this sheet: they can see it.
+                form_submissions = [formsub]
+
+            later_sheets = SheetSubmission.objects.filter(form_submission=formsub,
+                    filler__sfuFormFiller__userid=request.user.username,
+                    sheet__order__gte=sheetsub.sheet.order,
+                    sheet__can_view='ALL')
+            if later_sheets:
+                # this is the filler of a later sheet who can view the other parts
+                form_submissions = [formsub]
+
     if not form_submissions:
         return None, None
 
@@ -756,7 +814,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
 
 @login_required
 def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
-    form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
     if not form_submission:
         raise Http404
     file_sub =  get_object_or_404(FieldSubmissionFile,
@@ -791,13 +849,17 @@ def view_submission(request, form_slug, formsubmit_slug):
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST, prefix='close')
         if close_form.is_valid():
             admin = Person.objects.get(userid=request.user.username)
-            form_submission.set_summary(close_form.cleaned_data['summary'])
-            form_submission.set_emailed(close_form.cleaned_data['email'])
+            email = False
+            if 'summary' in close_form.cleaned_data:
+                form_submission.set_summary(close_form.cleaned_data['summary'])
+            if 'email' in close_form.cleaned_data:
+                form_submission.set_emailed(close_form.cleaned_data['email'])
+                email = close_form.cleaned_data['email']
             form_submission.set_closer(admin.id)
             form_submission.status = 'DONE'
             form_submission.save()
 
-            if close_form.cleaned_data['email']:
+            if email:
                 form_submission.email_notify_completed(request, admin)
                 messages.success(request, 'Form submission marked as completed; initiator informed by email.')
             else:
@@ -812,7 +874,6 @@ def view_submission(request, form_slug, formsubmit_slug):
 
     elif can_admin:
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, prefix='close')
-        #assign_form = AdminAssignForm(label="form", query_set=Sheet.objects.filter(form=form_submission.form, active=True), prefix='assign')
     else:
         close_form = None
 
@@ -825,7 +886,6 @@ def view_submission(request, form_slug, formsubmit_slug):
                'is_advisor': is_advisor,
                'can_admin': can_admin,
                'close_form': close_form,
-               #'assign_form': assign_form,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
@@ -1009,19 +1069,17 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                 
                                 # save the new submission
                                 if str(name) in request.FILES:
-
                                     new_file = request.FILES[str(name)]
-                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission,
-                                                                              file_attachment=new_file,
-                                                                              file_mediatype=new_file.content_type)
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
+                                    if old_fsf:
+                                        new_file_submission = old_fsf[0]
+                                        #new_file_submission.file_attachment.delete()
+                                    else:
+                                        new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission)
+
+                                    new_file_submission.file_attachment = new_file
+                                    new_file_submission.file_mediatype = new_file.content_type
                                     new_file_submission.save()
-                                    
-                                    # delete any old files for this fieldsub
-                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission) \
-                                              .exclude(id=new_file_submission.id)
-                                    for fsf in old_fsf:
-                                        fsf.file_attachment.delete()
-                                        fsf.delete()
 
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,

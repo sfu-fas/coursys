@@ -13,7 +13,7 @@ get_semester = Semester.get_semester
 
 @login_required
 def financials(request, grad_slug):
-    grad, _ = _can_view_student(request, grad_slug, funding=True)
+    grad, _, units = _can_view_student(request, grad_slug, funding=True)
     if grad is None:
         return ForbiddenResponse(request)
 
@@ -173,12 +173,6 @@ def financials(request, grad_slug):
     # set frontend defaults
     page_title = "%s's Financial Summary" % (grad.person.first_name)
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
-
-    units = []
-    try:
-        units=request.units
-    except:
-        units = []
 
     context = {
                'semesters': semesters,

@@ -148,8 +148,9 @@ class CoredataTest(TestCase):
         self.assertEqual(wk, 5)
         self.assertEqual(wkday, 2)
 
-        self.assertRaises(ValueError, s.week_weekday, date(2007, 9, 2))
-        
+        # check weird special-case for before-the-start dates
+        self.assertEqual(s.week_weekday(date(2007, 9, 2)), (1, 0))
+
         
         
 

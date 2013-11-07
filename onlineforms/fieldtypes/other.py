@@ -128,9 +128,11 @@ class FileCustomField(FieldBase):
             label=self.config['label'],
             help_text=self.config['help_text'],
             widget=_ClearableFileInput())
+        f.filesub = None
         if fieldsubmission:
             file_sub = fieldsubmission.file_sub()
             if file_sub:
+                f.filesub = file_sub
                 f.initial = file_sub.file_attachment
                 f.initial.file_sub = fieldsubmission.file_sub()
         return f

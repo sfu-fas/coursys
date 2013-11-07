@@ -34,7 +34,7 @@ class SubmittedURL(SubmittedComponent):
 
     def add_to_zip(self, zipfile, prefix=None):
         content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL='
-        if str(self.url).find("://") == -1:
+        if unicode(self.url).find("://") == -1:
             content += "http://"
         content += self.url
         content += '"></head><body>' \

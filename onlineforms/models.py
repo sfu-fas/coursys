@@ -200,13 +200,25 @@ class FormGroup(models.Model):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
 class FormGroupMember(models.Model):
+    """
+    Member of a FormGroup. Upgraded for simple ManyToManyField so we have the .config
+
+    Do not use as a foreign key: is deleted when people leave the FormGroup
+    """
     person = models.ForeignKey(Person)
     formgroup = models.ForeignKey(FormGroup)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'email': should this member receive emails on completed sheets?
+
+    defaults = {'email': True}
+    email, set_email = getter_setter('email')
 
     class Meta:
-        db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without through that existed previously
+        db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without "through=" that existed previously
         unique_together = (("person", "formgroup"),)
+
+    def __unicode__(self):
+        return "%s in %s" % (self.person.name(), self.formgroup.name)
 
 
 class _FormCoherenceMixin(object):
@@ -478,6 +490,25 @@ class FormSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
+    def email_notify_new_owner(self, request, admin):
+        plaintext = get_template('onlineforms/emails/notify_new_owner.txt')
+        html = get_template('onlineforms/emails/notify_new_owner.html')
+
+        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+                                    kwargs={'form_slug': self.form.slug,
+                                            'formsubmit_slug': self.slug}))
+        email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
+        subject = '%s submission transferred' % (self.form.title)
+        from_email = admin.full_email()
+        to = [m.person.full_email()
+              for m
+              in self.owner.formgroupmember_set.all()
+              if m.email()]
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                     from_email=from_email, to=to, bcc=[admin.full_email()])
+        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.send()
+
 
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission)
@@ -579,7 +610,10 @@ class SheetSubmission(models.Model):
         subject = '%s submission' % (self.sheet.form.title)
         #from_email = self.filler.full_email()
         from_email = "nobody@courses.cs.sfu.ca"
-        to = [p.full_email() for p in self.sheet.form.owner.members.all()]
+        to = [m.person.full_email()
+              for m
+              in self.sheet.form.owner.formgroupmember_set.all()
+              if m.email()]
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, to)
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
