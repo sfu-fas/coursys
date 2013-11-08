@@ -65,7 +65,6 @@ class Command(BaseCommand):
         m_eng_program = find_or_generate_program( unit, "M.Eng.")
         m_asc_program = find_or_generate_program( unit, "M.A.Sc.")
         phd_program = find_or_generate_program( unit, "Ph.D.")
-        special_program = find_or_generate_program( unit, "Special Non-Degree")
         
         # requirements 
         # TODO : Create a milestone for Thesis Defense
@@ -73,19 +72,16 @@ class Command(BaseCommand):
         convocation[m_eng_program] = find_or_generate_requirement( m_eng_program, "Convocation ")
         convocation[m_asc_program] = find_or_generate_requirement( m_asc_program, "Convocation ")
         convocation[phd_program] = find_or_generate_requirement( phd_program, "Convocation ")
-        convocation[special_program] = find_or_generate_requirement( special_program, "Convocation ")
 
         examining_committee_approval = {}
         examining_committee_approval[m_eng_program] = find_or_generate_requirement( m_eng_program, "Examining Committee Approval" )
         examining_committee_approval[m_asc_program] = find_or_generate_requirement( m_asc_program, "Examining Committee Approval" )
         examining_committee_approval[phd_program] = find_or_generate_requirement( phd_program, "Examining Committee Approval" )
-        examining_committee_approval[special_program] = find_or_generate_requirement( special_program, "Examining Committee Approval" )
 
         supervisory_committee_approval = {}
         supervisory_committee_approval[m_eng_program] = find_or_generate_requirement( m_eng_program, "Supervisory Committee Approval" )
         supervisory_committee_approval[m_asc_program] = find_or_generate_requirement( m_asc_program, "Supervisory Committee Approval" )
         supervisory_committee_approval[phd_program] = find_or_generate_requirement( phd_program, "Supervisory Committee Approval" )
-        supervisory_committee_approval[special_program] = find_or_generate_requirement( special_program, "Supervisory Committee Approval" )
             
         for row in table.row_maps():
             # Person
@@ -108,8 +104,6 @@ class Command(BaseCommand):
                     program = phd_program
                 elif degree in ['m.a.sc.', 'm.a.sc', 'masc']:
                     program = m_asc_program
-                elif degree in ['special non-degree', 'special nondegree']:
-                    program = special_program
                 else: 
                     print row["FIRST NAME"] + " " + row["SURNAME"] + " program : " + degree + " not found." 
                     continue
