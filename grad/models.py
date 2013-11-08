@@ -198,7 +198,7 @@ def create_or_update_student( emplid, dryrun=False ):
             if not dryrun:
                 student.save()
         else:
-            student = gradstudents[0]
+            student = with_adm_appl[0]
             print "\t Found." 
 
         admission_records = coredata.queries.get_admission_records( emplid, adm_appl_nbr )
