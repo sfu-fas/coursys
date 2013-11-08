@@ -154,12 +154,12 @@ def create_or_update_student( emplid, dryrun=False ):
             emplid, first_day_of_first_semester, last_day_of_last_semester )
 
         supervisors_to_add = []
-        for supervisor_sims, supervisor_emplid in supervisory_committee:
+        for supervisor_sims, supervisor_emplid, supervisor_date in supervisory_committee:
             supervisor = coredata.queries.find_or_generate_person( supervisor_emplid )
             supervisor_type = supervisor_sims_to_supervisor_type( supervisor_sims )
             if not supervisor_type:
                 continue
-            s = find_or_create_supervisor( student, supervisor_type, supervisor )
+            s = find_or_create_supervisor( student, supervisor_type, supervisor, supervisor_date )
             supervisors_to_add.append(s)
 
         if not dryrun: 
@@ -194,6 +194,7 @@ def create_or_update_student( emplid, dryrun=False ):
         if len(with_adm_appl) == 0:
             print "\tNot found." 
             student = GradStudent.create( person, program )
+            student.config['adm_appl_nbr'] = adm_appl_nbr
             if not dryrun:
                 student.save()
         else:
@@ -234,7 +235,7 @@ def program_map():
         { 'CPPHD': GradProgram.objects.get(label='PhD'... ) }
     """
     if settings.DEBUG:
-        cmptunit = Unit.objects.get(label="COMP")
+        cmptunit = Unit.objects.get(label="CMPT")
         engunit = Unit.objects.get(label="ENG")
         program_map = {
             'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
@@ -363,18 +364,20 @@ def supervisor_sims_to_supervisor_type( supervisor_sims ):
     if supervisor_sims == "Admission Staff Support":
         return None
 
-def find_or_create_supervisor( student, supervisor_type, supervisor ):
-    try:
-        s = Supervisor.objects.get(student=student, 
+def find_or_create_supervisor( student, supervisor_type, supervisor, date ):
+    s = Supervisor.objects.filter(student=student, 
                                     supervisor=supervisor,
                                     supervisor_type=supervisor_type )
-        print "\tFound Supervisor:", s
-    except Supervisor.DoesNotExist:
+    if len(s) > 0:
+        print "\tFound Supervisor:", s[0]
+        return s[0]
+    else:
         s = Supervisor(student=student,
                         supervisor=supervisor, 
-                        supervisor_type=supervisor_type )
+                        supervisor_type=supervisor_type, 
+                        updated_at=date)
         print "\tCreated Supervisor:", s
-    return s
+        return s
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)

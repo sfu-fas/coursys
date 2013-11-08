@@ -974,15 +974,6 @@ def get_admission_records( emplid, adm_appl_nbr ):
     db.execute(query, (str(emplid), str(adm_appl_nbr)))
     return list(db)
 
-def get_supervisor_types():
-    db = SIMSConn()
-    query = """
-        SELECT DISTINCT descr 
-        FROM ps_commit_role_tbl role
-        """
-    db.execute(query, tuple())
-    return list(db)
-
 def get_supervisory_committee(emplid, min_date=None, max_date=None):
     if not min_date:
         # I refuse to believe that the world existed before I was born
@@ -993,7 +984,8 @@ def get_supervisory_committee(emplid, min_date=None, max_date=None):
     query = """
         SELECT DISTINCT 
             role.descr, 
-            mem.emplid
+            mem.emplid,
+            com.effdt
         FROM 
             ps_stdnt_advr_hist st, 
             ps_committee com, 
