@@ -198,7 +198,7 @@ def create_or_update_student( emplid, dryrun=False ):
             if not dryrun:
                 student.save()
         else:
-            student = gradstudents[0]
+            student = with_adm_appl[0]
             print "\t Found." 
 
         admission_records = coredata.queries.get_admission_records( emplid, adm_appl_nbr )
@@ -321,14 +321,15 @@ def admission_records_to_grad_statuses( admission_records, student ):
     return return_list 
 
 def find_or_create_status( student, status, semester): 
-    try:
-        active_status = GradStatus.objects.get(
-            student = student,
-            status = status, 
-            start = semester)
+    active_statuses = GradStatus.objects.filter(
+        student = student,
+        status = status, 
+        start = semester)
+    if len(active_statuses) > 0: 
+        active_status = active_statuses[0]
         active_status.hidden = False
         print "\tFound Status: ", status, active_status.start
-    except GradStatus.DoesNotExist:
+    else:
         active_status = GradStatus(
             student = student,
             status = status, 
