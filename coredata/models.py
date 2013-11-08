@@ -379,10 +379,11 @@ class Semester(models.Model):
         Will run forever or fail if the end semester is not a valid semester. 
         """
         current_semester = Semester.objects.get(name=start)
-        while current_semester.name != end:
+        while current_semester and current_semester.name != end:
             yield str(current_semester.name)
             current_semester = current_semester.offset(1) 
-        yield str(current_semester.name)
+        if current_semester:
+            yield str(current_semester.name)
 
 class SemesterWeek(models.Model):
     """

@@ -721,15 +721,19 @@ def get_timeline(emplid):
     # calculate on-leave semesters
     on_leave_semesters = [strm for strm, reason in get_on_leave_semesters(emplid)]
 
-    for program_code, program_object in prog_dict.iteritems():
-        prog_dict[program_code]['on_leave'] = []
-        semesters = Semester.range( program_object['start'], program_object['end'] )
-        for semester in semesters:
-            if (int(semester) <= int(Semester.current().name) and
-                (semester in on_leave_semesters or 
-                semester not in program_object['not_on_leave'])):
-                prog_dict[program_code]['on_leave'].append(semester)
-        prog_dict[program_code]['on_leave'].sort()
+    try:
+        for program_code, program_object in prog_dict.iteritems():
+            prog_dict[program_code]['on_leave'] = []
+            semesters = Semester.range( program_object['start'], program_object['end'] )
+            for semester in semesters:
+                if (int(semester) <= int(Semester.current().name) and
+                    (semester in on_leave_semesters or 
+                    semester not in program_object['not_on_leave'])):
+                    prog_dict[program_code]['on_leave'].append(semester)
+            prog_dict[program_code]['on_leave'].sort()
+    except Semester.DoesNotExist:
+        print "Semester out of range", program_object['start'], program_object['end']
+        return {}
 
     # put the programs in a list, sorted by start date
     programs = []

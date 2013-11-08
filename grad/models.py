@@ -9,11 +9,12 @@ from pages.models import _normalize_newlines
 import re, itertools, datetime
 import coredata.queries
 import settings
+import json
 from collections import defaultdict
 many_newlines = re.compile(r'\n{3,}')
 
 IGNORE_CMPT_STUDENTS = True
-def create_or_update_student( emplid, dryrun=True ):
+def create_or_update_student( emplid, dryrun=False ):
     """
         Given an emplid, create (or update) a GradStudent record.
         If dryrun is true, do not call any .save() calls. 
@@ -25,6 +26,7 @@ def create_or_update_student( emplid, dryrun=True ):
 
     prog_map = program_map()
     timeline = coredata.queries.get_timeline(emplid)
+    print json.dumps( timeline, indent=2 )
     # strip any programs from the timeline that aren't our grad programs
     timeline = [x for x in timeline if x['program_code'] in prog_map.keys()]
     # split the programs into groups based on completion status
@@ -47,7 +49,7 @@ def create_or_update_student( emplid, dryrun=True ):
             continue
 
         for program in group:
-            if 'adm_appl_nbr' in program:
+            if 'adm_appl_nbr' in program and program['adm_appl_nbr']:
                 adm_appl_nbrs.append(str(program['adm_appl_nbr']))
 
         last_program_object = prog_map[last_program['program_code']]
@@ -167,13 +169,19 @@ def create_or_update_student( emplid, dryrun=True ):
     #create records for any spare adm_appl_nbrs
     all_adm_appl_nbrs = coredata.queries.get_adm_appl_nbrs(emplid)
     print "\t All Adm Appl Nbrs: ", all_adm_appl_nbrs
-    remaining_adm_appl_nbrs = [a for a in all_adm_appl_nbrs if a not in adm_appl_nbrs]
+    print "\t Adm Appl Nbrs: ", adm_appl_nbrs
+    remaining_adm_appl_nbrs = [a for a in all_adm_appl_nbrs if str(a[0]) not in adm_appl_nbrs]
+    print "\t Remaining Adm Appl Nbrs: ", remaining_adm_appl_nbrs
 
     for adm_appl_nbr, program_code in remaining_adm_appl_nbrs:
         print "\tAdm Appl Nbr: ", adm_appl_nbr
         
         if IGNORE_CMPT_STUDENTS and program_code.startswith("CP"):
             print "\tIgnoring CMPT data" 
+            continue
+
+        if program_code not in prog_map.keys():
+            print "\t", program_code, " is not a grad program." 
             continue
 
         program = prog_map[program_code] 
@@ -189,6 +197,7 @@ def create_or_update_student( emplid, dryrun=True ):
             if not dryrun:
                 student.save()
         else:
+            student = gradstudents[0]
             print "\t Found." 
 
         admission_records = coredata.queries.get_admission_records( emplid, adm_appl_nbr )
@@ -226,6 +235,7 @@ def program_map():
     """
     if settings.DEBUG:
         cmptunit = Unit.objects.get(label="COMP")
+        engunit = Unit.objects.get(label="ENG")
         program_map = {
             'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
             'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
@@ -233,11 +243,16 @@ def program_map():
             'CPMCW': GradProgram.objects.get(label="MSc Project", unit=cmptunit),
             'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
             'CPGND': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
-            'CPGQL': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit)
+            'CPGQL': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+            
+            'ESMEN': GradProgram.objects.get(label="M.Eng.", unit=engunit),
+            'ESMAS': GradProgram.objects.get(label="M.A.Sc.", unit=engunit),
+            'ESPHD': GradProgram.objects.get(label="Ph.D.", unit=engunit)
         }
     else:
         cmptunit = Unit.objects.get(label="CMPT")
         mechunit = Unit.objects.get(label="MSE")
+        engunit = Unit.objects.get(label="ENG")
         program_map = {
             'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
             'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
@@ -246,6 +261,10 @@ def program_map():
             'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
             'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
             'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
+
+            'ESMEN': GradProgram.objects.get(label="M.Eng.", unit=engunit),
+            'ESMAS': GradProgram.objects.get(label="M.A.Sc.", unit=engunit),
+            'ESPHD': GradProgram.objects.get(label="Ph.D.", unit=engunit),
 
             'MSEPH': GradProgram.objects.get(label="Ph.D.", unit=mechunit),
             'MSEMS': GradProgram.objects.get(label="M.A.Sc.", unit=mechunit),
@@ -1283,6 +1302,7 @@ class GradStatus(models.Model):
                 existing_status.save()
         for status in statuses_to_save:
             status.save()
+        student.update_status_fields()
 
 """
 Letters
