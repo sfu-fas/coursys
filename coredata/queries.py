@@ -691,8 +691,9 @@ def lazy_next_semester(semester):
     return str(Semester.objects.get(name=semester).offset(1).name)
 
 def pairs( lst ):
-    for i in xrange(1, len(lst)):
-        yield (lst[i-1], lst[i])
+    if len(lst) > 1:
+        for i in xrange(1, len(lst)):
+            yield (lst[i-1], lst[i])
 
 #@cache_by_args
 @SIMS_problem_handler
@@ -813,7 +814,8 @@ def merge_leaves( programs ):
             all_leaves.append(on_leave)
 
     # merge on-leaves that border semesters
-    for leave, next_leave in pairs(all_leaves): 
+    ps = [x for x in pairs(all_leaves)]
+    for leave, next_leave in ps: 
         if ( leave[1] == next_leave[0] or 
             leave[1] == lazy_next_semester(next_leave[0]) ): 
             all_leaves.remove(leave)
