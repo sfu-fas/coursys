@@ -533,3 +533,78 @@ def XXX_sims_person_search(request):
     return response
 
 
+from django import forms
+class OfferingFilterForm(forms.Form):
+    subject = forms.ChoiceField()
+    def __init__(self, *args, **kwargs):
+        super(OfferingFilterForm, self).__init__(*args, **kwargs)
+        subjects = Course.objects.order_by().values_list('subject', flat=True).distinct()
+        self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
+
+
+def browse_courses(request):
+    #.values_list('subject', flat=True)
+    #subjects = Course.objects.order_by().values_list('subject', flat=True).distinct()
+    form = OfferingFilterForm()
+    
+    context = {
+        'form': form,
+        }
+    return render(request, 'coredata/browse_courses.html', context)
+
+
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.db.models import Q
+
+class OfferingDataJson(BaseDatatableView):
+    model = CourseOffering
+    columns = ['semester', 'coursecode', 'section', 'title', 'instructors', 'enrl_tot']
+    order_columns = ['semester', 'subject', 'number']
+    max_display_length = 500
+
+    def render_column(self, offering, column):
+        # We want to render user as a custom column
+        if column == 'coursecode':
+            return '%s %s' % (offering.subject, offering.number)
+        elif column == 'instructors':
+            return offering.instructors_str()
+        elif hasattr(offering, 'get_%s_display' % column):
+            # It's a choice field
+            return getattr(offering, 'get_%s_display' % column)()
+        else:
+            return unicode(getattr(offering, column))
+
+    def filter_queryset(self, qs):
+            # use request parameters to filter queryset
+            GET = self.request.GET
+
+            # simple example:
+            srch = GET.get('sSearch', None)
+            if srch:
+                qs = qs.filter(Q(title__istartswith=srch) | Q(number__istartswith=srch)) 
+
+            subject = GET.get('sSearch', None)
+            if subject:
+                qs = qs.filter(subject=subject)
+            
+            print qs.query
+            #if filter_customer:
+            #    customer_parts = filter_customer.split(' ')
+            #    qs_params = None
+            #    for part in customer_parts:
+            #        q = Q(customer_firstname__istartswith=part)|Q(customer_lastname__istartswith=part)
+            #        qs_params = qs_params | q if qs_params else q
+            #    qs = qs.filter(qs_params)
+            
+            print qs.query
+            return qs
+
+
+
+
+def browse_courses_data(request):
+    return OfferingDataJson.as_view()(request)
+
+
+

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Browse Course Offerings{% endblock %}
+{% block h1 %}Browse Course Offerings{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Browse Course Offerings</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+var table;
+
+function server_params() {
+	console.log($('#id_subject').val())
+	return [{'name': 'subject', 'value': $('#id_subject').val()}]
+}
+function refresh() {
+	table.fnDraw();
+}
+$(document).ready(function() {
+  table = $('#courses').dataTable( {
+  	'bJQueryUI': true,
+    'bProcessing': true,
+    'bServerSide': true,
+    'sAjaxSource': '{% url coredata.views.browse_courses_data %}',
+    "fnServerParams": function ( aoData ) {
+    	aoData.push.apply(aoData, server_params());
+    },
+  } );
+  $('#filterform').change(refresh);
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+<form action="" id="filterform">
+{{ form.subject }}
+</form>
+
+<div class="datatable_container">
+<table id="courses" class="display">
+  <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Section</th><th scope="col">Title</th><th scope="col">Instructor(s)</th><th scope="col">Enrolment</th></tr></thead>
+  <tbody>
+  </tbody>
+</table>
+</div>
+{% endblock %}
