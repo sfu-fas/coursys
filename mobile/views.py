@@ -19,7 +19,7 @@ from dashboard.views import _get_memberships, _get_news_list
 @gzip_page
 def index(request):
     userid = request.user.username
-    memberships = _get_memberships(userid)
+    memberships, _ = _get_memberships(userid)
     news_list = _get_news_list(userid, 2)
     roles = Role.all_roles(userid)
 
