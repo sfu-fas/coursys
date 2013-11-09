@@ -606,6 +606,8 @@ class OfferingDataJson(BaseDatatableView):
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
         GET = self.request.GET
+        
+        qs = qs.exclude(component='CAN')
 
         srch = GET.get('sSearch', None)
         if srch:
