@@ -582,6 +582,7 @@ def browse_courses(request):
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
+import operator
 
 class OfferingDataJson(BaseDatatableView):
     model = CourseOffering
@@ -624,7 +625,10 @@ class OfferingDataJson(BaseDatatableView):
         instructor = GET.get('instructor', None)
         if instructor:
             off_ids = Member.objects.order_by().filter(person__userid=instructor, role='INST').values_list('offering', flat=True)[:500]
-            qs = qs.filter(id__in=off_ids)
+            #qs = qs.filter(id__in=off_ids)
+            # above should work, but production mySQL is ancient and can't do IN + LIMIT
+            fake_in = reduce(operator.__or__, (Q(id=oid) for oid in off_ids))
+            qs = qs.filter(fake_in)
             
         campus = GET.get('campus', None)
         if campus:
@@ -653,7 +657,7 @@ def _instructor_autocomplete(request):
     response = HttpResponse(mimetype='application/json')
     query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
     # matching person.id values who have actually taught a course
-    person_ids = Member.objects.filter(query).filter(role='INST').order_by().values_list('person', flat=True).distinct()[:100]
+    person_ids = Member.objects.filter(query).filter(role='INST').order_by().values_list('person', flat=True).distinct()[:400]
     # get the Person objects: is there no way to do this in one query?
     people = Person.objects.filter(id__in=person_ids)
     data = [{'value': p.userid, 'label': p.name()} for p in people]
