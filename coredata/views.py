@@ -536,6 +536,9 @@ def XXX_sims_person_search(request):
 from django import forms
 class OfferingFilterForm(forms.Form):
     subject = forms.ChoiceField()
+    section = forms.CharField(widget=forms.TextInput(attrs={'size': '4'}))
+    instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
+    
     def __init__(self, *args, **kwargs):
         super(OfferingFilterForm, self).__init__(*args, **kwargs)
         subjects = Course.objects.order_by().values_list('subject', flat=True).distinct()
@@ -543,10 +546,15 @@ class OfferingFilterForm(forms.Form):
 
 
 def browse_courses(request):
-    #.values_list('subject', flat=True)
-    #subjects = Course.objects.order_by().values_list('subject', flat=True).distinct()
+    if 'tabledata' in request.GET:
+        # table data
+        return _offering_data(request)
+    if 'instructor_autocomplete' in request.GET:
+        # instructor autocomplete search
+        return _instructor_autocomplete(request)
+
+    # actually displaying the page at this point
     form = OfferingFilterForm()
-    
     context = {
         'form': form,
         }
@@ -584,27 +592,40 @@ class OfferingDataJson(BaseDatatableView):
             if srch:
                 qs = qs.filter(Q(title__istartswith=srch) | Q(number__istartswith=srch)) 
 
-            subject = GET.get('sSearch', None)
+            subject = GET.get('subject', None)
             if subject:
                 qs = qs.filter(subject=subject)
             
-            print qs.query
-            #if filter_customer:
-            #    customer_parts = filter_customer.split(' ')
-            #    qs_params = None
-            #    for part in customer_parts:
-            #        q = Q(customer_firstname__istartswith=part)|Q(customer_lastname__istartswith=part)
-            #        qs_params = qs_params | q if qs_params else q
-            #    qs = qs.filter(qs_params)
+            section = GET.get('section', None)
+            if section:
+                qs = qs.filter(section__startswith=section)
+
+            instructor = GET.get('instructor', None)
+            if instructor:
+                off_ids = Member.objects.filter(person__userid=instructor, role='INST').values_list('offering', flat=True)
+                qs = qs.filter(id__in=off_ids)
             
-            print qs.query
+            #print qs.query
             return qs
 
+_offering_data = OfferingDataJson.as_view()
 
+def _instructor_autocomplete(request):
+    """
+    Responses for the jQuery autocomplete for instructor search
+    """
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
 
-
-def browse_courses_data(request):
-    return OfferingDataJson.as_view()(request)
-
-
-
+    response = HttpResponse(mimetype='application/json')
+    query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
+    # matching person.id values who have actually taught a course
+    person_ids = Member.objects.filter(query).filter(role='INST').order_by().values_list('person', flat=True).distinct()[:100]
+    # get the Person objects: is there no way to do this in one query?
+    people = Person.objects.filter(id__in=person_ids)
+    data = []
+    for p in people:
+        d = {'value': p.userid, 'label': p.name()}
+        data.append(d)
+    json.dump(data, response, indent=1)
+    return response

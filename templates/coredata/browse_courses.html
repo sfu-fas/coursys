@@ -9,8 +9,16 @@
 var table;
 
 function server_params() {
-	console.log($('#id_subject').val())
-	return [{'name': 'subject', 'value': $('#id_subject').val()}]
+	// build the extra GET parameters that will go in the datatables data request (by inspecting the filter form)
+	var params = [];
+	$('#filterform input').each(function (i, v) {
+		params.push({'name': v.name, 'value': $(v).val()})
+	});
+	$('#filterform select').each(function (i, v) {
+		params.push({'name': v.name, 'value': $(v).val()})
+	});
+	//console.log(params) 
+	return params;
 }
 function refresh() {
 	table.fnDraw();
@@ -20,20 +28,29 @@ $(document).ready(function() {
   	'bJQueryUI': true,
     'bProcessing': true,
     'bServerSide': true,
-    'sAjaxSource': '{% url coredata.views.browse_courses_data %}',
+    'sAjaxSource': '{% url coredata.views.browse_courses %}?tabledata=yes',
     "fnServerParams": function ( aoData ) {
     	aoData.push.apply(aoData, server_params());
     },
   } );
   $('#filterform').change(refresh);
+  $('#id_instructor').autocomplete({
+        source: '{% url coredata.views.browse_courses %}?instructor_autocomplete=yes',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).val(ui.item.value);
+          refresh();
+        }
+      });
 } );
 </script>
 {% endblock %}
 
 {% block content %}
 <form action="" id="filterform">
-{{ form.subject }}
+{{ form }}
 </form>
+<a href="javascript:refresh()">refresh</a>
 
 <div class="datatable_container">
 <table id="courses" class="display">
