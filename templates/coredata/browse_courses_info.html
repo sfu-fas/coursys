@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
+{% block h1 %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.browse_courses %}">Browse Course Offerings</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}
