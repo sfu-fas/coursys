@@ -658,6 +658,7 @@ def _instructor_autocomplete(request):
     query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
     # matching person.id values who have actually taught a course
     person_ids = Member.objects.filter(query).filter(role='INST').order_by().values_list('person', flat=True).distinct()[:400]
+    person_ids = list(person_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
     # get the Person objects: is there no way to do this in one query?
     people = Person.objects.filter(id__in=person_ids)
     data = [{'value': p.userid, 'label': p.name()} for p in people]
