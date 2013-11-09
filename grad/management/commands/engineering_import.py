@@ -179,16 +179,6 @@ def fix_newlines( table ):
         for i in xrange(0, len(row)):
             row[i] = row[i].replace(NEWLINE, "\n")
 
-def find_or_generate_semester( name ):
-    try: 
-        semester = Semester.objects.get(name=name)
-    except Semester.DoesNotExist:
-        print "Semester " + name + " does not exist"
-        # for the sake of the test system, we should generate these if they don't exist.
-        # semester = Semester( name=name, start=datetime.date.today(), end=datetime.date.today() )
-        # semester.save()
-    return semester
-
 def clean_semester( semester ):
     if semester == None:
         return None
@@ -197,8 +187,10 @@ def clean_semester( semester ):
     if len(semester) != 4:
         print "Invalid Semester: " + semester
         return None
-    return find_or_generate_semester( semester )
-
+    try:
+        return Semester.objects.get(name=semester)
+    except Semester.DoesNotExist:
+        return None
 
 def find_or_generate_status( student, status, start, end=None ):
     start_semester = clean_semester( start )
