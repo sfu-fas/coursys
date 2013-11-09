@@ -579,27 +579,42 @@ def browse_courses(request):
     return render(request, 'coredata/browse_courses.html', context)
 
 
+def browse_courses_info(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+
+    context = {
+        'offering': offering,
+    }
+    return render(request, 'coredata/browse_courses_info.html', context)
+
+
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
 import operator
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 
 class OfferingDataJson(BaseDatatableView):
     model = CourseOffering
-    columns = ['semester', 'coursecode', 'section', 'title', 'instructors', 'enrl_tot']
+    columns = ['semester', 'coursecode', 'title', 'instructors', 'enrl_tot']
     order_columns = ['semester__name', ['subject', 'number'], 'section', 'title', [], 'enrl_tot']
     max_display_length = 500
 
     def render_column(self, offering, column):
         if column == 'coursecode':
-            return '%s %s' % (offering.subject, offering.number)
+            txt = '%s %s %s' % (offering.subject, offering.number, offering.section)
+            url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': offering.slug})
+            col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
         elif column == 'instructors':
-            return offering.instructors_str()
+            col = offering.instructors_str()
         elif hasattr(offering, 'get_%s_display' % column):
             # it's a choice field
-            return getattr(offering, 'get_%s_display' % column)()
+            col = getattr(offering, 'get_%s_display' % column)()
         else:
-            return unicode(getattr(offering, column))
+            col = unicode(getattr(offering, column))
+        
+        return conditional_escape(col)
 
     def ordering(self, qs):
         return super(OfferingDataJson, self).ordering(qs)
@@ -612,7 +627,7 @@ class OfferingDataJson(BaseDatatableView):
 
         srch = GET.get('sSearch', None)
         if srch:
-            qs = qs.filter(Q(title__istartswith=srch) | Q(number__istartswith=srch)) 
+            qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch)) 
 
         subject = GET.get('subject', None)
         if subject:
@@ -658,6 +673,7 @@ def _instructor_autocomplete(request):
     query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
     # matching person.id values who have actually taught a course
     person_ids = Member.objects.filter(query).filter(role='INST').order_by().values_list('person', flat=True).distinct()[:400]
+    person_ids = list(person_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
     # get the Person objects: is there no way to do this in one query?
     people = Person.objects.filter(id__in=person_ids)
     data = [{'value': p.userid, 'label': p.name()} for p in people]
