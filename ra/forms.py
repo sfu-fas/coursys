@@ -9,8 +9,11 @@ class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
     sin = forms.IntegerField(label='SIN', required=False)
     use_hourly = forms.BooleanField(label='Use Hourly Rate', initial=False, required=False,
-                                    help_text='Should the hourly rate be displayed on the contract?')
-    #scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
+                                    help_text='Should the hourly rate be displayed on the contract (or total hours for lump sum contracts)?')
+
+    class Meta:
+        model = RAAppointment
+        exclude = ('config','offer_letter_text','deleted')
 
     def __init__(self, *args, **kwargs):
         super(RAForm, self).__init__(*args, **kwargs)
@@ -37,6 +40,9 @@ class RAForm(forms.ModelForm):
 
     def clean_hours(self):
         data = self.cleaned_data['hours']
+        if self.cleaned_data['pay_frequency'] == 'L':
+            return data
+
         if int(data) > 168:
             raise forms.ValidationError("There are only 168 hours in a week.")
         if int(data) < 0:
@@ -47,9 +53,6 @@ class RAForm(forms.ModelForm):
         cleaned_data = self.cleaned_data
         return cleaned_data 
         
-    class Meta:
-        model = RAAppointment
-        exclude = ('config','offer_letter_text','deleted')
 
 class RALetterForm(forms.ModelForm):
     class Meta:

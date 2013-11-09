@@ -44,7 +44,7 @@ var emplid = null;
     <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
       <fieldset style="list-style: none;">
         <legend>Contract Information</legend>
-        {{ raform|as_dl_excludefields:"lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours,pay_frequency,reappointment,medical_benefits,dental_benefits,notes,comments,use_hourly" }}
+        {{ raform|as_dl_excludefields:"lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,pay_frequency,reappointment,medical_benefits,dental_benefits,notes,comments,use_hourly" }}
 
         <p><legend>Salary Information</legend></p>
         <table id="salary_info">
@@ -55,6 +55,8 @@ var emplid = null;
           <tr>
             <td class="salary_first">{{ raform.lump_sum_pay.label }}:*</td>
             <td>{{ raform.lump_sum_pay }}{{ raform.lump_sum_pay.errors }}</td>
+            <td class="salary_label">{{ raform.lump_sum_hours.label }}:*</td>
+            <td>{{ raform.lump_sum_hours }}{{ raform.lump_sum_hours.errors }}</td>
           </tr>
                 
           <tr>
@@ -72,7 +74,7 @@ var emplid = null;
           </tr>
           <tr>
             <td class="salary_first">{{ raform.use_hourly.label }}:*</td>
-            <td>{{ raform.use_hourly }}{{ raform.use_hourly.errors }}
+            <td colspan="3">{{ raform.use_hourly }}{{ raform.use_hourly.errors }}
             	<span class="helptext">{{ raform.use_hourly.help_text }}</span></td>
           </tr>
         </table>
@@ -80,7 +82,7 @@ var emplid = null;
         <p class="helptext">* This field is required.</p>
         
         <p><legend>Other Information</legend></p>
-        {{ raform|as_dl_excludefields:"person,sin,hiring_faculty,unit,hiring_category,scholarship,project,account,start_date,end_date,pay_frequency,lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours,use_hourly" }}
+        {{ raform|as_dl_excludefields:"person,sin,hiring_faculty,unit,hiring_category,scholarship,project,account,start_date,end_date,pay_frequency,lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,use_hourly" }}
         <p><input type="submit" class="submit" value="Submit" /></p>
       </fieldset>
     </form>  

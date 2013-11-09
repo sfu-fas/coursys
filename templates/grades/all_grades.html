@@ -18,6 +18,7 @@
 		    null,
 		    null,
 		    null,
+		    {% if course.labtut %}null,{% endif %}
 		    {% for a in activities %}
 		    {"sType": {% if a.is_numeric%}"numnull"{% else %}"by-letter"{% endif %}}{% if not forloop.last %},{% endif %}
 		    {% endfor %}
@@ -58,6 +59,7 @@
                 <th scope="col">First</th>
 		<th scope="col">User ID</th>
 		<th scope="col">Stu #</th>
+        {% if course.labtut %}<th scope="col">Lab/Tut</th>{% endif %}
 		{% for a in activities %}
 		<th scope="col"><abbr title="{{a.name}}"><a href="{{a.get_absolute_url}}">{{a.short_name}}</a></abbr></th>
 		{% endfor %}
@@ -70,6 +72,7 @@
             <td scope="row">{{s.person.first_name}}</td>
             <td>{{s.person.userid}}</td>
             <td><a href="{{s.get_absolute_url}}">{{s.person.emplid}}</a></td>
+            {% if course.labtut %}<td>{{s.labtut_section}}</td>{% endif %}
             {% for a in activities %}
               <td class="num">{% select_grade grades a.slug s.person.userid %}</td>
             {% endfor %}

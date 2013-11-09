@@ -36583,7 +36583,7 @@
  {
   "fields": {
    "active": true, 
-   "can_view": "NON", 
+   "can_view": "ALL", 
    "config": "{}", 
    "created_date": "2013-11-02 20:15:06", 
    "form": 2, 

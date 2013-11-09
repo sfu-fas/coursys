@@ -533,3 +533,133 @@ def XXX_sims_person_search(request):
     return response
 
 
+
+
+
+
+
+
+
+
+
+from django import forms
+from coredata.models import CAMPUS_CHOICES
+class OfferingFilterForm(forms.Form):
+    subject = forms.ChoiceField()
+    section = forms.CharField(widget=forms.TextInput(attrs={'size': '4'}))
+    instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
+    campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES)))
+    semester = forms.ChoiceField()
+    crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
+    
+    def __init__(self, *args, **kwargs):
+        super(OfferingFilterForm, self).__init__(*args, **kwargs)
+        # subject choices: all that exist in the DB
+        subjects = Course.objects.order_by().values_list('subject', flat=True).distinct()
+        self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
+        # semester choices: two years either-side of today
+        today = datetime.date.today()
+        semesters = Semester.objects.filter(start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
+        self.fields['semester'].choices = [('', u'all')] + [(s.name, s.label()) for s in semesters]
+
+
+def browse_courses(request):
+    if 'tabledata' in request.GET:
+        # table data
+        return _offering_data(request)
+    if 'instructor_autocomplete' in request.GET:
+        # instructor autocomplete search
+        return _instructor_autocomplete(request)
+
+    # actually displaying the page at this point
+    form = OfferingFilterForm()
+    context = {
+        'form': form,
+        }
+    return render(request, 'coredata/browse_courses.html', context)
+
+
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.db.models import Q
+import operator
+
+class OfferingDataJson(BaseDatatableView):
+    model = CourseOffering
+    columns = ['semester', 'coursecode', 'section', 'title', 'instructors', 'enrl_tot']
+    order_columns = ['semester__name', ['subject', 'number'], 'section', 'title', [], 'enrl_tot']
+    max_display_length = 500
+
+    def render_column(self, offering, column):
+        if column == 'coursecode':
+            return '%s %s' % (offering.subject, offering.number)
+        elif column == 'instructors':
+            return offering.instructors_str()
+        elif hasattr(offering, 'get_%s_display' % column):
+            # it's a choice field
+            return getattr(offering, 'get_%s_display' % column)()
+        else:
+            return unicode(getattr(offering, column))
+
+    def ordering(self, qs):
+        return super(OfferingDataJson, self).ordering(qs)
+
+    def filter_queryset(self, qs):
+        # use request parameters to filter queryset
+        GET = self.request.GET
+        
+        qs = qs.exclude(component='CAN')
+
+        srch = GET.get('sSearch', None)
+        if srch:
+            qs = qs.filter(Q(title__istartswith=srch) | Q(number__istartswith=srch)) 
+
+        subject = GET.get('subject', None)
+        if subject:
+            qs = qs.filter(subject=subject)
+            
+        section = GET.get('section', None)
+        if section:
+            qs = qs.filter(section__startswith=section)
+
+        instructor = GET.get('instructor', None)
+        if instructor:
+            off_ids = Member.objects.order_by().filter(person__userid=instructor, role='INST').values_list('offering', flat=True)[:500]
+            #qs = qs.filter(id__in=off_ids)
+            # above should work, but production mySQL is ancient and can't do IN + LIMIT
+            fake_in = reduce(operator.__or__, (Q(id=oid) for oid in off_ids))
+            qs = qs.filter(fake_in)
+            
+        campus = GET.get('campus', None)
+        if campus:
+            qs = qs.filter(campus=campus)
+
+        semester = GET.get('semester', None)
+        if semester:
+            qs = qs.filter(semester__name=semester)
+
+        title = GET.get('crstitle', None)
+        if title:
+            qs = qs.filter(title__icontains=title)
+
+        print qs.query
+        return qs
+
+_offering_data = OfferingDataJson.as_view()
+
+def _instructor_autocomplete(request):
+    """
+    Responses for the jQuery autocomplete for instructor search
+    """
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
+
+    response = HttpResponse(mimetype='application/json')
+    query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
+    # matching person.id values who have actually taught a course
+    person_ids = Member.objects.filter(query).filter(role='INST').order_by().values_list('person', flat=True).distinct()[:400]
+    # get the Person objects: is there no way to do this in one query?
+    people = Person.objects.filter(id__in=person_ids)
+    data = [{'value': p.userid, 'label': p.name()} for p in people]
+    json.dump(data, response, indent=1)
+    return response

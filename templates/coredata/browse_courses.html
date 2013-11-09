@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Browse Course Offerings{% endblock %}
+{% block h1 %}Browse Course Offerings{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Browse Course Offerings</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+var table;
+
+function server_params() {
+	// build the extra GET parameters that will go in the datatables data request (by inspecting the filter form)
+	var params = [];
+	$('#filterform input').each(function (i, v) {
+		params.push({'name': v.name, 'value': $(v).val()})
+	});
+	$('#filterform select').each(function (i, v) {
+		params.push({'name': v.name, 'value': $(v).val()})
+	});
+	//console.log(params) 
+	return params;
+}
+function refresh() {
+	table.fnDraw();
+}
+$(document).ready(function() {
+  table = $('#courses').dataTable( {
+  	'bJQueryUI': true,
+    'bProcessing': true,
+    'bServerSide': true,
+    'sAjaxSource': '{% url coredata.views.browse_courses %}?tabledata=yes',
+    "fnServerParams": function ( aoData ) {
+    	aoData.push.apply(aoData, server_params());
+    },
+  } );
+  $('#filterform').change(refresh);
+  $('#id_instructor').autocomplete({
+        source: '{% url coredata.views.browse_courses %}?instructor_autocomplete=yes',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).val(ui.item.value);
+          refresh();
+        }
+      });
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+<form action="" id="filterform">
+{{ form }}
+</form>
+<a href="javascript:refresh()">refresh</a>
+
+<div class="datatable_container">
+<table id="courses" class="display">
+  <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Section</th><th scope="col">Title</th><th scope="col">Instructor(s)</th><th scope="col">Enrolment</th></tr></thead>
+  <tbody>
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -766,7 +766,7 @@ def _readonly_sheets(form_submission):
     return sheet_sub_html
 
 
-def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
+def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=None):
     """
     If this user is allowed to view this FormSubmission, return it, or None if not.
     Also returns is_advisor, boolean as appropriate.
@@ -784,6 +784,31 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
                                         form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
 
+    if file_id:
+        # expanded permissions for files: filler of this and other sheets.
+        fsfs = FieldSubmissionFile.objects.filter(
+                                field_submission__sheet_submission__form_submission__slug=formsubmit_slug,
+                                id=file_id).select_related('field_submission__sheet_submission__form_submission',
+                                                           'field_submission__sheet_submission__sheet')
+        if fsfs:
+            fsf = fsfs[0]
+            formsub = fsf.field_submission.sheet_submission.form_submission
+            sheetsub = fsf.field_submission.sheet_submission
+            this_sub = SheetSubmission.objects.filter(form_submission=formsub,
+                    id=sheetsub.id,
+                    filler__sfuFormFiller__userid=request.user.username)
+            if this_sub:
+                # this is the filler of this sheet: they can see it.
+                form_submissions = [formsub]
+
+            later_sheets = SheetSubmission.objects.filter(form_submission=formsub,
+                    filler__sfuFormFiller__userid=request.user.username,
+                    sheet__order__gte=sheetsub.sheet.order,
+                    sheet__can_view='ALL')
+            if later_sheets:
+                # this is the filler of a later sheet who can view the other parts
+                form_submissions = [formsub]
+
     if not form_submissions:
         return None, None
 
@@ -791,7 +816,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug):
 
 @login_required
 def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
-    form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
     if not form_submission:
         raise Http404
     file_sub =  get_object_or_404(FieldSubmissionFile,
@@ -826,13 +851,17 @@ def view_submission(request, form_slug, formsubmit_slug):
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST, prefix='close')
         if close_form.is_valid():
             admin = Person.objects.get(userid=request.user.username)
-            form_submission.set_summary(close_form.cleaned_data['summary'])
-            form_submission.set_emailed(close_form.cleaned_data['email'])
+            email = False
+            if 'summary' in close_form.cleaned_data:
+                form_submission.set_summary(close_form.cleaned_data['summary'])
+            if 'email' in close_form.cleaned_data:
+                form_submission.set_emailed(close_form.cleaned_data['email'])
+                email = close_form.cleaned_data['email']
             form_submission.set_closer(admin.id)
             form_submission.status = 'DONE'
             form_submission.save()
 
-            if close_form.cleaned_data['email']:
+            if email:
                 form_submission.email_notify_completed(request, admin)
                 messages.success(request, 'Form submission marked as completed; initiator informed by email.')
             else:
@@ -1042,19 +1071,17 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                 
                                 # save the new submission
                                 if str(name) in request.FILES:
-
                                     new_file = request.FILES[str(name)]
-                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission,
-                                                                              file_attachment=new_file,
-                                                                              file_mediatype=new_file.content_type)
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
+                                    if old_fsf:
+                                        new_file_submission = old_fsf[0]
+                                        #new_file_submission.file_attachment.delete()
+                                    else:
+                                        new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission)
+
+                                    new_file_submission.file_attachment = new_file
+                                    new_file_submission.file_mediatype = new_file.content_type
                                     new_file_submission.save()
-                                    
-                                    # delete any old files for this fieldsub
-                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission) \
-                                              .exclude(id=new_file_submission.id)
-                                    for fsf in old_fsf:
-                                        fsf.file_attachment.delete()
-                                        fsf.delete()
 
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,

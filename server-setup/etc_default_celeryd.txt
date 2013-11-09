@@ -4,6 +4,7 @@ CELERYD_CHDIR="/home/coursyscourses"
 # Path to celeryd
 CELERYD="/home/coursys/courses/manage.py celeryd"
 CELERYD_MULTI="/home/coursys/courses/manage.py celeryd_multi"
+#CELERYD_OPTS="--concurrency=1 --loglevel=INFO -E --maxtasksperchild=1"
 
 # Name of the projects settings module.
 export DJANGO_SETTINGS_MODULE="settings"

@@ -38,14 +38,19 @@ apt-get install nginx subversion mysql-client-5.1 memcached stunnel4 postfix ntp
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
 <dt>Mail Server</dt>
   <dd>Configure Postfix with smarthost mailgate.sfu.ca.  Put a useful email address in <code class="file">/root/.forward</code></dd>
+
 <dt>Celery Task Queue</dt>
-  <dd>[Likely have to do after the <code>pip install</code> set in the application setup.] Install the required Python packages:
-  <blockquote><del><pre># sudo easy_install django-celery-email django-celery django-kombu</pre></del></blockquote>
+  <dd>Celery is using RabbitMQ as its transport, which is the default. It can be set up by:
+  <blockquote><pre>sudo apt-get install rabbitmq-server
+sudo rabbitmqctl add_user coursys <var>supersecretpassword</var>
+sudo rabbitmqctl add_vhost myvhost
+sudo rabbitmqctl set_permissions -p myvhost coursys ".*" ".*" ".*"</pre></blockquote>
+  <p>To make sure RabbitMQ listens only on localhost, put <a href="etc_rabbitmq_rabbitmq.conf"><code class="file">/etc/rabbitmq/rabbitmq.conf</code></a> in place.</p>
   <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
   <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
-  <!--<p>A bug in Django-Kombu crops up on the server.  Had to un-comment the line <code>self.refresh_connection()</code> (line 30, in <code>Channel._get</code>) in <code class="file">/usr/local/lib/python2.6/dist-packages/django_kombu-0.9.4-py2.6.egg/djkombu/transport.py</code>.</p>-->
   <p>In order to get the celeryd logs rotated, install the config file as <a href="etc_logrotate.d_celeryd.txt"><code class="file">/etc/logrotate.d/celeryd</code></a>.</p>
   </dd>
+
 <dt>Stunnel config for MySQL</dt>
   <dd>In <code class="file">/etc/default/stunnel4</code>, enable stunnel.  Add this to <code class="file">/etc/stunnel/stunnel.conf</code> and remove other services and <code>cert</code> line:
   <blockquote><pre>cert = /etc/stunnel/stunnel.pem
