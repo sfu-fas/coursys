@@ -18,6 +18,7 @@
 		    null,
 		    null,
 		    null,
+		    {% if course.labtut %}null,{% endif %}
 		    {% for a in activities %}
 		    {"sType": {% if a.is_numeric%}"numnull"{% else %}"by-letter"{% endif %}}{% if not forloop.last %},{% endif %}
 		    {% endfor %}
