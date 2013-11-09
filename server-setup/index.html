@@ -42,9 +42,10 @@ apt-get install nginx subversion mysql-client-5.1 memcached stunnel4 postfix ntp
 <dt>Celery Task Queue</dt>
   <dd>Celery is using RabbitMQ as its transport, which is the default. It can be set up by:
   <blockquote><pre>sudo apt-get install rabbitmq-server
-sudo rabbitmqctl add_user coursys supersecretpassword
+sudo rabbitmqctl add_user coursys <var>supersecretpassword</var>
 sudo rabbitmqctl add_vhost myvhost
 sudo rabbitmqctl set_permissions -p myvhost coursys ".*" ".*" ".*"</pre></blockquote>
+  <p>To make sure RabbitMQ listens only on localhost, put <a href="etc_rabbitmq_rabbitmq.conf"><code class="file">/etc/rabbitmq/rabbitmq.conf</code></a> in place.</p>
   <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
   <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
   <p>In order to get the celeryd logs rotated, install the config file as <a href="etc_logrotate.d_celeryd.txt"><code class="file">/etc/logrotate.d/celeryd</code></a>.</p>
