@@ -544,7 +544,27 @@ def XXX_sims_person_search(request):
 
 from django import forms
 from coredata.models import CAMPUS_CHOICES
+UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
+COLUMN_CHOICES = [ # columns that can be turned on and off by the user.
+    ('title', 'Course Title'), 
+    ('instructors', 'Instructor(s)'),
+    ('enrl_tot', 'Enrolment'),
+    ('campus', 'Campus'),
+    ]
+COLUMN_NAMES = dict(COLUMN_CHOICES)
+COLUMN_NAMES['semester'] = 'Semester'
+COLUMN_NAMES['coursecode'] = 'Course'
+COLUMN_ORDERING = { # column -> ordering info for datatable_view
+    'semester': 'semester__name',
+    'coursecode': ['subject', 'number', 'section'],
+    'title': 'title',
+    'instructors': [],
+    'enrl_tot': 'enrl_tot',
+    'campus': 'campus',
+    }
+DEFAULT_COLUMNS = ['title', 'instructors', 'enrl_tot']
 class OfferingFilterForm(forms.Form):
+    columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES, initial=DEFAULT_COLUMNS)
     subject = forms.ChoiceField()
     section = forms.CharField(widget=forms.TextInput(attrs={'size': '4'}))
     instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
@@ -594,12 +614,17 @@ from django.db.models import Q
 import operator
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
+# TODO: import rqmnt_designtn, number of credits on CourseOffering so we can display/filter
 
 class OfferingDataJson(BaseDatatableView):
     model = CourseOffering
-    columns = ['semester', 'coursecode', 'title', 'instructors', 'enrl_tot']
-    order_columns = ['semester__name', ['subject', 'number'], 'section', 'title', [], 'enrl_tot']
+    #columns = ['semester', 'coursecode', 'title', 'instructors', 'enrl_tot']
+    #order_columns = ['semester__name', ['subject', 'number'], 'section', 'title', [], 'enrl_tot']
     max_display_length = 500
+    
+    def set_columns(self, col_list):
+        self.columns = col_list
+        self.order_columns = [COLUMN_ORDERING[col] for col in self.columns]
 
     def render_column(self, offering, column):
         if column == 'coursecode':
@@ -622,6 +647,9 @@ class OfferingDataJson(BaseDatatableView):
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
         GET = self.request.GET
+
+        columns = UNIVERSAL_COLUMNS + GET.get('columns', DEFAULT_COLUMNS).split(',')
+        self.set_columns(columns)
         
         qs = qs.exclude(component='CAN')
 
@@ -657,8 +685,14 @@ class OfferingDataJson(BaseDatatableView):
         if title:
             qs = qs.filter(title__icontains=title)
 
-        print qs.query
+        #print qs.query
         return qs
+
+    def get_context_data(self, *args, **kwargs):
+        data = super(OfferingDataJson, self).get_context_data(*args, **kwargs)
+        data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
+        print data
+        return data
 
 _offering_data = OfferingDataJson.as_view()
 
@@ -672,7 +706,9 @@ def _instructor_autocomplete(request):
     response = HttpResponse(mimetype='application/json')
     query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
     # matching person.id values who have actually taught a course
-    person_ids = Member.objects.filter(query).filter(role='INST').order_by().values_list('person', flat=True).distinct()[:400]
+    person_ids = Member.objects.filter(query).filter(role='INST') \
+                 .exclude(person__userid=None).order_by() \
+                 .values_list('person', flat=True).distinct()[:500]
     person_ids = list(person_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
     # get the Person objects: is there no way to do this in one query?
     people = Person.objects.filter(id__in=person_ids)
