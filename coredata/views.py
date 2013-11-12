@@ -601,6 +601,12 @@ def browse_courses(request):
 
 def browse_courses_info(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
+    if 'data' in request.GET:
+        response = HttpResponse(mimetype='application/json')
+        data = more_offering_info(offering, browse_data=True, offering_effdt=True)
+        json.dump(data, response, indent=1)
+        return response
+        
 
     context = {
         'offering': offering,
@@ -614,6 +620,7 @@ from django.db.models import Q
 import operator
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
+from coredata.queries import more_offering_info
 # TODO: import rqmnt_designtn, number of credits on CourseOffering so we can display/filter
 
 class OfferingDataJson(BaseDatatableView):
@@ -688,10 +695,17 @@ class OfferingDataJson(BaseDatatableView):
         #print qs.query
         return qs
 
+    def XXX_prepare_results(self, qs):
+        "Prepare for mData-style data handling"
+        data = []
+        for item in qs:
+            data.append(dict((column, self.render_column(item, column)) for column in self.get_columns()))
+        return data
+
     def get_context_data(self, *args, **kwargs):
         data = super(OfferingDataJson, self).get_context_data(*args, **kwargs)
         data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
-        print data
+        #print data
         return data
 
 _offering_data = OfferingDataJson.as_view()

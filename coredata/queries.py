@@ -420,26 +420,56 @@ def more_course_info(course):
     """
     More info about a course (for the advisor portal) 
     """
-    db = SIMSConn()
     offerings = CourseOffering.objects.filter(course=course).exclude(crse_id__isnull=True).order_by('-semester__name')
     if offerings:
         offering = offerings[0]
     else:
         return None
-    
+    return more_offering_info(offering, browse_data=False, effdt=None)
+
+@cache_by_args
+@SIMS_problem_handler
+def more_offering_info(offering, browse_data=False, offering_effdt=False):
+    """
+    More info about a course offering (for the course browser) 
+    """
+    db = SIMSConn()
+    req_map = get_reqmnt_designtn()
+
     data = {}
     crse_id = "%06i" % (offering.crse_id)
-    db.execute("SELECT descr, ssr_component, course_title_long, descrlong FROM ps_crse_catalog WHERE eff_status='A' AND crse_id=%s ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY", (crse_id,))
-    for shorttitle, component, longtitle, descrlong in db:
+    eff_where = ''
+    if offering_effdt:
+        effdt = offering.semester.start
+        eff_where = "AND effdt<=%s" % (db.escape_arg(effdt.isoformat()))
+
+    db.execute("""
+        SELECT descr, ssr_component, course_title_long, descrlong, rqmnt_designtn
+        FROM ps_crse_catalog
+        WHERE eff_status='A' AND crse_id=%s """ + eff_where + """
+        ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY""", (crse_id,))
+    for shorttitle, component, longtitle, descrlong, rqmnt_designtn in db:
         data['shorttitle'] = shorttitle
         data['component'] = component
         data['longtitle'] = longtitle
         data['descrlong'] = descrlong
+        data['rqmnt_designtn'] = req_map.get(rqmnt_designtn, None)
+
+    if browse_data:
+        pass
     
     if not data:
-        return None
+        db.execute("""SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun,
+               start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat 
+               WHERE crse_id=%s and class_section like %s and strm=%s""",
+            ("%06i" % (int(offering.crse_id)), offering.section[0:2]+"%", offering.semester.name))
+        print list(db)
     
+    print offering.__dict__
+    print data
     return data
+
+
 
 @cache_by_args
 def crse_id_info(crse_id):

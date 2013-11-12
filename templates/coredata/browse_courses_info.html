@@ -5,12 +5,16 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.browse_courses %}">Browse Course Offerings</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
+	$('div.table_container').html('<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
+    more_course_info('{% url coredata.views.browse_courses_info course_slug=offering.slug %}?data=yes');
 } );
 </script>
 {% endblock %}
 
 {% block content %}
-
+<div class="table_container">
+</div>
 {% endblock %}
