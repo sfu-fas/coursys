@@ -111,6 +111,9 @@ function more_course_info(url) {
 			if (data['descrlong']) {
 				add_to_info('Calendar Description', data['descrlong']);
 			}
+			if (data['rqmnt_designtn']) {
+				add_to_info('Requirement Designation', data['rqmnt_designtn']);
+			}
 
             $('#fetchwait').hide();
             $('#moreinfo').remove();

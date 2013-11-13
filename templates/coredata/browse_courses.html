@@ -26,6 +26,9 @@ function refresh() {
 $(document).ready(function() {
   table = $('#courses').dataTable( {
   	'bJQueryUI': true,
+	'sPaginationType': 'full_numbers',
+	'iDisplayLength' : 20,
+	'aaSorting': [[0,'desc'],[1,'asc']],
     'bProcessing': true,
     'bServerSide': true,
 "sPaginationType": "full_numbers",
@@ -52,11 +55,11 @@ $(document).ready(function() {
 <form action="" id="filterform">
 {{ form }}
 </form>
-<a href="javascript:refresh()">refresh</a>
+<!--<a href="javascript:refresh()">refresh</a>-->
 
 <div class="datatable_container">
 <table id="courses" class="display">
-  <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Section</th><th scope="col">Title</th><th scope="col">Instructor(s)</th><th scope="col">Enrolment</th></tr></thead>
+  <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Title</th><th scope="col">Instructor(s)</th><th scope="col">Campus</th></tr></thead>
   <tbody>
   </tbody>
 </table>

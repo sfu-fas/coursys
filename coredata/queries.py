@@ -2,7 +2,9 @@ from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, Co
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
+from django.utils.html import conditional_escape as e
 import re, hashlib, datetime
+
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -422,26 +424,50 @@ def more_course_info(course):
     """
     More info about a course (for the advisor portal) 
     """
-    db = SIMSConn()
     offerings = CourseOffering.objects.filter(course=course).exclude(crse_id__isnull=True).order_by('-semester__name')
     if offerings:
         offering = offerings[0]
     else:
         return None
-    
+    return more_offering_info(offering, browse_data=False, effdt=None)
+
+@cache_by_args
+@SIMS_problem_handler
+def more_offering_info(offering, browse_data=False, offering_effdt=False):
+    """
+    More info about a course offering (for the course browser) 
+    """
+    db = SIMSConn()
+    req_map = get_reqmnt_designtn()
+
     data = {}
     crse_id = "%06i" % (offering.crse_id)
-    db.execute("SELECT descr, ssr_component, course_title_long, descrlong FROM ps_crse_catalog WHERE eff_status='A' AND crse_id=%s ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY", (crse_id,))
-    for shorttitle, component, longtitle, descrlong in db:
-        data['shorttitle'] = shorttitle
-        data['component'] = component
-        data['longtitle'] = longtitle
-        data['descrlong'] = descrlong
+    eff_where = ''
+    if offering_effdt:
+        effdt = offering.semester.start
+        eff_where = "AND effdt<=%s" % (db.escape_arg(effdt.isoformat()))
+
+    db.execute("""
+        SELECT descr, ssr_component, course_title_long, descrlong, rqmnt_designtn
+        FROM ps_crse_catalog
+        WHERE eff_status='A' AND crse_id=%s """ + eff_where + """
+        ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY""", (crse_id,))
+    for shorttitle, component, longtitle, descrlong, rqmnt_designtn in db:
+        data['shorttitle'] = e(shorttitle)
+        data['component'] = e(component)
+        data['longtitle'] = e(longtitle)
+        data['descrlong'] = e(descrlong)
+        data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
+
+    if browse_data:
+        pass
     
     if not data:
         return None
-    
+
     return data
+
+
 
 @cache_by_args
 def crse_id_info(crse_id):

@@ -727,15 +727,17 @@ def index(request):
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
+        other_forms = []
         sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)).exclude(status='DONE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY')
+        other_forms = Form.objects.filter(active=True, initiators='LOG')
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
+    context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 
