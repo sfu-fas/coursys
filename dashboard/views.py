@@ -324,14 +324,12 @@ def _holiday_colour(h):
     return "#060680"
 
 
-def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
-        due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=0)):
+def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string=True, colour=False, browse_titles=False):
     """
-    Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
+    Get calendar data for this set of offerings and lab sections.
+    
+    Used both in _calendar_event_data and by the course browser (coredata.views.browse_courses_info)
     """
-    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
-            .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
-            # start - 30 days to make sure we catch exam/end of semester events
 
     # holidays and cancellations
     cancellations = set() # days when classes cancelled
@@ -358,17 +356,13 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             e['color'] = _holiday_colour(h)
         yield e
 
-
     # map of offering_id -> this student's lab section (so we only output the right one)
-    labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
-    classes = set((m.offering for m in memberships))
-    class_list = MeetingTime.objects.filter(offering__in=classes).select_related('offering')
+    class_list = MeetingTime.objects.filter(offering__in=offerings).select_related('offering')
     
-    used_ids = set()
     # meeting times
     for mt in class_list:
         # only output whole-course events and this student's lab section.
-        if mt.labtut_section not in [None, labsecs[mt.offering_id]]:
+        if labsecs and mt.labtut_section not in [None, labsecs[mt.offering_id]]:
             continue
 
         for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
@@ -380,9 +374,12 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
                 continue
             
             ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
-            assert ident not in used_ids
-            used_ids.add(ident)
-            title = mt.offering.name() + " " + mt.get_meeting_type_display()
+            if browse_titles:
+                title = mt.get_meeting_type_display()
+                if mt.labtut_section:
+                    title += ' ' + mt.labtut_section
+            else:
+                title = mt.offering.name() + " " + mt.get_meeting_type_display()
             if dt_string:
                 st = st.isoformat()
                 en = en.isoformat()
@@ -401,7 +398,24 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if colour:
                 e['color'] = _meeting_colour(mt)
             yield e
-    
+
+
+
+def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
+        due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=0)):
+    """
+    Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
+    """
+    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
+            .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
+            # start - 30 days to make sure we catch exam/end of semester events
+    classes = set((m.offering for m in memberships))
+    labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
+
+    # get all events from _offerings_calendar_data
+    for res in _offerings_calendar_data(classes, labsecs, start, end, local_tz, dt_string, colour):
+        yield res
+
     # add every assignment with a due datetime
     for m in memberships:
         for a in m.offering.activity_set.filter(deleted=False):
@@ -413,8 +427,6 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
                 continue
             
             ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
-            assert ident not in used_ids
-            used_ids.add(ident)
             title = '%s: %s due' % (a.offering.name(), a.name)
             if dt_string:
                 st = st.isoformat()

@@ -2,7 +2,9 @@ from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, Co
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
+from django.utils.html import conditional_escape as e
 import re, hashlib, datetime
+
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -449,24 +451,18 @@ def more_offering_info(offering, browse_data=False, offering_effdt=False):
         WHERE eff_status='A' AND crse_id=%s """ + eff_where + """
         ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY""", (crse_id,))
     for shorttitle, component, longtitle, descrlong, rqmnt_designtn in db:
-        data['shorttitle'] = shorttitle
-        data['component'] = component
-        data['longtitle'] = longtitle
-        data['descrlong'] = descrlong
-        data['rqmnt_designtn'] = req_map.get(rqmnt_designtn, None)
+        data['shorttitle'] = e(shorttitle)
+        data['component'] = e(component)
+        data['longtitle'] = e(longtitle)
+        data['descrlong'] = e(descrlong)
+        data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
 
     if browse_data:
         pass
     
     if not data:
-        db.execute("""SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun,
-               start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat 
-               WHERE crse_id=%s and class_section like %s and strm=%s""",
-            ("%06i" % (int(offering.crse_id)), offering.section[0:2]+"%", offering.semester.name))
-        print list(db)
-    
-    print offering.__dict__
-    print data
+        return None
+
     return data
 
 

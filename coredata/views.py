@@ -562,11 +562,12 @@ COLUMN_ORDERING = { # column -> ordering info for datatable_view
     'enrl_tot': 'enrl_tot',
     'campus': 'campus',
     }
-DEFAULT_COLUMNS = ['title', 'instructors', 'enrl_tot']
+DEFAULT_COLUMNS = ['title', 'instructors', 'campus']
 class OfferingFilterForm(forms.Form):
-    columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES, initial=DEFAULT_COLUMNS)
+    #columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES, initial=DEFAULT_COLUMNS)
     subject = forms.ChoiceField()
-    section = forms.CharField(widget=forms.TextInput(attrs={'size': '4'}))
+    number = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}), label='Course Number')
+    section = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}))
     instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
     campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES)))
     semester = forms.ChoiceField()
@@ -584,6 +585,9 @@ class OfferingFilterForm(forms.Form):
 
 
 def browse_courses(request):
+    """
+    Interactive CourseOffering browser
+    """
     if 'tabledata' in request.GET:
         # table data
         return _offering_data(request)
@@ -599,28 +603,19 @@ def browse_courses(request):
     return render(request, 'coredata/browse_courses.html', context)
 
 
-def browse_courses_info(request, course_slug):
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    if 'data' in request.GET:
-        response = HttpResponse(mimetype='application/json')
-        data = more_offering_info(offering, browse_data=True, offering_effdt=True)
-        json.dump(data, response, indent=1)
-        return response
-        
-
-    context = {
-        'offering': offering,
-    }
-    return render(request, 'coredata/browse_courses_info.html', context)
-
 
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
+from django.conf import settings
 import operator
+import pytz
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-from coredata.queries import more_offering_info
+from courselib.auth import NotFoundResponse
+from coredata.models import MeetingTime
+from coredata.queries import more_offering_info, SIMSProblem
+from dashboard.views import _offerings_calendar_data
 # TODO: import rqmnt_designtn, number of credits on CourseOffering so we can display/filter
 
 class OfferingDataJson(BaseDatatableView):
@@ -655,7 +650,7 @@ class OfferingDataJson(BaseDatatableView):
         # use request parameters to filter queryset
         GET = self.request.GET
 
-        columns = UNIVERSAL_COLUMNS + GET.get('columns', DEFAULT_COLUMNS).split(',')
+        columns = UNIVERSAL_COLUMNS + GET.get('columns', ','.join(DEFAULT_COLUMNS)).split(',')
         self.set_columns(columns)
         
         qs = qs.exclude(component='CAN')
@@ -667,6 +662,10 @@ class OfferingDataJson(BaseDatatableView):
         subject = GET.get('subject', None)
         if subject:
             qs = qs.filter(subject=subject)
+
+        number = GET.get('number', None)
+        if number:
+            qs = qs.filter(number__icontains=number)
             
         section = GET.get('section', None)
         if section:
@@ -705,14 +704,13 @@ class OfferingDataJson(BaseDatatableView):
     def get_context_data(self, *args, **kwargs):
         data = super(OfferingDataJson, self).get_context_data(*args, **kwargs)
         data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
-        #print data
         return data
 
 _offering_data = OfferingDataJson.as_view()
 
 def _instructor_autocomplete(request):
     """
-    Responses for the jQuery autocomplete for instructor search
+    Responses for the jQuery autocomplete for instructor search: key by userid not emplid for privacy
     """
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
@@ -729,3 +727,53 @@ def _instructor_autocomplete(request):
     data = [{'value': p.userid, 'label': p.name()} for p in people]
     json.dump(data, response, indent=1)
     return response
+
+
+
+def browse_courses_info(request, course_slug):
+    """
+    Browsing info about a single course offering.
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    if 'data' in request.GET:
+        # more_course_info data requested
+        response = HttpResponse(mimetype='application/json')
+        try:
+            data = more_offering_info(offering, browse_data=True, offering_effdt=True)
+        except SIMSProblem as e:
+            data = {'error': e.message}
+        json.dump(data, response, indent=1)
+        return response
+    if 'caldata' in request.GET:
+        # calendar data requested
+        return _offering_meeting_time_data(request, offering)
+        
+    # the page itself (with most data assembled by AJAX requests to the above)
+    context = {
+        'offering': offering,
+    }
+    return render(request, 'coredata/browse_courses_info.html', context)
+
+
+def _offering_meeting_time_data(request, offering):
+    """
+    fullcalendar.js data for this offering's events
+    """
+    try:
+        int(request.GET['start'])
+        int(request.GET['end'])
+    except (KeyError, ValueError):
+        return NotFoundResponse(request, errormsg="Bad request")
+
+    local_tz = pytz.timezone(settings.TIME_ZONE)
+    start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
+    end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
+
+    response = HttpResponse(mimetype='application/json')
+    data = list(_offerings_calendar_data([offering], None, start, end, local_tz,
+                                         dt_string=True, colour=True, browse_titles=True))
+    json.dump(data, response, indent=1)
+    return response
+
+
+

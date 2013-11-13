@@ -5,16 +5,42 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.browse_courses %}">Browse Course Offerings</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
 
 {% block headextra %}
+<link rel='stylesheet' type='text/css' href='{{MEDIA_URL}}fullcalendar/fullcalendar.css' />
+<script type='text/javascript' src='{{MEDIA_URL}}fullcalendar/fullcalendar.js'></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
+function build_calendar(url, y, m ,d) {
+	$('#calendar').fullCalendar({
+    	header: {
+      		left: 'prev,next today',
+	      	center: 'title',
+      		right: 'month,agendaWeek'
+    	},
+    	events: {
+      		url: url,
+	      	cache: true,
+      		ignoreTimezone: false,
+    	},
+    	height: 500,
+    	firstHour: 8,
+    	slotMinutes: 60,
+    	defaultView: 'agendaWeek',
+    	year: y,
+    	month: m,
+    	day: d,
+  	})
+}
 $(document).ready(function() {
 	$('div.table_container').html('<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
     more_course_info('{% url coredata.views.browse_courses_info course_slug=offering.slug %}?data=yes');
+    build_calendar('{% url coredata.views.browse_courses_info course_slug=offering.slug %}?caldata=yes',
+        {{ offering.semester.start.year }}, {{ offering.semester.start.month }}, {{ offering.semester.start.day }});
 } );
 </script>
 {% endblock %}
 
 {% block content %}
-<div class="table_container">
-</div>
+<div class="table_container"></div>
+<h2 id="schedule">Course Schedule</h2>
+<div id="calendar" style="width: 75%"></div>
 {% endblock %}
