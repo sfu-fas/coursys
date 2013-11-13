@@ -429,7 +429,7 @@ def more_course_info(course):
         offering = offerings[0]
     else:
         return None
-    return more_offering_info(offering, browse_data=False, effdt=None)
+    return more_offering_info(offering, browse_data=False)
 
 @cache_by_args
 @SIMS_problem_handler
