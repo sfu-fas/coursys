@@ -21,3 +21,4 @@ reportlab==2.5
 icalendar==3.0.1b2
 xlwt==0.7.4
 django-datatables-view==1.6
+django-bitfield==1.6.4

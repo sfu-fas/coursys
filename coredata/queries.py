@@ -499,6 +499,28 @@ def ext_org_info(ext_org_id):
     return {'ext_org': '?'}
 
 
+REQMNT_DESIGNTN_FLAGS = { # map of ps_rqmnt_desig_tbl.descrshort to CourseOffering WQB fields
+    '': [],
+    'W': ['write'],
+    'Q': ['quant'],
+    'B-Hum': ['bhum'],
+    'B-Sci': ['bsci'],
+    'B-Soc': ['bsoc'],
+    'W/Q': ['write', 'quant'],
+    'W/B-Hum': ['write', 'bhum'],
+    'W/B-Sci': ['write', 'bsci'],
+    'W/B-Soc': ['write', 'bsoc'],
+    'Q/B-Soc': ['quant', 'bsoc'],
+    'Q/B-Sci': ['quant', 'bsci'],
+    'B-Hum/Sci': ['bhum', 'bsci'],
+    'B-H/Soc/Sc': ['bhum', 'bsoc', 'bsci'],
+    'B-Soc/Sci': ['bsoc', 'bsci'],
+    'W/Q/B-Sci': ['write', 'quant', 'bsci'],
+    'W/B-HumSci': ['bhum', 'bsci'],
+    'B-Hum/Soc': ['bhum', 'bsoc'],
+    'W/B-H/Soc': ['write', 'bhum', 'bsoc'],
+    }
+
 @cache_by_args
 def get_reqmnt_designtn():
     """
@@ -506,7 +528,10 @@ def get_reqmnt_designtn():
     """
     db = SIMSConn()
     
-    db.execute("SELECT r.rqmnt_designtn, r.descrshort FROM ps_rqmnt_desig_tbl r", ())
+    db.execute("""SELECT r.rqmnt_designtn, r.descrshort FROM ps_rqmnt_desig_tbl r
+        WHERE r.EFFDT=(SELECT MAX(effdt) FROM ps_rqmnt_desig_tbl
+                       WHERE rqmnt_designtn=r.rqmnt_designtn AND r.effdt<=current date AND eff_status='A')
+            AND r.eff_status='A'""", ())
     return dict(db)
     
 @cache_by_args

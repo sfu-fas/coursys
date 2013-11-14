@@ -26,7 +26,7 @@ def create_or_update_student( emplid, dryrun=False ):
 
     prog_map = program_map()
     timeline = coredata.queries.get_timeline(emplid)
-    print json.dumps( timeline, indent=2 )
+    #print json.dumps( timeline, indent=2 )
     # strip any programs from the timeline that aren't our grad programs
     timeline = [x for x in timeline if x['program_code'] in prog_map.keys()]
     # split the programs into groups based on completion status

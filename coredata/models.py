@@ -11,7 +11,9 @@ from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from bitfield import BitField
 import fractions
+
 
 def repo_name(offering, slug):
     """
@@ -507,6 +509,9 @@ class CourseOffering(models.Model):
     wait_tot = models.PositiveSmallIntegerField()
     course = models.ForeignKey(Course, null=False)
 
+    # WQB requirement flags
+    flags = BitField(flags=['write', 'quant', 'bhum', 'bsci', 'bsoc'], default=0)
+    
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'url': URL of course home page

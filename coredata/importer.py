@@ -4,7 +4,7 @@ sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
-from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, GRADFIELDS
+from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
 from coredata.models import CAMPUSES, COMPONENTS
 from dashboard.models import NewsItem
@@ -229,14 +229,18 @@ def get_unit(acad_org):
     
     return unit
         
-
+REQ_DES = None
 @transaction.commit_on_success
-def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org):
+def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
+                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, rqmnt_designtn):
     """
     Import one offering. Returns CourseOffering or None.
     
     Arguments must be in the same order as CLASS_TBL_FIELDS.
     """
+    global REQ_DES
+    if not REQ_DES:
+        REQ_DES = get_reqmnt_designtn()
     semester = Semester.objects.get(name=strm)
     graded = True # non-graded excluded in with "class_section like '%00'" in query
 
@@ -277,6 +281,12 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c.wait_tot = wait_tot
     c.owner = owner
     c.slug = c.autoslug() # rebuild slug in case section changes for some reason
+
+    # set the WQB flags
+    flags = REQMNT_DESIGNTN_FLAGS[REQ_DES.get(rqmnt_designtn, '')]
+    for pos, key in enumerate(c.flags.keys()):
+        c.flags.set_bit(pos, key in flags)
+
     c.save()
     
     crs = c.course
@@ -286,23 +296,39 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
     return c
 
-CLASS_TBL_FIELDS = 'subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org' 
+CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
+        + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \
+        + 'ct.acad_org, cc.rqmnt_designtn' 
+CLASS_TBL_QUERY = """
+SELECT """ + CLASS_TBL_FIELDS + """
+FROM dbcsown.ps_class_tbl ct
+  LEFT OUTER JOIN dbcsown.ps_crse_catalog cc ON ct.crse_id=cc.crse_id
+  LEFT OUTER JOIN dbcsown.ps_term_tbl t ON ct.strm=t.strm AND ct.acad_career=t.acad_career
+WHERE
+  cc.eff_status='A' AND ct.class_type='E'
+  AND cc.effdt=(SELECT MAX(effdt) FROM ps_crse_catalog
+                WHERE crse_id=cc.crse_id AND eff_status='A' AND effdt<=t.term_begin_dt)
+""" # AND more stuff added where it is used.
+# Note that this query can return multiple rows where one course was entered in multiple sessions
+# (e.g. import_one_offering(strm='1014', subject='CMPT', number='310', section='D100')
+# They seem to have different class_nbr values, but are otherwise identical.
+# Students are imported by class_nbr but are unified in our DB, so that might be bad, but it hasn't come up.
 
 def import_one_offering(strm, subject, number, section):
     """
     Find a single offering by its details (used by Cortez data importer).
     """
     db = SIMSConn()
-    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE "
-               "strm=%s and subject=%s and catalog_nbr LIKE %s and class_section=%s",
+    db.execute(CLASS_TBL_QUERY +
+               "AND ct.strm=%s and ct.subject=%s and ct.catalog_nbr LIKE %s and ct.class_section=%s",
                (strm, subject, '%'+number+'%', section))
 
     # can have multiple results for intersession courses (and others?). Just taking the first.
     res = list(db)
     if not res:
         # lots of section numbers wrong in cortez: try finding any section as a fallback
-        db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE "
-               "strm=%s and subject=%s and catalog_nbr LIKE %s",
+        db.execute(CLASS_TBL_QUERY
+               + "AND ct.strm=%s AND ct.subject=%s AND ct.catalog_nbr LIKE %s",
                (strm, subject, '%'+number+'%'))
         res = list(db)
         if res:
@@ -315,8 +341,8 @@ def import_one_offering(strm, subject, number, section):
     
 def import_offerings(extra_where='1=1', import_semesters=import_semesters):
     db = SIMSConn()
-    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
-               "class_type='E' AND ("+extra_where+")", (import_semesters(),))
+    db.execute(CLASS_TBL_QUERY + " AND ct.strm IN %s "
+               " AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)
@@ -772,8 +798,8 @@ def main():
     
     print "importing course offering list"
     #offerings = import_offerings(extra_where="subject IN ('GEOG', 'EDUC') and strm='1124' and catalog_nbr LIKE '%%9%%'")
-    #offerings = import_offerings(extra_where="subject='CMPT' and catalog_nbr IN (' 470')")
-    #offerings = import_offerings(extra_where="subject='CMPT'")
+    #offerings = import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 470')")
+    #offerings = import_offerings(extra_where="ct.subject='CMPT'")
     offerings = import_offerings()
     offerings = list(offerings)
     offerings.sort()
