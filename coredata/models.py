@@ -485,6 +485,14 @@ CAMPUS_CHOICES = (
         ('METRO', 'Other Locations in Vancouver'),
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
+WQB_FLAGS = [
+	('write', 'Writing'),
+	('quant', 'Quantitative'),
+	('bhum', 'Breadth-Humanities'),
+	('bsci', 'Breadth-Science'),
+	('bsoc', 'Breadth-Social-Science'),
+	]
+WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
 
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
@@ -510,7 +518,7 @@ class CourseOffering(models.Model):
     course = models.ForeignKey(Course, null=False)
 
     # WQB requirement flags
-    flags = BitField(flags=['write', 'quant', 'bhum', 'bsci', 'bsoc'], default=0)
+    flags = BitField(flags=WQB_KEYS, default=0)
     
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff

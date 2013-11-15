@@ -543,7 +543,8 @@ def XXX_sims_person_search(request):
 
 
 from django import forms
-from coredata.models import CAMPUS_CHOICES
+from coredata.models import CAMPUS_CHOICES, WQB_FLAGS
+FLAG_DICT = dict(WQB_FLAGS)
 UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
 COLUMN_CHOICES = [ # columns that can be turned on and off by the user.
     ('title', 'Course Title'), 
@@ -572,6 +573,7 @@ class OfferingFilterForm(forms.Form):
     campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES)))
     semester = forms.ChoiceField()
     crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
+    wqb = forms.MultipleChoiceField(choices=WQB_FLAGS, initial=[], label='WQB')
     
     def __init__(self, *args, **kwargs):
         super(OfferingFilterForm, self).__init__(*args, **kwargs)
@@ -694,6 +696,14 @@ class OfferingDataJson(BaseDatatableView):
         title = GET.get('crstitle', None)
         if title:
             qs = qs.filter(title__icontains=title)
+
+        wqb = GET.get('wqb', None)
+        if wqb:
+            wqb = wqb.split(',')
+            for f in wqb:
+                if f not in FLAG_DICT:
+                    continue
+                qs = qs.filter(flags=eval('CourseOffering.flags.' + f))
 
         #print qs.query
         return qs
