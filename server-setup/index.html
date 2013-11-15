@@ -197,6 +197,15 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 </dl>
 
 
+<h2 id="flags">Feature Flags</h2>
+<p>The system contains some <a href="http://stackoverflow.com/questions/7707383/what-is-a-feature-flag">feature flags</a> that allow selective disabling of some non-critical features. This may be necessary if server load is high because of some underlying hardware problems, or just insanity.</p>
+<p>They can be set by adding to the <code class="python">DISABLED_FEATURES</code> setting, likely by by editing <code class="file">local_settings.py</code>.</p>
+<p>Available flags are: <code class="python">'course_browser'</code> (the course browse/search functionality), <code class="python">'feeds'</code> (for icalendar/atom feeds/JSON dumps),
+ <code class="python">'discuss'</code> (discussion forums), <code class="python">'marking'</code> (marking--editing only), <code class="python">'sims'</code> (all SIMS queries), <code class="python">'submit-get'</code> (downloading submissions).</p>
+<p>A reasonable &ldquo;something ain't right here&rdquo; setting is:</p>
+<blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote>
+
+
 </body>
 </html>
 
