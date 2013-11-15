@@ -1,12 +1,12 @@
 from submission.models import GroupSubmission
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
-from django.shortcuts import render_to_response, get_object_or_404#, redirect
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, QueryDict
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from submission.forms import *
-from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
+from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug, uses_feature
 from submission.models import *
 from django.core.urlresolvers import reverse
 from django.contrib import messages
@@ -324,6 +324,7 @@ def get_submission(submission_id):
 
 
 @requires_course_by_slug
+@uses_feature('submit-get')
 def download_file(request, course_slug, activity_slug, component_slug=None, submission_id=None, userid=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
@@ -374,6 +375,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
         return generate_zip_file(submission, submitted_components)
 
 @requires_course_staff_by_slug
+@uses_feature('submit-get')
 def download_activity_files(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)

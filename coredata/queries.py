@@ -79,6 +79,9 @@ class SIMSConn(DBConn):
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem, "Reporting database access has been disabled in this deployment."
+        elif 'sims' in settings.DISABLED_FEATURES:
+            raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
+
         try:
             passfile = open(self.dbpass_file)
             _ = passfile.next()

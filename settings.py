@@ -202,6 +202,11 @@ LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
 DISABLE_REPORTING_DB = False
 
+# Feature flags to temporarily limit server load, aka "feature flags"
+# Availble things: 'course_browser' (the course browse/search functionality), 'feeds' (for ical/atom feeds/JSON dumps),
+# 'discuss' (discussion forums), 'marking' (marking--editing only), 'sims' (all SIMS queries), 'submit-get' (downloading submissions)
+DISABLED_FEATURES = set([])
+
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 if not DEPLOYED and DEBUG and hostname != 'courses':

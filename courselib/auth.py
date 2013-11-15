@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -19,7 +20,6 @@ def user_passes_test(test_func, login_url=None,
     """
 
     if not login_url:
-        from django.conf import settings
         login_url = settings.LOGIN_URL
 
     def decorator(view_func):
@@ -316,4 +316,20 @@ def requires_instructor(function=None, login_url=None):
         return actual_decorator(function)
     else:
         return actual_decorator
+
+
+def _return_unavailable(request, *args, **kwargs):
+    return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)
+
+def uses_feature(feature):
+    """
+    Decorator to allow disabling features temporarily with settings.DISABLED_FEATURES aka feature flags.
+    """
+    if feature in settings.DISABLED_FEATURES:
+        def real_decorator(function):
+            return _return_unavailable
+    else:
+        def real_decorator(function):
+            return function
+    return real_decorator
 

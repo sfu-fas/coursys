@@ -12,7 +12,7 @@ from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
-    has_role, ForbiddenResponse
+    has_role, uses_feature, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
@@ -256,7 +256,7 @@ def new_message(request, course_slug):
         form = MessageForm()    
     return render(request, "dashboard/new_message.html", {"form" : form,'course': offering})
 
-
+@uses_feature('feeds')
 @cache_page(60 * 15)
 def atom_feed(request, token, userid, course_slug=None):
     """
@@ -453,7 +453,8 @@ def _ical_datetime(utc, dt):
     else:
         return dt
 
-#@cache_page(60*60*6)
+@uses_feature('feeds')
+@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -505,6 +506,7 @@ def calendar_ical(request, token, userid):
     return HttpResponse(cal.to_ical(), mimetype="text/calendar")
 
 
+@uses_feature('feeds')
 @login_required
 def calendar(request):
     """
@@ -515,6 +517,7 @@ def calendar(request):
     return render(request, "dashboard/calendar.html", context)
 
 
+@uses_feature('feeds')
 @login_required
 def calendar_data(request):
     """
@@ -863,6 +866,7 @@ def view_doc(request, doc_slug):
 
 # data export views
 # public data, so no authentication done
+@uses_feature('feeds')
 @gzip_page
 @cache_page(60 * 60 * 6)
 def courses_json(request, semester):
