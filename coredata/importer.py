@@ -780,6 +780,18 @@ def update_grads():
         get_person_grad(gs.person.emplid)
 
 
+def import_one_semester(strm, extra_where='1=1'):
+    """
+    can be called manually to update non-student data for a single semester
+    """
+    sems = lambda: (strm,)
+    offerings = import_offerings(extra_where=extra_where, import_semesters=sems)
+    offerings = list(offerings)
+    offerings.sort()
+    for o in offerings:
+        print o
+        import_offering_members(o, students=False)
+
 
 def main():
     global sysadmin
