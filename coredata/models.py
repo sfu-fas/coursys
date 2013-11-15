@@ -952,8 +952,8 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD','TECH',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV']
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'GRPD',
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV'] # 'PLAN', 'TADM', 'TECH'
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',

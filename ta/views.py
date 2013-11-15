@@ -89,7 +89,7 @@ def all_tugs(request, course_slug):
     
     return render(request, 'ta/all_tugs.html', context)
 
-@requires_role("ADMN")
+@requires_role("TAAD")
 def all_tugs_admin(request, semester_name=None):
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
