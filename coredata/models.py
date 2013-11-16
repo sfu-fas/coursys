@@ -484,6 +484,16 @@ CAMPUS_CHOICES = (
         #('KAM', 'Kamloops Campus'),
         ('METRO', 'Other Locations in Vancouver'),
         )
+CAMPUS_CHOICES_SHORT = (
+        ('BRNBY', 'Burnaby'),
+        ('SURRY', 'Surrey'),
+        ('VANCR', 'Harbour Ctr'),
+        ('OFFST', 'Off-campus'),
+        #('SEGAL', 'Segal Centre'),
+        ('GNWC', 'Great North. Way'),
+        #('KAM', 'Kamloops Campus'),
+        ('METRO', 'Other Vancouver'),
+        )
 CAMPUSES = dict(CAMPUS_CHOICES)
 WQB_FLAGS = [
 	('write', 'Writing'),

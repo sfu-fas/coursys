@@ -426,3 +426,76 @@ HolidayFormset = forms.models.modelformset_factory(Holiday, formset=BaseHolidayF
 
 
 
+# form for the course browser: never submitted, only rendered and processed with JS
+from coredata.models import CAMPUS_CHOICES_SHORT, WQB_FLAGS
+from itertools import chain
+from django.utils.html import conditional_escape
+import datetime
+
+class CheckboxSelectTerse(forms.CheckboxSelectMultiple):
+    """
+    A CheckboxSelectMultiple, but with a more compact rendering
+    """
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None: value = []
+        has_id = attrs and 'id' in attrs
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = []
+        # Normalize to strings
+        str_values = set([force_unicode(v) for v in value])
+        for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
+            # If an ID attribute was given, add a numeric index as a suffix,
+            # so that the checkboxes don't all have the same ID attribute.
+            if has_id:
+                final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
+                label_for = u' for="%s"' % final_attrs['id']
+            else:
+                label_for = ''
+
+            cb = forms.CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
+            option_value = force_unicode(option_value)
+            rendered_cb = cb.render(name, option_value)
+            option_label = conditional_escape(force_unicode(option_label))
+            output.append(u'<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
+        return mark_safe(u'\n'.join(output))
+
+FLAG_DICT = dict(WQB_FLAGS)
+UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
+COLUMN_CHOICES = [ # columns that can be turned on and off by the user.
+    ('title', 'Course Title'), 
+    ('instructors', 'Instructor(s)'),
+    ('enrl_tot', 'Enrolment'),
+    ('campus', 'Campus'),
+    ]
+COLUMN_NAMES = dict(COLUMN_CHOICES)
+COLUMN_NAMES['semester'] = 'Semester'
+COLUMN_NAMES['coursecode'] = 'Course'
+DEFAULT_COLUMNS = ['title', 'instructors', 'campus']
+class OfferingFilterForm(forms.Form):
+    #columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES, initial=DEFAULT_COLUMNS)
+    subject = forms.ChoiceField()
+    number = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}), label='Course Number')
+    section = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}))
+    instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
+    campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES_SHORT)))
+    semester = forms.ChoiceField()
+    crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
+    wqb = forms.MultipleChoiceField(choices=WQB_FLAGS, initial=[], label='WQB',
+                                    widget=CheckboxSelectTerse())
+    
+    @classmethod
+    def allowed_semesters(self):
+        # semester choices: two years either-side of today
+        today = datetime.date.today()
+        return Semester.objects.filter(start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
+
+    def __init__(self, *args, **kwargs):
+        super(OfferingFilterForm, self).__init__(*args, **kwargs)
+        # semester choices
+        semesters = self.allowed_semesters()
+        self.fields['semester'].choices = [('', u'all')] + [(s.name, s.label()) for s in semesters]
+        # subject choices: all that exist in allowed semesters
+        subjects = CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
+        self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
+
+
