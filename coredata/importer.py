@@ -548,7 +548,9 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
         m_old = Member.objects.filter(person=person, offering=offering).exclude(role="DROP")
         if len(m_old)>1:
             raise KeyError, "Already duplicate entries: %r" % (m_old)
-        m = m_old[0]
+        elif len(m_old)==0:
+            m_old = Member.objects.filter(person=person, offering=offering)
+        
     if len(m_old)==1:
         m = m_old[0]
     else:
