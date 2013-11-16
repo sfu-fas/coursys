@@ -1,6 +1,6 @@
 from django import forms
 from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
-from coredata.queries import find_person, add_person, SIMSProblem
+from coredata.queries import find_person, add_person, SIMSProblem, cache_by_args
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.contrib.localflavor.ca.forms import CAPhoneNumberField
@@ -484,10 +484,18 @@ class OfferingFilterForm(forms.Form):
                                     widget=CheckboxSelectTerse())
     
     @classmethod
+    @cache_by_args
     def allowed_semesters(self):
         # semester choices: two years either-side of today
         today = datetime.date.today()
-        return Semester.objects.filter(start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
+        offering_sem = CourseOffering.objects.order_by().values('semester').distinct()
+        timely_sem = Semester.objects.filter(id__in=offering_sem, start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
+        return timely_sem
+
+    @classmethod
+    @cache_by_args
+    def all_subjects(self, semesters):
+        return CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
 
     def __init__(self, *args, **kwargs):
         super(OfferingFilterForm, self).__init__(*args, **kwargs)
@@ -495,7 +503,7 @@ class OfferingFilterForm(forms.Form):
         semesters = self.allowed_semesters()
         self.fields['semester'].choices = [('', u'all')] + [(s.name, s.label()) for s in semesters]
         # subject choices: all that exist in allowed semesters
-        subjects = CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
+        subjects = self.all_subjects(semesters)
         self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
 
 

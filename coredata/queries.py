@@ -451,19 +451,19 @@ def more_offering_info(offering, browse_data=False, offering_effdt=False):
         eff_where = "AND effdt<=%s" % (db.escape_arg(effdt.isoformat()))
 
     db.execute("""
-        SELECT descr, ssr_component, course_title_long, descrlong, rqmnt_designtn
+        SELECT descr, ssr_component, course_title_long, descrlong
         FROM ps_crse_catalog
         WHERE eff_status='A' AND crse_id=%s """ + eff_where + """
         ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY""", (crse_id,))
-    for shorttitle, component, longtitle, descrlong, rqmnt_designtn in db:
+    for shorttitle, component, longtitle, descrlong in db:
         data['shorttitle'] = e(shorttitle)
         data['component'] = e(component)
         data['longtitle'] = e(longtitle)
         data['descrlong'] = e(descrlong)
-        data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
+        #data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
 
     if browse_data:
-        pass
+        del data['shorttitle']
     
     if not data:
         return None

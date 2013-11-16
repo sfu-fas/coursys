@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
@@ -546,6 +547,7 @@ from django import forms
 
 
 @uses_feature('course_browser')
+@cache_page(60*60*6)
 def browse_courses(request):
     """
     Interactive CourseOffering browser
@@ -627,8 +629,6 @@ class OfferingDataJson(BaseDatatableView):
         columns = UNIVERSAL_COLUMNS + GET.get('columns', ','.join(DEFAULT_COLUMNS)).split(',')
         self.set_columns(columns)
         
-        qs = qs.exclude(component='CAN')
-
         srch = GET.get('sSearch', None)
         if srch:
             qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch)) 
@@ -668,7 +668,7 @@ class OfferingDataJson(BaseDatatableView):
         wqb = GET.getlist('wqb')
         for f in wqb:
             if f not in FLAG_DICT:
-                continue
+                continue # not in our list of flags: not safe to eval()
             qs = qs.filter(flags=eval('CourseOffering.flags.' + f))
 
         #print qs.query
@@ -713,6 +713,7 @@ def _instructor_autocomplete(request):
 
 
 @uses_feature('course_browser')
+@cache_page(60*60*6)
 def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.

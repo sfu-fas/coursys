@@ -496,13 +496,14 @@ CAMPUS_CHOICES_SHORT = (
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
 WQB_FLAGS = [
-	('write', 'Writing'),
-	('quant', 'Quantitative'),
-	('bhum', 'Breadth-Humanities'),
-	('bsci', 'Breadth-Science'),
-	('bsoc', 'Breadth-Social-Science'),
+	('write', 'W'),
+	('quant', 'Q'),
+	('bhum', 'B-Hum'),
+	('bsci', 'B-Sci'),
+	('bsoc', 'B-Soc'),
 	]
 WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
+WQB_DICT = dict(WQB_FLAGS)
 
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
@@ -603,6 +604,13 @@ class CourseOffering(models.Model):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
+    
+    def get_wqb_display(self):
+        flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v]
+        if flags:
+            return ', '.join(flags)
+        else:
+            return 'none'
     
     def extra_bu(self):
         return decimal.Decimal(self.extra_bu_str())
