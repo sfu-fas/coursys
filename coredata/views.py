@@ -543,45 +543,6 @@ def XXX_sims_person_search(request):
 
 
 from django import forms
-from coredata.models import CAMPUS_CHOICES
-UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
-COLUMN_CHOICES = [ # columns that can be turned on and off by the user.
-    ('title', 'Course Title'), 
-    ('instructors', 'Instructor(s)'),
-    ('enrl_tot', 'Enrolment'),
-    ('campus', 'Campus'),
-    ]
-COLUMN_NAMES = dict(COLUMN_CHOICES)
-COLUMN_NAMES['semester'] = 'Semester'
-COLUMN_NAMES['coursecode'] = 'Course'
-COLUMN_ORDERING = { # column -> ordering info for datatable_view
-    'semester': 'semester__name',
-    'coursecode': ['subject', 'number', 'section'],
-    'title': 'title',
-    'instructors': [],
-    'enrl_tot': 'enrl_tot',
-    'campus': 'campus',
-    }
-DEFAULT_COLUMNS = ['title', 'instructors', 'campus']
-class OfferingFilterForm(forms.Form):
-    #columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES, initial=DEFAULT_COLUMNS)
-    subject = forms.ChoiceField()
-    number = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}), label='Course Number')
-    section = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}))
-    instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
-    campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES)))
-    semester = forms.ChoiceField()
-    crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
-    
-    def __init__(self, *args, **kwargs):
-        super(OfferingFilterForm, self).__init__(*args, **kwargs)
-        # subject choices: all that exist in the DB
-        subjects = Course.objects.order_by().values_list('subject', flat=True).distinct()
-        self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
-        # semester choices: two years either-side of today
-        today = datetime.date.today()
-        semesters = Semester.objects.filter(start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
-        self.fields['semester'].choices = [('', u'all')] + [(s.name, s.label()) for s in semesters]
 
 
 @uses_feature('course_browser')
@@ -608,17 +569,24 @@ def browse_courses(request):
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
-import operator
 from django.conf import settings
 import operator
 import pytz
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse
-from coredata.models import MeetingTime
+from coredata.forms import OfferingFilterForm, UNIVERSAL_COLUMNS, DEFAULT_COLUMNS, COLUMN_NAMES, FLAG_DICT
 from coredata.queries import more_offering_info, SIMSProblem
 from dashboard.views import _offerings_calendar_data
-# TODO: import rqmnt_designtn, number of credits on CourseOffering so we can display/filter
+
+COLUMN_ORDERING = { # column -> ordering info for datatable_view
+    'semester': 'semester__name',
+    'coursecode': ['subject', 'number', 'section'],
+    'title': 'title',
+    'instructors': [],
+    'enrl_tot': 'enrl_tot',
+    'campus': 'campus',
+    }
 
 class OfferingDataJson(BaseDatatableView):
     model = CourseOffering
@@ -652,7 +620,9 @@ class OfferingDataJson(BaseDatatableView):
         # use request parameters to filter queryset
         GET = self.request.GET
         
+        # no cancelled courses, or courses outside the allowed semester range
         qs = qs.exclude(component='CAN')
+        qs = qs.filter(semester__in=OfferingFilterForm.allowed_semesters())
 
         columns = UNIVERSAL_COLUMNS + GET.get('columns', ','.join(DEFAULT_COLUMNS)).split(',')
         self.set_columns(columns)
@@ -694,6 +664,12 @@ class OfferingDataJson(BaseDatatableView):
         title = GET.get('crstitle', None)
         if title:
             qs = qs.filter(title__icontains=title)
+
+        wqb = GET.getlist('wqb')
+        for f in wqb:
+            if f not in FLAG_DICT:
+                continue
+            qs = qs.filter(flags=eval('CourseOffering.flags.' + f))
 
         #print qs.query
         return qs

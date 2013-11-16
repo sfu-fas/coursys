@@ -484,7 +484,25 @@ CAMPUS_CHOICES = (
         #('KAM', 'Kamloops Campus'),
         ('METRO', 'Other Locations in Vancouver'),
         )
+CAMPUS_CHOICES_SHORT = (
+        ('BRNBY', 'Burnaby'),
+        ('SURRY', 'Surrey'),
+        ('VANCR', 'Harbour Ctr'),
+        ('OFFST', 'Off-campus'),
+        #('SEGAL', 'Segal Centre'),
+        ('GNWC', 'Great North. Way'),
+        #('KAM', 'Kamloops Campus'),
+        ('METRO', 'Other Vancouver'),
+        )
 CAMPUSES = dict(CAMPUS_CHOICES)
+WQB_FLAGS = [
+	('write', 'Writing'),
+	('quant', 'Quantitative'),
+	('bhum', 'Breadth-Humanities'),
+	('bsci', 'Breadth-Science'),
+	('bsoc', 'Breadth-Social-Science'),
+	]
+WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
 
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
@@ -510,7 +528,7 @@ class CourseOffering(models.Model):
     course = models.ForeignKey(Course, null=False)
 
     # WQB requirement flags
-    flags = BitField(flags=['write', 'quant', 'bhum', 'bsci', 'bsoc'], default=0)
+    flags = BitField(flags=WQB_KEYS, default=0)
     
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
@@ -944,8 +962,8 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD','TECH',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV']
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'GRPD',
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV'] # 'PLAN', 'TADM', 'TECH'
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
