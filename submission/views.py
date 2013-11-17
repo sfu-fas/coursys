@@ -146,7 +146,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             else:
                 group_str = ""
             l = LogEntry(userid=request.user.username,
-                  description=(u"submitted for %s %s" + group_str) % (activity, sub.component.title),
+                  description=u"submitted for %s %s%s" % (activity, sub.component.title, group_str),
                   related_object=sub)
             l.save()
 
