@@ -1349,8 +1349,8 @@ def grade_change_form(member, oldgrade, newgrade, user, outfile):
 class CardReqForm(object):
     LABEL_FONT = ("Helvetica", 9)
     ENTRY_FONT = ("Helvetica-Bold", 9)
-    MED_GREY = CMYKColor(0, 0, 0, 0.7)
-    LT_GREY = CMYKColor(0, 0, 0, 0.9)
+    MED_GREY = CMYKColor(0, 0, 0, 0.5)
+    LT_GREY = CMYKColor(0, 0, 0, 0.2)
 
     def __init__(self, outfile):
         """
@@ -1381,7 +1381,11 @@ class CardReqForm(object):
         self.c.setLineWidth(2)
         self.c.setFont(*self.LABEL_FONT)
         boxwidth = 4.5*mm
-        self.c.rect(x, y, boxwidth, boxheight, fill=fill)
+        self.c.rect(x, y, boxwidth, boxheight)
+        self.c.setLineWidth(1)
+        if fill:
+            self.c.line(x,y,x+boxwidth, y+boxheight)
+            self.c.line(x+boxwidth,y,x, y+boxheight)
         self.c.drawString(x+boxwidth+offset, y+1*mm, text)
 
     def draw_form(self, grad, extra_rooms=None):
@@ -1480,10 +1484,74 @@ class CardReqForm(object):
             self.c.drawString(72*mm, y, 'X')
             self.c.drawString(171*mm, y, '????')
 
-
         self.c.translate(0*mm, -150*mm) # origin = lower-left of the content
 
+        self._line_entry(23*mm, 145*mm, 'Desk or cabinet key #', 35*mm, 45*mm)
+        self.c.setFont(*self.LABEL_FONT)
+        self.c.drawString(104*mm, 145*mm, '(attach an envelope to include a sample key if possible)')
+        self._checkbox(0*mm, 136*mm, 'New Card', offset=2*mm, fill=1)
+        self._checkbox(23*mm, 136*mm, 'Update existing card', offset=1*mm)
+        self._line_entry(81*mm, 136*mm, 'Card/Fob #:', 22*mm, 45*mm)
+        self._line_entry(23*mm, 130*mm, 'Additional Information:', 35*mm, 94*mm)
+
+        # office-use blocks
+        self.c.translate(0*mm, 88*mm) # origin = lower-left of the office-use boxes
+        self.c.setFillColor(self.MED_GREY)
+        self.c.setLineWidth(0)
+        self.c.rect(0*mm, 33*mm, 93*mm, 4.5*mm, fill=1)
+        self.c.rect(103*mm, 33*mm, 89*mm, 4.5*mm, fill=1)
+        self.c.setFillColor(self.LT_GREY)
+        self.c.rect(103*mm, 0*mm, 89*mm, 33*mm, fill=1)
+        self.c.setFillColor(black)
+        self.c.setLineWidth(2)
+        self.c.rect(0*mm, 28*mm, 93*mm, 5*mm, fill=1)
+        self.c.rect(0*mm, 0*mm, 93*mm, 28*mm)
+        self.c.line(14*mm, 0*mm, 14*mm, 28*mm)
+        self.c.line(44*mm, 0*mm, 44*mm, 28*mm)
+        self.c.line(62*mm, 0*mm, 62*mm, 28*mm)
+        self.c.line(85*mm, 0*mm, 85*mm, 28*mm)
+        self.c.setLineWidth(1)
+        for i in range(5):
+            y = 28.0*mm/6*(i+1)
+            self.c.line(0, y, 93*mm, y)
+
+        self.c.rect(143*mm, 9*mm, 28*mm, 20*mm)
+        self.c.line(157*mm, 14*mm, 157*mm, 29*mm)
+        self.c.line(143*mm, 24*mm, 171*mm, 24*mm)
+        self.c.line(143*mm, 19*mm, 171*mm, 19*mm)
+        self.c.line(143*mm, 14*mm, 171*mm, 14*mm)
+
+        # office-use text
+        self.c.setFont(*self.LABEL_FONT)
+        self.c.drawString(1*mm, 34*mm, 'Office use only (key code may be entered if known)')
+        self.c.drawString(104*mm, 34*mm, 'Office use only')
+        self.c.setFont("Helvetica", 7)
+        self.c.setFillColor(white)
+        self.c.drawString(1*mm, 29*mm, 'Keyway')
+        self.c.drawString(15*mm, 29*mm, 'Bitting')
+        self.c.drawString(45*mm, 29*mm, 'Hook')
+        self.c.drawString(63*mm, 29*mm, 'Key code')
+        self.c.drawString(86*mm, 29*mm, 'SN')
+        self.c.setFillColor(black)
+        self.c.drawString(104*mm, 25*mm, 'Door Key')
+        self.c.drawString(104*mm, 20*mm, 'Cabinet/Desk Key')
+        self.c.drawString(104*mm, 15*mm, 'Card/Fob')
+        self.c.drawString(104*mm, 10*mm, 'Grand Total')
+        self.c.drawString(144*mm, 30*mm, 'SC')
+        self.c.drawString(158*mm, 30*mm, 'Deposit')
+        for x,y in [(144,25),(144,20),(144,15),(144,10),(158,25),(158,20),(158,15)]:
+            self.c.drawString(x*mm, y*mm, '$')
+        self._line_entry(104*mm, 1*mm, 'JV:', 5*mm, 40*mm)
+        self._line_entry(152*mm, 1*mm, 'Invoice:', 13*mm, 26*mm)
+        self.c.translate(0*mm, -88*mm) # origin = lower-left of the content
+
+        # payment details
         self._header_line(82*mm, 'PAYMENT DETAILS')
+
+
+
+
+
 
         self._header_line(58*mm, 'AUTHORIZATION DETAILS')
         self._header_line(23*mm, 'READ & SIGN AT TIME OF PICK-UP')
