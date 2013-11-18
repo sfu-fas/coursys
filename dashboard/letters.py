@@ -22,6 +22,7 @@ from dashboard.models import Signature
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
+white = CMYKColor(0, 0, 0, 0)
 media_path = os.path.join(settings.PROJECT_DIR, 'external', 'sfu')
 logofile = os.path.join(media_path, 'logo.png')
 
@@ -1345,13 +1346,161 @@ def grade_change_form(member, oldgrade, newgrade, user, outfile):
     doc.save()
 
 
-
 class CardReqForm(object):
+    LABEL_FONT = ("Helvetica", 9)
+    ENTRY_FONT = ("Helvetica-Bold", 9)
+    MED_GREY = CMYKColor(0, 0, 0, 0.7)
+    LT_GREY = CMYKColor(0, 0, 0, 0.9)
+
+    def __init__(self, outfile):
+        """
+        Create Card Requisition Form(s) in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+        self.main_width = 192*mm
+
+    def save(self):
+        self.c.save()
+
+    def _header_line(self, y, text):
+        self.c.setFillColor(black)
+        self.c.rect(0, y, self.main_width, 3.5*mm, fill=1)
+        self.c.setFillColor(white)
+        self.c.drawCentredString(self.main_width/2, y + 0.5*mm, text)
+        self.c.setFillColor(black)
+
+    def _line_entry(self, x, y, text, line_offset, line_length, entry_text=''):
+        self.c.setFont(*self.LABEL_FONT)
+        self.c.setLineWidth(1)
+        self.c.drawString(x, y+1*mm, text)
+        self.c.line(x+line_offset, y, x+line_offset+line_length, y)
+        self.c.setFont(*self.ENTRY_FONT)
+        self.c.drawString(x+line_offset+2*mm, y+1*mm, entry_text)
+
+    def _checkbox(self, x, y, text, offset=0.5*mm, fill=0, boxheight=4.5*mm):
+        self.c.setLineWidth(2)
+        self.c.setFont(*self.LABEL_FONT)
+        boxwidth = 4.5*mm
+        self.c.rect(x, y, boxwidth, boxheight, fill=fill)
+        self.c.drawString(x+boxwidth+offset, y+1*mm, text)
+
+    def draw_form(self, grad, extra_rooms=None):
+        """
+        Generates card requisition form for this grad
+        """
+        self.c.setStrokeColor(black)
+        self.c.setFillColor(black)
+        self.c.setLineWidth(1)
+        self.c.translate(7*mm, 30*mm) # origin = lower-left of the content
+
+        self.c.setFont("Helvetica-Bold", 11)
+        self.c.drawCentredString(self.main_width/2, 223*mm, 'SFU BURNABY CAMPUS SECURITY - ACCESS & PHYSICAL SECURITY SOLUTIONS')
+        self.c.setFont("Helvetica-Bold", 9)
+        self.c.drawCentredString(self.main_width/2, 219*mm, 'CARD / FOB / KEY REQUISITION')
+
+        # personal info
+        self._header_line(213*mm, 'CARD/FOB/KEYHOLDER DETAILS (Please type or print)')
+        self._line_entry(0*mm, 208*mm, 'Last Name', 22*mm, 58*mm, grad.person.last_name)
+        self._line_entry(86*mm, 208*mm, 'SFU ID', 30*mm, 45*mm, unicode(grad.person.emplid))
+        self._line_entry(0*mm, 204*mm, 'Given Name', 22*mm, 58*mm, grad.person.first_name)
+        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, grad.person.email())
+
+        self._checkbox(0*mm, 197*mm, 'Faculty', offset=1*mm)
+        self._checkbox(22*mm, 197*mm, 'Staff', offset=1*mm)
+        self._checkbox(40*mm, 197*mm, 'Student', fill=1)
+        self._checkbox(63*mm, 197*mm, 'Contractor')
+        self._checkbox(90*mm, 197*mm, 'Other:')
+        self._line_entry(108*mm, 197*mm, '', 0*mm, 53*mm, '')
+
+        # key areas: boxes/outlines
+        self.c.setLineWidth(2)
+        self.c.translate(0*mm, 150*mm) # origin = lower-left of the key-areas boxes
+        self.c.rect(0, 0, 44*mm, 42*mm)
+        self.c.line(4.5*mm, 36*mm, 4.5*mm, 0*mm)
+        self.c.line(9*mm, 42*mm, 9*mm, 0*mm)
+        self.c.line(27*mm, 36*mm, 27*mm, 0*mm)
+        self.c.line(0*mm, 36*mm, 44*mm, 36*mm)
+        self.c.line(0*mm, 28*mm, 44*mm, 28*mm)
+        self.c.setFillColor(black)
+        self.c.rect(9*mm, 28*mm, 35*mm, 8*mm, fill=1)
+        self.c.rect(49*mm, 28*mm, 143*mm, 8*mm, fill=1)
+        self.c.setFillColor(self.MED_GREY)
+        self.c.setLineWidth(0)
+        self.c.rect(49*mm, 36*mm, 143*mm, 6*mm, fill=1)
+        self.c.setLineWidth(2)
+        self.c.setFillColor(black)
+        self.c.rect(49*mm, 0*mm, 143*mm, 28*mm)
+        self.c.line(71*mm, 0*mm, 71*mm, 36*mm)
+        self.c.line(76*mm, 0*mm, 76*mm, 36*mm)
+        self.c.line(129*mm, 0*mm, 129*mm, 36*mm)
+        self.c.line(170*mm, 0*mm, 170*mm, 36*mm)
+        self.c.setLineWidth(1)
+        for i in range(5):
+            y = 28.0*mm/6*(i+1)
+            self.c.line(0, y, 44*mm, y)
+            self.c.line(49*mm, y, 192*mm, y)
+
+        # key areas: text
+        self.c.setFont("Helvetica", 7)
+        self.c.drawCentredString(4.5*mm, 39*mm, 'Item')
+        self.c.drawCentredString(4.5*mm, 37*mm, 'Type')
+        self.c.drawCentredString(27*mm, 37*mm, 'Area (keys / cards / fobs)')
+        self.c.drawString(50*mm, 37*mm, 'Schedule (applied only to Card / Fob space access)')
+        self.c.saveState()
+        self.c.rotate(90)
+        self.c.drawString(29*mm, -3*mm, 'Key')
+        self.c.drawString(29*mm, -7.5*mm, 'Card')
+        self.c.restoreState()
+        self.c.setFillColor(white)
+        self.c.drawString(10*mm, 29*mm, 'Building')
+        self.c.drawString(27*mm, 29*mm, 'Room / Door #')
+        self.c.drawString(49*mm, 29*mm, 'Effective Date')
+        self.c.drawCentredString(73*mm, 32*mm, '24')
+        self.c.drawCentredString(73*mm, 29*mm, 'Hr')
+        self.c.drawString(77*mm, 29*mm, 'Other Days/Times')
+        self.c.drawString(130*mm, 29*mm, 'Access Group (if known)')
+        self.c.drawString(171*mm, 29*mm, 'Expiry Date')
+        self.c.setFillColor(black)
+
+        rooms = grad.program.unit.config.get('card_rooms', '').split('|')
+        if extra_rooms:
+            rooms += extra_rooms.split('|')
+        today = datetime.date.today()
+        for i,r in enumerate(rooms):
+            y = 28.0*mm/6*(5-i) + 1*mm
+            if ':' in r:
+                bld,rm = r.split(':', 2)
+            else:
+                bld,rm = r, ''
+
+            self.c.drawString(6*mm, y, 'X')
+            self.c.drawString(10*mm, y, bld)
+            self.c.drawString(28*mm, y, rm)
+            self.c.drawString(50*mm, y, today.isoformat())
+            self.c.drawString(72*mm, y, 'X')
+            self.c.drawString(171*mm, y, '????')
+
+
+        self.c.translate(0*mm, -150*mm) # origin = lower-left of the content
+
+        self._header_line(82*mm, 'PAYMENT DETAILS')
+
+        self._header_line(58*mm, 'AUTHORIZATION DETAILS')
+        self._header_line(23*mm, 'READ & SIGN AT TIME OF PICK-UP')
+
+
+
+
+        self.c.showPage()
+
+
+class CardReqForm_old(object):
+    # old version of the form: keep until we're sure it's gone, Nov 2013
     LINE_WIDTH = 1
 
     def __init__(self, outfile):
         """
-        Create TA Appointment Form(s) in the file object (which could be a Django HttpResponse).
+        Create Card Requisition Form(s) in the file object (which could be a Django HttpResponse).
         """
         self.c = canvas.Canvas(outfile, pagesize=letter)
 
