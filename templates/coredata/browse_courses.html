@@ -12,7 +12,14 @@ function server_params() {
 	// build the extra GET parameters that will go in the datatables data request (by inspecting the filter form)
 	var params = [];
 	$('#filterform input').each(function (i, v) {
-		params.push({'name': v.name, 'value': $(v).val()})
+		v = $(v);
+		if ( v.attr('type') == 'checkbox' ) {
+			if ( v.prop('checked') ) {
+				params.push({'name': v.attr('name'), 'value': v.val()})
+			}
+		} else {
+			params.push({'name': v.attr('name'), 'value': v.val()})
+		}
 	});
 	$('#filterform select').each(function (i, v) {
 		params.push({'name': v.name, 'value': $(v).val()})
@@ -53,7 +60,34 @@ $(document).ready(function() {
 
 {% block content %}
 <form action="" id="filterform">
-{{ form }}
+<table>
+<tr>
+<th scope="col">Subject</th>	
+<th scope="col">Number</th>	
+<th scope="col">Section</th>	
+<th scope="col">Instructor</th>	
+<th scope="col">Campus</th>	
+<th scope="col">Semester</th>
+<th scope="col">Title</th>	
+</tr>
+<tr>
+<td>{{ form.subject }}</td>
+<td>{{ form.number }}</td>
+<td>{{ form.section }}</td>
+<td>{{ form.instructor }}</td>
+<td>{{ form.campus }}</td>
+<td>{{ form.semester }}</td>
+<td>{{ form.crstitle }}</td>
+</tr>
+</table>
+<table>
+<tr>
+<th scope="col">WQB Designation</th>	
+</tr>
+<tr>
+<td>{{ form.wqb }}</td>
+</tr>
+</table>
 </form>
 <!--<a href="javascript:refresh()">refresh</a>-->
 

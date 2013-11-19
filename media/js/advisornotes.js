@@ -94,8 +94,9 @@ function more_course_info(url) {
 	$.ajax({
 		url: url,
 		success: function(data){
-			$('table.info').remove();
-			$('div.table_container').html('<table class="info"><tbody></tbody></table>');
+			if( $('table.info').length == 0 ) {
+			    $('div.table_container').html('<table class="info"><tbody></tbody></table>');				
+			}
 			if (data['error']) {
 				add_to_info('Error', data['error']);
 				$('#fetchwait').hide();

@@ -548,8 +548,10 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
         m_old = Member.objects.filter(person=person, offering=offering).exclude(role="DROP")
         if len(m_old)>1:
             raise KeyError, "Already duplicate entries: %r" % (m_old)
-        m = m_old[0]
-    if len(m_old)==1:
+        elif len(m_old)==0:
+            m_old = Member.objects.filter(person=person, offering=offering)
+        
+    if len(m_old)>=1:
         m = m_old[0]
     else:
         m = Member(person=person, offering=offering)
@@ -588,7 +590,7 @@ def import_instructors(offering):
 
 @transaction.commit_on_success
 def import_tas(offering):
-    "Import TAs from cortez for this offering"
+    "Import TAs from cortez for this offering: no longer used since cortez is gone"
     if offering.subject not in ['CMPT', 'MACM']:
         return
 
@@ -650,7 +652,7 @@ def import_offering_members(offering, students=True):
     """
     import_instructors(offering)
     if students:
-        import_tas(offering)
+        #import_tas(offering)
         import_students(offering)
     import_meeting_times(offering)
     if settings.SVN_DB_CONNECT:

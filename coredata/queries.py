@@ -399,7 +399,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
               AND plantbl.acad_plan=plan.acad_plan
               AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
               AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
-              AND plantbl.effdt=(SELECT MAX(effdt) FROM dbcsown.ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
+              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
               AND prog.prog_status='AC' AND plantbl.eff_status='A'
               AND prog.emplid=%s
             ORDER BY plan.plan_sequence""", (str(emplid),))
@@ -451,19 +451,19 @@ def more_offering_info(offering, browse_data=False, offering_effdt=False):
         eff_where = "AND effdt<=%s" % (db.escape_arg(effdt.isoformat()))
 
     db.execute("""
-        SELECT descr, ssr_component, course_title_long, descrlong, rqmnt_designtn
+        SELECT descr, ssr_component, course_title_long, descrlong
         FROM ps_crse_catalog
         WHERE eff_status='A' AND crse_id=%s """ + eff_where + """
         ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY""", (crse_id,))
-    for shorttitle, component, longtitle, descrlong, rqmnt_designtn in db:
+    for shorttitle, component, longtitle, descrlong in db:
         data['shorttitle'] = e(shorttitle)
         data['component'] = e(component)
         data['longtitle'] = e(longtitle)
         data['descrlong'] = e(descrlong)
-        data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
+        #data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
 
     if browse_data:
-        pass
+        del data['shorttitle']
     
     if not data:
         return None
@@ -958,8 +958,8 @@ def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
     query = """
         SELECT DISTINCT 
             prog.adm_appl_nbr 
-        FROM dbcsown.ps_adm_appl_prog prog
-        LEFT JOIN dbcsown.ps_adm_appl_data data
+        FROM ps_adm_appl_prog prog
+        LEFT JOIN ps_adm_appl_data data
             ON prog.adm_appl_nbr = data.adm_appl_nbr
         WHERE 
             prog.emplid = %s
@@ -984,8 +984,8 @@ def get_adm_appl_nbrs( emplid ):
         SELECT DISTINCT 
             prog.adm_appl_nbr,
             prog.acad_prog 
-        FROM dbcsown.ps_adm_appl_prog prog
-        LEFT JOIN dbcsown.ps_adm_appl_data data
+        FROM ps_adm_appl_prog prog
+        LEFT JOIN ps_adm_appl_data data
             ON prog.adm_appl_nbr = data.adm_appl_nbr
         WHERE 
             prog.emplid = %s
@@ -1020,7 +1020,7 @@ def get_admission_records( emplid, adm_appl_nbr ):
             prog.prog_action, 
             prog.action_dt, 
             prog.admit_term
-        FROM dbcsown.ps_adm_appl_prog prog
+        FROM ps_adm_appl_prog prog
         WHERE 
             prog.emplid = %s
             AND prog.adm_appl_nbr = %s
@@ -1080,7 +1080,7 @@ def holds_resident_visa( emplid ):
             ON tbl.visa_permit_type = data.visa_permit_type
         WHERE
             data.effdt = ( SELECT MAX(tmp.effdt) 
-                                FROM dbcsown.ps_visa_pmt_data tmp
+                                FROM ps_visa_pmt_data tmp
                                 WHERE tmp.emplid = data.emplid
                                     AND tmp.effdt <= (SELECT current timestamp FROM sysibm.sysdummy1) )
             AND data.emplid = %s
@@ -1097,8 +1097,8 @@ def get_mother_tongue( emplid ):
     db = SIMSConn()
     db.execute("""
         SELECT atbl.descr
-          FROM dbcsown.ps_accomplishments a,
-               dbcsown.ps_accomp_tbl     atbl
+          FROM ps_accomplishments a,
+               ps_accomp_tbl     atbl
          WHERE a.emplid=%s
            AND a.native_language='Y'
            AND a.accomplishment=atbl.accomplishment
@@ -1114,8 +1114,8 @@ def get_passport_issued_by( emplid ):
     db = SIMSConn()
     db.execute("""
         SELECT cou.descr 
-        FROM dbcsown.ps_country_tbl cou
-        INNER JOIN dbcsown.ps_citizenship cit 
+        FROM ps_country_tbl cou
+        INNER JOIN ps_citizenship cit 
             ON cit.country = cou.country
         WHERE cit.emplid = %s
         """, (emplid,) )
