@@ -1366,6 +1366,7 @@ class CardReqForm(object):
         self.c.setFillColor(black)
         self.c.rect(0, y, self.main_width, 3.5*mm, fill=1)
         self.c.setFillColor(white)
+        self.c.setFont("Helvetica-Bold", 9)
         self.c.drawCentredString(self.main_width/2, y + 0.5*mm, text)
         self.c.setFillColor(black)
 
@@ -1377,9 +1378,9 @@ class CardReqForm(object):
         self.c.setFont(*self.ENTRY_FONT)
         self.c.drawString(x+line_offset+2*mm, y+1*mm, entry_text)
 
-    def _checkbox(self, x, y, text, offset=0.5*mm, fill=0, boxheight=4.5*mm):
+    def _checkbox(self, x, y, text, offset=0.5*mm, fill=0, boxheight=4.5*mm, fontsize=9):
         self.c.setLineWidth(2)
-        self.c.setFont(*self.LABEL_FONT)
+        self.c.setFont("Helvetica", fontsize)
         boxwidth = 4.5*mm
         self.c.rect(x, y, boxwidth, boxheight)
         self.c.setLineWidth(1)
@@ -1547,17 +1548,51 @@ class CardReqForm(object):
 
         # payment details
         self._header_line(82*mm, 'PAYMENT DETAILS')
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, 78*mm, 'Charge To:')
+        self.c.drawString(112*mm, 78*mm, 'Refund')
+        self.c.drawString(112*mm, 75*mm, 'Deposit to:')
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(1*mm, 75*mm, 'Department')
+        self.c.drawString(68*mm, 75*mm, 'Individual')
 
+        self._checkbox(0*mm, 70*mm, 'Deposit', offset=0.5*mm, boxheight=3.5*mm, fontsize=8)
+        self._checkbox(0*mm, 66.5*mm, 'Service Charge', offset=0.5*mm, fill=1, boxheight=3.5*mm, fontsize=8)
+        self._checkbox(67*mm, 70*mm, 'Deposit', offset=0.5*mm, fill=1, boxheight=3.5*mm, fontsize=8)
+        self._checkbox(67*mm, 66.5*mm, 'Service Charge', offset=0.5*mm, boxheight=3.5*mm, fontsize=8)
+        self._checkbox(111*mm, 70*mm, 'Department', offset=0.5*mm, boxheight=3.5*mm, fontsize=8)
+        self._checkbox(111*mm, 66.5*mm, 'Individual', offset=0.5*mm, boxheight=3.5*mm, fontsize=8)
 
+        self.c.setFont("Helvetica-Bold", 8)
+        self._line_entry(1*mm, 63*mm, 'Account Code:', 21*mm, 36*mm, entry_text=unicode(grad.program.unit.config.get('card_account', '')))
 
-
-
-
+        # authorization details
         self._header_line(58*mm, 'AUTHORIZATION DETAILS')
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(0*mm, 53*mm, 'I understand that by signing and submitting this request that that the person listed above is required to pick-up their')
+        self.c.drawString(0*mm, 50*mm, 'key/card/fob from Access Control WMC 3101 within 30 days unless details are supplied in additional information field above.')
+        self._line_entry(1*mm, 40*mm, 'Date', 9*mm, 22*mm, entry_text=today.isoformat())
+        self._line_entry(36*mm, 40*mm, 'Department', 22*mm, 125*mm, entry_text=grad.program.unit.name)
+        self._line_entry(1*mm, 34*mm, 'Authorized by', 31*mm, 41*mm, entry_text='')
+        self._line_entry(77*mm, 34*mm, 'Computing ID', 22*mm, 36*mm, entry_text='')
+        self._line_entry(1*mm, 27*mm, 'Signature', 22*mm, 50*mm, entry_text='')
+        self._line_entry(77*mm, 27*mm, 'Phone #', 22*mm, 36*mm, entry_text='')
+
+        # signatures
         self._header_line(23*mm, 'READ & SIGN AT TIME OF PICK-UP')
-
-
-
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(1*mm, 20*mm, 'Please read the following before signing:')
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(1*mm, 17.5*mm, u'\u2022 I acknowledge that cards, fobs and keys are the property of SFU and are issued for my own use.')
+        self.c.drawString(1*mm, 15*mm, u'\u2022 Items issued will not be passed on to another person and will be returned to this office ONLY')
+        self.c.drawString(1*mm, 12.5*mm, u'\u2022 Lost or Found cards/fobs/keys must be reported or returned to Campus Security TC 050 (778-782-3100).')
+        self.c.drawString(1*mm, 10*mm, u'\u2022 Policy AD 1-4 applies')
+        self.c.setLineWidth(2)
+        self.c.line(45*mm, 2*mm, 90*mm, 2*mm)
+        self.c.line(94*mm, 2*mm, 116*mm, 2*mm)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(45*mm, -1*mm, 'Card / key holder signature')
+        self.c.drawString(94*mm, -1*mm, 'Date')
 
         self.c.showPage()
 

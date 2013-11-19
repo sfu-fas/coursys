@@ -881,6 +881,8 @@ class Unit(models.Model):
         # 'deptid': department ID for finances
         # 'informal_name': formal name of the unit (e.g. "Computing Science")
         # 'sessional_pay': default amount sessionals are paid (used in grad finances)
+        # 'card_account':  Account code for card access forms
+        # 'card_rooms': Rooms all grads have access to; separate lines with "|" and buildings/rooms with ":", e.g. "AQ:1234|AQ:5678"
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',

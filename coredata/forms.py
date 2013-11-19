@@ -296,9 +296,9 @@ class UnitAddressForm(forms.Form):
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),
                                help_text='Department ID (cost centre) for financial services. e.g. "12345". Used for TA/RA contracts.')
-    card_account = forms.CharField(required=False, label="Card Account", max_length=12,
-                               widget=forms.TextInput(attrs={'size': 12}),
-                               help_text='Account code for card requisitions (e.g. "1234567 1234")')
+    card_account = forms.CharField(required=False, label="Card Account", max_length=13,
+                               widget=forms.TextInput(attrs={'size': 13}),
+                               help_text='Account code for card requisitions (e.g. "12-12345-1234")')
     card_rooms = forms.CharField(required=False, label="Card Access Rooms", help_text='Rooms that all grads have access to, for card access forms. Separate lines with "|" and buildings/rooms with ":", e.g. AQ:1234|AQ:5678.',
                             widget=forms.TextInput(attrs={'size': 40}))
 
