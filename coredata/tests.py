@@ -4,7 +4,8 @@ from coredata.models import *
 from django.core.urlresolvers import reverse
 
 from courselib.testing import *
-from settings import CAS_SERVER_URL
+from django.conf import settings
+CAS_SERVER_URL = settings.CAS_SERVER_URL
 
 from django.db.models import *
 from django.db import IntegrityError

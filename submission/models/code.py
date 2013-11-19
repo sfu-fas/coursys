@@ -4,7 +4,8 @@ from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
 from django import forms
 from django.http import HttpResponse
 from os.path import splitext
-from settings import MEDIA_URL
+from django.conf import settings
+MEDIA_URL = settings.MEDIA_URL
 from django.template import Context, Template
 
 
