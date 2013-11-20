@@ -42,6 +42,7 @@ else:
 
 # Local time zone for this installation.
 TIME_ZONE = 'America/Vancouver'
+USE_TZ = False
 LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True

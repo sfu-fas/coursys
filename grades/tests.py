@@ -8,7 +8,8 @@ from coredata.tests import create_offering
 import pickle, re
 
 
-from settings import CAS_SERVER_URL
+from django.conf import settings
+CAS_SERVER_URL = settings.CAS_SERVER_URL
 from courselib.testing import *
 
 # TODO: test activity modifiers ([A1.max], [A1.percent], [A1.final])

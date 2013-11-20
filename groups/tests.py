@@ -1,6 +1,7 @@
 from django.test import TestCase
 
-from settings import CAS_SERVER_URL
+from django.conf import settings
+CAS_SERVER_URL = settings.CAS_SERVER_URL
 
 from coredata.tests import create_offering
 from coredata.models import *

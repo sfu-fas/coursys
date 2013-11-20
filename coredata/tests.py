@@ -107,12 +107,12 @@ class CoredataTest(TestCase):
         self.assertEquals(str(wk), "1077 week 5")
 
         # test semester arithmetic
-        s = Semester.objects.get(name='1121')
-        self.assertEqual(s.previous_semester().name, '1117')
-        self.assertEqual(s.offset(1).name, '1124')
-        self.assertEqual(s.offset(-1).name, '1117')
-        self.assertEqual(s.offset(2).name, '1127')
-        self.assertEqual(s.offset(-2).name, '1114')
+        s = Semester.objects.get(name='1131')
+        self.assertEqual(s.previous_semester().name, '1127')
+        self.assertEqual(s.offset(1).name, '1134')
+        self.assertEqual(s.offset(-1).name, '1127')
+        self.assertEqual(s.offset(2).name, '1137')
+        self.assertEqual(s.offset(-2).name, '1124')
         self.assertEqual(s - s.offset(-2), 2)
         self.assertEqual(s.offset(-2) - s, -2)
         

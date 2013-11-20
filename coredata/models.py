@@ -375,8 +375,7 @@ class Semester(models.Model):
     def range(cls, start, end):
         """
         Produce a list of semesters from start to end. 
-        >>> [x for x in Semester.range( '1121', '1137' )]
-        [ '1121', '1124', '1127', '1131', '1134', '1137' ]
+        Semester.range( '1134', '1147' ) == [ '1134', '1137', '1141', '1144', '1147' ]
 
         Will run forever or fail if the end semester is not a valid semester. 
         """

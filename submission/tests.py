@@ -5,7 +5,8 @@ from submission.models.code import SubmittedCode
 from submission.forms import *
 from grades.models import NumericActivity
 from coredata.tests import create_offering
-from settings import CAS_SERVER_URL
+from django.conf import settings
+CAS_SERVER_URL = settings.CAS_SERVER_URL
 from coredata.models import *
 from courselib.testing import *
 import gzip, tempfile, os
