@@ -540,12 +540,6 @@ def XXX_sims_person_search(request):
 
 
 
-
-
-
-from django import forms
-
-
 @uses_feature('course_browser')
 @cache_page(60*60*6)
 def browse_courses(request):

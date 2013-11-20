@@ -5,6 +5,7 @@
 {% block subbreadcrumbs %}<li>&gt; Browse Course Offerings</li>{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript">
 var table;
 
@@ -15,17 +16,32 @@ function server_params() {
 		v = $(v);
 		if ( v.attr('type') == 'checkbox' ) {
 			if ( v.prop('checked') ) {
-				params.push({'name': v.attr('name'), 'value': v.val()})
+				params.push({'name': v.attr('name'), 'value': v.val()});
 			}
 		} else {
-			params.push({'name': v.attr('name'), 'value': v.val()})
+		    if ( v.val() != '' ) {
+    			params.push({'name': v.attr('name'), 'value': v.val()});
+    		}
 		}
 	});
 	$('#filterform select').each(function (i, v) {
-		params.push({'name': v.name, 'value': $(v).val()})
+	    v = $(v)
+	    if ( v.val() != '' ) {
+		    params.push({'name': v.attr('name'), 'value': $(v).val()});
+		}
 	});
-	//console.log(params) 
+	//jQuery.bbq.pushState(jQuery.param(params), 2);
 	return params;
+}
+function restore_form() {
+    var data = jQuery.deparam(jQuery.param.fragment());
+    console.log(data);
+    $(data).each(function (k,v) {
+        console.log(k)
+        console.log(v)
+    });
+
+
 }
 function refresh() {
 	table.fnDraw();
@@ -53,7 +69,10 @@ $(document).ready(function() {
           $(this).val(ui.item.value);
           refresh();
         }
-      });
+  });
+
+  $(window).bind( 'hashchange', restore_form);
+  restore_form();
 } );
 </script>
 {% endblock %}
