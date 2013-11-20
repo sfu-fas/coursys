@@ -67,19 +67,21 @@ class Person(models.Model):
         # 'nonstudent_hs': highschool field from NonStudent record
         # 'nonstudent_colg': college field from NonStudent record
         # 'nonstudent_notes': notes field from NonStudent record
-    
+        # 'phone_ext': local phone number (for faculty/staff) (e.g. '25555')
+
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
-                'sin': '000000000'}
+                'sin': '000000000', 'phone_ext': None}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
     gpa, _ = getter_setter('gpa')
     ccredits, _ = getter_setter('ccredits')
-    # see grad.forms.VISA_STATUSES for list of possibilites
+    # see grad.forms.VISA_STATUSES for list of possibilities
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
     sin, set_sin = getter_setter('sin')
+    phone_ext, set_phone_ext = getter_setter('phone_ext')
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
@@ -881,6 +883,8 @@ class Unit(models.Model):
         # 'deptid': department ID for finances
         # 'informal_name': formal name of the unit (e.g. "Computing Science")
         # 'sessional_pay': default amount sessionals are paid (used in grad finances)
+        # 'card_account':  Account code for card access forms
+        # 'card_rooms': Rooms all grads have access to; separate lines with "|" and buildings/rooms with ":", e.g. "AQ:1234|AQ:5678"
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',
