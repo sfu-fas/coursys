@@ -323,7 +323,7 @@ def _activity_colour(a):
 def _holiday_colour(h):
     return "#060680"
 
-
+ICAL_SEQUENCE = '2' # used to perturb the icalendar idents when the output changes
 def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string=True, colour=False, browse_titles=False):
     """
     Get calendar data for this set of offerings and lab sections.
@@ -337,7 +337,7 @@ def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string
         if h.holiday_type in ['FULL', 'CLAS']:
             cancellations.add(h.date)
 
-        ident = "holiday-" + str(h.id) + "-" + h.date.strftime("%Y%m%d") + "@courses.cs.sfu.ca"
+        ident = "holiday-" + str(h.id) + "-" + h.date.strftime("%Y%m%d") + "-" + ICAL_SEQUENCE + "@courses.cs.sfu.ca"
         title = "%s (%s)" % (h.description, h.get_holiday_type_display())
         dt = h.date
         if dt_string:
@@ -373,7 +373,7 @@ def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string
             if st.date() in cancellations:
                 continue
             
-            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
+            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "-" + ICAL_SEQUENCE + "@courses.cs.sfu.ca"
             if browse_titles:
                 title = mt.get_meeting_type_display()
                 if mt.labtut_section:
@@ -426,7 +426,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if en < start or st > end:
                 continue
             
-            ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
+            ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "-" + ICAL_SEQUENCE + "@courses.cs.sfu.ca"
             title = '%s: %s due' % (a.offering.name(), a.name)
             if dt_string:
                 st = st.isoformat()
