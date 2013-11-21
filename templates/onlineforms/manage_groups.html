@@ -17,7 +17,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
 <li>&gt; Form Groups</li>
 {% endblock %}
 
@@ -25,7 +25,7 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url onlineforms.views.new_group %}">New Group</a></li>
+        <li><a href="{% url "onlineforms.views.new_group" %}">New Group</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -43,7 +43,7 @@ $(document).ready(function() {
             <tbody>
             {% for group in groups %}
                 <tr>
-                    <td><a href="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}">{{group.name}}</a></td>
+                    <td><a href="{% url "onlineforms.views.manage_group" formgroup_slug=group.slug %}">{{group.name}}</a></td>
                     <td>{{group.unit.name}}</td>
                 </tr>
             {% endfor %}

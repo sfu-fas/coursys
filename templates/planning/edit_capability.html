@@ -14,7 +14,7 @@ function confirmDelete() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Teaching Capabilities</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "planning.views.instructor_index" %}">Teaching Preferences</a></li><li>&gt; Teaching Capabilities</li>{% endblock %}
 
 {% block content %}
 <div id="capability" class="table_container">
@@ -34,7 +34,7 @@ function confirmDelete() {
 				<tr>
 					<td>{{ capability.course.full_name }}</td>
 					<td>{{ capability.note|linebreaks }}</td>
-					<td><a onclick="return confirmDelete();" href="{% url planning.views.delete_capability course_id=capability.id %} ">Remove</a></td>
+					<td><a onclick="return confirmDelete();" href="{% url "planning.views.delete_capability" course_id=capability.id %} ">Remove</a></td>
 				</tr>
 				{%endfor%}
 		    </tbody>
@@ -45,7 +45,7 @@ function confirmDelete() {
 </div>
 
 <div class="form_container">
-    <form action="{% url planning.views.edit_capability %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.edit_capability" %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add Course</legend>
 

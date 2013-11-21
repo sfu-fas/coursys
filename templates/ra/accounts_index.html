@@ -3,7 +3,7 @@
 {% block h1 %}Manage Accounts{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
 <li>&gt; Accounts</li>
 {% endblock %}
 
@@ -28,7 +28,7 @@ function confirmDelete() {
   <div id="actions">
   <h2>Actions</h2>
     <ul>
-      <li><a href="{% url ra.views.new_account %}">New Account</a></li>
+      <li><a href="{% url "ra.views.new_account" %}">New Account</a></li>
     </ul>
   </div>
 {% endblock %}
@@ -53,10 +53,10 @@ function confirmDelete() {
             <td>{{account.position_number}}</td>
             <td>{{account.unit}}</td>
             <td class='miniaction'>
-                <a href="{% url ra.views.edit_account account_slug=account.slug %}">Edit</a>
+                <a href="{% url "ra.views.edit_account" account_slug=account.slug %}">Edit</a>
                 | 
                 <a onclick="return confirmDelete();" 
-                    href="{% url ra.views.remove_account account_slug=account.slug %}">Delete</a>
+                    href="{% url "ra.views.remove_account" account_slug=account.slug %}">Delete</a>
             </td>
           </tr>
         {% endfor %}

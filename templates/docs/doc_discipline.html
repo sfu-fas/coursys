@@ -3,7 +3,7 @@
 {% block title %}CourSys: Academic Dishonesty Cases{% endblock %}
 {% block h1 %}CourSys: Academic Dishonesty Cases{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Academic Dishonesty Cases</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>&gt; Academic Dishonesty Cases</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -36,7 +36,7 @@ The system is designed to make following the policies as easy as possible, but c
 
 <h2 id="workflow">Case Workflow</h2>
 <p>The intention is that an instructor will create the case in CourSys as soon as they recognize a problem. The system will guide them through the rest of the process.</p>
-<p>Instructors start by going to <a href="{% url dashboard.views.index %}">the front page of CourSys</a>, selecting their course, and &ldquo;Dishonesty Cases&rdquo; from the menu on the left.</p>
+<p>Instructors start by going to <a href="{% url "dashboard.views.index" %}">the front page of CourSys</a>, selecting their course, and &ldquo;Dishonesty Cases&rdquo; from the menu on the left.</p>
 <p>Once an instructor creates a case, they can click through to the case's main screen. On this page, the <strong>most important feature is the &ldquo;suggested next step&rdquo;</strong> box. It gives the next action that the instructor should likely take to proceed with the case. Of course, instructors can skip ahead and back as needed to edit other information.</p>
 <p>The system will keep track of the state of the case as it is being completed and will always suggest the next step. In addition to these roughly-linear steps, there are two additional pieces of information the instructor can enter:</p>
 <dl class="docs">

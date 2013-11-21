@@ -4,7 +4,7 @@
 {% block title %}CourSys Roles{% endblock %}
 {% block h1 %}CourSys Roles{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.unit_admin %}">Admin</a></li><li>&gt; <a href="{% url coredata.views.unit_role_list %}">Roles</a></li><li>&gt; New</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.unit_admin" %}">Admin</a></li><li>&gt; <a href="{% url "coredata.views.unit_role_list" %}">Roles</a></li><li>&gt; New</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -35,7 +35,7 @@
 {% block content %}
 
 <div class="form_container">
-<form action="{% url coredata.views.new_unit_role %}" method="post">{% csrf_token %}
+<form action="{% url "coredata.views.new_unit_role" %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Role</legend>
 {{ form|as_dl }}

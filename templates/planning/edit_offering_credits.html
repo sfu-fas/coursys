@@ -6,10 +6,10 @@
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url planning.views.view_insts_in_unit %}">Teaching Administration</a>
+    &gt; <a href="{% url "planning.views.view_insts_in_unit" %}">Teaching Administration</a>
 </li>
 <li>
-    &gt; <a href="{% url planning.views.view_teaching_credits_admin userid=instructor.userid %}">Teaching Credits For {{ instructor.userid }}</a>
+    &gt; <a href="{% url "planning.views.view_teaching_credits_admin" userid=instructor.userid %}">Teaching Credits For {{ instructor.userid }}</a>
 </li>
 <li>
     &gt; Credits For {{ member.offering.name }}
@@ -18,7 +18,7 @@
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url planning.views.edit_course_offering_credits userid=instructor.userid course_slug=member.offering.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.edit_course_offering_credits" userid=instructor.userid course_slug=member.offering.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Credits</legend>
             {{ form|as_dl_safe }}

@@ -2,16 +2,16 @@
 
 {% block title %}Missing Page{% endblock %}
 {% block h1 %}Missing Page{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; Missing</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li><li>&gt; Missing</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url pages.views.all_pages course_slug=offering.slug %}">List Pages</a></li>
+    <li><a href="{% url "pages.views.all_pages" course_slug=offering.slug %}">List Pages</a></li>
 {% if can_create %}
-    <li><a href="{% url pages.views.new_page course_slug=offering.slug %}?label={{page_label}}">Create this page</a></li>
-    <li><a href="{% url pages.views.new_file course_slug=offering.slug %}?label={{page_label}}">Create as file attachment</a></li>
+    <li><a href="{% url "pages.views.new_page" course_slug=offering.slug %}?label={{page_label}}">Create this page</a></li>
+    <li><a href="{% url "pages.views.new_file" course_slug=offering.slug %}?label={{page_label}}">Create as file attachment</a></li>
 {% endif %}
     </ul>
 </div>
@@ -24,7 +24,7 @@
 {% if page_label == "Index" and can_create %}
 <p class="helptext">The &ldquo;pages&ldquo; features of CourSys allow you to post web pages or files for students (or others) to access.
 Each page/file has full edit history saved and can have read/write permissions set individually.</p>
-<p class="helptext">Additional <a href="{% url dashboard.views.view_doc doc_slug='pages' %}">documentation is available</a> on course pages.</p>
+<p class="helptext">Additional <a href="{% url "dashboard.views.view_doc" doc_slug='pages' %}">documentation is available</a> on course pages.</p>
 {% endif %}
 
 {% endblock %}

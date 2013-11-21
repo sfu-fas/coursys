@@ -17,13 +17,13 @@ $(document).ready(function() {
 {% block title %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 {% block h1 %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a></li><li>&gt; for {{activity.name}}</li>{% else %}<li>&gt; Groups</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>&gt; for {{activity.name}}</li>{% else %}<li>&gt; Groups</li>{% endif %}{% endblock %}
 
 {% block content %}
 {% if not activity %}
   <p>
   See groups for only: {% for a in activities %}
-  <a href="{% url groups.views.groupmanage course_slug=course.slug activity_slug=a.slug %}">{{ a.name }}</a>{% if forloop.last %}{% else %}, {% endif %}
+  <a href="{% url "groups.views.groupmanage" course_slug=course.slug activity_slug=a.slug %}">{{ a.name }}</a>{% if forloop.last %}{% else %}, {% endif %}
   {% endfor %}
 {% endif%}
 </p>
@@ -35,7 +35,7 @@ $(document).ready(function() {
   {% if not activity %}<p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>{% endif %}
           <ul>
               {% for m in info.unique_members %}
-              <li><a href="{% url grades.views.student_info course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+              <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
               {% if m.missing %}(not for 
               {% for a in m.missing %}
               {{ a.name_with_pref }}{% if forloop.last %}){% else %}, {% endif %}
@@ -44,9 +44,9 @@ $(document).ready(function() {
               </li>
               {% endfor %}
           </ul>
-  <p class="noprint">[ <a href="{% url groups.views.change_name course_slug=course.slug group_slug=info.group.slug %}">Change Name</a> |
-          <a href="{% url groups.views.assign_student course_slug=course.slug group_slug=info.group.slug %}">Add Student</a> |
-          <a href="{% url groups.views.remove_student course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a> |
+  <p class="noprint">[ <a href="{% url "groups.views.change_name" course_slug=course.slug group_slug=info.group.slug %}">Change Name</a> |
+          <a href="{% url "groups.views.assign_student" course_slug=course.slug group_slug=info.group.slug %}">Add Student</a> |
+          <a href="{% url "groups.views.remove_student" course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a> |
           <a href="mailto:{{ info.email|urlencode }}">Email Group</a>
           {% if course.uses_svn %}| <a href="{{info.group.svn_url}}">SVN repo</a> {% endif %}
           ]</p>
@@ -61,7 +61,7 @@ $(document).ready(function() {
   {% if studentsNotInGroup %}
     <ul>
     {% for student in studentsNotInGroup %}
-      <li><a href="{% url grades.views.student_info course_slug=course.slug userid=student.person.userid %}">{{student.person.name_with_pref}}</a>, {{student.person.userid}}</li>
+      <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=student.person.userid %}">{{student.person.name_with_pref}}</a>, {{student.person.userid}}</li>
       {% endfor %}
     </ul>
   {% else %}
@@ -69,7 +69,7 @@ $(document).ready(function() {
   {% endif %}
   </div>
   <p>
-    <a class="button" href="{% url groups.views.create course_slug=course.slug %}">New Group</a>
+    <a class="button" href="{% url "groups.views.create" course_slug=course.slug %}">New Group</a>
   </p>
 
 <h2 id="data">Group Data</h2>

@@ -11,9 +11,9 @@ $(function() {
     $("#id_search").focus();
     student_autocomplete('id_search', true);
     {% if simssearch %}
-    search_sims('{% url advisornotes.views.sims_search %}',
+    search_sims('{% url "advisornotes.views.sims_search" %}',
         '{{simssearch}}',
-        '{% url advisornotes.views.sims_add_person %}',
+        '{% url "advisornotes.views.sims_add_person" %}',
         '{% filter escapejs %}{% csrf_token %}{% endfilter %}'
     );
     {% endif %}
@@ -28,10 +28,10 @@ $(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url advisornotes.views.new_nonstudent %}">New prospective student</a></li>
-        <li><a href="{% url advisornotes.views.view_courses %}">View all courses</a></li>
-        <li><a href="{% url advisornotes.views.view_course_offerings %}">View all course offerings</a></li>
-        <li><a href="{% url advisornotes.views.view_artifacts %}">View all artifacts</a></li>
+        <li><a href="{% url "advisornotes.views.new_nonstudent" %}">New prospective student</a></li>
+        <li><a href="{% url "advisornotes.views.view_courses" %}">View all courses</a></li>
+        <li><a href="{% url "advisornotes.views.view_course_offerings" %}">View all course offerings</a></li>
+        <li><a href="{% url "advisornotes.views.view_artifacts" %}">View all artifacts</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -55,7 +55,7 @@ $(function() {
     {% endif %}
 
     {% if simsinfo %}
-    <form action="{% url advisornotes.views.sims_add_person %}" method="post">{% csrf_token %}
+    <form action="{% url "advisornotes.views.sims_add_person" %}" method="post">{% csrf_token %}
         <p>
             Person found in SIMS: {{ simsinfo.last_name }}, {{ simsinfo.first_name }},
             {{ simsinfo.emplid }}{% if simsinfo.userid %}, {{ simsinfo.userid }}{% endif %}.
@@ -68,7 +68,7 @@ $(function() {
 
 <h2 id="notesearch">Search Content of Student Notes</h2>
 <div style="margin-right: 1em;">
-    <form action="{% url advisornotes.views.note_search %}" method="get">
+    <form action="{% url "advisornotes.views.note_search" %}" method="get">
         <fieldset style="width: 65%; margin-right: 1em;">
             {{note_form.as_p}}
             <p><input class="submit" type="submit" value="Submit" /></p>

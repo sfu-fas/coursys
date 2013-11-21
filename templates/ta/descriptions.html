@@ -4,7 +4,7 @@
 {% block h1 %}TA Contract Descriptions{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
 <li>&gt; Contract Descriptions</li>
 {% endblock %}
 
@@ -12,7 +12,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url ta.views.new_description %}">New Description</a></li>
+    <li><a href="{% url "ta.views.new_description" %}">New Description</a></li>
     </ul>
 </div>
 {% endblock %}

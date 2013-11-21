@@ -5,8 +5,8 @@
 {% block h1 %}{{ application.posting.unit.label }} TA Application for {{application.person}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=application.posting.slug %}">{{ application.posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=application.posting.slug %}">{{ application.posting.short_str }}</a></li>
 <li>&gt; {{ application.person.userid }}</li> 
 {% endblock %}
 
@@ -15,8 +15,8 @@
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-{% if application.posting.is_open %}<li><a href="{% url ta.views.edit_application post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>{% endif %}
-{% if contract %}<li><a href="{% url ta.views.view_contract post_slug=application.posting.slug userid=application.person.userid %}">View Contract</a></li>{% endif %}
+{% if application.posting.is_open %}<li><a href="{% url "ta.views.edit_application" post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>{% endif %}
+{% if contract %}<li><a href="{% url "ta.views.view_contract" post_slug=application.posting.slug userid=application.person.userid %}">View Contract</a></li>{% endif %}
 </ul>
 </div>
 {% endif %}
@@ -28,7 +28,7 @@
 <div class="table_container">
   <h2>General Information:</h2>
   {% if application.late %}
-    <p>This application was submitted late.  <a href="{% url ta.views.update_application post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
+    <p>This application was submitted late.  <a href="{% url "ta.views.update_application" post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
   {% endif %}
   <table class="info">
     <tr><th>Name</th><td>{{ application.person.name }} ({{application.person.email_mailto}})</td></tr>

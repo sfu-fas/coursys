@@ -28,7 +28,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Photo List</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Photo List</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -48,7 +48,7 @@
         <tbody>
         {% for member in members %}
         <tr>
-            <td><img src="{% url dashboard.views.student_photo emplid=member.person.emplid %}" alt="{{member.person.userid}}'s photo" /></td>
+            <td><img src="{% url "dashboard.views.student_photo" emplid=member.person.emplid %}" alt="{{member.person.userid}}'s photo" /></td>
             <td>{{member.person.last_name}}</td>
             <td>{{member.person.first_with_pref}}</td>
             <td>{{member.person.userid}}</td>

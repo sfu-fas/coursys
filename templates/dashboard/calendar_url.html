@@ -4,7 +4,7 @@
 {% block title %}Activate External Calendar{% endblock %}
 {% block h1 %}Activate External Calendar{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.config %}">User Configuration</a></li><li>&gt; Calendar URL</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.config" %}">User Configuration</a></li><li>&gt; Calendar URL</li>{% endblock %}
 
 {% block content %}
 
@@ -18,7 +18,7 @@ Activating the external calendar may cause privacy concerns.  You will be given 
 <li>Your feed can be deactivated or be moved to a different URL at any time.</li>
 </ul>
 
-<form action="{% url dashboard.views.create_calendar_url %}" method="post">{% csrf_token %}
+<form action="{% url "dashboard.views.create_calendar_url" %}" method="post">{% csrf_token %}
     {% for field in form.visible_fields %}
         <div class="field">
             {{ field }} I agree to activate the external calendar and be responsible for its privacy.

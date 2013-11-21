@@ -2,10 +2,10 @@
 {% load course_display %}
 {% block title %}Create Group{% endblock %}
 {% block h1 %}Create Group{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a></li><li>&gt; Create group</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>&gt; Create group</li>{% endblock %}
 {% block content %}
 	{% if user %}
-		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="post">{% csrf_token %}
+		<form action="{% url "groups.views.submit" course_slug=course.slug  %}" method="post">{% csrf_token %}
 		        <div class="group_name">
 				<label for="name">Group Name </label>
 				<input type="text" name="GroupName" id="name" maxlength="30" />

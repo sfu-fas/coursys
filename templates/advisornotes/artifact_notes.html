@@ -3,7 +3,7 @@
 {% block h1 %}Notes for {{ artifact }} {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
 <li>&gt; {{ artifact }}</li>
 {% endblock %}
 
@@ -24,7 +24,7 @@ $(document).ready(function() {
         $("#note-"+id).trigger('collapse_slow');
     }
 
-    $.post("{% url advisornotes.views.artifact_notes course_slug=artifact.slug %}",
+    $.post("{% url "advisornotes.views.artifact_notes" course_slug=artifact.slug %}",
         {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': ch});
    });
 });
@@ -41,7 +41,7 @@ $(document).ready(function() {
     <p>{{note.text|linebreaks}}</p>
     {% if note.file_attachment %}
     <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" />
-        <a href="{% url advisornotes.views.download_file userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
+        <a href="{% url "advisornotes.views.download_file" userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
         ({{ note.file_attachment.size|filesizeformat }})
     </p> 
     {% endif %}

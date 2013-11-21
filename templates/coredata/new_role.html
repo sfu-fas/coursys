@@ -3,7 +3,7 @@
 {% block title %}CourSys Roles{% endblock %}
 {% block h1 %}CourSys Roles{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; New Role</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; New Role</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -24,7 +24,7 @@ $(document).ready(function() {
 
 {% block content %}
 
-<form action="{% url coredata.views.new_role %}" method="post">{% csrf_token %}
+<form action="{% url "coredata.views.new_role" %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Role</legend>
 {{ form|as_dl }}

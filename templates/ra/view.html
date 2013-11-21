@@ -8,8 +8,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
-<li>&gt; <a href="{% url ra.views.student_appointments userid=appointment.person.emplid %}">{{ student.name }}</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
+<li>&gt; <a href="{% url "ra.views.student_appointments" userid=appointment.person.emplid %}">{{ student.name }}</a></li>
 <li>&gt; {{ appointment.account.title }} starting {{ appointment.start_date }}</li>
 {% endblock %}
 
@@ -17,11 +17,11 @@
   <div id="actions">
     <h2>Actions</h2>
     <ul>
-      <li><a href="{% url ra.views.edit ra_slug=appointment.slug %}">Edit this appointment</a></li>
-      <li><a href="{% url ra.views.edit_letter ra_slug=appointment.slug %}">Edit Letter Text</a></li>
-      <li><a href="{% url ra.views.form ra_slug=appointment.slug %}">Appointment Form</a></li>
-      <li><a href="{% url ra.views.letter ra_slug=appointment.slug %}">Appointment Letter</a></li>
-      <li><a href="{% url ra.views.reappoint ra_slug=appointment.slug %}">Reappoint</a></li>
+      <li><a href="{% url "ra.views.edit" ra_slug=appointment.slug %}">Edit this appointment</a></li>
+      <li><a href="{% url "ra.views.edit_letter" ra_slug=appointment.slug %}">Edit Letter Text</a></li>
+      <li><a href="{% url "ra.views.form" ra_slug=appointment.slug %}">Appointment Form</a></li>
+      <li><a href="{% url "ra.views.letter" ra_slug=appointment.slug %}">Appointment Letter</a></li>
+      <li><a href="{% url "ra.views.reappoint" ra_slug=appointment.slug %}">Reappoint</a></li>
     </ul>
   </div>
 {% endblock %}
@@ -132,7 +132,7 @@
   </table>
 </div>
 
-                        <form action="{% url ra.views.delete_ra ra_slug=appointment.slug %}" method="post">
+                        <form action="{% url "ra.views.delete_ra" ra_slug=appointment.slug %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
                                     <input type="submit" value="Delete Appointment" onclick="return confirmSubmit('delete this appointment')" />

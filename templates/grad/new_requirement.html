@@ -6,10 +6,10 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
 {% block content %}
 <div class="form_container">
-    <form action="{% url grad.views.new_requirement %}" method="post">{% csrf_token %}
+    <form action="{% url "grad.views.new_requirement" %}" method="post">{% csrf_token %}
     	<fieldset>
 			<legend>Requiremnt Info</legend>
               {{ form|as_dl_2 }}

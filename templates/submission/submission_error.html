@@ -1,6 +1,6 @@
 {% extends "submission/base.html" %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; <a href="{% url submission.views.show_components course.slug, activity.slug%}">Submission</a></li><li>&gt; Error Detected</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url "grades.views.activity_info" course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; <a href="{% url "submission.views.show_components" course.slug, activity.slug%}">Submission</a></li><li>&gt; Error Detected</li>{% endblock %}
 
 {% block h1 %}
     {%ifequal not_submitted_comp|length 0 %}
@@ -18,7 +18,7 @@
     <div id ="submission_error_container">
         {# If every component is submitted and has no error #}
         {%ifequal not_submitted_comp|length 0 %}
-            <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">continue</a>
+            <a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}" class="button">continue</a>
         {# if there are errors in several submitted component#}
         {%else%}
             <h2>Errors in Submission</h2>
@@ -59,7 +59,7 @@
             {% endifequal %}
             <h2 class ="text">All components with error are not submitted.</h2>
             <br>
-            <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">OK</a>
+            <a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}" class="button">OK</a>
         {%endifequal%}
     </div>
 {% endblock %}

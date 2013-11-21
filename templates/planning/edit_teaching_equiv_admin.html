@@ -6,13 +6,13 @@
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url planning.views.view_insts_in_unit %}">Teaching Administration</a>
+    &gt; <a href="{% url "planning.views.view_insts_in_unit" %}">Teaching Administration</a>
 </li>
 <li>
-    &gt; <a href="{% url planning.views.view_teaching_credits_admin userid=instructor.userid %}">Teaching Credits For {{ instructor.userid }}</a>
+    &gt; <a href="{% url "planning.views.view_teaching_credits_admin" userid=instructor.userid %}">Teaching Credits For {{ instructor.userid }}</a>
 </li>
 <li>
-    &gt; <a href="{% url planning.views.view_teaching_equivalent_admin userid=instructor.userid equivalent_id=equivalent.pk %}">Teaching Equivalent</a>
+    &gt; <a href="{% url "planning.views.view_teaching_equivalent_admin" userid=instructor.userid equivalent_id=equivalent.pk %}">Teaching Equivalent</a>
 </li>
 <li>
 	&gt; Edit Teaching Equivalent
@@ -21,7 +21,7 @@
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url planning.views.edit_teaching_equivalent_admin userid=instructor.userid equivalent_id=equivalent.id %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.edit_teaching_equivalent_admin" userid=instructor.userid equivalent_id=equivalent.id %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Teaching Equivalent</legend>
             {{ form|as_dl_safe }}

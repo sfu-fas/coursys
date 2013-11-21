@@ -25,7 +25,7 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>&gt; Add Calculated Numeric Activity</li>{% endifequal %}{% if activity %}<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>&gt; Edit</li>{% endifequal %}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>&gt; Add Calculated Numeric Activity</li>{% endifequal %}{% if activity %}<li>&gt; <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>&gt; Edit</li>{% endifequal %}{% endblock %}
 
 
 {% block content %}
@@ -39,7 +39,7 @@ $(document).ready(function() {
         {{ form.non_field_errors }}
     </p>
     {% endif %}
-    <form action="{% ifequal form_type 'add' %}{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
+    <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_cal_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
                 method="post">{% csrf_token %}
         <fieldset>
             <legend>Activity Info</legend>
@@ -58,7 +58,7 @@ $(document).ready(function() {
                         {% if form.formula.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{form.formula.errors.0}}</span>{% endif %}
                         {% if form.formula.help_text %}<div class="helptext">({{form.formula.help_text}})</div>{% endif %}
                         <div class="buttongroup">
-                            <a href="{% url grades.views.formula_tester course_slug=course.slug %}" id="testerlink" class="redbutton">Formula Tester</a>
+                            <a href="{% url "grades.views.formula_tester" course_slug=course.slug %}" id="testerlink" class="redbutton">Formula Tester</a>
                         </div>
                         <div class="collapsible">The applicable numeric activities:</div>
                         <div class="activity_reference_container">
@@ -112,13 +112,13 @@ $(document).ready(function() {
 </div>
   <p>
     {% ifequal form_type 'add' %}
-    <a class="button" href="{% url grades.views.activity_choice course_slug=course.slug %}">Back</a>
+    <a class="button" href="{% url "grades.views.activity_choice" course_slug=course.slug %}">Back</a>
     {% endifequal %}
     {% ifequal form_type 'edit' %}
-    <form action="{% url grades.views.delete_activity course_slug=course.slug activity_slug=activity.slug %}" method="post" name="deleteform">{% csrf_token %}
+    <form action="{% url "grades.views.delete_activity" course_slug=course.slug activity_slug=activity.slug %}" method="post" name="deleteform">{% csrf_token %}
     <p><input type="submit" class="submit" value="Delete Activity" id="deletesubmit" onclick="return confirmSubmit('delete this activity');" /></p>
     </form>
-    <a class="button" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
+    <a class="button" href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">Back</a>
     {% endifequal %}
   </p>
 

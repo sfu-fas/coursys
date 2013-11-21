@@ -30,7 +30,7 @@
 
 
 {% block content%}
-<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url "mobile.views.course_info" course_slug=course.slug %}">back</a>
 
 <table id="students">
 <thead>
@@ -43,13 +43,13 @@
 <tr>
 <td>{{ m.person.sortname }}</td>
 <td><a href="mailto:{{m.person.email}}">{{ m.person.userid }}</a></td>
-<td><a href="{% url mobile.views.student_info course_slug=course.slug userid=m.person.userid %}">{{m.person.emplid}}</a></td>
+<td><a href="{% url "mobile.views.student_info" course_slug=course.slug userid=m.person.userid %}">{{m.person.emplid}}</a></td>
 {% if course.labtut %}<td>{{m.labtut_section}}</td>{% endif %}
 </tr>
 {% endfor %}
 </tbody>
 </table>
 
-<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url "mobile.views.course_info" course_slug=course.slug %}">back</a>
 
 {% endblock %}

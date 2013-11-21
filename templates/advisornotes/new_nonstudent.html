@@ -5,7 +5,7 @@
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url advisornotes.views.advising %}">Advising</a>
+    &gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a>
 </li>
 <li>
     &gt; New Prospective Student
@@ -19,7 +19,7 @@
         {{ form.non_field_errors }}
     </p>
     {% endif %}
-    <form action="{% url advisornotes.views.new_nonstudent %}" method="post">
+    <form action="{% url "advisornotes.views.new_nonstudent" %}" method="post">
         {% csrf_token %}
         <fieldset>
             <legend>

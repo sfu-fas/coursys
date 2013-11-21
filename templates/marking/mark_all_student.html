@@ -46,7 +46,7 @@ the grade.  All other columns will be ignored.
 column is the grade.  Other columns will be ignored.</li>
 </ul>
 {% if too_many %}
-<a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
+<a class="redbutton reset_button" href="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endif %}
 <form id = "grades_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
 {%if too_many %}

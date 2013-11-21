@@ -4,8 +4,8 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion Subscription{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a></li>
+<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
 <li>&gt; Subscription</li>
 {% endblock %}
 
@@ -23,7 +23,7 @@
 <p>You are currently subscribed to discussion in these specific topics in this course. You can edit your subscriptions to them as well:</p>
 <ul>
 {% for sub in topic_subs %}
-<li><a href="{% url discuss.views.manage_topic_subscription course_slug=course.slug topic_slug=sub.topic.slug %}">{{ sub.topic.title }}</a></li>
+<li><a href="{% url "discuss.views.manage_topic_subscription" course_slug=course.slug topic_slug=sub.topic.slug %}">{{ sub.topic.title }}</a></li>
 {% endfor %}
 </ul>
 {% endif %}

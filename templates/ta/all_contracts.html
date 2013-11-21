@@ -5,8 +5,8 @@
 {% block h1 %}TA Contracts for {{ posting }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>&gt; Contracts</li>
 {% endblock %}
 
@@ -14,7 +14,7 @@
 <script type="text/javascript">
     var application_urls = new Array();
     {% for app in applications %}
-    application_urls['{{ app.id }}'] = '{% url ta.views.edit_contract post_slug=posting.slug userid=app.person.userid %}';
+    application_urls['{{ app.id }}'] = '{% url "ta.views.edit_contract" post_slug=posting.slug userid=app.person.userid %}';
     {% endfor %}
     $(function() {
     	$('#contracts').dataTable({
@@ -25,7 +25,7 @@
 		
     	//setting post_slug
     	$('#submit').click(function(){
-    		var url = application_urls[$('#app').val()]
+    		var url "=" application_urls[$('#app').val()]
     		$('#create').attr("href", url)
     	})
 
@@ -49,8 +49,8 @@
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url ta.views.contracts_csv post_slug=posting.slug %}">Payroll Upload File</a></li>
-<li><a href="{% url ta.views.contracts_forms post_slug=posting.slug %}">All Forms</a></li>
+<li><a href="{% url "ta.views.contracts_csv" post_slug=posting.slug %}">Payroll Upload File</a></li>
+<li><a href="{% url "ta.views.contracts_forms" post_slug=posting.slug %}">All Forms</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -84,8 +84,8 @@
 	<td>{{contract.crs_list|linebreaksbr}}</td>
 	<td>{{ contract.deadline|date:"M d Y" }}</td>
   	<td>
-  		<a href="{% url ta.views.view_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a>&nbsp;
-  		<a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a>&nbsp;
+  		<a href="{% url "ta.views.view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a>&nbsp;
+  		<a href="{% url "ta.views.edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a>&nbsp;
   	</td>
   	<td class="miniaction">
   		{% if contract.status == 'NEW' %}
@@ -107,7 +107,7 @@
 
 <div id="ta_con">
 <h2>New Contract:</h2>
-<form action="{% url ta.views.new_contract post_slug=posting.slug %}" method="post">{% csrf_token %}
+<form action="{% url "ta.views.new_contract" post_slug=posting.slug %}" method="post">{% csrf_token %}
 	{{ form.application }}
 	<input type="submit" class="submit" id="submit" value="Create">
 	<div class="helptext">Select the associated applicant</div>

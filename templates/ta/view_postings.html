@@ -14,8 +14,8 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url ta.views.edit_posting %}">New Posting</a></li>
-    <li><a href="{% url ta.views.descriptions %}">Contract Descriptions</a></li>
+    <li><a href="{% url "ta.views.edit_posting" %}">New Posting</a></li>
+    <li><a href="{% url "ta.views.descriptions" %}">Contract Descriptions</a></li>
     </ul>
 </div>
 {% endif %}
@@ -27,7 +27,7 @@
 <h2>Posting Administration</h2>
 <ul>
 {% for p in owned %}
-<li><a href="{% url ta.views.posting_admin post_slug=p.slug %}">{{p}}</a></li>
+<li><a href="{% url "ta.views.posting_admin" post_slug=p.slug %}">{{p}}</a></li>
 {% empty %}
 <li class="empty">None</li>
 {% endfor %}
@@ -40,7 +40,7 @@
 <ul>
 {% for p in postings %}
 <li>
-  <a href="{% url ta.views.new_application post_slug=p.slug %}">{{p}}</a>
+  <a href="{% url "ta.views.new_application" post_slug=p.slug %}">{{p}}</a>
 </li>
 {% empty %}
 <li class="empty">No open postings</li>

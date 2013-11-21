@@ -4,12 +4,12 @@
 {% block title %}Edit News Item Settings{% endblock %}
 {% block h1 %}Edit News Item Settings{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.config %}">User Configuration</a></li><li>&gt; News Settings</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.config" %}">User Configuration</a></li><li>&gt; News Settings</li>{% endblock %}
 
 {% block content %}
 
 
-<form action="{% url dashboard.views.news_config %}" method="post">{% csrf_token %}
+<form action="{% url "dashboard.views.news_config" %}" method="post">{% csrf_token %}
     {% for field in form.visible_fields %}
         <div class="field">
             {{ field }}

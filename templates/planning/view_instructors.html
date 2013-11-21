@@ -8,8 +8,8 @@
 {% block h1 %}Instructor for {{ planned_offering }}{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
-    <li>&gt; <a href="{% url planning.views.update_plan semester=semester_plan.semester.name plan_slug=semester_plan.slug %}">{{ semester_plan.name }} in {{semester_plan.semester.label}}</a></li>
+    <li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+    <li>&gt; <a href="{% url "planning.views.update_plan" semester=semester_plan.semester.name plan_slug=semester_plan.slug %}">{{ semester_plan.name }} in {{semester_plan.semester.label}}</a></li>
     <li>&gt; Instructor for {{ planned_offering }}</li>
 {% endblock %}
 
@@ -24,7 +24,7 @@
 <div class="datatable_container">
     
     <div class="form_container">
-        <form action="{% url planning.views.view_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug planned_offering_slug=planned_offering.slug %}" method="post">{% csrf_token %}
+        <form action="{% url "planning.views.view_instructors" semester=semester_plan.semester.name plan_slug=semester_plan.slug planned_offering_slug=planned_offering.slug %}" method="post">{% csrf_token %}
 
         <h3>Capable Instructors</h3>
 

@@ -7,8 +7,8 @@
 {% block h1 %}{{grad.person.name}}: General Info{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; General Info</li>
 {% endblock %}
 
@@ -16,8 +16,8 @@
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
-	<li><a href="{% url grad.views.manage_program grad_slug=grad.slug %}">Change Program</a></li>
-	<li><a href="{% url grad.views.manage_defence grad_slug=grad.slug %}">Edit Defence Info</a></li>
+	<li><a href="{% url "grad.views.manage_program" grad_slug=grad.slug %}">Change Program</a></li>
+	<li><a href="{% url "grad.views.manage_defence" grad_slug=grad.slug %}">Edit Defence Info</a></li>
 	</ul>
 </div>
 {% endblock %}
@@ -45,5 +45,5 @@
 		</fieldset>
 	</form>
 </div>
-<p class="gradback"><a class="button" href="{% url grad.views.view grad_slug=grad.slug %}">Return to Profile</a></p>
+<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

@@ -49,7 +49,7 @@
 		      </td>
 	          <td>{{ act_mark.created_by }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url marking.views.mark_summary_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          	<a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 	          </td>
 	        </tr>	
 	     {% empty %}

@@ -35,7 +35,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
 <li>&gt; Teaching Capabilities</li>
 {% endblock %}
 
@@ -64,7 +64,7 @@ $(document).ready(function() {
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url planning.views.planner_edit_capabilities userid=instructor.userid %}">Edit</a>
+                        <a href="{% url "planning.views.planner_edit_capabilities" userid=instructor.userid %}">Edit</a>
                     </td>
                 </tr>
             {% endfor %}

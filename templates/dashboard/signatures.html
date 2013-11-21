@@ -4,7 +4,7 @@
 {% block title %}Signatures{% endblock %}
 {% block h1 %}Signatures{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.unit_admin %}">Admin</a></li><li>&gt; Signatures</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.unit_admin" %}">Admin</a></li><li>&gt; Signatures</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -28,7 +28,7 @@ $(document).ready(function() {
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url dashboard.views.new_signature %}">Add Signature</a></li>
+<li><a href="{% url "dashboard.views.new_signature" %}">Add Signature</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -42,8 +42,8 @@ $(document).ready(function() {
   {% for s in sigs %}
   <tr>
   <td>{{s.user.name}}</a></td>
-  <td><img src="{% url dashboard.views.view_signature userid=s.user.userid %}" alt="/{{s.user.name}}/" style="max-width: 3in; max-height: 0.75in" /></td>
-  <td><form action="{% url dashboard.views.delete_signature userid=s.user.userid %}" method="post">{% csrf_token %}<input type="submit" value="Delete" /></form></td>
+  <td><img src="{% url "dashboard.views.view_signature" userid=s.user.userid %}" alt="/{{s.user.name}}/" style="max-width: 3in; max-height: 0.75in" /></td>
+  <td><form action="{% url "dashboard.views.delete_signature" userid=s.user.userid %}" method="post">{% csrf_token %}<input type="submit" value="Delete" /></form></td>
   </tr>
   {% endfor %}
   </tbody>

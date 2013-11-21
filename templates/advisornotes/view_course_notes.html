@@ -3,8 +3,8 @@
 {% block h1 %}Notes for {{ course.full_name }} {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
-<li>&gt; <a href="{% url advisornotes.views.view_courses %}">Courses</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.view_courses" %}">Courses</a></li>
 <li>&gt; {{ course }}</li>
 {% endblock %}
 
@@ -27,7 +27,7 @@ $(function() {
             $('#note-'+id).trigger('collapse_slow');
         }
 
-        $.post('{% url advisornotes.views.hide_note %}', {
+        $.post('{% url "advisornotes.views.hide_note" %}', {
             'csrfmiddlewaretoken': '{{csrf_token}}',
             'note_id': id,
             'hide': ch
@@ -35,7 +35,7 @@ $(function() {
     });
 
 	$('div.table_container').html('<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
-    more_course_info('{% url advisornotes.views.course_more_info unit_course_slug=course.slug %}');
+    more_course_info('{% url "advisornotes.views.course_more_info" unit_course_slug=course.slug %}');
 } );
 
 $(function() {
@@ -55,7 +55,7 @@ $(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url advisornotes.views.new_artifact_note unit_course_slug=course.slug %}">New Note</a></li>
+        <li><a href="{% url "advisornotes.views.new_artifact_note" unit_course_slug=course.slug %}">New Note</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -83,7 +83,7 @@ $(function() {
 {%endif%}
 
 {% if not important_notes and not notes %}
-    <p>No notes yet. <a href="{% url advisornotes.views.new_artifact_note unit_course_slug=course.slug %}">Create a new note.</a></p>
+    <p>No notes yet. <a href="{% url "advisornotes.views.new_artifact_note" unit_course_slug=course.slug %}">Create a new note.</a></p>
 {%endif%}
 
 {% if offerings %}
@@ -109,7 +109,7 @@ $(function() {
             <td>{{ offering.subject }}</td>
             <td>{{ offering.number }}</td>
             <td>{{ offering.section }}</td>
-            <td><a href="{% url advisornotes.views.view_offering_notes course_slug=offering.slug %}">{{ offering.title }}</a></td>
+            <td><a href="{% url "advisornotes.views.view_offering_notes" course_slug=offering.slug %}">{{ offering.title }}</a></td>
             <td>{{ offering.get_component_display }}</td>
             {{ spaceless }}
             <td class="instructor">

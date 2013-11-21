@@ -38,7 +38,7 @@
             <tr>
             <td scope="row">
             {% if s.can_view_details %}
-            <a href="{% url grad.views.view grad_slug=s.student.slug %}">{{s.student.person.sortname}}</a>
+            <a href="{% url "grad.views.view" grad_slug=s.student.slug %}">{{s.student.person.sortname}}</a>
             {% else %}
             {{s.student.person.sortname}}
             {% endif %}

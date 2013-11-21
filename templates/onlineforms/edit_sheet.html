@@ -5,9 +5,9 @@
 {% block h1 %}Edit {{ owner_sheet.title }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
 <li>&gt; {{ owner_sheet.title }}</li>
 {% endblock %}
 
@@ -15,9 +15,9 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url onlineforms.views.edit_sheet_info form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Edit Sheet Info</a></li>
-        <li><a href="{% url onlineforms.views.preview_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Preview</a></li>
-        <li class="newsec"><a href="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a></li>
+        <li><a href="{% url "onlineforms.views.edit_sheet_info" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Edit Sheet Info</a></li>
+        <li><a href="{% url "onlineforms.views.preview_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Preview</a></li>
+        <li class="newsec"><a href="{% url "onlineforms.views.new_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -57,7 +57,7 @@
          var i = p.data('pos');          
          /* post request */
          if(i > 0){
-            $.post("{% url onlineforms.views.reorder_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",
+            $.post("{% url "onlineforms.views.reorder_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",
                 {'id_up': field_ids[i], 'id_down': field_ids[i-1], 'csrfmiddlewaretoken': "{{csrf_token}}"}, 
                 function(data){ /* request success callback: swap rows */                                   
                      /* swap the content of the current row and the previous row(except for the first column) */       
@@ -88,7 +88,7 @@
          var i = p.data('pos');
          if(i < {{fields|length}}-1){
          /* post request */
-            $.post("{% url onlineforms.views.reorder_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",            
+            $.post("{% url "onlineforms.views.reorder_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}",            
                 {'id_up': field_ids[i+1], 'id_down': field_ids[i], 'csrfmiddlewaretoken': "{{csrf_token}}"},
                 function(data){ /* request success callback: swap rows */            
                      /* swap the content of the current row and the next row(except for the first column) */
@@ -122,7 +122,7 @@
     <table class="info">
         <tr>
             <th scope="row">On Form</th>
-            <td><a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_sheet.form.title }}</a>
+            <td><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_sheet.form.title }}</a>
             	{% if owner_sheet.is_initial %}(initial sheet){% endif %}
             </td>
         </tr>
@@ -148,14 +148,14 @@
                 <tr>
                     <td id = "arrow{{forloop.counter}}">
                         {% if not forloop.first %}
-                        <a class="arrow_up" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=up&amp;field_slug={{ field.modelField.slug }}">  
+                        <a class="arrow_up" href="{% url "onlineforms.views.edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=up&amp;field_slug={{ field.modelField.slug }}">  
                             <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
                         </a>
                         {% else %}
                            <span class="position_placeholder"></span>
                         {% endif %}
                         {% if not forloop.last %}
-                        <a class="arrow_down" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=down&amp;field_slug={{ field.modelField.slug }}">
+                        <a class="arrow_down" href="{% url "onlineforms.views.edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=down&amp;field_slug={{ field.modelField.slug }}">
                             <span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
                         </a>
                         {% endif %}
@@ -167,10 +167,10 @@
                         {{ field.formField.type }}
                     </td>
                     <td>
-                        <a href="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.modelField.slug %}">Edit</a>
+                        <a href="{% url "onlineforms.views.edit_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.modelField.slug %}">Edit</a>
                     </td>
                     <td class="miniaction">
-                        <form action="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}" method="post">{% csrf_token %}
+                        <form action="{% url "onlineforms.views.edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}" method="post">{% csrf_token %}
                         <p> 
                             <input type="hidden" name="field_id" value="{{field.modelField.id}}" />
                             <input type="hidden" name="action" value="del" />

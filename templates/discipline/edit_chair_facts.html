@@ -14,7 +14,7 @@ $(document).ready(function() {
 
 {% block disc_content %}
 <div class="form_container">
-    <form action="{% url discipline.views.edit_case_info field='chair_facts' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "discipline.views.edit_case_info" field='chair_facts' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <p>{{ form.chair_facts.label }}:</p>
     <div class="discside" id="templates_chair_facts"></div>
     <blockquote>{{ form.chair_facts }}</blockquote>

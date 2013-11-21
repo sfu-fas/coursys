@@ -1,4 +1,4 @@
-{% if index and can_edit %}<p class="manage_link"><a href="{% url grad.views.manage_letters grad_slug=grad.slug  %}">Manage Letters</a></p>{% endif %}
+{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_letters" grad_slug=grad.slug  %}">Manage Letters</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
@@ -17,9 +17,9 @@
 				<td> <span class="sort">{{ l.date.isoformat }}</span>{{ l.date|date:GRAD_DATE_FORMAT }} </td>
 				<td> <span class="sort">{{ l.created_at.isoformat }}</span>{{ l.created_at|date:GRAD_DATETIME_FORMAT }} </td>
 				<td> {{ l.from_person }} </td>
-				{% if not index %}<td><a href="{% url grad.views.get_letter grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
-					| <a href="{% url grad.views.view_letter grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
-					| <a href="{% url grad.views.copy_letter grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a></td>{% endif %}
+				{% if not index %}<td><a href="{% url "grad.views.get_letter" grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
+					| <a href="{% url "grad.views.view_letter" grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
+					| <a href="{% url "grad.views.copy_letter" grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a></td>{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>

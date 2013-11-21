@@ -17,7 +17,7 @@
                     {% if sheetsWithFiles %}
                         {% for sheet_id, file_id in sheetsWithFiles.items %}
                             <dt><label>{{ field.label }}:</label></dt>
-                            <dd>{% ifequal sheet_id sheet_sub.id %}<a href="{% url onlineforms.views.file_field_download form_slug=form_slug formsubmit_slug=formsubmit_slug sheet_id=sheet_sub.id file_id=file_id disposition="attachment" %}">Download File</a>{% endifequal %}</dd>
+                            <dd>{% ifequal sheet_id sheet_sub.id %}<a href="{% url "onlineforms.views.file_field_download" form_slug=form_slug formsubmit_slug=formsubmit_slug sheet_id=sheet_sub.id file_id=file_id disposition="attachment" %}">Download File</a>{% endifequal %}</dd>
                         {% endfor %}
                     {% else %}
                         <dt><label>{{ field.label }}:</label></dt>

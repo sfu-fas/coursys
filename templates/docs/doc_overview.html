@@ -3,7 +3,7 @@
 {% block title %}CourSys: Overview{% endblock %}
 {% block h1 %}CourSys: Overview{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Overview</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>&gt; Overview</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -20,7 +20,7 @@
 <h2 id="submission">Assignment Submission</h2>
 <p>The submission feature allows instructors to configure the type of files they want submitted for an assignment.</p>
 <p>Students can then submit their work: files are checked to make sure they are the correct type and meet other criteria set by the instructor.  Students can review their submitted files and resubmit if they wish.</p>
-<p>See the <a href="{% url dashboard.views.view_doc doc_slug='submission' %}">assignment submission documentation</a> for more information.</p>
+<p>See the <a href="{% url "dashboard.views.view_doc" doc_slug='submission' %}">assignment submission documentation</a> for more information.</p>
 
 <h2 id="marking">Assignment Marking</h2>
 <p>The &ldquo;marking&rdquo; features allow the instructor (or TAs) to set up a marking scheme (or &ldquo;<a href="http://en.wikipedia.org/wiki/Rubric_%28academic%29">rubric</a>&rdquo;) for an activity.</p>

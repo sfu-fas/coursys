@@ -14,13 +14,13 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; List Members</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; List Members</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	    <li><a href="{% url coredata.views.edit_member %}">Add new member</a></li>
+	    <li><a href="{% url "coredata.views.edit_member" %}">Add new member</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -32,7 +32,7 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Person</th><th scope="col">Userid</th><th scope="col">Offering</th><th scope="col">Role</th><th scope="col">Reason</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for m in members %}
-  <tr><td scope="row">{{m.person.sortname}}</td><td>{{m.person.userid}}</td><td>{{m.offering}}</td><td>{{m.get_role_display}}</td><td>{{m.get_added_reason_display}}</td><td><a href="{% url coredata.views.edit_member member_id=m.id %}">Edit</a></td>
+  <tr><td scope="row">{{m.person.sortname}}</td><td>{{m.person.userid}}</td><td>{{m.offering}}</td><td>{{m.get_role_display}}</td><td>{{m.get_added_reason_display}}</td><td><a href="{% url "coredata.views.edit_member" member_id=m.id %}">Edit</a></td>
   {% endfor %}
   </tbody>
 </table>

@@ -3,8 +3,8 @@
 {% block h1 %}Alert {{alert.alerttype.code}} for {{ alert.person }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
-<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
+<li>&gt; <a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
+<li>&gt; <a href="{% url "alerts.views.view_alerts" alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
 <li>&gt; {{alert.person}} </li>
 {% endblock %}
 
@@ -13,11 +13,11 @@
     <h2>Actions</h2>
     <ul>
         {% if alert.resolved %}
-            <li><a href='{% url alerts.views.reopen_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Reopen Alert</a></li>
+            <li><a href='{% url "alerts.views.reopen_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Reopen Alert</a></li>
         {% else %}
-            <li><a href='{% url alerts.views.resolve_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Resolve Alert</a></li>
+            <li><a href='{% url "alerts.views.resolve_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Resolve Alert</a></li>
         {% endif %}
-        <li><a href='{% url alerts.views.comment_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Comment</a></li>
+        <li><a href='{% url "alerts.views.comment_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Comment</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -34,7 +34,7 @@
                 <th class="ui-state-default">Student Number</th>
                 <td>
                     {{ alert.person.emplid }}
-                    [<a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>Advising Record</a>]
+                    [<a href='{% url "advisornotes.views.student_notes" userid=alert.person.userid %}'>Advising Record</a>]
                 </td>
             </tr>
             <tr>

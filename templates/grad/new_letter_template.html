@@ -8,10 +8,10 @@
 
 {% block subbreadcrumbs %}
 <li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
+	&gt; <a href="{% url "grad.views.index" %}">Grad</a>
 </li>
 <li>
-	&gt; <a href="{% url grad.views.letter_templates %}">Letter Template</a>
+	&gt; <a href="{% url "grad.views.letter_templates" %}">Letter Template</a>
 </li>
 <li>
 	&gt; {{crumb}}
@@ -28,7 +28,7 @@ dl dt {
 
 {% block content %}
 <div class="form_container">
-	<form action="{% url grad.views.new_letter_template %}" method="post">
+	<form action="{% url "grad.views.new_letter_template" %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -84,6 +84,6 @@ dl dt {
 			</div>
 		</fieldset>
 	</form>
-	<a class="button" href="{% url grad.views.letter_templates %}">Back</a>
+	<a class="button" href="{% url "grad.views.letter_templates" %}">Back</a>
 </div>
 {% endblock %} 

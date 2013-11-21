@@ -2,7 +2,7 @@
 
 {% block title %}{{offering.name}}: All Pages{% endblock %}
 {% block h1 %}{{offering.name}}: All Pages{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; All</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li><li>&gt; All</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -22,8 +22,8 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url pages.views.new_page course_slug=offering.slug %}">Create page</a></li>
-    <li><a href="{% url pages.views.new_file course_slug=offering.slug %}">Create file</a></li>
+    <li><a href="{% url "pages.views.new_page" course_slug=offering.slug %}">Create page</a></li>
+    <li><a href="{% url "pages.views.new_file" course_slug=offering.slug %}">Create file</a></li>
     </ul>
 </div>
 {% endif %}
@@ -37,7 +37,7 @@ $(document).ready(function() {
   <tbody>
   {% for p in pages %}{% with p.current_version as v %}
   <tr>
-  <td><a href="{% url pages.views.view_page course_slug=offering.slug page_label=p.label %}">{{p.label}}</a></td>
+  <td><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=p.label %}">{{p.label}}</a></td>
   <td>{{v.title}}</td>
   <td>{{p.get_can_read_display}}</td>
   <td>{{p.get_can_write_display}}</td>

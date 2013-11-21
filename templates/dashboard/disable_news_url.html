@@ -4,11 +4,11 @@
 {% block title %}Disable External News Feed{% endblock %}
 {% block h1 %}Disable External News Feed{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.config %}">User Configuration</a></li><li>&gt; News URL</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.config" %}">User Configuration</a></li><li>&gt; News URL</li>{% endblock %}
 
 {% block content %}
 
-<form action="{% url dashboard.views.disable_news_url %}" method="post">{% csrf_token %}
+<form action="{% url "dashboard.views.disable_news_url" %}" method="post">{% csrf_token %}
     {% for field in form.visible_fields %}
         <div class="field">
             {{ field }} Disable my external news feed.

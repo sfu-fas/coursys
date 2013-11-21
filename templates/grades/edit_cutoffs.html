@@ -136,7 +136,7 @@ if (!Array.prototype.filter) {
 //]]></script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>&gt; Edit cutoffs</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>&gt; Edit cutoffs</li>{% endblock %}
 
 
 {% block content %}
@@ -147,7 +147,7 @@ if (!Array.prototype.filter) {
     {{ cutoff.non_field_errors }}
     {% endif %}
     
-        <form action="{% url grades.views.edit_cutoffs course_slug=course.slug activity_slug=activity.slug %}"
+        <form action="{% url "grades.views.edit_cutoffs" course_slug=course.slug activity_slug=activity.slug %}"
                 method="post" id="cutoffform">{% csrf_token %}
         <p class="cutoffoffset">Adjust all cutoffs: <input type="text" name="offset" value="0.0" size="4" id="id_offset" /><br /><input type="button" value="Add to each" id="offsetbutton" /></p>
         <fieldset>

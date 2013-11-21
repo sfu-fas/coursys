@@ -19,7 +19,7 @@ $(document).ready(function() {
       right: 'month,agendaWeek,agendaDay'
     },
     events: {
-      url: '{% url dashboard.views.calendar_data %}',
+      url: '{% url "dashboard.views.calendar_data" %}',
       cache: true,
       ignoreTimezone: false,
     },
@@ -34,7 +34,7 @@ $(document).ready(function() {
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url dashboard.views.config %}">Configure External Calendar</a></li>
+<li><a href="{% url "dashboard.views.config" %}">Configure External Calendar</a></li>
 </ul>
 </div>
 {% endblock %}

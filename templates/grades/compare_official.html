@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li>&gt; <a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
 <li>&gt; Compare Official</li>
 {% endblock %}
@@ -42,11 +42,11 @@
         <tbody>
         {% for m,g,d in data %}
         <tr>
-            <td scope="row"><a href="{% url grades.views.student_info course_slug=course.slug userid=m.person.userid %}">{{m.person.sortname}}</a></td>
+            <td scope="row"><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.person.userid %}">{{m.person.sortname}}</a></td>
             <td>{{g|default_if_none:""}}</td>
             <td>{{m.official_grade|default_if_none:""}}</td>
             <td>{{d|yesno:"yes,"}}
-              {% if d %}[<a href="{% url grades.views.grade_change course_slug=course.slug activity_slug=activity.slug userid=m.person.userid %}">grade change form</a>]{% endif %}	
+              {% if d %}[<a href="{% url "grades.views.grade_change" course_slug=course.slug activity_slug=activity.slug userid=m.person.userid %}">grade change form</a>]{% endif %}	
             </td>
         </tr>
         {% endfor %}

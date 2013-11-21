@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load course_display %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">groups</a></li><li>&gt; Create group</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">groups</a></li><li>&gt; Create group</li>{% endblock %}
 {% block content %}
 	<h1>Switch Group</h1>
 	{% if user %}
-		<form action="{% url groups.views.switch_group course_slug=course.slug, group_slug=group.slug  %}" method="post">{% csrf_token %}
+		<form action="{% url "groups.views.switch_group" course_slug=course.slug, group_slug=group.slug  %}" method="post">{% csrf_token %}
 			  <div class = "datatable_container"> 
 			  <h2>Change the group for the students</h2>
 			  <br>

@@ -18,7 +18,7 @@ $(document).ready(function() {
 {% endblock %}
 
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; {{user.userid}} Summary</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; {{user.userid}} Summary</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -59,7 +59,7 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Course</th><th scope="col">Semester</th><th scope="col">Role</th><th scope="col">Reason</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for m in memberships %}
-  <tr><td scope="row">{{m.offering.name}}</td><td><span class="sort">{{m.offering.semester.name}}</span>{{m.offering.semester}}</td><td>{{m.get_role_display}}</td><td>{{m.get_added_reason_display}}</td><td><a href="{% url coredata.views.edit_member member_id=m.id %}">Edit</a></td></tr>
+  <tr><td scope="row">{{m.offering.name}}</td><td><span class="sort">{{m.offering.semester.name}}</span>{{m.offering.semester}}</td><td>{{m.get_role_display}}</td><td>{{m.get_added_reason_display}}</td><td><a href="{% url "coredata.views.edit_member" member_id=m.id %}">Edit</a></td></tr>
   {% endfor %}
   </tbody>
 </table>

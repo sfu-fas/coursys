@@ -5,7 +5,7 @@
 <h2>Actions</h2>
 <ul>
 {% for t in templates%}
-<li><a href="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=t.slug %}">New {{t.label|title}} Letter</a></li>
+<li><a href="{% url "grad.views.new_letter" grad_slug=grad.slug letter_template_slug=t.slug %}">New {{t.label|title}} Letter</a></li>
 {% endfor %}
 </ul>
 </div>
@@ -15,12 +15,12 @@
 {% block h1 %}{{grad.person.name}}: Letters{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; Letters</li>
 {% endblock %}
 
 {% block content %}
 {% include "grad/view__letters.html" %}
-<p class="gradback"><a class="button" href="{% url grad.views.view grad_slug=grad.slug %}">Return to Profile</a></p>
+<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

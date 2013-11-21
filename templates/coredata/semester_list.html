@@ -15,13 +15,13 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Semesters</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; Semesters</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
   <h2 class="heading">Actions</h2>
   <ul>
-  <li><a href="{% url coredata.views.edit_semester %}">Add new semester</a></li>
+  <li><a href="{% url "coredata.views.edit_semester" %}">Add new semester</a></li>
   </ul>
 </div>
 {% endblock %}
@@ -37,7 +37,7 @@ $(document).ready(function() {
   <tr><td scope="row">{{s.name}} ({{s.label}})</td>
   <td><span class="sort">{{s.start.isoformat}}</span>{{s.start}}</td>
   <td><span class="sort">{{s.end.isoformat}}</span>{{s.end}}</td>
-  <td><a href="{% url coredata.views.edit_semester semester_name=s.name %}">Edit</a></td>
+  <td><a href="{% url "coredata.views.edit_semester" semester_name=s.name %}">Edit</a></td>
   {% endfor %}
   </tbody>
 </table>

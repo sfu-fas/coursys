@@ -40,14 +40,14 @@ $(document).ready(function() {
     'bServerSide': true,
 "sPaginationType": "full_numbers",
 "iDisplayLength" : 20,
-    'sAjaxSource': '{% url coredata.views.browse_courses %}?tabledata=yes',
+    'sAjaxSource': '{% url "coredata.views.browse_courses" %}?tabledata=yes',
     "fnServerParams": function ( aoData ) {
     	aoData.push.apply(aoData, server_params());
     },
   } );
   $('#filterform').change(refresh);
   $('#id_instructor').autocomplete({
-        source: '{% url coredata.views.browse_courses %}?instructor_autocomplete=yes',
+        source: '{% url "coredata.views.browse_courses" %}?instructor_autocomplete=yes',
         minLength: 2,
         select: function(event, ui){
           $(this).val(ui.item.value);

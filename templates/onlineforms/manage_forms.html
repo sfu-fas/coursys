@@ -4,7 +4,7 @@
 {% block title %}Edit Forms{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
 <li>&gt; Edit Forms</li>
 {% endblock %}
 
@@ -25,7 +25,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url onlineforms.views.new_form %}">New Form</a></li>
+        <li><a href="{% url "onlineforms.views.new_form" %}">New Form</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -44,13 +44,13 @@
             </thead>
             {% for form in forms %}
                 <tr>
-                    <td><a href="{% url onlineforms.views.view_form form_slug=form.slug %}">{{ form.title }}</a></td>
+                    <td><a href="{% url "onlineforms.views.view_form" form_slug=form.slug %}">{{ form.title }}</a></td>
                     <td>{{ form.owner|default:"" }}</td>
                     <td>{{ form.get_initiators_display_short }}</td>
                     <td class="miniaction">
-                        <form action="{% url onlineforms.views.list_all %}" method="post">{% csrf_token %}
+                        <form action="{% url "onlineforms.views.list_all" %}" method="post">{% csrf_token %}
                             <p>
-                                <a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit Info</a>
+                                <a href="{% url "onlineforms.views.edit_form" form_slug=form.slug %}">Edit Info</a>
                                 <input type="hidden" name="action" value="del" />
                                 <input type="hidden" name="form_id" value="{{form.id}}" />
                                 <input type="submit" value="Remove" onclick="return confirmSubmit('remove this Form')" />

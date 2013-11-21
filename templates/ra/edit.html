@@ -3,8 +3,8 @@
 
 {% block headextra %}
 <script type="text/javascript">
-var personinfo_url = "{% url ra.views.person_info %}";
-var payperiods_url = "{% url ra.views.pay_periods %}";
+var personinfo_url = "{% url "ra.views.person_info" %}";
+var payperiods_url = "{% url "ra.views.pay_periods" %}";
 {% if person %}
 var emplid = '{{ person.emplid }}';
 {% else %}
@@ -19,14 +19,14 @@ var emplid = null;
 {% block h1 %}Update RA Appointment for {{ appointment.person.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
-<li>&gt; <a href="{% url ra.views.student_appointments userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
-<li>&gt; <a href="{% url ra.views.view ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
+<li>&gt; <a href="{% url "ra.views.student_appointments" userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
+<li>&gt; <a href="{% url "ra.views.view" ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
 <li>&gt; Edit</li>{% endblock %}
 
 {% block content %}
   <div class="form_container">
-    <form action="{% url ra.views.edit ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
+    <form action="{% url "ra.views.edit" ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
       <fieldset style="list-style: none;">
         <legend>Contract Information</legend>
         {{ raform|as_dl_excludefields:"lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,pay_frequency,reappointment,medical_benefits,dental_benefits,notes,comments,use_hourly" }}

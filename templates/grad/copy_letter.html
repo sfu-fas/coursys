@@ -7,9 +7,9 @@
 {% block h1 %}Copy {{ letter.template.label|title }} Letter{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; <a href="{% url grad.views.manage_letters grad_slug=grad.slug%}">Letters</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url "grad.views.manage_letters" grad_slug=grad.slug%}">Letters</a></li>
 <li>&gt; Copy {{ letter.template.label|title }} Letter</li>
 {% endblock %}
 {% block headextra %}
@@ -22,7 +22,7 @@
 		});
 		$('#content_note').show('slow');
 
-		get_addresses('{% url grad.views.get_addresses %}')
+		get_addresses('{% url "grad.views.get_addresses" %}')
 
 		$("#id_template").change(function() {
 			var template_val
@@ -47,7 +47,7 @@
 {% endblock %}
 {% block content %}
 <div class="form_container">
-	<form action="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=letter.template.slug %}" method="post">
+	<form action="{% url "grad.views.new_letter" grad_slug=grad.slug letter_template_slug=letter.template.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -61,5 +61,5 @@
 		</fieldset>
 	</form>
 </div>
-<p class="gradback"><a class="button" href="{% url grad.views.view grad_slug=grad.slug %}">Return to Profile</a></p>
+<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

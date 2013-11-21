@@ -11,8 +11,8 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url coredata.views.unit_role_list %}">Manage Roles</a></li>
-    <li><a href="{% url dashboard.views.signatures %}">Manage Signatures</a></li>
+    <li><a href="{% url "coredata.views.unit_role_list" %}">Manage Roles</a></li>
+    <li><a href="{% url "dashboard.views.signatures" %}">Manage Signatures</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -23,8 +23,8 @@
 {% for u in units %}
 <li>{{u.name}}
 	[
-	<a href="{% url coredata.views.unit_address unit_slug=u.slug %}">edit contact info</a>
-	| <a href="{% url coredata.views.missing_instructors unit_slug=u.slug %}">identify faculty</a>
+	<a href="{% url "coredata.views.unit_address" unit_slug=u.slug %}">edit contact info</a>
+	| <a href="{% url "coredata.views.missing_instructors" unit_slug=u.slug %}">identify faculty</a>
     ]</li>
 {% endfor %}
 </ul>

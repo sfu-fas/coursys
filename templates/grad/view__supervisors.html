@@ -1,4 +1,4 @@
-{% if index and can_edit %}<p class="manage_link"><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Committee</a></p>{% endif %}
+{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_supervisors" grad_slug=grad.slug  %}">Manage Committee</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
@@ -19,7 +19,7 @@
 				<td><span class="sort">{{s.created_at.isoformat}}</span>{{s.created_at|date:GRAD_DATE_FORMAT}}
 					{% if s.removed %}&ndash; {{s.updated_at|date:GRAD_DATE_FORMAT}}{% endif %}</td>
 				{% if not index %}
-				<td class="miniaction">{% if not s.removed %}<form action="{% url grad.views.remove_supervisor grad_slug=grad.slug sup_id=s.id %}" method="post">{% csrf_token %}<p class="actionbutton">
+				<td class="miniaction">{% if not s.removed %}<form action="{% url "grad.views.remove_supervisor" grad_slug=grad.slug sup_id=s.id %}" method="post">{% csrf_token %}<p class="actionbutton">
                 <input type="submit" value="remove" onclick="return confirmSubmit('remove this committee member')" />
 				</p></form>{% endif %}</td>
 				{% endif %}

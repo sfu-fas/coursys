@@ -3,7 +3,7 @@
 {% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
 <li>&gt; {{ student.name }}</li>
 {% endblock %}
 
@@ -31,7 +31,7 @@
                 $("#note-whole-"+id).hide();
             }
 	
-	        $.post("{% url advisornotes.views.student_notes userid=userid%}",
+	        $.post("{% url "advisornotes.views.student_notes" userid=userid%}",
 			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'yes'});
         });
         $('.restore').click(function(){
@@ -40,7 +40,7 @@
             $("#note-box-"+id+" .delete").show();
             $("#note-box-"+id+" .restore").hide();
 	
-	        $.post("{% url advisornotes.views.student_notes userid=userid%}",
+	        $.post("{% url "advisornotes.views.student_notes" userid=userid%}",
 			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': 'no'});
         });
         $('.show_deleted').click(function(){
@@ -66,15 +66,15 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url advisornotes.views.new_note userid=userid%}">New Note</a></li>
+        <li><a href="{% url "advisornotes.views.new_note" userid=userid%}">New Note</a></li>
         {% if not nonstudent %}
-        <!--<li><a href="{% url advisornotes.views.student_courses userid=userid%}">View Current Courses</a></li>-->
+        <!--<li><a href="{% url "advisornotes.views.student_courses" userid=userid%}">View Current Courses</a></li>-->
         <li id="moreinfo">
-            <a href="javascript:get_more_info('{% url advisornotes.views.student_more_info userid=userid %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a>
+            <a href="javascript:get_more_info('{% url "advisornotes.views.student_more_info" userid=userid %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a>
         </li>
         {% endif %}
         {% if nonstudent %}
-        <li><a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a></li>
+        <li><a href="{% url "advisornotes.views.merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a></li>
         {% endif %}
         <li><a href="#" class='show_deleted'>Show Deleted Notes</a></li> 
         <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Notes</a></li> 
@@ -102,7 +102,7 @@
             <tr>
                 <th class="ui-state-default">Student Number</th>
                 <td> {% if nonstudent %}
-                Not a student (<a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a>)
+                Not a student (<a href="{% url "advisornotes.views.merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a>)
                 {% endif %}
                 {% if not nonstudent %}
                 {{ student.emplid }}
@@ -166,7 +166,7 @@
     </div>
     {% if note.file_attachment %}
     <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" />
-        <a href="{% url advisornotes.views.download_file userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
+        <a href="{% url "advisornotes.views.download_file" userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
         ({{ note.file_attachment.size|filesizeformat }})
     </p>
     {% endif %}
@@ -187,7 +187,7 @@
 <div class="note-box" id="form-box-{{formsub.id}}">
 <div class="note-content">
   {% if formsub.summary %}<p>Summary{% if formsub.closer %} by {{ formsub.closer.name }}{% endif %}: &ldquo;{{ formsub.summary }}&rdquo;</p>{% endif %}
-  <p><a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
+  <p><a href="{% url "onlineforms.views.view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
       &ldquo;{{formsub.form.title}}&rdquo; submission.</a></p>
   {% if formsub.status != 'DONE' %}<p>Note: form has not yet been completed.</p>{% endif %}
 </div>
@@ -200,7 +200,7 @@
 {% with item as alert %}
 <h2 id="alert-whole-{{alert.id}}" style="padding-left: 15px; line-height: 1.6; color: gray;">
 	{{ alert.created_at }} -
-	<a href="{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}" 
+	<a href="{% url "alerts.views.view_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}" 
         {% if alert.resolved %}style="color: green;">{% else %}style="color: #B5111B;">{% endif %}
         Automated Alert: "{{ alert.alerttype.code }}"</a>
 </h2>

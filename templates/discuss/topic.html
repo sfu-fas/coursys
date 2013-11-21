@@ -56,8 +56,8 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a></li>
+<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
 <li>&gt; {{ topic.title }}</li>
 {% endblock %}
 {% block actions %}
@@ -68,12 +68,12 @@
 	<ul>
 		{% if request.user.username == topic.author.person.userid and topic.still_editable %}
 		<li>
-		  	<a href="{% url discuss.views.edit_topic course_slug=course.slug topic_slug=topic.slug %}">Edit Topic ({{ topic.editable_time_left }} left)</a>
+		  	<a href="{% url "discuss.views.edit_topic" course_slug=course.slug topic_slug=topic.slug %}">Edit Topic ({{ topic.editable_time_left }} left)</a>
 		</li>
 		{% endif %}
 		{% if view == 'staff' %}
 		<li>
-			<a href="{% url discuss.views.change_topic_status course_slug=course.slug topic_slug=topic.slug %}">Manage Topic</a>
+			<a href="{% url "discuss.views.change_topic_status" course_slug=course.slug topic_slug=topic.slug %}">Manage Topic</a>
 		</li>
 		{% endif %}
 	</ul>
@@ -135,13 +135,13 @@
 			{% if reply.status != 'HID' %}
 			<div class="discussion-reply-controls">
 			{% if view == 'staff' or request.user.username == reply.author.person.userid %}
-			<form id="remove-reply-{{ reply.pk }}" action = "{% url discuss.views.remove_message course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" method="post">
+			<form id="remove-reply-{{ reply.pk }}" action = "{% url "discuss.views.remove_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" method="post">
 				{% csrf_token %}
 			</form>
 			<span class="remove-discussion-reply" id="topic-{{ reply.pk }}">Remove</span>
 			{% endif %}
 			{% if reply.still_editable and request.user.username == reply.author.person.userid %}
-			    <a href="{% url discuss.views.edit_message course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" class="edit-discussion-reply">Edit ({{ reply.editable_time_left }})</a>
+			    <a href="{% url "discuss.views.edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" class="edit-discussion-reply">Edit ({{ reply.editable_time_left }})</a>
 			{% endif %}
 			</div>
 			{% endif %}
@@ -167,7 +167,7 @@
 {% if topic.status != 'CLO' or view == 'staff' %}
 <a href="#" id="topic-reply-toggle">Post a reply</a>
 <div id="discussion-topic-reply-form">
-	<form action="{% url discuss.views.view_topic course_slug=course.slug topic_slug=topic.slug %}" method="post">
+	<form action="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}" method="post">
 		{% csrf_token %}
 		<div class="discussion-topic-reply-errors">
 			{% for error in form.content.errors %}
