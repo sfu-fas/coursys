@@ -124,8 +124,10 @@ class EditPageFormRestricted(EditPageForm):
             # can't change label, but can set for a new page
             del self.fields['label']
         del self.fields['can_write']
-        del self.fields['releasedate']
-        del self.fields['editdate']
+        if 'releasedate' in self.fields:
+            del self.fields['releasedate']
+        if 'editdate' in self.fields:
+            del self.fields['editdate']
 
 EditPageForm.restricted_form = EditPageFormRestricted
 
