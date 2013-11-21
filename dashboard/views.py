@@ -486,9 +486,11 @@ def calendar_ical(request, token, userid):
         e.add('summary', data['title'])
         e.add('dtstart', _ical_datetime(utc, data['start']))
         e.add('dtend', _ical_datetime(utc, data['end']))
-        if isinstance(data['start'], datetime.date):
-            # holidays shouldn't be "busy" on calendars
+        if data['category'] in ('DUE', 'HOLIDAY'):
+            # these shouldn't be "busy" on calendars
             e.add('transp', 'TRANSPARENT')
+        else:
+            e.add('transp', 'OPAQUE')
 
         # spec says no TZID on UTC times
         if 'TZID' in e['dtstart'].params:
