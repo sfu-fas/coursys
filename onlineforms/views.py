@@ -940,7 +940,10 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
     # get their info if they are logged in
     if(request.user.is_authenticated()):
-        loggedin_user = get_object_or_404(Person, userid=request.user.username)
+        try:
+            loggedin_user = Person.objects.get(userid=request.user.username)
+        except Person.DoesNotExist:
+            return ForbiddenResponse(request, "The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact helpdesk@cs.sfu.ca for assistance." % (request.user.username))
         logentry_userid = loggedin_user.userid
         nonSFUFormFillerForm = None
     else:
