@@ -43,7 +43,7 @@ $(document).ready(function(){
 {% endif %}
 
 
-<form action="{%url marking.views.copy_course_setup course_slug=course.slug%}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
+<form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
 {% if conflicting_activities %}
 <h2> Current Conflicting Setup of this course: </h2>
 <div class="form_container">	

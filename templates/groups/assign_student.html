@@ -6,7 +6,7 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>&gt; {{group.name}} </li><li>&gt; Add student</li>{% endblock %}
 
 {% block content %}
-<form action="{% url "groups.views.assign_student" course_slug=course.slug, group_slug=group.slug %}" method="post">{% csrf_token %}
+<form action="{% url "groups.views.assign_student" course_slug=course.slug group_slug=group.slug %}" method="post">{% csrf_token %}
 
 <h2>Activities for this Member</h2>
 <table class="display" id="activities">

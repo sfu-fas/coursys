@@ -3,7 +3,6 @@ from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, 
 from coredata.queries import find_person, add_person, SIMSProblem, cache_by_args
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
-from django.contrib.localflavor.ca.forms import CAPhoneNumberField
 from localflavor.ca.forms import CAPhoneNumberField
 
 class OfferingSelect(forms.Select):
@@ -162,7 +161,7 @@ class PersonField(forms.CharField):
                 try:
                     persondata = find_person(value)
                 except SIMSProblem, e:
-                    raise forms.ValidationError, "Problem locating person in SIMS: " + e.message
+                    raise forms.ValidationError, "Problem locating person in SIMS: " + unicode(e)
                 if not persondata:
                     raise forms.ValidationError, "Could not find this emplid."
                 

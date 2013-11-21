@@ -4,7 +4,7 @@
 {% block content %}
 	<h1>Switch Group</h1>
 	{% if user %}
-		<form action="{% url "groups.views.switch_group" course_slug=course.slug, group_slug=group.slug  %}" method="post">{% csrf_token %}
+		<form action="{% url "groups.views.switch_group" course_slug=course.slug group_slug=group.slug  %}" method="post">{% csrf_token %}
 			  <div class = "datatable_container"> 
 			  <h2>Change the group for the students</h2>
 			  <br>

@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<form action="{%url marking.views.copy_course_setup course_slug=course.slug%}" method="post">{% csrf_token %}
+<form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}" method="post">{% csrf_token %}
     <h2> Please select the course to duplicate:</h2>
     <div>Source Course: {{select_form.course}} <input type="submit" value="Continue" ></div> 
     {% if select_form.course.errors %}

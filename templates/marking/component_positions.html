@@ -63,7 +63,7 @@
 		  });
 		  		  
 		  $('#save_order').click(function(){
-		  	$.post("{% url "marking.views.manage_component_positions" course_slug=course.slug, activity_slug=activity.slug %}",
+		  	$.post("{% url "marking.views.manage_component_positions" course_slug=course.slug activity_slug=activity.slug %}",
 		  	 {'ids[]': comp_ids, 'csrfmiddlewaretoken': "{{csrf_token}}" }, 
 		  		function(data){
     			 alert(data);

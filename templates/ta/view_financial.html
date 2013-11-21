@@ -82,7 +82,7 @@
 <tbody>
 {% for o in offerings %}
 <tr>
-  <td scope="row" title="{{o.title}}"><a href="{% url "ta.views.assign_bus" post_slug=posting.slug, course_slug=o.slug %}">{{o.name}}</a></td>
+  <td scope="row" title="{{o.title}}"><a href="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=o.slug %}">{{o.name}}</a></td>
   <td class="num">{{o.get_campus_display}}</td>
   <td class="num">{{ o|display_ta_count:posting }}</td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>

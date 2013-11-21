@@ -76,7 +76,7 @@
 <tr>
   <td scope="row" title="{{o.title}}">
     {% if o.component == "CAN" %}<del>{% endif %}
-    <a href="{% url "ta.views.assign_bus" post_slug=posting.slug, course_slug=o.slug %}">{{o.name}}</a>
+    <a href="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=o.slug %}">{{o.name}}</a>
     {% if o.component == "CAN" %}</del>{% endif %}
     </td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
