@@ -4,6 +4,7 @@ from coredata.queries import find_person, add_person, SIMSProblem, cache_by_args
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.contrib.localflavor.ca.forms import CAPhoneNumberField
+from localflavor.ca.forms import CAPhoneNumberField
 
 class OfferingSelect(forms.Select):
     input_type = 'text'
@@ -291,7 +292,7 @@ class UnitAddressForm(forms.Form):
                             widget=forms.TextInput(attrs={'size': 12}))
     fax = CAPhoneNumberField(required=False, label="Fax Number", help_text='Fax number for the department',
                             widget=forms.TextInput(attrs={'size': 12}))
-    web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site", verify_exists=True)
+    web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site")
     email = forms.EmailField(required=False, label="Email", help_text='General contact email for the department')
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),

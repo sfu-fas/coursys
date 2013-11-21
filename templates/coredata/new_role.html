@@ -24,8 +24,8 @@ $(document).ready(function() {
 
 {% block content %}
 
-<form action="{% url "coredata.views.new_role" %}" method="post">{% csrf_token %}
-<fieldset>
+<form action="{% url "coredata.views.new_role" %}" method="post">
+<fieldset>{% csrf_token %}
 <legend>Role</legend>
 {{ form|as_dl }}
 <p><input type="submit" class="submit" value="Submit" /></p>

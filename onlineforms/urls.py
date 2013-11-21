@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
 
 FORM_SLUG = '(?P<form_slug>' + SLUG_RE + ')'

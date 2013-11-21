@@ -15,7 +15,7 @@ class URLComponent(SubmissionComponent):
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
-    url = models.URLField(verify_exists=False, null=False, blank=False, max_length=500, verbose_name="URL")
+    url = models.URLField(null=False, blank=False, max_length=500, verbose_name="URL")
     class Meta:
         app_label = 'submission'
     def get_url(self):

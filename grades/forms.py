@@ -57,7 +57,7 @@ class ActivityForm(forms.Form):
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
                                  help_text='percent of final mark',
                                  widget=forms.TextInput(attrs={'size':'2'}))
-    url = forms.URLField(required=False, verify_exists=True, label='URL:',
+    url = forms.URLField(required=False, label='URL:',
                                  help_text='page for more information, e.g. assignment description or exam info',
                                  widget=forms.TextInput(attrs={'size':'60'}))
 
@@ -335,7 +335,7 @@ class StudentSearchForm(forms.Form):
              widget=forms.TextInput(attrs={'size':'15'}))
 
 class CourseConfigForm(forms.Form):
-    url = forms.URLField(required=False, verify_exists=True, label='Course URL:',
+    url = forms.URLField(required=False, label='Course URL:',
             help_text='Course home page address',
             widget=forms.TextInput(attrs={'size':'60'}))
     taemail = forms.EmailField(required=False, label="TA Contact Email:",

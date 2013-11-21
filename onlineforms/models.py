@@ -14,7 +14,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
-import datetime, random, sha
+import datetime, random, hashlib
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -691,7 +691,7 @@ class SheetSubmissionSecretUrl(models.Model):
         attempt = str(random.randint(1000,900000000))
         while not(generated):
             old_attempt = attempt
-            attempt = sha.new(attempt).hexdigest()
+            attempt = hashlib.sha1(attempt).hexdigest()
             if len(SheetSubmissionSecretUrl.objects.filter(key=attempt)) == 0:
                 generated = True
             elif old_attempt == attempt:

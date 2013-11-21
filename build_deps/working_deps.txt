@@ -1,13 +1,13 @@
 BeautifulSoup==3.2.1
 Creoleparser==0.7.4
-Django==1.4.10
+Django==1.5.5
 Genshi==0.6
 South==0.7.5
 Unidecode>=0.04.9
 argparse==1.2.1
 distribute>=0.6.10
 django-autoslug==1.5.0
-django-cas==2.0.3
+#django-cas==2.0.3 # should "pip uninstall django-cas"
 django-debug-toolbar==0.9.4
 django-timezones==0.2
 jsonfield==0.9
@@ -22,3 +22,4 @@ icalendar==3.0.1b2
 xlwt==0.7.4
 django-datatables-view==1.6
 django-bitfield==1.6.4
+django-localflavor==1.0
