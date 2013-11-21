@@ -44,6 +44,9 @@ CareerEvent types:
   study leave (80/90/100% option)
   study leave report received
   received teaching credit (number of credits, reason, approved by, funded by)
+  accreditation flags (is PEng, has PhD, ...)
+
+You know what'd be cool? NSERC common-CV XML importing.
 
 Grants
   owner (can be faculty member or admin staff)
@@ -54,6 +57,7 @@ Grants
   one-to-many: date, balance
   * users import CSV from FINS
   * need logic on FINS import to manually set FINS ID <-> owner link
+  * talk to grants facilitator/faculty for more needed info
 
 Reporting
   faculty summary page

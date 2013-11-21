@@ -810,6 +810,8 @@ def mark_history_student(request, course_slug, activity_slug, userid):
     
     context = {'course': course, 'activity' : activity, 'student' : student,}
     mark_history_info = get_activity_mark_for_student(activity, membership, True)
+    if not mark_history_info:
+        return NotFoundResponse(request)
     context.update(mark_history_info)
     return render_to_response("marking/mark_history_student.html", context, context_instance = RequestContext(request))
 
