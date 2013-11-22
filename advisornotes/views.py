@@ -686,7 +686,7 @@ def rest_notes(request):
         return HttpResponse(content='Contents must be JSON (application/json)', status=415)
 
     try:
-        rest.new_advisor_notes(request.raw_post_data)
+        rest.new_advisor_notes(request.body)
     except UnicodeDecodeError:
         transaction.rollback()
         return HttpResponse(content='Bad UTF-8 encoded text', status=400)

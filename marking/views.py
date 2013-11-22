@@ -1593,7 +1593,7 @@ def import_marks(request, course_slug, activity_slug):
                 ng.save()
             for am in ams:
                 if isinstance(am, StudentActivityMark):
-                    am.numeric_grade_id = am.numeric_grade.id
+                    am.numeric_grade = am.numeric_grade
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
                           description=(u"Imported marking info for student %s on %s in %s") % (am.numeric_grade.member.person.userid, activity, course),
@@ -1609,7 +1609,7 @@ def import_marks(request, course_slug, activity_slug):
                 am.save()
                 count += 1
             for amc in amcs:
-                amc.activity_mark_id = amc.activity_mark.id
+                amc.activity_mark = amc.activity_mark
                 amc.save()
             
             messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (count))

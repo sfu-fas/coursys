@@ -279,7 +279,7 @@ class PageVersion(models.Model):
         """
         Turn this version into a diff based on the other version (if apprpriate).
         """
-        if not self.wikitext or self.diff_from_id:
+        if not self.wikitext or self.diff_from:
             # must already be a diff: don't repeat ourselves
             return
         if self.depth() > 10:
@@ -294,7 +294,7 @@ class PageVersion(models.Model):
             return
 
         self.diff = diff
-        self.diff_from_id = other.id
+        self.diff_from = other
         self.wikitext = ''
         self.save(check_diff=False) # save but don't go back for more diffing
 
