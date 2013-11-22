@@ -1,6 +1,7 @@
 # functions to manipulate the SVN repositories
 from django.conf import settings
 from coredata.models import Member, repo_name
+import datetime
 try:
     import MySQLdb
 except ImportError:
@@ -104,6 +105,8 @@ def update_offering_repositories(offering):
     Update the Subversion repositories for this offering
     """
     if not offering.uses_svn():
+        return
+    if offering.semester.end < datetime.date.today() - datetime.timedelta(days=30):
         return
 
     repos = _all_repositories(offering)
