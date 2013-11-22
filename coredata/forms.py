@@ -486,10 +486,11 @@ class OfferingFilterForm(forms.Form):
     @classmethod
     @cache_by_args
     def allowed_semesters(self):
-        # semester choices: two years either-side of today
+        # semester choices: start of good data, to reasonably in the future
         today = datetime.date.today()
         offering_sem = CourseOffering.objects.order_by().values('semester').distinct()
-        timely_sem = Semester.objects.filter(id__in=offering_sem, start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
+        #timely_sem = Semester.objects.filter(id__in=offering_sem, start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
+        timely_sem = Semester.objects.filter(id__in=offering_sem, name__gte='1101', start__lte=today+datetime.timedelta(days=730)).order_by('-name')
         return timely_sem
 
     @classmethod

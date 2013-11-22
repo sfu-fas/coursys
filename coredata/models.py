@@ -470,6 +470,7 @@ COMPONENT_CHOICES = (
         ('FLD', 'Field School'),
         ('STD', 'Studio'),
         ('OLC', 'OLC'), # ???
+        ('RQL', 'RQL'), # ???
         ('STL', 'STL'), # ???
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
