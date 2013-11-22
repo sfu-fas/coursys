@@ -353,18 +353,21 @@ def get_group_mark(activity, group, include_all = False):
         return {'current_mark': current_mark, 'all_marks': all_marks}
 
 
-def get_activity_mark_for_student(activity, student_membership, include_all = False):
+def get_activity_mark_for_student(activity, student_membership, include_all=False):
     """
-    Return the mark for the student on the activity.     
-    if include_all is False, only return the current mark which was most lately created 
-    and thus is currently valid. Otherwise not only return the current mark but also 
-    all the history marks for the student on the activity        
+    Return the mark for the student on the activity.
+    if include_all is False, only return the current mark which was most lately created
+    and thus is currently valid. Otherwise not only return the current mark but also
+    all the history marks for the student on the activity
     """  
     current_mark = None
     grp_marks = None     
-     
+    
     # the mark maybe assigned directly to this student 
-    num_grade = NumericGrade.objects.get(activity = activity, member = student_membership)
+    try:
+        num_grade = NumericGrade.objects.get(activity=activity, member=student_membership)
+    except NumericGrade.DoesNotExist:
+        return None
     std_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
     if std_marks.count() != 0 :
         #get the latest one
