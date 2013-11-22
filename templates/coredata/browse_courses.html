@@ -6,73 +6,10 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/browse.js"></script>
 <script type="text/javascript">
-var table;
-
-function server_params() {
-	// build the extra GET parameters that will go in the datatables data request (by inspecting the filter form)
-	var params = [];
-	$('#filterform input').each(function (i, v) {
-		v = $(v);
-		if ( v.attr('type') == 'checkbox' ) {
-			if ( v.prop('checked') ) {
-				params.push({'name': v.attr('name'), 'value': v.val()});
-			}
-		} else {
-		    if ( v.val() != '' ) {
-    			params.push({'name': v.attr('name'), 'value': v.val()});
-    		}
-		}
-	});
-	$('#filterform select').each(function (i, v) {
-	    v = $(v)
-	    if ( v.val() != '' ) {
-		    params.push({'name': v.attr('name'), 'value': $(v).val()});
-		}
-	});
-	//jQuery.bbq.pushState(jQuery.param(params), 2);
-	return params;
-}
-function restore_form() {
-    var data = jQuery.deparam(jQuery.param.fragment());
-    console.log(data);
-    $(data).each(function (k,v) {
-        console.log(k)
-        console.log(v)
-    });
-
-
-}
-function refresh() {
-	table.fnDraw();
-}
 $(document).ready(function() {
-  table = $('#courses').dataTable( {
-  	'bJQueryUI': true,
-	'sPaginationType': 'full_numbers',
-	'iDisplayLength' : 20,
-	'aaSorting': [[0,'desc'],[1,'asc']],
-    'bProcessing': true,
-    'bServerSide': true,
-"sPaginationType": "full_numbers",
-"iDisplayLength" : 20,
-    'sAjaxSource': '{% url coredata.views.browse_courses %}?tabledata=yes',
-    "fnServerParams": function ( aoData ) {
-    	aoData.push.apply(aoData, server_params());
-    },
-  } );
-  $('#filterform').change(refresh);
-  $('#id_instructor').autocomplete({
-        source: '{% url coredata.views.browse_courses %}?instructor_autocomplete=yes',
-        minLength: 2,
-        select: function(event, ui){
-          $(this).val(ui.item.value);
-          refresh();
-        }
-  });
-
-  $(window).bind( 'hashchange', restore_form);
-  restore_form();
+  browser_ready('{% url coredata.views.browse_courses %}');
 } );
 </script>
 {% endblock %}
@@ -108,7 +45,6 @@ $(document).ready(function() {
 </tr>
 </table>
 </form>
-<!--<a href="javascript:refresh()">refresh</a>-->
 
 <div class="datatable_container">
 <table id="courses" class="display">
