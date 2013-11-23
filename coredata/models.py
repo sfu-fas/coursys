@@ -492,19 +492,22 @@ CAMPUS_CHOICES_SHORT = (
         ('SURRY', 'Surrey'),
         ('VANCR', 'Harbour Ctr'),
         ('OFFST', 'Off-campus'),
-        #('SEGAL', 'Segal Centre'),
+        #('SEGAL', 'Segal Ctr'),
         ('GNWC', 'Great North. Way'),
-        #('KAM', 'Kamloops Campus'),
+        #('KAM', 'Kamloops'),
         ('METRO', 'Other Vancouver'),
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
-WQB_FLAGS = [
-	('write', 'W'),
-	('quant', 'Q'),
-	('bhum', 'B-Hum'),
-	('bsci', 'B-Sci'),
-	('bsoc', 'B-Soc'),
+OFFERING_FLAGS = [
+    ('write', 'W'),
+    ('quant', 'Q'),
+    ('bhum', 'B-Hum'),
+    ('bsci', 'B-Sci'),
+    ('bsoc', 'B-Soc'),
+    ('combined', 'Combined section'), # used to flag sections that have been merged in the import
 	]
+OFFERING_FLAG_KEYS = [flag[0] for flag in OFFERING_FLAGS]
+WQB_FLAGS = [(k,v) for k,v in OFFERING_FLAGS if k != 'combined']
 WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
 WQB_DICT = dict(WQB_FLAGS)
 
@@ -532,7 +535,7 @@ class CourseOffering(models.Model):
     course = models.ForeignKey(Course, null=False)
 
     # WQB requirement flags
-    flags = BitField(flags=WQB_KEYS, default=0)
+    flags = BitField(flags=OFFERING_FLAG_KEYS, default=0)
     
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
@@ -543,19 +546,17 @@ class CourseOffering(models.Model):
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
-        # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False,
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
-    combined, set_combined = getter_setter('combined')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
@@ -607,9 +608,13 @@ class CourseOffering(models.Model):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
+    def combined(self):
+        return self.flags.combined
+    def set_combined(self, val):
+        self.flags.combined = val
     
     def get_wqb_display(self):
-        flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v]
+        flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v and f in WQB_KEYS]
         if flags:
             return ', '.join(flags)
         else:
