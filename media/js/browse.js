@@ -60,6 +60,18 @@ function browser_ready(my_url) {
         'fnServerParams': function ( aoData ) {
         aoData.push.apply(aoData, server_params());
     },
+    /* stop cache busting: http://datatables.net/forums/discussion/5714/solved-how-do-i-disable-the-cache-busting-query-parameter-that-datatables-attaches/p1 */
+    'fnServerData': function ( sSource, aoData, fnCallback ) {
+    /* Add some data to send to the source, and send as 'POST' */
+    aoData.push( { "name": "data_type", "value": "json" } );
+    $.ajax( {
+        "dataType": 'json',
+        "type": "GET",
+        "url": sSource,
+        "data": aoData,
+        "success": fnCallback
+    } );
+},
   } );
   $('#filterform').change(refresh);
   $('#id_instructor').autocomplete({
