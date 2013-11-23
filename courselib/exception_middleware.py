@@ -30,3 +30,25 @@ def _get_traceback(self, exc_info=None):
     """Helper function to return the traceback as a string"""
     import traceback
     return '\n'.join(traceback.format_exception(*(exc_info or sys.exc_info())))
+
+
+import time
+import logging
+from django.db import connection
+from django.conf import settings
+logger = logging.getLogger(__name__)
+
+class MonitoringMiddleware(object):
+    def process_request(selfself, request):
+        request.monitoring_starttime = time.time()
+
+    def process_response(self, request, response):
+        # see if things took too long, and log if they did
+        if hasattr(request, 'monitoring_starttime'):
+            duration = time.time() - request.monitoring_starttime
+            if duration > getattr(settings, 'SLOW_THRESHOLD', 5):
+                logger.info('%0.1fs to return %s?%s' % (duration, request.path, request.META['QUERY_STRING']))
+                for q in connection.queries:
+                    logger.debug('%s\t%s' % (q['sql'], q['time']))
+
+        return response

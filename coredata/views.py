@@ -669,7 +669,7 @@ class OfferingDataJson(BaseDatatableView):
             qs = qs.filter(flags=getattr(CourseOffering.flags, f))
 
         #print qs.query
-        qs = qs[:500] # ignore requests for crazy amounts of data
+        #qs = qs[:500] # ignore requests for crazy amounts of data
         return qs
 
     def XXX_prepare_results(self, qs):
