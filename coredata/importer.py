@@ -6,7 +6,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
-from coredata.models import CAMPUSES, COMPONENTS
+from coredata.models import CAMPUSES, COMPONENTS, INSTR_MODE
 from dashboard.models import NewsItem
 from log.models import LogEntry
 from django.db import transaction
@@ -232,7 +232,7 @@ def get_unit(acad_org):
 REQ_DES = None
 @transaction.commit_on_success
 def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
-                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, rqmnt_designtn):
+                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn):
     """
     Import one offering. Returns CourseOffering or None.
     
@@ -249,6 +249,8 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
         raise KeyError, "Unknown campus: %r." % (campus)
     if not COMPONENTS.has_key(component):
         raise KeyError, "Unknown course component: %r." % (component)
+    if not INSTR_MODE.has_key(instr_mode):
+        raise KeyError, "Unknown instructional modet: %r." % (instr_mode)
 
     if cancel_dt is not None:
         # mark cancelled sections
@@ -280,6 +282,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c.enrl_tot = enrl_tot
     c.wait_tot = wait_tot
     c.owner = owner
+    c.instr_mode = instr_mode
     c.slug = c.autoslug() # rebuild slug in case section changes for some reason
 
     # set the WQB flags
@@ -298,12 +301,12 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
 CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
         + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \
-        + 'ct.acad_org, cc.rqmnt_designtn' 
+        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn'
 CLASS_TBL_QUERY = """
 SELECT """ + CLASS_TBL_FIELDS + """
-FROM dbcsown.ps_class_tbl ct
-  LEFT OUTER JOIN dbcsown.ps_crse_catalog cc ON ct.crse_id=cc.crse_id
-  LEFT OUTER JOIN dbcsown.ps_term_tbl t ON ct.strm=t.strm AND ct.acad_career=t.acad_career
+FROM ps_class_tbl ct
+  LEFT OUTER JOIN ps_crse_catalog cc ON ct.crse_id=cc.crse_id
+  LEFT OUTER JOIN ps_term_tbl t ON ct.strm=t.strm AND ct.acad_career=t.acad_career
 WHERE
   cc.eff_status='A' AND ct.class_type='E'
   AND cc.effdt=(SELECT MAX(effdt) FROM ps_crse_catalog
@@ -538,7 +541,7 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     Make sure this member exists with the right properties.
     """
     if person.emplid in [200133427, 200133425, 200133426]:
-        # these are: ["Faculty", "Tba"，, "Sessional"]. Ignore them: they're ugly.
+        # these are: ["Faculty", "Tba", "Sessional"]. Ignore them: they're ugly.
         return
     
     m_old = Member.objects.filter(person=person, offering=offering)
