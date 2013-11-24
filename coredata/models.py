@@ -718,7 +718,7 @@ class Member(models.Model):
     "Members" of the course.  Role indicates instructor/student/TA/etc.
 
     Includes dropped students and non-graded sections (labs/tutorials).  Often want to select with:
-        Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(...)
+        Member.objects.exclude(role="DROP").filter(...)
     """
     ROLE_CHOICES = (
         ('STUD', 'Student'),
@@ -763,7 +763,6 @@ class Member(models.Model):
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
     raw_bu, set_bu = getter_setter('bu')
-    _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
@@ -791,13 +790,31 @@ class Member(models.Model):
         return decimal.Decimal(unicode(self.raw_bu()))
 
     def teaching_credit(self):
+        """
+        Number of teaching credits this is worth, as a Fraction.
+        """
+        assert self.role=='INST' and self.added_reason=='AUTO' # we only calculate this for SIMS instructors
+
         if 'teaching_credit' in self.config:
-            s = self.config['teaching_credit']
-        elif self.offering.section.startswith('C'):
-            s = 0
+            # if manually set, then honour it
+            f = (self.config['teaching_credit'],)
+        elif self.offering.instr_mode in ['CO', 'GI', 'DE']:
+            # No credit for co-op, grad-internship, distance-ed
+            f = 0, 1
+        elif not MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() > 0:
+            # no lectures probably means directed studies or similar
+            f = 0, 1
         else:
-            s = 1
-        return fractions.Fraction(s)
+            # now probably a real offering: split the credit among the (real SIMS) instructors
+            n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
+            if n_instr == 0:
+                # n_instr shouldn't be zero if we passed the assert entering the function, but juuuuust in case
+                f = 1, 1
+            else:
+                f = 1, n_instr
+
+        return fractions.Fraction(*f)
+
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
