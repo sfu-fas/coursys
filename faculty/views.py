@@ -2,7 +2,7 @@ from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
 from courselib.search import find_userid_or_emplid
 
-from coredata.models import Person, Unit, Role, Member
+from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
@@ -24,7 +24,8 @@ def summary(request, userid):
     role = get_object_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
 
     # collect teaching history
-    instructed = Member.objects.filter(role='INST', person=person, added_reason='AUTO').exclude(offering__component='CAN') \
+    instructed = Member.objects.filter(role='INST', person=person, added_reason='AUTO') \
+            .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
 
     # collect grad students
