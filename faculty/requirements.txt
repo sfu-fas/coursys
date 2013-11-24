@@ -18,6 +18,7 @@ Each CareerEvent has:
   slug
   start date
   end date
+  start/end semester (default=guess, but allow override in weird cases)
   event_type
   exclusion_type (logic: only one event with same person,unit,exclusion_type can occur simultaneously)
   other type-specific data
