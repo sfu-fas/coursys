@@ -1401,7 +1401,7 @@ def _by_start_semester(gradstudent):
 def generate_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     
-    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
     
@@ -1426,7 +1426,7 @@ def generate_csv(request, post_slug):
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*8 + [str(o.campus) for o in offerings]
+    off = ['']*9 + [str(o.campus) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
