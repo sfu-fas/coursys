@@ -1410,7 +1410,7 @@ class CardReqForm(object):
         self._line_entry(0*mm, 208*mm, 'Last Name', 22*mm, 58*mm, grad.person.last_name)
         self._line_entry(86*mm, 208*mm, 'SFU ID', 30*mm, 45*mm, unicode(grad.person.emplid))
         self._line_entry(0*mm, 204*mm, 'Given Name', 22*mm, 58*mm, grad.person.first_name)
-        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, grad.person.email())
+        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, unicode(grad.person.email()))
 
         self._checkbox(0*mm, 197*mm, 'Faculty', offset=1*mm)
         self._checkbox(22*mm, 197*mm, 'Staff', offset=1*mm)
