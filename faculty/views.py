@@ -2,9 +2,9 @@ from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
 from courselib.search import find_userid_or_emplid
 
-from coredata.models import Person, Unit, Role, Member
+from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
-
+from ra.models import RAAppointment
 
 @requires_role('ADMN')
 def index(request):
@@ -24,17 +24,24 @@ def summary(request, userid):
     role = get_object_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
 
     # collect teaching history
-    instructed = Member.objects.filter(role='INST', person=person).exclude(offering__component='CAN') \
+    instructed = Member.objects.filter(role='INST', person=person, added_reason='AUTO') \
+            .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
 
     # collect grad students
     supervised = Supervisor.objects.filter(supervisor=person, supervisor_type__in=['SEN','COS','COM'], removed=False) \
             .select_related('student', 'student__person', 'student__program', 'student__start_semester', 'student__end_semester')
 
+
+    # RA appointments supervised
+    ras = RAAppointment.objects.filter(deleted=False, hiring_faculty=person) \
+            .select_related('person', 'project', 'account')
+
     context = {
         'person': person,
         'role': role,
         'instructed': instructed,
         'supervised': supervised,
+        'ras': ras,
     }
     return render(request, 'faculty/summary.html', context)

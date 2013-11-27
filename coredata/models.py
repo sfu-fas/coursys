@@ -510,25 +510,35 @@ OFFERING_FLAG_KEYS = [flag[0] for flag in OFFERING_FLAGS]
 WQB_FLAGS = [(k,v) for k,v in OFFERING_FLAGS if k != 'combined']
 WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
 WQB_DICT = dict(WQB_FLAGS)
+INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
+    ('CO', 'Co-Op'),
+    ('DE', 'Distance Education'),
+    ('GI', 'Graduate Internship'),
+    ('P', 'In Person'),
+    ('PO', 'In Person - Off Campus'),
+    ]
+INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN".')
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1".')
-    section = models.CharField(max_length=4, null=False,
+    section = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Section should be in the form "C100" or "D103".')
     semester = models.ForeignKey(Semester, null=False)
-    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES,
-        help_text='Component of the course, like "LEC" or "LAB".')
+    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES, db_index=True,
+        help_text='Component of the offering, like "LEC" or "LAB"')
+    instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P', db_index=True,
+        help_text='The instructional mode of the offering')
     graded = models.BooleanField()
     owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)
     class_nbr = models.PositiveIntegerField(null=True, db_index=True)
-    
-    title = models.CharField(max_length=30, help_text='The course title.')
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
+
+    title = models.CharField(max_length=30, help_text='The course title.', db_index=True)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, db_index=True)
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
@@ -549,7 +559,7 @@ class CourseOffering(models.Model):
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
-    
+
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
     labtut, set_labtut = getter_setter('labtut')
@@ -708,7 +718,7 @@ class Member(models.Model):
     "Members" of the course.  Role indicates instructor/student/TA/etc.
 
     Includes dropped students and non-graded sections (labs/tutorials).  Often want to select with:
-        Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(...)
+        Member.objects.exclude(role="DROP").filter(...)
     """
     ROLE_CHOICES = (
         ('STUD', 'Student'),
@@ -753,7 +763,6 @@ class Member(models.Model):
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
     raw_bu, set_bu = getter_setter('bu')
-    _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
@@ -781,13 +790,31 @@ class Member(models.Model):
         return decimal.Decimal(unicode(self.raw_bu()))
 
     def teaching_credit(self):
+        """
+        Number of teaching credits this is worth, as a Fraction.
+        """
+        assert self.role=='INST' and self.added_reason=='AUTO' # we only calculate this for SIMS instructors
+
         if 'teaching_credit' in self.config:
-            s = self.config['teaching_credit']
-        elif self.offering.section.startswith('C'):
-            s = 0
+            # if manually set, then honour it
+            f = (self.config['teaching_credit'],)
+        elif self.offering.instr_mode in ['CO', 'GI', 'DE']:
+            # No credit for co-op, grad-internship, distance-ed
+            f = 0, 1
+        elif not MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() > 0:
+            # no lectures probably means directed studies or similar
+            f = 0, 1
         else:
-            s = 1
-        return fractions.Fraction(s)
+            # now probably a real offering: split the credit among the (real SIMS) instructors
+            n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
+            if n_instr == 0:
+                # n_instr shouldn't be zero if we passed the assert entering the function, but juuuuust in case
+                f = 1, 1
+            else:
+                f = 1, n_instr
+
+        return fractions.Fraction(*f)
+
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
