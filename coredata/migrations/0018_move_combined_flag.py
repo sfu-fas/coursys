@@ -7,16 +7,14 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        from coredata.models import CourseOffering
-        for o in CourseOffering.objects.filter(config__contains='combined'):
+        for o in orm['coredata.CourseOffering'].objects.filter(config__contains='combined'):
             if 'combined' in o.config and o.config['combined']:
                 o.flags.combined = True
                 o.save()
-                print o
 
     def backwards(self, orm):
         from coredata.models import CourseOffering
-        for o in CourseOffering.objects.filter(flags=CourseOffering.flags.combined):
+        for o in orm['coredata.CourseOffering'].objects.filter(flags=CourseOffering.flags.combined):
             o.config['combined'] = True
             o.save()
 
