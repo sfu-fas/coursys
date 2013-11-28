@@ -47,7 +47,10 @@ class RadioSelectField(FieldBase):
 
     def to_html(self, fieldsubmission=None):
         choice = fieldsubmission.data['info']
-        return mark_safe('<p>' + escape(self.config[choice]) + '</p>')
+        if choice in self.config:
+            return mark_safe('<p>' + escape(self.config[choice]) + '</p>')
+        else:
+            return mark_safe('<p class="empty">None selected</p>')
 
 
 class DropdownSelectField(FieldBase):
