@@ -164,11 +164,9 @@ USE_CELERY = DEPLOYED
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (
-    #    'djkombu',
         'djcelery',
         'djcelery_email',
         )
-    #BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
     BROKER_URL = "ampq://coursys:supersecretpassword@localhost:5672//"
     DJKOMBU_POLLING_INTERVAL = 10
     CELERY_QUEUES = {
