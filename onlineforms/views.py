@@ -748,8 +748,9 @@ def _readonly_sheets(form_submission):
     """
     sheet_submissions = SheetSubmission.objects \
             .filter(form_submission=form_submission) \
-            .filter(is_displayable_sheet_sub)
-    sheet_sub_html = {}
+            .filter(is_displayable_sheet_sub) \
+            .order_by('completed_at')
+    sheet_sub_html = []
     for sheet_sub in sheet_submissions:
         # get html from field submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
@@ -762,7 +763,7 @@ def _readonly_sheets(form_submission):
                 field.html = field.to_html(field_sub)
 
             fields.append(field)
-        sheet_sub_html[sheet_sub] = fields
+        sheet_sub_html.append((sheet_sub, fields))
     return sheet_sub_html
 
 

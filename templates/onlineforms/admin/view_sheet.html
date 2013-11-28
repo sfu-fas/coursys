@@ -1,6 +1,6 @@
 {# be sure to include this if using this fragment: <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />  #}
 
-{% for sheet_sub, fields in sheet_submissions.items %}
+{% for sheet_sub, fields in sheet_submissions %}
 	<form class="sheetsub sheetsub-{{ sheet_sub.status }}" action="">
 		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub.sheet.title }}</legend>

@@ -43,6 +43,7 @@ Thumbs.db
 tmp-validation.html
 dbpass
 submitted_files
+celerybeat-schedule
 local_settings.py
 .project
 .pydevproject
