@@ -164,6 +164,8 @@ def admin_list_all(request):
         for done_sub in done_submissions:
             latest_sumbission = SheetSubmission.objects.filter(form_submission=done_sub).latest('completed_at')
             done_sub.completed_at = latest_sumbission.completed_at
+        
+        # forms with status=='REJE' were thrown away incomplete by the initiator, so aren't displayed
 
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
@@ -728,7 +730,8 @@ def index(request):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
         other_forms = []
-        sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)).exclude(status='DONE')
+        sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
+                .exclude(status='DONE').exclude(status='REJE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
@@ -741,7 +744,7 @@ def index(request):
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 
-is_displayable_sheet_sub = Q(status="DONE") | Q(sheet__is_initial=True)
+is_displayable_sheet_sub = Q(status__in=["DONE","REJE"]) | Q(sheet__is_initial=True)
 def _readonly_sheets(form_submission):
     """
     Collect sheet subs and other info to display this form submission.
@@ -893,6 +896,41 @@ def view_submission(request, form_slug, formsubmit_slug):
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 
+@login_required
+def reject_sheet_subsequent(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
+    sheetsub = get_object_or_404(SheetSubmission, sheet__form__slug=form_slug,
+        form_submission__slug=formsubmit_slug, sheet__slug=sheet_slug, slug=sheetsubmit_slug,
+        filler__sfuFormFiller__userid=request.user.username)
+    return _reject_sheet(request, sheetsub)
+
+def reject_sheet_via_url(request, secret_url):
+    secret = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
+    return _reject_sheet(request, secret.sheet_submission)
+
+@transaction.commit_on_success
+def _reject_sheet(request, sheetsub):
+    if request.method != 'POST':
+        return ForbiddenResponse(request)
+
+    sheetsub.status = 'REJE'
+    sheetsub.save()
+    if sheetsub.sheet.is_initial:
+        fs = sheetsub.form_submission
+        fs.status = 'REJE'
+        fs.save()
+    else:
+        sheetsub.email_submitted(request, rejected=True)
+
+    l = LogEntry(userid=request.user.username,
+        description=("Rejected sheet %s") % (sheetsub),
+        related_object=sheetsub)
+    l.save()
+    if sheetsub.sheet.is_initial:
+        messages.success(request, 'Form discarded.')
+    else:
+        messages.success(request, 'Sheet rejected and returned to the admins.')
+    return HttpResponseRedirect(reverse('onlineforms.views.index'))
+
 
 def sheet_submission_via_url(request, secret_url):
     """
@@ -907,6 +945,7 @@ def sheet_submission_via_url(request, secret_url):
     return _sheet_submission(request, form_slug=form.slug, formsubmit_slug=form_submission.slug,
                              sheet_slug=sheet.slug, sheetsubmit_slug=sheet_submission_object.slug,
                              alternate_url=alternate_url)
+
 
 def sheet_submission_initial(request, form_slug):
     """
@@ -965,7 +1004,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                              form_submission=form_submission, slug=sheetsubmit_slug)
         sheet = sheet_submission.sheet # revert to the old version that the user was working with.
         # check if this sheet has already been filled
-        if sheet_submission.status == "DONE":
+        if sheet_submission.status in ["DONE", "REJE"]:
             # TODO: show in display-only mode instead
             return NotFoundResponse(request)
         # check that they can access this sheet
@@ -1146,6 +1185,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 'sheet': sheet,
                 'form': form,
                 'form_submission': form_submission,
+                'sheet_submission': sheet_submission,
                 'filled_sheets': filled_sheets,
                 'alternate_url': alternate_url,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm,

@@ -42,4 +42,6 @@ urlpatterns = patterns('',
     url(r'^submission/' + SECRET_SUBMIT_URL + '/$', 'onlineforms.views.sheet_submission_via_url'),
     url(r'^' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission_initial'),
     url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission_subsequent'),
+    url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '/reject$', 'onlineforms.views.reject_sheet_subsequent'),
+    url(r'^submission/' + SECRET_SUBMIT_URL + '/reject$', 'onlineforms.views.reject_sheet_via_url'),
 )

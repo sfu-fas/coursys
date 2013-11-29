@@ -1,2 +1,2 @@
-<p>{{ initiator }} has completed their part of the {{ form.title }} form.</p>
+<p>{{ initiator }} has {% if rejected %}returned their part of the {{ form.title }} form <strong>without completing it</strong>.{% else %}completed their part of the {{ form.title }} form.{% endif %}</p>
 <p>You can access it at <a href="{{ adminurl }}">{{ adminurl }}</a>.</p>
