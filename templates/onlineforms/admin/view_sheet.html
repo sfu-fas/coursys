@@ -4,6 +4,10 @@
 	<form class="sheetsub sheetsub-{{ sheet_sub.status }}" action="">
 		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub.sheet.title }}</legend>
+			{% if sheet_sub.status == 'REJE' %}
+			<p>Returned by {{ sheet_sub.filler.name }} ({{ sheet_sub.filler.email_mailto }})
+				without being completed, {{sheet_sub.completed_at}}.</p>
+			{% else %}
 			{% if sheet_sub.status != 'DONE' %}<p class="incomplete-warning">This is a draft submission: it has not been completed by the person filling it out, only saved for later.</p>{% endif %}
 			<dl class="dlform formview">
                 <dt><label>Completed by:</label></dt>
@@ -28,6 +32,7 @@
             <dt><label>Completed at:</label></dt>
             <dd>{% if sheet_sub.status == 'DONE' %}{{sheet_sub.completed_at}}{% else %}Still incomplete.{% endif %}</dd>
 			</dl>
+			{% endif %}
 		</fieldset>
 	</form>
 {% endfor %}
