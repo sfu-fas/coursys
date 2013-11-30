@@ -568,6 +568,8 @@ def view_application(request, post_slug, userid):
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
     campuses = CampusPreference.objects.filter(app=application).select_related('campus')
     contracts = TAContract.objects.filter(application=application)
+    experience = TACourse.objects.filter(contract__application__person=application.person) \
+            .exclude(contract__application=application).select_related('course__semester')
     if roles and contracts:
         contract = contracts[0]
     else:
@@ -579,6 +581,7 @@ def view_application(request, post_slug, userid):
             'skills': skills,
             'campuses': campuses,
             'contract': contract,
+            'experience': experience,
             }
     return render(request, 'ta/view_application.html', context)
 
