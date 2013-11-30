@@ -68,7 +68,7 @@ Reporting
   faculty-in-unit summary page
   study leave credits accumulated
   teaching credit:
-    Member[role=INST] (with exclusion logic for distance, directed studies, etc.)
+    Member.teaching_credit (but need to detect crosslisted courses)
     CareerEvent[type=teaching-credit]
   search events by type/categegory/date (range)
   career timeline
