@@ -850,6 +850,7 @@ def view_submission(request, form_slug, formsubmit_slug):
 
     sheet_submissions = _readonly_sheets(form_submission)
     can_admin = not is_advisor and form_submission.status != 'DONE'
+    waiting_sheets = SheetSubmission.objects.filter(form_submission=form_submission, status='WAIT')
 
     if request.method == 'POST' and can_admin:
         close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST, prefix='close')
@@ -861,6 +862,12 @@ def view_submission(request, form_slug, formsubmit_slug):
             if 'email' in close_form.cleaned_data:
                 form_submission.set_emailed(close_form.cleaned_data['email'])
                 email = close_form.cleaned_data['email']
+
+            for ss in waiting_sheets:
+                ss.status = 'REJE'
+                ss.set_reject_reason('Withdrawn when form was closed by %s.' % (admin.userid))
+                ss.save()
+            
             form_submission.set_closer(admin.id)
             form_submission.status = 'DONE'
             form_submission.save()
@@ -892,6 +899,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                'is_advisor': is_advisor,
                'can_admin': can_admin,
                'close_form': close_form,
+               'waiting_sheets': waiting_sheets,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
@@ -912,6 +920,8 @@ def _reject_sheet(request, sheetsub):
     if request.method != 'POST':
         return ForbiddenResponse(request)
 
+    if 'reject_reason' in request.POST:
+        sheetsub.set_reject_reason(request.POST['reject_reason'])
     sheetsub.status = 'REJE'
     sheetsub.save()
     if sheetsub.sheet.is_initial:

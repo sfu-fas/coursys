@@ -6,7 +6,11 @@
 			<legend>{{ sheet_sub.sheet.title }}</legend>
 			{% if sheet_sub.status == 'REJE' %}
 			<p>Returned by {{ sheet_sub.filler.name }} ({{ sheet_sub.filler.email_mailto }})
-				without being completed, {{sheet_sub.completed_at}}.</p>
+				without being completed, {{sheet_sub.completed_at}}.
+				{% if sheet_sub.reject_reason %}
+				Given reason: &ldquo;{{ sheet_sub.reject_reason }}&rdquo;.
+				{% endif %}
+				</p>
 			{% else %}
 			{% if sheet_sub.status != 'DONE' %}<p class="incomplete-warning">This is a draft submission: it has not been completed by the person filling it out, only saved for later.</p>{% endif %}
 			<dl class="dlform formview">

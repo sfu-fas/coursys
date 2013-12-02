@@ -525,6 +525,7 @@ class SheetSubmission(models.Model):
         return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'reject_reason': reason given for rejecting the sheet
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -534,6 +535,9 @@ class SheetSubmission(models.Model):
 
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
+    
+    defaults = {'reject_reason': None}
+    reject_reason, set_reject_reason = getter_setter('reject_reason')
 
     cached_fields = None
     def get_field_submissions(self, refetch=False):
@@ -566,7 +570,9 @@ class SheetSubmission(models.Model):
 
     @classmethod
     def waiting_sheets_by_user(cls):
+        min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
         sheet_subs = SheetSubmission.objects.exclude(status='DONE').exclude(status='REJE') \
+                .exclude(given_at__gt=min_age) \
                 .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'form_submission__form__initiator', 'sheet')
         return itertools.groupby(sheet_subs, lambda ss: ss.filler)
         

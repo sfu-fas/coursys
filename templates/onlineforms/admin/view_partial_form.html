@@ -36,6 +36,15 @@
     {% endif %}
 </div>
 <p>Current status: {{ form_sub.get_status_display }}</p>
+{% if waiting_sheets %}
+<p>Sheets currently waiting to be completed:</p>
+<ul>
+{% for ss in waiting_sheets %}
+<li>{{ ss.sheet.title }} by {{ ss.filler.name }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
 {% if can_admin %}
 <div class="form_container" id="assign" style="margin-top:5em;">
     <form action="" method="post" enctype="multipart/form-data">
