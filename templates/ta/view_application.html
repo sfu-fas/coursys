@@ -31,7 +31,7 @@
     <p>This application was submitted late.  <a href="{% url ta.views.update_application post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
   {% endif %}
   <table class="info">
-    <tr><th>Name</th><td>{{ application.person.name }} ({{application.person.email_mailto}})</td></tr>
+    <tr><th>Name</th><td>{{ application.person.name }} &lt;{{application.person.email_mailto}}&gt;</td></tr>
     <tr><th>Student Number</th><td>{{ application.person.emplid }} </td></tr>
     <tr><th>Semester</th><td>{{ application.posting.semester }}</td></tr>
     <tr><th>Category</th><td>{{ application.get_category_display }}</td></tr>

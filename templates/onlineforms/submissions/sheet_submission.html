@@ -68,7 +68,9 @@ $(document).ready(function() {
             <input type="submit" value="Throw away form" class="submit nofloat" />
             {% else %}
             <input type="submit" value="Reject sheet" class="submit nofloat" />
-            This will give the form back to the admins and discard your work. Please contact them with more information if necessary.
+            <span class="helptext">This will give the form back to the admins and discard your work. Please contact them with more information if necessary.</span>
+            <br/>
+            Reason for rejecting sheet: <input type="text" size="60" name="reject_reason"/>
             {% endif %}
             </p>
             </form>
