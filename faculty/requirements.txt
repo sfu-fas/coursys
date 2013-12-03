@@ -24,6 +24,7 @@ Each CareerEvent has:
   exclusion_type (logic: only one event with same person,unit,exclusion_type can occur simultaneously)
   other type-specific data
   additional comments
+  import_key (to identify from imports, like "nserc-43517b4fd422423382baab1e916e7f63")
   status: needs approval, deleted, approved
   one-to-many documentation attachments
   one-to-many memos produced
@@ -58,6 +59,7 @@ Grants
   expiry date
   account code (13, 31, ...)
   label (to ID from FINS)
+  import_key (to identify from imports, like "nserc-43517b4fd422423382baab1e916e7f63")
   one-to-many: date, balance
   * users import CSV from FINS
   * need logic on FINS import to manually set FINS ID <-> owner link
@@ -87,3 +89,9 @@ EventTypeCategory
   one-to-many CareerEventType
   * use them to give useful menu options
 
+CVImport
+  person
+  date
+  datafile
+  import_stuff_from()
+  
