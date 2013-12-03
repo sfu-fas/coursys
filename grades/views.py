@@ -538,7 +538,7 @@ def grade_change(request, course_slug, activity_slug, userid):
         grade = None
      
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s-gradechange.pdf' % (userid)
+    response['Content-Disposition'] = 'inline; filename="%s-gradechange.pdf"' % (userid)
     grade_change_form(member, member.official_grade, grade, user, response)
     return response
 
@@ -1174,7 +1174,7 @@ def all_grades_csv(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % (course_slug)
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % (course_slug)
     
     _all_grades_output(response, course)        
     return response
@@ -1350,7 +1350,7 @@ def export_all(request, course_slug):
     zipdata = open(filename, 'rb')
     response = HttpResponse(FileWrapper(zipdata), mimetype='application/zip')
     response['Content-Length'] = os.path.getsize(filename)    
-    response['Content-Disposition'] = 'attachment; filename=' + course.slug + ".zip"
+    response['Content-Disposition'] = 'attachment; filename="' + course.slug + '.zip"'
     try:
         os.remove(filename)
     except OSError:

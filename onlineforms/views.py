@@ -837,7 +837,7 @@ def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
     else:
         disposition = 'inline'
     
-    response['Content-Disposition'] = disposition + '; filename=' + filename
+    response['Content-Disposition'] = disposition + '; filename="' + filename + '"'
     return response
 
 

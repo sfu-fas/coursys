@@ -149,12 +149,10 @@ def SIMS_problem_handler(func):
         try:
             return func(*args, **kwargs)
         except SIMSConn.DatabaseError as e:
-            print e
             raise SIMSProblem, "could not connect to reporting database"
         except ImportError:
             raise SIMSProblem, "could not import DB2 module"
         except SIMSConn.DB2Error as e:
-            print e
             raise SIMSProblem, "problem with reporting database connection"
 
     wrapped.__name__ = func.__name__

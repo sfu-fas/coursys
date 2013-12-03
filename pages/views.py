@@ -132,7 +132,7 @@ def _get_file(request, course_slug, page_label, disposition):
         return ForbiddenResponse(request, 'Not allowed to view this page')
     
     resp = HttpResponse(version.file_attachment.chunks(), content_type=version.file_mediatype)
-    resp['Content-Disposition'] = disposition+'; filename=' + version.file_name
+    resp['Content-Disposition'] = disposition+'; filename="' + version.file_name + '"'
     resp['Content-Length'] = version.file_attachment.size
     return resp
     

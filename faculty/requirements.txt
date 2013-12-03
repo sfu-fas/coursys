@@ -36,7 +36,7 @@ CareerEvent types:
   teaching load (default = 3/year, etc)
   research group membership?
   external affiliation (adjunct, external company/not-for-profit, research institute/centre)
-  admin position (position: director, assoc director, etc; teaching reduction?)
+  admin position (position: director, assoc director, etc; teaching/supervision reduction)
   committee member (commitee name and unit)
   special deals (additional research stipend, etc)
   applied for grant
@@ -51,6 +51,8 @@ CareerEvent types:
   accreditation flags (is PEng, has PhD, ...)
 
 You know what'd be cool? NSERC common-CV XML importing.
+
+Must be able to do the stupid CMPT FTTE/FTSE/credit balance calculations.
 
 Grants
   owner (can be faculty member or admin staff)
