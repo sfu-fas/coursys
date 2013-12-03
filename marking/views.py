@@ -795,7 +795,7 @@ def download_marking_attachment(request, course_slug, activity_slug, mark_id):
     # send the file
     filename = am.attachment_filename()
     response = HttpResponse(am.file_attachment, mimetype=am.file_mediatype)
-    response['Content-Disposition'] = 'inline; filename='+filename
+    response['Content-Disposition'] = 'inline; filename="' + filename + '"'
     return response
 
 @requires_course_staff_by_slug
@@ -852,7 +852,7 @@ def export_csv(request, course_slug, activity_slug):
 def _export_csv_numeric(request, course, activity):    
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course.slug, activity.slug,)
+    response['Content-Disposition'] = 'attachment; filename="%s_%s.csv"' % (course.slug, activity.slug,)
 
     writer = csv.writer(response)
     if activity.group:
@@ -893,7 +893,7 @@ def _export_csv_numeric(request, course, activity):
 def _export_csv_letter(request, course, activity):
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course.slug, activity.slug,)
+    response['Content-Disposition'] = 'attachment; filename="%s_%s.csv"' % (course.slug, activity.slug,)
 
     writer = csv.writer(response)
     
@@ -940,7 +940,7 @@ def export_sims(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug, deleted=False)
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s_%s_sims.csv' % (course_slug, activity_slug,)
+    response['Content-Disposition'] = 'attachment; filename="%s_%s_sims.csv"' % (course_slug, activity_slug,)
     
     writer = csv.writer(response)
     student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
@@ -1563,7 +1563,7 @@ def export_marks(request, course_slug, activity_slug):
     
     data = _mark_export_data(activity)
     response = HttpResponse(mimetype='application/json')
-    response['Content-Disposition'] = 'inline; filename=%s-%s.json' % (course.slug, activity.slug)
+    response['Content-Disposition'] = 'inline; filename="%s-%s.json"' % (course.slug, activity.slug)
     
     json.dump({'marks': data}, response, cls=_DecimalEncoder, indent=1)
     

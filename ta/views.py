@@ -895,7 +895,7 @@ def all_contracts(request, post_slug):
 def contracts_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'inline; filename=%s.csv' % (posting.slug)
+    response['Content-Disposition'] = 'inline; filename="%s.csv"' % (posting.slug)
     writer = csv.writer(response)
     writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 'Benefits Indicator', 'EmplID', 'SIN',
                      'Last Name', 'First Name 1', 'First Name 2', 'Payroll Start Date', 'Payroll End Date',
@@ -1056,7 +1056,7 @@ def view_form(request, post_slug, userid):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s-%s.pdf' % (posting.slug, userid)
+    response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (posting.slug, userid)
     ta_form(contract, response)
     return response
 
@@ -1065,7 +1065,7 @@ def contracts_forms(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     contracts = TAContract.objects.filter(posting=posting, status='ACC')
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s.pdf' % (posting.slug)
+    response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (posting.slug)
     ta_forms(contracts, response)
     return response
 
@@ -1421,7 +1421,7 @@ def generate_csv(request, post_slug):
     # generate CSV
     filename = str(posting.slug) + '.csv'
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
@@ -1490,7 +1490,7 @@ def generate_csv_by_course(request, post_slug):
     # generate CSV
     filename = str(posting.slug) + '_by_course.csv'
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    response['Content-Disposition'] = 'inline; filename="%s"'% filename
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names

@@ -231,7 +231,7 @@ def view(request, ra_slug):
 def form(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s.pdf' % (appointment.slug)
+    response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
     ra_form(appointment, response)
     return response
 
@@ -239,7 +239,7 @@ def form(request, ra_slug):
 def letter(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
+    response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
         to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 

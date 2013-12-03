@@ -707,7 +707,7 @@ def view_signature(request, userid):
     sig = get_object_or_404(Signature, user__in=people, user__userid=userid)
     
     response = HttpResponse(sig.sig, mimetype='image/png')
-    response['Content-Disposition'] = 'inline; filename=%s.png' % (userid)
+    response['Content-Disposition'] = 'inline; filename="%s.png"' % (userid)
     response['Content-Length'] = sig.sig.size
     return response
 
@@ -875,7 +875,7 @@ def courses_json(request, semester):
     courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN") \
               .select_related('semester')
     resp = HttpResponse(mimetype="application/json")
-    resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
+    resp['Content-Disposition'] = 'inline; filename="' + semester + '.json"'
     crs_data = (c.export_dict() for c in courses)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
@@ -977,7 +977,7 @@ def student_photo(request, emplid):
     imgpath = os.path.join(settings.MEDIA_ROOT, 'images', 'default-photo.png')
     data = open(imgpath, 'r')
     response = HttpResponse(data, mimetype='image/png')
-    response['Content-Disposition'] = 'inline; filename=%s.png' % (emplid)
+    response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
     # TODO: be a little less heavy-handed with the caching if it can be done safely
     response['Cache-Control'] = 'no-store'
     response['Pragma'] = 'no-cache'
