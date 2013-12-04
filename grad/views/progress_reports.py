@@ -1,6 +1,6 @@
 from courselib.auth import requires_role
 from django.http import HttpResponse
-from coredata.models import Semester
+from coredata.models import Semester, Unit
 from grad.models import GradStudent, CompletedRequirement, Supervisor, Scholarship, OtherFunding, GradStatus
 from ta.models import TACourse
 from ra.models import RAAppointment
@@ -9,11 +9,14 @@ from coredata.queries import grad_student_courses, grad_student_gpas
 def escape(s):
     if s is None:
         return 'null'
-    elif type(s) == int:
-        return unicode(s)
+    elif type(s) in (int,long,float):
+        return(s)
     else:
         import MySQLdb
-        return "'" + MySQLdb._mysql.escape_string(unicode(s)) + "'"
+        if type(s)==unicode:
+            return "'" + MySQLdb._mysql.escape_string(s) + "'"
+        else:
+            return "'" + MySQLdb._mysql.escape_string(unicode(s,errors='replace')) + "'"
 
 def escape_all(*ss):
     return tuple(map(escape, ss))
@@ -196,8 +199,9 @@ def generate_queries(notes, grads):
 @requires_role("GRAD", get_only=["GRPD"])
 def progress_reports(request):
     last_semester = Semester.current().previous_semester()
-
-    grads = GradStudent.objects.filter(program__unit__in=request.units, start_semester__name__lte=last_semester.name,
+    CS_UNIT=Unit.objects.get(label='CMPT')
+    grads = GradStudent.objects.filter(program__unit=CS_UNIT, start_semester__name__lte=last_semester.name,
+    #grads = GradStudent.objects.filter(program__unit__in=request.units, start_semester__name__lte=last_semester.name,
                 end_semester=None, current_status__in=['ACTI', 'LEAV', 'PART']) \
                 .select_related('person', 'program__unit').order_by('person')
     #grads = grads[:50]
