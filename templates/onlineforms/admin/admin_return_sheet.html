@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Return sheet to {{ sheetsub.filler.name }}{% endblock %}
+{% block h1 %}Return sheet to {{ sheetsub.filler.name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">View {{ formsub.form.title }}</a></li>
+    <li>&gt; Return Sheet</li>
+{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div class="form_container" id="give">
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <fieldset><legend>Return Sheet</legend>
+    {{ form|as_dl }}
+    <p><input class="submit" type="submit" value="Return" /></p>
+    </fieldset>
+    </form>
+</div>
+{% endblock %}
