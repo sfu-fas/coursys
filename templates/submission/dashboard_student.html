@@ -32,7 +32,7 @@
             {% if activity.group %}
             <tr>
                 <th scope="row">Group:</th>
-                <td>{% if group %}{{group.name}}{% else %}<span class="empty">No group</span>{% endif %}</td>
+                <td>{% if group %}{% block groupinfo %}{{group.name}}{% endblock %}{% else %}<span class="empty">No group</span>{% endif %}</td>
             </tr>
             {% endif %}
             <tr>
