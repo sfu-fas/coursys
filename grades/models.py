@@ -737,6 +737,11 @@ class GradeHistory(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+?
 
+    class Meta:
+        ordering = ['-timestamp']
+
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it's job is to exist."
 
+    def grade(self):
+        return self.numeric_grade or self.letter_grade

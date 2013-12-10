@@ -13,6 +13,11 @@
 	    "bPaginate": false,
             "bSort": false
 	});
+	$('#grade_history').dataTable({
+	    "bJQueryUI": true,
+	    "bPaginate": false,
+            "bSort": true
+	});
     });
 </script>
 {% endblock %}
@@ -107,6 +112,27 @@
 </li>
 {% endfor %}
 </ul>
+{% endif %}
+
+
+{% if grade_history %}
+<h2 id="history">Grading History</h2>
+<div class="datatable_container">
+<table class="display" id="grade_history">
+<thead><th scope="col">Time</th><th scope="col">Activity</th><th scope="col">Grade</th><th scope="col">Entered By</th></thead>
+<tbody>
+{% for gh in grade_history %}
+<tr>
+    <td><span class="sort">{{ gh.timestamp.isoformat }}</span>{{ gh.timestamp }}</td>
+    <td>{{ gh.activity.name }}</td>
+    <td>{{ gh.grade }}</td>
+    <td>{{ gh.entered_by.name }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
 {% endif %}
 
 {% endblock %}

@@ -17,7 +17,7 @@ from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_studen
 from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
 
 from grades.models import all_activities_filter
-from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, GradeHistory
 from grades.models import NumericGrade, LetterGrade
 from grades.models import CalLetterActivity, ACTIVITY_TYPES
 from grades.models import neaten_activity_positions
@@ -1292,8 +1292,10 @@ def student_info(request, course_slug, userid):
                 info['marked'] = True
 
     group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
+    grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity')
 
-    context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships}
+    context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
+               'grade_history': grade_history}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 
 
