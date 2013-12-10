@@ -670,3 +670,23 @@ def min_letters(sorted_grades):
         return grades_s[l-1]
 
 
+
+
+class GradeHistory(models.Model):
+    from marking.models import StudentActivityMark, GroupActivityMark
+    activity = models.ForeignKey(Activity, null=False)
+    member = models.ForeignKey(Member, null=False)
+    entered_by = models.ForeignKey(Person, null=False)
+
+    activity_status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status when grade was entered.')
+    numeric_grade = models.DecimalField(max_digits=5, decimal_places=2, default=0, null=False)
+    letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
+    grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
+
+    student_mark = models.ForeignKey(StudentActivityMark, null=True)
+    group_mark = models.ForeignKey(GroupActivityMark, null=True)
+
+    timestamp = models.DateField(auto_now_add=True)
+    #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+
+
+
