@@ -17,7 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
     EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
-    AdminAssignForm_nonsfu, CloseFormForm, ChangeOwnerForm
+    AdminAssignForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
@@ -301,6 +301,7 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
+@transaction.commit_on_success
 @requires_formgroup()
 def admin_change_owner(request, form_slug, formsubmit_slug):
     admin = get_object_or_404(Person, userid=request.user.username)
@@ -333,6 +334,39 @@ def admin_change_owner(request, form_slug, formsubmit_slug):
 
     context = {'form': form, 'formsub': form_submission}
     return render(request, "onlineforms/admin/admin_change_owner.html", context)
+
+
+@transaction.commit_on_success
+@requires_formgroup()
+def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
+    admin = get_object_or_404(Person, userid=request.user.username)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
+    sheet_submission = get_object_or_404(SheetSubmission, form_submission=form_submission, slug=sheetsubmit_slug)
+
+    if request.method == 'POST':
+        form = AdminReturnForm(data=request.POST)
+        if form.is_valid():
+            reason = form.cleaned_data['reason']
+            sheet_submission.status = 'WAIT'
+            sheet_submission.set_return_reason(reason)
+            sheet_submission.save()
+
+            sheet_submission.email_returned(request, admin)
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Returned sheet submission %s to %s" % (sheet_submission, sheet_submission.filler)),
+                related_object=sheet_submission)
+            l.save()
+            messages.success(request, 'Sheet returned to %s.' % (sheet_submission.filler.name()))
+            return HttpResponseRedirect(reverse('onlineforms.views.view_submission', kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
+
+    else:
+        form = AdminReturnForm()
+
+    context = {'sheetsub': sheet_submission, 'formsub': form_submission, 'form': form}
+    return render(request, "onlineforms/admin/admin_return_sheet.html", context)
 
 
 def _userToFormFiller(user):

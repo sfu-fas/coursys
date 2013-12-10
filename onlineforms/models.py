@@ -526,6 +526,7 @@ class SheetSubmission(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
         # 'reject_reason': reason given for rejecting the sheet
+        # 'return_reason': reason given for returning the sheet to the filler
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -536,8 +537,9 @@ class SheetSubmission(models.Model):
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
     
-    defaults = {'reject_reason': None}
+    defaults = {'reject_reason': None, 'return_reason': None}
     reject_reason, set_reject_reason = getter_setter('reject_reason')
+    return_reason, set_return_reason = getter_setter('return_reason')
 
     cached_fields = None
     def get_field_submissions(self, refetch=False):
@@ -655,6 +657,11 @@ class SheetSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
+
+    def email_returned(self, request, admin):
+        context = {'admin': admin, 'sheetsub': self}
+        self._send_email(request, 'sheet_returned', '%s submission returned' % (self.sheet.title),
+                         admin, self.filler, context)
 
 
 

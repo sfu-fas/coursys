@@ -54,6 +54,7 @@ class Person(models.Model):
     title = models.CharField(max_length=4, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
+        # 'pref_first_name': really, truly preferred first name (which can be set in DB if necessary)
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
         # 'addresses': dictionary of phone number values. Possible keys: 'home', 'mail'
         # 'gender': 'M', 'F', 'U'
@@ -105,13 +106,14 @@ class Person(models.Model):
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
     def real_pref_first(self):
-        return self.pref_first_name or self.first_name
+        return self.config.get('pref_first_name', None) or self.pref_first_name or self.first_name
     def name_pref(self):
         return "%s %s" % (self.real_pref_first(), self.last_name)
     def first_with_pref(self):
         name = self.first_name
-        if self.pref_first_name and self.pref_first_name != self.first_name:
-            name += ' (%s)' % (self.pref_first_name)
+        pref = self.real_pref_first()
+        if pref != self.first_name:
+            name += ' (%s)' % (pref)
         return name
     def sortname_pref(self):
         return "%s, %s" % (self.last_name, self.first_with_pref())
