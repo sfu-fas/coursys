@@ -19,7 +19,7 @@ class Migration(SchemaMigration):
             ('letter_grade', self.gf('django.db.models.fields.CharField')(max_length=2)),
             ('grade_flag', self.gf('django.db.models.fields.CharField')(max_length=4)),
             ('mark', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityMark'], null=True)),
-            ('timestamp', self.gf('django.db.models.fields.DateField')(auto_now_add=True, blank=True)),
+            ('timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
         db.send_create_signal('grades', ['GradeHistory'])
 
@@ -149,7 +149,7 @@ class Migration(SchemaMigration):
             'mark': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['marking.ActivityMark']", 'null': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
             'numeric_grade': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '5', 'decimal_places': '2'}),
-            'timestamp': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'})
+            'timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
         },
         'grades.letteractivity': {
             'Meta': {'ordering': "['deleted', 'position']", 'object_name': 'LetterActivity', '_ormbases': ['grades.Activity']},

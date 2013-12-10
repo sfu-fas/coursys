@@ -734,7 +734,9 @@ class GradeHistory(models.Model):
 
     mark = models.ForeignKey(ActivityMark, null=True)
 
-    timestamp = models.DateField(auto_now_add=True)
-    #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+
+    timestamp = models.DateTimeField(auto_now_add=True)
+    #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+?
 
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it's job is to exist."
 
