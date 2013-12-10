@@ -453,7 +453,9 @@ def _change_grade_status_numeric(request, course, activity, userid):
         if not status_form.is_valid(): 
             error = 'Error found'
         else:            
-            status_form.save()
+            status_form.save(commit=False)
+            numeric_grade.save(entered_by=request.user.username)
+
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
@@ -492,7 +494,9 @@ def _change_grade_status_letter(request, course, activity, userid):
         if not status_form.is_valid(): 
             error = 'Error found'
         else:            
-            status_form.save()
+            status_form.save(commit=False)
+            letter_grade.save(entered_by=request.user.username)
+
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 

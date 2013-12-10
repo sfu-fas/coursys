@@ -132,7 +132,9 @@ class Activity(models.Model):
                     'title': "%s grade released" % (self.name),
                     'content': 'Grades have been released for %s in %s.'
                       % (self.name, self.offering.name()),
-                    'url': self.get_absolute_url()})\
+                    'url': self.get_absolute_url()})
+
+            # TODO: create GradeHistory to records visibility of grade
         
         if old and old.group and not self.group:
             # activity changed group -> individual. Clean out any group memberships
@@ -437,7 +439,7 @@ class NumericGrade(models.Model):
     member = models.ForeignKey(Member, null=False)
 
     value = models.DecimalField(max_digits=5, decimal_places=2, default=0, null=False)
-    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
+    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True)
     
     def __unicode__(self):
@@ -473,12 +475,32 @@ class NumericGrade(models.Model):
             return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
         
 
-    def save(self, newsitem=True):
+    def save(self, entered_by, mark=None, newsitem=True):
+        """Save the grade.
+
+        entered_by must be one of:
+        (1) the Person object of the person who entered the grade,
+        (2) the userid of the person who entered the grade,
+        (3) None ONLY if this was a result of a calculation
+
+        mark is a reference to the StudentActivityMark or GroupActivity mark, if that's where the grade came from
+
+        newsitem controls the posting of a NewsItem for the student.
+        """
         if self.flag == "NOGR":
             # make sure "no grade" values have a zero: just in case the value is used in some other calc
             self.value = 0
 
         super(NumericGrade, self).save()
+
+        entered_by = _get_entry_person(entered_by)
+        if entered_by:
+            gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
+                              numeric_grade=self.value, grade_flag=self.flag, mark=mark)
+            gh.save()
+        else:
+            assert self.flag == 'CALC'
+
         if self.activity.status == "RLS" and newsitem and self.flag not in ["NOGR", "CALC"]:
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
@@ -511,7 +533,7 @@ class LetterGrade(models.Model):
     member = models.ForeignKey(Member, null=False)
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
-    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
+    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True)
     
     def __unicode__(self):
@@ -540,8 +562,26 @@ class LetterGrade(models.Model):
         else:
             return '%s' % (self.letter_grade)     
     
-    def save(self, newsitem=True):
+    def save(self, entered_by, newsitem=True):
+        """Save the grade.
+
+        entered_by must be one of:
+        (1) the Person object of the person who entered the grade,
+        (2) the userid of the person who entered the grade,
+        (3) None ONLY if this was a result of a calculation
+
+        newsitem controls the posting of a NewsItem for the student.
+        """
         super(LetterGrade, self).save()
+
+        entered_by = _get_entry_person(entered_by)
+        if entered_by:
+            gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
+                              letter_grade=self.letter_grade, grade_flag=self.flag, mark=None)
+            gh.save()
+        else:
+            assert self.flag == 'CALC'
+
         if self.activity.status=="RLS" and newsitem and self.flag != "NOGR":
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
@@ -670,21 +710,29 @@ def min_letters(sorted_grades):
         return grades_s[l-1]
 
 
-
+def _get_entry_person(entered_by):
+    if isinstance(entered_by, Person):
+        return entered_by
+    elif entered_by is None:
+        return None
+    else:
+        return Person.objects.get(userid=entered_by)
 
 class GradeHistory(models.Model):
-    from marking.models import StudentActivityMark, GroupActivityMark
+    """
+    Grade audit history. Created automatically by ActivityMark.save().
+    """
+    from marking.models import ActivityMark
     activity = models.ForeignKey(Activity, null=False)
     member = models.ForeignKey(Member, null=False)
-    entered_by = models.ForeignKey(Person, null=False)
+    entered_by = models.ForeignKey(Person, null=False, blank=False)
 
     activity_status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status when grade was entered.')
     numeric_grade = models.DecimalField(max_digits=5, decimal_places=2, default=0, null=False)
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
 
-    student_mark = models.ForeignKey(StudentActivityMark, null=True)
-    group_mark = models.ForeignKey(GroupActivityMark, null=True)
+    mark = models.ForeignKey(ActivityMark, null=True)
 
     timestamp = models.DateField(auto_now_add=True)
     #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+
