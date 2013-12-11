@@ -627,8 +627,8 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             
             mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
                    (total - form.cleaned_data['mark_adjustment'])
-            am.setMark(mark)
 
+            am.setMark(mark, entered_by=request.user.username)
             am.save()
             form.save_m2m()
             for entry in component_data:
@@ -1028,29 +1028,29 @@ def _mark_all_groups_numeric(request, course, activity):
             updated = 0
             i = -1
             for group in groups:
-               i += 1
-               new_value = rows[i]['form'].cleaned_data['value']
-               if new_value== None :
-                   continue
-               if current_act_marks[i] != None and current_act_marks[i].mark == new_value:
-                  # if any of the group members originally has a grade status other than 'GRAD'
-                  # so do not override the status
-                  continue
-               act_mark = GroupActivityMark(group=group, numeric_activity=activity, created_by=request.user.username)
-               act_mark.setMark(new_value)
-               act_mark.save()
+                i += 1
+                new_value = rows[i]['form'].cleaned_data['value']
+                if new_value== None :
+                    continue
+                if current_act_marks[i] != None and current_act_marks[i].mark == new_value:
+                    # if any of the group members originally has a grade status other than 'GRAD'
+                    # so do not override the status
+                    continue
+                act_mark = GroupActivityMark(group=group, numeric_activity=activity, created_by=request.user.username)
+                act_mark.setMark(new_value, entered_by=request.user.username)
+                act_mark.save()
 
-               updated += 1     
-               if new_value < 0:
-                   warning_info.append(u"Negative mark given to group %s" % group.name)
-               elif new_value > activity.max_grade:
-                   warning_info.append(u"Bonus mark given to group %s" % group.name)  
+                updated += 1     
+                if new_value < 0:
+                    warning_info.append(u"Negative mark given to group %s" % group.name)
+                elif new_value > activity.max_grade:
+                    warning_info.append(u"Bonus mark given to group %s" % group.name)  
 
-               #LOG EVENT
-               l = LogEntry(userid=request.user.username,
+                #LOG EVENT
+                l = LogEntry(userid=request.user.username,
                      description=(u"bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
                      related_object=act_mark)
-               l.save()                  
+                l.save()                  
                  
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, u"Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
@@ -1059,14 +1059,14 @@ def _mark_all_groups_numeric(request, course, activity):
             return _redirct_response(request, course.slug, activity.slug)   
         
     else: # for GET request
-       for group in groups: 
-           act_mark = get_group_mark(activity, group)         
-           if act_mark == None:
+        for group in groups: 
+            act_mark = get_group_mark(activity, group)         
+            if act_mark == None:
                 current_mark = 'no grade'
-           else:
+            else:
                 current_mark = act_mark.mark
-           entry_form = MarkEntryForm(prefix = group.name)                                    
-           rows.append({'group': group, 'current_mark' : current_mark, 'form' : entry_form}) 
+            entry_form = MarkEntryForm(prefix = group.name)                                    
+            rows.append({'group': group, 'current_mark' : current_mark, 'form' : entry_form}) 
     
     if error_info:
         messages.add_message(request, messages.ERROR, error_info)     
@@ -1118,7 +1118,7 @@ def _mark_all_groups_letter(request, course, activity):
                 #if act_mark == None:
                 #act_mark = LetterGrade(activity = activity, member = all_members[i])       
                 act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
-                act_mark.setMark(new_value)
+                act_mark.setMark(new_value, entered_by=request.user.username)
                 act_mark.save()
 
                 #LOG EVENT
@@ -1348,7 +1348,7 @@ def _mark_all_students_numeric(request, course, activity):
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
                 ngrade.value = new_value
                 ngrade.flag = "GRAD"
-                ngrade.save()
+                ngrade.save(entered_by=request.user.username)
                 
                 updated += 1     
                 if new_value < 0:

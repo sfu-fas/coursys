@@ -492,6 +492,9 @@ class NumericGrade(models.Model):
         super(NumericGrade, self).save()
 
         entered_by = _get_entry_person(entered_by)
+        if bool(mark) and not mark.id:
+            raise ValueError, "ActivityMark must be saved before calling setMark."
+
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
                               numeric_grade=self.value, grade_flag=self.flag, comment=self.comment, mark=mark)
@@ -557,7 +560,7 @@ class LetterGrade(models.Model):
         else:
             return '%s' % (self.letter_grade)     
     
-    def save(self, entered_by, newsitem=True):
+    def save(self, entered_by, mark=None, newsitem=True):
         """Save the grade.
 
         entered_by must be one of:
@@ -572,7 +575,7 @@ class LetterGrade(models.Model):
         entered_by = _get_entry_person(entered_by)
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
-                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=None)
+                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=mark)
             gh.save()
         else:
             assert self.flag == 'CALC'
