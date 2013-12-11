@@ -125,7 +125,11 @@
 <tr>
     <td><span class="sort">{{ gh.timestamp.isoformat }}</span>{{ gh.timestamp }}</td>
     <td>{{ gh.activity.name }}</td>
-    <td>{{ gh.grade }}</td>
+    <td>{{ gh.grade }}
+      {% if gh.mark %}
+      <a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=gh.activity.slug userid=member.person.userid%}?activity_mark={{gh.mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+      {% endif %}	
+    </td>
     <td>{{ gh.entered_by.name }}</td>
 </tr>
 {% endfor %}

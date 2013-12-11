@@ -287,7 +287,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
                 lgrade = LetterGrade(activity=self.letter_activity, member=g_member.student)
             lgrade.letter_grade = grade
             lgrade.flag = 'GRAD'
-            lgrade.save(entered_by=entered_by, mark=self) 
+            lgrade.save(entered_by=entered_by) 
 
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 

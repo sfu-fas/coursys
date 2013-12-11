@@ -612,7 +612,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     ngrade = NumericGrade.objects.get(activity=activity, member=membership)
                 except NumericGrade.DoesNotExist:
                     ngrade = NumericGrade(activity=activity, member=membership)
-                    ngrade.save(newsitem=False)
+                    ngrade.save(newsitem=False, entered_by=None, is_temporary=True)
                 am.numeric_grade = ngrade
             
             # calculate grade and save
@@ -1185,32 +1185,32 @@ def _mark_all_students_letter(request, course, activity):
         if error_info == None:
             updated = 0                 
             for i in range(len(memberships)):
-               student = memberships[i].person  
-               lgrade = lgrades[i]
-               new_value = rows[i]['form'].cleaned_data['value'] 
-               # the new mark is blank or the new mark is the same as the old one, do nothing
-               if new_value not in LETTER_GRADE_CHOICES_IN:  
-                   error_info = False
-                   continue
-               if lgrade !=None and lgrade.letter_grade == new_value:
-                   # if the student originally has a grade status other than 'GRAD',
-                   # we do not override that status
-                   continue 
-               # save data 
-               if lgrade == None:
+                student = memberships[i].person  
+                lgrade = lgrades[i]
+                new_value = rows[i]['form'].cleaned_data['value'] 
+                # the new mark is blank or the new mark is the same as the old one, do nothing
+                if new_value not in LETTER_GRADE_CHOICES_IN:  
+                    error_info = False
+                    continue
+                if lgrade !=None and lgrade.letter_grade == new_value:
+                    # if the student originally has a grade status other than 'GRAD',
+                    # we do not override that status
+                    continue 
+                # save data 
+                if lgrade == None:
                     lgrade = LetterGrade(activity = activity, member = memberships[i]);
-               lgrade.letter_grade = new_value
-               lgrade.flag = "GRAD"
-               lgrade.save()
+                lgrade.letter_grade = new_value
+                lgrade.flag = "GRAD"
+                lgrade.save(entered_by=request.user.username)
                
-               updated += 1    
+                updated += 1    
                
                
-               #LOG EVENT
-               l = LogEntry(userid=request.user.username,
+                #LOG EVENT
+                l = LogEntry(userid=request.user.username,
                      description=(u"bulk marked %s for %s: %s") % (activity, student.userid, new_value),
                      related_object=lgrade)
-               l.save()                  
+                l.save()                  
            
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, u"Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))

@@ -473,13 +473,13 @@ class NumericGrade(models.Model):
             return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
         
 
-    def save(self, entered_by, mark=None, newsitem=True):
+    def save(self, entered_by, mark=None, newsitem=True, is_temporary=False):
         """Save the grade.
 
         entered_by must be one of:
         (1) the Person object of the person who entered the grade,
         (2) the userid of the person who entered the grade,
-        (3) None ONLY if this was a result of a calculation
+        (3) None ONLY if this was a result of a calculation (or for a temporary save that will be re-saved later)
 
         mark is a reference to the StudentActivityMark or GroupActivity mark, if that's where the grade came from
 
@@ -500,7 +500,7 @@ class NumericGrade(models.Model):
                               numeric_grade=self.value, grade_flag=self.flag, comment=self.comment, mark=mark)
             gh.save()
         else:
-            assert self.flag == 'CALC'
+            assert (self.flag == 'CALC') or (is_temporary and self.flag=='NOGR')
 
         if self.activity.status == "RLS" and newsitem and self.flag not in ["NOGR", "CALC"]:
             # new grade assigned, generate news item only if the result is released
@@ -560,7 +560,7 @@ class LetterGrade(models.Model):
         else:
             return '%s' % (self.letter_grade)     
     
-    def save(self, entered_by, mark=None, newsitem=True):
+    def save(self, entered_by, newsitem=True):
         """Save the grade.
 
         entered_by must be one of:
@@ -575,7 +575,7 @@ class LetterGrade(models.Model):
         entered_by = _get_entry_person(entered_by)
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
-                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=mark)
+                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=None)
             gh.save()
         else:
             assert self.flag == 'CALC'
@@ -744,6 +744,6 @@ class GradeHistory(models.Model):
         raise NotImplementedError, "This object cannot be deleted because it's job is to exist."
 
     def grade(self):
-        return self.numeric_grade or self.letter_grade
+        return self.letter_grade or self.numeric_grade 
 
 
