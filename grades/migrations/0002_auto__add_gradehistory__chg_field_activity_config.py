@@ -18,6 +18,7 @@ class Migration(SchemaMigration):
             ('numeric_grade', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=5, decimal_places=2)),
             ('letter_grade', self.gf('django.db.models.fields.CharField')(max_length=2)),
             ('grade_flag', self.gf('django.db.models.fields.CharField')(max_length=4)),
+            ('comment', self.gf('django.db.models.fields.TextField')(null=True)),
             ('mark', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityMark'], null=True)),
             ('timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
@@ -139,9 +140,10 @@ class Migration(SchemaMigration):
             'numericactivity_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['grades.NumericActivity']", 'unique': 'True', 'primary_key': 'True'})
         },
         'grades.gradehistory': {
-            'Meta': {'object_name': 'GradeHistory'},
+            'Meta': {'ordering': "['-timestamp']", 'object_name': 'GradeHistory'},
             'activity': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['grades.Activity']"}),
             'activity_status': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'comment': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'entered_by': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']"}),
             'grade_flag': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

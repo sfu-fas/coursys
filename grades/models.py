@@ -444,8 +444,6 @@ class NumericGrade(models.Model):
     
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
-    def get_absolute_url(self):
-        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
 
     def display_staff(self):
         if self.flag == 'NOGR':
@@ -496,7 +494,7 @@ class NumericGrade(models.Model):
         entered_by = _get_entry_person(entered_by)
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
-                              numeric_grade=self.value, grade_flag=self.flag, mark=mark)
+                              numeric_grade=self.value, grade_flag=self.flag, comment=self.comment, mark=mark)
             gh.save()
         else:
             assert self.flag == 'CALC'
@@ -546,9 +544,6 @@ class LetterGrade(models.Model):
             return "%s" % (self.letter_grade)
     display_staff_short = display_staff
 
-    def get_absolute_url(self):
-        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
-
     def display_with_percentage_student(self):
         """
         Display student grade with percentage from student view, e.g 12/15 (80.00%)
@@ -577,7 +572,7 @@ class LetterGrade(models.Model):
         entered_by = _get_entry_person(entered_by)
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
-                              letter_grade=self.letter_grade, grade_flag=self.flag, mark=None)
+                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=None)
             gh.save()
         else:
             assert self.flag == 'CALC'
@@ -590,6 +585,7 @@ class LetterGrade(models.Model):
                   % (self.activity.name, self.activity.offering.name()),
                 url=self.get_absolute_url())
             n.save()
+
     def get_absolute_url(self):
         """        
         for regular numeric activity return the mark summary page
@@ -731,6 +727,7 @@ class GradeHistory(models.Model):
     numeric_grade = models.DecimalField(max_digits=5, decimal_places=2, default=0, null=False)
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
+    comment = models.TextField(null=True)
 
     mark = models.ForeignKey(ActivityMark, null=True)
 
@@ -745,3 +742,5 @@ class GradeHistory(models.Model):
 
     def grade(self):
         return self.numeric_grade or self.letter_grade
+
+
