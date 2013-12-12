@@ -1037,10 +1037,10 @@ def _mark_all_groups_numeric(request, course, activity):
                     # so do not override the status
                     continue
                 act_mark = GroupActivityMark(group=group, numeric_activity=activity, created_by=request.user.username)
-                act_mark.setMark(new_value, entered_by=request.user.username)
+                act_mark.setMark(new_value, entered_by=request.user.username, details=False)
                 act_mark.save()
 
-                updated += 1     
+                updated += 1
                 if new_value < 0:
                     warning_info.append(u"Negative mark given to group %s" % group.name)
                 elif new_value > activity.max_grade:
@@ -1118,7 +1118,7 @@ def _mark_all_groups_letter(request, course, activity):
                 #if act_mark == None:
                 #act_mark = LetterGrade(activity = activity, member = all_members[i])       
                 act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
-                act_mark.setMark(new_value, entered_by=request.user.username)
+                act_mark.setMark(new_value, entered_by=request.user.username, group=group)
                 act_mark.save()
 
                 #LOG EVENT
@@ -1596,7 +1596,10 @@ def import_marks(request, course_slug, activity_slug):
             ams, amcs, ngs = form.cleaned_data['file']
             count = 0
             for ng in ngs:
-                ng.save()
+                # save temporarily so we have ids for foreign keys
+                ng.flag = 'NOGR'
+                ng.save(entered_by=None, is_temporary=True)
+
             for am in ams:
                 if isinstance(am, StudentActivityMark):
                     am.numeric_grade_id = am.numeric_grade.id
@@ -1612,12 +1615,14 @@ def import_marks(request, course_slug, activity_slug):
                           related_object=activity)
                     l.save()
 
+                am.setMark(am.mark, entered_by=request.user.username) # deal with the GradeHistory and other details
                 am.save()
                 count += 1
+
             for amc in amcs:
                 amc.activity_mark_id = amc.activity_mark.id
                 amc.save()
-            
+
             messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (count))
             
             return _redirct_response(request, course_slug, activity_slug)

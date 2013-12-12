@@ -733,8 +733,8 @@ class GradeHistory(models.Model):
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
     comment = models.TextField(null=True)
 
-    mark = models.ForeignKey(ActivityMark, null=True)
-    group = models.ForeignKey(Group, null=True)
+    mark = models.ForeignKey(ActivityMark, null=True, help_text='The ActivityMark object this grade came from, if applicable.')
+    group = models.ForeignKey(Group, null=True, help_text='If this was a mark for a group, the group.')
 
     timestamp = models.DateTimeField(auto_now_add=True)
     #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+?

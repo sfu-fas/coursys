@@ -1292,7 +1292,7 @@ def student_info(request, course_slug, userid):
                 info['marked'] = True
 
     group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
-    grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity')
+    grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity', 'group', 'mark')
 
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
                'grade_history': grade_history}

@@ -162,7 +162,7 @@ class GroupActivityMark(ActivityMark):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
     
-    def setMark(self, grade, entered_by):
+    def setMark(self, grade, entered_by, details=True):
         """         
         Set the mark of the group members
         """
@@ -176,7 +176,11 @@ class GroupActivityMark(ActivityMark):
                 ngrade = NumericGrade(activity=self.numeric_activity, member=g_member.student)
             ngrade.value = grade
             ngrade.flag = 'GRAD'
-            ngrade.save(entered_by=entered_by, mark=self)            
+            if details:
+                ngrade.save(entered_by=entered_by, mark=self, group=self.group)
+            else:
+                # this is just a placeholder for a number-only mark
+                ngrade.save(entered_by=entered_by, mark=None, group=self.group)
             
  
 class ActivityComponentMark(models.Model):
@@ -287,7 +291,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
                 lgrade = LetterGrade(activity=self.letter_activity, member=g_member.student)
             lgrade.letter_grade = grade
             lgrade.flag = 'GRAD'
-            lgrade.save(entered_by=entered_by) 
+            lgrade.save(entered_by=entered_by, group=self.group)
 
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
