@@ -473,7 +473,7 @@ class NumericGrade(models.Model):
             return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
         
 
-    def save(self, entered_by, mark=None, newsitem=True, is_temporary=False):
+    def save(self, entered_by, mark=None, newsitem=True, group=None, is_temporary=False):
         """Save the grade.
 
         entered_by must be one of:
@@ -497,7 +497,7 @@ class NumericGrade(models.Model):
 
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
-                              numeric_grade=self.value, grade_flag=self.flag, comment=self.comment, mark=mark)
+                              numeric_grade=self.value, grade_flag=self.flag, comment=self.comment, mark=mark, group=group)
             gh.save()
         else:
             assert (self.flag == 'CALC') or (is_temporary and self.flag=='NOGR')
@@ -560,7 +560,7 @@ class LetterGrade(models.Model):
         else:
             return '%s' % (self.letter_grade)     
     
-    def save(self, entered_by, newsitem=True):
+    def save(self, entered_by, group=None, newsitem=True):
         """Save the grade.
 
         entered_by must be one of:
@@ -575,7 +575,7 @@ class LetterGrade(models.Model):
         entered_by = _get_entry_person(entered_by)
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
-                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=None)
+                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=None, group=group)
             gh.save()
         else:
             assert self.flag == 'CALC'
@@ -722,6 +722,7 @@ class GradeHistory(models.Model):
     Grade audit history. Created automatically by ActivityMark.save().
     """
     from marking.models import ActivityMark
+    from groups.models import Group
     activity = models.ForeignKey(Activity, null=False)
     member = models.ForeignKey(Member, null=False)
     entered_by = models.ForeignKey(Person, null=False, blank=False)
@@ -733,6 +734,7 @@ class GradeHistory(models.Model):
     comment = models.TextField(null=True)
 
     mark = models.ForeignKey(ActivityMark, null=True)
+    group = models.ForeignKey(Group, null=True)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+?

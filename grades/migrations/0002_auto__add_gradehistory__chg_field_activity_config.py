@@ -20,6 +20,7 @@ class Migration(SchemaMigration):
             ('grade_flag', self.gf('django.db.models.fields.CharField')(max_length=4)),
             ('comment', self.gf('django.db.models.fields.TextField')(null=True)),
             ('mark', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityMark'], null=True)),
+            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['groups.Group'], null=True)),
             ('timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
         db.send_create_signal('grades', ['GradeHistory'])
@@ -146,6 +147,7 @@ class Migration(SchemaMigration):
             'comment': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'entered_by': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']"}),
             'grade_flag': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['groups.Group']", 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'letter_grade': ('django.db.models.fields.CharField', [], {'max_length': '2'}),
             'mark': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['marking.ActivityMark']", 'null': 'True'}),
@@ -179,6 +181,16 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
             'value': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '5', 'decimal_places': '2'})
+        },
+        'groups.group': {
+            'Meta': {'ordering': "['name']", 'unique_together': "(('name', 'courseoffering'), ('slug', 'courseoffering'), ('svn_slug', 'courseoffering'))", 'object_name': 'Group'},
+            'courseoffering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
+            'groupForSemester': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'manager': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None'}),
+            'svn_slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '17', 'unique_with': '()', 'null': 'True', 'populate_from': 'None'})
         },
         'marking.activitymark': {
             'Meta': {'ordering': "['created_at']", 'object_name': 'ActivityMark'},
