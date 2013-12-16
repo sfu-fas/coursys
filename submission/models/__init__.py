@@ -148,7 +148,7 @@ def get_current_submission(student, activity, include_deleted=False):
     return most recent submission (individual or group) and compilation of valid components
     """
     if activity.group:
-        gms = GroupMember.objects.filter(student__person=student, confirmed=True)
+        gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
         submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
     else:
         submission = StudentSubmission.objects.filter(activity=activity, member__person=student)
