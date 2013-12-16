@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
             ('member', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Member'])),
             ('entered_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
             ('activity_status', self.gf('django.db.models.fields.CharField')(max_length=4)),
-            ('numeric_grade', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=5, decimal_places=2)),
+            ('numeric_grade', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=8, decimal_places=2)),
             ('letter_grade', self.gf('django.db.models.fields.CharField')(max_length=2)),
             ('grade_flag', self.gf('django.db.models.fields.CharField')(max_length=4)),
             ('comment', self.gf('django.db.models.fields.TextField')(null=True)),
@@ -26,16 +26,10 @@ class Migration(SchemaMigration):
         db.send_create_signal('grades', ['GradeHistory'])
 
 
-        # Changing field 'Activity.config'
-        db.alter_column('grades_activity', 'config', self.gf('jsonfield.fields.JSONField')())
-
     def backwards(self, orm):
         # Deleting model 'GradeHistory'
         db.delete_table('grades_gradehistory')
 
-
-        # Changing field 'Activity.config'
-        db.alter_column('grades_activity', 'config', self.gf('jsonfield.JSONField')())
 
     models = {
         'coredata.course': {
@@ -152,7 +146,7 @@ class Migration(SchemaMigration):
             'letter_grade': ('django.db.models.fields.CharField', [], {'max_length': '2'}),
             'mark': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['marking.ActivityMark']", 'null': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
-            'numeric_grade': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '5', 'decimal_places': '2'}),
+            'numeric_grade': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '8', 'decimal_places': '2'}),
             'timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
         },
         'grades.letteractivity': {
@@ -171,7 +165,7 @@ class Migration(SchemaMigration):
         'grades.numericactivity': {
             'Meta': {'ordering': "['deleted', 'position']", 'object_name': 'NumericActivity', '_ormbases': ['grades.Activity']},
             'activity_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['grades.Activity']", 'unique': 'True', 'primary_key': 'True'}),
-            'max_grade': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'})
+            'max_grade': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'})
         },
         'grades.numericgrade': {
             'Meta': {'unique_together': "(('activity', 'member'),)", 'object_name': 'NumericGrade'},
@@ -180,7 +174,7 @@ class Migration(SchemaMigration):
             'flag': ('django.db.models.fields.CharField', [], {'default': "'NOGR'", 'max_length': '4'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
-            'value': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '5', 'decimal_places': '2'})
+            'value': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '8', 'decimal_places': '2'})
         },
         'groups.group': {
             'Meta': {'ordering': "['name']", 'unique_together': "(('name', 'courseoffering'), ('slug', 'courseoffering'), ('svn_slug', 'courseoffering'))", 'object_name': 'Group'},
@@ -201,8 +195,8 @@ class Migration(SchemaMigration):
             'file_mediatype': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'late_penalty': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '5', 'decimal_places': '2', 'blank': 'True'}),
-            'mark': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'}),
-            'mark_adjustment': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '5', 'decimal_places': '2', 'blank': 'True'}),
+            'mark': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
+            'mark_adjustment': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '8', 'decimal_places': '2', 'blank': 'True'}),
             'mark_adjustment_reason': ('django.db.models.fields.TextField', [], {'max_length': '1000', 'null': 'True', 'blank': 'True'}),
             'overall_comment': ('django.db.models.fields.TextField', [], {'max_length': '1000', 'null': 'True', 'blank': 'True'})
         }
