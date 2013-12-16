@@ -23,7 +23,7 @@ class ActivityComponent(models.Model):
     Markable Component of a numeric activity   
     """
     numeric_activity = models.ForeignKey(NumericActivity, null = False)
-    max_mark = models.DecimalField(max_digits=5, decimal_places=2, null = False)
+    max_mark = models.DecimalField(max_digits=8, decimal_places=2, null = False)
     title = models.CharField(max_length=30, null = False)
     description = models.TextField(max_length = 200, null = True, blank = True)
     position = models.IntegerField(null = True, default = 0, blank =True)    
@@ -58,7 +58,7 @@ class CommonProblem(models.Model):
     """
     activity_component = models.ForeignKey(ActivityComponent, null = False)
     title = models.CharField(max_length=30, null = False)
-    penalty = models.DecimalField(max_digits=5, decimal_places=2)
+    penalty = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(max_length = 200, null = True, blank = True)
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):
@@ -82,7 +82,7 @@ class ActivityMark(models.Model):
     """
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
     late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Percentage to deduct from the total due to late submission')
-    mark_adjustment = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
+    mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null = True, default = 0, blank = True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True, verbose_name="Mark Penalty Reason")
     file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
@@ -91,7 +91,7 @@ class ActivityMark(models.Model):
     # For the purpose of keeping a history,
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
-    mark = models.DecimalField(max_digits=5, decimal_places=2)
+    mark = models.DecimalField(max_digits=8, decimal_places=2)
     activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
     
     def __unicode__(self):
@@ -182,7 +182,7 @@ class ActivityComponentMark(models.Model):
     """
     activity_mark = models.ForeignKey(ActivityMark, null = False)    
     activity_component = models.ForeignKey(ActivityComponent, null = False)
-    value = models.DecimalField(max_digits=5, decimal_places=2)
+    value = models.DecimalField(max_digits=8, decimal_places=2)
     comment = models.TextField(null = True, max_length=1000, blank=True)
     
     def __unicode__(self):

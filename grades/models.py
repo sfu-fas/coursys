@@ -270,7 +270,7 @@ class NumericActivity(Activity):
     """
     Activity with a numeric mark
     """
-    max_grade = models.DecimalField(max_digits=5, decimal_places=2)
+    max_grade = models.DecimalField(max_digits=8, decimal_places=2)
     
 
     class Meta:
@@ -436,7 +436,7 @@ class NumericGrade(models.Model):
     activity = models.ForeignKey(NumericActivity, null=False)
     member = models.ForeignKey(Member, null=False)
 
-    value = models.DecimalField(max_digits=5, decimal_places=2, default=0, null=False)
+    value = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
     comment = models.TextField(null=True)
     
