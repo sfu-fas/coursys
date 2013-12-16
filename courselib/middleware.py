@@ -39,7 +39,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 class MonitoringMiddleware(object):
-    def process_request(selfself, request):
+    def process_request(self, request):
         request.monitoring_starttime = time.time()
 
     def process_response(self, request, response):
@@ -52,3 +52,22 @@ class MonitoringMiddleware(object):
                     logger.debug('%s\t%s' % (q['sql'], q['time']))
 
         return response
+
+
+
+from courselib.auth import HttpError
+class ExceptionIgnorer(object):
+    """
+    Middleware to eat the exception that we really don't need to see.
+    """
+    def process_exception(self, request, exception):
+        import traceback
+        exc_info = sys.exc_info()
+        format = traceback.format_exc(exc_info[2])
+        message = unicode(exception)
+        if isinstance(exception, IOError) and 'Connection reset by peer' in message and '_verify(ticket, service)' in format:
+            # CAS verification timeout
+            return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
+            
+
+

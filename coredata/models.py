@@ -795,27 +795,28 @@ class Member(models.Model):
         """
         Number of teaching credits this is worth, as a Fraction.
         """
-        assert self.role=='INST' and self.added_reason=='AUTO' # we only calculate this for SIMS instructors
+        assert self.role=='INST' and self.added_reason=='AUTO' # we can only sensibly calculate this for SIMS instructors
 
         if 'teaching_credit' in self.config:
             # if manually set, then honour it
-            f = (self.config['teaching_credit'],)
+            return fractions.Fraction(self.config['teaching_credit'])
+        elif self.offering.enrl_tot == 0:
+            # no students => no teaching credit (probably a cancelled section we didn't catch on import)
+            return fractions.Fraction(0)
         elif self.offering.instr_mode in ['CO', 'GI', 'DE']:
-            # No credit for co-op, grad-internship, distance-ed
-            f = 0, 1
-        elif not MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() > 0:
+            # No credit for co-op, grad-internship, distance-ed supervision
+            return fractions.Fraction(0)
+        elif MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() == 0:
             # no lectures probably means directed studies or similar
-            f = 0, 1
+            return fractions.Fraction(0)
         else:
             # now probably a real offering: split the credit among the (real SIMS) instructors
             n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
             if n_instr == 0:
                 # n_instr shouldn't be zero if we passed the assert entering the function, but juuuuust in case
-                f = 1, 1
+                return fractions.Fraction(1)
             else:
-                f = 1, n_instr
-
-        return fractions.Fraction(*f)
+                return fractions.Fraction(1, n_instr) # * number of credits students get / 3?
 
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)

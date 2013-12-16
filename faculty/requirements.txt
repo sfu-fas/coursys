@@ -94,6 +94,7 @@ EventTypeCategory
 CVImport
   person
   date
+  type ('nserc', 'sfucv'?, others TBA)
   datafile
-  import_stuff_from()
+  import_stuff_from(self) (idempotent method to produce other objects out of this data)
   
