@@ -59,7 +59,7 @@ class GradesTest(TestCase):
         g = NumericGrade(activity=a1, member=m, value=10, flag="GRAD")
         g.save(entered_by='ggbaker')
         a2 = NumericActivity(name="Assignment #2", short_name="A2", status="URLS", offering=c, position=2, max_grade=40, percent=20)
-        a2.save()
+        a2.save(entered_by='ggbaker')
         g = NumericGrade(activity=a2, member=m, value=30, flag="GRAD")
         g.save(entered_by='ggbaker')
         
@@ -122,7 +122,7 @@ class GradesTest(TestCase):
         g.flag="NOGR"
         g.save(entered_by='ggbaker')
         a2.status='RLS'
-        a2.save()
+        a2.save(entered_by='ggbaker')
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
         res = eval_parse(tree, ca, act_dict, m, True)
