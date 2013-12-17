@@ -108,10 +108,10 @@ class GroupTest(TestCase):
         
         # already graded
         gr = NumericGrade(activity=a1, member=m, value=1, flag="GRAD")
-        gr.save()
+        gr.save(entered_by='ggbaker')
         self.assertTrue("grade" in gm.student_editable("0aaa0"))
         gr.flag="NOGR"
-        gr.save()
+        gr.save(entered_by='ggbaker')
         self.assertEqual(gm.student_editable("0aaa0"), '')
         
         # submission made
