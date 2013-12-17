@@ -558,17 +558,20 @@ class CourseOffering(models.Model):
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
+        # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
-                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
+                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
+                'instr_rw_svn': False}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
+    instr_rw_svn, set_instr_rw_svn = getter_setter('instr_rw_svn')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
