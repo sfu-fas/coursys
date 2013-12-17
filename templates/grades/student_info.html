@@ -16,7 +16,8 @@
 	$('#grade_history').dataTable({
 	    "bJQueryUI": true,
 	    "bPaginate": false,
-            "bSort": true
+            "bSort": true,
+        "aaSorting": [[0,'asc']],
 	});
     });
 </script>
@@ -124,7 +125,7 @@
 {% for gh in grade_history %}
 <tr>
     <td><span class="sort">{{ gh.timestamp.isoformat }}</span>{{ gh.timestamp }}</td>
-    <td>{{ gh.activity.name }}
+    <td><span class="sort">{{ gh.activity.position }}</span>{{ gh.activity.name }}
       {% if gh.group %}
       (with group <a href="{{ gh.group.get_absolute_url }}">{{ gh.group.name }}</a>)
       {% endif %}
@@ -134,7 +135,7 @@
       <a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=gh.activity.slug userid=member.person.userid%}?activity_mark={{gh.mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
       {% endif %}	
     </td>
-    <td>{{ gh.entered_by.name }}</td>
+    <td>{{ gh.entered_by.sortname }} ({{gh.entered_by.email_mailto}})</td>
 </tr>
 {% endfor %}
 </tbody>

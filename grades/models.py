@@ -682,8 +682,6 @@ def median_letters(sorted_grades):
             # median on a boundary; report as "B/B-"
             return g1 + "/" + g2
 
-# sorted_grades = sorted_letters(grades)
-# median = median_letters(sorted_grades)
 
 
 def max_letters(sorted_grades):
