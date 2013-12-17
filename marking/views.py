@@ -20,7 +20,7 @@ from models import get_activity_mark_by_id, get_activity_mark_for_student, get_g
 from models import copyCourseSetup, neaten_activity_positions
 from coredata.models import Person, CourseOffering, Member
 from grades.models import FLAGS, Activity, NumericActivity, NumericGrade
-from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN
+from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN, get_entry_person
 from log.models import LogEntry
 from groups.models import Group, GroupMember, all_activities_filter
 
@@ -1011,6 +1011,7 @@ def _mark_all_groups_numeric(request, course, activity):
             groups.add(member.group)
     
     if request.method == 'POST':
+        entered_by = get_entry_person(request.user.username)
         current_act_marks = []
         for group in groups:
             entry_form = MarkEntryForm(data = request.POST, prefix = group.name)
@@ -1037,7 +1038,7 @@ def _mark_all_groups_numeric(request, course, activity):
                     # so do not override the status
                     continue
                 act_mark = GroupActivityMark(group=group, numeric_activity=activity, created_by=request.user.username)
-                act_mark.setMark(new_value, entered_by=request.user.username, details=False)
+                act_mark.setMark(new_value, entered_by=entered_by, details=False)
                 act_mark.save()
 
                 updated += 1
@@ -1087,6 +1088,7 @@ def _mark_all_groups_letter(request, course, activity):
             groups.add(member.group)
     
     if request.method == 'POST':
+        entered_by = get_entry_person(request.user.username)
         current_act_marks = []
         for group in groups:
             entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = group.name)
@@ -1118,7 +1120,7 @@ def _mark_all_groups_letter(request, course, activity):
                 #if act_mark == None:
                 #act_mark = LetterGrade(activity = activity, member = all_members[i])       
                 act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
-                act_mark.setMark(new_value, entered_by=request.user.username)
+                act_mark.setMark(new_value, entered_by=entered_by)
                 act_mark.save()
 
                 #LOG EVENT
@@ -1183,6 +1185,7 @@ def _mark_all_students_letter(request, course, activity):
        
         # save if needed 
         if error_info == None:
+            entered_by = get_entry_person(request.user.username)
             updated = 0                 
             for i in range(len(memberships)):
                 student = memberships[i].person  
@@ -1201,7 +1204,7 @@ def _mark_all_students_letter(request, course, activity):
                     lgrade = LetterGrade(activity = activity, member = memberships[i]);
                 lgrade.letter_grade = new_value
                 lgrade.flag = "GRAD"
-                lgrade.save(entered_by=request.user.username)
+                lgrade.save(entered_by=entered_by)
                
                 updated += 1    
                
@@ -1331,6 +1334,7 @@ def _mark_all_students_numeric(request, course, activity):
 
         # save if needed 
         if error_info == None:
+            entered_by = get_entry_person(request.user.username)
             updated = 0                 
             for i in range(len(memberships)):
                 student = memberships[i].person  
@@ -1348,7 +1352,7 @@ def _mark_all_students_numeric(request, course, activity):
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
                 ngrade.value = new_value
                 ngrade.flag = "GRAD"
-                ngrade.save(entered_by=request.user.username)
+                ngrade.save(entered_by=entered_by)
                 
                 updated += 1     
                 if new_value < 0:
@@ -1592,6 +1596,7 @@ def import_marks(request, course_slug, activity_slug):
     if request.method == 'POST':
         form = ImportMarkFileForm(data=request.POST, files=request.FILES, activity=activity, userid=request.user.username)
         if form.is_valid():
+            entered_by = get_entry_person(request.user.username)
             # validation function builds all the objects we need: just save them now that we know everything is okay.
             ams, amcs, ngs = form.cleaned_data['file']
             count = 0
@@ -1615,7 +1620,7 @@ def import_marks(request, course_slug, activity_slug):
                           related_object=activity)
                     l.save()
 
-                am.setMark(am.mark, entered_by=request.user.username) # deal with the GradeHistory and other details
+                am.setMark(am.mark, entered_by=entered_by) # deal with the GradeHistory and other details
                 am.save()
                 count += 1
 

@@ -3,7 +3,7 @@ from django.db import models, IntegrityError, transaction
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
-from grades.models import all_activities_filter, neaten_activity_positions
+from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester, Member
 from groups.models import Group, GroupMember
@@ -169,6 +169,7 @@ class GroupActivityMark(ActivityMark):
         super(GroupActivityMark, self).setMark(grade)
         #assign mark for each member in the group
         group_members = GroupMember.objects.filter(group=self.group, activity=self.numeric_activity, confirmed=True)
+        entered_by = get_entry_person(entered_by)
         for g_member in group_members:
             try:            
                 ngrade = NumericGrade.objects.get(activity=self.numeric_activity, member=g_member.student)

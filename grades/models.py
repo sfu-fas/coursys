@@ -126,14 +126,16 @@ class Activity(models.Model):
         super(Activity, self).save(*args, **kwargs)
 
         if newsitem and old and self.status == 'RLS' and old != None and old.status != 'RLS':
-            # newly-released grades: create news items
             from grades.tasks import send_grade_released_news, create_grade_released_history
+
+            # newly-released grades: record that grade was released
+            assert entered_by
+            entered_by = get_entry_person(entered_by)
+            create_grade_released_history(self, entered_by)
+
+            # newly-released grades: create news items
             send_grade_released_news(self)
             
-            # record that grade was released
-            assert entered_by
-            entered_by = _get_entry_person(entered_by)
-            create_grade_released_history(self, entered_by)
         
         if old and old.group and not self.group:
             # activity changed group -> individual. Clean out any group memberships
@@ -490,7 +492,7 @@ class NumericGrade(models.Model):
 
         super(NumericGrade, self).save()
 
-        entered_by = _get_entry_person(entered_by)
+        entered_by = get_entry_person(entered_by)
         if bool(mark) and not mark.id:
             raise ValueError, "ActivityMark must be saved before calling setMark."
 
@@ -571,7 +573,7 @@ class LetterGrade(models.Model):
         """
         super(LetterGrade, self).save()
 
-        entered_by = _get_entry_person(entered_by)
+        entered_by = get_entry_person(entered_by)
         if entered_by:
             gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
                               letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=None, group=group)
@@ -706,7 +708,10 @@ def min_letters(sorted_grades):
         return grades_s[l-1]
 
 
-def _get_entry_person(entered_by):
+def get_entry_person(entered_by):
+    """
+    Take a Person instance or userid and convert to a Person instance (for saving as a GradeHistory.entered_by)
+    """
     if isinstance(entered_by, Person):
         return entered_by
     elif entered_by is None:
