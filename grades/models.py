@@ -112,7 +112,7 @@ class Activity(models.Model):
         ordering = ['deleted', 'position']
         unique_together = (('offering', 'slug'),)
 
-    def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
+    def save(self, force_insert=False, force_update=False, newsitem=True, entered_by=None, *args, **kwargs):
         # get old status so we can see if it's newly-released
         try:
             old = Activity.objects.get(id=self.id)
@@ -127,14 +127,13 @@ class Activity(models.Model):
 
         if newsitem and old and self.status == 'RLS' and old != None and old.status != 'RLS':
             # newly-released grades: create news items
-            NewsItem.for_members(member_kwargs={'offering': self.offering}, newsitem_kwargs={
-                    'author': None, 'course': self.offering, 'source_app': 'grades',
-                    'title': "%s grade released" % (self.name),
-                    'content': 'Grades have been released for %s in %s.'
-                      % (self.name, self.offering.name()),
-                    'url': self.get_absolute_url()})
-
-            # TODO: create GradeHistory to records visibility of grade
+            from grades.tasks import send_grade_released_news, create_grade_released_history
+            send_grade_released_news(self)
+            
+            # record that grade was released
+            assert entered_by
+            entered_by = _get_entry_person(entered_by)
+            create_grade_released_history(self, entered_by)
         
         if old and old.group and not self.group:
             # activity changed group -> individual. Clean out any group memberships
@@ -733,6 +732,7 @@ class GradeHistory(models.Model):
 
     mark = models.ForeignKey(ActivityMark, null=True, help_text='The ActivityMark object this grade came from, if applicable.')
     group = models.ForeignKey(Group, null=True, help_text='If this was a mark for a group, the group.')
+    status_change = models.BooleanField(null=False, default=False)
 
     timestamp = models.DateTimeField(auto_now_add=True)
     #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+?

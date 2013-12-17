@@ -939,7 +939,7 @@ def edit_activity(request, course_slug, activity_slug):
                     if len(a2) > 0:
                         add_activity_to_group(activity, a2[0], course)
                 
-                activity.save()
+                activity.save(entered_by=request.user.username)
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("edited %s") % (activity),
@@ -1030,7 +1030,7 @@ def release_activity(request, course_slug, activity_slug):
     if request.method == 'POST':
         if activity.status == "INVI":
             activity.status = "URLS"
-            activity.save()
+            activity.save(entered_by=request.user.username)
             messages.success(request, 'Activity made visible to students (but grades are still unreleased).')
 
             #LOG EVENT#
@@ -1040,7 +1040,7 @@ def release_activity(request, course_slug, activity_slug):
             l.save()
         elif activity.status == "URLS":
             activity.status = "RLS"
-            activity.save()
+            activity.save(entered_by=request.user.username)
             messages.success(request, 'Grades released to students.')
 
             #LOG EVENT#
@@ -1292,7 +1292,7 @@ def student_info(request, course_slug, userid):
                 info['marked'] = True
 
     group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
-    grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity', 'group', 'mark')
+    grade_history = GradeHistory.objects.filter(member=member, status_change=False).select_related('entered_by', 'activity', 'group', 'mark')
 
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
                'grade_history': grade_history}

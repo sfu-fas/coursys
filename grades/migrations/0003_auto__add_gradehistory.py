@@ -21,6 +21,7 @@ class Migration(SchemaMigration):
             ('comment', self.gf('django.db.models.fields.TextField')(null=True)),
             ('mark', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityMark'], null=True)),
             ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['groups.Group'], null=True)),
+            ('status_change', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
         db.send_create_signal('grades', ['GradeHistory'])
@@ -147,6 +148,7 @@ class Migration(SchemaMigration):
             'mark': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['marking.ActivityMark']", 'null': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
             'numeric_grade': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '8', 'decimal_places': '2'}),
+            'status_change': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
         },
         'grades.letteractivity': {
