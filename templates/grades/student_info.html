@@ -135,7 +135,7 @@
       ({{ gh.get_activity_status_display }})
       {% endif %}
       {% if gh.mark %}
-      <a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=gh.activity.slug userid=member.person.userid%}?activity_mark={{gh.mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+      <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=gh.activity.slug userid=member.person.userid%}?activity_mark={{gh.mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
       {% endif %}	
     </td>
     <td>{{ gh.entered_by.sortname }} ({{gh.entered_by.email_mailto}})</td>

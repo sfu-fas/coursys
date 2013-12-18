@@ -531,7 +531,65 @@ class GradesTest(TestCase):
         # replace with a different type
         a = LetterActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False, position=3)
         a.save()
-        
+
+
+    def test_grade_assign(self):
+        """
+        Test various grade-assigning frontend interactions.
+        """
+        client = Client()
+        client.login_user("ggbaker")
+
+        o = CourseOffering.objects.get(slug=self.course_slug)
+        a = Activity.objects.get(offering=o, slug='a1')
+        m = Member.objects.get(offering=o, person__userid='0aaa0')
+
+        # grade status form
+        url = reverse('marking.views.change_grade_status', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        response = basic_page_tests(self, client, url)
+        response = client.post(url, {'grade-status-value': '6', 'grade-status-flag': 'DISH', 'grade-status-comment': 'the comment'})
+        self.assertEquals(response.status_code, 302)
+
+        ng = NumericGrade.objects.get(member=m, activity=a)
+        self.assertEquals(ng.value, 6)
+        self.assertEquals(ng.flag, 'DISH')
+        self.assertEquals(ng.comment, 'the comment')
+
+        # grade all students
+        url = reverse('marking.views.mark_all_students', kwargs={'course_slug': o.slug, 'activity_slug': a.slug})
+        response = basic_page_tests(self, client, url)
+        response = client.post(url, {'0aaa0-value': '7', '0aaa1-value': '8'})
+        self.assertEquals(response.status_code, 302)
+
+        ng = NumericGrade.objects.get(member=m, activity=a)
+        self.assertEquals(ng.value, 7)
+        self.assertEquals(ng.flag, 'GRAD')
+        ng = NumericGrade.objects.get(member__person__userid='0aaa1', activity=a)
+        self.assertEquals(ng.value, 8)
+        self.assertEquals(ng.flag, 'GRAD')
+
+        # detailed marking
+        url = reverse('marking.views.marking_student', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        response = basic_page_tests(self, client, url)
+        response = client.post(url, {'cmp-1-value': '2', 'cmp-1-comment': 'comment1', 'cmp-2-value': '3', 'cmp-2-comment': 'comment2',
+                                     'late_penalty': '0', 'mark_adjustment': '0'})
+        self.assertEquals(response.status_code, 302)
+        ng = NumericGrade.objects.get(member=m, activity=a)
+        self.assertEquals(ng.value, 5)
+        self.assertEquals(ng.flag, 'GRAD')
+
+        # student summary page
+        url = reverse('grades.views.student_info', kwargs={'course_slug': o.slug, 'userid': m.person.userid})
+        response = basic_page_tests(self, client, url)
+
+        # check GradeHistory objects
+        ghs = GradeHistory.objects.filter(activity=a, member=m)
+        self.assertEquals(ghs.count(), 3)
+
+
+
+
+
         
         
         
