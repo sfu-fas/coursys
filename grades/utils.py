@@ -463,12 +463,12 @@ def calculate_letter_grade(course, activity):
                     # ignore manually-set grades; only save when the value changes
                     letter_grade.letter_grade = result
                     letter_grade.flag = "CALC"
-                    letter_grade.save(newsitem=False)
+                    letter_grade.save(newsitem=False, entered_by=None)
                 break
         if not member_found:
             letter_grade = LetterGrade(activity=activity, member=s,
                                          letter_grade=result, flag='CALC')
-            letter_grade.save(newsitem=False)
+            letter_grade.save(newsitem=False, entered_by=None)
     return ignored
 
 def generate_lettergrades(s,activity):
@@ -604,12 +604,12 @@ def calculate_numeric_grade(course, activity, student=None):
                     # only save when the value changes
                     numeric_grade.value = result
                     numeric_grade.flag = "CALC"
-                    numeric_grade.save(newsitem=False)
+                    numeric_grade.save(newsitem=False, entered_by=None)
                 break
         if not member_found:
             numeric_grade = NumericGrade(activity=activity, member=s,
                                          value=str(result), flag='CALC')
-            numeric_grade.save(newsitem=False)
+            numeric_grade.save(newsitem=False, entered_by=None)
     if student != None:
         return StudentActivityInfo(student, activity, FLAGS['CALC'], numeric_grade.value, None).display_grade_staff()
     else:

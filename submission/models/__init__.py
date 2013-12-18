@@ -148,7 +148,7 @@ def get_current_submission(student, activity, include_deleted=False):
     return most recent submission (individual or group) and compilation of valid components
     """
     if activity.group:
-        gms = GroupMember.objects.filter(student__person=student, confirmed=True)
+        gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
         submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
     else:
         submission = StudentSubmission.objects.filter(activity=activity, member__person=student)
@@ -251,7 +251,7 @@ def generate_activity_zip(activity, prefix=''):
 
     file = open(filename, 'rb')
     response = HttpResponse(FileWrapper(file), mimetype='application/zip')
-    response['Content-Disposition'] = 'attachment; filename=%s'% activity.slug + ".zip"
+    response['Content-Disposition'] = 'attachment; filename="%s.zip"' % (activity.slug)
     try:
         os.remove(filename)
     except OSError:
@@ -272,7 +272,7 @@ def generate_zip_file(submission, submitted_components):
 
     file = open(filename, 'rb')
     response = HttpResponse(FileWrapper(file), mimetype='application/zip')
-    response['Content-Disposition'] = 'attachment; filename=%s'% submission.file_slug() + "_" + submission.activity.slug + ".zip"
+    response['Content-Disposition'] = 'attachment; filename="%s_%s.zip"' % (submission.file_slug(), submission.activity.slug)
     try:
         os.remove(filename)
     except OSError:

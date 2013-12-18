@@ -54,6 +54,7 @@ class Person(models.Model):
     title = models.CharField(max_length=4, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
+        # 'pref_first_name': really, truly preferred first name (which can be set in DB if necessary)
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
         # 'addresses': dictionary of phone number values. Possible keys: 'home', 'mail'
         # 'gender': 'M', 'F', 'U'
@@ -67,19 +68,21 @@ class Person(models.Model):
         # 'nonstudent_hs': highschool field from NonStudent record
         # 'nonstudent_colg': college field from NonStudent record
         # 'nonstudent_notes': notes field from NonStudent record
-    
+        # 'phone_ext': local phone number (for faculty/staff) (e.g. '25555')
+
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
-                'sin': '000000000'}
+                'sin': '000000000', 'phone_ext': None}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
     gpa, _ = getter_setter('gpa')
     ccredits, _ = getter_setter('ccredits')
-    # see grad.forms.VISA_STATUSES for list of possibilites
+    # see grad.forms.VISA_STATUSES for list of possibilities
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
     sin, set_sin = getter_setter('sin')
+    phone_ext, set_phone_ext = getter_setter('phone_ext')
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
@@ -103,13 +106,14 @@ class Person(models.Model):
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
     def real_pref_first(self):
-        return self.pref_first_name or self.first_name
+        return self.config.get('pref_first_name', None) or self.pref_first_name or self.first_name
     def name_pref(self):
         return "%s %s" % (self.real_pref_first(), self.last_name)
     def first_with_pref(self):
         name = self.first_name
-        if self.pref_first_name and self.pref_first_name != self.first_name:
-            name += ' (%s)' % (self.pref_first_name)
+        pref = self.real_pref_first()
+        if pref != self.first_name:
+            name += ' (%s)' % (pref)
         return name
     def sortname_pref(self):
         return "%s, %s" % (self.last_name, self.first_with_pref())
@@ -467,6 +471,7 @@ COMPONENT_CHOICES = (
         ('FLD', 'Field School'),
         ('STD', 'Studio'),
         ('OLC', 'OLC'), # ???
+        ('RQL', 'RQL'), # ???
         ('STL', 'STL'), # ???
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
@@ -488,47 +493,60 @@ CAMPUS_CHOICES_SHORT = (
         ('SURRY', 'Surrey'),
         ('VANCR', 'Harbour Ctr'),
         ('OFFST', 'Off-campus'),
-        #('SEGAL', 'Segal Centre'),
+        #('SEGAL', 'Segal Ctr'),
         ('GNWC', 'Great North. Way'),
-        #('KAM', 'Kamloops Campus'),
+        #('KAM', 'Kamloops'),
         ('METRO', 'Other Vancouver'),
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
-WQB_FLAGS = [
-	('write', 'W'),
-	('quant', 'Q'),
-	('bhum', 'B-Hum'),
-	('bsci', 'B-Sci'),
-	('bsoc', 'B-Soc'),
+OFFERING_FLAGS = [
+    ('write', 'W'),
+    ('quant', 'Q'),
+    ('bhum', 'B-Hum'),
+    ('bsci', 'B-Sci'),
+    ('bsoc', 'B-Soc'),
+    ('combined', 'Combined section'), # used to flag sections that have been merged in the import
 	]
+OFFERING_FLAG_KEYS = [flag[0] for flag in OFFERING_FLAGS]
+WQB_FLAGS = [(k,v) for k,v in OFFERING_FLAGS if k != 'combined']
 WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
 WQB_DICT = dict(WQB_FLAGS)
+INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
+    ('CO', 'Co-Op'),
+    ('DE', 'Distance Education'),
+    ('GI', 'Graduate Internship'),
+    ('P', 'In Person'),
+    ('PO', 'In Person - Off Campus'),
+    ]
+INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN".')
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1".')
-    section = models.CharField(max_length=4, null=False,
+    section = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Section should be in the form "C100" or "D103".')
     semester = models.ForeignKey(Semester, null=False)
-    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES,
-        help_text='Component of the course, like "LEC" or "LAB".')
+    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES, db_index=True,
+        help_text='Component of the offering, like "LEC" or "LAB"')
+    instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P', db_index=True,
+        help_text='The instructional mode of the offering')
     graded = models.BooleanField()
     owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)
     class_nbr = models.PositiveIntegerField(null=True, db_index=True)
-    
-    title = models.CharField(max_length=30, help_text='The course title.')
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
+
+    title = models.CharField(max_length=30, help_text='The course title.', db_index=True)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, db_index=True)
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
     course = models.ForeignKey(Course, null=False)
 
     # WQB requirement flags
-    flags = BitField(flags=WQB_KEYS, default=0)
+    flags = BitField(flags=OFFERING_FLAG_KEYS, default=0)
     
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
@@ -539,19 +557,20 @@ class CourseOffering(models.Model):
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
-        # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
+        # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
-    
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False,
-                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
+
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
+                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
+                'instr_rw_svn': False}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
-    combined, set_combined = getter_setter('combined')
+    instr_rw_svn, set_instr_rw_svn = getter_setter('instr_rw_svn')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
@@ -603,9 +622,13 @@ class CourseOffering(models.Model):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
+    def combined(self):
+        return self.flags.combined
+    def set_combined(self, val):
+        self.flags.combined = val
     
     def get_wqb_display(self):
-        flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v]
+        flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v and f in WQB_KEYS]
         if flags:
             return ', '.join(flags)
         else:
@@ -699,7 +722,7 @@ class Member(models.Model):
     "Members" of the course.  Role indicates instructor/student/TA/etc.
 
     Includes dropped students and non-graded sections (labs/tutorials).  Often want to select with:
-        Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(...)
+        Member.objects.exclude(role="DROP").filter(...)
     """
     ROLE_CHOICES = (
         ('STUD', 'Student'),
@@ -744,7 +767,6 @@ class Member(models.Model):
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
     raw_bu, set_bu = getter_setter('bu')
-    _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
@@ -772,13 +794,32 @@ class Member(models.Model):
         return decimal.Decimal(unicode(self.raw_bu()))
 
     def teaching_credit(self):
+        """
+        Number of teaching credits this is worth, as a Fraction.
+        """
+        assert self.role=='INST' and self.added_reason=='AUTO' # we can only sensibly calculate this for SIMS instructors
+
         if 'teaching_credit' in self.config:
-            s = self.config['teaching_credit']
-        elif self.offering.section.startswith('C'):
-            s = 0
+            # if manually set, then honour it
+            return fractions.Fraction(self.config['teaching_credit'])
+        elif self.offering.enrl_tot == 0:
+            # no students => no teaching credit (probably a cancelled section we didn't catch on import)
+            return fractions.Fraction(0)
+        elif self.offering.instr_mode in ['CO', 'GI', 'DE']:
+            # No credit for co-op, grad-internship, distance-ed supervision
+            return fractions.Fraction(0)
+        elif MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() == 0:
+            # no lectures probably means directed studies or similar
+            return fractions.Fraction(0)
         else:
-            s = 1
-        return fractions.Fraction(s)
+            # now probably a real offering: split the credit among the (real SIMS) instructors
+            n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
+            if n_instr == 0:
+                # n_instr shouldn't be zero if we passed the assert entering the function, but juuuuust in case
+                return fractions.Fraction(1)
+            else:
+                return fractions.Fraction(1, n_instr) # * number of credits students get / 3?
+
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)

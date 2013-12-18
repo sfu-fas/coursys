@@ -129,6 +129,12 @@ class ChangeOwnerForm(forms.Form):
         self.fields['new_group'].queryset = queryset
 
 
+class AdminReturnForm(forms.Form):
+    reason = forms.CharField(required=True,
+                help_text="Reason you are giving the form back: will be emailed to the user.",
+                widget=forms.TextInput(attrs={'size': '70'}))
+
+
 class CloseFormForm(forms.Form):
     summary = forms.CharField(required=True,
                 help_text="Summary of the form, for advisors (and emailing to student if you select below).",

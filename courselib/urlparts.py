@@ -26,10 +26,8 @@ FILE_PATH = '(?P<filepath>.*)'
 CASE_SLUG = '(?P<case_slug>[\w\-]+)'
 DGROUP_SLUG = '(?P<group_slug>[\w\-]+)'
 
-PLAN_SLUG = '(?P<plan_slug>[\w\-]+)'
 SEMESTER = '(?P<semester>\d{4})'
 PAGE_LABEL = '(?P<page_label>[\w\-_\.]+)'
-PLANNED_OFFERING_SLUG = '(?P<planned_offering_slug>[\w\-]+)'
 
 NONSTUDENT_SLUG = '(?P<nonstudent_slug>' + SLUG_RE + ')'
 NOTE_ID = '(?P<note_id>' + ID_RE + ')'

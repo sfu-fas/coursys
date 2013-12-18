@@ -540,14 +540,8 @@ def XXX_sims_person_search(request):
 
 
 
-
-
-
-from django import forms
-
-
 @uses_feature('course_browser')
-@cache_page(60*60*6)
+#@cache_page(60*60*6)
 def browse_courses(request):
     """
     Interactive CourseOffering browser
@@ -622,9 +616,12 @@ class OfferingDataJson(BaseDatatableView):
         # use request parameters to filter queryset
         GET = self.request.GET
         
-        # no cancelled courses, or courses outside the allowed semester range
+        # no cancelled courses
         qs = qs.exclude(component='CAN')
+        # no courses outside the allowed semester range
         qs = qs.filter(semester__in=OfferingFilterForm.allowed_semesters())
+        # no locally-merged courses
+        qs = qs.exclude(flags=CourseOffering.flags.combined)
 
         columns = UNIVERSAL_COLUMNS + GET.get('columns', ','.join(DEFAULT_COLUMNS)).split(',')
         self.set_columns(columns)
@@ -668,10 +665,11 @@ class OfferingDataJson(BaseDatatableView):
         wqb = GET.getlist('wqb')
         for f in wqb:
             if f not in FLAG_DICT:
-                continue # not in our list of flags: not safe to eval()
-            qs = qs.filter(flags=eval('CourseOffering.flags.' + f))
+                continue # not in our list of flags: not safe to getattr
+            qs = qs.filter(flags=getattr(CourseOffering.flags, f))
 
         #print qs.query
+        #qs = qs[:500] # ignore requests for crazy amounts of data
         return qs
 
     def XXX_prepare_results(self, qs):
@@ -713,7 +711,7 @@ def _instructor_autocomplete(request):
 
 
 @uses_feature('course_browser')
-@cache_page(60*60*6)
+#@cache_page(60*60*6)
 def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.

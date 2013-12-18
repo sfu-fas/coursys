@@ -6,6 +6,8 @@
 <tr><th scope="row">Email:</th><td><a href="mailto:{{student.email}}">{{student.email}}</td></tr>
 {% endblock %}
 
+{% block groupinfo %}<a href="{{ group.get_absolute_url }}">{{group.name}}</a>{% endblock %}
+
 {% block owner %}
     {% if owner %}
         <tr>

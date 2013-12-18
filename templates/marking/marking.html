@@ -40,7 +40,7 @@ function append_problem(n, penalty, content, outof) {
 <div id="marking_container">
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
      {% if group %}
-        <h2> Mark for Group: {{group}} </h2> 
+        <h2>Mark for Group: <a href="{{ group.get_absolute_url }}">{{group}}</a></h2>
      {% else %}
        {% if student %}           
         	<h2> Mark for Student: {{student.name}} ({{student.userid}}) </h2>       

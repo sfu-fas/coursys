@@ -19,6 +19,8 @@ from coredata.models import Role
 from django.conf import settings
 import os, datetime
 from dashboard.models import Signature
+from coredata.models import Semester
+from grad.models import STATUS_APPLICANT
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
@@ -1408,7 +1410,7 @@ class CardReqForm(object):
         self._line_entry(0*mm, 208*mm, 'Last Name', 22*mm, 58*mm, grad.person.last_name)
         self._line_entry(86*mm, 208*mm, 'SFU ID', 30*mm, 45*mm, unicode(grad.person.emplid))
         self._line_entry(0*mm, 204*mm, 'Given Name', 22*mm, 58*mm, grad.person.first_name)
-        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, grad.person.email())
+        self._line_entry(86*mm, 204*mm, 'email or phone #', 30*mm, 45*mm, unicode(grad.person.email()))
 
         self._checkbox(0*mm, 197*mm, 'Faculty', offset=1*mm)
         self._checkbox(22*mm, 197*mm, 'Staff', offset=1*mm)
@@ -1470,7 +1472,16 @@ class CardReqForm(object):
         rooms = grad.program.unit.config.get('card_rooms', '').split('|')
         if extra_rooms:
             rooms += extra_rooms.split('|')
-        today = datetime.date.today()
+
+        if grad.current_status in STATUS_APPLICANT:
+            # applicants start access next semester
+            # ... assuming nobody does these requests >4mo in advance. I'll take that bet.
+            start = Semester.next_starting().start
+        else:
+            # everyone else starts now
+            start = datetime.date.today()
+
+        end = start + datetime.timedelta(days=(365*5+1))
         for i,r in enumerate(rooms):
             y = 28.0*mm/6*(5-i) + 1*mm
             if ':' in r:
@@ -1481,9 +1492,9 @@ class CardReqForm(object):
             self.c.drawString(6*mm, y, 'X')
             self.c.drawString(10*mm, y, bld)
             self.c.drawString(28*mm, y, rm)
-            self.c.drawString(50*mm, y, today.isoformat())
+            self.c.drawString(50*mm, y, start.isoformat())
             self.c.drawString(72*mm, y, 'X')
-            self.c.drawString(171*mm, y, '????')
+            self.c.drawString(171*mm, y, end.isoformat())
 
         self.c.translate(0*mm, -150*mm) # origin = lower-left of the content
 
@@ -1566,17 +1577,42 @@ class CardReqForm(object):
         self.c.setFont("Helvetica-Bold", 8)
         self._line_entry(1*mm, 63*mm, 'Account Code:', 21*mm, 36*mm, entry_text=unicode(grad.program.unit.config.get('card_account', '')))
 
+        # find a sensible person to sign the form
+        signers = list(Role.objects.filter(unit=grad.program.unit, role='ADMN').order_by('-id')) + list(Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id'))
+        sgn_name = ''
+        sgn_userid = ''
+        sgn_phone = ''
+        for role in signers:
+            import PIL
+            try:
+                sig = Signature.objects.get(user=role.person)
+                sig.sig.open()
+                img = PIL.Image.open(sig.sig)
+                width, height = img.size
+                hei = 7*mm
+                wid = 1.0*width/height * hei
+                sig.sig.open()
+                ir = ImageReader(sig.sig)
+                self.c.drawImage(ir, x=24*mm, y=27*mm, width=wid, height=hei)
+                # info about the person who is signing it (for use below)
+                sgn_name = role.person.name()
+                sgn_userid = role.person.userid
+                sgn_phone = role.person.phone_ext() or grad.program.unit.config.get('tel', '')
+                break
+            except Signature.DoesNotExist:
+                pass
+
         # authorization details
         self._header_line(58*mm, 'AUTHORIZATION DETAILS')
         self.c.setFont("Helvetica", 7)
         self.c.drawString(0*mm, 53*mm, 'I understand that by signing and submitting this request that that the person listed above is required to pick-up their')
         self.c.drawString(0*mm, 50*mm, 'key/card/fob from Access Control WMC 3101 within 30 days unless details are supplied in additional information field above.')
-        self._line_entry(1*mm, 40*mm, 'Date', 9*mm, 22*mm, entry_text=today.isoformat())
+        self._line_entry(1*mm, 40*mm, 'Date', 9*mm, 22*mm, entry_text=datetime.date.today().isoformat())
         self._line_entry(36*mm, 40*mm, 'Department', 22*mm, 125*mm, entry_text=grad.program.unit.name)
-        self._line_entry(1*mm, 34*mm, 'Authorized by', 31*mm, 41*mm, entry_text='')
-        self._line_entry(77*mm, 34*mm, 'Computing ID', 22*mm, 36*mm, entry_text='')
+        self._line_entry(1*mm, 34*mm, 'Authorized by', 31*mm, 41*mm, entry_text=sgn_name)
+        self._line_entry(77*mm, 34*mm, 'Computing ID', 22*mm, 36*mm, entry_text=sgn_userid)
         self._line_entry(1*mm, 27*mm, 'Signature', 22*mm, 50*mm, entry_text='')
-        self._line_entry(77*mm, 27*mm, 'Phone #', 22*mm, 36*mm, entry_text='')
+        self._line_entry(77*mm, 27*mm, 'Phone #', 22*mm, 36*mm, entry_text=sgn_phone)
 
         # signatures
         self._header_line(23*mm, 'READ & SIGN AT TIME OF PICK-UP')

@@ -10,6 +10,11 @@ dl.formview dt {
 	margin-top: 0.9em;
 }
 
+p.returnlink {
+  float: right;
+  margin-right: 1em;
+}
+
 .sheetsub-WAIT {
   color: #999;
 }

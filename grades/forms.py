@@ -169,7 +169,7 @@ class NumericActivityForm(ActivityForm):
     due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
             help_text='Time format: HH:MM:SS, 24-hour time',
             widget=CustomSplitDateTimeWidget())
-    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
+    max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
             help_text='maximum grade for the activity',
             widget=forms.TextInput(attrs={'size':'3'}))
     group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
@@ -230,7 +230,7 @@ class CalNumericActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='INVI',
                                label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
-    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
+    max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
                                    help_text='maximum grade of the calculated result',
                                    widget=forms.TextInput(attrs={'size':'3'}))
     formula = forms.CharField(max_length=2000, label=mark_safe('Formula:'+_required_star),
@@ -296,8 +296,8 @@ class CalLetterActivityForm(ActivityForm):
 ##############################################################################################    
 class ActivityFormEntry(forms.Form):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES)
-    value = forms.DecimalField(max_digits=5, decimal_places=2, required=False,
-                               widget=forms.TextInput(attrs={'size':'3'}))
+    value = forms.DecimalField(max_digits=8, decimal_places=2, required=False,
+                               widget=forms.TextInput(attrs={'size':'4'}))
     
 class Activity_ChoiceForm(forms.Form):
     choice = forms.ChoiceField(choices=ACTIVITY_TYPES)
@@ -347,16 +347,16 @@ class CourseConfigForm(forms.Form):
 
 
 class CutoffForm(forms.Form):
-    ap = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    a = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    am = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    bp =forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    b = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    bm = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    cp = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    c = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    cm = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
-    d = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    ap = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    a = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    am = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    bp =forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    b = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    bm = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    cp = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    c = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    cm = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
+    d = forms.DecimalField(max_digits=8, decimal_places=2, required=True)
 
     
     def clean(self):

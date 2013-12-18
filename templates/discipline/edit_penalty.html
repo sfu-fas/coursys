@@ -41,7 +41,7 @@ function form_change() {
 	<li>any other mitigating or aggravating circumstances.</li>
 	</ol>
 </blockquote>
-<p>Please consider consulting with the departmental Academic Integrity Advisor or Chair before deciding penlaty.</p>
+<p>Please consider consulting with the departmental Academic Integrity Advisor or Chair before deciding penalty.</p>
 
 <div class="form_container">
     <form action="{% url "discipline.views.edit_case_info" field='penalty' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="form_change();">{% csrf_token %}

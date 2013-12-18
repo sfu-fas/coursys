@@ -140,7 +140,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
                           
 
 class MarkEntryForm(forms.Form):
-    value = forms.DecimalField(max_digits=5, decimal_places=2, required=False, widget=forms.TextInput(attrs={'size':6}))
+    value = forms.DecimalField(max_digits=8, decimal_places=2, required=False, widget=forms.TextInput(attrs={'size':6}))
 
 class UploadGradeFileForm(forms.Form):
     file = forms.FileField(required=True)

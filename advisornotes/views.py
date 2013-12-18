@@ -324,7 +324,7 @@ def download_file(request, userid, note_id):
     note = AdvisorNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
     resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
-    resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
+    resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'
     return resp
 
 
@@ -333,7 +333,7 @@ def download_artifact_file(request, note_id):
     note = ArtifactNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
     resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
-    resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
+    resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'
     return resp
 
 

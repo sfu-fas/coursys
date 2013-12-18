@@ -1,0 +1,8 @@
+python manage.py new_grad_students --unit "CMPT" --semester 1137 --skip_duplicates --dryrun
+python manage.py new_grad_students --unit "CMPT" --semester 1137 --skip_duplicates
+
+python manage.py new_grad_students --unit "CMPT" --semester 1141 --skip_duplicates --dryrun
+python manage.py new_grad_students --unit "CMPT" --semester 1141 --skip_duplicates
+
+python manage.py new_grad_students --semester 1141 --unit "MSE" --dryrun --skip_duplicates
+

@@ -817,6 +817,9 @@ fieldset .submit, form .submit {
   float: right;
   padding: 0.3em 0.5em 0.3em 0.5em;
 }
+fieldset .nofloat, form .nofloat {
+  float: none;
+}
 
 form .submit {
   margin: 0.5em;

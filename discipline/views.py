@@ -513,7 +513,7 @@ def download_file(request, course_slug, case_slug, fileid):
 
     attach.attachment.open()
     resp = HttpResponse(attach.attachment, mimetype=attach.mediatype)
-    resp['Content-Disposition'] = 'inline; filename=' + attach.filename()
+    resp['Content-Disposition'] = 'inline; filename="' + attach.filename() + '"'
 
     return resp
 

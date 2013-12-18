@@ -43,6 +43,7 @@ CODE_TYPES = [
     (".sas", "SAS (.sas)"),
     (".r", "R (.r)"),
     (".dat", "Binary Output (.dat)"),
+    (".mdx", "SQL Server Multi-Dimensional Expression (.mdx)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()

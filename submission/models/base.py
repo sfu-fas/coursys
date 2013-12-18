@@ -191,7 +191,7 @@ class SubmittedComponent(models.Model):
         Send the contents of the file as the response, given a FileField object to read from.
         """
         path, filename = os.path.split(upfile.name)
-        response['Content-Disposition'] = 'inline; filename=' + filename
+        response['Content-Disposition'] = 'inline; filename="' + filename + '"'
         try:
             fh = open(upfile.path, "r")
         except IOError:

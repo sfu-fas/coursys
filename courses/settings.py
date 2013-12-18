@@ -64,6 +64,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'courselib.middleware.ExceptionIgnorer',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
@@ -107,7 +108,7 @@ INSTALLED_APPS = (
     'log',
     'groups',
     'submission',
-    'planning',
+    #'planning',
     'discipline',
     'mobile',
     'ta',
@@ -116,8 +117,8 @@ INSTALLED_APPS = (
     'advisornotes',
     'alerts',
     'discuss',
-    'booking',
-    'techreq',
+    #'booking',
+    #'techreq',
     'onlineforms',
     'faculty',
 )
@@ -134,7 +135,7 @@ SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 if DEPLOYED:
-    MIDDLEWARE_CLASSES = ('courselib.exception_middleware.ExceptionMiddleware',) + MIDDLEWARE_CLASSES
+    MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
     SUBMISSION_PATH = '/data/submitted_files'
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -163,11 +164,9 @@ USE_CELERY = DEPLOYED
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (
-    #    'djkombu',
         'djcelery',
         'djcelery_email',
         )
-    #BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
     BROKER_URL = "ampq://coursys:supersecretpassword@localhost:5672//"
     DJKOMBU_POLLING_INTERVAL = 10
     CELERY_QUEUES = {
@@ -217,7 +216,10 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
 
+EXTRA_MIDDLEWARE_CLASSES = ()
 try:
     from local_settings import *
 except ImportError:
     pass
+
+MIDDLEWARE_CLASSES = EXTRA_MIDDLEWARE_CLASSES + MIDDLEWARE_CLASSES

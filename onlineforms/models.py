@@ -14,7 +14,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
-import datetime, random, hashlib
+import datetime, random, hashlib, itertools
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -86,9 +86,12 @@ FIELD_TYPE_MODELS = {
 SUBMISSION_STATUS = [
         ('WAIT', "Waiting for the owner to send it to someone else or change status to \"done\""),
         ('DONE', "No further action required"),
+        ('REJE', "Returned incomplete"),
         ]
         
-FORM_SUBMISSION_STATUS = [('PEND', "The document is still being worked on")] + SUBMISSION_STATUS
+FORM_SUBMISSION_STATUS = [
+        ('PEND', "The document is still being worked on"),
+        ] + SUBMISSION_STATUS
 
 class NonSFUFormFiller(models.Model):
     """
@@ -462,7 +465,7 @@ class FormSubmission(models.Model):
 
     def update_status(self):
         sheet_submissions = SheetSubmission.objects.filter(form_submission=self) 
-        if all(sheet_sub.status == 'DONE' for sheet_sub in sheet_submissions):
+        if all(sheet_sub.status in ['DONE', 'REJE'] for sheet_sub in sheet_submissions):
             self.status = 'PEND'
         else:
             self.status = 'WAIT'
@@ -522,6 +525,8 @@ class SheetSubmission(models.Model):
         return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'reject_reason': reason given for rejecting the sheet
+        # 'return_reason': reason given for returning the sheet to the filler
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -531,6 +536,10 @@ class SheetSubmission(models.Model):
 
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
+    
+    defaults = {'reject_reason': None, 'return_reason': None}
+    reject_reason, set_reject_reason = getter_setter('reject_reason')
+    return_reason, set_return_reason = getter_setter('return_reason')
 
     cached_fields = None
     def get_field_submissions(self, refetch=False):
@@ -538,6 +547,12 @@ class SheetSubmission(models.Model):
             self.cached_fields = FieldSubmission.objects.filter(sheet_submission=self)
         return self.cached_fields
     field_submissions = property(get_field_submissions)
+    
+    def get_secret(self):
+        try:
+            return SheetSubmissionSecretUrl.objects.get(sheet_submission=self)
+        except SheetSubmissionSecretUrl.DoesNotExist:
+            return None
 
     def get_submission_url(self):
         """
@@ -555,6 +570,29 @@ class SheetSubmission(models.Model):
                                 'sheet_slug': self.sheet.slug,
                                 'sheetsubmit_slug': self.slug})
 
+    @classmethod
+    def waiting_sheets_by_user(cls):
+        min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
+        sheet_subs = SheetSubmission.objects.exclude(status='DONE').exclude(status='REJE') \
+                .exclude(given_at__gt=min_age) \
+                .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'form_submission__form__initiator', 'sheet')
+        return itertools.groupby(sheet_subs, lambda ss: ss.filler)
+        
+    @classmethod
+    def email_waiting_sheets(cls):
+        full_url = settings.BASE_ABS_URL + reverse('onlineforms.views.index')
+        subject = 'Waiting form reminder'
+        from_email = "nobody@courses.cs.sfu.ca"
+
+        filler_ss = cls.waiting_sheets_by_user()
+        template = get_template('onlineforms/emails/reminder.txt')
+        
+        for filler, sheets in filler_ss:
+            context = Context({'full_url': full_url,
+                    'filler': filler, 'sheets': list(sheets)})
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()])
+            msg.send()
+    
     def _send_email(self, request, template_name, subject, mail_from, mail_to, context):
         """
         Send email to user as required in various places below
@@ -599,14 +637,15 @@ class SheetSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
-    def email_submitted(self, request):
+    def email_submitted(self, request, rejected=False):
         plaintext = get_template('onlineforms/emails/sheet_submitted.txt')
         html = get_template('onlineforms/emails/sheet_submitted.html')
     
         full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
                                     kwargs={'form_slug': self.sheet.form.slug,
                                             'formsubmit_slug': self.form_submission.slug}))
-        email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form})
+        email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
+                                 'rejected': rejected})
         subject = '%s submission' % (self.sheet.form.title)
         #from_email = self.filler.full_email()
         from_email = "nobody@courses.cs.sfu.ca"
@@ -618,6 +657,11 @@ class SheetSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
+
+    def email_returned(self, request, admin):
+        context = {'admin': admin, 'sheetsub': self}
+        self._send_email(request, 'sheet_returned', '%s submission returned' % (self.sheet.title),
+                         admin, self.filler, context)
 
 
 
@@ -728,3 +772,5 @@ def reorder_sheet_fields(ordered_fields, field_slug, order):
                 ordered_fields[i+1].save()
                 ordered_fields[i].save()
             break
+
+
