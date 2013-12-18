@@ -137,7 +137,7 @@ def update_indiv_repository(offering, m, instr, repos):
     ro = set()
     if offering.indiv_svn():
         if offering.instr_rw_svn():
-            rw += instr
+            rw |= instr
         else:
             ro = instr - rw
     if m.role == "DROP" or offering.component=="CAN":
