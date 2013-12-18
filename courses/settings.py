@@ -216,10 +216,10 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
 
-EXTRA_MIDDLEWARE_CLASSES = ()
+#EXTRA_MIDDLEWARE_CLASSES = ()
 try:
     from local_settings import *
 except ImportError:
     pass
 
-MIDDLEWARE_CLASSES = EXTRA_MIDDLEWARE_CLASSES + MIDDLEWARE_CLASSES
+#MIDDLEWARE_CLASSES = EXTRA_MIDDLEWARE_CLASSES + MIDDLEWARE_CLASSES
