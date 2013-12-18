@@ -312,11 +312,17 @@ def student_notes(request, userid):
             n.entry_type = 'NOTE'
         items = notes
         nonstudent = True
+    
+    show_transcript = False
+    if 'UNIV' in [u.label for u in request.units]:
+        show_transcript = True
 
     template = 'advisornotes/student_notes.html'
     if 'compact' in request.GET:
         template = 'advisornotes/student_notes_compact.html'
-    return render(request, template, {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
+    context = {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent,
+               'show_transcript': show_transcript}
+    return render(request, template, context)
 
 
 @requires_role('ADVS')
