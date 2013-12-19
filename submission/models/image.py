@@ -44,10 +44,10 @@ class SubmittedImage(SubmittedComponent):
         # figure out the MIME type
         for ext in self.component.mime_types:
             if self.image.name.lower().endswith(ext):
-                mimetype = self.component.mime_types[ext]
+                content_type = self.component.mime_types[ext]
                 break
 
-        response = HttpResponse(mimetype=mimetype)
+        response = HttpResponse(content_type=content_type)
         self.sendfile(self.image, response)
         return response
     def add_to_zip(self, zipfile, prefix=None):

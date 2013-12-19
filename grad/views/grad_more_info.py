@@ -16,6 +16,6 @@ def grad_more_info(request, grad_slug):
     except SIMSProblem as e:
         data = {'error': e.message}
     
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     json.dump(data, response, indent=1)
     return response

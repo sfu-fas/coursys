@@ -250,7 +250,7 @@ def generate_activity_zip(activity, prefix=''):
     z.close()
 
     file = open(filename, 'rb')
-    response = HttpResponse(FileWrapper(file), mimetype='application/zip')
+    response = HttpResponse(FileWrapper(file), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="%s.zip"' % (activity.slug)
     try:
         os.remove(filename)
@@ -271,7 +271,7 @@ def generate_zip_file(submission, submitted_components):
     z.close()
 
     file = open(filename, 'rb')
-    response = HttpResponse(FileWrapper(file), mimetype='application/zip')
+    response = HttpResponse(FileWrapper(file), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="%s_%s.zip"' % (submission.file_slug(), submission.activity.slug)
     try:
         os.remove(filename)

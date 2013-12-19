@@ -1173,7 +1173,7 @@ def _all_grades_output(response, course):
 def all_grades_csv(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="%s.csv"' % (course_slug)
     
     _all_grades_output(response, course)        
@@ -1351,7 +1351,7 @@ def export_all(request, course_slug):
     # return the zip file
     z.close()
     zipdata = open(filename, 'rb')
-    response = HttpResponse(FileWrapper(zipdata), mimetype='application/zip')
+    response = HttpResponse(FileWrapper(zipdata), content_type='application/zip')
     response['Content-Length'] = os.path.getsize(filename)    
     response['Content-Disposition'] = 'attachment; filename="' + course.slug + '.zip"'
     try:

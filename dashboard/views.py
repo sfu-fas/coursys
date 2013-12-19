@@ -505,7 +505,7 @@ def calendar_ical(request, token, userid):
             e.add('location', data['location'])
         cal.add_component(e)
     
-    return HttpResponse(cal.to_ical(), mimetype="text/calendar")
+    return HttpResponse(cal.to_ical(), content_type="text/calendar")
 
 
 @uses_feature('feeds')
@@ -536,7 +536,7 @@ def calendar_data(request):
     start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
     end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
 
-    resp = HttpResponse(mimetype="application/json")
+    resp = HttpResponse(content_type="application/json")
     events = _calendar_event_data(user, start, end, local_tz, dt_string=True, colour=True,
             due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=30))
     json.dump(list(events), resp, indent=1)
@@ -706,7 +706,7 @@ def view_signature(request, userid):
     people = [p.person for p in roles]
     sig = get_object_or_404(Signature, user__in=people, user__userid=userid)
     
-    response = HttpResponse(sig.sig, mimetype='image/png')
+    response = HttpResponse(sig.sig, content_type='image/png')
     response['Content-Disposition'] = 'inline; filename="%s.png"' % (userid)
     response['Content-Length'] = sig.sig.size
     return response
@@ -874,7 +874,7 @@ def view_doc(request, doc_slug):
 def courses_json(request, semester):
     courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN") \
               .select_related('semester')
-    resp = HttpResponse(mimetype="application/json")
+    resp = HttpResponse(content_type="application/json")
     resp['Content-Disposition'] = 'inline; filename="' + semester + '.json"'
     crs_data = (c.export_dict() for c in courses)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
@@ -976,7 +976,7 @@ def student_photo(request, emplid):
     # now return the photo
     imgpath = os.path.join(settings.MEDIA_ROOT, 'images', 'default-photo.png')
     data = open(imgpath, 'r')
-    response = HttpResponse(data, mimetype='image/png')
+    response = HttpResponse(data, content_type='image/png')
     response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
     # TODO: be a little less heavy-handed with the caching if it can be done safely
     response['Cache-Control'] = 'no-store'

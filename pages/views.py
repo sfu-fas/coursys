@@ -303,7 +303,7 @@ def convert_content(request, course_slug, page_label=None):
         pv.wikitext = data
         pv.diff_from = None
         result = {'data': pv.html_contents()}
-        return HttpResponse(json.dumps(result), mimetype="application/json")
+        return HttpResponse(json.dumps(result), content_type="application/json")
     else:
         # convert HTML to wikitext
         converter = HTMLWiki([])
@@ -312,7 +312,7 @@ def convert_content(request, course_slug, page_label=None):
         except converter.ParseError:
             wiki = ''
         result = {'data': wiki}
-        return HttpResponse(json.dumps(result), mimetype="application/json")
+        return HttpResponse(json.dumps(result), content_type="application/json")
 
 
 @login_required

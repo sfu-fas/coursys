@@ -28,7 +28,7 @@ class SubmittedURL(SubmittedComponent):
         return "link"
     
     def download_response(self):
-        response = HttpResponse(mimetype="text/html")
+        response = HttpResponse(content_type="text/html")
         response.write("""<title>%s</title><a href="%s">%s</a>""" % (escape(self.component.title), escape(self.url), escape(self.url)))
         return response
 

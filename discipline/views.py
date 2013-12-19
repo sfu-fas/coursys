@@ -512,7 +512,7 @@ def download_file(request, course_slug, case_slug, fileid):
         return ForbiddenResponse(request, errormsg="The letter for this case was not sent by this system.")
 
     attach.attachment.open()
-    resp = HttpResponse(attach.attachment, mimetype=attach.mediatype)
+    resp = HttpResponse(attach.attachment, content_type=attach.mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + attach.filename() + '"'
 
     return resp

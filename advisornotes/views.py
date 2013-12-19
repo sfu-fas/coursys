@@ -91,7 +91,7 @@ def sims_search(request):
     if not data:
         data = {'error': 'could not find person in SIMS database'}
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     json.dump(data, response)
     return response
 
@@ -323,7 +323,7 @@ def student_notes(request, userid):
 def download_file(request, userid, note_id):
     note = AdvisorNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
-    resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
+    resp = HttpResponse(note.file_attachment, content_type=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'
     return resp
 
@@ -332,7 +332,7 @@ def download_file(request, userid, note_id):
 def download_artifact_file(request, note_id):
     note = ArtifactNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
-    resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
+    resp = HttpResponse(note.file_attachment, content_type=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'
     return resp
 
@@ -348,7 +348,7 @@ def student_more_info(request, userid):
     except SIMSProblem as e:
         data = {'error': e.message}
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     json.dump(data, response)
     return response
 
@@ -377,7 +377,7 @@ def student_courses_data(request, userid):
         data = {'error': e.message}
 
     #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
-    response = HttpResponse(mimetype='application/json;charset=utf-8')
+    response = HttpResponse(content_type='application/json;charset=utf-8')
     json.dump(data, response, encoding='utf-8', indent=1)
     return response
 
@@ -559,7 +559,7 @@ def course_more_info(request, unit_course_slug):
     except SIMSProblem as e:
         data = {'error': e.message}
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     json.dump(data, response)
     return response
 

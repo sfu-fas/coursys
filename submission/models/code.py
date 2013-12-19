@@ -78,7 +78,7 @@ class SubmittedCode(SubmittedComponent):
         return os.path.split(self.code.name)[1]
 
     def download_response(self):
-        response = HttpResponse(mimetype="text/plain")
+        response = HttpResponse(content_type="text/plain")
         self.sendfile(self.code, response)
         return response
     def add_to_zip(self, zipfile, prefix=None):
