@@ -262,8 +262,7 @@ class SubmissionTest(TestCase):
         client.login_user("0aaa0")
         url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, '<input type="file" name="%i-code"' % (c.id))
-        
+
         # submit a file
         tmpf = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
         codecontents = 'print "Hello World!"\n'
