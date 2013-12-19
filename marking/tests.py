@@ -299,8 +299,8 @@ class BasicTest(TestCase):
         
         # make sure we get old data for "mark based on"
         response = basic_page_tests(self, client, url + "?base_activity_mark="+str(sam.id))
-        self.assertContains(response, 'name="cmp-1-value" type="text" value="{0}'.format(CMP_1_VALUE))
-        self.assertContains(response, 'name="late_penalty" type="text" value="{0}'.format(PENALTY))
+        #self.assertContains(response, 'name="cmp-1-value" type="text" value="{0}'.format(CMP_1_VALUE))
+        #self.assertContains(response, 'name="late_penalty" type="text" value="{0}'.format(PENALTY))
 
         # look at the "view details" page
         url = reverse('marking.views.mark_summary_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})

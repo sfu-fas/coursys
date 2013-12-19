@@ -6,7 +6,7 @@ South==0.7.5
 Unidecode>=0.04.9
 argparse==1.2.1
 distribute>=0.6.10
-django-autoslug==1.5.0
+django-autoslug==1.7.1
 #django-cas==2.0.3 # should "pip uninstall django-cas"
 django-debug-toolbar==0.9.4
 django-timezones==0.2
