@@ -47,6 +47,36 @@ def get_combined():
                 CourseOffering.objects.get(slug='2013fa-cmpt-829-g1')
             ]
         },
+        {
+            'subject': 'STAT', 'number': '340', 'section': 'X100',
+            'semester': Semester.objects.get(name="1141"),
+            'component': 'LEC', 'graded': True,
+            'crse_id': 32752, 'class_nbr': 32752,
+            'title': 'Stat Comp Data Ana (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2014sp-stat-340-d1'),
+                CourseOffering.objects.get(slug='2014sp-stat-341-d1'),
+                CourseOffering.objects.get(slug='2014sp-stat-342-d1'),
+            ]
+        },
+        {
+            'subject': 'STAT', 'number': '403', 'section': 'X100',
+            'semester': Semester.objects.get(name="1141"),
+            'component': 'LEC', 'graded': True,
+            'crse_id': 32751, 'class_nbr': 32751,
+            'title': 'Sampl./Exper. Des. (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2014sp-stat-403-d1'),
+                CourseOffering.objects.get(slug='2014sp-stat-650-g1'),
+                CourseOffering.objects.get(slug='2014sp-stat-890-g1'),
+            ]
+        },
 #        {
 #            'subject': 'CMPT', 'number': '419', 'section': 'X100',
 #            'semester': Semester.objects.get(name="1127"),
