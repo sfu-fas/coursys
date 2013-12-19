@@ -80,7 +80,7 @@ class EditPageFileForm(forms.ModelForm):
 
     class Meta:
         model = Page
-        exclude = ('config')
+        exclude = ('config',)
         widgets = {
             'offering': forms.HiddenInput(),
             'title': forms.TextInput(attrs={'size':50}),

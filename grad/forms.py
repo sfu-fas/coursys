@@ -240,7 +240,7 @@ class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
     class Meta:
         model = LetterTemplate
-        exclude = ('created_by')
+        exclude = ('created_by',)
     
     def clean_content(self):
         content = self.cleaned_data['content']
