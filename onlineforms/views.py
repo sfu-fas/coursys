@@ -16,8 +16,8 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, r
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
-    EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
-    AdminAssignForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
+    EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
+    AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
@@ -198,10 +198,9 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
 
     sheets = Sheet.objects.filter(form=form_submission.form, active=True)
     assign_args = {'data': request.POST or None,
-                    'label': 'sheet',
                     'query_set': sheets,
                     'initial': {'sheet': default_sheet}}
-    form = AdminAssignForm(**assign_args) if assign_to_sfu_account else AdminAssignForm_nonsfu(**assign_args)
+    form = AdminAssignSheetForm(**assign_args) if assign_to_sfu_account else AdminAssignSheetForm_nonsfu(**assign_args)
 
     if request.method == 'POST' and form.is_valid():
         if assign_to_sfu_account:
@@ -265,10 +264,10 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
     admin = get_object_or_404(Person, userid=request.user.username)
 
     if assign_to_sfu_account:
-        form = AdminAssignForm(data=request.POST or None, label='form',
+        form = AdminAssignFormForm(data=request.POST or None,
             query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
     else:
-        form = AdminAssignForm_nonsfu(data=request.POST or None, label='form',
+        form = AdminAssignFormForm_nonsfu(data=request.POST or None,
             query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
 
     if request.method == 'POST' and form.is_valid():
