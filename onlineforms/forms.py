@@ -83,43 +83,54 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
-# Administrate forms 
-class AdminAssignForm(forms.Form):
-    class FormModelChoiceField(forms.ModelChoiceField):
-        widget = forms.RadioSelect
-        def label_from_instance(self, obj):
-            return obj.title
+# Administrate forms
 
-    assignee = PersonField(label='Assign to', required=True)
+class _FormModelChoiceField(forms.ModelChoiceField):
+    widget = forms.RadioSelect
+    def label_from_instance(self, obj):
+        return obj.title
 
-    def __init__(self, label, query_set, *args, **kwargs):
-        super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields.insert(0, label, self.FormModelChoiceField(required=True,
-            queryset=query_set,
-            empty_label=None,
-            label=label.capitalize()))
-
+class _AdminAssignForm(forms.Form):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
-        return super(AdminAssignForm, self).is_valid(*args, **kwargs)
+        return super(_AdminAssignForm, self).is_valid(*args, **kwargs)
 
+class AdminAssignFormForm(_AdminAssignForm):
+    form = _FormModelChoiceField(required=True, queryset=Form.objects.none(), empty_label=None)
+    assignee = PersonField(label='Assign to', required=True)
 
-class AdminAssignForm_nonsfu(ModelForm):
-    class FormModelChoiceField(forms.ModelChoiceField):
-        widget = forms.RadioSelect
-        def label_from_instance(self, obj):
-            return obj.title
+    def __init__(self, query_set, *args, **kwargs):
+        super(AdminAssignFormForm, self).__init__(*args, **kwargs)
+        self.fields['form'].queryset = query_set
 
+class AdminAssignSheetForm(_AdminAssignForm):
+    sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
+    assignee = PersonField(label='Assign to', required=True)
+
+    def __init__(self, query_set, *args, **kwargs):
+        super(_AdminAssignForm, self).__init__(*args, **kwargs)
+        self.fields['sheet'].queryset = query_set
+
+class _AdminAssignForm_nonsfu(ModelForm):
     class Meta:
         model = NonSFUFormFiller
         exclude = ('config',)
 
-    def __init__(self, label, query_set, *args, **kwargs):
-        super(AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
-        self.fields.insert(0, label, self.FormModelChoiceField(required=True,
-            queryset=query_set,
-            empty_label=None,
-            label=label.capitalize()))
+class AdminAssignFormForm_nonsfu(_AdminAssignForm_nonsfu):
+    form = _FormModelChoiceField(required=True, queryset=Form.objects.none(), empty_label=None)
+
+    def __init__(self, query_set, *args, **kwargs):
+        super(_AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
+        self.fields['form'].queryset = query_set
+
+class AdminAssignSheetForm_nonsfu(_AdminAssignForm_nonsfu):
+    sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
+
+    def __init__(self, query_set, *args, **kwargs):
+        super(_AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
+        self.fields['sheet'].queryset = query_set
+
+
 
 class ChangeOwnerForm(forms.Form):
     new_group = forms.ModelChoiceField(queryset=None, required=True,
