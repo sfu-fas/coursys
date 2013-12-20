@@ -1178,7 +1178,7 @@ class GradRequirement(models.Model):
     class Meta:
         unique_together = (('program', 'description'),)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # maintain self.series as identifying the category of requirements across programs in this unit    
         if not self.series:

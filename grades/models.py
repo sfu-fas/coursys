@@ -146,7 +146,7 @@ class Activity(models.Model):
         """
         Do the actions to safely "delete" the activity.
         """
-        with transaction.commit_on_success():
+        with transaction.atomic():
             # mangle name and short-name so instructors can delete and replace
             i = 1
             while True:

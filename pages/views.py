@@ -182,7 +182,7 @@ def edit_page(request, course_slug, page_label):
     return _edit_pagefile(request, course_slug, page_label, kind=None)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def _edit_pagefile(request, course_slug, page_label, kind):
     """
     View to create and edit pages
@@ -316,7 +316,7 @@ def convert_content(request, course_slug, page_label=None):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def import_page(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     page = get_object_or_404(Page, offering=offering, label=page_label)
@@ -347,7 +347,7 @@ def import_page(request, course_slug, page_label):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def import_site(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     member = _check_allowed(request, offering, 'STAF') # only staff can import
@@ -380,7 +380,7 @@ from django.forms import ValidationError
 from coredata.models import Person
 from pages.models import ACL_DESC, WRITE_ACL_DESC
 import base64
-@transaction.commit_on_success
+@transaction.atomic
 def _pages_from_json(request, offering, data):
     try:
         data = data.decode('utf-8')

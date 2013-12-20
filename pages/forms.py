@@ -55,7 +55,7 @@ class EditPageFileForm(forms.ModelForm):
             raise forms.ValidationError("Wrong course offering.")
         return self.cleaned_data['offering']
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def clean_label(self):
         label = self.cleaned_data['label']
         error = self.instance.label_okay(label)
@@ -96,7 +96,7 @@ class EditPageForm(EditPageFileForm):
     
     math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displayig TeX or MathML formulas?')
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, editor, *args, **kwargs):
         # also create the PageVersion object.
         wikitext = self.cleaned_data['wikitext']
@@ -134,7 +134,7 @@ EditPageForm.restricted_form = EditPageFormRestricted
 class EditFileForm(EditPageFileForm):
     file_attachment = forms.FileField(label="File")
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, editor, *args, **kwargs):
         # also create the PageVersion object.
         upfile = self.cleaned_data['file_attachment']

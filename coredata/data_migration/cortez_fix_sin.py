@@ -71,7 +71,7 @@ class GradImport(object):
             raise ValueError, "Couldn't find semester for %s." % (date)
         return s
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def process_grad(self, cortezid, sin, emplid, email, birthdate, gender,
                      english, mothertoungue, canadian, passport, visa, currentstatus, lastmod):
         """

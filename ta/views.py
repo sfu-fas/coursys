@@ -239,7 +239,7 @@ def new_application(request, post_slug):
 def edit_application(request, post_slug, userid):
     return _new_application(request, post_slug, manual=False, userid=userid)
 
-@transaction.commit_on_success
+@transaction.atomic
 def _new_application(request, post_slug, manual=False, userid=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     editing = bool(userid)
@@ -631,7 +631,7 @@ def assign_tas(request, post_slug):
     return render(request, 'ta/assign_tas.html', context) 
 
 @requires_role("TAAD")
-@transaction.commit_on_success
+@transaction.atomic
 def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     offering = get_object_or_404(CourseOffering, slug=course_slug)

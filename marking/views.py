@@ -114,7 +114,7 @@ def _check_and_save_renamed_activities(all_activities, conflicting_activities, r
 
 @uses_feature('marking')
 @requires_course_staff_by_slug
-@transaction.commit_on_success
+@transaction.atomic
 def copy_course_setup(request, course_slug):
     userid = request.user.username  
     course = get_object_or_404(CourseOffering, slug = course_slug)    
@@ -235,7 +235,7 @@ def _save_components(formset, activity, user):
     return total_mark      
 
 @requires_course_staff_by_slug
-@transaction.commit_on_success
+@transaction.atomic
 def manage_activity_components(request, course_slug, activity_slug):    
     error_info = None
     course = get_object_or_404(CourseOffering, slug = course_slug)   
@@ -344,7 +344,7 @@ def import_components(request, course_slug, activity_slug):
     
 
 @requires_course_staff_by_slug
-@transaction.commit_on_success
+@transaction.atomic
 @uses_feature('marking')
 def manage_common_problems(request, course_slug, activity_slug):    
        
@@ -384,7 +384,7 @@ def manage_common_problems(request, course_slug, activity_slug):
                               context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
-@transaction.commit_on_success
+@transaction.atomic
 @uses_feature('marking')
 def manage_component_positions(request, course_slug, activity_slug): 
     course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -436,7 +436,7 @@ def change_grade_status(request, course_slug, activity_slug, userid):
         raise Http404('Unknown activity type.')
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def _change_grade_status_numeric(request, course, activity, userid):
     member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
     grades = NumericGrade.objects.filter(activity=activity, member=member)
@@ -477,7 +477,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
     return render_to_response("marking/grade_status.html", context,
                               context_instance=RequestContext(request))  
 
-@transaction.commit_on_success
+@transaction.atomic
 def _change_grade_status_letter(request, course, activity, userid):
     member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
     grades = LetterGrade.objects.filter(activity=activity, member=member)
@@ -519,7 +519,7 @@ def _change_grade_status_letter(request, course, activity, userid):
                               context_instance=RequestContext(request))  
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @uses_feature('marking')
 def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     """
@@ -999,7 +999,7 @@ def mark_all_groups(request, course_slug, activity_slug):
         raise Http404('Unknown activity type.')
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def _mark_all_groups_numeric(request, course, activity):
     error_info = None
     rows=[]
@@ -1076,7 +1076,7 @@ def _mark_all_groups_numeric(request, course, activity):
                           context_instance = RequestContext(request))
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def _mark_all_groups_letter(request, course, activity):
     error_info = None
     rows=[]
@@ -1155,7 +1155,7 @@ def _mark_all_groups_letter(request, course, activity):
 #This is for change grade status of letter grades
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def _mark_all_students_letter(request, course, activity):
     rows = []
     fileform = None
@@ -1305,7 +1305,7 @@ def mark_all_students(request, course_slug, activity_slug):
         raise Http404('Unknown activity type.')
 
    
-@transaction.commit_on_success
+@transaction.atomic
 def _mark_all_students_numeric(request, course, activity):
     rows = []
     fileform = None
@@ -1581,7 +1581,7 @@ def export_marks(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-@transaction.commit_on_success
+@transaction.atomic
 @uses_feature('marking')
 def import_marks(request, course_slug, activity_slug):
     """

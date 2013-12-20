@@ -287,7 +287,7 @@ class Form(models.Model, _FormCoherenceMixin):
         self.active = False
         self.save()
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
@@ -348,7 +348,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
         unique_together = (("form", "slug"),)
         ordering = ('order',)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def safe_save(self):
         """
         Save a copy of this sheet, and return the copy: does not modify self.
@@ -366,7 +366,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
             field2.save()
         return sheet2       
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # if this sheet is just being created it needs a order number
         if(self.order == None):
@@ -420,7 +420,7 @@ class Field(models.Model, _FormCoherenceMixin):
     class Meta:
         unique_together = (("sheet", "slug"),)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # if this field is just being created it needs a order number
         if(self.order == None):
@@ -528,7 +528,7 @@ class SheetSubmission(models.Model):
         # 'reject_reason': reason given for rejecting the sheet
         # 'return_reason': reason given for returning the sheet to the filler
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         self.completed_at = datetime.datetime.now()
         super(SheetSubmission, self).save(*args, **kwargs)
@@ -724,7 +724,7 @@ class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     key = models.CharField(max_length=128, null=False, editable=False, unique=True)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         if not(self.key):
             self.key = self.autokey()

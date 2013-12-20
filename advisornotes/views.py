@@ -136,7 +136,7 @@ def _email_student_note(note):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_note(request, userid):
     try:
         student = Person.objects.get(find_userid_or_emplid(userid))
@@ -180,7 +180,7 @@ def new_note(request, userid):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
     related = course = offering = artifact = None
@@ -235,7 +235,7 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None, artifact_slug=None):
     note = get_object_or_404(ArtifactNote, id=note_id, unit__in=request.units)
     related = course = offering = artifact = None
@@ -384,7 +384,7 @@ def student_courses_data(request, userid):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_nonstudent(request):
     """
     View to create a new non-student
@@ -403,7 +403,7 @@ def new_nonstudent(request):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_artifact(request):
     """
     View to create a new artifact
@@ -429,7 +429,7 @@ def new_artifact(request):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def edit_artifact(request, artifact_slug):
     """
     View to edit a new artifact
@@ -619,7 +619,7 @@ def view_offering_notes(request, course_slug):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def hide_note(request):
     """
     View to hide a note
@@ -634,7 +634,7 @@ def hide_note(request):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def merge_nonstudent(request, nonstudent_slug):
     """
     Merge a nonstudent with an existing student

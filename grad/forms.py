@@ -777,7 +777,7 @@ from coredata.queries import add_person, SIMSProblem, grad_student_info
 from log.models import LogEntry
 import datetime, StringIO
 
-@transaction.commit_on_success
+@transaction.atomic
 def process_pcs_row(row, column, rownum, unit, semester, user):
     """
     Process a single row from the PCS import
