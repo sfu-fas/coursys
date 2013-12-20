@@ -167,8 +167,7 @@ if USE_CELERY:
         'djcelery',
         'djcelery_email',
         )
-    BROKER_URL = "ampq://coursys:supersecretpassword@localhost:5672//"
-    DJKOMBU_POLLING_INTERVAL = 10
+    BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
     CELERY_QUEUES = {
         "celery": {},
     }
