@@ -64,6 +64,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
@@ -133,6 +134,7 @@ if DEBUG:
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+X_FRAME_OPTIONS = 'DENY'
 
 if DEPLOYED:
     MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
