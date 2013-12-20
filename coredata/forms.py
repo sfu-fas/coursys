@@ -214,6 +214,7 @@ class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")
     class Meta:
         model = Role
+        exclude = []
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(RoleForm, self).is_valid(*args, **kwargs)
