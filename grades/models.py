@@ -1,13 +1,10 @@
 from django.db import models
 from autoslug import AutoSlugField
-from timezones.fields import TimeZoneField
-from coredata.models import Member, CourseOffering
-from dashboard.models import *
+from coredata.models import Member, CourseOffering, Person
+from dashboard.models import NewsItem
 from django.db import transaction
 from django.db.models import Count
 from django.core.urlresolvers import reverse
-from django.contrib import messages
-from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
 from jsonfield import JSONField
@@ -114,6 +111,8 @@ class Activity(models.Model):
 
     def save(self, force_insert=False, force_update=False, newsitem=True, entered_by=None, *args, **kwargs):
         # get old status so we can see if it's newly-released
+        print ">>>", Activity
+        print ">>>", type(Activity)
         try:
             old = Activity.objects.get(id=self.id)
         except Activity.DoesNotExist:
@@ -267,6 +266,8 @@ class Activity(models.Model):
             return "due_soon"
         else:
             return "due_far"
+
+X = Activity
 
 
 class NumericActivity(Activity):

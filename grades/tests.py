@@ -1,11 +1,12 @@
 from django.test import TestCase
-from grades.formulas import *
-from grades.models import *
-from grades.utils import *
-from coredata.models import *
+from grades.formulas import parse, cols_used, eval_parse, EvalException, ParseException
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, \
+    NumericGrade, LetterGrade, GradeHistory, all_activities_filter, ACTIVITY_STATUS, sorted_letters, median_letters
+from grades.utils import activities_dictionary, generate_grade_range_stat
+from coredata.models import Person, Member, CourseOffering
 from submission.models import StudentSubmission
 from coredata.tests import create_offering
-import pickle, re
+import pickle, datetime, decimal
 
 
 from django.conf import settings
