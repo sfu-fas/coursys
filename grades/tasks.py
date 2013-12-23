@@ -35,8 +35,8 @@ def _create_grade_released_history(activity, entered_by):
         gh.save()
 
 @task(max_retries=2)
-def create_grade_released_history_task(activity):
-    _create_grade_released_history(activity)
+def create_grade_released_history_task(activity, entered_by):
+    _create_grade_released_history(activity, entered_by)
 
 
 # let these work with or without Celery
