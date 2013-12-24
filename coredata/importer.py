@@ -706,7 +706,6 @@ def import_combined(extra_where='1=1'):
         strm, _ = k
         class_nbrs = [int(class_nbr) for _,class_nbr,_ in v]
         offerings = CourseOffering.objects.filter(semester__name=strm, class_nbr__in=class_nbrs)
-        offerings.sort()
         for offering in offerings:
             offering.set_combined_with([o.slug for o in offerings if o != offering])
             offering.save()
