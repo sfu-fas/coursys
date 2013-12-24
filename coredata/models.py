@@ -561,10 +561,11 @@ class CourseOffering(models.Model):
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
+        # 'combined_with': list of offerings this one is combined with (as CourseOffering.slug)
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
-                'instr_rw_svn': False}
+                'instr_rw_svn': False, 'combined_with': ()}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
@@ -575,6 +576,7 @@ class CourseOffering(models.Model):
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
+    combined_with, set_combined_with = getter_setter('combined_with')
     copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
@@ -871,7 +873,7 @@ class MeetingTime(models.Model):
     start_day = models.DateField(null=False, help_text='Starting day of the meeting')
     end_day = models.DateField(null=False, help_text='Ending day of the meeting')
     room = models.CharField(max_length=20, help_text='Room (or other location) for the meeting')
-    exam = models.BooleanField() # unused: use meeting_type instead
+    exam = models.BooleanField(default=False) # unused: use meeting_type instead
     meeting_type = models.CharField(max_length=4, choices=MEETINGTYPE_CHOICES, default="LEC")
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".  None/blank for the non lab/tutorial events.')

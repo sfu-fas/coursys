@@ -1,7 +1,7 @@
 import sys, os, datetime, time, copy
 import MySQLdb
 sys.path.append(".")
-sys.path.append("..")
+sys.path.append("courses")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
@@ -693,6 +693,26 @@ def import_offering_members(offering, students=True):
 
 
 @transaction.atomic
+def import_combined(extra_where='1=1'):
+    """
+    Find combined sections and set CourseOffering.config['combined_with'] appropriately.
+    """
+    db = SIMSConn()
+    db.execute("SELECT strm, class_nbr, sctn_combined_id FROM ps_sctn_cmbnd c WHERE c.strm IN %s "
+               " AND ("+extra_where+")", (import_semesters(),))
+
+    for k,v in itertools.groupby(db, lambda d: (d[0], d[2])):
+        # for each combined offering...
+        strm, _ = k
+        class_nbrs = [int(class_nbr) for _,class_nbr,_ in v]
+        offerings = CourseOffering.objects.filter(semester__name=strm, class_nbr__in=class_nbrs)
+        offerings.sort()
+        for offering in offerings:
+            offering.set_combined_with([o.slug for o in offerings if o != offering])
+            offering.save()
+
+
+@transaction.atomic
 def combine_sections(combined):
     """
     Combine sections in the database to co-offered courses look the same.
@@ -861,6 +881,7 @@ def main():
         time.sleep(0.5)
 
     print "combining joint offerings"
+    import_combined()
     combine_sections(get_combined())
 
     print "giving sysadmin permissions"
