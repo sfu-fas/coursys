@@ -4,7 +4,7 @@ import html5lib
 from django.core.urlresolvers import reverse
 
 # course with the test data
-TEST_COURSE_SLUG = '2013fa-cmpt-165-d1'
+TEST_COURSE_SLUG = '2014sp-cmpt-165-c1'
 
 def validate_content_xhtml(testcase, data, page_descr="unknown page"):
     """

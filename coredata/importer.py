@@ -1,8 +1,8 @@
 import sys, os, datetime, time, copy
 import MySQLdb
 sys.path.append(".")
-sys.path.append("courses")
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+#sys.path.append("courses")
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
