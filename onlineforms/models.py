@@ -525,6 +525,7 @@ class SheetSubmission(models.Model):
         return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'assign_note': optional note provided when sheet was assigned by admin
         # 'reject_reason': reason given for rejecting the sheet
         # 'return_reason': reason given for returning the sheet to the filler
 
@@ -537,7 +538,8 @@ class SheetSubmission(models.Model):
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
     
-    defaults = {'reject_reason': None, 'return_reason': None}
+    defaults = {'assign_note': None, 'reject_reason': None, 'return_reason': None}
+    assign_note, set_assign_note = getter_setter('assign_note')
     reject_reason, set_reject_reason = getter_setter('reject_reason')
     return_reason, set_return_reason = getter_setter('return_reason')
 
@@ -617,7 +619,7 @@ class SheetSubmission(models.Model):
         html = get_template('onlineforms/emails/sheet_assigned.html')
 
         full_url = request.build_absolute_uri(self.get_submission_url())
-        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url})
+        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self})
         subject, from_email, to = 'CourSys: You have been assigned a sheet.', admin.full_email(), assignee.full_email()
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
         msg.attach_alternative(html.render(email_context), "text/html")

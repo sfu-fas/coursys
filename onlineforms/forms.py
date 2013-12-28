@@ -106,6 +106,8 @@ class AdminAssignFormForm(_AdminAssignForm):
 class AdminAssignSheetForm(_AdminAssignForm):
     sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
     assignee = PersonField(label='Assign to', required=True)
+    note = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '70'}),
+            help_text="Optional note to the assignee")
 
     def __init__(self, query_set, *args, **kwargs):
         super(_AdminAssignForm, self).__init__(*args, **kwargs)
@@ -125,6 +127,8 @@ class AdminAssignFormForm_nonsfu(_AdminAssignForm_nonsfu):
 
 class AdminAssignSheetForm_nonsfu(_AdminAssignForm_nonsfu):
     sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
+    note = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '70'}),
+            help_text="Optional note to the assignee")
 
     def __init__(self, query_set, *args, **kwargs):
         super(_AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
