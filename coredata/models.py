@@ -815,13 +815,14 @@ class Member(models.Model):
             # no lectures probably means directed studies or similar
             return fractions.Fraction(0)
         else:
-            # now probably a real offering: split the credit among the (real SIMS) instructors
+            # now probably a real offering: split the credit among the (real SIMS) instructors and across joint offerings
+            joint = len(self.offering.combined_with()) + 1
             n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
             if n_instr == 0:
                 # n_instr shouldn't be zero if we passed the assert entering the function, but juuuuust in case
-                return fractions.Fraction(1)
+                return fractions.Fraction(1) * fractions.Fraction(1, joint)
             else:
-                return fractions.Fraction(1, n_instr) # * number of credits students get / 3?
+                return fractions.Fraction(1, n_instr) * fractions.Fraction(1, joint) # * number of credits students get / 3?
 
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
