@@ -44,7 +44,11 @@ $(document).ready(function() {
   <td>{{ m.offering.semester.name }}</td>
   <td>{{ m.offering.title }}</td>
   <td>{{ m.offering.enrl_tot }}</td>
-  <td>{{ m.teaching_credit }}</td>
+  <td>{% with m.teaching_credit_with_reason as tcr %}
+      {{ tcr.0 }}
+      {% if tcr.1 %}({{ tcr.1 }}){% endif %}
+      {% endwith %}
+  </td>
   </tr>
   {% endfor %}
   </tbody>
