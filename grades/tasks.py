@@ -1,8 +1,15 @@
-from celery.task import task
 from django.conf import settings
 from dashboard.models import NewsItem
 from grades.models import NumericGrade, LetterGrade, GradeHistory
 import itertools
+
+try:
+    from celery.task import task
+except ImportError:
+    def task(*args, **kwargs):
+        def decorator(*args, **kwargs):
+            return None
+        return decorator
 
 def _send_grade_released_news(activity):
     NewsItem.for_members(member_kwargs={'offering': activity.offering},
