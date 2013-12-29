@@ -800,29 +800,43 @@ class Member(models.Model):
         """
         Number of teaching credits this is worth, as a Fraction.
         """
+        return self.teaching_credit_with_reason()[0]
+
+    def teaching_credit_with_reason(self):
+        """
+        Number of teaching credits this is worth, as a Fraction, along with a short explanation for the value
+        """
         assert self.role=='INST' and self.added_reason=='AUTO' # we can only sensibly calculate this for SIMS instructors
 
         if 'teaching_credit' in self.config:
             # if manually set, then honour it
-            return fractions.Fraction(self.config['teaching_credit'])
+            return fractions.Fraction(self.config['teaching_credit']), 'set manually'
         elif self.offering.enrl_tot == 0:
             # no students => no teaching credit (probably a cancelled section we didn't catch on import)
-            return fractions.Fraction(0)
-        elif self.offering.instr_mode in ['CO', 'GI', 'DE']:
+            return fractions.Fraction(0), 'empty section'
+        elif self.offering.instr_mode == 'DE':
+            # No credit for distance-ed supervision
+            return fractions.Fraction(0), 'distance ed'
+        elif self.offering.instr_mode in ['CO', 'GI']:
             # No credit for co-op, grad-internship, distance-ed supervision
-            return fractions.Fraction(0)
+            return fractions.Fraction(0), 'co-op'
         elif MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() == 0:
             # no lectures probably means directed studies or similar
-            return fractions.Fraction(0)
+            return fractions.Fraction(0), 'no scheduled lectures'
         else:
             # now probably a real offering: split the credit among the (real SIMS) instructors and across joint offerings
-            joint = len(self.offering.combined_with()) + 1
+            joint_with = len(self.offering.combined_with()) + 1
             n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
-            if n_instr == 0:
-                # n_instr shouldn't be zero if we passed the assert entering the function, but juuuuust in case
-                return fractions.Fraction(1) * fractions.Fraction(1, joint)
-            else:
-                return fractions.Fraction(1, n_instr) * fractions.Fraction(1, joint) # * number of credits students get / 3?
+            credits = fractions.Fraction(1)
+            reasons = []
+            if n_instr > 1:
+                credits /= n_instr
+                reasons.append('%i instructors' % (n_instr))
+            if joint_with > 1:
+                credits /= joint_with
+                reasons.append('joint with %i other' % (joint_with-1))
+            # credits *= number of credits students get / 3
+            return credits, ', '.join(reasons)
 
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
