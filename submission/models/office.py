@@ -35,6 +35,8 @@ class JSONFieldFlexible(JSONField):
 
         return super(JSONFieldFlexible, self).formfield(**kwargs)
 
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^submission\.models\.office\.JSONFieldFlexible"])
 
 class OfficeComponent(SubmissionComponent):
     "An office document submission component"
