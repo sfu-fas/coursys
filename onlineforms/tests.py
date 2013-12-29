@@ -347,6 +347,15 @@ class ViewTestCase(TestCase):
                 'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
         self.run_basic_page_tests(views, args)
 
+    def test_admin_submission(self):
+        views = ['view_submission',]
+        args = {'form_slug': self.slug_data["form_slug"], 'formsubmit_slug': self.slug_data["formsubmit_slug"]}
+        self.run_basic_page_tests(views, args)
+        sheetsub = SheetSubmission.objects.get(form_submission__slug=self.slug_data["formsubmit_slug"], slug=self.slug_data["sheetsubmit_slug"])
+        sheetsub.status = 'DONE'
+        sheetsub.save()
+        self.run_basic_page_tests(views, args)
+
     def run_basic_page_tests(self, views, arguments):
         for view in views:
             try:
