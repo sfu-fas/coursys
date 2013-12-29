@@ -40,13 +40,17 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'FormGroup', fields ['unit', 'name']
         db.create_unique('onlineforms_formgroup', ['unit_id', 'name'])
 
-        # Adding M2M table for field members on 'FormGroup'
+        # Adding model 'FormGroupMember'
         db.create_table('onlineforms_formgroup_members', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('formgroup', models.ForeignKey(orm['onlineforms.formgroup'], null=False)),
-            ('person', models.ForeignKey(orm['coredata.person'], null=False))
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('person', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
+            ('formgroup', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.FormGroup'])),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
-        db.create_unique('onlineforms_formgroup_members', ['formgroup_id', 'person_id'])
+        db.send_create_signal('onlineforms', ['FormGroupMember'])
+
+        # Adding unique constraint on 'FormGroupMember', fields ['person', 'formgroup']
+        db.create_unique('onlineforms_formgroup_members', ['person_id', 'formgroup_id'])
 
         # Adding model 'Form'
         db.create_table('onlineforms_form', (
@@ -60,6 +64,7 @@ class Migration(SchemaMigration):
             ('original', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.Form'], null=True, blank=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('advisor_visible', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique=True, max_length=50, populate_from=None, unique_with=())),
             ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
@@ -92,12 +97,12 @@ class Migration(SchemaMigration):
             ('sheet', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.Sheet'])),
             ('order', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('fieldtype', self.gf('django.db.models.fields.CharField')(default='SMTX', max_length=4)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('original', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.Field'], null=True, blank=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
-            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['Field'])
 
@@ -112,6 +117,7 @@ class Migration(SchemaMigration):
             ('owner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.FormGroup'])),
             ('status', self.gf('django.db.models.fields.CharField')(default='PEND', max_length=4)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['FormSubmission'])
 
@@ -125,6 +131,7 @@ class Migration(SchemaMigration):
             ('given_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('completed_at', self.gf('django.db.models.fields.DateTimeField')(null=True)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('onlineforms', ['SheetSubmission'])
 
@@ -140,7 +147,7 @@ class Migration(SchemaMigration):
         # Adding model 'FieldSubmissionFile'
         db.create_table('onlineforms_fieldsubmissionfile', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('field_submission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.FieldSubmission'])),
+            ('field_submission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['onlineforms.FieldSubmission'], unique=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
             ('file_attachment', self.gf('django.db.models.fields.files.FileField')(max_length=500, null=True, blank=True)),
             ('file_mediatype', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
@@ -163,6 +170,9 @@ class Migration(SchemaMigration):
         # Removing unique constraint on 'Sheet', fields ['form', 'slug']
         db.delete_unique('onlineforms_sheet', ['form_id', 'slug'])
 
+        # Removing unique constraint on 'FormGroupMember', fields ['person', 'formgroup']
+        db.delete_unique('onlineforms_formgroup_members', ['person_id', 'formgroup_id'])
+
         # Removing unique constraint on 'FormGroup', fields ['unit', 'name']
         db.delete_unique('onlineforms_formgroup', ['unit_id', 'name'])
 
@@ -175,7 +185,7 @@ class Migration(SchemaMigration):
         # Deleting model 'FormGroup'
         db.delete_table('onlineforms_formgroup')
 
-        # Removing M2M table for field members on 'FormGroup'
+        # Deleting model 'FormGroupMember'
         db.delete_table('onlineforms_formgroup_members')
 
         # Deleting model 'Form'
@@ -250,7 +260,7 @@ class Migration(SchemaMigration):
         'onlineforms.fieldsubmissionfile': {
             'Meta': {'object_name': 'FieldSubmissionFile'},
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'field_submission': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.FieldSubmission']"}),
+            'field_submission': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.FieldSubmission']", 'unique': 'True'}),
             'file_attachment': ('django.db.models.fields.files.FileField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'file_mediatype': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
@@ -258,6 +268,7 @@ class Migration(SchemaMigration):
         'onlineforms.form': {
             'Meta': {'object_name': 'Form'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'advisor_visible': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '500'}),
@@ -281,13 +292,21 @@ class Migration(SchemaMigration):
             'Meta': {'unique_together': "(('unit', 'name'),)", 'object_name': 'FormGroup'},
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'members': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['coredata.Person']", 'symmetrical': 'False'}),
+            'members': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['coredata.Person']", 'through': "orm['onlineforms.FormGroupMember']", 'symmetrical': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']"})
         },
+        'onlineforms.formgroupmember': {
+            'Meta': {'unique_together': "(('person', 'formgroup'),)", 'object_name': 'FormGroupMember', 'db_table': "'onlineforms_formgroup_members'"},
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
+            'formgroup': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.FormGroup']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'person': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']"})
+        },
         'onlineforms.formsubmission': {
             'Meta': {'object_name': 'FormSubmission'},
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.Form']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'initiator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.FormFiller']"}),
@@ -304,7 +323,7 @@ class Migration(SchemaMigration):
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '32'})
         },
         'onlineforms.sheet': {
-            'Meta': {'unique_together': "(('form', 'slug'),)", 'object_name': 'Sheet'},
+            'Meta': {'ordering': "('order',)", 'unique_together': "(('form', 'slug'),)", 'object_name': 'Sheet'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'can_view': ('django.db.models.fields.CharField', [], {'default': "'NON'", 'max_length': '4'}),
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
@@ -321,6 +340,7 @@ class Migration(SchemaMigration):
         'onlineforms.sheetsubmission': {
             'Meta': {'object_name': 'SheetSubmission'},
             'completed_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'filler': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.FormFiller']"}),
             'form_submission': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['onlineforms.FormSubmission']"}),
             'given_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
