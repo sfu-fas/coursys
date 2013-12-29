@@ -262,7 +262,7 @@ def get_unit(acad_org):
 REQ_DES = None
 @transaction.commit_on_success
 def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
-                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn):
+                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn, units):
     """
     Import one offering. Returns CourseOffering or None.
     
@@ -313,6 +313,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c.wait_tot = wait_tot
     c.owner = owner
     c.instr_mode = instr_mode
+    c.units = units
     c.slug = c.autoslug() # rebuild slug in case section changes for some reason
 
     # set the WQB flags
@@ -331,7 +332,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
 CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
         + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \
-        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn'
+        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn, cc.units_minimum'
 CLASS_TBL_QUERY = """
 SELECT """ + CLASS_TBL_FIELDS + """
 FROM ps_class_tbl ct
