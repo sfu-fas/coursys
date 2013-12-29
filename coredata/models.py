@@ -543,6 +543,7 @@ class CourseOffering(models.Model):
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
+    units = models.PositiveSmallIntegerField(null=True, help_text='The number of credits received by (most?) students in the course')
     course = models.ForeignKey(Course, null=False)
 
     # WQB requirement flags
@@ -834,7 +835,10 @@ class Member(models.Model):
             if joint_with > 1:
                 credits /= joint_with
                 reasons.append('joint with %i other' % (joint_with-1))
-            # credits *= number of credits students get / 3
+            if self.offering.units is not None and self.offering.units != 3:
+                # TODO: is this consistent with other units on campus? Do some have a different default credit count?
+                credits *= fractions.Fraction(self.offering.units, 3)
+                reasons.append('%i unit course' % (self.offering.units))
             return credits, ', '.join(reasons)
 
     def set_teaching_credit(self, cred):
