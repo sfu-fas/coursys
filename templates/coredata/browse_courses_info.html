@@ -44,6 +44,7 @@ $(document).ready(function() {
   <tr><th class="ui-state-default">Campus</th><td>{{ offering.get_campus_display }}</td></tr>
   <tr><th class="ui-state-default">Enrolment</th><td>{{ offering.enrl_tot }} out of {{ offering.enrl_cap }}{% if offering.wait_tot %} ({{ offering.wait_tot }} on waitlist){% endif %} *</td></tr>
   <tr><th class="ui-state-default">WQB Designation</th><td>{{ offering.get_wqb_display }}</td></tr>
+  <tr><th class="ui-state-default">Class Number</th><td>{{ offering.class_nbr }}</td></tr>
 </tbody></table></div>
 <p class="helptext">* updated overnight only: see <a href="https://sis.sfu.ca/">SIS</a> for updated data.</p>
 

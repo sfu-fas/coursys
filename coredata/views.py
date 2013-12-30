@@ -623,7 +623,10 @@ class OfferingDataJson(BaseDatatableView):
         # no locally-merged courses
         qs = qs.exclude(flags=CourseOffering.flags.combined)
 
-        columns = UNIVERSAL_COLUMNS + GET.get('columns', ','.join(DEFAULT_COLUMNS)).split(',')
+        req_cols = GET.get('columns', '').split(',')
+        if req_cols == [''] or req_cols == ['null']:
+            req_cols = DEFAULT_COLUMNS
+        columns = UNIVERSAL_COLUMNS + req_cols
         self.set_columns(columns)
         
         srch = GET.get('sSearch', None)
