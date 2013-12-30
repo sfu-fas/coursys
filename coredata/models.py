@@ -532,7 +532,7 @@ class CourseOffering(models.Model):
         help_text='Component of the offering, like "LEC" or "LAB"')
     instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P', db_index=True,
         help_text='The instructional mode of the offering')
-    graded = models.BooleanField()
+    graded = models.BooleanField(default=True)
     owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)

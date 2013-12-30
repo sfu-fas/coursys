@@ -272,7 +272,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     if not REQ_DES:
         REQ_DES = get_reqmnt_designtn()
     semester = Semester.objects.get(name=strm)
-    graded = True # non-graded excluded in with "class_section like '%00'" in query
+    graded = True # non-graded excluded in with "class_type='E'" in query
 
     # make sure the data is as we expect:
     if not CAMPUSES.has_key(campus):
@@ -280,11 +280,11 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     if not COMPONENTS.has_key(component):
         raise KeyError, "Unknown course component: %r." % (component)
     if not INSTR_MODE.has_key(instr_mode):
-        raise KeyError, "Unknown instructional modet: %r." % (instr_mode)
+        raise KeyError, "Unknown instructional mode: %r." % (instr_mode)
 
     if cancel_dt is not None:
         # mark cancelled sections
-        component="CAN"
+        component = "CAN"
     
     owner = get_unit(acad_org)
 
@@ -373,7 +373,7 @@ def import_one_offering(strm, subject, number, section):
     row = res[0]
     return import_offering(*row)
     
-def import_offerings(extra_where='1=1', import_semesters=import_semesters):
+def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False):
     db = SIMSConn()
     db.execute(CLASS_TBL_QUERY + " AND ct.strm IN %s "
                " AND ("+extra_where+")", (import_semesters(),))
@@ -382,6 +382,16 @@ def import_offerings(extra_where='1=1', import_semesters=import_semesters):
         o = import_offering(*row)
         if o:
             imported_offerings.add(o)
+
+    if cancel_missing:
+        # mark any offerings not found during the import as cancelled: handles sections that just disappear from
+        # ps_class_tbl, because that can happen, apparently.
+        all_off = CourseOffering.objects.filter(semester__name__in=import_semesters()) \
+            .exclude(component='CAN').exclude(flags=CourseOffering.flags.combined)
+        all_off = set(all_off)
+        for o in all_off - imported_offerings:
+            o.component = 'CAN'
+            o.save()
     
     return imported_offerings
 
@@ -867,7 +877,7 @@ def main():
     #offerings = import_offerings(extra_where="subject IN ('GEOG', 'EDUC') and strm='1124' and catalog_nbr LIKE '%%9%%'")
     #offerings = import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 470')")
     #offerings = import_offerings(extra_where="ct.subject='CMPT'")
-    offerings = import_offerings()
+    offerings = import_offerings(cancel_missing=True)
     offerings = list(offerings)
     offerings.sort()
 
