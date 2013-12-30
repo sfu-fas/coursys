@@ -16,12 +16,12 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Notes</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Notes</a></li>
 <li>&gt; Note Search</li>
 {% endblock %}
 
 {% block content %}
-<form action="{% url advisornotes.views.note_search %}" method="get">
+<form action="{% url "advisornotes.views.note_search" %}" method="get">
 {{note_form.as_p}}
 <p><input class="submit" type="submit" value="Submit" /></p>
 </form>
@@ -34,9 +34,9 @@
   <tr>
   <td>
   {% if note.student %}
-    <a href="{% url advisornotes.views.student_notes userid=note.student.userid_or_emplid %}">{{note.student.sortname}}</a>
+    <a href="{% url "advisornotes.views.student_notes" userid=note.student.userid_or_emplid %}">{{note.student.sortname}}</a>
   {% else %}
-    <a href="{% url advisornotes.views.student_notes userid=note.nonstudent.slug %}">{{note.nonstudent.sortname}}</a> (prospective)
+    <a href="{% url "advisornotes.views.student_notes" userid=note.nonstudent.slug %}">{{note.nonstudent.sortname}}</a> (prospective)
   {% endif %}
   </td>
   <td>{{note.advisor.sortname}}</td>

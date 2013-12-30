@@ -4,7 +4,7 @@
 {% block title %}Apply for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 {% block h1 %}Apply for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 
-{% block subbreadcrumbs %}{% if manual %}<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>&gt; Apply for student</li>{% else %}<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; {{ posting.unit.label }} {{ posting.semester }}</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}{% if manual %}<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>&gt; Apply for student</li>{% else %}<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li>&gt; {{ posting.unit.label }} {{ posting.semester }}</li>{% endif %}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/application.js"></script>
@@ -34,7 +34,7 @@ dd{
 //<![CDATA[
 function get_more_info() {
 	$.ajax({
-		url: "{% url ta.views.get_info post_slug=posting.slug %}",
+		url: "{% url "ta.views.get_info" post_slug=posting.slug %}",
 		success: function(data, textStatus, jqXHR) {
 			if (data['phones']) {
 				var html = '';
@@ -53,7 +53,7 @@ $(document).ready(function() {
   $("id_search").focus();
   student_autocomplete('id_search');
   {% if simssearch %}
-  search_sims('{% url advisornotes.views.sims_search %}', '{{simssearch}}', '{% url advisornotes.views.sims_add_person %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
+  search_sims('{% url "advisornotes.views.sims_search" %}', '{{simssearch}}', '{% url "advisornotes.views.sims_add_person" %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
   {% endif %}
   get_more_info();
 });

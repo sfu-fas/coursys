@@ -1,8 +1,9 @@
 from django import template
+register = template.Library()
 from django import forms
 from django.utils.safestring import mark_safe
-from django.utils.html import escape
-register = template.Library()
+from django.utils.html import conditional_escape as escape
+from django.utils.functional import Promise
 from django.forms.widgets import RadioSelect
 from grad.forms import SupervisorWidget
 
@@ -47,7 +48,8 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
         else:
             out.append('<div class="field">%s</div>' % (unicode(field)))
         out.append(unicode(field.errors))
-        if field.help_text:
+
+        if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default
             if safe:
                 out.append('<div class="helptext">%s</div>' % (field.help_text))
             else:
@@ -88,7 +90,7 @@ def as_dl_nolabel(form, safe=False, includefield=[], req_text=True):
                 out.append('<div class="field radio">%s</div>' % (unicode(field)))
             else:
                 out.append('<div class="field">%s</div>' % (unicode(field)))
-            if field.help_text:
+            if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default:
                 if safe:
                     out.append('<div class="helptext">%s</div>' % (field.help_text))
                 else:
@@ -125,7 +127,7 @@ def as_dl_2(form, safe=False):
             labelid = form.prefix + '-' + labelid
         out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
         out.append('<div class="field">%s</div>' % (unicode(field)))
-        if field.help_text:
+        if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default:
             if safe:
                 out.append('<div class="helptext">%s</div>' % (field.help_text))
             else:

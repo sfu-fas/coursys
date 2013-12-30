@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% load markup %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -27,11 +26,11 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url planning.views.create_plan %}">Create a Course Plan</a></li>
-        <li><a href="{% url planning.views.copy_plan %}">Copy a Course Plan</a></li>
-        <li><a href="{% url planning.views.manage_courses %}">Manage Courses</a></li>
-        <li><a href="{% url planning.views.view_intentions %}">View Teaching Intentions</a></li>
-        <li><a href="{% url planning.views.view_capabilities %}">View Teaching Capabilities</a></li>
+        <li><a href="{% url "planning.views.create_plan" %}">Create a Course Plan</a></li>
+        <li><a href="{% url "planning.views.copy_plan" %}">Copy a Course Plan</a></li>
+        <li><a href="{% url "planning.views.manage_courses" %}">Manage Courses</a></li>
+        <li><a href="{% url "planning.views.view_intentions" %}">View Teaching Intentions</a></li>
+        <li><a href="{% url "planning.views.view_capabilities" %}">View Teaching Capabilities</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -52,7 +51,7 @@ $(document).ready(function() {
         {% for plan in plan_list %}
         <tr>
             <td>{{ plan.semester.name }} - {{ plan.semester.label }}</td>
-            <td><a href="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
+            <td><a href="{% url "planning.views.update_plan" semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
             <td>{{ plan.get_visibility_display }}</td>  
         </tr>
         {%endfor%}

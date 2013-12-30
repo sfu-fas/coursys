@@ -1,6 +1,6 @@
 {% if index and can_edit %}
     <p class="manage_link">
-        <a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Manage Other Funding</a>
+        <a href="{% url "grad.views.manage_otherfunding" grad_slug=grad.slug  %}">Manage Other Funding</a>
     </p>
 {% endif %}
 
@@ -41,7 +41,7 @@
 				{% if not index %}
                 <td class='miniaction'>
                     {% if not p.removed %}
-                        <form action="{% url grad.views.remove_otherfunding grad_slug=grad.slug o_id=f.id %}" method="post">
+                        <form action="{% url "grad.views.remove_otherfunding" grad_slug=grad.slug o_id=f.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
                                     <input type="submit" value="remove" onclick="return confirmSubmit('remove this funding')" />

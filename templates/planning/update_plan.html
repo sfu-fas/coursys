@@ -2,12 +2,11 @@
 {% load form_display %}
 
 
-{% load markup %}
 
 {% block title %}Edit Course Plan{% endblock %}
 {% block h1 %}Edit Course Plan{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -51,7 +50,7 @@ function confirmDelete() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}">Edit Course Plan Information</a></li>
+        <li><a href="{% url "planning.views.edit_plan" semester=plan.semester.name plan_slug=plan.slug %}">Edit Course Plan Information</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -97,7 +96,7 @@ function confirmDelete() {
             </td>
             <td>
                 {{ planned_offering.instructor }}
-                (<a href="{% url planning.views.view_instructors semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>)
+                (<a href="{% url "planning.views.view_instructors" semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>)
             </td>
             <td class="cap">{{ planned_offering.enrl_cap }}</td>
             <td class="section">{{ planned_offering.section }}</td>
@@ -116,8 +115,8 @@ function confirmDelete() {
             </td>
             {% endfor %}
             <td class="option">
-                <a href="{% url planning.views.edit_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a> |
-                <a onclick="return confirmDelete();" href="{% url planning.views.delete_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Remove</a>
+                <a href="{% url "planning.views.edit_planned_offering" semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a> |
+                <a onclick="return confirmDelete();" href="{% url "planning.views.delete_planned_offering" semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Remove</a>
             </td>
         </tr>
         {%endfor %}
@@ -125,7 +124,7 @@ function confirmDelete() {
 </table>
 
 <div class="form_container add-course-offering">
-    <form action="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.update_plan" semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         {% include "planning/course_offering_form.html" with offeringform=form timesformset=formset %}
     </form>
 </div>

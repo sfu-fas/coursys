@@ -88,7 +88,7 @@ Column logic:
 	    var cal_link = $(this);
 	    var userid = cal_link.attr('id').substring(5);
 	    /* post request */
-	    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  		    {'userid': userid, 'csrfmiddlewaretoken': "{{csrf_token}}"},
+	    $.post("{% url "grades.views.calculate_individual_ajax" course_slug=course.slug activity_slug=activity.slug %}",		  		    {'userid': userid, 'csrfmiddlewaretoken': "{{csrf_token}}"},
 	    function(data, textStatus, jqXHR){
 	      $("#grade-"+userid+">a").html(data);
 	    });
@@ -107,48 +107,48 @@ Column logic:
 {% if activity.group %}
 <li>
 {% ifequal activity_view_type 'group' %}
-<a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">View By Student</a>
+<a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">View By Student</a>
 {% endifequal %}
 {% ifequal activity_view_type 'individual' %}
-<a href="{% url grades.views.activity_info_with_groups course_slug=course.slug activity_slug=activity.slug%}">View By Group</a>
+<a href="{% url "grades.views.activity_info_with_groups" course_slug=course.slug activity_slug=activity.slug%}">View By Group</a>
 {% endifequal %}</li>
 {% endif %}
 
-	    <li{% if activity.group %} class="newsec"{% endif %}><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
+	    <li{% if activity.group %} class="newsec"{% endif %}><a href="{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
 	    
 	    {% if activity.is_calculated and not activity.is_numeric%}
-	    <li><a href="{% url grades.views.edit_cutoffs course_slug=course.slug, activity_slug=activity.slug%}">Edit Cutoffs</a></li>
+	    <li><a href="{% url "grades.views.edit_cutoffs" course_slug=course.slug activity_slug=activity.slug%}">Edit Cutoffs</a></li>
 	    {% endif %}
 	    {% if not activity.is_calculated %}
-	    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>	    
+	    <li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Submission</a></li>
 	    <li class="newsec">
 	    {% if activity.is_numeric %}
-	    <a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a>
+	    <a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Marking</a>
 	    {% endif %}
 	    </li>
 	    {% if sub_comps %}
-	    <li><a href="{% url submission.views.download_activity_files course_slug=course.slug, activity_slug=activity.slug%}">Download Submissions</a></li>
+	    <li><a href="{% url "submission.views.download_activity_files" course_slug=course.slug activity_slug=activity.slug%}">Download Submissions</a></li>
 	    {% endif %}
 	    {% endif %}
 	    
 	    {% if not activity.is_calculated %}
-	    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Grade each Student</a></li>
+	    <li><a href="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug%}">Grade each Student</a></li>
 	    {% endif %}
 	    
 	    {% if activity.group and not activity.is_calculated%}
 		    	<li>
-		    	<a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Grade each Group</a>
+		    	<a href="{% url "marking.views.mark_all_groups" course_slug=course.slug activity_slug=activity.slug%}?from_page={{ from_page }}">Grade each Group</a>
 		    	</li>
 	    {% endif %}
 	    {% if mark_comps %}
-	      <li><a href="{% url marking.views.import_marks course_slug=course.slug activity_slug=activity.slug%}">Import Marking Details</a></li>
+	      <li><a href="{% url "marking.views.import_marks" course_slug=course.slug activity_slug=activity.slug%}">Import Marking Details</a></li>
 	    {% endif %}
 
-	    <li class="newsec"><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
-		    	<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li> 
+	    <li class="newsec"><a href="{% url "grades.views.activity_stat" course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
+		    	<li><a href="{% url "marking.views.export_csv" course_slug=course.slug activity_slug=activity.slug%}">Export Grades</a></li>
                  {% if not activity.is_numeric %}
-		    	<li><a href="{% url marking.views.export_sims course_slug=course.slug, activity_slug=activity.slug%}">Export for SIMS</a></li>
-		    	<li><a href="{% url grades.views.compare_official course_slug=course.slug, activity_slug=activity.slug%}">Compare Official Letter Grades</a></li>
+		    	<li><a href="{% url "marking.views.export_sims" course_slug=course.slug activity_slug=activity.slug%}">Export for SIMS</a></li>
+		    	<li><a href="{% url "grades.views.compare_official" course_slug=course.slug activity_slug=activity.slug%}">Compare Official Letter Grades</a></li>
 		 {% endif %}
 
 	 
@@ -174,7 +174,7 @@ Column logic:
             </tr>
             <tr>
                 <th class="ui-state-default">Status</th>
-                <td><form action="{% url grades.views.release_activity course_slug=course.slug, activity_slug=activity.slug %}" method="post">{% csrf_token %}<p>
+                <td><form action="{% url "grades.views.release_activity" course_slug=course.slug activity_slug=activity.slug %}" method="post">{% csrf_token %}<p>
                 {{activity.get_status_display}}
                 {% if activity.status == "INVI" %}
                 <input type="submit" value="make visible" onclick="return confirmSubmit('make the activity visible to students')" />
@@ -212,7 +212,7 @@ Column logic:
             <tr>
                 <th class="ui-state-default">Submission Components</th>
                 <td>{% if sub_comps %}{{sub_comps|join:", "}}{% else %}<span class="empty">Submission not configured.</span>{% endif %}
-                <a class="editlink" href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a>
+                <a class="editlink" href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Submission</a>
                 </td>
             </tr>
             {% endif %}
@@ -220,19 +220,19 @@ Column logic:
             <tr>
                 <th class="ui-state-default">Marking Components</th>
                 <td>{% if mark_comps %}{{mark_comps|join:", "}}{% else %}<span class="empty">Marking not configured.</span>{% endif %}
-                <a class="editlink" href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a>
+                <a class="editlink" href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Marking</a>
                 </td>
             </tr>
             {% endif %}
             {% if activity.is_calculated and not activity.is_numeric %}
             <tr>
                 <th class="ui-state-default">Numeric Source</th>
-                <td><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.name}}</a></td>
+                <td><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.name}}</a></td>
             </tr>
             <tr>
                 <th class="ui-state-default">Exam Activity</th>
                 {% if activity.exam_activity %}
-                <td><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.exam_activity.slug %}">{{activity.exam_activity.name}}</a></td>
+                <td><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.exam_activity.slug %}">{{activity.exam_activity.name}}</a></td>
                 {% else %}
                 <td class="empty">None</td>
                 {% endif %}
@@ -259,11 +259,11 @@ Column logic:
 {% if activity.is_calculated %}
 {% if activity.is_numeric %}
 <div class="buttongroup">
-    <a class="redbutton" href="{% url grades.views.calculate_all course_slug=course.slug activity_slug=activity.slug %}">Calculate all</a>
+    <a class="redbutton" href="{% url "grades.views.calculate_all" course_slug=course.slug activity_slug=activity.slug %}">Calculate all</a>
 </div>
 {% else %}
 <div class="buttongroup">
-    <a class="redbutton" href="{% url grades.views.calculate_all_lettergrades course_slug=course.slug activity_slug=activity.slug %}">Calculate all</a>
+    <a class="redbutton" href="{% url "grades.views.calculate_all_lettergrades" course_slug=course.slug activity_slug=activity.slug %}">Calculate all</a>
 </div>
 {% endif %}
 {% endif %}
@@ -281,7 +281,7 @@ Column logic:
 		  <th scope="col">Group</th>
 		{% endif %}
 		{% if not activity.is_numeric and activity.is_calculated %}
-		  <th scope="col"><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.short_name}}</a> Grade</th>
+		  <th scope="col"><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.short_name}}</a> Grade</th>
 		{% endif %}
 		<th scope="col">Grade</th>
 		{% if not activity.is_calculated and activity.is_numeric %}
@@ -303,7 +303,7 @@ Column logic:
 		<td>{{ member.person.last_name }}</td>
 		<td>{{ member.person.first_with_pref }}</td>
 		<td>{{ member.person.userid }}</td>
-		<td><a href="{% url grades.views.student_info course_slug=course.slug userid=member.person.userid %}" title="student info">{{ member.person.emplid }}</a></td>
+		<td><a href="{% url "grades.views.student_info" course_slug=course.slug userid=member.person.userid %}" title="student info">{{ member.person.emplid }}</a></td>
 
 		{% if activity.group %}
 		  <td>{% with group_membership|hash:userid as group %}
@@ -323,29 +323,29 @@ Column logic:
 		    {% if not grade or grade.flag == 'NOGR'%}
 			{% if not activity.is_calculated %}
 				{% if activity.is_numeric %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
 				{% endif %}
 			{% else %}
 				{% if activity.is_numeric %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
 				{% endif %}
 			{% endif %}	   
 		    {% else %}
 		    	{% if not activity.is_calculated %}
 		    		{% if activity.is_numeric %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% endif %}
 			{% else %}
 				{% if activity.is_numeric %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+					<a href="{% url "marking.views.change_grade_status" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% endif %}
 			{% endif %}
 		    {% endif %}
@@ -364,9 +364,9 @@ Column logic:
 		  {% if mark_comps %}
 		  <td class="iconcell">
 		    {% if marked|hash:userid %}
-		    <a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+		    <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 		    {% else %}
-		    <a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
+		    <a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
 		    {% endif %}
 		  </td>
 		  {% else %}
@@ -376,8 +376,8 @@ Column logic:
 		{% if not activity.is_calculated %}
 		  {% if sub_comps %}
 		  <td class="iconcell">
-		    {% if submitted|hash:userid %}<a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
-		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}" class="calculate"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
+		    {% if submitted|hash:userid %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
+		    <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}" class="calculate"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
 		  </td>
 		  {% else %}
 		  <td class="iconcell disabled"></td>

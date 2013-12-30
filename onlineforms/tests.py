@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.db import transaction
 from django.db.utils import IntegrityError
 from django.core.urlresolvers import reverse
 from django.forms import Field as DjangoFormsField, Form as DjangoForm
@@ -22,7 +23,7 @@ class ModelTests(TestCase):
     def setUp(self):
         self.unit = Unit.objects.get(label="CMPT")
 
-    def test_FormGroup(self):
+    def test_FormGroups(self):
         groupName = "admins_test"
         u1 = Unit.objects.get(label="CMPT")
         u2 = Unit.objects.get(label="ENSC")
@@ -33,7 +34,9 @@ class ModelTests(TestCase):
         # now try adding another fromgroup in the same name with the same unit
         # should throw an db integrity exception
         fg2 = FormGroup(name=groupName, unit=u1)
-        self.assertRaises(IntegrityError, fg2.save)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                fg2.save()
         # now add a formgroup with the same name into a different unit
         fg2 = FormGroup(name=groupName, unit=u2)
         fg2.save()

@@ -5,8 +5,8 @@
 {% block h1 %}Assign TAs for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>&gt; Assign TAs</li>{% endblock %}
 
 {% block headextra %}
@@ -50,8 +50,8 @@
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url ta.views.generate_csv post_slug=posting.slug %}">Applicant Spreadsheet</a></li>
-<li><a href="{% url ta.views.generate_csv_by_course post_slug=posting.slug %}">Applicant Spreadsheet By Course</a></li>
+<li><a href="{% url "ta.views.generate_csv" post_slug=posting.slug %}">Applicant Spreadsheet</a></li>
+<li><a href="{% url "ta.views.generate_csv_by_course" post_slug=posting.slug %}">Applicant Spreadsheet By Course</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -76,7 +76,7 @@
 <tr>
   <td scope="row" title="{{o.title}}">
     {% if o.component == "CAN" %}<del>{% endif %}
-    <a href="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=o.slug %}">{{o.name}}</a>
+    <a href="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=o.slug %}">{{o.name}}</a>
     {% if o.component == "CAN" %}</del>{% endif %}
     </td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
@@ -104,7 +104,7 @@
 </tbody>
 </table>
 <p class="helptext">
-These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url ta.views.edit_posting post_slug=posting.slug %}">original posting</a>: 
+These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url "ta.views.edit_posting" post_slug=posting.slug %}">original posting</a>: 
 {% for o in excluded %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
 </p>
 </div>

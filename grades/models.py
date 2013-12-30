@@ -1,13 +1,10 @@
 from django.db import models
 from autoslug import AutoSlugField
-from timezones.fields import TimeZoneField
-from coredata.models import Member, CourseOffering
-from dashboard.models import *
+from coredata.models import Member, CourseOffering, Person
+from dashboard.models import NewsItem
 from django.db import transaction
 from django.db.models import Count
 from django.core.urlresolvers import reverse
-from django.contrib import messages
-from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
 from jsonfield import JSONField
@@ -146,7 +143,7 @@ class Activity(models.Model):
         """
         Do the actions to safely "delete" the activity.
         """
-        with transaction.commit_on_success():
+        with transaction.atomic():
             # mangle name and short-name so instructors can delete and replace
             i = 1
             while True:

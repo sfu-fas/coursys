@@ -3,7 +3,7 @@
 {% block title %}CourSys Members{% endblock %}
 {% block h1 %}CourSys Members{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Edit Member</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; Edit Member</li>{% endblock %}
 
 
 {% block headextra %}
@@ -26,7 +26,7 @@
 
 {% block content %}
 <div class="form_container">
-<form action="{% if member %}{% url coredata.views.edit_member member_id=member.id %}{% else %}{% url coredata.views.edit_member %}{% endif %}" method="post">{% csrf_token %}
+<form action="{% if member %}{% url "coredata.views.edit_member" member_id=member.id %}{% else %}{% url "coredata.views.edit_member" %}{% endif %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Membership</legend>
 {{ form.as_p }}

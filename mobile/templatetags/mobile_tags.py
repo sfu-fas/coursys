@@ -1,7 +1,7 @@
 from django import template
 register = template.Library()
 
-from settings import MEDIA_URL
+from django.conf import settings
 from django.template import Context, Template
 from django.utils.safestring import mark_safe
 from django.utils.html import escape

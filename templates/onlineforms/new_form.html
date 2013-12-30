@@ -4,15 +4,15 @@
 {% block title %} New Form {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
 <li>&gt; New Form</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
   
-    <form action="{% url onlineforms.views.new_form %}"  method="post"> {% csrf_token %}
+    <form action="{% url "onlineforms.views.new_form" %}"  method="post"> {% csrf_token %}
         <fieldset>
             <legend>Form Information</legend>
                 {{form|as_dl}}           

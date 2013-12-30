@@ -1,6 +1,6 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, url, include
 from django.conf import settings
-from django.views.generic.simple import direct_to_template
+from django.views.generic import TemplateView,  RedirectView
 
 if not settings.DEPLOYED:
     from django.contrib import admin
@@ -16,23 +16,21 @@ urlpatterns += patterns('',
 
 )
 
-
 #---------------------------------------
 urlpatterns += patterns('',
     url(r'^login/$', 'dashboard.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
     url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
-    url(r'^robots.txt$', direct_to_template, {'template': 'robots.txt', 'mimetype': 'text/plain'}),
+    url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
 
 #---------------------------------------
     url(r'^$', 'dashboard.views.index'),
         url(r'^m/$', 'mobile.views.index'),
-    url(r'^favicon.ico$', 'django.views.generic.simple.redirect_to', {'url': '/media/icons/favicon.ico'}),
+    url(r'^favicon.ico$', RedirectView.as_view(url='/media/icons/favicon.ico', permanent=True)),
     url(r'^history$', 'dashboard.views.index_full'),
     url(r'^config/$', 'dashboard.views.config'),
     url(r'^news/$', 'dashboard.views.news_list'),
-    url(r'^news/configure/$', 'django.views.generic.simple.redirect_to', {'url': '/config/'}),
-    #url(r'^calendar/$', 'django.views.generic.simple.redirect_to', {'url': '/config/'}),
+    url(r'^news/configure/$', RedirectView.as_view(url='/config/', permanent=True)),
     url(r'^config/news/set$', 'dashboard.views.create_news_url'),
     url(r'^config/news/del$', 'dashboard.views.disable_news_url'),
     url(r'^config/calendar/set$', 'dashboard.views.create_calendar_url'),
@@ -56,7 +54,8 @@ urlpatterns += patterns('',
     url(r'^data/offering$', 'coredata.views.offering_by_id'),
     url(r'^data/students$', 'coredata.views.student_search'),
     #url(r'^data/sims_people', 'coredata.views.sims_person_search'),
-    url(r'^courses/(?P<tail>.*)$', 'django.views.generic.simple.redirect_to', {'url': '/browse/%(tail)s'}),
+    url(r'^courses/(?P<tail>.*)$', RedirectView.as_view(url='/browse/%(tail)s', permanent=True)),
+
     url(r'^browse/$', 'coredata.views.browse_courses'),
     url(r'^browse/info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),
     url(r'^data/scholarships/(?P<student_id>\d{9})$', 'ra.views.search_scholarships_by_student'),
@@ -74,7 +73,7 @@ urlpatterns += patterns('',
 
     # course groups
 
-    url(r'^' + COURSE_SLUG + '/groups$', 'django.views.generic.simple.redirect_to', {'url': '/%(course_slug)s/groups/'}),
+    url(r'^' + COURSE_SLUG + '/groups$', RedirectView.as_view(url='/%(course_slug)s/groups/', permanent=True)),
     url(r'^' + COURSE_SLUG + '/groups/$', 'groups.views.groupmanage'),
     url(r'^' + COURSE_SLUG + '/groups/new$', 'groups.views.create'),
     url(r'^' + COURSE_SLUG + '/groups/assignStudent$', 'groups.views.assign_student'),
@@ -277,7 +276,7 @@ urlpatterns += patterns('',
     url(r'^sysadmin/members/$', 'coredata.views.members_list'),
     url(r'^sysadmin/members/new$', 'coredata.views.edit_member'),
     url(r'^sysadmin/members/(?P<member_id>\d+)/edit$', 'coredata.views.edit_member'),
-    url(r'^users/' + USERID_SLUG + '/$', 'django.views.generic.simple.redirect_to', {'url': '/sysadmin/users/%(userid)s/'}),  # accept the URL provided as get_absolute_url for user objects
+    url(r'^users/' + USERID_SLUG + '/$', RedirectView.as_view(url='/sysadmin/users/%(userid)s/', permanent=True)),  # accept the URL provided as get_absolute_url for user objects
     url(r'^sysadmin/semesters/$', 'coredata.views.semester_list'),
     url(r'^sysadmin/semesters/new$', 'coredata.views.edit_semester'),
     url(r'^sysadmin/semesters/edit/(?P<semester_name>\d{4})$', 'coredata.views.edit_semester'),

@@ -14,7 +14,7 @@
 {% block title %}Edit Submission Component for {{activity.name}}{% endblock %}
 {% block h1 %}Edit Submission Component for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li><li>&gt; Edit</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; <a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li><li>&gt; Edit</li>{% endblock %}
 
 
 {% block content %}

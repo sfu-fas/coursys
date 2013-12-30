@@ -1,12 +1,11 @@
 {% extends "base.html" %}
-{% load markup %}
 
 {% block title %}Change Advisor Notes API Token{% endblock %}
 {% block h1 %}Change Advisor Notes API Token{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url dashboard.views.config %}">User Configuration</a>
+    &gt; <a href="{% url "dashboard.views.config" %}">User Configuration</a>
 </li>
 <li>
     &gt; Advisor Notes API
@@ -29,7 +28,7 @@
     </li>
 </ul>
 
-<form action="{% url dashboard.views.change_advisor_token %}" method="post">
+<form action="{% url "dashboard.views.change_advisor_token" %}" method="post">
     {% csrf_token %}
     {% for field in form.visible_fields %}
     <div class="field">

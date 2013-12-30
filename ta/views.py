@@ -239,7 +239,7 @@ def new_application(request, post_slug):
 def edit_application(request, post_slug, userid):
     return _new_application(request, post_slug, manual=False, userid=userid)
 
-@transaction.commit_on_success
+@transaction.atomic
 def _new_application(request, post_slug, manual=False, userid=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     editing = bool(userid)
@@ -484,7 +484,7 @@ def get_info(request, post_slug):
         data = more_personal_info(emplid=p.emplid, needed=['phones'])
     except SIMSProblem as e:
         data = {'error': e.message}
-    return HttpResponse(json.dumps(data), mimetype='application/json')
+    return HttpResponse(json.dumps(data), content_type='application/json')
 
 @requires_role("TAAD")
 def update_application(request, post_slug, userid):
@@ -631,7 +631,7 @@ def assign_tas(request, post_slug):
     return render(request, 'ta/assign_tas.html', context) 
 
 @requires_role("TAAD")
-@transaction.commit_on_success
+@transaction.atomic
 def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -691,7 +691,7 @@ def assign_bus(request, post_slug, course_slug):
                     ta_course.contract.status = 'NEW'
                     ta_course.contract.save()
 
-        return HttpResponse(json.dumps(response_data), mimetype='application/json')
+        return HttpResponse(json.dumps(response_data), content_type='application/json')
 
     applicants = []
     assigned_ta = []
@@ -894,7 +894,7 @@ def all_contracts(request, post_slug):
 @requires_role("TAAD")
 def contracts_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s.csv"' % (posting.slug)
     writer = csv.writer(response)
     writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 'Benefits Indicator', 'EmplID', 'SIN',
@@ -1420,7 +1420,7 @@ def generate_csv(request, post_slug):
     
     # generate CSV
     filename = str(posting.slug) + '.csv'
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
     csvWriter = csv.writer(response)
     
@@ -1489,7 +1489,7 @@ def generate_csv_by_course(request, post_slug):
     
     # generate CSV
     filename = str(posting.slug) + '_by_course.csv'
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s"'% filename
     csvWriter = csv.writer(response)
     
@@ -1590,7 +1590,7 @@ def contact_tas(request, post_slug):
         people = _contact_people(posting, statuses)
         emails = [p.full_email() for p in people]
         
-        resp = HttpResponse(mimetype="application/json")
+        resp = HttpResponse(content_type="application/json")
         data = {'contacts': ", ".join(emails)}
         json.dump(data, resp, indent=1)
         return resp

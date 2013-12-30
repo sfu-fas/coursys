@@ -14,7 +14,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
-import datetime, random, sha, itertools
+import datetime, random, hashlib, itertools
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -287,7 +287,7 @@ class Form(models.Model, _FormCoherenceMixin):
         self.active = False
         self.save()
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
@@ -348,7 +348,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
         unique_together = (("form", "slug"),)
         ordering = ('order',)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def safe_save(self):
         """
         Save a copy of this sheet, and return the copy: does not modify self.
@@ -366,7 +366,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
             field2.save()
         return sheet2       
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # if this sheet is just being created it needs a order number
         if(self.order == None):
@@ -420,7 +420,7 @@ class Field(models.Model, _FormCoherenceMixin):
     class Meta:
         unique_together = (("sheet", "slug"),)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # if this field is just being created it needs a order number
         if(self.order == None):
@@ -532,7 +532,7 @@ class SheetSubmission(models.Model):
         # 'reject_reason': reason given for rejecting the sheet
         # 'return_reason': reason given for returning the sheet to the filler
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         self.completed_at = datetime.datetime.now()
         super(SheetSubmission, self).save(*args, **kwargs)
@@ -729,7 +729,7 @@ class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     key = models.CharField(max_length=128, null=False, editable=False, unique=True)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         if not(self.key):
             self.key = self.autokey()
@@ -740,7 +740,7 @@ class SheetSubmissionSecretUrl(models.Model):
         attempt = str(random.randint(1000,900000000))
         while not(generated):
             old_attempt = attempt
-            attempt = sha.new(attempt).hexdigest()
+            attempt = hashlib.sha1(attempt).hexdigest()
             if len(SheetSubmissionSecretUrl.objects.filter(key=attempt)) == 0:
                 generated = True
             elif old_attempt == attempt:

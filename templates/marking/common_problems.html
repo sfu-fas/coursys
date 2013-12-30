@@ -87,6 +87,6 @@
    <input class="submit" type="submit" value="Submit" />
    </div>
 </form>  
-<div><a class="redbutton reset_button" href="{% url marking.views.manage_common_problems course_slug=course.slug, activity_slug=activity.slug %}">Reset</a></div>
+<div><a class="redbutton reset_button" href="{% url "marking.views.manage_common_problems" course_slug=course.slug activity_slug=activity.slug %}">Reset</a></div>
 
 {% endblock %}

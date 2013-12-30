@@ -5,9 +5,9 @@
 {% block h1 %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li>&gt; <a href="{% url ta.views.assign_tas post_slug=posting.slug %}">Assign TAs</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.assign_tas" post_slug=posting.slug %}">Assign TAs</a></li>
 <li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }}</li> 
 {% endblock %}
 
@@ -105,7 +105,7 @@
 
     var labtas = $("#labtas").attr('checked') == 'checked';
   	
-  	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
+  	$.post("{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=offering.slug %}",
   			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': extra_bu, 'labtas': labtas},
 				function(data, success){
 
@@ -202,7 +202,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
 </p>
 </div>
 
-<form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug%}" method="post">{% csrf_token %}
+<form action="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=offering.slug%}" method="post">{% csrf_token %}
 <div><input id="submit_button1" class="submit submit_button" style='margin-right:18px' type="submit" value="Submit"/></div>
 <div class="form_container">
 {{ formset.management_form }}
@@ -223,7 +223,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
 <tbody>
 {% for a in applications %}
       <tr class='application_row'>
-        <td scope="row"><a href="{% url ta.views.view_application post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
+        <td scope="row"><a href="{% url "ta.views.view_application" post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
         <td>
             {% for form in formset %}
                 {% ifequal forloop.counter forloop.parentloop.counter %}

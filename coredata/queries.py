@@ -226,7 +226,7 @@ def add_person(emplid, commit=True, get_userid=True):
     """
     Add a Person object based on the found SIMS data
     """
-    with transaction.commit_on_success():
+    with transaction.atomic():
         ps = Person.objects.filter(emplid=emplid)
         if ps:
             # person already there: ignore

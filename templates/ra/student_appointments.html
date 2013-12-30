@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
 <li>&gt; {{ student.name }}</li>
 {% endblock %}
 
@@ -29,7 +29,7 @@
   <div id="actions">
     <h2>Actions</h2>
     <ul>
-      <li><a href="{% url ra.views.new_student userid=student.emplid %}">New RA appointment</a></li>
+      <li><a href="{% url "ra.views.new_student" userid=student.emplid %}">New RA appointment</a></li>
     </ul>
   </div>
 {% endblock %}
@@ -63,7 +63,7 @@
           <th class="ui-state-default">Financial Summary</th>
           <td>
           	{% for gs in grads %}
-            <a href="{% url grad.views.financials grad_slug=gs.slug %}">{{ gs.program.label }}</a>
+            <a href="{% url "grad.views.financials" grad_slug=gs.slug %}">{{ gs.program.label }}</a>
             {% endfor %}
           </td>
         </tr>        
@@ -97,12 +97,12 @@
           <td>{{ appointment.get_pay_frequency_display }}</td>
           <td>{{ appointment.hiring_faculty.last_name}}, 
               {{ appointment.hiring_faculty.first_name }}</td>
-          <td><a href="{% url ra.views.view ra_slug=appointment.slug %}">View </a> |
-              <a href="{% url ra.views.edit ra_slug=appointment.slug %}">Edit</a> |
-              <a href="{% url ra.views.edit_letter ra_slug=appointment.slug %}">Edit Letter</a> |
-              <a href="{% url ra.views.form ra_slug=appointment.slug %}">Form</a> |
-              <a href="{% url ra.views.letter ra_slug=appointment.slug %}">Letter</a> |
-              <a href="{% url ra.views.reappoint ra_slug=appointment.slug %}">Reappoint</a></td>
+          <td><a href="{% url "ra.views.view" ra_slug=appointment.slug %}">View </a> |
+              <a href="{% url "ra.views.edit" ra_slug=appointment.slug %}">Edit</a> |
+              <a href="{% url "ra.views.edit_letter" ra_slug=appointment.slug %}">Edit Letter</a> |
+              <a href="{% url "ra.views.form" ra_slug=appointment.slug %}">Form</a> |
+              <a href="{% url "ra.views.letter" ra_slug=appointment.slug %}">Letter</a> |
+              <a href="{% url "ra.views.reappoint" ra_slug=appointment.slug %}">Reappoint</a></td>
         </tr>
         {% endfor %}
         </tbody>

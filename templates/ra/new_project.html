@@ -5,13 +5,13 @@
 {% block h1 %}New Project{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
-<li>&gt; <a href="{% url ra.views.projects_index %}">Projects</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
+<li>&gt; <a href="{% url "ra.views.projects_index" %}">Projects</a></li>
 <li>&gt; New</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">
-  <form action="{% url ra.views.new_project %}" method="post">{% csrf_token %}
+  <form action="{% url "ra.views.new_project" %}" method="post">{% csrf_token %}
     <fieldset >
       <legend>Project Information</legend>
       {{ projectform|as_dl }}

@@ -18,7 +18,7 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; <a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
 <li>&gt; {{alert_type.code}}</li>
 {% endblock %}
 
@@ -27,15 +27,15 @@ $(function() {
     <h2>Actions</h2>
     <ul>
         {% if not unresolved %}
-        <li><a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">View Unresolved Alerts</a></li>
+        <li><a href="{% url "alerts.views.view_alerts" alert_type=alert_type.slug %}">View Unresolved Alerts</a></li>
         {% endif  %}
         {% if not resolved %}
-        <li><a href="{% url alerts.views.view_resolved_alerts alert_type=alert_type.slug %}">View Resolved Alerts</a></li>
+        <li><a href="{% url "alerts.views.view_resolved_alerts" alert_type=alert_type.slug %}">View Resolved Alerts</a></li>
         {% endif %}
         {% if not all %}
-        <li><a href="{% url alerts.views.view_all_alerts alert_type=alert_type.slug %}">View All Alerts</a></li>
+        <li><a href="{% url "alerts.views.view_all_alerts" alert_type=alert_type.slug %}">View All Alerts</a></li>
         {% endif %}
-        <li><a href="{% url alerts.views.view_automation alert_type=alert_type.slug %}">Automation Settings</a></li>
+        <li><a href="{% url "alerts.views.view_automation" alert_type=alert_type.slug %}">Automation Settings</a></li>
         
     </ul>
 </div>
@@ -71,11 +71,11 @@ $(function() {
         {% for alert in alerts %}
         <tr>
             <td>
-                <a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>{{alert.person}}</a> 
+                <a href='{% url "advisornotes.views.student_notes" userid=alert.person.userid %}'>{{alert.person}}</a> 
             </td>
             <td>{{alert.n_emails}}</td>
             <td>{{alert.n_comments}}</td>
-            <td><a href='{% url alerts.views.view_alert alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
+            <td><a href='{% url "alerts.views.view_alert" alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
             <!--<td>{{ alert.description }}</td>-->
             {% for key, value in alert.details.items %}
                 <td>{{value}}</td>

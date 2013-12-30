@@ -42,14 +42,14 @@ def filetype(fh):
         try:
             zipf = zipfile.ZipFile(fh, "r")
             try:
-                mimetype = zipf.read("mimetype")
-                if mimetype == "application/vnd.oasis.opendocument.text":
+                content_type = zipf.read("mimetype")
+                if content_type == "application/vnd.oasis.opendocument.text":
                     return "OD-TEXT"
-                elif mimetype == "application/vnd.oasis.opendocument.presentation":
+                elif content_type == "application/vnd.oasis.opendocument.presentation":
                     return "OD-PRES"
-                elif mimetype == "application/vnd.oasis.opendocument.spreadsheet":
+                elif content_type == "application/vnd.oasis.opendocument.spreadsheet":
                     return "OD-SS"
-                elif mimetype == "application/vnd.oasis.opendocument.graphics":
+                elif content_type == "application/vnd.oasis.opendocument.graphics":
                     return "OD-GRA"
             except KeyError:
                 pass

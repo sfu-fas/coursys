@@ -4,7 +4,7 @@
 {% block title %}Edit BU Defaults for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 {% block h1 %}Edit BU Defaults for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>&gt; Default BUs</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>&gt; Default BUs</li>{% endblock %}
 
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
@@ -12,7 +12,7 @@
 <script type="text/javascript">
   function get_fieldset() {
   	var level = $('#id_level :selected').val();
-  	var url = '{% url ta.views.bu_formset post_slug=posting.slug %}?level=' + level;
+  	var url "=" '{% url "ta.views.bu_formset" post_slug=posting.slug %}?level=' + level;
       $.ajax({
       	'url': url,
       	'success': function(data) {

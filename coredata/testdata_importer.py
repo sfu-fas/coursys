@@ -2,17 +2,22 @@
 # suggestion execution:
 #   rm db.sqlite; echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/testdata_importer.py
 
+import sys, os
+sys.path.append(".")
+#sys.path.append("courses")
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
+
 import random, socket, datetime, itertools
 from django.core import serializers
 from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff, update_amaint_userids, fix_emplid
 from demodata_importer import fake_emplid, fake_emplids, create_classes
-from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES
+from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES, ComputingAccount
 from dashboard.models import UserConfig
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
 from submission.models.base import SubmissionComponent
 from submission.models.code import CodeComponent
 from submission.models.pdf import PDFComponent
-from planning.models import SemesterPlan, PlannedOffering, PlanningCourse, TeachingEquivalent, TeachingCapability, TeachingIntention
+#from planning.models import SemesterPlan, PlannedOffering, PlanningCourse, TeachingEquivalent, TeachingCapability, TeachingIntention
 from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
 from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType, \
@@ -25,8 +30,8 @@ from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field, F
 from courselib.testing import TEST_COURSE_SLUG
 
 FULL_TEST_DATA = TEST_COURSE_SLUG
-NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151] # at least two years in past and one in future
-TEST_SEMESTER = 1137
+NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157] # at least two years in past and one in future
+TEST_SEMESTER = 1141
 
 def get_combined():
     combined_sections = [
@@ -378,15 +383,15 @@ def create_more_data():
     p.save()
     r = Role(person=p, role="TADM", unit=Unit.objects.get(slug='cmpt'))
     r.save()
-    sp = SemesterPlan(semester=Semester.objects.get(name=TEST_SEMESTER), name='Test Plan', unit=Unit.objects.get(slug='cmpt'), slug='test-plan')
-    sp.save()
+    #sp = SemesterPlan(semester=Semester.objects.get(name=TEST_SEMESTER), name='Test Plan', unit=Unit.objects.get(slug='cmpt'), slug='test-plan')
+    #sp.save()
     #o = PlannedOffering(plan=sp, course=Course.objects.get(slug='cmpt-102'), section='D100', campus='BRNBY', enrl_cap=100)
     #o.save()
-    PlanningCourse.create_for_unit(Unit.objects.get(slug='cmpt'))
-    te = TeachingEquivalent(pk=1, instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), credits_numerator=1, credits_denominator=1, summary="Foo", status='UNCO')
-    te.save()
-    ti = TeachingIntention(instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), count=2)
-    ti.save()
+    #PlanningCourse.create_for_unit(Unit.objects.get(slug='cmpt'))
+    #te = TeachingEquivalent(pk=1, instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), credits_numerator=1, credits_denominator=1, summary="Foo", status='UNCO')
+    #te.save()
+    #ti = TeachingIntention(instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name=TEST_SEMESTER), count=2)
+    #ti.save()
     #tc = TeachingCapability(instructor=Person.objects.get(userid='ggbaker'), course=Course.objects.get(slug='cmpt-102'), note='foo')
     #tc.save()
 
@@ -472,12 +477,12 @@ def serialize(filename):
             LetterTemplate.objects.all(),
             Account.objects.all(),
             UserConfig.objects.all(),
-            SemesterPlan.objects.all(),
-            PlannedOffering.objects.all(),
-            PlanningCourse.objects.all(),
-            TeachingEquivalent.objects.all(),
-            TeachingIntention.objects.all(),
-            TeachingCapability.objects.all(),
+            #SemesterPlan.objects.all(),
+            #PlannedOffering.objects.all(),
+            #PlanningCourse.objects.all(),
+            #TeachingEquivalent.objects.all(),
+            #TeachingIntention.objects.all(),
+            #TeachingCapability.objects.all(),
             FormGroup.objects.all(),
             FormGroupMember.objects.all(),
             Form.objects.all(),
@@ -554,6 +559,9 @@ def main():
         create_fake_semester(strm)
     create_units()
 
+    print "getting emplid/userid mapping"
+    update_amaint_userids()
+
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around
     offerings = import_offerings(import_semesters=import_semesters, extra_where=
@@ -571,6 +579,7 @@ def main():
 
     # should now have all the "real" people: fake their emplids
     fake_emplids()
+    ComputingAccount.objects.all().delete()
 
     # make sure these people are here, since we need them
     if not Person.objects.filter(userid='ggbaker'):

@@ -91,7 +91,7 @@ def sims_search(request):
     if not data:
         data = {'error': 'could not find person in SIMS database'}
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     json.dump(data, response)
     return response
 
@@ -136,7 +136,7 @@ def _email_student_note(note):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_note(request, userid):
     try:
         student = Person.objects.get(find_userid_or_emplid(userid))
@@ -180,7 +180,7 @@ def new_note(request, userid):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
     related = course = offering = artifact = None
@@ -235,7 +235,7 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None, artifact_slug=None):
     note = get_object_or_404(ArtifactNote, id=note_id, unit__in=request.units)
     related = course = offering = artifact = None
@@ -329,7 +329,7 @@ def student_notes(request, userid):
 def download_file(request, userid, note_id):
     note = AdvisorNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
-    resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
+    resp = HttpResponse(note.file_attachment, content_type=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'
     return resp
 
@@ -338,7 +338,7 @@ def download_file(request, userid, note_id):
 def download_artifact_file(request, note_id):
     note = ArtifactNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
-    resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
+    resp = HttpResponse(note.file_attachment, content_type=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + note.attachment_filename() + '"'
     return resp
 
@@ -354,7 +354,7 @@ def student_more_info(request, userid):
     except SIMSProblem as e:
         data = {'error': e.message}
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     json.dump(data, response)
     return response
 
@@ -383,14 +383,14 @@ def student_courses_data(request, userid):
         data = {'error': e.message}
 
     #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
-    response = HttpResponse(mimetype='application/json;charset=utf-8')
+    response = HttpResponse(content_type='application/json;charset=utf-8')
     json.dump(data, response, encoding='utf-8', indent=1)
     return response
 
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_nonstudent(request):
     """
     View to create a new non-student
@@ -409,7 +409,7 @@ def new_nonstudent(request):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def new_artifact(request):
     """
     View to create a new artifact
@@ -435,7 +435,7 @@ def new_artifact(request):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def edit_artifact(request, artifact_slug):
     """
     View to edit a new artifact
@@ -565,7 +565,7 @@ def course_more_info(request, unit_course_slug):
     except SIMSProblem as e:
         data = {'error': e.message}
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     json.dump(data, response)
     return response
 
@@ -625,7 +625,7 @@ def view_offering_notes(request, course_slug):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def hide_note(request):
     """
     View to hide a note
@@ -640,7 +640,7 @@ def hide_note(request):
 
 
 @requires_role('ADVS')
-@transaction.commit_on_success
+@transaction.atomic
 def merge_nonstudent(request, nonstudent_slug):
     """
     Merge a nonstudent with an existing student
@@ -692,7 +692,7 @@ def rest_notes(request):
         return HttpResponse(content='Contents must be JSON (application/json)', status=415)
 
     try:
-        rest.new_advisor_notes(request.raw_post_data)
+        rest.new_advisor_notes(request.body)
     except UnicodeDecodeError:
         transaction.rollback()
         return HttpResponse(content='Bad UTF-8 encoded text', status=400)

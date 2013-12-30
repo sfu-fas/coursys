@@ -1,6 +1,6 @@
 {% if index %}
     <p class="manage_link">
-        <a href="{% url grad.views.manage_financialcomments grad_slug=grad.slug  %}">Manage Financial Comments</a>
+        <a href="{% url "grad.views.manage_financialcomments" grad_slug=grad.slug  %}">Manage Financial Comments</a>
     </p>
 {% endif %}
 
@@ -44,7 +44,7 @@
 
 				{% if not index %}
                 <td class='miniaction'>
-                    <form action="{% url grad.views.remove_financialcomment grad_slug=grad.slug f_id=f.id %}" method="post">
+                    <form action="{% url "grad.views.remove_financialcomment" grad_slug=grad.slug f_id=f.id %}" method="post">
                         {% csrf_token %}
                             <p class="actionbutton">
                                 <input type="submit" value="remove" onclick="return confirmSubmit('remove this financial comment')" />

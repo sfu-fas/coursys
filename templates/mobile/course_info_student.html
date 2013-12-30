@@ -5,7 +5,7 @@
 {% block h1 %}{{course.subject}} {{course.number}} {{course.section}}{% endblock %}
 {% block content%}
 
-<a class="back" href="{% url mobile.views.index %}">back</a>
+<a class="back" href="{% url "mobile.views.index" %}">back</a>
 
 <div>
     <table class="info">
@@ -36,7 +36,7 @@
     <h2>Course Activities</h2>
     {% for activity_info in activities_info %}
         {% with activity_info.activity as activity %}
-            <a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
+            <a href="{% url "mobile.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
             <ul>
                 <li>
                     Status: {{ activity.get_status_display }}
@@ -59,6 +59,6 @@
         {% endwith %}
     {% endfor %}
 </div>
-<a class="back" href="{% url mobile.views.index %}">back</a>
+<a class="back" href="{% url "mobile.views.index" %}">back</a>
 {% endblock %}
 

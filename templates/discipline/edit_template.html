@@ -13,13 +13,13 @@ function confirmSubmit() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; <a href="{% url discipline.views.show_templates %}">Dishonesty Templates</a></li><li>&gt; Edit "{{template.label}}"</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; <a href="{% url "discipline.views.show_templates" %}">Dishonesty Templates</a></li><li>&gt; Edit "{{template.label}}"</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url discipline.views.edit_template template_id=template.id %}" method="post">{% csrf_token %}
+    <form action="{% url "discipline.views.edit_template" template_id=template.id %}" method="post">{% csrf_token %}
     <fieldset>
     <legend>Template Details</legend>
     {{ form|as_dl_safe }}
@@ -27,7 +27,7 @@ function confirmSubmit() {
     </fieldset>
     </form>
 
-    <form action="{% url discipline.views.delete_template template_id=template.id %}" method="post" name="deleteform">{% csrf_token %}
+    <form action="{% url "discipline.views.delete_template" template_id=template.id %}" method="post" name="deleteform">{% csrf_token %}
     <p><input type="submit" class="submit" value="Delete Template" id="deletesubmit" onclick="return confirmSubmit();" /></p>
     </form>
 </div>

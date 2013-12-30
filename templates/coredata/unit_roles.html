@@ -2,7 +2,7 @@
 {% block title %}CourSys Roles{% endblock %}
 {% block h1 %}CourSys Roles{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.unit_admin %}">Admin</a></li><li>&gt; Roles</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.unit_admin" %}">Admin</a></li><li>&gt; Roles</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -27,7 +27,7 @@ function confirmDelete(url) {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url coredata.views.new_unit_role %}">Add new role</a></li>
+    <li><a href="{% url "coredata.views.new_unit_role" %}">Add new role</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -41,7 +41,7 @@ function confirmDelete(url) {
   <tr><td scope="row">{{role.person}}</td>
   <td>{{role.person.userid}}</td>    
   <td>{{role.get_role_display}}</td><td>{{role.unit.name}}</td>
-  <td><a href="javascript:confirmDelete('{% url coredata.views.delete_unit_role role_id=role.pk %}');">delete</a></td></tr>
+  <td><a href="javascript:confirmDelete('{% url "coredata.views.delete_unit_role" role_id=role.pk %}');">delete</a></td></tr>
   {% endfor %}
   </tbody>
 </table>

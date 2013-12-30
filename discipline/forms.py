@@ -28,6 +28,7 @@ class DisciplineGroupForm(forms.ModelForm):
     
     class Meta:
         model = DisciplineGroup
+        exclude = []
         widgets = {
             'offering': forms.HiddenInput(),
         }
@@ -62,6 +63,7 @@ class DisciplineInstrNonStudentCaseForm(forms.ModelForm):
 class TemplateForm(forms.ModelForm):
     class Meta:
         model = DisciplineTemplate
+        exclude = []
         widgets = {
             'text': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'20'}),
         }

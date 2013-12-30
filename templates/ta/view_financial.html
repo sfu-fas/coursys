@@ -5,8 +5,8 @@
 {% block h1 %}Financial Summary for TA Appointments{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a>
 <li>&gt; Financial</li>
 {% endblock %}
 
@@ -82,7 +82,7 @@
 <tbody>
 {% for o in offerings %}
 <tr>
-  <td scope="row" title="{{o.title}}"><a href="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=o.slug %}">{{o.name}}</a></td>
+  <td scope="row" title="{{o.title}}"><a href="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=o.slug %}">{{o.name}}</a></td>
   <td class="num">{{o.get_campus_display}}</td>
   <td class="num">{{ o|display_ta_count:posting }}</td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
@@ -92,7 +92,7 @@
 </tbody>
 </table>
 <p class="helptext">
-These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url ta.views.edit_posting post_slug=posting.slug %}">original posting</a>: 
+These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url "ta.views.edit_posting" post_slug=posting.slug %}">original posting</a>: 
 {% for o in excluded %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
 </p>
 </div>

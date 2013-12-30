@@ -5,8 +5,8 @@
 {% block h1 %}Contact TAs for {{posting}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>&gt; Contact TAs</li>
 {% endblock %}
 

@@ -9,11 +9,11 @@ def get_form(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     
     if 'type' in request.GET and request.GET['type'] == 'cardreq':
-        response = HttpResponse(mimetype='application/pdf')
+        response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'inline; filename="card_access.pdf"'
         card_req_forms([grad], response)
     elif 'type' in request.GET and request.GET['type'] == 'fasnet':
-        response = HttpResponse(mimetype='application/pdf')
+        response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'inline; filename="fasnet_access.pdf"'
         fasnet_forms([grad], response)
     else:

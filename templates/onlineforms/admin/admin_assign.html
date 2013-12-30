@@ -5,8 +5,8 @@
 {% block h1 %} Assign {{ form_submission.form.title }} {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-    <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+    <li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+    <li>&gt; <a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
     <li>&gt; Assign {{ form_submission.form.title }}</li>
 {% endblock %}
 
@@ -49,11 +49,11 @@
     <h2 class="heading">Actions</h2>
     <ul>
     {% if assign_to_sfu_account %}
-    <li><a href="{% url onlineforms.views.admin_assign_nonsfu form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+    <li><a href="{% url "onlineforms.views.admin_assign_nonsfu" form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
     Assign to non-SFU user
     </a></li>
     {% else %}
-    <li><a href="{% url onlineforms.views.admin_assign form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
+    <li><a href="{% url "onlineforms.views.admin_assign" form_slug=form_submission.form.slug formsubmit_slug=form_submission.slug %}">
     Assign to an SFU user
     </a></li>
     {% endif %}

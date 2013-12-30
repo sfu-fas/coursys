@@ -24,15 +24,15 @@ $(document).ready(function() {
 {% block title %}{{ course.name }} Dishonesty Cases{% endblock %}
 {% block h1 %}{{ course.name }} Dishonesty Cases{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Dishonesty Cases</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Dishonesty Cases</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	<li><a href="{% url discipline.views.newgroup course_slug=course.slug %}">Create Case Cluster</a></li>
-	<li><a href="{% url discipline.views.new course_slug=course.slug %}">Create Individual Case</a></li>
-	<li><a href="{% url discipline.views.new_nonstudent course_slug=course.slug %}">Create Non-Student Case</a></li>
+	<li><a href="{% url "discipline.views.newgroup" course_slug=course.slug %}">Create Case Cluster</a></li>
+	<li><a href="{% url "discipline.views.new" course_slug=course.slug %}">Create Individual Case</a></li>
+	<li><a href="{% url "discipline.views.new_nonstudent" course_slug=course.slug %}">Create Non-Student Case</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -41,7 +41,7 @@ $(document).ready(function() {
 <h2 id="groups">Case Clusters</h2>
 <ul>
 {% for g in groups %}
-<li><a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=g.slug %}">{{g.name}}</a></li>
+<li><a href="{% url "discipline.views.showgroup" course_slug=course.slug group_slug=g.slug %}">{{g.name}}</a></li>
 {% empty %}
 <li class="empty">None</li>
 {% endfor %}
@@ -55,7 +55,7 @@ $(document).ready(function() {
   {% for c in cases %}
   <tr>
   <td>{% if not c.done %}{% with c.next_step_short as ss%}<span style="display:none;">{{ss.0}}</span>{{ss.1}}{% endwith %}{% endif %}</td>
-  <td><a href="{% url discipline.views.show course_slug=course.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{{c.group.name}}</td>
+  <td><a href="{% url "discipline.views.show" course_slug=course.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{{c.group.name}}</td>
   {% endfor %}
   </tbody>
 </table>

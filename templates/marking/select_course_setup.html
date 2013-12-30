@@ -3,11 +3,11 @@
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; Copy Setup</li>{% endblock %}
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>&gt; Copy Setup</li>{% endblock %}
 
 {% block content %}
 
-<form action="{%url marking.views.copy_course_setup course_slug=course.slug%}" method="post">{% csrf_token %}
+<form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}" method="post">{% csrf_token %}
     <h2> Please select the course to duplicate:</h2>
     <div>Source Course: {{select_form.course}} <input type="submit" value="Continue" ></div> 
     {% if select_form.course.errors %}

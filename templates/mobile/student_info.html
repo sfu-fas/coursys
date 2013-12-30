@@ -11,12 +11,12 @@ Student: {{ student.person.first_name}}&nbsp;{{ student.person.last_name}}
 
 {% block content%}
 
-<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url "mobile.views.course_info" course_slug=course.slug %}">back</a>
 
 <div class="datatable_container">
     {% for activity_info in activities_info %}
         {% with activity_info.activity as activity %}
-    <h2><a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a></h2>
+    <h2><a href="{% url "mobile.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a></h2>
     <table class="info">
         <tbody>
             {%if activity.submitable%}
@@ -34,6 +34,6 @@ Student: {{ student.person.first_name}}&nbsp;{{ student.person.last_name}}
     {% endfor %}
 </div>
 
-<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url "mobile.views.course_info" course_slug=course.slug %}">back</a>
 
 {% endblock %}

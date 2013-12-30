@@ -5,11 +5,11 @@
 {% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person.name }}{% else %}New Contract for {{application.person}}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li>&gt; <a href="{% url ta.views.all_contracts post_slug=posting.slug %}">Contracts</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.all_contracts" post_slug=posting.slug %}">Contracts</a></li>
 {% if editing %}
-<li>&gt; <a href="{% url ta.views.view_contract post_slug=posting.slug userid=contract.application.person.userid %}">{{ contract.application.person.name }}</a></li>
+<li>&gt; <a href="{% url "ta.views.view_contract" post_slug=posting.slug userid=contract.application.person.userid %}">{{ contract.application.person.name }}</a></li>
 <li>&gt; Edit</li>
 {% else %}
 <li>&gt; New</li>
@@ -95,7 +95,7 @@
 	
 	//ajax to get default rates
 	function set_rates(cat){
-		$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid %}",
+		$.post("{% url "ta.views.edit_contract" post_slug=posting.slug userid=userid %}",
 			{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
 			function(data){
 				vals = data.split(',')
@@ -138,7 +138,7 @@
 			var bu_inp = '#' + this.id.replace('-course','-bu')
 			var desc_sel = '#' + this.id.replace('-course','-description')
 			if(cid != ''){//nonempty selection
-				$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid%}",
+				$.post("{% url "ta.views.edit_contract" post_slug=posting.slug userid=userid%}",
                     {'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
                     function(data){
                         var val = parseFloat(data)

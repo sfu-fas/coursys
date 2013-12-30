@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load markup %}
 {% load mobile_tags %}
 
 {% block h1 %}Time Use Guidelines for {{semester}}{% endblock %}
@@ -30,10 +29,10 @@
 <h2 class="heading">Actions</h2>
 <ul>
 {% if semester.previous_semester %}
-<li><a href="{% url ta.views.all_tugs_admin semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+<li><a href="{% url "ta.views.all_tugs_admin" semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
 {% endif %}
 {% if semester.next_semester %}
-<li><a href="{% url ta.views.all_tugs_admin semester_name=semester.next_semester.name %}">Next Semester</a></li>
+<li><a href="{% url "ta.views.all_tugs_admin" semester_name=semester.next_semester.name %}">Next Semester</a></li>
 {% endif %}
 </ul>
 </div>
@@ -63,9 +62,9 @@
   	{% if data.tug %}
   	<span class="sort">{{ data.tug.last_update.isoformat }}</span>
         {% if data.tug.expired %}
-  	        <a class='warning' href="{% url ta.views.view_tug course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Invalidated by BU Change</a>
+  	        <a class='warning' href="{% url "ta.views.view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Invalidated by BU Change</a>
         {% else %}
-  	        <a href="{% url ta.views.view_tug course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
+  	        <a href="{% url "ta.views.view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
         {% endif %}
   	{% else %}
   	{% endif %}

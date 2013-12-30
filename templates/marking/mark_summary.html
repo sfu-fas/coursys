@@ -96,7 +96,7 @@
     <tr>
     <td colspan="1" class="subrow"></td>
     <td colspan="1" class="subhead">Attachment</td>
-    <td colspan="2"><a href="{% url marking.views.download_marking_attachment course_slug=course.slug, activity_slug=activity.slug, mark_id=activity_mark.id %}">{{activity_mark.attachment_filename}} <img src="{{MEDIA_URL}}icons/download.png" title="Download" alt="Download" /></a></td>
+    <td colspan="2"><a href="{% url "marking.views.download_marking_attachment" course_slug=course.slug activity_slug=activity.slug mark_id=activity_mark.id %}">{{activity_mark.attachment_filename}} <img src="{{MEDIA_URL}}icons/download.png" title="Download" alt="Download" /></a></td>
     </tr>
   {% endif %}
   <tr id="totalrow">
@@ -113,16 +113,16 @@
 {% if is_staff %}
 
 {% if student %}
-<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a>
+<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a>
 {% else %}
-<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a>
+<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a>
 {% endif %}
 
 {% if view_history %}
     {% if student %}
-		<a class="button" href = "{% url marking.views.mark_history_student course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Marking History</a>
+		<a class="button" href = "{% url "marking.views.mark_history_student" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Marking History</a>
 	{% else %}
-		<a class="button" href = "{% url marking.views.mark_history_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Marking History</a>
+		<a class="button" href = "{% url "marking.views.mark_history_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Marking History</a>
 	{% endif %}
 {% endif %}	
 

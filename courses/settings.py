@@ -5,7 +5,7 @@ DEBUG = hostname != 'courses'
 TEMPLATE_DEBUG = DEBUG
 DEPLOYED = hostname == 'courses'
 
-PROJECT_DIR = os.path.normpath(os.path.dirname(__file__))
+PROJECT_DIR = os.path.normpath(os.path.dirname(os.path.dirname(__file__)))
 
 # add ./external directory to search path so we find modules there
 sys.path.append( PROJECT_DIR )
@@ -42,6 +42,7 @@ else:
 
 # Local time zone for this installation.
 TIME_ZONE = 'America/Vancouver'
+USE_TZ = False
 LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True
@@ -54,9 +55,8 @@ SECRET_KEY = 'w@h_buddoh5**%79%0x&7h0ro2tol+-7vz=p*kn_g+0qcw8krr'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -64,6 +64,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
@@ -74,7 +75,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'django_cas.backends.CASBackend',
 )
-TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
+TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
@@ -97,7 +98,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.markup',
+    #'django.contrib.markup',
     'django.contrib.messages',
     'south',
     'coredata',
@@ -133,6 +134,7 @@ if DEBUG:
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+X_FRAME_OPTIONS = 'DENY'
 
 if DEPLOYED:
     MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
@@ -167,8 +169,7 @@ if USE_CELERY:
         'djcelery',
         'djcelery_email',
         )
-    BROKER_URL = "ampq://coursys:supersecretpassword@localhost:5672//"
-    DJKOMBU_POLLING_INTERVAL = 10
+    BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
     CELERY_QUEUES = {
         "celery": {},
     }
@@ -216,10 +217,10 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
 
-EXTRA_MIDDLEWARE_CLASSES = ()
+#EXTRA_MIDDLEWARE_CLASSES = ()
 try:
     from local_settings import *
 except ImportError:
     pass
 
-MIDDLEWARE_CLASSES = EXTRA_MIDDLEWARE_CLASSES + MIDDLEWARE_CLASSES
+#MIDDLEWARE_CLASSES = EXTRA_MIDDLEWARE_CLASSES + MIDDLEWARE_CLASSES

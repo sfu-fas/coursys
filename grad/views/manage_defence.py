@@ -24,7 +24,7 @@ def manage_defence(request, grad_slug):
         form = GradDefenceForm(request.POST)
         form.set_supervisor_choices(supervisor_choices)
         if form.is_valid():
-            with transaction.commit_on_success():
+            with transaction.atomic():
                 grad.config['thesis_type'] = form.cleaned_data['thesis_type']
                 grad.config['work_title'] = form.cleaned_data['work_title']
                 grad.config['exam_date'] = form.cleaned_data['exam_date']

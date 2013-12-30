@@ -19,12 +19,12 @@
 
 {% block subbreadcrumbs %}
 {% if is_advisor %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
-<li>&gt; <a href="{% url advisornotes.views.student_notes userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.student_notes" userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
 <li>&gt; View {{ form.title }}</li>
 {% else %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
 <li>&gt; View {{ form.title }}</li>
 {% endif %}
 {% endblock %}
@@ -55,7 +55,7 @@ The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong
 <div class="form_container" id="assign" style="margin-top:5em;">
     <form action="" method="post" enctype="multipart/form-data">
     <fieldset><legend>Assign Next Sheet</legend>
-    <p style="margin-bottom: 1em;"><a href="{% url onlineforms.views.admin_assign form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Assign the next sheet of this form</a></p>
+    <p style="margin-bottom: 1em;"><a href="{% url "onlineforms.views.admin_assign" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Assign the next sheet of this form</a></p>
     </fieldset>
     </form>
 </div>
@@ -70,7 +70,7 @@ The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong
 <div class="form_container" id="give">
     <form action="" method="post" enctype="multipart/form-data">
     <fieldset><legend>Give to another group</legend>
-    <p style="margin-bottom: 1em;"><a href="{% url onlineforms.views.admin_change_owner form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Give this form submission to another group</a></p>
+    <p style="margin-bottom: 1em;"><a href="{% url "onlineforms.views.admin_change_owner" form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Give this form submission to another group</a></p>
     </fieldset>
     </form>
 </div>

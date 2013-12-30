@@ -170,7 +170,7 @@ class TAImport(object):
         json.dump(offeringid_map, fp, indent=1)
         fp.close()
     
-    @transaction.commit_on_success
+    @transaction.atomic
     def get_ta_postings(self):
         print "Getting TA semester postings..."
         self.setup_accounts()
@@ -248,7 +248,7 @@ class TAImport(object):
         tsec = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)/10**6
         return tsec
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def get_ta(self, off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond,
                tssu, remarks, app_bu, emplid, cat, sin, status, appid, campuspref):
         """

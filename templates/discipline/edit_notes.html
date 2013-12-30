@@ -13,7 +13,7 @@ $(document).ready(function() {
 
 {% block disc_content %}
 <div class="form_container">
-    <form action="{% url discipline.views.edit_case_info field='notes' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "discipline.views.edit_case_info" field='notes' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <p>{{ form.notes.label }}:</p>
     <div class="discside" id="templates_notes"></div>
     <div class="discside" id="group_notes"></div>

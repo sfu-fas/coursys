@@ -1,8 +1,8 @@
 import sys, os, datetime, time, copy
 import MySQLdb
 sys.path.append(".")
-sys.path.append("courses")
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+#sys.path.append("courses")
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
@@ -203,12 +203,12 @@ class TAConn(MySQLConn):
         return conn, conn.cursor()
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def create_semesters():
     pass
     # should be done in the admin interface: https://courses.cs.sfu.ca/sysadmin/semesters/
 
-@transaction.commit_on_success
+@transaction.atomic
 def fix_emplid():
     """
     Any manually-entered people will have emplid 0000?????.  Update them with the real emplid from the database.
@@ -260,7 +260,7 @@ def get_unit(acad_org):
     return unit
         
 REQ_DES = None
-@transaction.commit_on_success
+@transaction.atomic
 def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
                     enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn, units):
     """
@@ -517,7 +517,7 @@ def fix_mtg_info(section, stnd_mtg_pat):
     
     return sec, mtype
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_meeting_times(offering):
     """
     Import course meeting times
@@ -608,7 +608,7 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     m.save()
     return m
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_instructors(offering):
     "Import instructors for this offering"
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
@@ -622,7 +622,7 @@ def import_instructors(offering):
         p = get_person(emplid)
         ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_tas(offering):
     "Import TAs from cortez for this offering: no longer used since cortez is gone"
     if offering.subject not in ['CMPT', 'MACM']:
@@ -644,7 +644,7 @@ def import_tas(offering):
             return
         ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_students(offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="STUD").update(role='DROP')
     db = SIMSConn()
@@ -693,7 +693,7 @@ def import_offering_members(offering, students=True):
         update_offering_repositories(offering)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_combined(extra_where='1=1'):
     """
     Find combined sections and set CourseOffering.config['combined_with'] appropriately.
@@ -712,7 +712,7 @@ def import_combined(extra_where='1=1'):
             offering.save()
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def combine_sections(combined):
     """
     Combine sections in the database to co-offered courses look the same.
@@ -773,7 +773,7 @@ def combine_sections(combined):
         course.save()
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def give_sysadmin(sysadmin):
     """
     Give specified users sysadmin role (for bootstrapping)
@@ -785,7 +785,7 @@ def give_sysadmin(sysadmin):
             r = Role(person=p, role="SYSA", unit=Unit.objects.get(label="UNIV"))
             r.save()
 
-@transaction.commit_on_success
+@transaction.atomic
 def update_amaint_userids():
     """
     Refresh the AMAINT translation table
@@ -800,7 +800,7 @@ def update_amaint_userids():
         a.save()
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def update_all_userids():
     """
     Make sure everybody's userid is right.

@@ -36,7 +36,7 @@ def rest_alerts(request):
 
     errors = []
     try:
-        errors = rest.new_alerts(request.raw_post_data)
+        errors = rest.new_alerts(request.body)
     except UnicodeDecodeError:
         return HttpResponse(content='Bad UTF-8 encoded text', status=400)
     except ValueError:

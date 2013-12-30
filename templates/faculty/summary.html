@@ -27,7 +27,7 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url faculty.views.index %}">Faculty Summaries</a></li>
+<li>&gt; <a href="{% url "faculty.views.index" %}">Faculty Summaries</a></li>
 <li>&gt; {{ person.name }}</li>
 {% endblock %}
 

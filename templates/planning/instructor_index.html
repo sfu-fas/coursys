@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% load markup %}
 
 {% block title %}Teaching Preferences{% endblock %}
 {% block h1 %}Teaching Preferences{% endblock %}
@@ -11,9 +10,9 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	    <li><a href="{% url planning.views.edit_capability %}">Manage Teaching Capabilities</a></li>
-		<li><a href="{% url planning.views.edit_intention %}">Manage Semester Plans</a></li>
-		<li><a href="{% url planning.views.view_teaching_credits_inst %}">Teaching Credits</a></li>
+	    <li><a href="{% url "planning.views.edit_capability" %}">Manage Teaching Capabilities</a></li>
+		<li><a href="{% url "planning.views.edit_intention" %}">Manage Semester Plans</a></li>
+		<li><a href="{% url "planning.views.view_teaching_credits_inst" %}">Teaching Credits</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -41,7 +40,7 @@
 	    </tbody>
 	</table>
 	{% else %}
-	<p>You haven't added any teaching capabilities, <a href="{% url planning.views.edit_capability %}">add some now.</a></p>
+	<p>You haven't added any teaching capabilities, <a href="{% url "planning.views.edit_capability" %}">add some now.</a></p>
 	{% endif %}
 	
 	<h2>Semester Teaching Intentions</h2>
@@ -65,7 +64,7 @@
 	    </tbody>
 	</table>
 	{% else %}
-	<p>You haven't created any semester teaching intentions. <a href="{% url planning.views.edit_intention %}">Create a semester teaching intention.</a></p>
+	<p>You haven't created any semester teaching intentions. <a href="{% url "planning.views.edit_intention" %}">Create a semester teaching intention.</a></p>
 	{% endif %}
 
 

@@ -4,7 +4,8 @@ from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
 from django import forms
 from django.http import HttpResponse
 from os.path import splitext
-from settings import MEDIA_URL
+from django.conf import settings
+MEDIA_URL = settings.MEDIA_URL
 from django.template import Context, Template
 
 
@@ -77,7 +78,7 @@ class SubmittedCode(SubmittedComponent):
         return os.path.split(self.code.name)[1]
 
     def download_response(self):
-        response = HttpResponse(mimetype="text/plain")
+        response = HttpResponse(content_type="text/plain")
         self.sendfile(self.code, response)
         return response
     def add_to_zip(self, zipfile, prefix=None):

@@ -440,7 +440,7 @@ def save_copied_activity(target_activity, model, target_course_offering):
         old_activity.save()
         target_activity.save()            
 
-@transaction.commit_on_success
+@transaction.atomic
 def copyCourseSetup(course_copy_from, course_copy_to):
     """
     copy all the activities setup from one course to another

@@ -2,21 +2,20 @@
 {% load form_display %}
 
 
-{% load markup %}
 
 {% block title %}Edit Course Offering{% endblock %}
 {% block h1 %}Edit Course Offering - {{ course }}{% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
-    <li>&gt; <a href="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }} in {{plan.semester.label}}</a></li>
+    <li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+    <li>&gt; <a href="{% url "planning.views.update_plan" semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }} in {{plan.semester.label}}</a></li>
     <li>&gt; Edit Course Offering</li>
 {% endblock %}
 
 
 {% block content %}
 <div class="form_container add-course-offering">
-    <form action="{% url planning.views.edit_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=course.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.edit_planned_offering" semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=course.slug %}" method="post">{% csrf_token %}
         {% include "planning/course_offering_form.html" with offeringform=form timesformset=formset %}
     </form>
 </div>

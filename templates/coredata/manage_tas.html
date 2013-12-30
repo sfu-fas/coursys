@@ -22,7 +22,7 @@
 
 //]]></script>{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; Manage TAs</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>&gt; Manage TAs</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -39,7 +39,7 @@
 <tr><td>{{m.person.sortname}}</td><td>{{m.person.userid}}</td>
 <td class="miniaction">
 {% if m.added_reason == "TAIN" %}
-<form action="{% url coredata.views.manage_tas course_slug=course.slug %}" method="post">{% csrf_token %}<p><input type="hidden" name="action" value="del" /><input type="hidden" name="userid" value="{{m.person.userid}}" /><input type="submit" value="remove" onclick="return confirmSubmit('remove this TA')" /></p></form>
+<form action="{% url "coredata.views.manage_tas" course_slug=course.slug %}" method="post">{% csrf_token %}<p><input type="hidden" name="action" value="del" /><input type="hidden" name="userid" value="{{m.person.userid}}" /><input type="submit" value="remove" onclick="return confirmSubmit('remove this TA')" /></p></form>
 {% else %}{% if m.added_reason == "AUTO" %}
 [cannot remove: imported]
 {% else %}
@@ -59,7 +59,7 @@
         {{ form.non_field_errors }}
     </div>
     {% endif %}
-    <form action="{% url coredata.views.manage_tas course_slug=course.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "coredata.views.manage_tas" course_slug=course.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add TA</legend>
             <ul>

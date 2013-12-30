@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load markup %}
 {% load mobile_tags %}
 {% load form_display %}
 
@@ -43,13 +42,13 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
 <li>&gt; Search</li>
 {% endblock %}
 
 {% block content %}
 {% if savedsearch %}
-<form id="searchform" action="{% url grad.views.delete_savedsearch %}" method="post">
+<form id="searchform" action="{% url "grad.views.delete_savedsearch" %}" method="post">
 
 <input type="hidden" name="person" value="{{ savedsearch.person.pk }}" id="id_person">
 <input type="hidden" name="query" value="{{ savedsearch.query }}" id="id_query">
@@ -60,7 +59,7 @@
 {% endif %}
 <p>If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
 <div class="form_container">
-    <form id="searchform" action="{% url grad.views.search %}" method="get">
+    <form id="searchform" action="{% url "grad.views.search" %}" method="get">
         <fieldset>
             <h2 class="formheaderopen">Status</h2>
             <div class="formsection">{{ form|as_dl_includefields:form.status_fields }}</div>
@@ -87,6 +86,6 @@
         </fieldset>
         <p><input id="submitbutton" class="submit"  type="submit" value="Search" /></p>
     </form>
-    <a class="button" href="{% url grad.views.index %}" style="clear:both">Back</a>
+    <a class="button" href="{% url "grad.views.index" %}" style="clear:both">Back</a>
 </div>
 {% endblock %}

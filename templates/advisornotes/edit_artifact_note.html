@@ -4,16 +4,16 @@
 {% block h1 %}Edit Artifact Note for {{ related }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
 <li>&gt; <a href="
 {% if course %}
-{% url advisornotes.views.view_course_notes unit_course_slug=related.slug %}">Courses
+{% url "advisornotes.views.view_course_notes" unit_course_slug=related.slug %}">Courses
 {% endif %}
 {% if offering %}
-{% url advisornotes.views.view_offering_notes course_slug=related.slug %}">Course Offerings
+{% url "advisornotes.views.view_offering_notes" course_slug=related.slug %}">Course Offerings
 {% endif %}
 {% if artifact %}
-{% url advisornotes.views.view_artifact_notes artifact_slug=related.slug %}">Artifacts
+{% url "advisornotes.views.view_artifact_notes" artifact_slug=related.slug %}">Artifacts
 {% endif %}
 </a>
 </li>
@@ -21,13 +21,13 @@
 {{ spaceless }}
 <a href="
 {% if course %}
-{% url advisornotes.views.view_course_notes unit_course_slug=related.slug %}
+{% url "advisornotes.views.view_course_notes" unit_course_slug=related.slug %}
 {% endif %}
 {% if offering %}
-{% url advisornotes.views.view_offering_notes course_slug=related.slug %}
+{% url "advisornotes.views.view_offering_notes" course_slug=related.slug %}
 {% endif %}
 {% if artifact %}
-{% url advisornotes.views.view_artifact_notes artifact_slug=related.slug %}
+{% url "advisornotes.views.view_artifact_notes" artifact_slug=related.slug %}
 {% endif %}
 ">{{ related }}
 {{ endspaceless }}
@@ -49,13 +49,13 @@ $(function() {
 {% spaceless %}
 <form action="
 {% if course %}
-{% url advisornotes.views.edit_artifact_note note_id=note.id unit_course_slug=related.slug %}
+{% url "advisornotes.views.edit_artifact_note" note_id=note.id unit_course_slug=related.slug %}
 {% endif %}
 {% if offering %}
-{% url advisornotes.views.edit_artifact_note note_id=note.id course_slug=related.slug %}
+{% url "advisornotes.views.edit_artifact_note" note_id=note.id course_slug=related.slug %}
 {% endif %}
 {% if artifact %}
-{% url advisornotes.views.edit_artifact_note note_id=note.id artifact_slug=related.slug %}
+{% url "advisornotes.views.edit_artifact_note" note_id=note.id artifact_slug=related.slug %}
 {% endif %}
 " enctype="multipart/form-data" method="post">
 {% endspaceless %}
@@ -121,7 +121,7 @@ $(function() {
     <dd>
         <div class="field">
             <p><img class="attachment-icon" src="{{MEDIA_URL}}icons/attach.png" alt="download" />
-                <a href="{% url advisornotes.views.download_artifact_file note_id=note.id%}">{{ note.attachment_filename }}</a>
+                <a href="{% url "advisornotes.views.download_artifact_file" note_id=note.id%}">{{ note.attachment_filename }}</a>
                 ({{ note.file_attachment.size|filesizeformat }})
             </p> 
         </div>

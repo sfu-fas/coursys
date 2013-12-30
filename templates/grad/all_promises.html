@@ -18,7 +18,7 @@
 {% block h1 %}Promises Ending In {{semester.label}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
 <li>&gt; Promises ending {{semester.label}}</li>
 {% endblock %}
 
@@ -27,10 +27,10 @@
 <h2 class="heading">Actions</h2>
 <ul>
 {% if semester.previous_semester %}
-<li><a href="{% url grad.views.all_promises semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+<li><a href="{% url "grad.views.all_promises" semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
 {% endif %}
 {% if semester.next_semester %}
-<li><a href="{% url grad.views.all_promises semester_name=semester.next_semester.name %}">Next Semester</a></li>
+<li><a href="{% url "grad.views.all_promises" semester_name=semester.next_semester.name %}">Next Semester</a></li>
 {% endif %}
 </ul>
 </div>
@@ -52,7 +52,7 @@
 			{% for p in promises %}
             <tr>
             <td scope="row">
-            <a href="{% url grad.views.financials grad_slug=p.student.slug %}">{{p.student.person.sortname}}</a>
+            <a href="{% url "grad.views.financials" grad_slug=p.student.slug %}">{{p.student.person.sortname}}</a>
             </td>
             <td>{{p.student.get_current_status_display}}</td>
             <td class="num"><span class="sort">{{p.amount|floatsortable}}</span>${{p.amount|floatformat:"2"}}</td>

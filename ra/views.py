@@ -396,7 +396,7 @@ def search_scholarships_by_student(request, student_id):
     if not (roles & allowed):
         return ForbiddenResponse(request, "Not permitted to search scholarships by student.")
     scholarships = Scholarship.objects.filter(student__person__emplid=student_id)
-    response = HttpResponse(mimetype="application/json")
+    response = HttpResponse(content_type="application/json")
     data = [{'value': s.pk, 'display': s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"}  for s in scholarships]
     json.dump(data, response, indent=1)
     return response
@@ -438,7 +438,7 @@ def browse(request):
                 }
             data.append(radata)
         
-        response = HttpResponse(mimetype="application/json")
+        response = HttpResponse(content_type="application/json")
         json.dump({'truncated': truncated, 'data': data}, response, indent=1)
         return response
 
@@ -497,7 +497,7 @@ def pay_periods(request):
             days += 1 # count both start and end days
             result = "%.1f" % ((weeks*5 + days)/10.0)
     
-    return HttpResponse(result, mimetype='text/plain;charset=utf-8')
+    return HttpResponse(result, content_type='text/plain;charset=utf-8')
 
 
 @requires_role("FUND")
@@ -532,4 +532,4 @@ def person_info(request):
         except SIMSProblem, e:
             result['error'] = e.message
 
-    return HttpResponse(json.dumps(result), mimetype='application/json;charset=utf-8')
+    return HttpResponse(json.dumps(result), content_type='application/json;charset=utf-8')

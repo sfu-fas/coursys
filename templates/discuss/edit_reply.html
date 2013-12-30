@@ -8,15 +8,15 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a></li>
-<li>&gt; <a href="{% url discuss.views.view_topic course_slug=course.slug topic_slug=topic.slug %}">{{topic.title}}</a></li>
+<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
+<li>&gt; <a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">{{topic.title}}</a></li>
 <li>&gt; Edit Reply</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url discuss.views.edit_message course_slug=course.slug topic_slug=topic.slug message_slug=message.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "discuss.views.edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=message.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Edit Discussion Reply</legend>
                 {{ form|as_dl_safe }}

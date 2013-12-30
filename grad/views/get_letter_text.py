@@ -15,4 +15,4 @@ def get_letter_text(request, grad_slug, letter_template_id):
     text = temp.render(Context(ls))
     #print ls
 
-    return HttpResponse(text, mimetype='text/plain')
+    return HttpResponse(text, content_type='text/plain')

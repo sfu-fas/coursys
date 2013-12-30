@@ -2,14 +2,13 @@
 {% load form_display %}
 
 
-{% load markup %}
 
 {% block title %}Add New Course{% endblock %}
 {% block h1 %}Add New Course{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
-<li>&gt; <a href="{% url planning.views.manage_courses %}">Manage Courses</a></li>
+<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+<li>&gt; <a href="{% url "planning.views.manage_courses" %}">Manage Courses</a></li>
 <li>&gt; Add New Course</li>
 {% endblock %}
 
@@ -18,7 +17,7 @@
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url planning.views.create_course %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.create_course" %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>New Course</legend>
             {{form|as_dl}}

@@ -19,8 +19,8 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
-<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>
+<li>&gt; <a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
+<li>&gt; <a href="{% url "alerts.views.view_alerts" alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>
 <li>&gt; Automation </li> 
 {% endblock %}
 
@@ -28,7 +28,7 @@ $(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url alerts.views.new_automation alert_type=alert_type.slug %}">New Automated Email</a></li>
+        <li><a href="{% url "alerts.views.new_automation" alert_type=alert_type.slug %}">New Automated Email</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -59,12 +59,12 @@ $(function() {
             {% for alert in alerts %}
                 <tr>
                     <td>
-                        <a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>{{alert.person}}</a> 
+                        <a href='{% url "advisornotes.views.student_notes" userid=alert.person.userid %}'>{{alert.person}}</a> 
                     </td>
-                    <td><a href='{% url alerts.views.view_email_preview alert_type=alert_type.slug automation_id=email.id alert_id=alert.id %}'>Preview</a></td>
+                    <td><a href='{% url "alerts.views.view_email_preview" alert_type=alert_type.slug automation_id=email.id alert_id=alert.id %}'>Preview</a></td>
                     <td>{{alert.n_emails}}</td>
                     <td>{{alert.n_comments}}</td>
-                    <td><a href='{% url alerts.views.view_alert alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
+                    <td><a href='{% url "alerts.views.view_alert" alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
                     <td>{{ alert.description }}</td>
                     {% for key, value in alert.details.items %}
                         <td>{{value}}</td>
@@ -73,7 +73,7 @@ $(function() {
             {% endfor %}
             </tbody>
         </table>
-        <a class='button' href="{% url alerts.views.delete_automation alert_type=alert_type.slug automation_id=email.id %}">Delete</a>  
+        <a class='button' href="{% url "alerts.views.delete_automation" alert_type=alert_type.slug automation_id=email.id %}">Delete</a>  
         </div>
     {% endfor %} 
 {% else %}

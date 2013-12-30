@@ -20,9 +20,9 @@ Group {{group.name}} marking details for {{activity.name}}
 {% if is_staff %}
 
 {% if student %}
-<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Mark</a>
+<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Mark</a>
 {% else %}
-<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Mark</a>
+<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Mark</a>
 {% endif %}
 
 {% endif %}

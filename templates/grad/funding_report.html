@@ -20,7 +20,7 @@
 {% block h1 %}Funding Summary for {{semester.label}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
 <li>&gt; Funding Summary for {{semester.label}}</li>
 {% endblock %}
 
@@ -29,10 +29,10 @@
 <h2 class="heading">Actions</h2>
 <ul>
 {% if semester.previous_semester %}
-<li><a href="{% url grad.views.funding_report semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+<li><a href="{% url "grad.views.funding_report" semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
 {% endif %}
 {% if semester.next_semester %}
-<li><a href="{% url grad.views.funding_report semester_name=semester.next_semester.name %}">Next Semester</a></li>
+<li><a href="{% url "grad.views.funding_report" semester_name=semester.next_semester.name %}">Next Semester</a></li>
 {% endif %}
 </ul>
 </div>

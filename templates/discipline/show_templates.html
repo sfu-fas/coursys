@@ -22,13 +22,13 @@ $(document).ready(function() {
 {% block title %}{{ course.name }} Dishonesty Templates{% endblock %}
 {% block h1 %}{{ course.name }} Dishonesty Templates{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Dishonesty Templates</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; Dishonesty Templates</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	<li><a href="{% url discipline.views.new_template %}">Create Template</a></li>
+	<li><a href="{% url "discipline.views.new_template" %}">Create Template</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -36,7 +36,7 @@ $(document).ready(function() {
 {% block content %}
 <ul>
 {% for t in templates %}
-<li><a href="{% url discipline.views.edit_template template_id=t.id %}">{{t}}</a></li>
+<li><a href="{% url "discipline.views.edit_template" template_id=t.id %}">{{t}}</a></li>
 {% empty %}
 <li class="empty">None</li>
 {% endfor %}

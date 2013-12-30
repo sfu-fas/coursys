@@ -163,28 +163,28 @@ def search(request):
         
         if 'csv' in request.GET:
             # CSV output
-            response = HttpResponse(mimetype='text/csv')
+            response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'inline; filename="grad_search.csv"'
             _generate_csv(response, columns, human_readable_column_headers, grads)
             return response
         
         elif 'excel' in request.GET:
             # Excel output
-            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            response = HttpResponse(content_type='application/vnd.ms-excel')
             response['Content-Disposition'] = 'inline; filename="grad_search.xls"'
             _generate_excel(response, columns, human_readable_column_headers, grads)
             return response
         
         elif 'cardforms' in request.GET:
             # access card requisition output
-            response = HttpResponse(mimetype='application/pdf')
+            response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'inline; filename="card_access.pdf"'
             card_req_forms(grads, response)
             return response
         
         elif 'fasnetforms' in request.GET:
             # access card requisition output
-            response = HttpResponse(mimetype='application/pdf')
+            response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'inline; filename="fasnet_access.pdf"'
             fasnet_forms(grads, response)
             return response

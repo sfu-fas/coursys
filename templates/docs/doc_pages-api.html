@@ -3,7 +3,7 @@
 {% block title %}CourSys: Pages API{% endblock %}
 {% block h1 %}CourSys: Pages API{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Pages API</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>&gt; Pages API</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -11,13 +11,13 @@
 {% block content %}
 
 <h2 id="json">API Basics</h2>
-<p>You can upload page content to your <a href="{% url dashboard.views.view_doc doc_slug='pages' %}">course pages</a>. To do this, you need to make a POST request to a URL like this:</p>
+<p>You can upload page content to your <a href="{% url "dashboard.views.view_doc" doc_slug='pages' %}">course pages</a>. To do this, you need to make a POST request to a URL like this:</p>
 <blockquote>
-<pre>{{BASE_ABS_URL}}{% if course %}{% url pages.views.api_import course_slug=course.slug %}{% else %}{% url pages.views.api_import course_slug=cslug %}{% endif %}</pre>
+<pre>{{BASE_ABS_URL}}{% if course %}{% url "pages.views.api_import" course_slug=course.slug %}{% else %}{% url "pages.views.api_import" course_slug=cslug %}{% endif %}</pre>
 </blockquote>
 <p>For example, create the relevant data in a file <code>pages-data.json</code> and use the Unix <code>curl</code> command like this:</p>
 <blockquote>
-<pre>curl -X POST -H "Content-Type: application/json" -d @pages-data.json {{BASE_ABS_URL}}{% if course %}{% url pages.views.api_import course_slug=course.slug %}{% else %}{% url pages.views.api_import course_slug=cslug %}{% endif %}</pre>
+<pre>curl -X POST -H "Content-Type: application/json" -d @pages-data.json {{BASE_ABS_URL}}{% if course %}{% url "pages.views.api_import" course_slug=course.slug %}{% else %}{% url "pages.views.api_import" course_slug=cslug %}{% endif %}</pre>
 </blockquote>
 
 
@@ -56,7 +56,7 @@ The <code>"pages"</code> array is a list of objects describing changes/creation 
   <dt><code>"title"</code> (required for new pages)</dt>
   <dd>The (new) title for the page. Default is unchanged from the previous revision.</dd>
   <dt><code>"wikitext"</code> (required for new pages)</dt>
-  <dd>The <a href="{% url dashboard.views.view_doc doc_slug='pages' %}#creole">wiki-creole</a> content for the page (appropriately escaped for inclusion in JSON, of course). Default is unchanged from previous revision.</dd>
+  <dd>The <a href="{% url "dashboard.views.view_doc" doc_slug='pages' %}#creole">wiki-creole</a> content for the page (appropriately escaped for inclusion in JSON, of course). Default is unchanged from previous revision.</dd>
   <dt><code>"wikitext-base64"</code></dt>
   <dd>The wikitext as above, but BASE64-encoded. (Takes precedence over <code>"wikitext"</code> if it's given.)</dd>
   <dt><code>"comment"</code></dt>
