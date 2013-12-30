@@ -14,7 +14,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
-import datetime, random, sha, itertools
+import datetime, random, hashlib, itertools
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -287,7 +287,7 @@ class Form(models.Model, _FormCoherenceMixin):
         self.active = False
         self.save()
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
@@ -348,7 +348,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
         unique_together = (("form", "slug"),)
         ordering = ('order',)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def safe_save(self):
         """
         Save a copy of this sheet, and return the copy: does not modify self.
@@ -366,7 +366,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
             field2.save()
         return sheet2       
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # if this sheet is just being created it needs a order number
         if(self.order == None):
@@ -420,7 +420,7 @@ class Field(models.Model, _FormCoherenceMixin):
     class Meta:
         unique_together = (("sheet", "slug"),)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # if this field is just being created it needs a order number
         if(self.order == None):
@@ -454,7 +454,7 @@ class FormSubmission(models.Model):
         return self.initiator.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
-        # 'summary': summery of the form entered when closing it
+        # 'summary': summary of the form entered when closing it
         # 'emailed': True if the initiator was emailed when the form was closed
         # 'closer': coredata.Person.id of the person that marked the formsub as DONE
 
@@ -475,7 +475,10 @@ class FormSubmission(models.Model):
         return "%s for %s" % (self.form, self.initiator)
 
     def closer(self):
-        return Person.objects.get(id=self.closer_id())
+        try:
+            return Person.objects.get(id=self.closer_id())
+        except Person.DoesNotExist:
+            return None
     
     def last_sheet_completion(self):
         return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
@@ -525,10 +528,11 @@ class SheetSubmission(models.Model):
         return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'assign_note': optional note provided when sheet was assigned by admin
         # 'reject_reason': reason given for rejecting the sheet
         # 'return_reason': reason given for returning the sheet to the filler
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         self.completed_at = datetime.datetime.now()
         super(SheetSubmission, self).save(*args, **kwargs)
@@ -537,7 +541,8 @@ class SheetSubmission(models.Model):
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
     
-    defaults = {'reject_reason': None, 'return_reason': None}
+    defaults = {'assign_note': None, 'reject_reason': None, 'return_reason': None}
+    assign_note, set_assign_note = getter_setter('assign_note')
     reject_reason, set_reject_reason = getter_setter('reject_reason')
     return_reason, set_return_reason = getter_setter('return_reason')
 
@@ -617,7 +622,7 @@ class SheetSubmission(models.Model):
         html = get_template('onlineforms/emails/sheet_assigned.html')
 
         full_url = request.build_absolute_uri(self.get_submission_url())
-        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url})
+        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self})
         subject, from_email, to = 'CourSys: You have been assigned a sheet.', admin.full_email(), assignee.full_email()
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
         msg.attach_alternative(html.render(email_context), "text/html")
@@ -724,7 +729,7 @@ class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     key = models.CharField(max_length=128, null=False, editable=False, unique=True)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         if not(self.key):
             self.key = self.autokey()
@@ -735,7 +740,7 @@ class SheetSubmissionSecretUrl(models.Model):
         attempt = str(random.randint(1000,900000000))
         while not(generated):
             old_attempt = attempt
-            attempt = sha.new(attempt).hexdigest()
+            attempt = hashlib.sha1(attempt).hexdigest()
             if len(SheetSubmissionSecretUrl.objects.filter(key=attempt)) == 0:
                 generated = True
             elif old_attempt == attempt:

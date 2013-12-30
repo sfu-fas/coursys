@@ -5,8 +5,8 @@
 {% block h1 %}{{grad.person.name}}: Status{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; Status</li>
 {% endblock %}
 
@@ -25,5 +25,5 @@
 <h2 id="history">Status History</h2>
 {% include "grad/view__status.html" %}
 
-<p class="gradback"><a class="button" href="{% url grad.views.view grad_slug=grad.slug %}">Return to Profile</a></p>
+<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

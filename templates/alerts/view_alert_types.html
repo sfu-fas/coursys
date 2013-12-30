@@ -45,7 +45,7 @@ $(function() {
     <tbody>
         {% for type in alert_types %}
         <tr>
-            <td><a href="{% url alerts.views.view_alerts alert_type=type.slug %}">{{ type.code }}</a></td>
+            <td><a href="{% url "alerts.views.view_alerts" alert_type=type.slug %}">{{ type.code }}</a></td>
             <td>{{ type.num_alerts }}</td>
         </tr>
         {% endfor %}

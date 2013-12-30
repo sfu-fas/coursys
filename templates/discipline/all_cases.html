@@ -36,7 +36,7 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Name</th><th scope="col">Student #</th><th scope="col">Userid</th><th scope="col">Cluster</th><th scope="col">Open for</th></tr></thead>
   <tbody>
   {% for c in cases %}
-  <tr><td>{{c.offering.semester}}</td><td>{{c.offering.name}}</td><td><a href="{% url discipline.views.show_chair course_slug=c.offering.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{% if c.group %}<a href="{% url discipline.views.showgroup course_slug=c.offering.slug group_slug=c.group.slug %}">{{c.group.name}}</a>{% endif %}</td>
+  <tr><td>{{c.offering.semester}}</td><td>{{c.offering.name}}</td><td><a href="{% url "discipline.views.show_chair" course_slug=c.offering.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{% if c.group %}<a href="{% url "discipline.views.showgroup" course_slug=c.offering.slug group_slug=c.group.slug %}">{{c.group.name}}</a>{% endif %}</td>
   <td>{{c.open_for_display|join:", "}}</td>
   {% endfor %}
   </tbody>

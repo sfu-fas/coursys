@@ -32,8 +32,8 @@
 {% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Marking Components</li>{% endblock %}
 {% block content %}
 <ul id="form_nav">
-    <li class="current"><a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
-    <li><a href="{% url marking.views.manage_component_positions course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
+    <li class="current"><a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
+    <li><a href="{% url "marking.views.manage_component_positions" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
 </ul>
 <form action="" method="post">{% csrf_token %}
      <div class="datatable_container"> 

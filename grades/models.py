@@ -1,13 +1,10 @@
 from django.db import models
 from autoslug import AutoSlugField
-from timezones.fields import TimeZoneField
-from coredata.models import Member, CourseOffering
-from dashboard.models import *
+from coredata.models import Member, CourseOffering, Person
+from dashboard.models import NewsItem
 from django.db import transaction
 from django.db.models import Count
 from django.core.urlresolvers import reverse
-from django.contrib import messages
-from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
 from jsonfield import JSONField
@@ -112,7 +109,7 @@ class Activity(models.Model):
         ordering = ['deleted', 'position']
         unique_together = (('offering', 'slug'),)
 
-    def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
+    def save(self, force_insert=False, force_update=False, newsitem=True, entered_by=None, *args, **kwargs):
         # get old status so we can see if it's newly-released
         try:
             old = Activity.objects.get(id=self.id)
@@ -126,13 +123,16 @@ class Activity(models.Model):
         super(Activity, self).save(*args, **kwargs)
 
         if newsitem and old and self.status == 'RLS' and old != None and old.status != 'RLS':
+            from grades.tasks import send_grade_released_news, create_grade_released_history
+
+            # newly-released grades: record that grade was released
+            assert entered_by
+            entered_by = get_entry_person(entered_by)
+            create_grade_released_history(self, entered_by)
+
             # newly-released grades: create news items
-            NewsItem.for_members(member_kwargs={'offering': self.offering}, newsitem_kwargs={
-                    'author': None, 'course': self.offering, 'source_app': 'grades',
-                    'title': "%s grade released" % (self.name),
-                    'content': 'Grades have been released for %s in %s.'
-                      % (self.name, self.offering.name()),
-                    'url': self.get_absolute_url()})\
+            send_grade_released_news(self)
+            
         
         if old and old.group and not self.group:
             # activity changed group -> individual. Clean out any group memberships
@@ -143,7 +143,7 @@ class Activity(models.Model):
         """
         Do the actions to safely "delete" the activity.
         """
-        with transaction.commit_on_success():
+        with transaction.atomic():
             # mangle name and short-name so instructors can delete and replace
             i = 1
             while True:
@@ -437,13 +437,11 @@ class NumericGrade(models.Model):
     member = models.ForeignKey(Member, null=False)
 
     value = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
-    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
+    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True)
     
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
-    def get_absolute_url(self):
-        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
 
     def display_staff(self):
         if self.flag == 'NOGR':
@@ -473,12 +471,35 @@ class NumericGrade(models.Model):
             return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
         
 
-    def save(self, newsitem=True):
+    def save(self, entered_by, mark=None, newsitem=True, group=None, is_temporary=False):
+        """Save the grade.
+
+        entered_by must be one of:
+        (1) the Person object of the person who entered the grade,
+        (2) the userid of the person who entered the grade,
+        (3) None ONLY if this was a result of a calculation (or for a temporary save that will be re-saved later)
+
+        mark is a reference to the StudentActivityMark or GroupActivity mark, if that's where the grade came from
+
+        newsitem controls the posting of a NewsItem for the student.
+        """
         if self.flag == "NOGR":
             # make sure "no grade" values have a zero: just in case the value is used in some other calc
             self.value = 0
 
         super(NumericGrade, self).save()
+
+        entered_by = get_entry_person(entered_by)
+        if bool(mark) and not mark.id:
+            raise ValueError, "ActivityMark must be saved before calling setMark."
+
+        if entered_by:
+            gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
+                              numeric_grade=self.value, grade_flag=self.flag, comment=self.comment, mark=mark, group=group)
+            gh.save()
+        else:
+            assert (self.flag == 'CALC') or (is_temporary and self.flag=='NOGR')
+
         if self.activity.status == "RLS" and newsitem and self.flag not in ["NOGR", "CALC"]:
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
@@ -511,7 +532,7 @@ class LetterGrade(models.Model):
     member = models.ForeignKey(Member, null=False)
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
-    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
+    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
     comment = models.TextField(null=True)
     
     def __unicode__(self):
@@ -523,9 +544,6 @@ class LetterGrade(models.Model):
         else:
             return "%s" % (self.letter_grade)
     display_staff_short = display_staff
-
-    def get_absolute_url(self):
-        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
 
     def display_with_percentage_student(self):
         """
@@ -540,8 +558,26 @@ class LetterGrade(models.Model):
         else:
             return '%s' % (self.letter_grade)     
     
-    def save(self, newsitem=True):
+    def save(self, entered_by, group=None, newsitem=True):
+        """Save the grade.
+
+        entered_by must be one of:
+        (1) the Person object of the person who entered the grade,
+        (2) the userid of the person who entered the grade,
+        (3) None ONLY if this was a result of a calculation
+
+        newsitem controls the posting of a NewsItem for the student.
+        """
         super(LetterGrade, self).save()
+
+        entered_by = get_entry_person(entered_by)
+        if entered_by:
+            gh = GradeHistory(activity=self.activity, member=self.member, entered_by=entered_by, activity_status=self.activity.status,
+                              letter_grade=self.letter_grade, grade_flag=self.flag, comment=self.comment, mark=None, group=group)
+            gh.save()
+        else:
+            assert self.flag == 'CALC'
+
         if self.activity.status=="RLS" and newsitem and self.flag != "NOGR":
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
@@ -550,6 +586,7 @@ class LetterGrade(models.Model):
                   % (self.activity.name, self.activity.offering.name()),
                 url=self.get_absolute_url())
             n.save()
+
     def get_absolute_url(self):
         """        
         for regular numeric activity return the mark summary page
@@ -643,8 +680,6 @@ def median_letters(sorted_grades):
             # median on a boundary; report as "B/B-"
             return g1 + "/" + g2
 
-# sorted_grades = sorted_letters(grades)
-# median = median_letters(sorted_grades)
 
 
 def max_letters(sorted_grades):
@@ -668,5 +703,49 @@ def min_letters(sorted_grades):
         return u"\u2014"
     else:
         return grades_s[l-1]
+
+
+def get_entry_person(entered_by):
+    """
+    Take a Person instance or userid and convert to a Person instance (for saving as a GradeHistory.entered_by)
+    """
+    if isinstance(entered_by, Person):
+        return entered_by
+    elif entered_by is None:
+        return None
+    else:
+        return Person.objects.get(userid=entered_by)
+
+class GradeHistory(models.Model):
+    """
+    Grade audit history. Created automatically by ActivityMark.save().
+    """
+    from marking.models import ActivityMark
+    from groups.models import Group
+    activity = models.ForeignKey(Activity, null=False)
+    member = models.ForeignKey(Member, null=False)
+    entered_by = models.ForeignKey(Person, null=False, blank=False)
+
+    activity_status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status when grade was entered.')
+    numeric_grade = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
+    letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
+    grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
+    comment = models.TextField(null=True)
+
+    mark = models.ForeignKey(ActivityMark, null=True, help_text='The ActivityMark object this grade came from, if applicable.')
+    group = models.ForeignKey(Group, null=True, help_text='If this was a mark for a group, the group.')
+    status_change = models.BooleanField(null=False, default=False)
+
+    timestamp = models.DateTimeField(auto_now_add=True)
+    #ip = models.GenericIPAddressField() # TODO when we're safely on Django 1.4+?
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it's job is to exist."
+
+    def grade(self):
+        return self.letter_grade or self.numeric_grade 
 
 

@@ -5,12 +5,12 @@
 {% block h1 %}{{course.subject}} {{course.number}} {{course.section}}{% endblock %}
 {% block content%}
 
-<a class="back" href="{% url mobile.views.index %}">back</a>
+<a class="back" href="{% url "mobile.views.index" %}">back</a>
 
     <h2>Course Activities</h2>
     {% for activity_info in activities_info %}
         {% with activity_info.activity as activity %}            
-                <h3><a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a></h3>
+                <h3><a href="{% url "mobile.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a></h3>
             <ul>
                 <li>
                     Status: {{ activity.get_status_display }}
@@ -46,13 +46,13 @@
 
 
 <div id="search">
-  <form action="{% url mobile.views.student_search course_slug=course.slug %}" method="get">
+  <form action="{% url "mobile.views.student_search" course_slug=course.slug %}" method="get">
   <h2>Search Student: </h2>
   <p><input type="text" inputmode="latin lowerCase" name="q" /> <input type="submit" value="Search" /></p>
   </form>
   
-  <p><a href="{% url mobile.views.class_list course_slug=course.slug %}">Class list</a></p>
+  <p><a href="{% url "mobile.views.class_list" course_slug=course.slug %}">Class list</a></p>
 </div>
     
-<a class="back" href="{% url mobile.views.index %}">back</a>
+<a class="back" href="{% url "mobile.views.index" %}">back</a>
 {% endblock %}

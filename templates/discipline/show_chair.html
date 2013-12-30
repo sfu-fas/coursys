@@ -4,7 +4,7 @@
 {% block title %}Dishonesty Case for {{case.student.name}}: Chair's view{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Chair's view{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url discipline.views.all_cases %}">Dishonesty Cases</a></li><li>&gt; {{course.name}} {{course.semester}} </li><li>&gt; Case for {{case.student.name}}: Chair's view</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "discipline.views.all_cases" %}">Dishonesty Cases</a></li><li>&gt; {{course.name}} {{course.semester}} </li><li>&gt; Case for {{case.student.name}}: Chair's view</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -33,7 +33,7 @@
 </tr>
 <tr>
   <th class="ui-state-default">Case Cluster</th>
-  <td>{% if case.group %}<a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
+  <td>{% if case.group %}<a href="{% url "discipline.views.showgroup" course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
 </tr>
 <tr>
   <th class="ui-state-default">Instructor</th>
@@ -48,7 +48,7 @@
 </div>
 
 <div id="nextstep">
-<a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Instructor's view of this case</a>.
+<a href="{% url "discipline.views.show" course_slug=course.slug case_slug=case.slug %}">Instructor's view of this case</a>.
 {% if not case.penalty_implemented %}
 <strong>Instructor has not implemented their penalty</strong>.
 {% endif %}
@@ -73,7 +73,7 @@
 <dt>Attached Files</dt>
 <dd>{{case|chair_edit_link:'attach'}}
 <ul>{% for f in case.caseattachment_set.all %}
-  <li>{{f.name}} (<a href="{% url discipline.views.download_file course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}}, {% if f.public %}public{% else %}private{% endif %})</li>
+  <li>{{f.name}} (<a href="{% url "discipline.views.download_file" course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}}, {% if f.public %}public{% else %}private{% endif %})</li>
 {% empty %}<li class="empty">None</li>
 {% endfor %}</ul>
 </dd>

@@ -24,8 +24,8 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a></li>
+<li>&gt; <a href="{% url "grades.views.course" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url "grades.views.add_numeric_activity" course_slug=course.slug %}">Add Activity</a></li>
 {% endblock %}
 
 
@@ -33,12 +33,12 @@ $(document).ready(function() {
 <h2>Add Activity</h2>
 <br/>
 <ul id="add_activity_nav">
-    <li class="current"><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
-    <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
+    <li class="current"><a href="{% url "grades.views.add_numeric_activity" course_slug=course.slug %}">Numeric Graded Activity</a></li>
+    <li><a href="{% url "grades.views.add_letter_activity" course_slug=course.slug %}">Letter Graded Activity</a></li>
 </ul>
 <div id="activity_form_container">
     {{form|error_note}}
-    <form action="{% url grades.views.add_numeric_activity course_slug=course.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "grades.views.add_numeric_activity" course_slug=course.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Activity Info</legend>
             {{form|display_form}}

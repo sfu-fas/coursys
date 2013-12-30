@@ -1,6 +1,6 @@
 {% extends "grades/base.html" %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; New Message</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; New Message</li>{% endblock %}
 
 {% block title %}Create a new news item{% endblock %}
 {% block h1 %}Create a new news item{% endblock %}
@@ -10,12 +10,12 @@
 This news item will be sent to all members of {{course.name}} ({{course.semester.label}}).
 </p>
 
-<form action="{% url dashboard.views.new_message course_slug=course.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="{% url "dashboard.views.new_message" course_slug=course.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 <fieldset>
 <legend>News Item</legend>
 {{form.as_p}}
 </fieldset>
-<a class="redbutton reset_button" href="{% url dashboard.views.new_message course.slug %}">Reset</a>
+<a class="redbutton reset_button" href="{% url "dashboard.views.new_message" course.slug %}">Reset</a>
 <input class="submit" type="submit" value="Save" />
 </form>
 

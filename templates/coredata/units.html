@@ -3,7 +3,7 @@
 {% block h1 %}CourSys Units{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li>
+<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
 <li>&gt; Units</li>{% endblock %}
 
 {% block headextra %}
@@ -24,7 +24,7 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url coredata.views.edit_unit %}">Add new unit</a></li>
+    <li><a href="{% url "coredata.views.edit_unit" %}">Add new unit</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -36,7 +36,7 @@ $(document).ready(function() {
   <tbody>
   {% for unit in units %}
   <tr>
-  <td scope="row"><a href="{% url coredata.views.edit_unit unit_slug=unit.slug %}">{{unit.name}}</a></td>
+  <td scope="row"><a href="{% url "coredata.views.edit_unit" unit_slug=unit.slug %}">{{unit.name}}</a></td>
   <td>{{unit.label}}</td>
   <td>{{unit.acad_org|default:''}}</td>
   <td>{{unit.parent.label|default:''}}</td>

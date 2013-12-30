@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load markup %}
 {% load mobile_tags %}
 
 {% block headextra %}
@@ -24,30 +23,26 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url dashboard.views.news_list %}">All News Items</a></li>
-    <li><a href="{% url dashboard.views.config %}">User Configuration</a></li>
-    <li><a href="{% url dashboard.views.calendar %}">View Calendar</a></li>
-    {% if excluded %}<li><a href="{% url dashboard.views.index_full %}">View Older Courses</a></li>{% endif %}
-    <!--{% if 'FAC' in roles or 'SESS' in roles or 'COOP' in roles %}<li><a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li>{% endif %}-->
-    <!--{% if 'PLAN' in roles %}<li><a href="{% url planning.views.admin_index %}">Course Planning</a></li>{% endif %}-->   
-    <!--<li><a href="{% url planning.views.plans_index %}">Semester Plans</a></li>-->
-    {% if 'DISC' in roles %}<li><a href="{% url discipline.views.chair_index %}">Discipline Cases</a></li>{% endif %}
-    {% if 'SYSA' in roles %}<li><a href="{% url coredata.views.sysadmin %}">System Administration</a></li>{% endif %}
+    <li><a href="{% url "dashboard.views.news_list" %}">All News Items</a></li>
+    <li><a href="{% url "dashboard.views.config" %}">User Configuration</a></li>
+    <li><a href="{% url "dashboard.views.calendar" %}">View Calendar</a></li>
+    {% if excluded %}<li><a href="{% url "dashboard.views.index_full" %}">View Older Courses</a></li>{% endif %}
+    {% if 'DISC' in roles %}<li><a href="{% url "discipline.views.chair_index" %}">Discipline Cases</a></li>{% endif %}
+    {% if 'SYSA' in roles %}<li><a href="{% url "coredata.views.sysadmin" %}">System Administration</a></li>{% endif %}
     {% if staff_memberships %}
-    <li><a href="{% url dashboard.views.list_docs %}">View Documentation</a></li>
-    <li><a href="{% url dashboard.views.student_info %}">Student Search</a></li>
+    <li><a href="{% url "dashboard.views.list_docs" %}">View Documentation</a></li>
+    <li><a href="{% url "dashboard.views.student_info" %}">Student Search</a></li>
     {% endif %}
-    {% if 'FAC' in roles or 'SESS' in roles or 'INST' in roles %}<li><a href="{% url ta.views.instr_offers %}">TA Offers</a></li>{% endif %}
-    {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.advising %}">Advisor Notes</a></li>{% endif %}
-    {% if form_groups %}<li><a href="{% url onlineforms.views.index %}">Online Forms</a></li>{% endif %}
-    {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url grad.views.index %}">Grad Students</a></li>{% endif %}
-    {% if 'FUND' in roles %}<li class="newsec"><a href="{% url ra.views.search %}">Research Associates</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li><a href="{% url ta.views.all_tugs_admin %}">Time Use Guidelines</a></li>{% endif %}
-    {% if 'TAAD' in roles %}<li  class='newsec'><a href="{% url ta.views.view_postings %}">TA Job Postings</a></li>{% endif %}
-    <!--{% if is_grad %}<li class='newsec'><a href="{% url grad.views.student_financials %}">Financial Summary</a></li>{% endif %}-->
-    {% if has_grads %}<li ><a href="{% url grad.views.supervisor_index %}">My Grad Students</a></li>{% endif %}
-    {% if 'TADM' in roles %}<li><a href="{% url planning.views.view_insts_in_unit %}">Teaching Administration</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li><a href="{% url coredata.views.unit_admin %}">Department Management</a></li>{% endif %}
+    {% if 'FAC' in roles or 'SESS' in roles or 'INST' in roles %}<li><a href="{% url "ta.views.instr_offers" %}">TA Offers</a></li>{% endif %}
+    {% if 'ADVS' in roles %}<li><a href="{% url "advisornotes.views.advising" %}">Advisor Notes</a></li>{% endif %}
+    {% if form_groups %}<li><a href="{% url "onlineforms.views.index" %}">Online Forms</a></li>{% endif %}
+    {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url "grad.views.index" %}">Grad Students</a></li>{% endif %}
+    {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra.views.search" %}">Research Associates</a></li>{% endif %}
+    {% if 'ADMN' in roles %}<li><a href="{% url "ta.views.all_tugs_admin" %}">Time Use Guidelines</a></li>{% endif %}
+    {% if 'TAAD' in roles %}<li  class='newsec'><a href="{% url "ta.views.view_postings" %}">TA Job Postings</a></li>{% endif %}
+    <!--{% if is_grad %}<li class='newsec'><a href="{% url "grad.views.student_financials" %}">Financial Summary</a></li>{% endif %}-->
+    {% if has_grads %}<li ><a href="{% url "grad.views.supervisor_index" %}">My Grad Students</a></li>{% endif %}
+    {% if 'ADMN' in roles %}<li><a href="{% url "coredata.views.unit_admin" %}">Department Management</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}

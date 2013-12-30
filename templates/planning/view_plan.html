@@ -2,12 +2,11 @@
 {% load form_display %}
 
 
-{% load markup %}
 
 {% block title %}View Semester Plan{% endblock %}
 {% block h1 %}View Semester Plan{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.plans_index %}">Semester Plans</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "planning.views.plans_index" %}">Semester Plans</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li>{% endblock %}
 
 
 {% block headextra %}

@@ -17,8 +17,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Edit Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
 <li>&gt; {{ form.title }}</li>
 {% endblock %}
 
@@ -26,8 +26,8 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit Form Info</a></li>
-        <li><a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">New Sheet</a></li>
+        <li><a href="{% url "onlineforms.views.edit_form" form_slug=form.slug %}">Edit Form Info</a></li>
+        <li><a href="{% url "onlineforms.views.new_sheet" form_slug=form.slug %}">New Sheet</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -67,13 +67,13 @@
             {% for sheet in sheets %}
                 <tr>
                     <td>
-                    	<a href="{% url onlineforms.views.edit_sheet form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a>
+                    	<a href="{% url "onlineforms.views.edit_sheet" form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a>
                     	{% if sheet.is_initial %}(initial sheet){% endif %}
                     </td>
                     <td>{{ sheet.get_can_view_display_short }}</td>
                     <td class="miniaction">
                         {% if sheet.is_initial = 1 %}
-                        <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
+                        <form action="{% url "onlineforms.views.view_form" form_slug=form.slug %}" method="post">{% csrf_token %}
                         <p> 
                             <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
                             <input type="hidden" name="action" value="del" />
@@ -81,7 +81,7 @@
                         </p>
                         </form>    
                         {% else %}
-                        <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
+                        <form action="{% url "onlineforms.views.view_form" form_slug=form.slug %}" method="post">{% csrf_token %}
                         <p> 
                             <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
                             <input type="hidden" name="action" value="del" />
@@ -94,7 +94,7 @@
               {% endfor %}
         </table>
     {% else %}
-            <p>There are currently no sheets: you must <a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">create at least one sheet</a> for the initial requester to complete.</p>
+            <p>There are currently no sheets: you must <a href="{% url "onlineforms.views.new_sheet" form_slug=form.slug %}">create at least one sheet</a> for the initial requester to complete.</p>
     {% endif %}
 </div>
 

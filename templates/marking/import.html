@@ -12,7 +12,7 @@
 {% endblock %}
 {% block content %}
 
-<form action="{% url marking.views.import_components course_slug=course.slug activity_slug=activity.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form action="{% url "marking.views.import_components" course_slug=course.slug activity_slug=activity.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 <p>{{form.errors}}</p>
 <p>{{form.file}}</p>
 <p><input class ="submit" type="submit" value="Submit" /></p>

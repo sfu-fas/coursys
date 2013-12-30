@@ -254,7 +254,7 @@ class GradImport(object):
         
         return person, external
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def process_grad(self, cortezid, sin, emplid, email, birthdate, gender,
                      english, mothertoungue, canadian, passport, visa, currentstatus, lastmod):
         """

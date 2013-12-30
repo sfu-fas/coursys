@@ -65,7 +65,7 @@ function append_problem(n, penalty, content, outof) {
 			        <input class="common_problem" type="button" value="{{problem.title}}" title="{{problem.description}}{%if problem.penalty%} [penalty: {{problem.penalty}}]{%endif%}" 
 			        onclick="append_problem({{pos}}, {{problem.penalty}}, '{{problem.description|escapejs}}', {{entry.component.max_mark}});"/>
 			    {% endfor %}
-			    <a href="{% url marking.views.manage_common_problems course_slug=course.slug activity_slug=activity.slug%}" title="Manage common problems">Manage&hellip;</a>
+			    <a href="{% url "marking.views.manage_common_problems" course_slug=course.slug activity_slug=activity.slug%}" title="Manage common problems">Manage&hellip;</a>
 			    </div>			    
 			    {% endwith %}			    
 			    </li>
@@ -78,7 +78,7 @@ function append_problem(n, penalty, content, outof) {
 		 	</ul>   	 
 	  </fieldset>
      {% empty %}
-	   	<p class="empty">Marking is not <a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}" title="Edit components">configured</a>.
+	   	<p class="empty">Marking is not <a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}" title="Edit components">configured</a>.
 	    </p>
 	 {% endfor %}	 
 	 <fieldset>

@@ -52,7 +52,7 @@
 		 var i = p.data('pos');			 
 		 /* post request */
 		 if(i > 0){
-			$.post("{% url grades.views.reorder_activity course_slug=course.slug %}",
+			$.post("{% url "grades.views.reorder_activity" course_slug=course.slug %}",
 				{'id_up': act_ids[i], 'id_down': act_ids[i-1], 'csrfmiddlewaretoken': "{{csrf_token}}"}, 
 				function(data){ /* request success callback: swap rows */					 				
 					 /* swap the content of the current row and the previous row(except for the first column) */				
@@ -83,7 +83,7 @@
 		 var i = p.data('pos');
 		 if(i < {{activities_info|length}}-1){
 		 /* post request */
-			$.post("{% url grades.views.reorder_activity course_slug=course.slug %}",		  	 
+			$.post("{% url "grades.views.reorder_activity" course_slug=course.slug %}",		  	 
 				{'id_up': act_ids[i+1], 'id_down': act_ids[i], 'csrfmiddlewaretoken': "{{csrf_token}}"},
 				function(data){ /* request success callback: swap rows */  		 	 
 				     /* swap the content of the current row and the next row(except for the first column) */
@@ -120,11 +120,11 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	<li><a href="{% url grades.views.course_config course_slug=course.slug %}">Edit Course Setup</a></li>
-        <li><a href="{% url grades.views.activity_choice course_slug=course.slug %}">Add Activity</a></li>
+	<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Edit Course Setup</a></li>
+        <li><a href="{% url "grades.views.activity_choice" course_slug=course.slug %}">Add Activity</a></li>
         {% if course.discussion %}
         <li>
-        	<a href="{% url discuss.views.discussion_index course_slug=course.slug %}">
+        	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">
         		Course Discussion
         		{% if discussion_activity %}
                 <img src="{{ MEDIA_URL }}/icons/required_star.gif" alt="New Activity" />
@@ -132,15 +132,15 @@
         	</a>
         </li>    
         {% endif %}
-        <li class="newsec"><a href="{% url grades.views.class_list course_slug=course.slug %}">Display Class List</a></li>
-        <li><a href="{% url grades.views.all_grades course_slug=course.slug %}">Display All Grades</a></li>
-        <li><a href="{% url grades.views.student_search course_slug=course.slug %}">Student Search</a></li>
-	<li class="newsec"><a href="{% url dashboard.views.new_message course_slug=course.slug %}">Create News Item</a></li>
-	{% if any_group %}<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
-        <li><a href="{% url discipline.views.index course_slug=course.slug %}">Dishonesty Cases</a></li>
-        <li><a href="{% url pages.views.index_page course_slug=course.slug %}">Course Pages</a></li>
+        <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}">Display Class List</a></li>
+        <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}">Display All Grades</a></li>
+        <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}">Student Search</a></li>
+	<li class="newsec"><a href="{% url "dashboard.views.new_message" course_slug=course.slug %}">Create News Item</a></li>
+	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
+        <li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li>
+        <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}">Course Pages</a></li>
     {% if member.role == "TA" %}
-        <li class="newsec"><a href="{% url ta.views.view_tug course_slug=course.slug userid=user.username %}">Time Use Guideline</a></li>
+        <li class="newsec"><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=user.username %}">Time Use Guideline</a></li>
     {% endif %}
     </ul>
 </div>
@@ -219,20 +219,20 @@
                 <td id = "arrow{{forloop.counter}}">
                     <span class="sort">{{ activity.position }}</span>
                     {% if not forloop.first %}
-		    <a class="arrow_up" href="{% url grades.views.course_info course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">  
+		    <a class="arrow_up" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">  
 		       <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
 		    </a>
 		    {% else %}
 		       <span class="position_placeholder"></span>
 		    {% endif %}
 		    {% if not forloop.last %}
-		    <a class="arrow_down" href="{% url grades.views.course_info course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
+		    <a class="arrow_down" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
 			<span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
 		    </a>
 		    {% endif %}
                 </td>
                 <td scope="row">
-                <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
+                <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
                 </td>
                 
                 <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
@@ -270,7 +270,7 @@
         </tbody>
     </table>
     {% else %}
-    <p class="empty">No activities defined. You can <a href="{% url grades.views.activity_choice course_slug=course.slug %}">add an activity</a> to get started.</p>
+    <p class="empty">No activities defined. You can <a href="{% url "grades.views.activity_choice" course_slug=course.slug %}">add an activity</a> to get started.</p>
     {% endif %}
 </div>
 {% if activities_info %}

@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load markup %}
 {% load mobile_tags %}
 {% load form_display %}
 
@@ -7,9 +6,9 @@
 {% block h1 %}New {{ template.label|title }} Letter{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; <a href="{% url grad.views.manage_letters grad_slug=grad.slug%}">Letters</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url "grad.views.manage_letters" grad_slug=grad.slug%}">Letters</a></li>
 <li>&gt; New {{ template.label|title }}</li>
 {% endblock %}
 {% block headextra %}
@@ -21,9 +20,9 @@
 			'dateFormat' : 'yy-mm-dd'
 		});
 
-		get_addresses('{% url grad.views.get_addresses %}')
+		get_addresses('{% url "grad.views.get_addresses" %}')
 
-		url = '{% url grad.views.get_letter_text grad_slug=grad.slug letter_template_id=template.id %}'
+		url = '{% url "grad.views.get_letter_text" grad_slug=grad.slug letter_template_id=template.id %}'
 		getData(url);
 
 		$("#id_from_person").change(update_from_lines);
@@ -34,7 +33,7 @@
 {% endblock %}
 {% block content %}
 <div class="form_container">
-	<form action="{% url grad.views.new_letter grad_slug=grad.slug letter_template_slug=template.slug %}" method="post">
+	<form action="{% url "grad.views.new_letter" grad_slug=grad.slug letter_template_slug=template.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -48,5 +47,5 @@
 		</fieldset>
 	</form>
 </div>
-<p class="gradback"><a class="button" href="{% url grad.views.view grad_slug=grad.slug %}">Return to Profile</a></p>
+<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
 {% endblock %} 

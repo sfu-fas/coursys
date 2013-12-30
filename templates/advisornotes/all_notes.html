@@ -8,7 +8,7 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url advisornotes.views.new_note %}">New Note</a></li>
+<li><a href="{% url "advisornotes.views.new_note" %}">New Note</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -41,8 +41,8 @@
   		{{note.text}}
   	</td>
   	<td>
-  		<a href="{% url advisornotes.views.view_note note_id=note.id %}">View</a> | 
-        <a href="{% url advisornotes.views.student_notes userid=note.student.userid %}">View All for this Student</a>
+  		<a href="{% url "advisornotes.views.view_note" note_id=note.id %}">View</a> | 
+        <a href="{% url "advisornotes.views.student_notes" userid=note.student.userid %}">View All for this Student</a>
   	</td>
   </tr>
   {% endfor %}

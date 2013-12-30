@@ -1,4 +1,4 @@
-{% if index and can_edit %}<p class="manage_link"><a href="{% url grad.views.manage_scholarships grad_slug=grad.slug  %}">Manage Scholarships</a></p>{% endif %}
+{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_scholarships" grad_slug=grad.slug  %}">Manage Scholarships</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-2">
 		<thead>
@@ -39,7 +39,7 @@
 				{% if not index %}
                 <td class='miniaction'>
                     {% if not s.removed %}
-                        <form action="{% url grad.views.remove_scholarship grad_slug=grad.slug s_id=s.id %}" method="post">
+                        <form action="{% url "grad.views.remove_scholarship" grad_slug=grad.slug s_id=s.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
                                     <input type="submit" value="remove" onclick="return confirmSubmit('remove this scholarship')" />
@@ -54,7 +54,7 @@
 	</table>
 
 {% if scholarship_comments %}
-<h3><a href='{% url grad.views.manage_financialcomments grad_slug=grad.slug %}'>Financial Comments:</a></h3>
+<h3><a href='{% url "grad.views.manage_financialcomments" grad_slug=grad.slug %}'>Financial Comments:</a></h3>
     {% for f in scholarship_comments %}
     <div class='note-box' style='margin-top:5px'>
         <h3> {{ f.created_by }} - {{ f.semester.name }}: </h3> 

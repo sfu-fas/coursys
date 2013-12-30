@@ -1,8 +1,8 @@
 import sys, os, datetime, time, copy
 import MySQLdb
 sys.path.append(".")
-sys.path.append("..")
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+#sys.path.append("courses")
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
@@ -45,6 +45,36 @@ def get_combined():
             'subsections': [
                 CourseOffering.objects.get(slug='2013fa-cmpt-419-d1'),
                 CourseOffering.objects.get(slug='2013fa-cmpt-829-g1')
+            ]
+        },
+        {
+            'subject': 'STAT', 'number': '340', 'section': 'X100',
+            'semester': Semester.objects.get(name="1141"),
+            'component': 'LEC', 'graded': True,
+            'crse_id': 32752, 'class_nbr': 32752,
+            'title': 'Stat Comp Data Ana (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2014sp-stat-340-d1'),
+                CourseOffering.objects.get(slug='2014sp-stat-341-d1'),
+                CourseOffering.objects.get(slug='2014sp-stat-342-d1'),
+            ]
+        },
+        {
+            'subject': 'STAT', 'number': '403', 'section': 'X100',
+            'semester': Semester.objects.get(name="1141"),
+            'component': 'LEC', 'graded': True,
+            'crse_id': 32751, 'class_nbr': 32751,
+            'title': 'Sampl./Exper. Des. (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2014sp-stat-403-d1'),
+                CourseOffering.objects.get(slug='2014sp-stat-650-g1'),
+                CourseOffering.objects.get(slug='2014sp-stat-890-g1'),
             ]
         },
 #        {
@@ -173,12 +203,12 @@ class TAConn(MySQLConn):
         return conn, conn.cursor()
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def create_semesters():
     pass
     # should be done in the admin interface: https://courses.cs.sfu.ca/sysadmin/semesters/
 
-@transaction.commit_on_success
+@transaction.atomic
 def fix_emplid():
     """
     Any manually-entered people will have emplid 0000?????.  Update them with the real emplid from the database.
@@ -230,9 +260,9 @@ def get_unit(acad_org):
     return unit
         
 REQ_DES = None
-@transaction.commit_on_success
+@transaction.atomic
 def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
-                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn):
+                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn, units):
     """
     Import one offering. Returns CourseOffering or None.
     
@@ -242,7 +272,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     if not REQ_DES:
         REQ_DES = get_reqmnt_designtn()
     semester = Semester.objects.get(name=strm)
-    graded = True # non-graded excluded in with "class_section like '%00'" in query
+    graded = True # non-graded excluded in with "class_type='E'" in query
 
     # make sure the data is as we expect:
     if not CAMPUSES.has_key(campus):
@@ -250,11 +280,11 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     if not COMPONENTS.has_key(component):
         raise KeyError, "Unknown course component: %r." % (component)
     if not INSTR_MODE.has_key(instr_mode):
-        raise KeyError, "Unknown instructional modet: %r." % (instr_mode)
+        raise KeyError, "Unknown instructional mode: %r." % (instr_mode)
 
     if cancel_dt is not None:
         # mark cancelled sections
-        component="CAN"
+        component = "CAN"
     
     owner = get_unit(acad_org)
 
@@ -283,6 +313,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c.wait_tot = wait_tot
     c.owner = owner
     c.instr_mode = instr_mode
+    c.units = units
     c.slug = c.autoslug() # rebuild slug in case section changes for some reason
 
     # set the WQB flags
@@ -301,7 +332,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
 CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
         + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \
-        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn'
+        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn, cc.units_minimum'
 CLASS_TBL_QUERY = """
 SELECT """ + CLASS_TBL_FIELDS + """
 FROM ps_class_tbl ct
@@ -342,7 +373,7 @@ def import_one_offering(strm, subject, number, section):
     row = res[0]
     return import_offering(*row)
     
-def import_offerings(extra_where='1=1', import_semesters=import_semesters):
+def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False):
     db = SIMSConn()
     db.execute(CLASS_TBL_QUERY + " AND ct.strm IN %s "
                " AND ("+extra_where+")", (import_semesters(),))
@@ -351,6 +382,16 @@ def import_offerings(extra_where='1=1', import_semesters=import_semesters):
         o = import_offering(*row)
         if o:
             imported_offerings.add(o)
+
+    if cancel_missing:
+        # mark any offerings not found during the import as cancelled: handles sections that just disappear from
+        # ps_class_tbl, because that can happen, apparently.
+        all_off = CourseOffering.objects.filter(semester__name__in=import_semesters()) \
+            .exclude(component='CAN').exclude(flags=CourseOffering.flags.combined)
+        all_off = set(all_off)
+        for o in all_off - imported_offerings:
+            o.component = 'CAN'
+            o.save()
     
     return imported_offerings
 
@@ -486,7 +527,7 @@ def fix_mtg_info(section, stnd_mtg_pat):
     
     return sec, mtype
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_meeting_times(offering):
     """
     Import course meeting times
@@ -577,7 +618,7 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     m.save()
     return m
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_instructors(offering):
     "Import instructors for this offering"
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
@@ -591,7 +632,7 @@ def import_instructors(offering):
         p = get_person(emplid)
         ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_tas(offering):
     "Import TAs from cortez for this offering: no longer used since cortez is gone"
     if offering.subject not in ['CMPT', 'MACM']:
@@ -613,7 +654,7 @@ def import_tas(offering):
             return
         ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
 
-@transaction.commit_on_success
+@transaction.atomic
 def import_students(offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="STUD").update(role='DROP')
     db = SIMSConn()
@@ -662,7 +703,26 @@ def import_offering_members(offering, students=True):
         update_offering_repositories(offering)
 
 
-@transaction.commit_on_success
+@transaction.atomic
+def import_combined(extra_where='1=1'):
+    """
+    Find combined sections and set CourseOffering.config['combined_with'] appropriately.
+    """
+    db = SIMSConn()
+    db.execute("SELECT strm, class_nbr, sctn_combined_id FROM ps_sctn_cmbnd c WHERE c.strm IN %s "
+               " AND ("+extra_where+")", (import_semesters(),))
+
+    for k,v in itertools.groupby(db, lambda d: (d[0], d[2])):
+        # for each combined offering...
+        strm, _ = k
+        class_nbrs = [int(class_nbr) for _,class_nbr,_ in v]
+        offerings = CourseOffering.objects.filter(semester__name=strm, class_nbr__in=class_nbrs)
+        for offering in offerings:
+            offering.set_combined_with([o.slug for o in offerings if o != offering])
+            offering.save()
+
+
+@transaction.atomic
 def combine_sections(combined):
     """
     Combine sections in the database to co-offered courses look the same.
@@ -723,7 +783,7 @@ def combine_sections(combined):
         course.save()
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def give_sysadmin(sysadmin):
     """
     Give specified users sysadmin role (for bootstrapping)
@@ -735,7 +795,7 @@ def give_sysadmin(sysadmin):
             r = Role(person=p, role="SYSA", unit=Unit.objects.get(label="UNIV"))
             r.save()
 
-@transaction.commit_on_success
+@transaction.atomic
 def update_amaint_userids():
     """
     Refresh the AMAINT translation table
@@ -750,7 +810,7 @@ def update_amaint_userids():
         a.save()
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def update_all_userids():
     """
     Make sure everybody's userid is right.
@@ -817,7 +877,7 @@ def main():
     #offerings = import_offerings(extra_where="subject IN ('GEOG', 'EDUC') and strm='1124' and catalog_nbr LIKE '%%9%%'")
     #offerings = import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 470')")
     #offerings = import_offerings(extra_where="ct.subject='CMPT'")
-    offerings = import_offerings()
+    offerings = import_offerings(cancel_missing=True)
     offerings = list(offerings)
     offerings.sort()
 
@@ -831,6 +891,7 @@ def main():
         time.sleep(0.5)
 
     print "combining joint offerings"
+    import_combined()
     combine_sections(get_combined())
 
     print "giving sysadmin permissions"

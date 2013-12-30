@@ -2,7 +2,7 @@
 {% block title %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
 {% block h1 %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.browse_courses %}">Browse Course Offerings</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
 
 {% block headextra %}
 <link rel='stylesheet' type='text/css' href='{{MEDIA_URL}}fullcalendar/fullcalendar.css' />
@@ -32,8 +32,8 @@ function build_calendar(url, y, m ,d) {
 }
 $(document).ready(function() {
 	$('div.table_container').after('<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
-    more_course_info('{% url coredata.views.browse_courses_info course_slug=offering.slug %}?data=yes');
-    build_calendar('{% url coredata.views.browse_courses_info course_slug=offering.slug %}?caldata=yes',
+    more_course_info('{% url "coredata.views.browse_courses_info" course_slug=offering.slug %}?data=yes');
+    build_calendar('{% url "coredata.views.browse_courses_info" course_slug=offering.slug %}?caldata=yes',
         {{ offering.semester.start.year }}, {{ offering.semester.start.month }}, {{ offering.semester.start.day }});
 } );
 </script>
@@ -44,6 +44,7 @@ $(document).ready(function() {
   <tr><th class="ui-state-default">Campus</th><td>{{ offering.get_campus_display }}</td></tr>
   <tr><th class="ui-state-default">Enrolment</th><td>{{ offering.enrl_tot }} out of {{ offering.enrl_cap }}{% if offering.wait_tot %} ({{ offering.wait_tot }} on waitlist){% endif %} *</td></tr>
   <tr><th class="ui-state-default">WQB Designation</th><td>{{ offering.get_wqb_display }}</td></tr>
+  <tr><th class="ui-state-default">Class Number</th><td>{{ offering.class_nbr }}</td></tr>
 </tbody></table></div>
 <p class="helptext">* updated overnight only: see <a href="https://sis.sfu.ca/">SIS</a> for updated data.</p>
 

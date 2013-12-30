@@ -295,7 +295,7 @@ class GradImport(object):
         
         return person, external
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def process_grad(self, cortezid, sin, emplid, email, birthdate, gender,
                      english, mothertoungue, canadian, passport, visa, currentstatus, lastmod):
         """
@@ -395,7 +395,7 @@ class GradImport(object):
                 print row
                 raise
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def restore_new(self):
         for data in NEW_STATUSES:
             st = GradStatus(**data)

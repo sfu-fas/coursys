@@ -122,7 +122,7 @@ class NonStudentForm(ModelForm):
 class ArtifactForm(forms.ModelForm):
     class Meta:
         model = Artifact
-        exclude = ('config')
+        exclude = ('config',)
 
 
 class MergeStudentField(forms.Field):

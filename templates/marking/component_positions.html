@@ -63,7 +63,7 @@
 		  });
 		  		  
 		  $('#save_order').click(function(){
-		  	$.post("{% url marking.views.manage_component_positions course_slug=course.slug, activity_slug=activity.slug %}",
+		  	$.post("{% url "marking.views.manage_component_positions" course_slug=course.slug activity_slug=activity.slug %}",
 		  	 {'ids[]': comp_ids, 'csrfmiddlewaretoken': "{{csrf_token}}" }, 
 		  		function(data){
     			 alert(data);
@@ -82,8 +82,8 @@
 {% block marking_subbreadcrumbs %}<li>&gt; <a href="{{activity.get_absolute_url}}">{{activity.name}}</a></li><li>&gt; Marking Components</li>{% endblock %}
 {% block content %}
 <ul id="form_nav">
-    <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
-    <li class="current"><a href="{% url marking.views.manage_component_positions course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
+    <li><a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
+    <li class="current"><a href="{% url "marking.views.manage_component_positions" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
 </ul>
 <div class="datatable_container"> 
    <table class="display" id="component_positions">

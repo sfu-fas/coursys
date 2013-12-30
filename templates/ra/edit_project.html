@@ -5,13 +5,13 @@
 {% block h1 %}Edit Project{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
-<li>&gt; <a href="{% url ra.views.projects_index %}">Projects</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
+<li>&gt; <a href="{% url "ra.views.projects_index" %}">Projects</a></li>
 <li>&gt; Edit {{ project.project_number}}</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">
-  <form action="{% url ra.views.edit_project project_slug=project.slug %}" method="post">{% csrf_token %}
+  <form action="{% url "ra.views.edit_project" project_slug=project.slug %}" method="post">{% csrf_token %}
     <fieldset>
       <legend>Project Information</legend>
       {{ projectform|as_dl }}

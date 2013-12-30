@@ -5,7 +5,8 @@ from submission.models.code import SubmittedCode
 from submission.forms import *
 from grades.models import NumericActivity
 from coredata.tests import create_offering
-from settings import CAS_SERVER_URL
+from django.conf import settings
+CAS_SERVER_URL = settings.CAS_SERVER_URL
 from coredata.models import *
 from courselib.testing import *
 import gzip, tempfile, os
@@ -261,8 +262,7 @@ class SubmissionTest(TestCase):
         client.login_user("0aaa0")
         url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, '<input type="file" name="%i-code"' % (c.id))
-        
+
         # submit a file
         tmpf = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
         codecontents = 'print "Hello World!"\n'

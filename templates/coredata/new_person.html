@@ -3,12 +3,12 @@
 {% block title %}CourSys People{% endblock %}
 {% block h1 %}CourSys People{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; New Person</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; New Person</li>{% endblock %}
 
 {% block content %}
 <p>Note: All data except userid and emplid will be updated on nightly data imports, as long as the person has a role or is a member of a course. Values entered here are temporary.</p>
 <div class="form_container">
-<form action="{% url coredata.views.new_person %}" method="post">{% csrf_token %}
+<form action="{% url "coredata.views.new_person" %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>New Person</legend>
 {{ form|as_dl }}

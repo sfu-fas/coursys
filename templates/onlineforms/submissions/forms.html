@@ -30,11 +30,11 @@
     <h2 class="heading">Actions</h2>
     <ul>
     	{% if form_groups %}
-        <li><a href="{% url onlineforms.views.list_all %}">Create/Edit Forms</a></li>
-        <li><a href="{% url onlineforms.views.admin_list_all %}">Manage Submissions</a></li>
+        <li><a href="{% url "onlineforms.views.list_all" %}">Create/Edit Forms</a></li>
+        <li><a href="{% url "onlineforms.views.admin_list_all" %}">Manage Submissions</a></li>
         {% endif %}
     	{% if dept_admin %}
-        <li><a href="{% url onlineforms.views.manage_groups %}">Manage Form Groups</a></li>
+        <li><a href="{% url "onlineforms.views.manage_groups" %}">Manage Form Groups</a></li>
         {% endif %}
     </ul>
 </div>
@@ -57,7 +57,7 @@
         </thead>
         {% for sheet_sub in sheet_submissions %}
             <tr>
-                <td><a href="{% url onlineforms.views.sheet_submission_subsequent form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
+                <td><a href="{% url "onlineforms.views.sheet_submission_subsequent" form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
                 <td>{{ sheet_sub.form_submission.form.title }} (from {{ sheet_sub.form_submission.initiator.name }})</td>
                 <td><span class="sort">{{ sheet_sub.given_at.isoformat }}</span>{{ sheet_sub.given_at }}</td>
             </tr>
@@ -73,7 +73,7 @@
     {% if forms %}
         <ul>
             {% for form in forms %}
-            <li><a href="{% url onlineforms.views.sheet_submission_initial form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
+            <li><a href="{% url "onlineforms.views.sheet_submission_initial" form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
             {% endfor %}
         </ul>
     {% else %}
@@ -84,7 +84,7 @@
  	<p>These forms are also available if you log in with your SFU account:</p>
     <ul>
         {% for form in other_forms %}
-        <li><a href="{% url onlineforms.views.sheet_submission_initial form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
+        <li><a href="{% url "onlineforms.views.sheet_submission_initial" form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
         {% endfor %}
     </ul>
     {% endif %}

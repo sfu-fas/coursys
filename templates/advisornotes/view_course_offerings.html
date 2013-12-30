@@ -32,7 +32,7 @@ $(function() {
     <h2>Actions</h2>
     <ul>
         <li>
-            <a href="{% url advisornotes.views.view_all_semesters %}">View all semesters</a>
+            <a href="{% url "advisornotes.views.view_all_semesters" %}">View all semesters</a>
         </li>
     </ul>
 </div>
@@ -40,11 +40,11 @@ $(function() {
 
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
 {% if semesters %}
     <li>&gt; Course Offerings</li>
 {% else %}
-    <li>&gt; <a href="{% url advisornotes.views.view_course_offerings %}">Course Offerings</a></li>
+    <li>&gt; <a href="{% url "advisornotes.views.view_course_offerings" %}">Course Offerings</a></li>
     <li>&gt; {{ semester }}</li>
 {% endif %}
 {% endblock %}
@@ -71,7 +71,7 @@ $(function() {
             <td>{{ offering.subject }}</td>
             <td>{{ offering.number }}</td>
             <td>{{ offering.section }}</td>
-            <td><a href="{% url advisornotes.views.view_offering_notes course_slug=offering.slug %}">{{ offering.title }}</a></td>
+            <td><a href="{% url "advisornotes.views.view_offering_notes" course_slug=offering.slug %}">{{ offering.title }}</a></td>
             <td>{{ offering.get_component_display }}</td>
             {{ spaceless }}
             <td class="instructor">
@@ -113,7 +113,7 @@ $(function() {
             {% for semester in semesters %}
             <tr>
                 <td>{{ semester.name }}</td>
-                <td><a href="{% url advisornotes.views.view_course_offerings semester=semester.name %}">{{ semester }}</a></td>
+                <td><a href="{% url "advisornotes.views.view_course_offerings" semester=semester.name %}">{{ semester }}</a></td>
             </tr>
             {% endfor %}
         </tbody>

@@ -2,9 +2,9 @@
 {% load form_display course_display%}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li>&gt; <a href="{% url ta.views.all_contracts post_slug=posting.slug %}">Contracts</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.all_contracts" post_slug=posting.slug %}">Contracts</a></li>
 <li>&gt; {{ contract.application.person.name }}</li>
 {% endblock %}
 
@@ -15,9 +15,9 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid %}">Edit Contract</a></li>
-    <li><a href="{% url ta.views.view_form post_slug=contract.posting.slug userid=contract.application.person.userid %}">Appointment Form</a></li>
-    <li><a href="{% url ta.views.preview_offer post_slug=contract.posting.slug userid=contract.application.person.userid %}">Preview Offer</a></li>
+    <li><a href="{% url "ta.views.edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Edit Contract</a></li>
+    <li><a href="{% url "ta.views.view_form" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Appointment Form</a></li>
+    <li><a href="{% url "ta.views.preview_offer" post_slug=contract.posting.slug userid=contract.application.person.userid %}">Preview Offer</a></li>
     </ul>
 </div>
 {% endblock %}

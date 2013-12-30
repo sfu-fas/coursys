@@ -54,7 +54,7 @@ class DiscussionTopic(models.Model):
     last_activity_at = models.DateTimeField(auto_now_add=True)
     message_count = models.IntegerField(default=0)
     status = models.CharField(max_length=3, choices=TOPIC_STATUSES, default='OPN', help_text="The topic status: Closed: no replies allowed, Hidden: cannot be seen")
-    pinned = models.BooleanField(help_text="Should this topic be pinned to bring attention?")
+    pinned = models.BooleanField(default=False, help_text="Should this topic be pinned to bring attention?")
     author = models.ForeignKey(Member)
     def autoslug(self):
         return make_slug(self.title)

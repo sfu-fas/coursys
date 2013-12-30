@@ -5,8 +5,8 @@
 {% block h1 %}TA Applications for {{ posting }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>&gt; Applications</li>
 {% endblock %}
 
@@ -38,7 +38,7 @@
   <tbody>
   {% for app in applications %}
   <tr>
-  	<td><a href="{% url ta.views.view_application post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
+  	<td><a href="{% url "ta.views.view_application" post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
   	<td>{{ app.get_category_display }}</td>
   	<td>{{ app.base_units_assigned }}</td>
   	<td>{{ app.base_units }}</td>

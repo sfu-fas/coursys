@@ -3,7 +3,7 @@
 {% block title %}Dishonesty Cluster {{group.name}}{% endblock %}
 {% block h1 %}Dishonesty Cluster {{group.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Dishonesty Cases</a></li><li>&gt; Cluster {{group.name}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li>&gt; Cluster {{group.name}}</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -11,7 +11,7 @@
 <h2 id="members">Member cases:</h2>
 <ul>
 {% for case in group.disciplinecasebase_set.all %}
-<li><a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">{{case.subclass.student.sortname}}</a></li>
+<li><a href="{% url "discipline.views.show" course_slug=course.slug case_slug=case.slug %}">{{case.subclass.student.sortname}}</a></li>
 {% endfor %}
 </ul>
 {% endblock %}

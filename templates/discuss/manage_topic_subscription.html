@@ -4,9 +4,9 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Subscription to &ldquo;{{topic.title}}&rdquo;{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a></li>
-<li>&gt; <a href="{% url discuss.views.view_topic course_slug=course.slug topic_slug=topic.slug %}">{{ topic.title }}</a></li>
+<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
+<li>&gt; <a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">{{ topic.title }}</a></li>
 <li>&gt; Subscription</li>
 {% endblock %}
 

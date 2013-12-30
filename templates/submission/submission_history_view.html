@@ -4,7 +4,7 @@
 {% block title %}Submission History for {{activity.name}}{% endblock %}
 {% block h1 %}Submission History for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug %}">Submission</a></li><li>&gt; History</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; <a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission</a></li><li>&gt; History</li>{% endblock %}
 
 
 {% block content %}
@@ -27,7 +27,7 @@
                 <td>{{comp.0.title}}</td>
                 <td>
                     {% if comp.1 %}
-                        <img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug component_slug=comp.0.slug submission_id=submission.sub.id %}">Download File</a>
+                        <img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.0.slug submission_id=submission.sub.id %}">Download File</a>
                     {% else %}
                         &mdash;
                     {% endif %}

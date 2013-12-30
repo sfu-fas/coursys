@@ -17,7 +17,7 @@
 {% block h1 %}RA Quick Search{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
 <li>&gt; Quick Search</li>
 {% endblock %}
 
@@ -35,7 +35,7 @@
 		<tbody>
 			{% for p in people %}
 			<tr>
-				<td><a href="{% url ra.views.student_appointments userid=p.userid_or_emplid %}">{{p.last_name}}</a></td>
+				<td><a href="{% url "ra.views.student_appointments" userid=p.userid_or_emplid %}">{{p.last_name}}</a></td>
 				<td>{{p.first_name}}</td>
 				<td>{{p.emplid}}</td>
 				<td>{{p.ras}}</td>

@@ -16,8 +16,8 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, r
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
-    EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, \
-    AdminAssignForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
+    EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
+    AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
@@ -37,7 +37,7 @@ def manage_groups(request):
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_role('ADMN')
 def new_group(request):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
@@ -63,7 +63,7 @@ def new_group(request):
     return render(request, 'onlineforms/new_group.html', context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -89,7 +89,7 @@ def manage_group(request, formgroup_slug):
     return render(request, 'onlineforms/manage_group.html', context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -116,7 +116,7 @@ def add_group_member(request, formgroup_slug):
     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
@@ -179,7 +179,7 @@ def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
 def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=True)
 
-@transaction.commit_on_success
+@transaction.atomic
 def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     """
     Give a sheet on this formsubmission to a user
@@ -198,10 +198,9 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
 
     sheets = Sheet.objects.filter(form=form_submission.form, active=True)
     assign_args = {'data': request.POST or None,
-                    'label': 'sheet',
                     'query_set': sheets,
                     'initial': {'sheet': default_sheet}}
-    form = AdminAssignForm(**assign_args) if assign_to_sfu_account else AdminAssignForm_nonsfu(**assign_args)
+    form = AdminAssignSheetForm(**assign_args) if assign_to_sfu_account else AdminAssignSheetForm_nonsfu(**assign_args)
 
     if request.method == 'POST' and form.is_valid():
         if assign_to_sfu_account:
@@ -213,6 +212,10 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
         sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=formFiller)
+        if 'note' in form.cleaned_data and form.cleaned_data['note']:
+            sheet_submission.set_assign_note(form.cleaned_data['note'])
+            sheet_submission.save()
+
         # create an alternate URL, if necessary
         if not assign_to_sfu_account:
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
@@ -253,7 +256,7 @@ def admin_assign_any_nonsfu(request):
 def admin_assign_any(request, assign_to_sfu_account=True):
     return _admin_assign_any(request, assign_to_sfu_account=True)
 
-@transaction.commit_on_success
+@transaction.atomic
 def _admin_assign_any(request, assign_to_sfu_account=True):
     """
     Give a form('s initial sheet) to a user
@@ -261,10 +264,10 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
     admin = get_object_or_404(Person, userid=request.user.username)
 
     if assign_to_sfu_account:
-        form = AdminAssignForm(data=request.POST or None, label='form',
+        form = AdminAssignFormForm(data=request.POST or None,
             query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
     else:
-        form = AdminAssignForm_nonsfu(data=request.POST or None, label='form',
+        form = AdminAssignFormForm_nonsfu(data=request.POST or None,
             query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
 
     if request.method == 'POST' and form.is_valid():
@@ -301,7 +304,7 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
     context = {'form': form, 'assign_to_sfu_account': assign_to_sfu_account}
     return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_formgroup()
 def admin_change_owner(request, form_slug, formsubmit_slug):
     admin = get_object_or_404(Person, userid=request.user.username)
@@ -336,7 +339,7 @@ def admin_change_owner(request, form_slug, formsubmit_slug):
     return render(request, "onlineforms/admin/admin_change_owner.html", context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_formgroup()
 def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
     admin = get_object_or_404(Person, userid=request.user.username)
@@ -380,7 +383,7 @@ def _userToFormFiller(user):
 #######################################################################
 # Creating/editing forms
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_formgroup()
 def list_all(request):
     forms = Form.objects.filter(owner__in=request.formgroups, active=True)
@@ -403,7 +406,7 @@ def list_all(request):
     return render(request, 'onlineforms/manage_forms.html', context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_formgroup()
 def new_form(request):
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
@@ -447,7 +450,7 @@ def view_form(request, form_slug):
     return render(request, "onlineforms/view_form.html", context)       
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_form_admin_by_slug()
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -475,7 +478,7 @@ def edit_form(request, form_slug):
     return render(request, 'onlineforms/edit_form.html', context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_form_admin_by_slug()
 def new_sheet(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -514,7 +517,7 @@ def preview_sheet(request, form_slug, sheet_slug):
     context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
     return render(request, "onlineforms/preview_sheet.html", context)
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_form_admin_by_slug()
 def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -565,7 +568,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_form_admin_by_slug()
 def reorder_field(request, form_slug, sheet_slug):
     """
@@ -595,7 +598,7 @@ def reorder_field(request, form_slug, sheet_slug):
     return ForbiddenResponse(request)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_form_admin_by_slug()
 def edit_sheet_info(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -620,7 +623,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     return render(request, 'onlineforms/edit_sheet_info.html', context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_form_admin_by_slug()
 def new_field(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -706,7 +709,7 @@ def _clean_config(config):
     return clean_config
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @requires_form_admin_by_slug()
 def edit_field(request, form_slug, sheet_slug, field_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
@@ -875,7 +878,7 @@ def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
     return response
 
 
-@transaction.commit_on_success
+@transaction.atomic
 @login_required
 def view_submission(request, form_slug, formsubmit_slug):
     form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
@@ -924,6 +927,8 @@ def view_submission(request, form_slug, formsubmit_slug):
     else:
         close_form = None
 
+    can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
+    
     context = {
                'form': form_submission.form,
                'form_sub': form_submission,
@@ -932,6 +937,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                'formsubmit_slug': formsubmit_slug,
                'is_advisor': is_advisor,
                'can_admin': can_admin,
+               'can_advise': can_advise,
                'close_form': close_form,
                'waiting_sheets': waiting_sheets,
                }
@@ -949,7 +955,7 @@ def reject_sheet_via_url(request, secret_url):
     secret = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
     return _reject_sheet(request, secret.sheet_submission)
 
-@transaction.commit_on_success
+@transaction.atomic
 def _reject_sheet(request, sheetsub):
     if request.method != 'POST':
         return ForbiddenResponse(request)
@@ -1004,7 +1010,7 @@ def sheet_submission_subsequent(request, form_slug, formsubmit_slug, sheet_slug,
     return _sheet_submission(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug,
                              sheet_slug=sheet_slug, sheetsubmit_slug=sheetsubmit_slug)
 
-@transaction.commit_on_success
+@transaction.atomic
 def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
     this_path = request.get_full_path()

@@ -379,8 +379,7 @@ class Semester(models.Model):
     def range(cls, start, end):
         """
         Produce a list of semesters from start to end. 
-        >>> [x for x in Semester.range( '1121', '1137' )]
-        [ '1121', '1124', '1127', '1131', '1134', '1137' ]
+        Semester.range( '1134', '1147' ) == [ '1134', '1137', '1141', '1144', '1147' ]
 
         Will run forever or fail if the end semester is not a valid semester. 
         """
@@ -533,7 +532,7 @@ class CourseOffering(models.Model):
         help_text='Component of the offering, like "LEC" or "LAB"')
     instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P', db_index=True,
         help_text='The instructional mode of the offering')
-    graded = models.BooleanField()
+    graded = models.BooleanField(default=True)
     owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)
@@ -544,6 +543,7 @@ class CourseOffering(models.Model):
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
+    units = models.PositiveSmallIntegerField(null=True, help_text='The number of credits received by (most?) students in the course')
     course = models.ForeignKey(Course, null=False)
 
     # WQB requirement flags
@@ -558,21 +558,26 @@ class CourseOffering(models.Model):
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
+        # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
+        # 'combined_with': list of offerings this one is combined with (as CourseOffering.slug)
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
-                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
+                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
+                'instr_rw_svn': False, 'combined_with': ()}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
+    instr_rw_svn, set_instr_rw_svn = getter_setter('instr_rw_svn')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
+    combined_with, set_combined_with = getter_setter('combined_with')
     copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
@@ -795,28 +800,46 @@ class Member(models.Model):
         """
         Number of teaching credits this is worth, as a Fraction.
         """
+        return self.teaching_credit_with_reason()[0]
+
+    def teaching_credit_with_reason(self):
+        """
+        Number of teaching credits this is worth, as a Fraction, along with a short explanation for the value
+        """
         assert self.role=='INST' and self.added_reason=='AUTO' # we can only sensibly calculate this for SIMS instructors
 
         if 'teaching_credit' in self.config:
             # if manually set, then honour it
-            return fractions.Fraction(self.config['teaching_credit'])
+            return fractions.Fraction(self.config['teaching_credit']), 'set manually'
         elif self.offering.enrl_tot == 0:
             # no students => no teaching credit (probably a cancelled section we didn't catch on import)
-            return fractions.Fraction(0)
-        elif self.offering.instr_mode in ['CO', 'GI', 'DE']:
+            return fractions.Fraction(0), 'empty section'
+        elif self.offering.instr_mode == 'DE':
+            # No credit for distance-ed supervision
+            return fractions.Fraction(0), 'distance ed'
+        elif self.offering.instr_mode in ['CO', 'GI']:
             # No credit for co-op, grad-internship, distance-ed supervision
-            return fractions.Fraction(0)
+            return fractions.Fraction(0), 'co-op'
         elif MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() == 0:
             # no lectures probably means directed studies or similar
-            return fractions.Fraction(0)
+            return fractions.Fraction(0), 'no scheduled lectures'
         else:
-            # now probably a real offering: split the credit among the (real SIMS) instructors
+            # now probably a real offering: split the credit among the (real SIMS) instructors and across joint offerings
+            joint_with = len(self.offering.combined_with()) + 1
             n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
-            if n_instr == 0:
-                # n_instr shouldn't be zero if we passed the assert entering the function, but juuuuust in case
-                return fractions.Fraction(1)
-            else:
-                return fractions.Fraction(1, n_instr) # * number of credits students get / 3?
+            credits = fractions.Fraction(1)
+            reasons = []
+            if n_instr > 1:
+                credits /= n_instr
+                reasons.append('%i instructors' % (n_instr))
+            if joint_with > 1:
+                credits /= joint_with
+                reasons.append('joint with %i other' % (joint_with-1))
+            if self.offering.units is not None and self.offering.units != 3:
+                # TODO: is this consistent with other units on campus? Do some have a different default credit count?
+                credits *= fractions.Fraction(self.offering.units, 3)
+                reasons.append('%i unit course' % (self.offering.units))
+            return credits, ', '.join(reasons)
 
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
@@ -869,7 +892,7 @@ class MeetingTime(models.Model):
     start_day = models.DateField(null=False, help_text='Starting day of the meeting')
     end_day = models.DateField(null=False, help_text='Ending day of the meeting')
     room = models.CharField(max_length=20, help_text='Room (or other location) for the meeting')
-    exam = models.BooleanField() # unused: use meeting_type instead
+    exam = models.BooleanField(default=False) # unused: use meeting_type instead
     meeting_type = models.CharField(max_length=4, choices=MEETINGTYPE_CHOICES, default="LEC")
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".  None/blank for the non lab/tutorial events.')

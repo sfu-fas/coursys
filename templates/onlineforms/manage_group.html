@@ -5,8 +5,8 @@
 {% block h1 %}Edit {{ group.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.manage_groups %}">Form Groups</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li>&gt; <a href="{% url "onlineforms.views.manage_groups" %}">Form Groups</a></li>
 <li>&gt; Edit {{ group.name }}</li>
 {% endblock %}
 
@@ -37,7 +37,7 @@ $(document).ready(function() {
 
 {% block content %}
 <div style="clear: left;">
-	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">
+	<form action="{% url "onlineforms.views.manage_group" formgroup_slug=group.slug %}" method="post">
 		{% csrf_token %}
 		 <fieldset style="width: 65%">
             <legend>Group Information</legend>
@@ -70,7 +70,7 @@ $(document).ready(function() {
                 <td>{{ member.person.sortname }}</td>
                 <td>{{ member.email|yesno }}</td>
                 <td class="miniaction"> 
-                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.person.emplid %}" method="post">{% csrf_token %}
+                    <form action="{% url "onlineforms.views.remove_group_member" formgroup_slug=group.slug userid=member.person.emplid %}" method="post">{% csrf_token %}
                         <div>
                             <input type="hidden" name="action" value="remove"/>
                             <input type="submit" value="remove"/>
@@ -88,7 +88,7 @@ $(document).ready(function() {
 <div>
     <fieldset style="width: 65%">
         <legend>Add Member</legend>
-        <form action="{% url onlineforms.views.add_group_member formgroup_slug=group.slug %}" method="post">{% csrf_token %}
+        <form action="{% url "onlineforms.views.add_group_member" formgroup_slug=group.slug %}" method="post">{% csrf_token %}
             <ul>
                 <li>{{ search|as_dl }}</li>
                 <li><input type="hidden" name="action" value="add" /></li>

@@ -14,8 +14,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
 <li>&gt; TA Applications for {{posting.short_str}} </li> 
 {% endblock %}
 
@@ -36,7 +36,7 @@
 
   <h3>General Information:</h3>
   {% if application.late %}
-    <p>This application was submitted late.  <a href="{% url ta.views.update_application post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
+    <p>This application was submitted late.  <a href="{% url "ta.views.update_application" post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
   {% endif %}
   <table class="info">
     <tr><th>Name</th><td>{{ application.person.name }} ({{application.person.email_mailto}})</td></tr>

@@ -1,5 +1,5 @@
 Dear {{assignee}}, 
 
-{{ username }} has assigned a sheet for your completion as part of an online form submission.
+{{ username }} has assigned a sheet for your completion as part of an online form submission{% if sheetsub.assign_note %}, with the note "{{ sheetsub.assign_note }}"{% endif %}.
 
 You can access it at {{ sheeturl }}.

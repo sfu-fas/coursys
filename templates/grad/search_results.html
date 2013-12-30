@@ -6,7 +6,7 @@
 <script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript">
-var self_url = "{% filter escapejs %}{% url grad.views.search %}{% endfilter %}";
+var self_url = "{% filter escapejs %}{% url "grad.views.search" %}{% endfilter %}";
 var query_string = "{{query_string|escapejs}}";
 var table;
 {% if sort %}
@@ -40,8 +40,8 @@ width: 120px;
 {% block h1 %}Grad Student Search Results{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.search %}">Search</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.search" %}">Search</a></li>
 <li>&gt; Results</li>
 {% endblock %}
 
@@ -49,25 +49,25 @@ width: 120px;
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
-	<li><a href="{% url grad.views.search %}?{{query_string}}&amp;csv=yes" id="csvlink">Export as CSV</a></li>
-	<li><a href="{% url grad.views.search %}?{{query_string}}&amp;excel=yes" id="excellink">Export as Excel</a></li>
+	<li><a href="{% url "grad.views.search" %}?{{query_string}}&amp;csv=yes" id="csvlink">Export as CSV</a></li>
+	<li><a href="{% url "grad.views.search" %}?{{query_string}}&amp;excel=yes" id="excellink">Export as Excel</a></li>
 	</ul>
 </div>
 {% endblock %}
 
 {% block content %}
 
-<form id="searchform" action="{% url grad.views.save_search %}" method="post" class="noprint">{% csrf_token %}
+<form id="searchform" action="{% url "grad.views.save_search" %}" method="post" class="noprint">{% csrf_token %}
 <p>
 {{ saveform.person }}{{ saveform.query }}{{ saveform.name.label }} {{ saveform.name }}
 
 <input id="submitbutton" type="submit" value="{% if saveform.instance.pk %}Save As{% else %}Save{% endif %}" />
 {% if saveform.instance.pk %}
-<input id="deletebutton" type="submit" value="Delete" formaction="{% url grad.views.delete_savedsearch %}" />
+<input id="deletebutton" type="submit" value="Delete" formaction="{% url "grad.views.delete_savedsearch" %}" />
 {% endif %}
 </p>
 </form>
-<p><a href="{% url grad.views.search %}?{{query_string}}&amp;edit_search=yes" class="redbutton" id="editlink">Modify this search</a></p>
+<p><a href="{% url "grad.views.search" %}?{{query_string}}&amp;edit_search=yes" class="redbutton" id="editlink">Modify this search</a></p>
 
 <div class="datatable_container">
 	<table class="display" id="grads">
@@ -85,7 +85,7 @@ width: 120px;
             {% for c in columns %}
                 <td>{{s|getattribute:c}}</td>
             {% endfor %}
-                <td class="noprint"><a href="{% url grad.views.view grad_slug=s.slug %}">View</a></td>
+                <td class="noprint"><a href="{% url "grad.views.view" grad_slug=s.slug %}">View</a></td>
             </tr>
 			{% endfor %}
 		</tbody>
@@ -93,7 +93,7 @@ width: 120px;
 </div>
 
 <p>	Forms for these students:
-<a href="{% url grad.views.search %}?{{query_string}}&amp;cardforms=yes">Card Access Forms</a>
-{% if uses_fasnet %}| <a href="{% url grad.views.search %}?{{query_string}}&amp;fasnetforms=yes">FASnet Account Forms</a>{% endif %}
+<a href="{% url "grad.views.search" %}?{{query_string}}&amp;cardforms=yes">Card Access Forms</a>
+{% if uses_fasnet %}| <a href="{% url "grad.views.search" %}?{{query_string}}&amp;fasnetforms=yes">FASnet Account Forms</a>{% endif %}
 </p>
 {% endblock %} 

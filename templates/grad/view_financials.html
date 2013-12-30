@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load markup %}
 
 {% block title %}Financial Summary for {{grad.person.name}}{% endblock %}
 {% block h1 %}Financial Summary for {{grad.person.name}}{% endblock %}
@@ -106,8 +105,8 @@ table#financial td.programchange {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; Financial Summary</li>
 {% endblock %}
 

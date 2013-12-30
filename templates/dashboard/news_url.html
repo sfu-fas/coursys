@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% load markup %}
 
 {% block title %}Activate External News Feed{% endblock %}
 {% block h1 %}Activate External News Feed{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.config %}">User Configuration</a></li><li>&gt; News URL</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.config" %}">User Configuration</a></li><li>&gt; News URL</li>{% endblock %}
 
 {% block content %}
 
@@ -18,7 +17,7 @@ Activating the external news feed may cause privacy concerns.  You will be given
 <li>Your feed can be deactivated or be moved to a different URL at any time.</li>
 </ul>
 
-<form action="{% url dashboard.views.create_news_url %}" method="post">{% csrf_token %}
+<form action="{% url "dashboard.views.create_news_url" %}" method="post">{% csrf_token %}
     {% for field in form.visible_fields %}
         <div class="field">
             {{ field }} I agree to activate the external news feed and be responsible for its privacy.

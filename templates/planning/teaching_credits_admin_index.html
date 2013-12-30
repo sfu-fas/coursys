@@ -38,7 +38,7 @@
         <tbody>
             {% for instructor in instructors %}
             <tr>
-                <td><a href="{% url planning.views.view_teaching_credits_admin userid=instructor.userid %}">{{ instructor}}</a></td>
+                <td><a href="{% url "planning.views.view_teaching_credits_admin" userid=instructor.userid %}">{{ instructor}}</a></td>
                 <td>{{ instructor.userid }}</td>
                 <td>{{ instructor.emplid }}</td>
                 <td>{{ instructor|unconfirmed_count }}</td>

@@ -3,7 +3,7 @@
 {% block title %}CourSys: Assignment Submission{% endblock %}
 {% block h1 %}CourSys: Assignment Submission{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Submission</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>&gt; Submission</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -39,16 +39,16 @@ Students submit by visiting the same page you visit to configure submission.
 </p>
 {% if activity %}
 <p>For example, in your {{course.name}} course, students will submit {{activity.name}} at this URL:</p>
-<blockquote><p><a href="{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}">{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}</a></p></blockquote>
+<blockquote><p><a href="{{BASE_ABS_URL}}{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">{{BASE_ABS_URL}}{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}</a></p></blockquote>
 {% else %}{% if course %}
 <p>For example, in your {{course.name}} course, if you create an activity &ldquo;Assignment 1&rdquo;, students would submit at a URL like this:</p>
-<blockquote><p>{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=course.slug activity_slug='assign1' %}</p></blockquote>
+<blockquote><p>{{BASE_ABS_URL}}{% url "submission.views.show_components" course_slug=course.slug activity_slug='assign1' %}</p></blockquote>
 {% else %}
 <p>For example, in a course CMPT&nbsp;001, students would submit their first assignment at a URL like this:</p>
-<blockquote><p>{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=cslug activity_slug='assign1' %}</p></blockquote>
+<blockquote><p>{{BASE_ABS_URL}}{% url "submission.views.show_components" course_slug=cslug activity_slug='assign1' %}</p></blockquote>
 {% endif %}
 {% endif %}
-<p>To see the student's view of submission, instructors can use <a href="{% url dashboard.views.view_doc doc_slug="impersonate" %}">the impersonation feature</a>.</p>
+<p>To see the student's view of submission, instructors can use <a href="{% url "dashboard.views.view_doc" doc_slug="impersonate" %}">the impersonation feature</a>.</p>
 <p>Students will be able to see their submissions to confirm that they are in the system.  For group activities, students will also be able to see submissions made by other group members on their behalf.</p>
 <h2 id="other">Resubmitting and Late Submissions</h2>
 <p>Students can resubmit as many times as they wish.  Their latest submission is used to calculate how &ldquo;late&rdquo; their work is.  Instructors can see the full submission history by clicking &ldquo;View History&rdquo; on the page with details of the student's submission.</p>

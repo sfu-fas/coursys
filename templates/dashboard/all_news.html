@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load markup %}
 
 {% block title %}All News{% endblock %}
 {% block h1 %}All News{% endblock %}
@@ -10,7 +9,7 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url dashboard.views.config %}">Configure external news feed</a></li>
+<li><a href="{% url "dashboard.views.config" %}">Configure external news feed</a></li>
 </ul>
 </div>
 {% endblock %}

@@ -12,7 +12,7 @@
 <script type="text/javascript">
 //<![CDATA[
 var datatable;
-var RAURL = '{% url ra.views.view ra_slug="RASLUG" %}'
+var RAURL = '{% url "ra.views.view" ra_slug="RASLUG" %}'
 
 function update_table() {
 	console.log()
@@ -21,7 +21,7 @@ function update_table() {
 	qs += '&account=' + encodeURIComponent($('#id_account').val());
 	qs += '&project=' + encodeURIComponent($('#id_project').val());
 	$.ajax({
-		url: '{% url ra.views.browse %}' + qs,
+		url: '{% url "ra.views.browse" %}' + qs,
 		success: function(data) {
 			datatable.fnClearTable();
 			if(data.truncated) {
@@ -69,7 +69,7 @@ $(document).ready(function() {
 });
 //]]></script>{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li>
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "ra.views.search" %}">RA Appointments</a></li>
 <li>&gt; Browse</li>{% endblock %}
 
 {% block actions %}

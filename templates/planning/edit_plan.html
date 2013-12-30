@@ -2,7 +2,6 @@
 {% load form_display %}
 
 
-{% load markup %}
 
 {% block title %}Edit Course Plan - {{ plan.name }}{% endblock %}
 {% block h1 %}Edit Course Plan &mdash; {{ plan.name }}{% endblock %}
@@ -16,8 +15,8 @@ function confirmDelete() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
-    <li>&gt; <a href="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }} in {{ plan.semester.label }}</a></li>
+    <li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+    <li>&gt; <a href="{% url "planning.views.update_plan" semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }} in {{ plan.semester.label }}</a></li>
     <li>&gt; Edit Course Plan</li>
 {% endblock %}
 
@@ -26,7 +25,7 @@ function confirmDelete() {
 
 {% block content %}
 <div class="form_container">
-    <form action="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.edit_plan" semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Plan Information</legend>
             {{form|as_dl}}
@@ -35,7 +34,7 @@ function confirmDelete() {
     </form>
 </div>
 <div id="form_delete_container">
-    <form action="{% url planning.views.delete_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.delete_plan" semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Delete Plan</legend>
             <div><input class="submit" type="submit" value="Delete Plan" onclick="return confirmDelete();" /></div>

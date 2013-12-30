@@ -19,8 +19,8 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
-<li>&gt; <a href="{% url advisornotes.views.view_course_offerings %}">Course Offerings</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li>&gt; <a href="{% url "advisornotes.views.view_course_offerings" %}">Course Offerings</a></li>
 <li>&gt; All Semesters</li>
 {% endblock %}
 
@@ -41,7 +41,7 @@ $(function() {
             {% for semester in semesters %}
             <tr>
                 <td>{{ semester.name }}</td>
-                <td><a href="{% url advisornotes.views.view_course_offerings semester=semester.name %}">{{ semester }}</a></td>
+                <td><a href="{% url "advisornotes.views.view_course_offerings" semester=semester.name %}">{{ semester }}</a></td>
             </tr>
             {% endfor %}
         </tbody>

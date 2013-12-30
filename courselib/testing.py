@@ -1,18 +1,19 @@
 import os
-from lxml import etree
 import urllib
+import html5lib
 from django.core.urlresolvers import reverse
 
 # course with the test data
-TEST_COURSE_SLUG = '2013fa-cmpt-165-d1'
+TEST_COURSE_SLUG = '2014sp-cmpt-165-c1'
 
-def validate_content(testcase, data, page_descr="unknown page"):
+def validate_content_xhtml(testcase, data, page_descr="unknown page"):
     """
     Validate data as XHTML 1.0 (strict).
     
     testcase should be a unittest.TestCase object (or similar).
     page_descr should be a human-readable description of the page being tested.
     """
+    from lxml import etree
     # force use of local copy of DTD
     dtdpath = os.path.join(os.getcwd(), "courselib", "dtd", "xhtml1-strict.dtd")
     dtdpath = dtdpath.replace("\\", "/")
@@ -33,6 +34,24 @@ def validate_content(testcase, data, page_descr="unknown page"):
         fh.write(data)
         fh.close()
         testcase.fail("Invalid XHTML produced in %s:\n  %s" % (page_descr, str(e)))
+
+
+def validate_content(testcase, data, page_descr="unknown page"):
+    """
+    Validate data as HTML5.
+
+    testcase should be a unittest.TestCase object (or similar).
+    page_descr should be a human-readable description of the page being tested.
+    """
+    parser = html5lib.HTMLParser(tree=html5lib.treebuilders.getTreeBuilder("dom"))
+    parser.parse(data)
+    if parser.errors:
+        fh = open("tmp-validation.html", "w")
+        fh.write(data)
+        fh.close()
+        testcase.fail("Invalid XHTML produced in %s:\n  %s" % (page_descr, str(parser.errors)))
+
+
 
 def basic_page_tests(testcase, client, url, check_valid=True):
     """

@@ -4,7 +4,7 @@
 {% block title %}Edit Semester Teaching Intention{% endblock %}
 {% block h1 %}Edit Semester Teaching Intention{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Semester Teaching Intentions</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "planning.views.instructor_index" %}">Teaching Preferences</a></li><li>&gt; Semester Teaching Intentions</li>{% endblock %}
 
 {% block content %}
 
@@ -28,7 +28,7 @@
 				<td>{{ intention.semester.label }}</td>
 				<td>{{ intention.count }}</td>
 				<td>{{ intention.note|linebreaks }}</td>
-				<td><a href="{% url planning.views.delete_intention semester=intention.semester.name %}">Remove</a></td>
+				<td><a href="{% url "planning.views.delete_intention" semester=intention.semester.name %}">Remove</a></td>
 			</tr>
 			{%endfor%}
 	    </tbody>
@@ -40,7 +40,7 @@
 
 
 <div class="form_container">
-    <form action="{% url planning.views.edit_intention %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.edit_intention" %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add Semester Teaching Intention</legend>
 

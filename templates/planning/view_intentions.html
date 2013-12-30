@@ -31,13 +31,13 @@ function confirmDelete() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url planning.views.planner_create_intention %}">Add a Teaching Intention</a></li>
+        <li><a href="{% url "planning.views.planner_create_intention" %}">Add a Teaching Intention</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
 <li>&gt; Semester Teaching Intentions</li>
 {% endblock %}
 
@@ -72,8 +72,8 @@ function confirmDelete() {
 			                    {% endif %}
 							</td>
 							<td>
-								<a href="{% url planning.views.planner_edit_intention semester=semester.name userid=i.instructor.userid %}">Edit</a> |
-								<a onclick="return confirmDelete();" href="{% url planning.views.planner_delete_intention semester=semester.name userid=i.instructor.userid %}">Remove</a>
+								<a href="{% url "planning.views.planner_edit_intention" semester=semester.name userid=i.instructor.userid %}">Edit</a> |
+								<a onclick="return confirmDelete();" href="{% url "planning.views.planner_delete_intention" semester=semester.name userid=i.instructor.userid %}">Remove</a>
 							</td>
 						</tr>
 					{% endfor %}
@@ -87,7 +87,7 @@ function confirmDelete() {
     {% if semesters %}
         <h2>All Semesters</h2>
         {% for semester in semesters %}
-        <h3><a href="{% url planning.views.view_semester_intentions semester=semester.name %}">{{ semester }}</a></h3>
+        <h3><a href="{% url "planning.views.view_semester_intentions" semester=semester.name %}">{{ semester }}</a></h3>
         {% endfor %}
     {% endif %}
 </div>	

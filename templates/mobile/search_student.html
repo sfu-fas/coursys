@@ -7,10 +7,10 @@
 {%endcomment%}
 {% block content%}
 
-<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url "mobile.views.course_info" course_slug=course.slug %}">back</a>
 
 <div id ="search">
-  <form action="{% url mobile.views.student_search course_slug=course.slug %}" method="get">
+  <form action="{% url "mobile.views.student_search" course_slug=course.slug %}" method="get">
   Search Student: <input type="text" name="q" />
   <input type="submit" value="Search" />
 </form>
@@ -21,7 +21,7 @@
     {%if student_list%}
         {% for member in student_list %}
         <div>
-            <h2><a href ="{% url mobile.views.student_info course_slug=course.slug userid=member.person.userid %}">{{member.person.userid}}</a></h2>
+            <h2><a href ="{% url "mobile.views.student_info" course_slug=course.slug userid=member.person.userid %}">{{member.person.userid}}</a></h2>
                 Name:{{member.person.first_name}} {{member.person.last_name}}<br>
                 student ID: {{member.person.emplid}}
         </div>
@@ -31,7 +31,7 @@
     {% endif %}
     
 </div>
-<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url "mobile.views.course_info" course_slug=course.slug %}">back</a>
 {% endblock %}
 
 {% block standardview %}{% endblock %}

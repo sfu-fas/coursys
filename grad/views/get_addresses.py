@@ -18,6 +18,6 @@ def get_addresses(request):
     except SIMSProblem as e:
         data = {'error': e.message}
         
-    resp = HttpResponse(mimetype="application/json")
+    resp = HttpResponse(content_type="application/json")
     json.dump(data, resp, indent=1)
     return resp

@@ -26,7 +26,7 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+    <li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
     <li>&gt; Admin Forms</li>
 {% endblock %}
 
@@ -34,7 +34,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url onlineforms.views.admin_assign_any %}">Assign Form</a></li>
+        <li><a href="{% url "onlineforms.views.admin_assign_any" %}">Assign Form</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -55,7 +55,7 @@
             {% for form_sub in pend_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
-                    <td><a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                    <td><a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                     <td><span class="sort">{{ form_sub.last_sheet_completion.isoformat }}</span>{{ form_sub.last_sheet_completion }}</td>
                 </tr>
               {% endfor %}
@@ -81,7 +81,7 @@
             {% for form_sub in wait_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
-                    <td><a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
+                    <td><a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
                     <td>{{ form_sub.assigned_to.sheet.title }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
                     <td><span class="sort">{{ form_sub.assigned_to.given_at.isoformat }}</span>{{ form_sub.assigned_to.given_at|timesince }}</td>
@@ -111,7 +111,7 @@
                     <td>{{ form_sub.initiator }}</td>
                     <td><span class="sort">{{ form_sub.completed_at.isoformat }}</span>{{ form_sub.completed_at }}</td>
                     <td>
-                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
+                        <a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
                     </td>
                 </tr>
               {% endfor %}

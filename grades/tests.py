@@ -1,14 +1,16 @@
 from django.test import TestCase
-from grades.formulas import *
-from grades.models import *
-from grades.utils import *
-from coredata.models import *
+from grades.formulas import parse, cols_used, eval_parse, EvalException, ParseException
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, \
+    NumericGrade, LetterGrade, GradeHistory, all_activities_filter, ACTIVITY_STATUS, sorted_letters, median_letters
+from grades.utils import activities_dictionary, generate_grade_range_stat
+from coredata.models import Person, Member, CourseOffering
 from submission.models import StudentSubmission
 from coredata.tests import create_offering
-import pickle, re
+import pickle, datetime, decimal
 
 
-from settings import CAS_SERVER_URL
+from django.conf import settings
+CAS_SERVER_URL = settings.CAS_SERVER_URL
 from courselib.testing import *
 
 # TODO: test activity modifiers ([A1.max], [A1.percent], [A1.final])
@@ -53,15 +55,15 @@ class GradesTest(TestCase):
         a = NumericActivity(name="Paragraph", short_name=u"\u00b6", status="RLS", offering=c, position=3, max_grade=40, percent=5)
         a.save()
         g = NumericGrade(activity=a, member=m, value="4.5", flag="CALC")
-        g.save()
+        g.save(entered_by='ggbaker')
         a1 = NumericActivity(name="Assignment #1", short_name="A1", status="RLS", offering=c, position=1, max_grade=15, percent=10)
         a1.save()
         g = NumericGrade(activity=a1, member=m, value=10, flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         a2 = NumericActivity(name="Assignment #2", short_name="A2", status="URLS", offering=c, position=2, max_grade=40, percent=20)
-        a2.save()
+        a2.save(entered_by='ggbaker')
         g = NumericGrade(activity=a2, member=m, value=30, flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         
         ca = CalNumericActivity(name="Final Grade", short_name=u"FG", status="RLS", offering=c, position=4, max_grade=1)
         ca.save()
@@ -120,9 +122,9 @@ class GradesTest(TestCase):
         
         # explicit no grade (relased assignment)
         g.flag="NOGR"
-        g.save()
+        g.save(entered_by='ggbaker')
         a2.status='RLS'
-        a2.save()
+        a2.save(entered_by='ggbaker')
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
         res = eval_parse(tree, ca, act_dict, m, True)
@@ -340,14 +342,14 @@ class GradesTest(TestCase):
         submit_dict['due_date_0'] = str(a.due_date.date())
         submit_dict['group'] = '0'
         g = NumericGrade(activity=a, member=m, value=2, flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         response = client.post(url, submit_dict)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, "grades have already been given")
         
         # try with a submission in the system
         g.flag = "NOGR"
-        g.save()
+        g.save(entered_by='ggbaker')
         s = StudentSubmission(activity=a, member=m)
         s.save()
         response = client.post(url, submit_dict)
@@ -421,35 +423,35 @@ class GradesTest(TestCase):
             ms.append(m)
         
         g = LetterGrade(activity=a, member=ms[0], letter_grade="B+", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[1], letter_grade="A", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[2], letter_grade="D", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[3], letter_grade="B-", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[4], letter_grade="B", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[5], letter_grade="A+", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[6], letter_grade="F", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[7], letter_grade="DE", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[8], letter_grade="C-", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[9], letter_grade="N", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[10], letter_grade="N", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[11], letter_grade="P", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[12], letter_grade="GN", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[13], letter_grade="N", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[14], letter_grade="A", flag="GRAD")
-        g.save()
+        g.save(entered_by='ggbaker')
         
         g_objs = LetterGrade.objects.filter(activity=a)
         gs = [g.letter_grade for g in g_objs]
@@ -530,7 +532,65 @@ class GradesTest(TestCase):
         # replace with a different type
         a = LetterActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False, position=3)
         a.save()
-        
+
+
+    def test_grade_assign(self):
+        """
+        Test various grade-assigning frontend interactions.
+        """
+        client = Client()
+        client.login_user("ggbaker")
+
+        o = CourseOffering.objects.get(slug=self.course_slug)
+        a = Activity.objects.get(offering=o, slug='a1')
+        m = Member.objects.get(offering=o, person__userid='0aaa0')
+
+        # grade status form
+        url = reverse('marking.views.change_grade_status', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        response = basic_page_tests(self, client, url)
+        response = client.post(url, {'grade-status-value': '6', 'grade-status-flag': 'DISH', 'grade-status-comment': 'the comment'})
+        self.assertEquals(response.status_code, 302)
+
+        ng = NumericGrade.objects.get(member=m, activity=a)
+        self.assertEquals(ng.value, 6)
+        self.assertEquals(ng.flag, 'DISH')
+        self.assertEquals(ng.comment, 'the comment')
+
+        # grade all students
+        url = reverse('marking.views.mark_all_students', kwargs={'course_slug': o.slug, 'activity_slug': a.slug})
+        response = basic_page_tests(self, client, url)
+        response = client.post(url, {'0aaa0-value': '7', '0aaa1-value': '8'})
+        self.assertEquals(response.status_code, 302)
+
+        ng = NumericGrade.objects.get(member=m, activity=a)
+        self.assertEquals(ng.value, 7)
+        self.assertEquals(ng.flag, 'GRAD')
+        ng = NumericGrade.objects.get(member__person__userid='0aaa1', activity=a)
+        self.assertEquals(ng.value, 8)
+        self.assertEquals(ng.flag, 'GRAD')
+
+        # detailed marking
+        url = reverse('marking.views.marking_student', kwargs={'course_slug': o.slug, 'activity_slug': a.slug, 'userid': m.person.userid})
+        response = basic_page_tests(self, client, url)
+        response = client.post(url, {'cmp-1-value': '2', 'cmp-1-comment': 'comment1', 'cmp-2-value': '3', 'cmp-2-comment': 'comment2',
+                                     'late_penalty': '0', 'mark_adjustment': '0'})
+        self.assertEquals(response.status_code, 302)
+        ng = NumericGrade.objects.get(member=m, activity=a)
+        self.assertEquals(ng.value, 5)
+        self.assertEquals(ng.flag, 'GRAD')
+
+        # student summary page
+        url = reverse('grades.views.student_info', kwargs={'course_slug': o.slug, 'userid': m.person.userid})
+        response = basic_page_tests(self, client, url)
+
+        # check GradeHistory objects
+        ghs = GradeHistory.objects.filter(activity=a, member=m)
+        self.assertEquals(ghs.count(), 3)
+
+
+
+
+
         
         
         

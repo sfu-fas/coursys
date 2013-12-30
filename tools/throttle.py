@@ -30,7 +30,7 @@ class CacheThrottler(object):
 
         key = self.request_key(request)
         if cache.get(key):
-            return HttpResponseForbidden("Slow down.", mimetype="text/plain")
+            return HttpResponseForbidden("Slow down.", content_type="text/plain")
         cache.set(key, True, THROTTLE_TIME)
 
     def process_response(self, request, response):

@@ -16,7 +16,7 @@
 </head> 
 
 <body>
-<div id="sysmenu" style="">{% if user %}Logged in as <strong>{{user.username}}</strong>. {% endif %}<a href="{% url auth_logout_next "/m/" %}">Logout</a></div>
+<div id="sysmenu" style="">{% if user %}Logged in as <strong>{{user.username}}</strong>. {% endif %}<a href="{% url "auth_logout_next" "/m/" %}">Logout</a></div>
 <div id="absWrapper">
 <div id="container">
     <div id="header"></div>

@@ -3,7 +3,9 @@ Created on Jan 27, 2012
 
 @author: jord
 '''
-from django.forms.forms import BoundField, conditional_escape, force_unicode, mark_safe
+from django.forms.forms import BoundField, conditional_escape
+from django.utils.safestring import mark_safe
+from django.utils.encoding import force_unicode
 
 def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, errors_on_separate_row,
         extra_css_class_attr = "manual_css_classes"):

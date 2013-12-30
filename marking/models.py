@@ -3,7 +3,7 @@ from django.db import models, IntegrityError, transaction
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
-from grades.models import all_activities_filter, neaten_activity_positions
+from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester, Member
 from groups.models import Group, GroupMember
@@ -115,6 +115,10 @@ class ActivityMark(models.Model):
         return -self.mark_adjustment
     def setMark(self, grade):
         self.mark = grade
+        if not self.id:
+            # ActivityMark must be saved before we can create GradeHistory objects: that is done in [subclasses].save()
+            self.save()
+        
     def attachment_filename(self):
         """
         Return the filename only (no path) for the attachment.
@@ -136,14 +140,14 @@ class StudentActivityMark(ActivityMark):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.numeric_grade.activity.offering.slug, 'activity_slug': self.numeric_grade.activity.slug, 'userid': self.numeric_grade.member.person.userid})
       
-    def setMark(self, grade):
+    def setMark(self, grade, entered_by):
         """         
         Set the mark
         """
         super(StudentActivityMark, self).setMark(grade)       
         self.numeric_grade.value = grade
         self.numeric_grade.flag = 'GRAD'
-        self.numeric_grade.save()            
+        self.numeric_grade.save(entered_by=entered_by, mark=self)            
         
         
 class GroupActivityMark(ActivityMark):
@@ -158,13 +162,14 @@ class GroupActivityMark(ActivityMark):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
     
-    def setMark(self, grade):
+    def setMark(self, grade, entered_by, details=True):
         """         
         Set the mark of the group members
         """
         super(GroupActivityMark, self).setMark(grade)
         #assign mark for each member in the group
         group_members = GroupMember.objects.filter(group=self.group, activity=self.numeric_activity, confirmed=True)
+        entered_by = get_entry_person(entered_by)
         for g_member in group_members:
             try:            
                 ngrade = NumericGrade.objects.get(activity=self.numeric_activity, member=g_member.student)
@@ -172,7 +177,11 @@ class GroupActivityMark(ActivityMark):
                 ngrade = NumericGrade(activity=self.numeric_activity, member=g_member.student)
             ngrade.value = grade
             ngrade.flag = 'GRAD'
-            ngrade.save()            
+            if details:
+                ngrade.save(entered_by=entered_by, mark=self, group=self.group)
+            else:
+                # this is just a placeholder for a number-only mark
+                ngrade.save(entered_by=entered_by, mark=None, group=self.group)
             
  
 class ActivityComponentMark(models.Model):
@@ -246,14 +255,14 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.letter_grade.activity.offering.slug, 'activity_slug': self.letter_grade.activity.slug, 'userid': self.letter_grade.member.person.userid})
       
-    def setMark(self, grade):
-        """         
+    def setMark(self, grade, entered_by):
+        """
         Set the mark
         """
         super(StudentActivityMark, self).setMark(grade)       
         self.letter_grade.value = grade
         self.letter_grade.flag = 'GRAD'
-        self.letter_grade.save()   
+        self.letter_grade.save(entered_by=entered_by, mark=self)   
 
 class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
@@ -269,7 +278,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})
     
-    def setMark(self, grade):
+    def setMark(self, grade, entered_by):
         """         
         Set the mark of the group members
         """
@@ -283,7 +292,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
                 lgrade = LetterGrade(activity=self.letter_activity, member=g_member.student)
             lgrade.letter_grade = grade
             lgrade.flag = 'GRAD'
-            lgrade.save() 
+            lgrade.save(entered_by=entered_by, group=self.group)
 
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
@@ -431,7 +440,7 @@ def save_copied_activity(target_activity, model, target_course_offering):
         old_activity.save()
         target_activity.save()            
 
-@transaction.commit_on_success
+@transaction.atomic
 def copyCourseSetup(course_copy_from, course_copy_to):
     """
     copy all the activities setup from one course to another

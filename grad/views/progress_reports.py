@@ -207,4 +207,4 @@ def progress_reports(request):
     #grads = grads[:50]
     query_text = generate_queries(['queried students starting in %s or before: %i students'%(last_semester.name, grads.count())], grads)
     query_text = ''.join(query_text)
-    return HttpResponse(query_text, mimetype='text/plain')
+    return HttpResponse(query_text, content_type='text/plain')

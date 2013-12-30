@@ -15,7 +15,7 @@ class URLComponent(SubmissionComponent):
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
-    url = models.URLField(verify_exists=False, null=False, blank=False, max_length=500, verbose_name="URL")
+    url = models.URLField(null=False, blank=False, max_length=500, verbose_name="URL")
     class Meta:
         app_label = 'submission'
     def get_url(self):
@@ -28,7 +28,7 @@ class SubmittedURL(SubmittedComponent):
         return "link"
     
     def download_response(self):
-        response = HttpResponse(mimetype="text/html")
+        response = HttpResponse(content_type="text/html")
         response.write("""<title>%s</title><a href="%s">%s</a>""" % (escape(self.component.title), escape(self.url), escape(self.url)))
         return response
 

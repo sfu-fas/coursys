@@ -8,7 +8,7 @@ from jsonfield import JSONField
 from pages.models import _normalize_newlines
 import re, itertools, datetime
 import coredata.queries
-import settings
+from django.conf import settings
 import json
 from collections import defaultdict
 many_newlines = re.compile(r'\n{3,}')
@@ -1178,7 +1178,7 @@ class GradRequirement(models.Model):
     class Meta:
         unique_together = (('program', 'description'),)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # maintain self.series as identifying the category of requirements across programs in this unit    
         if not self.series:

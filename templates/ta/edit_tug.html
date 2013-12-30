@@ -4,7 +4,7 @@
 
 {% block verb %}Edit{% endblock %}
 
-{% block formaction %}{% url ta.views.edit_tug course_slug=course.slug userid=userid %}{% endblock %}
+{% block formaction %}{% url "ta.views.edit_tug" course_slug=course.slug userid=userid %}{% endblock %}
 {% block submittext %}Save{% endblock %}
 {% block extrascripts %}
 <script type="text/javascript">updateTotalHours();</script>

@@ -26,12 +26,12 @@ correct_accounts = [
 
 cmpt = Unit.objects.get(slug='cmpt')
 
-@transaction.commit_on_success
+@transaction.atomic
 def hide_old():
     old_acct = Account.objects.filter(unit=cmpt, account_number=0)
     old_acct.update(hidden=True)
 
-@transaction.commit_on_success
+@transaction.atomic
 def add_correct():
     for account_number, title in correct_accounts:
         try:

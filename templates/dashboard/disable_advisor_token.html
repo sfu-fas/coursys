@@ -1,12 +1,11 @@
 {% extends "base.html" %}
-{% load markup %}
 
 {% block title %}Disable Advisor Notes API{% endblock %}
 {% block h1 %}Disable Advisor Notes API{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url dashboard.views.config %}">User Configuration</a>
+    &gt; <a href="{% url "dashboard.views.config" %}">User Configuration</a>
 </li>
 <li>
     &gt; Advisor Notes API
@@ -14,7 +13,7 @@
 
 {% block content %}
 
-<form action="{% url dashboard.views.disable_advisor_token %}" method="post">
+<form action="{% url "dashboard.views.disable_advisor_token" %}" method="post">
     {% csrf_token %}
     {% for field in form.visible_fields %}
     <div class="field">

@@ -27,19 +27,19 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	    <li><a href="{% url log.views.index %}">View Logs</a></li>
-	    <li class="newsec"><a href="{% url coredata.views.role_list %}">Manage Roles</a></li>
-	    <li><a href="{% url coredata.views.members_list %}">Manage Memberships</a></li>
-	    <li><a href="{% url coredata.views.new_person %}">New Person</a></li>
-	    <li class="newsec"><a href="{% url coredata.views.unit_list %}">Manage Units</a></li>
-	    <li><a href="{% url coredata.views.semester_list %}">Manage Semesters</a></li>
-	    <li><a href="{% url discipline.views.show_templates %}">Dishonesty Templates</a></li>
+	    <li><a href="{% url "log.views.index" %}">View Logs</a></li>
+	    <li class="newsec"><a href="{% url "coredata.views.role_list" %}">Manage Roles</a></li>
+	    <li><a href="{% url "coredata.views.members_list" %}">Manage Memberships</a></li>
+	    <li><a href="{% url "coredata.views.new_person" %}">New Person</a></li>
+	    <li class="newsec"><a href="{% url "coredata.views.unit_list" %}">Manage Units</a></li>
+	    <li><a href="{% url "coredata.views.semester_list" %}">Manage Semesters</a></li>
+	    <li><a href="{% url "discipline.views.show_templates" %}">Dishonesty Templates</a></li>
     </ul>
 </div>
 {% endblock %}
 {% block content %}
 <h2 id="search">User Search</h2>
-<form action="{% url coredata.views.sysadmin %}" method="get">
+<form action="{% url "coredata.views.sysadmin" %}" method="get">
 {{ form.non_field_errors }}
 <p>Person search: {{ form.user }} {{ form.user.errors }} <input type="submit" name="usersearch" value="Search" /></p>
 <p>Course Offering search: {{ form.offering }} {{ form.offering.errors }} <input type="submit" name="offeringsearch" value="Search" /></p>

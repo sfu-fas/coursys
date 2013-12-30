@@ -12,7 +12,7 @@
       <div class = "marking_a">     
       <ul>
       {% for membership in semester.list %}
-	  	<li><a href="{% url marking.views.list_activities course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
+	  	<li><a href="{% url "marking.views.list_activities" course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
       {% endfor %}
       </ul>   
       </div>

@@ -10,9 +10,9 @@
 {% block h1 %}Edit RA Letter for {{ appointment.person.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
-<li>&gt;<a href="{% url ra.views.student_appointments userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
-<li>&gt; <a href="{% url ra.views.view ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
+<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
+<li>&gt;<a href="{% url "ra.views.student_appointments" userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
+<li>&gt; <a href="{% url "ra.views.view" ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</a></li>
 <li>&gt; Edit Letter</li>{% endblock %}
 
 {% block content %}

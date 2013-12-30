@@ -440,7 +440,7 @@ def offerings_search(request):
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     data = []
     query = get_query(term, ['subject', 'number', 'section', 'semester__name', 'title'])
     offerings = CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
@@ -456,7 +456,7 @@ def course_search(request):
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     data = []
     query = get_query(term, ['subject', 'number', 'title'])
     courses = Course.objects.filter(query)
@@ -481,7 +481,7 @@ def student_search(request):
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
 
     studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
     students = Person.objects.filter(studentQuery)[:100]
@@ -526,7 +526,7 @@ def XXX_sims_person_search(request):
     if 'emplid' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'emplid' query.")
     emplid = request.GET['emplid']
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
 
     data = find_person(emplid)
     
@@ -623,7 +623,10 @@ class OfferingDataJson(BaseDatatableView):
         # no locally-merged courses
         qs = qs.exclude(flags=CourseOffering.flags.combined)
 
-        columns = UNIVERSAL_COLUMNS + GET.get('columns', ','.join(DEFAULT_COLUMNS)).split(',')
+        req_cols = GET.get('columns', '').split(',')
+        if req_cols == [''] or req_cols == ['null']:
+            req_cols = DEFAULT_COLUMNS
+        columns = UNIVERSAL_COLUMNS + req_cols
         self.set_columns(columns)
         
         srch = GET.get('sSearch', None)
@@ -696,7 +699,7 @@ def _instructor_autocomplete(request):
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
     # matching person.id values who have actually taught a course
     person_ids = Member.objects.filter(query).filter(role='INST') \
@@ -719,7 +722,7 @@ def browse_courses_info(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     if 'data' in request.GET:
         # more_course_info data requested
-        response = HttpResponse(mimetype='application/json')
+        response = HttpResponse(content_type='application/json')
         try:
             data = more_offering_info(offering, browse_data=True, offering_effdt=True)
         except SIMSProblem as e:
@@ -751,7 +754,7 @@ def _offering_meeting_time_data(request, offering):
     start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
     end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
 
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     data = list(_offerings_calendar_data([offering], None, start, end, local_tz,
                                          dt_string=True, colour=True, browse_titles=True))
     json.dump(data, response, indent=1)

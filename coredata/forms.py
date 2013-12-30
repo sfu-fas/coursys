@@ -3,7 +3,7 @@ from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, 
 from coredata.queries import find_person, add_person, SIMSProblem, cache_by_args
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
-from django.contrib.localflavor.ca.forms import CAPhoneNumberField
+from localflavor.ca.forms import CAPhoneNumberField
 
 class OfferingSelect(forms.Select):
     input_type = 'text'
@@ -161,7 +161,7 @@ class PersonField(forms.CharField):
                 try:
                     persondata = find_person(value)
                 except SIMSProblem, e:
-                    raise forms.ValidationError, "Problem locating person in SIMS: " + e.message
+                    raise forms.ValidationError, "Problem locating person in SIMS: " + unicode(e)
                 if not persondata:
                     raise forms.ValidationError, "Could not find this emplid."
                 
@@ -214,6 +214,7 @@ class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")
     class Meta:
         model = Role
+        exclude = []
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(RoleForm, self).is_valid(*args, **kwargs)
@@ -291,7 +292,7 @@ class UnitAddressForm(forms.Form):
                             widget=forms.TextInput(attrs={'size': 12}))
     fax = CAPhoneNumberField(required=False, label="Fax Number", help_text='Fax number for the department',
                             widget=forms.TextInput(attrs={'size': 12}))
-    web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site", verify_exists=True)
+    web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site")
     email = forms.EmailField(required=False, label="Email", help_text='General contact email for the department')
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),

@@ -1,14 +1,13 @@
 {% extends "base.html" %}
-{% load markup %}
 
 {% block title %}Disable External Calendar{% endblock %}
 {% block h1 %}Disable External Calendar{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.config %}">User Configuration</a></li><li>&gt; Calendar URL</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.config" %}">User Configuration</a></li><li>&gt; Calendar URL</li>{% endblock %}
 
 {% block content %}
 
-<form action="{% url dashboard.views.disable_calendar_url %}" method="post">{% csrf_token %}
+<form action="{% url "dashboard.views.disable_calendar_url" %}" method="post">{% csrf_token %}
     {% for field in form.visible_fields %}
         <div class="field">
             {{ field }} Disable my external calendar.

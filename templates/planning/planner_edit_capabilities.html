@@ -13,8 +13,8 @@ function confirmDelete() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
-<li>&gt; <a href="{% url planning.views.view_capabilities %}">Teaching Capabilities</a></li>
+<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+<li>&gt; <a href="{% url "planning.views.view_capabilities" %}">Teaching Capabilities</a></li>
 <li>&gt; Edit Teaching Capabilities for {{ instructor.name }}</li>{% endblock %}
 
 {% block content %}
@@ -35,7 +35,7 @@ function confirmDelete() {
                 <tr>
                     <td>{{ capability.course.full_name }}</td>
                     <td>{{ capability.note|linebreaks }}</td>
-                    <td><a onclick="return confirmDelete();" href="{% url planning.views.planner_delete_capability userid=instructor.userid course_id=capability.id %}">Remove</a></td>
+                    <td><a onclick="return confirmDelete();" href="{% url "planning.views.planner_delete_capability" userid=instructor.userid course_id=capability.id %}">Remove</a></td>
                 </tr>
                 {%endfor%}
             </tbody>
@@ -46,7 +46,7 @@ function confirmDelete() {
 </div>
 
 <div class="form_container">
-    <form action="{% url planning.views.planner_edit_capabilities userid=instructor.userid %}" method="post">{% csrf_token %}
+    <form action="{% url "planning.views.planner_edit_capabilities" userid=instructor.userid %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add Course</legend>
 
