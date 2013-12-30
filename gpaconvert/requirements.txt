@@ -1,14 +1,15 @@
-GPASource:
+GradeSource:
   country
   institution/scale (string)
   scale type: discrete/continuous
   min/max grade (for continuous scales only)
+  active (bool)
   slug
   config
 
 ConversionRule:
   GPASource (foreign key)
-  value: the lookup value (or bottom of range for continuous scales)
+  value: the lookup value (or bottom-of-range for continuous scales)
   sfu_grade: one of A+, A, A-, ...
 
 "discrete scales" are things like A+,A,A-,... or Excellent,Good,Fair,Poor. Lookup tables, basically.
@@ -20,7 +21,7 @@ Admin interface:
   edit institution/scale details and conversion rules
 
 Public interface:
-  select country and institution/scale
+  select country and institution/scale (with active==True)
   enter each course: title, credits, grade (from the chosen institution/scale)
     result: SFU-equiv grade for each course, and SFU GPA
   enter the average from that institution
@@ -28,6 +29,6 @@ Public interface:
 
 Lower priority:
   when entering, select some of the courses for a secondary GPA calculation (in-major, upper-division, etc)
-  share page: create URL that points to this conversion event (for sharing with potential supervisor, etc.)
+  share page: create anonymous URL that points to this conversion event (for sharing with potential supervisor, etc.)
 
 See demo video here for some idea what is needed: https://www.wes.org/calculator/login.asp
