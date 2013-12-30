@@ -15,7 +15,11 @@
 			{% if sheet_sub.status != 'DONE' %}<p class="incomplete-warning">This is a draft submission: it has not been completed by the person filling it out, only saved for later.</p>{% endif %}
 			<dl class="dlform formview">
                 <dt><label>Completed by:</label></dt>
-                <dd><p>{{ sheet_sub.filler }}</p></dd>
+                <dd><p>{{ sheet_sub.filler }}
+                {% if can_advise and sheet_sub.sheet.is_initial and sheet_sub.filler.isSFUPerson %}
+                [<a href="{% url "advisornotes.views.student_notes" userid=sheet_sub.filler.sfuFormFiller.userid_or_emplid %}">advising notes for {{ sheet_sub.filler.name }}</a>]
+                {% endif %}
+                </p></dd>
                 <dt><label>Email:</label></dt>
                 <dd><p>{{ sheet_sub.filler.email_mailto }}</p></dd>
 			{% for field in fields %}

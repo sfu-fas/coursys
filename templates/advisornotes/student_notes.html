@@ -186,8 +186,10 @@
 <h2 class="note" id="form-{{formsub.id}}">Online form submission: {{formsub.created_at}}</h2>
 <div class="note-box" id="form-box-{{formsub.id}}">
 <div class="note-content">
-  {% if formsub.summary %}<p>Summary{% if formsub.closer %} by {{ formsub.closer.name }}{% endif %}: &ldquo;{{ formsub.summary }}&rdquo;</p>{% endif %}
-  <p><a href="{% url "onlineforms.views.view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
+  {% if formsub.summary %}<p>Summary{% if formsub.closer %} by {{ formsub.closer.name }}{% endif %}: &ldquo;{{ formsub.summary }}&rdquo;
+  {% if formsub.emailed %}<img src="{{ MEDIA_URL }}icons/email.png" alt="emailed" title="summary emailed to student" />{% endif %}
+  </p>{% endif %}
+  <p><a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
       &ldquo;{{formsub.form.title}}&rdquo; submission.</a></p>
   {% if formsub.status != 'DONE' %}<p>Note: form has not yet been completed.</p>{% endif %}
 </div>
