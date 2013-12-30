@@ -3,15 +3,6 @@ MemoTemplate:
   event_type (where it is presented as an option)
   template_text
 
-CareerEventType:
-  EntryForm
-  category????
-  to_html(career_event)
-  to_careerevent(entry_form)
-  who_can_enter (faculty member, department admin, dean's office)
-  who_can_approve (department admin, dean's office)
-  exclusion_type (or None)
-
 Each CareerEvent has:
   Person
   Unit
@@ -20,20 +11,31 @@ Each CareerEvent has:
   start date
   end date
   start/end semester (default=guess, but allow override in weird cases)
-  event_type
+  event_type (foreign key to CareerEventType)
   exclusion_type (logic: only one event with same person,unit,exclusion_type can occur simultaneously)
-  other type-specific data
+  other career-type-specific data
   additional comments
-  import_key (to identify from imports, like "nserc-43517b4fd422423382baab1e916e7f63")
+  import_key (to identify data from imports, like "nserc-43517b4fd422423382baab1e916e7f63", or null)
   status: needs approval, deleted, approved
   one-to-many documentation attachments
   one-to-many memos produced
 
-CareerEvent types:
-  appointment (when hired/left, appointment fraction, was spousal hire?, reason for leaving: retire, moved to other Uni, etc)
+CareerEventType:
+  EntryForm
+  category????
+  is_instant (if so, is instantaneous and end date is irrelevant)
+  get_entry_form(career_event=None) (returns a Form to create/edit an event of this type)
+  to_careerevent(entry_form) (processes entry form into a CareerEvent object, or should be done by entry_form.save?)
+  to_html(career_event) (converts this to HTML for display--maybe need short/long versions?)
+  who_can_enter (faculty member, department admin, dean's office)
+  who_can_approve (department admin, dean's office)
+  exclusion_type (or None)
+
+CareerEventTypes we know about at the moment:
+  appointment (when hired/left, was spousal hire?, reason for leaving: retired, moved to other Uni, etc)
   received tenure
   contract (appointment fraction)
-  emeritus
+  rank (associate professor, lecturer, emeritus, etc)
   teaching load (default = 3/year, etc)
   research group membership?
   external affiliation (adjunct, external company/not-for-profit, research institute/centre)
@@ -41,9 +43,9 @@ CareerEvent types:
   committee member (commitee name and unit)
   special deals (additional research stipend, etc)
   applied for grant
-  grant received (startup, NSERC, etc. Amount. Cover with grant features instead?)
+  grant received (startup, NSERC, etc. Amount... Cover with grant features instead?)
   salary change (rank, step, base salary, FTE fraction)
-  salary modification/stipend (source: retention/market differential, chair stipend)
+  salary modification/stipend (amount, source: retention/market differential, chair stipend)
   award received (from who? for what?)
   leaves (medical/parental/admin/secondment, fraction leave, salary recovery info?)
   study leave (80/90/100% option)
@@ -54,6 +56,8 @@ CareerEvent types:
 You know what'd be cool? NSERC common-CV XML importing.
 
 Must be able to do the stupid CMPT FTTE/FTSE/credit balance calculations.
+
+Needed: wizard to set up a new appointment (create CareerEvents for appointment, contract, rank, teaching load, etc)
 
 Grants
   owner (can be faculty member or admin staff)
@@ -72,7 +76,7 @@ Reporting
   faculty-in-unit summary page
   study leave credits accumulated
   teaching credit:
-    Member.teaching_credit (but need to detect crosslisted courses)
+    Member.teaching_credit
     CareerEvent[type=teaching-credit]
   search events by type/categegory/date (range)
   career timeline
