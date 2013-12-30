@@ -32,7 +32,7 @@
 {% block content %}
 <div class="form_container">
 	{% if sheet_submissions %}
-	    {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug can_admin=can_admin %}
+	    {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug can_admin=can_admin can_advise=can_advise %}
     {% endif %}
 </div>
 <p>Current status: {{ form_sub.get_status_display }}</p>
@@ -43,6 +43,12 @@
 <li>{{ ss.sheet.title }} by {{ ss.filler.name }}</li>
 {% endfor %}
 </ul>
+{% endif %}
+{% if form_sub.status == 'DONE' %}
+<p>Closed by: {{ form_sub.closer.name|default_if_none:"unknown"}}.
+{% if form_sub.summary %}Summary given: &ldquo;{{ form_sub.summary }}&rdquo;.{% endif %}
+The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong>not</strong>{% endif %} emailed by the system.
+</p>
 {% endif %}
 
 {% if can_admin %}

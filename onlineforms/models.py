@@ -454,7 +454,7 @@ class FormSubmission(models.Model):
         return self.initiator.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
-        # 'summary': summery of the form entered when closing it
+        # 'summary': summary of the form entered when closing it
         # 'emailed': True if the initiator was emailed when the form was closed
         # 'closer': coredata.Person.id of the person that marked the formsub as DONE
 
@@ -475,7 +475,10 @@ class FormSubmission(models.Model):
         return "%s for %s" % (self.form, self.initiator)
 
     def closer(self):
-        return Person.objects.get(id=self.closer_id())
+        try:
+            return Person.objects.get(id=self.closer_id())
+        except Person.DoesNotExist:
+            return None
     
     def last_sheet_completion(self):
         return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
