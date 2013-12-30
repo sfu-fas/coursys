@@ -1,16 +1,14 @@
 from django.test import TestCase
-from coredata.models import *
+from coredata.models import CourseOffering, Semester, Person, SemesterWeek, Member, Role, Unit
 
 from django.core.urlresolvers import reverse
 
-from courselib.testing import *
-from django.conf import settings
-CAS_SERVER_URL = settings.CAS_SERVER_URL
+from courselib.testing import basic_page_tests, validate_content, Client, TEST_COURSE_SLUG
+#from django.conf import settings
 
-from django.db.models import *
 from django.db import IntegrityError
 from datetime import date, datetime
-import pytz
+import pytz, json
 
 def create_semester():
     s = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
@@ -249,3 +247,21 @@ class CoredataTest(TestCase):
         
         # make sure the role is now there
         self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)
+
+    def test_course_browser(self):
+        client = Client()
+
+        # the main search/filter page
+        url = reverse('coredata.views.browse_courses')
+        response = basic_page_tests(self, client, url)
+
+        # AJAX request for table data
+        url += '?tabledata=yes&data_type=json&iDisplayLength=25'
+        response = client.get(url)
+        data = json.loads(response.content)
+        self.assertEquals(len(data['aaData']), 25)
+
+        # courseoffering detail page
+        url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
+        response = basic_page_tests(self, client, url)
+
