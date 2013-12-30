@@ -44,6 +44,12 @@
 {% endfor %}
 </ul>
 {% endif %}
+{% if form_sub.status == 'DONE' %}
+<p>Closed by: {{ form_sub.closer.name|default_if_none:"unknown"}}.
+{% if form_sub.summary %}Summary given: &ldquo;{{ form_sub.summary }}&rdquo;.{% endif %}
+The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong>not</strong>{% endif %} emailed by the system.
+</p>
+{% endif %}
 
 {% if can_admin %}
 <div class="form_container" id="assign" style="margin-top:5em;">
