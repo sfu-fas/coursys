@@ -927,6 +927,8 @@ def view_submission(request, form_slug, formsubmit_slug):
     else:
         close_form = None
 
+    can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
+    
     context = {
                'form': form_submission.form,
                'form_sub': form_submission,
@@ -935,6 +937,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                'formsubmit_slug': formsubmit_slug,
                'is_advisor': is_advisor,
                'can_admin': can_admin,
+               'can_advise': can_advise,
                'close_form': close_form,
                'waiting_sheets': waiting_sheets,
                }
