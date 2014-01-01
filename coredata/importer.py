@@ -240,8 +240,16 @@ def import_semesters():
 
 def get_unit(acad_org):
     """
-    Get the corresponding Unit, importing if necessary
+    Get the corresponding Unit
     """
+    # in older semesters, there are some inconsistent acad_org values: normalize.
+    if acad_org == 'GERON':
+        acad_org = 'GERONTOL'
+    elif acad_org == 'GEOG':
+        acad_org = 'GEOGRAPH'
+    elif acad_org == 'BUS':
+        acad_org = 'BUS ADMIN'
+
     try:
         unit = Unit.objects.get(acad_org=acad_org)
     except Unit.DoesNotExist:
@@ -254,8 +262,9 @@ def get_unit(acad_org):
             label = 'ENVS'
         else:
             label = acad_org[:4].strip()
-        unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
-        unit.save()
+        #unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
+        #unit.save()
+        raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
     
     return unit
         
