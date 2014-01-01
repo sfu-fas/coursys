@@ -45,6 +45,7 @@ $(document).ready(function() {
   <td>{{ m.offering.title }}</td>
   <td>{{ m.offering.enrl_tot }}</td>
   <td>{% with m.teaching_credit_with_reason as tcr %}
+      <span class="sort">{{ tcr.0|floatformat:'3' }}</span>
       {{ tcr.0 }}
       {% if tcr.1 %}({{ tcr.1 }}){% endif %}
       {% endwith %}
