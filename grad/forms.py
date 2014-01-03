@@ -1,6 +1,7 @@
 from django.forms.models import ModelForm
 from django import forms
 from django.db.models import Q
+from django.db.models.query import QuerySet
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
@@ -482,6 +483,16 @@ COLUMN_WIDTHS_DATA = (
         )
 COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 
+def _is_not_empty(v):
+    """
+    Finds not-specified values from search form
+    """
+    if isinstance(v, QuerySet):
+        return v.count() > 0
+    else:
+        return v not in EMPTY_VALUES
+
+
 class SearchForm(forms.Form):
     
     first_name_contains = forms.CharField( required=False )
@@ -593,7 +604,7 @@ class SearchForm(forms.Form):
     
     def _make_query(self, query_string, query_param=None):
         query_value = self.cleaned_data.get(query_string, None)
-        if query_value not in EMPTY_VALUES:
+        if _is_not_empty(query_value):
             if query_param is None:
                 query_param = query_string
             if query_value is Unknown:
@@ -689,24 +700,24 @@ class SearchForm(forms.Form):
     
     def _secondary_filter(self, gradstudent):
         return ((gradstudent.person.gender() == self.cleaned_data['gender']
-                if self.cleaned_data.get('gender', None) not in EMPTY_VALUES
+                if _is_not_empty(self.cleaned_data.get('gender', None))
                 else True) and
                 
                 (gradstudent.person.gpa() >= self.cleaned_data['gpa_min']
-                if self.cleaned_data.get('gpa_min', None) not in EMPTY_VALUES
+                if _is_not_empty(self.cleaned_data.get('gpa_min', None))
                 else True) and
                 
                 (gradstudent.person.gpa() <= self.cleaned_data['gpa_max']
-                if self.cleaned_data.get('gpa_max', None) not in EMPTY_VALUES
+                if _is_not_empty(self.cleaned_data.get('gpa_max', None))
                 else True)
 #                and
 #                ((gradstudent.person.config['citizen'].lower() == 'canadian') ==
 #                self.cleaned_data['is_canadian']
-#                if self.cleaned_data.get('is_canadian', None) not in EMPTY_VALUES
+#                if _is_not_empty(self.cleaned_data.get('is_canadian', None))
 #                else True)
                 and
                 (gradstudent.person.visa() in self.cleaned_data['visa']
-                if self.cleaned_data.get('visa', None) not in EMPTY_VALUES
+                if _is_not_empty(self.cleaned_data.get('visa', None))
                 else True)
                 )
     
