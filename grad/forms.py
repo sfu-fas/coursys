@@ -726,6 +726,12 @@ class SearchForm(forms.Form):
         # to cache some data used in the filter
         return self._secondary_filter
 
+    def search_results(self, units):
+        query = self.get_query()
+        grads = GradStudent.objects.filter(program__unit__in=units).filter(query).select_related('person', 'program').distinct()
+        return filter(self.secondary_filter(), grads)
+
+
 class SaveSearchForm(ModelForm):
     class Meta:
         model = SavedSearch

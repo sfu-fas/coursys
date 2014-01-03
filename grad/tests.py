@@ -1,13 +1,14 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 import json, datetime
-from coredata.models import Person, Semester
+from coredata.models import Person, Semester, Role
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment
 from courselib.testing import basic_page_tests, test_auth, Client
 from grad.views.view import all_sections
-
+from django.http import QueryDict
+from grad.forms import SearchForm
 
 class GradTest(TestCase):
     fixtures = ['test_data']
@@ -202,7 +203,7 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
         
         
-    def test_advanced_search(self):
+    def test_advanced_search_1(self):
         """
         Basics of the advanced search toolkit
         """
@@ -217,6 +218,64 @@ class GradTest(TestCase):
         for key in cols:
             # make sure each column returns *something* without error
             getattribute(gs, key)
+
+    def test_advanced_search_2(self):
+        client = Client()
+        test_auth(client, 'ggbaker')
+        units = [r.unit for r in Role.objects.filter(person__userid='ggbaker', role='GRAD')]
+
+        # basic search with the frontend
+        url = reverse('grad.views.search', kwargs={})
+        qs = 'student_status=PART&student_status=ACTI&columns=person.emplid&columns=person.userid&columns=program'
+        response = basic_page_tests(self, client, url + '?' + qs)
+        self.assertIn('grad/search_results.html', [t.name for t in response.templates])
+        search_res_1 = response.context['grads']
+
+        # test the searching API
+        form = SearchForm(QueryDict(qs))
+        search_res_2 = form.search_results(units)
+        self.assertEqual(set(search_res_1), set(search_res_2))
+
+        form = SearchForm(QueryDict('columns=person.emplid'))
+        all_grads = form.search_results(units)
+        gs = all_grads[0]
+
+        # test student status search (which is a simple in-database query)
+        gs.status = 'ACTI'
+        gs.save()
+        form = SearchForm(QueryDict('student_status=ACTI&columns=person.emplid'))
+        status_search = form.search_results(units)
+        self.assertIn(gs, status_search)
+        form = SearchForm(QueryDict('student_status=LEAV&columns=person.emplid'))
+        status_search = form.search_results(units)
+        self.assertNotIn(gs, status_search)
+
+        # test semester search (which a more difficult in-database query)
+        sem = gs.start_semester
+        form = SearchForm(QueryDict('start_semester_start=%s&columns=person.emplid' % (sem.name)))
+        semester_search = form.search_results(units)
+        self.assertIn(gs, semester_search)
+        form = SearchForm(QueryDict('start_semester_start=%s&columns=person.emplid' % (sem.next_semester().name)))
+        semester_search = form.search_results(units)
+        self.assertNotIn(gs, semester_search)
+
+
+        # test GPA searching (which is a secondary filter)
+        gs.person.config['gpa'] = 4.2
+        gs.person.save()
+        form = SearchForm(QueryDict('gpa_min=4.1&columns=person.emplid'))
+        high_gpa = form.search_results(units)
+        self.assertIn(gs, high_gpa)
+
+        gs.person.config['gpa'] = 2.2
+        gs.person.save()
+        form = SearchForm(QueryDict('gpa_min=4.1&columns=person.emplid'))
+        high_gpa = form.search_results(units)
+        self.assertNotIn(gs, high_gpa)
+
+
+
+
 
 
 

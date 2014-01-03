@@ -141,11 +141,8 @@ def search(request):
         sort = None;
     
     if 'edit_search' not in request.GET and form.is_valid():
-        query = form.get_query()
-        #print query
-        grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).select_related('person', 'program').distinct()
-        grads = filter(form.secondary_filter(), grads)
-        
+        grads = form.search_results(request.units)
+
         overflow = False
         if len(grads) > MAX_RESULTS:
             grads = grads[:MAX_RESULTS]
