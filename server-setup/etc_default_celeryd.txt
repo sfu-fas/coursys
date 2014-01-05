@@ -3,13 +3,16 @@ CELERYD_NODES="worker fastworker"
 
 # Absolute or relative path to the 'celery' command:
 CELERY_BIN="/home/coursys/courses/manage.py celery"
-export DJANGO_SETTINGS_MODULE="courses.settings"
+
+# settings for django integration
+CELERY_LOADER="django"
+DJANGO_SETTINGS_MODULE="courses.settings"
 
 # Where to chdir at start.
 CELERYD_CHDIR="/home/coursys/courses"
 
 # Extra command-line arguments to the worker
-CELERYD_OPTS="-Q:worker fast,batch,email -Q:fastworker fast --loglevel=WARN --time-limit=300 --concurrency=2"
+CELERYD_OPTS="-Q:worker fast,batch,email -Q:fastworker fast --loglevel=WARN --time-limit=300 --concurrency=4" 
 
 # %N will be replaced with the first part of the nodename.
 CELERYD_LOG_FILE="/var/log/celery/%N.log"

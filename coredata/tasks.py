@@ -16,5 +16,5 @@ def ping():
 
 @task(rate_limit='60/m')
 def slow_task():
-    time.sleep(5)
+    #time.sleep(5)
     return True

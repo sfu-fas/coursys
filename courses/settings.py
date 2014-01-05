@@ -174,6 +174,10 @@ if USE_CELERY:
     CELERY_RESULT_SERIALIZER = 'json'
 
     BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
+    CELERY_ACCEPT_CONTENT = ['json']
+    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_RESULT_SERIALIZER = 'json'
+
     CELERY_DEFAULT_QUEUE = 'batch'
     CELERY_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
         'batch': {},
