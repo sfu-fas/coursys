@@ -12,7 +12,9 @@ DJANGO_SETTINGS_MODULE="courses.settings"
 CELERYD_CHDIR="/home/coursys/courses"
 
 # Extra command-line arguments to the worker
-CELERYD_OPTS="-Q:worker fast,batch,email -Q:fastworker fast --loglevel=WARN --time-limit=300 --concurrency=4" 
+BEAT_OPTS="-B:worker --schedule=/var/run/celery/celerybeat.schedule" # options for celerybeat
+WORKER_OPTS="-Q:worker fast,batch,email -Q:fastworker fast --concurrency=4" # options for workers
+CELERYD_OPTS="$BEAT_OPTS $WORKER_OPTS --loglevel=WARN --time-limit=300" # actual command line options
 
 # %N will be replaced with the first part of the nodename.
 CELERYD_LOG_FILE="/var/log/celery/%N.log"
