@@ -164,11 +164,15 @@ else:
 # should we use the Celery job queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = DEPLOYED
 if USE_CELERY:
-    #os.environ["CELERY_LOADER"] = "django"
+    os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (
         'djcelery',
         'djcelery_email',
         )
+    CELERY_ACCEPT_CONTENT = ['json']
+    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_RESULT_SERIALIZER = 'json'
+
     BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
     CELERY_DEFAULT_QUEUE = 'batch'
     CELERY_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
