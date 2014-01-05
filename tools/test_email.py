@@ -1,5 +1,5 @@
 import sys, os, itertools
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 sys.path.append('.')
 
 from django.core.mail import send_mail

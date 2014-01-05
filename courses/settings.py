@@ -164,19 +164,22 @@ else:
 # should we use the Celery job queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = DEPLOYED
 if USE_CELERY:
-    os.environ["CELERY_LOADER"] = "django"
+    #os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (
         'djcelery',
         'djcelery_email',
         )
     BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
-    CELERY_QUEUES = {
-        "celery": {},
+    CELERY_DEFAULT_QUEUE = 'batch'
+    CELERY_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
+        'batch': {},
+        'email': {},
+        'fast': {}, # only jobs that need to run soon, and finish quickly should go in this queue
     }
     CELERY_SEND_TASK_ERROR_EMAILS = True
     CELERY_EMAIL_TASK_CONFIG = {
         'rate_limit' : '30/m',
-        #'priority': 7,
+        'queue': 'email',
     }
     CELERY_EMAIL_BACKEND = EMAIL_BACKEND
     EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'

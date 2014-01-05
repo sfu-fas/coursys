@@ -41,7 +41,7 @@ def _create_grade_released_history(activity, entered_by):
         
         gh.save()
 
-@task(max_retries=2)
+@task(queue='fast')
 def create_grade_released_history_task(activity, entered_by):
     _create_grade_released_history(activity, entered_by)
 

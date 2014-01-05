@@ -1,10 +1,20 @@
 from courselib.svn import update_repository
 from celery.task import task
 
-@task(rate_limit="30/m", max_retries=2, priority=9)
+@task(rate_limit="30/m", max_retries=2)
 def update_repository_task(*args, **kwargs):
     return update_repository(*args, **kwargs)
 
-@task(priority=2)
+
+
+# some tasks for testing/experimenting
+import time
+
+@task(queue='fast')
 def ping():
+    return True
+
+@task(rate_limit='60/m')
+def slow_task():
+    time.sleep(5)
     return True

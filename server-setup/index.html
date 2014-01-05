@@ -32,8 +32,7 @@ code.file {
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
-apt-get install nginx subversion mysql-client-5.1 memcached stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev python-mysqldb git python-pip screen
-<del># apt-get install python-flup python-memcache</del> # now handled by PIP, I hope</pre></blockquote></dd>
+apt-get install nginx subversion mysql-client memcached stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev python-mysqldb git python-pip screen</pre></blockquote></dd>
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
 <dt>Mail Server</dt>
@@ -46,7 +45,7 @@ sudo rabbitmqctl add_user coursys <var>supersecretpassword</var>
 sudo rabbitmqctl add_vhost myvhost
 sudo rabbitmqctl set_permissions -p myvhost coursys ".*" ".*" ".*"</pre></blockquote>
   <p>To make sure RabbitMQ listens only on localhost, put <a href="etc_rabbitmq_rabbitmq.conf"><code class="file">/etc/rabbitmq/rabbitmq.conf</code></a> in place.</p>
-  <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
+  <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
   <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
   <p>In order to get the celeryd logs rotated, install the config file as <a href="etc_logrotate.d_celeryd.txt"><code class="file">/etc/logrotate.d/celeryd</code></a>.</p>
   </dd>
@@ -60,7 +59,7 @@ client = yes
 [mysqls]
 accept  = 127.0.0.1:4000
 connect = onara.cs.sfu.ca:5000</pre></blockquote>
-  <p>Copy the <code class="file">/etc/default/stunnel.pem</code> cretificate.</p>
+  <p>Copy the <code class="file">/etc/default/stunnel.pem</code> certificate.</p>
   <blockquote><pre>chmod 0600 /etc/default/stunnel.pem</pre></blockquote>
   </dd>
 
@@ -85,13 +84,13 @@ echo "ggbaker@sfu.ca" > /home/coursys/.forward</pre></blockquote>
 chmod 0600 /etc/nginx/cert.*</pre></blockquote>
   <p>Note: <code class="file">.pem</code> and <code class="file">.cert</code> files are apparently the same thing: no need to convert.</p></dd>
 <dt>Server Config</dt>
-  <dd>Main configuration file for server setup, <code class="file">/etc/nginx/sites-enabled/default</code> restored from <a href="etc_nginx_sites-enabled_default">version on old server</a>.</dd>
+  <dd>Main configuration file for server setup, <code class="file">/etc/nginx/sites-enabled/default</code> edited to <a href="etc_nginx_sites-enabled_default">current version from server</a>.</dd>
 <dt>Static Content</dt>
   <dd>Static content is searched for in <code class="file">~/static/</code> so create some appropriate symlinks there:
   <blockquote><pre>mkdir ~/static
 cd ~/static
 ln -s ../courses/media media
-ln -s /usr/share/pyshared/django/contrib/admin/media adminmedia # not really used</pre></blockquote>
+# ln -s /usr/share/pyshared/django/contrib/admin/media adminmedia # not really used</pre></blockquote>
   </dd>
 </dl>
 
@@ -115,7 +114,22 @@ chmod 0711 ~</pre>
   <dd>Code checked out from Subversion repository:
   <blockquote><pre>git clone ssh://www-data@coffee.fas.sfu.ca/home/git/courses -b deployed /home/coursys/courses</pre></blockquote>
   <p>But somebody following these instructions: <strong>check correct branch</strong>!  Stable branches are created when serious development is going on&mdash;that might be the right one to use.</p>
-  <p>You will need to create a <code class="file">local_settings.py</code> file that correctly sets <code>DATABASES</code> and <code>SVN_DB_CONNECT</code>.</p>
+  <p>You will need to create a <code class="file">local_settings.py</code> file that correctly sets at least the following (filling in the secret bits as appropriate):</p>
+  <blockquote><pre>SECRET_KEY = '?????'
+DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': '?????',
+            'USER': '?????',
+            'PASSWORD': '?????',
+            'HOST': '127.0.0.1',
+            'PORT': '4000',
+            'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # needed only for initial table creation
+        }
+    }
+SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': '?????', 'passwd': '?????',
+            'db': '?????', 'port': 4000}
+BROKER_URL = "amqp://coursys:?????@localhost:5672/myvhost"</pre></blockquote>
   </dd>
 <dt>PIL Build</dt>
   <dd>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL with PIP:
