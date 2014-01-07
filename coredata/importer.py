@@ -917,7 +917,7 @@ def main():
         import djkombu.models
         djkombu.models.Message.objects.cleanup()
         from djcelery.models import TaskMeta
-        TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
+        TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
     
     print "People:", len(imported_people)
     print "Course Offerings:", len(offerings)

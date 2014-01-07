@@ -22,8 +22,7 @@ def slow_task():
     print "HELLO SLOW TASK"
     return True
 
-@periodic_task(run_every=crontab())
-def test_periodic_task():
-    print "HELLO PERIODIC TASK"
-    return True
-
+#@periodic_task(run_every=crontab())
+#def test_periodic_task():
+#    print "HELLO PERIODIC TASK"
+#    return True
