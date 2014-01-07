@@ -169,12 +169,8 @@ if USE_CELERY:
         'djcelery',
         'djcelery_email',
         )
-    CELERY_ACCEPT_CONTENT = ['json']
-    CELERY_TASK_SERIALIZER = 'json'
-    CELERY_RESULT_SERIALIZER = 'json'
-
     BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
-    CELERY_ACCEPT_CONTENT = ['json']
+    CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
 
@@ -188,6 +184,7 @@ if USE_CELERY:
     CELERY_EMAIL_TASK_CONFIG = {
         'rate_limit' : '30/m',
         'queue': 'email',
+        'serializer': 'pickle',
     }
     CELERY_EMAIL_BACKEND = EMAIL_BACKEND
     EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
