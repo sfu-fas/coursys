@@ -10,7 +10,7 @@ import time
 res = ping.delay()
 try:
     # try to run a task
-    res.get(timeout=5)
+    res.get(timeout=600)
 except TimeoutError:
     # if it doesn't return, see if there's other stuff being processed
     i = inspect()
