@@ -10,26 +10,14 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
   "width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
   <title>{% block title %}CourSys{% endblock %}</title>
-  <script type="text/javascript">
-CQURLInfo = {
-    "contextPath": null,
-    "requestPath": '\/content\/sfu\/clf\/new-clf-faq',
-    "selectorString": null,
-    "selectors": [],
-    "extension": 'html',
-    "suffix": null,
-    "systemId": 'ce4d4dd3-f49e-4c5d-8202-42a50168289c',
-    "runModes": 'publish'
-  };
-  </script>
   <link rel="stylesheet" href=
-  "http://www.sfu.ca/etc/designs/clf/clientlibs/pack/head.styles.css"
+  "{{MEDIA_URL}}newsfu/head.styles.css"
   type="text/css">
   <script type="text/javascript" src=
-  "media/jquery-ui/js/jquery-1.9.1.js">
+  "{{MEDIA_URL}}jquery-ui/js/jquery-1.9.1.js">
 </script>
   <script type="text/javascript" src=
-  "jquery-ui/js/jquery-ui-1.10.3.custom.min.js">
+  "{{MEDIA_URL}}jquery-ui/js/jquery-ui-1.10.3.custom.min.js">
 </script>
   <script type="text/javascript" src=
   "http://www.sfu.ca/etc/designs/clf/clientlibs/pack/head.scripts.js">
@@ -45,20 +33,6 @@ var $ = jQuery;
         <script type="text/javascript" src="/etc/designs/clf/clientlibs/matchmedia.js"></script>
 
 <![endif]-->
-
-  <script type="text/javascript">
-
-                        var _gaq = _gaq || [];
-                        _gaq.push(['_setAccount', 'UA-2520725-16']);
-                        _gaq.push(['_trackPageview']);
-
-                        (function() {
-                                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-                        })();
-
-  </script>
   {% block headextra %}{% endblock %}
 </head>
 
