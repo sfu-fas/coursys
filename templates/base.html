@@ -1,111 +1,614 @@
 {% comment %}
-Adapted from the Dreamweaver template here: http://www.sfu.ca/clf/web/index.html
+Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
 {% endcomment %}<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-<title>{% block title %}CourSys{% endblock %}</title>
-<link rel="icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
-<link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" href="{{MEDIA_URL}}sfu/css/common.css" media="all" />
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
+  <meta http-equiv="content-type" content=
+  "text/html; charset=utf-8">
+  <meta name="viewport" content=
+  "width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-<link rel="stylesheet" href="{{MEDIA_URL}}style/main.css" media="all" />
-<!--[if lte IE 8]>
-<link rel="stylesheet" href="{{MEDIA_URL}}style/main-ie.css" type="text/css" />
+  <title>{% block title %}CourSys{% endblock %}</title>
+  <script type="text/javascript">
+CQURLInfo = {
+    "contextPath": null,
+    "requestPath": '\/content\/sfu\/clf\/new-clf-faq',
+    "selectorString": null,
+    "selectors": [],
+    "extension": 'html',
+    "suffix": null,
+    "systemId": 'ce4d4dd3-f49e-4c5d-8202-42a50168289c',
+    "runModes": 'publish'
+  };
+  </script>
+  <link rel="stylesheet" href=
+  "http://www.sfu.ca/etc/designs/clf/clientlibs/pack/head.styles.css"
+  type="text/css">
+  <script type="text/javascript" src=
+  "media/jquery-ui/js/jquery-1.9.1.js">
+</script>
+  <script type="text/javascript" src=
+  "jquery-ui/js/jquery-ui-1.10.3.custom.min.js">
+</script>
+  <script type="text/javascript" src=
+  "http://www.sfu.ca/etc/designs/clf/clientlibs/pack/head.scripts.js">
+</script>
+  <script type="text/javascript">
+var $ = jQuery;
+  </script><!--[if lt IE 9]>
+        <script type="text/javascript" src="/etc/designs/clf/clientlibs/html5shiv.js"></script>
+<script type="text/javascript" src="/etc/designs/clf/clientlibs/respond.js"></script>
+
 <![endif]-->
-<link type="text/css" href="{{MEDIA_URL}}jquery-ui/css/smoothness/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" />
+  <!--[if lte IE 9]>
+        <script type="text/javascript" src="/etc/designs/clf/clientlibs/matchmedia.js"></script>
 
-<script type="text/javascript" src="{{MEDIA_URL}}jquery-ui/js/jquery-1.9.1.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}jquery-ui/js/jquery-ui-1.10.3.custom.min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/scripts.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/core.js"></script>
-{% block headextra %}{% endblock %}
+<![endif]-->
+
+  <script type="text/javascript">
+
+                        var _gaq = _gaq || [];
+                        _gaq.push(['_setAccount', 'UA-2520725-16']);
+                        _gaq.push(['_trackPageview']);
+
+                        (function() {
+                                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                        })();
+
+  </script>
+  {% block headextra %}{% endblock %}
 </head>
 
 <body>
+  <div id="container" class="">
+    <div id="page">
+      <header>
+        <button class="toggle-search-control">Search</button>
 
-	<div id="absWrapper">
-		<div id="container">
-			<div id="banner">
-	        	<a href="//www.sfu.ca">Simon Fraser University</a>
-	    	</div>
+        <section class="heading">
+          <div class="brand-title">
+            <a href="http://www.sfu.ca">
+            <div class="branding">
+              <h1>Simon Fraser University<br>
+              Engaging the World</h1>
+            </div></a> <!-- end branding -->
 
-	    	<div id="globalNav">
-		        <ul id="campuses">
-		            <li class="sfu"><a href="//www.sfu.ca">sfu.ca</a></li>
-		            <li><a href="http://www.burnaby.sfu.ca">Burnaby</a></li>
-		            <li><a href="http://www.surrey.sfu.ca/">Surrey</a></li>
-		            <li class="last"><a href="http://www.vancouver.sfu.ca/">Vancouver</a></li>               
-		        </ul>
-		        
-		        <ul id="services">
-		            <li class="dropdown" id="online">
-		                <a class="tabs" href="//www.sfu.ca/onlineservices/" style="border-bottom-style: none; ">SFU Online</a>
-		            <ul id="onlineServices" style="z-index: 1000; display: none; "><li><a href="http://connect.sfu.ca">SFU Connect + mySFU</a></li><li><a href="http://www.sfu.ca/alumni/emailforwarding/">Alumni Mail</a></li><li><a href="http://go.sfu.ca">Student Information System</a></li></ul></li>
-		            <li class="dropdown" id="directory">
-		                <a class="tabs" href="//www.sfu.ca/dir/" style="border-bottom-style: none; ">A-Z Links</a>
-		            <ul id="AtoZ" style="z-index: 999; display: none; "><li><a href="http://www.sfu.ca/dir/?a">a</a></li><li><a href="http://www.sfu.ca/dir/?b">b</a></li><li><a href="http://www.sfu.ca/dir/?c">c</a></li><li><a href="http://www.sfu.ca/dir/?d">d</a></li><li><a href="http://www.sfu.ca/dir/?e">e</a></li><li><a href="http://www.sfu.ca/dir/?f">f</a></li><li><a href="http://www.sfu.ca/dir/?g">g</a></li><li><a href="http://www.sfu.ca/dir/?h">h</a></li><li><a href="http://www.sfu.ca/dir/?i">i</a></li><li><a href="http://www.sfu.ca/dir/?j">j</a></li><li><a href="http://www.sfu.ca/dir/?k">k</a></li><li><a href="http://www.sfu.ca/dir/?l">l</a></li><li><a href="http://www.sfu.ca/dir/?m">m</a></li><li><a href="http://www.sfu.ca/dir/?n">n</a></li><li><a href="http://www.sfu.ca/dir/?o">o</a></li><li><a href="http://www.sfu.ca/dir/?p">p</a></li><li><a href="http://www.sfu.ca/dir/?q">q</a></li><li><a href="http://www.sfu.ca/dir/?r">r</a></li><li><a href="http://www.sfu.ca/dir/?s">s</a></li><li><a href="http://www.sfu.ca/dir/?t">t</a></li><li><a href="http://www.sfu.ca/dir/?u">u</a></li><li><a href="http://www.sfu.ca/dir/?v">v</a></li><li><a href="http://www.sfu.ca/dir/?w">w</a></li><li><a href="http://www.sfu.ca/dir/?x">x</a></li><li><a href="http://www.sfu.ca/dir/?y">y</a></li><li><a href="http://www.sfu.ca/dir/?z">z</a></li></ul></li>
-		            <li class="last" id="search">
-		              <form action="//www.sfu.ca/search.html" class="search" method="get">
-		              	<fieldset>
-		                    <input id="s" name="q" type="text" value="Search sfu.ca" />
-		                    <span class="button"><input id="submit" type="submit" value="Search" /></span>
-	                    </fieldset>
-		              </form>
-		            </li>
-		        </ul>
-		    </div>
+            <div class="site-title">
+              <h2><a href="/clf.html">SFU Common Look and
+              Feel</a></h2>
+            </div>
+          </div>
+        </section><!-- end .heading -->
 
-			<div id="sideItems">
-				<div id="sysmenu">
-				{% if user.is_authenticated %}
-				Logged in as {{user.username}}.
-				<a href="{{ LOGOUT_URL }}">Logout</a>
-				{% else %}
-				Not logged in. <a href="{{ LOGIN_URL }}">Login</a>
-				{% endif %}
-				</div>
+        <section class="actionable-header">
+          <div class="search">
+            <form action="/search.html" method="get">
+              <fieldset class="search-field">
+                <input type="search" placeholder="Search" name="q">
+                <input type="hidden" name="p" data-value=
+                "/content/sfu/clf">
+              </fieldset>
 
-				{% block allbreadcrumbs %}<div id="breadcrumbs">
-				  <ul>
-				    {% block breadcrumbs %}<li><a href="/">CourSys</a></li>{% spaceless %}{% block subbreadcrumbs %}{% endblock %}{% endspaceless %}{% endblock %}
-			          </ul>
-				</div>{% endblock %}
+              <fieldset class="search-scope-set">
+                <label><input type="radio" checked="checked" value=
+                "site" name="search-scope">This site</label>
+                <label><input type="radio" value="sfu" name=
+                "search-scope">SFU.ca</label>
+              </fieldset>
+            </form>
+          </div><!-- end search -->
 
-				<h1 id="PageTitle">{% block h1 %}CourSys{% endblock %}</h1>
-		  	</div>
+          <div class="global-links">
+            <div class="mobile-global-links-container">
+              <ul class="mobile-global-links">
+                <li class="header">
+                  <a href="http://www.sfu.ca/directory">A-Z
+                  <span>directory</span></a>
+                </li>
 
-			{% if messages %}
-			<div id="messages">
-			<ul>
-			    {% for message in messages %}
-			    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-			    {% endfor %}
-			</ul>
-			</div>
-			{% endif %}
+                <li class="header sign-in">
+                  <a class="mobile-toggle" href="#">Sign in</a> <span class="icon icon-plus-sign"></span>
 
-			{% block actions %}{% endblock %}
+                  <ul>
+                    <li>
+                      <a href="http://connect.sfu.ca">Connect</a>
+                    </li>
 
-			<div id="main">
-			{% block content %}{% endblock %}
-			</div>
+                    <li>
+                      <a href="http://go.sfu.ca">SIS</a>
+                    </li>
 
-		</div>
+                    <li>
+                      <a href="https://canvas.sfu.ca">Canvas</a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
 
-		<div id="footer">
-		    <ul>
-		        <li>8888 University Drive, Burnaby, B.C. Canada V5A 1S6</li>
-		        <li><a href="//www.sfu.ca/webmaster/terms.html">Terms / Privacy</a></li>
-		        <li><a href="//www.sfu.ca/contact/index.html">Contact SFU</a></li>
-		        <li><a href="//www.sfu.ca/about/sitemap.html">SiteMap</a></li>
-		        <li><a href="//www.sfu.ca/security/sfuroadconditions/">Road Conditions</a></li>
-		        <li>&copy; Simon Fraser University</li>
-		    </ul>
-		</div>
+            <ul class="sf-menu">
+              <li>
+                <a href="#">A-Z Directory</a>
 
-	</div>
+                <ul class="expanded directory">
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/a.html">a</a>
+                  </li>
 
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/b.html">b</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/c.html">c</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/d.html">d</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/e.html">e</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/f.html">f</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/g.html">g</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/h.html">h</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/i.html">i</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/j.html">j</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/k.html">k</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/l.html">l</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/m.html">m</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/n.html">n</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/o.html">o</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/p.html">p</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/q.html">q</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/r.html">r</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/s.html">s</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/t.html">t</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/u.html">u</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/v.html">v</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/w.html">w</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/x.html">x</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/y.html">y</a>
+                  </li>
+
+                  <li>
+                    <a href=
+                    "http://www.sfu.ca/main/dir/z.html">z</a>
+                  </li>
+                </ul>
+              </li>
+
+              <li>
+                <a href="#">Sign in</a>
+
+                <ul class="expanded">
+                  <li>
+                    <a href="http://connect.sfu.ca">SFU Connect +
+                    mySFU</a>
+                  </li>
+
+                  <li>
+                    <a href="http://go.sfu.ca">Student Information
+                    System</a>
+                  </li>
+
+                  <li>
+                    <a href="https://canvas.sfu.ca">Canvas</a>
+                  </li>
+                </ul>
+              </li>
+            </ul><!-- end sf-menu sf-navbar -->
+          </div><!-- end global-links -->
+        </section><!-- end .actionable-header -->
+      </header>
+
+      <div class="header-divider"></div><!-- end header-divider -->
+
+      <div id="page-content" class="three-column">
+        <div class="first-col">
+          <nav class="default-nav">
+            <div class="nav-control">
+              <button class="navtoggle">Nav</button>
+            </div>
+
+            <ul>
+              <li class="">
+                <a href="/clf.html">SFU Common Look and Feel</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/contact.html">Contact Us</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/why.html">Why Requirements?</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/branding.html">SFU Branding
+                Requirements</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/social_media.html">Social Media
+                Protocols</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/web.html">Web Requirements</a>
+
+                <ul>
+                  <li class="nav-overview-item">
+                    <a href="/clf/web.html">Overview</a>
+                  </li>
+
+                  <li class="">
+                    <a href="/clf/web/CMS.html">Content Managment
+                    System</a>
+                  </li>
+                </ul>
+              </li>
+
+              <li class="">
+                <a href="/clf/requirements.html">Graphic
+                Requirements</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/downloads.html">Downloads</a>
+              </li>
+
+              <li class="active rule">
+                <a href="/clf/new-clf-faq.html">New CLF FAQ</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/feedback.html">Website feedback</a>
+              </li>
+
+              <li class="">
+                <a href="/clf/styleguide.html">SFU Editorial Style
+                Guide</a>
+
+                <ul>
+                  <li class="nav-overview-item">
+                    <a href="/clf/styleguide.html">Overview</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/about-our-name.html">About our
+                    name</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/abbreviations-acronyms.html">Abbreviations,
+                    acronyms</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/buildings-facilities.html">Buildings,
+                    facilities</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/campuses.html">Campuses</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/capitalization.html">Capitalization</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/computers.html">Computers</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/inclusive-language.html">Inclusive
+                    language</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/miscellaneous.html">Miscellaneous</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/numbers.html">Numbers</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/photography.html">Photography</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/punctuation.html">Punctuation</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/student-communication-terms.html">
+                    Student communication terms</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/video-guidelines.html">Video
+                    guidelines</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/writing-for-social-media.html">
+                    Writing for social media</a>
+                  </li>
+
+                  <li class="">
+                    <a href=
+                    "/clf/styleguide/writing-for-the-web.html">Writing
+                    for the web</a>
+                  </li>
+                </ul>
+              </li>
+
+              <li class="">
+                <a href="/clf/user-experience-survey.html">User
+                experience survey</a>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="inherited-parsys below-nav"></div>
+        </div>
+
+        <div class="breadcrumb">
+          <a href="/clf.html">SFU Common Look and Feel</a> / New
+          CLF FAQ
+        </div>
+
+        <div class="mobile-sub-nav">
+          <div class="mobile-sub-menu"></div>
+        </div>
+
+        <section class="main">
+          <div class="inherited-parsys above-main"></div>
+
+          <div class="parsys main_content">
+            <div class="title section">
+              <div>
+                <h1>{% block h1 %}CourSys{% endblock %}</h1>
+              </div>
+            </div>
+
+            {% block content %}{% endblock %}
+          </div>
+
+          <div class="inherited-parsys below-main"></div>
+        </section>
+
+        <section class="sub">
+          <div class="inherited-parsys above-sub"></div>
+
+          <div class="parsys sub_content"></div>
+
+          <div class="inherited-parsys below-sub"></div>
+        </section>
+
+        <footer>
+          <ul>
+            <li>
+              <a href="http://www.sfu.ca/admission">Admission</a>
+            </li>
+
+            <li>
+              <a href="http://www.sfu.ca/programs">Programs</a>
+            </li>
+
+            <li>
+              <a href="http://www.sfu.ca/learning">Learning</a>
+            </li>
+
+            <li>
+              <a href=
+              "http://www.sfu.ca/research-at-sfu">Research</a>
+            </li>
+
+            <li>
+              <a href=
+              "http://www.sfu.ca/sfu-community">Community</a>
+            </li>
+
+            <li>
+              <a href="http://www.sfu.ca/about">About</a>
+            </li>
+          </ul>
+
+          <ul>
+            <li>
+              <a href="http://www.sfu.ca/campuses/maps.html">Maps +
+              directions</a>
+            </li>
+
+            <li>
+              <a href="http://www.lib.sfu.ca/">Library</a>
+            </li>
+
+            <li>
+              <a href="http://www.sfu.ca/calendar">Academic
+              Calendar</a>
+            </li>
+
+            <li>
+              <a href="http://www.sfu.ca/roads">Road Report</a>
+            </li>
+
+            <li>
+              <a href="http://www.sfu.ca/advancement">Give to
+              SFU</a>
+            </li>
+          </ul>
+
+          <ul>
+            <li class="header">Connect with us</li>
+
+            <li>
+              <div class="inherited-parsys connect-with-us">
+                <div class="parsys">
+                  <div class="text parbase section">
+                    <div class="">
+                      <p><a href=
+                      "http://www.facebook.com/simonfraseruniversity">
+                      Facebook</a><br>
+                      <a href=
+                      "http://www.twitter.com/sfu">Twitter</a><br>
+                      <a href=
+                      "http://www.youtube.com/user/SFUNews">YouTube</a></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <ul>
+            <li class="header">
+              <a href="/clf/contact.html">Contact us</a>
+            </li>
+
+            <li>
+              <div class="inherited-parsys contact-us">
+                <div class="parsys">
+                  <div class="text parbase section">
+                    <div class="">
+                      <p>Simon Fraser University<br>
+                      8888 University Drive<br>
+                      Burnaby, B.C.<br>
+                      Canada V5A 1S6</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <ul>
+            <li>
+              <div class="inherited-parsys footer-right"></div>
+            </li>
+
+            <li>
+              <a href=
+              "http://www.sfu.ca/contact/terms-conditions.html">Terms
+              and conditions</a>
+            </li>
+
+            <li>© Simon Fraser University</li>
+          </ul>
+        </footer>
+      </div><!-- end page-content -->
+    </div><!-- end page -->
+  </div><!-- end container -->
+  <script type="text/javascript" src=
+  "/etc/designs/clf/clientlibs/pack/footer.scripts.js">
+</script> <script type="text/javascript" src=
+"/etc/designs/sfu/clientlibs/toggleFormContent.js">
+</script>
 </body>
 </html>
