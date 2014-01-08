@@ -308,8 +308,10 @@ def add_component(request, course_slug, activity_slug):
         else:
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
             form = new_form
+    type_classes = [cls for cls in ALL_TYPE_CLASSES
+                    if not hasattr(cls, 'active') or cls.active]
     return render_to_response("submission/component_add.html", 
-        {"course":course, "activity":activity, "form":form, "type":Type, "types": ALL_TYPE_CLASSES},
+        {"course":course, "activity":activity, "form":form, "type":Type, "types": type_classes},
         context_instance=RequestContext(request))
 
 def get_submission(submission_id):

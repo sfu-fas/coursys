@@ -100,6 +100,7 @@ class Code:
     descr = "a source code file"
     Component = CodeComponent
     SubmittedComponent = SubmittedCode
+    active = False # depricated in favour of Codefile
 
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
