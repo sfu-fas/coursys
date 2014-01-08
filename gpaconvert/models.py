@@ -48,6 +48,9 @@ class GradeSource(models.Model):
     def __unicode__(self):
         return "%s, %s" %(self.institution, self.country)
 
+    def delete(self):
+        raise NotImplementedError, "It's a bad thing to delete stuff"
+
     class Meta:
         unique_together = ("country", "institution")
 
@@ -84,6 +87,8 @@ TRANSFER_VALUES = (
     (decimal.Decimal('0.00'), 'F'),
 )
 
+
+# TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods.
 # TODO Do conversion rules have to apply to specific courses?  requirements.txt mentions course title as a user input field.
 class DiscreteRule(models.Model):
     """
@@ -105,6 +110,9 @@ class DiscreteRule(models.Model):
         return "%s:%s :: %s:SFU" %(self.lookup_value,
                                    self.grade_source,
                                    self.transfer_value)
+
+    def delete(self):
+        raise NotImplementedError, "It's a bad thing to delete stuff"
 
 
 class ContinuousRule(models.Model):
@@ -130,5 +138,8 @@ class ContinuousRule(models.Model):
         return "%s:%s :: %s and up:SFU" %(self.lookup_lbound,
                                           self.grade_source,
                                           self.transfer_value)
+
+    def delete(self):
+        raise NotImplementedError, "It's a bad thing to delete stuff"
 
 
