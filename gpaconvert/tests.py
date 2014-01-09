@@ -1,14 +1,6 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
-
-Replace this with more appropriate tests for your application.
-"""
-
 # Django
 from django.test import TestCase
 from django.db import IntegrityError
-
 
 # CourSys
 from .models import GradeSource
@@ -36,11 +28,11 @@ class GradeSourceTest(TestCase):
         """
         Tests that unique_together country and institution is enforced.
         """
-        with self.assertRaises(IntegrityError):
-            gs = GradeSource(country='CA', institution='UBC')
-            gs1 = GradeSource(country='CA', institution='UBC')
+        gs = GradeSource(country='CA', institution='UBC')
+        gs1 = GradeSource(country='CA', institution='UBC')
 
-            gs.save()
+        gs.save()
+        with self.assertRaises(IntegrityError):
             gs1.save()
 
 

@@ -107,6 +107,9 @@ class DiscreteRule(models.Model):
     def delete(self):
         raise NotImplementedError, "It's a bad thing to delete stuff"
 
+    class Meta:
+        unique_together = ("grade_source", "lookup_value")
+
 
 class ContinuousRule(models.Model):
     """
@@ -119,7 +122,7 @@ class ContinuousRule(models.Model):
     still considered a B.
     """
     grade_source = models.ForeignKey('GradeSource')
-    lookup_lbound = models.DecimalField(max_digits=5,
+    lookup_lbound = models.DecimalField(max_digits=8,
                                         decimal_places=2,
                                         choices=LBOUND_VALUES)
     transfer_value = models.DecimalField(max_digits=5,
@@ -135,4 +138,6 @@ class ContinuousRule(models.Model):
     def delete(self):
         raise NotImplementedError, "It's a bad thing to delete stuff"
 
+    class Meta:
+        unique_together = ("grade_source", "lookup_lbound")
 
