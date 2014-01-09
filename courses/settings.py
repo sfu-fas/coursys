@@ -163,6 +163,7 @@ else:
 
 # should we use the Celery job queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = DEPLOYED
+USE_CELERY = True
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (

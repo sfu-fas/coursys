@@ -907,15 +907,16 @@ def main():
     give_sysadmin(sysadmin)
     
     # cleanup sessions table
-    Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
+    from django.core.management import call_command
+    call_command('clearsessions')
     # cleanup old news items
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
     # cleanup old log entries
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
-        import djkombu.models
-        djkombu.models.Message.objects.cleanup()
+        #import djkombu.models
+        #djkombu.models.Message.objects.cleanup() # no longer needed with AMPQ
         from djcelery.models import TaskMeta
         TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
     
