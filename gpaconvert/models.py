@@ -1,21 +1,14 @@
-# Django
+import datetime
+import decimal
+
 from django.db import models
 
-
-# Third-Party
 from autoslug import AutoSlugField
 from django_countries.fields import CountryField
 from jsonfield import JSONField
 
-
-# CourSys
-from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
-
-
-# Built-in
-import datetime
-import decimal
+from courselib.slugs import make_slug
 
 DECIMAL_ZERO = decimal.Decimal('0.00')
 
