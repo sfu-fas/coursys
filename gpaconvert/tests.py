@@ -20,14 +20,6 @@ from .models import ContinuousRule
 import decimal
 
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.assertEqual(1 + 1, 2)
-
-
 class GradeSourceTest(TestCase):
     def setUp(self):
         self.gs1 = GradeSource.objects.create(country='NZ', institution='University of Wellington')
