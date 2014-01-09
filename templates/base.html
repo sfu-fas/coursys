@@ -4,15 +4,10 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
-  <meta http-equiv="content-type" content=
-  "text/html; charset=utf-8">
-  <meta name="viewport" content=
-  "width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
+  <meta http-equiv="content-type" content= "text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>{% block title %}CourSys{% endblock %}</title>
-  <link rel="stylesheet" href=
-  "{{MEDIA_URL}}newsfu/head.styles.css"
-  type="text/css">
+  <link rel="stylesheet" href="{{MEDIA_URL}}newsfu/head.styles.css" type="text/css">
   <script type="text/javascript" src=
   "{{MEDIA_URL}}jquery-ui/js/jquery-1.9.1.js">
 </script>
@@ -25,12 +20,12 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
   <script type="text/javascript">
 var $ = jQuery;
   </script><!--[if lt IE 9]>
-        <script type="text/javascript" src="/etc/designs/clf/clientlibs/html5shiv.js"></script>
-<script type="text/javascript" src="/etc/designs/clf/clientlibs/respond.js"></script>
+        <script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/html5shiv.js"></script>
+<script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/respond.js"></script>
 
 <![endif]-->
   <!--[if lte IE 9]>
-        <script type="text/javascript" src="/etc/designs/clf/clientlibs/matchmedia.js"></script>
+        <script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/matchmedia.js"></script>
 
 <![endif]-->
   {% block headextra %}{% endblock %}
@@ -51,26 +46,22 @@ var $ = jQuery;
             </div></a> <!-- end branding -->
 
             <div class="site-title">
-              <h2><a href="/clf.html">SFU Common Look and
-              Feel</a></h2>
+              <h2><a href="/">CourSys</a></h2>
             </div>
           </div>
         </section><!-- end .heading -->
 
         <section class="actionable-header">
           <div class="search">
-            <form action="/search.html" method="get">
+            <form action="http//www.sfu.ca/search.html" method="get">
               <fieldset class="search-field">
                 <input type="search" placeholder="Search" name="q">
-                <input type="hidden" name="p" data-value=
-                "/content/sfu/clf">
+                <input type="hidden" name="p" data-value="/content/sfu/clf">
               </fieldset>
 
               <fieldset class="search-scope-set">
-                <label><input type="radio" checked="checked" value=
-                "site" name="search-scope">This site</label>
-                <label><input type="radio" value="sfu" name=
-                "search-scope">SFU.ca</label>
+                <label><input type="radio" checked="checked" value="site" name="search-scope">This site</label>
+                <label><input type="radio" value="sfu" name="search-scope">SFU.ca</label>
               </fieldset>
             </form>
           </div><!-- end search -->
@@ -79,22 +70,20 @@ var $ = jQuery;
             <div class="mobile-global-links-container">
               <ul class="mobile-global-links">
                 <li class="header">
-                  <a href="http://www.sfu.ca/directory">A-Z
-                  <span>directory</span></a>
+                  <a href="http://www.sfu.ca/directory">A-Z <span>directory</span></a>
                 </li>
 
                 <li class="header sign-in">
-                  <a class="mobile-toggle" href="#">Sign in</a> <span class="icon icon-plus-sign"></span>
-
+                  {% if user.is_authenticated %}<a href="{{ LOGOUT_URL }}">Sign Out</a>
+				  {% else %}<a href="{{ LOGIN_URL }}">Sign In</a>
+				  {% endif %}
                   <ul>
                     <li>
                       <a href="http://connect.sfu.ca">Connect</a>
                     </li>
-
                     <li>
                       <a href="http://go.sfu.ca">SIS</a>
                     </li>
-
                     <li>
                       <a href="https://canvas.sfu.ca">Canvas</a>
                     </li>
@@ -241,19 +230,17 @@ var $ = jQuery;
               </li>
 
               <li>
-                <a href="#">Sign in</a>
+                {% if user.is_authenticated %}<a href="{{ LOGOUT_URL }}">Sign Out</a>
+				{% else %}<a href="{{ LOGIN_URL }}">Sign In</a>
+				{% endif %}
 
                 <ul class="expanded">
                   <li>
-                    <a href="http://connect.sfu.ca">SFU Connect +
-                    mySFU</a>
+                    <a href="http://connect.sfu.ca">SFU Connect + mySFU</a>
                   </li>
-
                   <li>
-                    <a href="http://go.sfu.ca">Student Information
-                    System</a>
+                    <a href="http://go.sfu.ca">Student Information System</a>
                   </li>
-
                   <li>
                     <a href="https://canvas.sfu.ca">Canvas</a>
                   </li>
@@ -274,157 +261,14 @@ var $ = jQuery;
             </div>
 
             <ul>
-              <li class="">
-                <a href="/clf.html">SFU Common Look and Feel</a>
-              </li>
+              <li><a href="/">CourSys</a></li>
 
-              <li class="">
-                <a href="/clf/contact.html">Contact Us</a>
-              </li>
-
-              <li class="">
-                <a href="/clf/why.html">Why Requirements?</a>
-              </li>
-
-              <li class="">
-                <a href="/clf/branding.html">SFU Branding
-                Requirements</a>
-              </li>
-
-              <li class="">
-                <a href="/clf/social_media.html">Social Media
-                Protocols</a>
-              </li>
-
-              <li class="">
-                <a href="/clf/web.html">Web Requirements</a>
-
+              <li><a href="/">Some Category</a>
                 <ul>
-                  <li class="nav-overview-item">
-                    <a href="/clf/web.html">Overview</a>
-                  </li>
-
-                  <li class="">
-                    <a href="/clf/web/CMS.html">Content Managment
-                    System</a>
-                  </li>
+                  <li class="nav-overview-item"><a href="/">Sub-Item</a></li>
+                  <li class="nav-overview-item"><a href="/">Sub-Item</a></li>
+                  <li class="nav-overview-item"><a href="/">Sub-Item</a></li>
                 </ul>
-              </li>
-
-              <li class="">
-                <a href="/clf/requirements.html">Graphic
-                Requirements</a>
-              </li>
-
-              <li class="">
-                <a href="/clf/downloads.html">Downloads</a>
-              </li>
-
-              <li class="active rule">
-                <a href="/clf/new-clf-faq.html">New CLF FAQ</a>
-              </li>
-
-              <li class="">
-                <a href="/clf/feedback.html">Website feedback</a>
-              </li>
-
-              <li class="">
-                <a href="/clf/styleguide.html">SFU Editorial Style
-                Guide</a>
-
-                <ul>
-                  <li class="nav-overview-item">
-                    <a href="/clf/styleguide.html">Overview</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/about-our-name.html">About our
-                    name</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/abbreviations-acronyms.html">Abbreviations,
-                    acronyms</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/buildings-facilities.html">Buildings,
-                    facilities</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/campuses.html">Campuses</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/capitalization.html">Capitalization</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/computers.html">Computers</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/inclusive-language.html">Inclusive
-                    language</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/miscellaneous.html">Miscellaneous</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/numbers.html">Numbers</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/photography.html">Photography</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/punctuation.html">Punctuation</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/student-communication-terms.html">
-                    Student communication terms</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/video-guidelines.html">Video
-                    guidelines</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/writing-for-social-media.html">
-                    Writing for social media</a>
-                  </li>
-
-                  <li class="">
-                    <a href=
-                    "/clf/styleguide/writing-for-the-web.html">Writing
-                    for the web</a>
-                  </li>
-                </ul>
-              </li>
-
-              <li class="">
-                <a href="/clf/user-experience-survey.html">User
-                experience survey</a>
               </li>
             </ul>
           </nav>
@@ -432,17 +276,26 @@ var $ = jQuery;
           <div class="inherited-parsys below-nav"></div>
         </div>
 
-        <div class="breadcrumb">
-          <a href="/clf.html">SFU Common Look and Feel</a> / New
-          CLF FAQ
-        </div>
+        {% block allbreadcrumbs %}<div class="breadcrumbs">
+          {% block breadcrumbs %}<li><a href="/">CourSys</a></li>{% spaceless %}{% block subbreadcrumbs %}{% endblock %}{% endspaceless %}{% endblock %}
+         </div>{% endblock %}
 
         <div class="mobile-sub-nav">
           <div class="mobile-sub-menu"></div>
         </div>
 
         <section class="main">
-          <div class="inherited-parsys above-main"></div>
+          <div class="inherited-parsys above-main">
+            {% if messages %}
+			<div id="messages">
+			<ul>
+			    {% for message in messages %}
+			    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+			    {% endfor %}
+			</ul>
+			</div>
+			{% endif %}
+          </div>
 
           <div class="parsys main_content">
             <div class="title section">
@@ -460,7 +313,7 @@ var $ = jQuery;
         <section class="sub">
           <div class="inherited-parsys above-sub"></div>
 
-          <div class="parsys sub_content"></div>
+          <div class="parsys sub_content">{% block actions %}{% endblock %}</div>
 
           <div class="inherited-parsys below-sub"></div>
         </section>
@@ -579,10 +432,8 @@ var $ = jQuery;
       </div><!-- end page-content -->
     </div><!-- end page -->
   </div><!-- end container -->
-  <script type="text/javascript" src=
-  "/etc/designs/clf/clientlibs/pack/footer.scripts.js">
-</script> <script type="text/javascript" src=
-"/etc/designs/sfu/clientlibs/toggleFormContent.js">
+  <script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/pack/footer.scripts.js">
+</script> <script type="text/javascript" src="http://www.sfu.caetc/designs/sfu/clientlibs/toggleFormContent.js">
 </script>
 </body>
 </html>
