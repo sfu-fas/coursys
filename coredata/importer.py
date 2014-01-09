@@ -831,10 +831,16 @@ def update_all_userids():
         if p.emplid in accounts_by_emplid:
             account_userid = accounts_by_emplid[p.emplid].userid
             if p.userid != account_userid:
-                p.userid = account_userid
                 if account_userid:
-                    p.config['replaced_userid'] = account_userid
-                p.save()
+                    if p.userid:
+                        p.config['replaced_userid'] = p.userid
+                    p.userid = account_userid
+                    p.save()
+                else:
+                    # this case: proposing to replace a non-null userid with null. i.e. deactivate the account
+                    # let's not do that. If userids get reused, this is the wrong thing.
+                    print "!!! not deactivating userid %s" % (p.userid)
+
 
         else:
             if p.userid:
