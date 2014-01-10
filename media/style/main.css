@@ -3,10 +3,6 @@ div#main p {
   margin-top: 1em;
   padding: 0;
 }
-#PageTitle {
-  margin: 0 0 1em;
-  padding: 0;
-}
 div#main h3 {
   margin-top: 1em;
 }
@@ -48,51 +44,26 @@ div.breadcrumb ul li:first-child:before {
 
 
 
-div .group_info_area{
-    background-image: url('../images/grades/bluep.png');
-}
-
-ul#services li#online:hover ul{
+disabled ul#services li#online:hover ul{
     width: 165px;
 }
 
-ul#services li input {
+disabled ul#services li input {
   line-height: 20px;
   padding-top: 0;
 }
 
-ul#services li#search fieldset {
+disabled ul#services li#search fieldset {
   border: 0;
   margin: 0;
 }
 
-input[type="button"],
-input[type="submit"],
-input[type="reset"],
-input[type="file"] {
+disabled input[type="button"],
+disabled input[type="submit"],
+disabled input[type="reset"],
+disabled input[type="file"] {
   padding: 1px 6px
 }
-
-/* Image replacements for sfu/css/common.css */
-
-#banner {
-  background-image: url(/media/sfu/images/banner2-seray-right.jpg);
-}
-
-#banner a {
-  background-image: url(/media/sfu/images/logo_main.png);
-}
-
-ul#campuses li,
-ul#services li,
-ul#services li span input#submit,
-ul#services li input#submit:hover
-
-{
-  background-image: url(/media/sfu/images/sprites.gif);
-}
-
-/* End image replacements */
 
 
 
@@ -104,17 +75,6 @@ visited #25316e
 grey    #54534a
 */
 
-div#sideItems {
-  border-left: 25px solid transparent;
-  clear: both;
-  padding: 18px 18px 0;
-}
-
-div#main {
-  border-left: 25px solid transparent;
-  padding: 0 18px;
-  margin-bottom: 1.5em;
-}
 
 #sysmenu {
   float: right;
@@ -123,85 +83,58 @@ div#main {
   font-size: 0.91em;
 }
 
-#breadcrumbs {
-  font-size: 0.91em;
-  margin-bottom: 1em;
-}
-
-#breadcrumbs ul {
-  list-style: none;
-  margin: 0;
-  overflow: hidden;
-  padding: 0;
-}
-
-#breadcrumbs li {
-  float: left;
-  margin-right: 0.25em;
-}
-
-ul.unstyled {
-  list-style: none;
-  margin: 0;
-  padding-left: 0;
-}
-
 .empty {
   font-style: italic;
 }
+
+/* messages */
+
 div#messages {
-  border: 1px solid #b5111b;
-  padding: 0.5em;
-  margin: 8px 18px 18px 43px;
-  color: #b5111b;
-  background-color: #f8f8c2;
-}
-div#messages h3 {
-  margin: 0 0 0.5em 0;
-  padding: 0;
-  color: #b5111b;
+  border: 1px solid #161513;
+  padding: 0.25em 0.5em;
+  font-weight: bold;
 }
 div#messages ul {
-  margin: 0 0.5em 0;
+  margin: 0;
   padding: 0;
 }
 div#messages li {
   list-style-type: none;
   margin: 0;
-  padding: 0 0 0 20px;
+  padding: 0 0 0 0;
 }
-fieldset div#messages{
-  margin-left: 1em;
-}
-fieldset div#messages ul {
-  margin: 0 0.5em 0 0;
-}
-fieldset div#messages li{
-  float: none;
+div#messages li:before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-right: 0.25em;
 }
 div#messages .success {
-    color: #92be2c;
-    background-image: url('../icons/action_check.png');
-    background-repeat: no-repeat;
-    font-weight: bold;
+  color: #92be2c;
+}
+div#messages .success:before {
+  content: '\00f058';
 }
 div#messages .error {
-    color: #c33a41;
-    background-image: url('../icons/action_delete.png');
-    background-repeat: no-repeat;
-    font-weight: bold;
+  color: #c33a41;
+}
+div#messages .error:before {
+  content: '\00f057';
 }
 div#messages .warning {
-    color: #e06121;
-    background-image: url('../icons/exclamation.png');
-    background-repeat: no-repeat;
-    font-weight: bold;
+  color: #e06121;
+}
+div#messages .warning:before {
+  content: '\00f06a';
 }
 div#messages .info {
-    color: #075fa3;
-    background-image: url('../icons/information.png');
-    background-repeat: no-repeat;
-    font-weight: bold;
+  color: #075fa3;
+}
+div#messages .info:before {
+  content: '\00f05a';
 }
 
 span.warning {

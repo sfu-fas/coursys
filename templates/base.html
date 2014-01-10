@@ -24,7 +24,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   <!--[if lte IE 8]>
   <link rel="stylesheet" href="{{MEDIA_URL}}style/main-ie.css" type="text/css" />
   <![endif]-->
-
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
   <link rel="icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
   <script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
@@ -67,8 +67,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
             <div class="mobile-global-links-container">
               <ul class="mobile-global-links">
                 <li class="header">
-                  <a href="http://www.sfu.ca/directory">A-Z
-                  <span>directory</span></a>
+                  <a href="http://www.sfu.ca/directory">A-Z <span>directory</span></a>
                 </li>
 
                 <li class="header sign-in">
@@ -198,7 +197,18 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
         </div>
 
         <section class="main">
-          <div class="inherited-parsys above-main"></div>
+          <div class="inherited-parsys above-main">
+            {% if messages %}
+			<div id="messages">
+			<ul>
+			    {% for message in messages %}
+			    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}</li>
+			    {% endfor %}
+			</ul>
+			</div>
+			{% endif %}
+          </div>
 
           <div class="parsys main_content">
             <div class="title section">
