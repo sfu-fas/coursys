@@ -5,14 +5,14 @@
 {% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person.name }}{% else %}New Contract for {{application.person}}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li>&gt; <a href="{% url "ta.views.all_contracts" post_slug=posting.slug %}">Contracts</a></li>
+<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta.views.all_contracts" post_slug=posting.slug %}">Contracts</a></li>
 {% if editing %}
-<li>&gt; <a href="{% url "ta.views.view_contract" post_slug=posting.slug userid=contract.application.person.userid %}">{{ contract.application.person.name }}</a></li>
-<li>&gt; Edit</li>
+<li><a href="{% url "ta.views.view_contract" post_slug=posting.slug userid=contract.application.person.userid %}">{{ contract.application.person.name }}</a></li>
+<li>Edit</li>
 {% else %}
-<li>&gt; New</li>
+<li>New</li>
 {% endif %}
 {% endblock %}
 

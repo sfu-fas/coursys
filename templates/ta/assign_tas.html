@@ -5,9 +5,9 @@
 {% block h1 %}Assign TAs for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li>&gt; Assign TAs</li>{% endblock %}
+<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>Assign TAs</li>{% endblock %}
 
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />

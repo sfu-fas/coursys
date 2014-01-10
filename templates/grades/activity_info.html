@@ -98,7 +98,7 @@ Column logic:
 //]]></script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; {{ activity.name }}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>{{ activity.name }}</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">

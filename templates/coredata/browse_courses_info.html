@@ -2,7 +2,7 @@
 {% block title %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
 {% block h1 %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li><li>{{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
 
 {% block headextra %}
 <link rel='stylesheet' type='text/css' href='{{MEDIA_URL}}fullcalendar/fullcalendar.css' />

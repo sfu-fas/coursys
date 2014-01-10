@@ -5,10 +5,10 @@
 {% block h1 %}New Sheet{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-<li>&gt; <a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
-<li>&gt; <a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{owner_form.title}}</a></li>
-<li>&gt; New Sheet</li>
+<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
+<li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{owner_form.title}}</a></li>
+<li>New Sheet</li>
 {% endblock %}
 
 {% block content %}

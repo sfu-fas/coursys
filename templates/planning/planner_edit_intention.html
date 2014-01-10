@@ -5,9 +5,9 @@
 {% block h1 %}Edit Semester Teaching Intention for {{ instructor.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
-<li>&gt; <a href="{% url "planning.views.view_intentions" %}">Semester Teaching Intentions</a></li>
-<li>&gt; Edit Semester Teaching Intention for {{ instructor.name }}</li>{% endblock %}
+<li><a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+<li><a href="{% url "planning.views.view_intentions" %}">Semester Teaching Intentions</a></li>
+<li>Edit Semester Teaching Intention for {{ instructor.name }}</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">

@@ -23,7 +23,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; Details for {{member.person.name}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>Details for {{member.person.name}}</li>{% endblock %}
 
 {% block content %}
 <div class="table_container">

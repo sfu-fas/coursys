@@ -4,8 +4,8 @@
 {% block h1 %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
-<li>&gt; {{grad.person.name}}, {{grad.program.label}}</li>
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>{{grad.person.name}}, {{grad.program.label}}</li>
 {% endblock %}
 
 {% block actions %}

@@ -14,7 +14,7 @@ $(document).ready(function() {
 {% block title %}Create Time Use Guideline{% endblock %}
 {% block h1 %}Create Time Use Guideline{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>&gt; <a href="{% url "ta.views.all_tugs" course_slug=course.slug %}">TUGs</a></li><li>&gt; <a href="{% url "ta.views.view_tug" course_slug=course.slug userid=userid %}">{{ta.name}}</a></li><li>&gt; {% block verb %}Create{% endblock %}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li><a href="{% url "ta.views.all_tugs" course_slug=course.slug %}">TUGs</a></li><li><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=userid %}">{{ta.name}}</a></li><li>{% block verb %}Create{% endblock %}</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">

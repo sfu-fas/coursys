@@ -4,7 +4,7 @@
 {% block title %}Edit BU Defaults for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 {% block h1 %}Edit BU Defaults for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>&gt; Default BUs</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>Default BUs</li>{% endblock %}
 
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />

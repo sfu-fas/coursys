@@ -7,9 +7,9 @@
 {% block h1 %}Edit Course - {{ course.full_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
-<li>&gt; <a href="{% url "planning.views.manage_courses" %}">Manage Courses</a></li>
-<li>&gt; Edit Course - {{ course }}</li>
+<li><a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+<li><a href="{% url "planning.views.manage_courses" %}">Manage Courses</a></li>
+<li>Edit Course - {{ course }}</li>
 {% endblock %}
 
 {% block content %}

@@ -13,7 +13,7 @@ function confirmSubmit() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>&gt; <a href="{% url "discipline.views.show_templates" %}">Dishonesty Templates</a></li><li>&gt; Edit "{{template.label}}"</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li><a href="{% url "discipline.views.show_templates" %}">Dishonesty Templates</a></li><li>Edit "{{template.label}}"</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 

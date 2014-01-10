@@ -22,7 +22,7 @@ $(document).ready(function() {
 
 {% block title %}Mark All{% endblock %}
 {% block h1 %} Mark All Students {% endblock %}
-{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Students</li>{% endblock %}
+{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Students</li>{% endblock %}
 
 {% block content %}
 <form id="import_file_form" action="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}?import=true" method="post" enctype="multipart/form-data" onsubmit="return clear_filter()">{% csrf_token %}

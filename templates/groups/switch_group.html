@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load course_display %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">groups</a></li><li>&gt; Create group</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">groups</a></li><li>Create group</li>{% endblock %}
 {% block content %}
 	<h1>Switch Group</h1>
 	{% if user %}

@@ -31,7 +31,7 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>&gt; Add Graded Numeric Activity</li>{% endifequal %}{% if activity %}<li>&gt; <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>&gt; Edit</li>{% endifequal %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>Add Graded Numeric Activity</li>{% endifequal %}{% if activity %}<li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>Edit</li>{% endifequal %}{% endblock %}
 
 
 {% block content %}

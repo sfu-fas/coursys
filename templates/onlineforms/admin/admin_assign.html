@@ -5,9 +5,9 @@
 {% block h1 %} Assign {{ form_submission.form.title }} {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li>&gt; <a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
-    <li>&gt; Assign {{ form_submission.form.title }}</li>
+    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+    <li>Assign {{ form_submission.form.title }}</li>
 {% endblock %}
 
 {% block headextra %}

@@ -60,12 +60,12 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url "onlineforms.views.list_all" %}">Forms</a></li>
-    <li>&gt; <a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
-    <li>&gt; <a
+    <li><a href="{% url "onlineforms.views.list_all" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li><a
             href="{% url "onlineforms.views.edit_sheet" form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
     </li>
-    <li>&gt; Edit Field</li>
+    <li>Edit Field</li>
 {% endblock %}
 
 {% block content %}

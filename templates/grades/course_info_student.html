@@ -10,7 +10,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; {{ course.name }} ({{course.semester.label}})</li>{% endblock %}
+{% block subbreadcrumbs %}<li>{{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
 {% block actions %}
 {% if any_group or has_index or course.discussion %}

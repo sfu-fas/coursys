@@ -4,7 +4,7 @@
 {% block title %}New Dishonesty Case{% endblock %}
 {% block h1 %}New Dishonesty Case{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li>&gt; New Case (non student)</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li>New Case (non student)</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
