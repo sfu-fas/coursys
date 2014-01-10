@@ -28,24 +28,23 @@ class GradeSource(models.Model):
         ('DISA', 'DISABLED'),
     )
     country = CountryField()
-    institution = models.CharField(max_length=128)
+    institution = models.CharField(max_length=128, verbose_name="Institution/Scale Name")
     config = JSONField(null=False, blank=False, default={})
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='DISA')
-    # TODO What if conversion rules are mixed between discrete and continuous (is that possible?)
     scale = models.CharField(max_length=4, choices=SCALE_CHOICES, default='DISC')
 
     def _auto_slug(self):
-        return make_slug("%s-%s" %(self.institution, self.country))    
+        return make_slug("%s-%s" % (self.institution, self.country))    
     slug = AutoSlugField(populate_from=_auto_slug, null=False, editable=False)
 
     def __unicode__(self):
-        return "%s, %s" %(self.institution, self.country)
+        return "%s, %s" % (self.institution, self.country)
 
     def delete(self):
         raise NotImplementedError, "It's a bad thing to delete stuff"
 
     class Meta:
-        unique_together = ("country", "institution")
+        unique_together = (("country", "institution"),)
 
 
 # SFU Grade Scale
@@ -80,9 +79,11 @@ TRANSFER_VALUES = (
     (decimal.Decimal('0.00'), 'F'),
 )
 
+from grades.models import GPA_GRADE_CHOICES
+TRANSFER_VALUES = GPA_GRADE_CHOICES
 
-# TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods.
-# TODO Do conversion rules have to apply to specific courses?  requirements.txt mentions course title as a user input field.
+# TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods. [No reason: go for it]
+# TODO Do conversion rules have to apply to specific courses?  requirements.txt mentions course title as a user input field. [don't care]
 class DiscreteRule(models.Model):
     """
     Discrete GPA Conversion Rule represents the conversions
@@ -94,10 +95,9 @@ class DiscreteRule(models.Model):
     """
     grade_source = models.ForeignKey('GradeSource')
     lookup_value = models.CharField(max_length=64)
-    transfer_value = models.DecimalField(max_digits=5,
-                                         decimal_places=2,
-                                         default=DECIMAL_ZERO,
-                                         choices=TRANSFER_VALUES)
+    transfer_value = models.CharField(max_length=2,
+                                      null=False, blank=False,
+                                      choices=TRANSFER_VALUES)
     
     def __unicode__(self):
         return "%s:%s :: %s:SFU" %(self.lookup_value,
@@ -123,12 +123,10 @@ class ContinuousRule(models.Model):
     """
     grade_source = models.ForeignKey('GradeSource')
     lookup_lbound = models.DecimalField(max_digits=8,
-                                        decimal_places=2,
-                                        choices=LBOUND_VALUES)
-    transfer_value = models.DecimalField(max_digits=5,
-                                         decimal_places=2,
-                                         default=DECIMAL_ZERO,
-                                         choices=TRANSFER_VALUES)
+                                        decimal_places=2)
+    transfer_value = models.CharField(max_length=2,
+                                      null=False, blank=False,
+                                      choices=TRANSFER_VALUES)
 
     def __unicode__(self):
         return "%s:%s :: %s and up:SFU" %(self.lookup_lbound,
@@ -139,5 +137,5 @@ class ContinuousRule(models.Model):
         raise NotImplementedError, "It's a bad thing to delete stuff"
 
     class Meta:
-        unique_together = ("grade_source", "lookup_lbound")
+        unique_together = (("grade_source", "lookup_lbound"),)
 
