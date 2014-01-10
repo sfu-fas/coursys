@@ -1,10 +1,10 @@
 {% comment %}
-Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
+Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate/important-forms.html
 {% endcomment %}<!DOCTYPE html>
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
-  <meta http-equiv="content-type" content= "text/html; charset=utf-8">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>{% block wholetitle %}CourSys - {% block title %}{% endblock %}{% endblock %}</title>
   <link rel="stylesheet" href="{{MEDIA_URL}}newsfu/head.styles.css" type="text/css">
@@ -19,6 +19,16 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
   <!--[if lte IE 9]>
   <script type="text/javascript" src="{{MEDIA_URL}}newsfu/matchmedia.js"></script>
   <![endif]-->
+
+  <link rel="stylesheet" href="{{MEDIA_URL}}style/main.css" media="all" />
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="{{MEDIA_URL}}style/main-ie.css" type="text/css" />
+  <![endif]-->
+
+  <link rel="icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
+  <script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="{{MEDIA_URL}}js/core.js"></script>
   {% block headextra %}{% endblock %}
 </head>
 
@@ -34,17 +44,16 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
             <div class="branding">
               <h1>Simon Fraser University<br>Engaging the World</h1>
             </div></a> <!-- end branding -->
-
             <div class="site-title"><h2><a href="/">CourSys</a></h2></div>
           </div>
         </section><!-- end .heading -->
 
         <section class="actionable-header">
           <div class="search">
-            <form action="http//www.sfu.ca/search.html" method="get">
+            <form action="/search.html" method="get">
               <fieldset class="search-field">
                 <input type="search" placeholder="Search" name="q">
-                <input type="hidden" name="p" data-value="/content/sfu/clf">
+                <input type="hidden" name="p" data-value="/content/sfu/computing">
               </fieldset>
 
               <fieldset class="search-scope-set">
@@ -58,7 +67,8 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
             <div class="mobile-global-links-container">
               <ul class="mobile-global-links">
                 <li class="header">
-                  <a href="http://www.sfu.ca/directory">A-Z <span>directory</span></a>
+                  <a href="http://www.sfu.ca/directory">A-Z
+                  <span>directory</span></a>
                 </li>
 
                 <li class="header sign-in">
@@ -67,6 +77,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
 				  {% else %}
                     <a href="{{ LOGIN_URL }}">Sign In</a>
 				  {% endif %}
+
                   <ul>
                     <li><a href="http://connect.sfu.ca">Connect</a></li>
                     <li><a href="http://go.sfu.ca">SIS</a></li>
@@ -111,17 +122,23 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
               </li>
 
               <li>
-                {% if user.is_authenticated %}<a href="{{ LOGOUT_URL }}">Sign Out</a>
-				{% else %}<a href="{{ LOGIN_URL }}">Sign In</a>
-				{% endif %}
+                {% if user.is_authenticated %}
+                    <a href="{{ LOGOUT_URL }}">Sign Out</a>
+				  {% else %}
+                    <a href="{{ LOGIN_URL }}">Sign In</a>
+				  {% endif %}
 
                 <ul class="expanded">
                   <li>
-                    <a href="http://connect.sfu.ca">SFU Connect + mySFU</a>
+                    <a href="http://connect.sfu.ca">SFU Connect +
+                    mySFU</a>
                   </li>
+
                   <li>
-                    <a href="http://go.sfu.ca">Student Information System</a>
+                    <a href="http://go.sfu.ca">Student Information
+                    System</a>
                   </li>
+
                   <li>
                     <a href="https://canvas.sfu.ca">Canvas</a>
                   </li>
@@ -134,7 +151,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
 
       <div class="header-divider"></div><!-- end header-divider -->
 
-      <div id="page-content" class="three-column">
+      <div id="page-content" class="two-column">
         <div class="first-col">
           <nav class="default-nav">
             <div class="nav-control">
@@ -142,46 +159,51 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
             </div>
 
             <ul>
-              <li><a href="/">CourSys</a></li>
-
-              <li><a href="/">Some Category</a>
+              <li class=""><a href="/">CourSys</a></li>
+              <!--
+              <li class=""><a href="/">Thing Two</a></li>
+              <li class="rule active">
+                <a href="/">More Things</a>
                 <ul>
-                  <li class="nav-overview-item"><a href="/">Sub-Item</a></li>
-                  <li class="nav-overview-item"><a href="/">Sub-Item</a></li>
-                  <li class="nav-overview-item"><a href="/">Sub-Item</a></li>
+                  <li class="active"><a href="/">Sub Thing 1</a></li>
+                  <li class=""><a href="/">Sub Thing 2</a></li>
+                  <li class="nav-overview-item"><a href="/">Sub Thing 3</a></li>
                 </ul>
+              </li>
+              <li class="">
+                <a href="/">Even More Things</a>
+                <ul>
+                  <li class="active"><a href="/">Sub Thing 1</a></li>
+                  <li class=""><a href="/">Sub Thing 2</a></li>
+                  <li class="nav-overview-item"><a href="/">Sub Thing 3</a></li>
+                </ul>
+              </li>
+              -->
+              <li>Actions
+                  {% block actions %}{% endblock %}
               </li>
             </ul>
           </nav>
 
-          <div class="inherited-parsys below-nav"></div>
+          <div class="inherited-parsys below-nav">
+          </div>
         </div>
 
-        {% block allbreadcrumbs %}<div class="breadcrumbs">
-          {% block breadcrumbs %}<li><a href="/">CourSys</a></li>{% spaceless %}{% block subbreadcrumbs %}{% endblock %}{% endspaceless %}{% endblock %}
-         </div>{% endblock %}
+        {% block allbreadcrumbs %}<div class="breadcrumb">
+        {% block breadcrumbs %}<ul><li><a href="/">CourSys</a></li>{% block subbreadcrumbs %}{% endblock %}</ul>{% endblock %}
+        </div>{% endblock %}
 
         <div class="mobile-sub-nav">
           <div class="mobile-sub-menu"></div>
         </div>
 
         <section class="main">
-          <div class="inherited-parsys above-main">
-            {% if messages %}
-			<div id="messages">
-			<ul>
-			    {% for message in messages %}
-			    <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-			    {% endfor %}
-			</ul>
-			</div>
-			{% endif %}
-          </div>
+          <div class="inherited-parsys above-main"></div>
 
           <div class="parsys main_content">
             <div class="title section">
               <div>
-                <h1>{% block h1 %}CourSys{% endblock %}</h1>
+                <h1>{% block h1 %}{% endblock %}</h1>
               </div>
             </div>
 
@@ -189,14 +211,6 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
           </div>
 
           <div class="inherited-parsys below-main"></div>
-        </section>
-
-        <section class="sub">
-          <div class="inherited-parsys above-sub"></div>
-
-          <div class="parsys sub_content">{% block actions %}{% endblock %}</div>
-
-          <div class="inherited-parsys below-sub"></div>
         </section>
 
         <footer>
@@ -262,12 +276,13 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
                   <div class="text parbase section">
                     <div class="">
                       <p><a href=
-                      "http://www.facebook.com/simonfraseruniversity">
-                      Facebook</a><br>
+                      "http://www.facebook.com/simonfraseruniversity">Facebook</a><br>
+
                       <a href=
                       "http://www.twitter.com/sfu">Twitter</a><br>
                       <a href=
-                      "http://www.youtube.com/user/SFUNews">YouTube</a></p>
+                      "http://www.youtube.com/user/SFUNews">YouTube</a>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -277,7 +292,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
 
           <ul>
             <li class="header">
-              <a href="/clf/contact.html">Contact us</a>
+              <a href="http://www.sfu.ca/clf/contact.html">Contact us</a>
             </li>
 
             <li>
@@ -302,7 +317,9 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
             </li>
 
             <li>
-              <a href="http://www.sfu.ca/contact/terms-conditions.html">Terms and conditions</a>
+              <a href=
+              "http://www.sfu.ca/contact/terms-conditions.html">Terms
+              and conditions</a>
             </li>
 
             <li>© Simon Fraser University</li>
@@ -311,8 +328,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
       </div><!-- end page-content -->
     </div><!-- end page -->
   </div><!-- end container -->
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/footer.scripts.js">
-</script> <script type="text/javascript" src="{{MEDIA_URL}}newsfu/toggleFormContent.js">
-</script>
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/footer.scripts.js"></script>
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/toggleFormContent.js"></script>
 </body>
 </html>

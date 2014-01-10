@@ -29,21 +29,24 @@ div#main dl.docs dd>p:first-child {
 pre {
 	font-family: monospace;
 }
-/* remove left-side menu for more screen space */
-ul#main_nav {
-  display: none;
-}
-#container {
-  z-index: auto;
-  background-image:url(bgImageWhiteRight.gif);
-  right: auto;
-  width: 980px;
-}
 
 dt {
   font-weight: bold;
   margin-top: 1em;
 }
+
+/* breadcrumb styling */
+div.breadcrumb ul li {
+  display: inline;
+}
+div.breadcrumb ul li:before {
+  content: " / ";
+}
+div.breadcrumb ul li:first-child:before {
+  content: "";
+}
+
+
 
 div .group_info_area{
     background-image: url('../images/grades/bluep.png');
@@ -213,10 +216,11 @@ span.warning {
   margin: 0 18px 18px;
 }
 #actions h2 {
-  background: url("../images/grades/action_box.gif") repeat-x left top #6D6D6D;
+  x-background: url("../images/grades/action_box.gif") repeat-x left top #6D6D6D;
   color: #FFF;
   padding: 4px 10px 3px !important;
   margin: 0 !important;
+  display: none;
 }
 #actions ul {
   margin: 0;
@@ -230,7 +234,7 @@ span.warning {
   border-top: 1px solid #aaa;
 }
 #actions li a {
-  background-color: #FFF;
+  x-background-color: #FFF;
   width: auto;
   height: 1.4em;
   line-height: 1.4em;
@@ -762,7 +766,7 @@ div.collapsible {
  * field set
  */
 /* form style (grouped by list) */
-fieldset {
+disabled fieldset {
     width: 100%;
     padding: 0 0 0 0;
     border: 1px solid #BFBAB0;
@@ -771,18 +775,18 @@ fieldset {
     background-repeat: repeat-x;
     margin: 1em 0 1em 0;
 }
-fieldset .inputfield ul {
+disabled fieldset .inputfield ul {
     padding: 0;
     margin: 0;
 }
-fieldset .inputfield li {
+disabled fieldset .inputfield li {
     padding: 0;
     margin: 0;
 }
-fieldset .inputfield label {
+disabled fieldset .inputfield label {
   width: 30em;
 }
-fieldset input {
+disabled fieldset input {
   margin: 2px 0;
 }
 #edit-time-use-guideline tr>th {
@@ -804,11 +808,11 @@ input.label-field {
 }
 
 /*
-fieldset .inputfield input[type='text'] {
+disabled fieldset .inputfield input[type='text'] {
     width: 30em;
 }*/
 
-fieldset .submit, form .submit {
+disabled fieldset .submit, form .submit {
   min-width: 6em;
   margin: 0 0 0 11em;
   background-color: #B5111A;
@@ -817,7 +821,7 @@ fieldset .submit, form .submit {
   float: right;
   padding: 0.3em 0.5em 0.3em 0.5em;
 }
-fieldset .nofloat, form .nofloat {
+disabled fieldset .nofloat, form .nofloat {
   float: none;
 }
 
@@ -825,41 +829,41 @@ form .submit {
   margin: 0.5em;
 }
 
-fieldset .submit:hover, form .submit:hover {
+disabled fieldset .submit:hover, form .submit:hover {
   border-color: #BCBCB4;
   color: #eaf2fa;
 }
-fieldset ul {
+disabled fieldset ul {
     list-style: none;
     padding: 0 1em 0 1em;
 }
-fieldset ul.errorlist {
+disabled fieldset ul.errorlist {
     list-style: none;
     padding: 0;
 }
-fieldset li {
+disabled fieldset li {
     float: left;
     clear: left;
     width: 100%;
     padding-bottom: 1em;
 }
-fieldset .errorlist li {
+disabled fieldset .errorlist li {
     float: none;
     clear: none;
     padding: 0;
 }
-fieldset div.inputfield {
+disabled fieldset div.inputfield {
     float: left;
 }
-fieldset .datetime {
+disabled fieldset .datetime {
     color: #666;
 }
 .helptext {
     color: gray;
     font-size: 0.9em;
 }
-fieldset p.helptext,
-dl.dlform .helptext {
+disabled fieldset p.helptext,
+disabled dl.dlform .helptext {
     margin-left: 10.5em;
 }
 dl.dlform dt{
@@ -902,7 +906,7 @@ legend {
     font-weight: bold;
     font-size: 1.2em;
 }
-fieldset label {
+disabled fieldset label {
     position: relative;
     display: block;
     width: 10em;
@@ -912,11 +916,11 @@ fieldset label {
     text-align: right;
 }
 
-fieldset.wide label{
+disabled fieldset.wide label{
 	width: 12em;
 }
 
-fieldset .inputfield label {
+disabled fieldset .inputfield label {
     width: auto;
     text-align: left;
 }
@@ -932,12 +936,12 @@ div.fieldcontent {
 }
 
 /* requried_star style in the label */
-fieldset label span {
+disabled fieldset label span {
     position: absolute;
     left: 10em;
 }
 
-fieldset.wide label span {
+disabled fieldset.wide label span {
     left: 12em;
 }
 
