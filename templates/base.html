@@ -6,28 +6,19 @@ Adapted using this page as an exemplar http://www.sfu.ca/clf/new-clf-faq.html
   <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
   <meta http-equiv="content-type" content= "text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>{% block title %}CourSys{% endblock %}</title>
+  <title>{% block wholetitle %}CourSys - {% block title %}{% endblock %}{% endblock %}</title>
   <link rel="stylesheet" href="{{MEDIA_URL}}newsfu/head.styles.css" type="text/css">
-  <script type="text/javascript" src=
-  "{{MEDIA_URL}}jquery-ui/js/jquery-1.9.1.js">
-</script>
-  <script type="text/javascript" src=
-  "{{MEDIA_URL}}jquery-ui/js/jquery-ui-1.10.3.custom.min.js">
-</script>
-  <script type="text/javascript" src=
-  "http://www.sfu.ca/etc/designs/clf/clientlibs/pack/head.scripts.js">
-</script>
-  <script type="text/javascript">
-var $ = jQuery;
-  </script><!--[if lt IE 9]>
-        <script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/html5shiv.js"></script>
-<script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/respond.js"></script>
-
-<![endif]-->
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/jquery.js"></script>
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/jquery-ui.js"></script>
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/head.scripts.js"></script>
+  <script type="text/javascript">var $ = jQuery;</script>
+  <!--[if lt IE 9]>
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/html5shiv.js"></script>
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/respond.js"></script>
+  <![endif]-->
   <!--[if lte IE 9]>
-        <script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/matchmedia.js"></script>
-
-<![endif]-->
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/matchmedia.js"></script>
+  <![endif]-->
   {% block headextra %}{% endblock %}
 </head>
 
@@ -41,13 +32,10 @@ var $ = jQuery;
           <div class="brand-title">
             <a href="http://www.sfu.ca">
             <div class="branding">
-              <h1>Simon Fraser University<br>
-              Engaging the World</h1>
+              <h1>Simon Fraser University<br>Engaging the World</h1>
             </div></a> <!-- end branding -->
 
-            <div class="site-title">
-              <h2><a href="/">CourSys</a></h2>
-            </div>
+            <div class="site-title"><h2><a href="/">CourSys</a></h2></div>
           </div>
         </section><!-- end .heading -->
 
@@ -74,19 +62,15 @@ var $ = jQuery;
                 </li>
 
                 <li class="header sign-in">
-                  {% if user.is_authenticated %}<a href="{{ LOGOUT_URL }}">Sign Out</a>
-				  {% else %}<a href="{{ LOGIN_URL }}">Sign In</a>
+                  {% if user.is_authenticated %}
+                    <a href="{{ LOGOUT_URL }}">Sign Out</a>
+				  {% else %}
+                    <a href="{{ LOGIN_URL }}">Sign In</a>
 				  {% endif %}
                   <ul>
-                    <li>
-                      <a href="http://connect.sfu.ca">Connect</a>
-                    </li>
-                    <li>
-                      <a href="http://go.sfu.ca">SIS</a>
-                    </li>
-                    <li>
-                      <a href="https://canvas.sfu.ca">Canvas</a>
-                    </li>
+                    <li><a href="http://connect.sfu.ca">Connect</a></li>
+                    <li><a href="http://go.sfu.ca">SIS</a></li>
+                    <li><a href="https://canvas.sfu.ca">Canvas</a></li>
                   </ul>
                 </li>
               </ul>
@@ -97,135 +81,32 @@ var $ = jQuery;
                 <a href="#">A-Z Directory</a>
 
                 <ul class="expanded directory">
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/a.html">a</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/b.html">b</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/c.html">c</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/d.html">d</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/e.html">e</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/f.html">f</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/g.html">g</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/h.html">h</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/i.html">i</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/j.html">j</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/k.html">k</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/l.html">l</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/m.html">m</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/n.html">n</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/o.html">o</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/p.html">p</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/q.html">q</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/r.html">r</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/s.html">s</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/t.html">t</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/u.html">u</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/v.html">v</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/w.html">w</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/x.html">x</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/y.html">y</a>
-                  </li>
-
-                  <li>
-                    <a href=
-                    "http://www.sfu.ca/main/dir/z.html">z</a>
-                  </li>
+                  <li><a href="http://www.sfu.ca/main/dir/a.html">a</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/b.html">b</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/c.html">c</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/d.html">d</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/e.html">e</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/f.html">f</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/g.html">g</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/h.html">h</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/i.html">i</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/j.html">j</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/k.html">k</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/l.html">l</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/m.html">m</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/n.html">n</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/o.html">o</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/p.html">p</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/q.html">q</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/r.html">r</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/s.html">s</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/t.html">t</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/u.html">u</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/v.html">v</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/w.html">w</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/x.html">x</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/y.html">y</a></li>
+                  <li><a href="http://www.sfu.ca/main/dir/z.html">z</a></li>
                 </ul>
               </li>
 
@@ -290,7 +171,7 @@ var $ = jQuery;
 			<div id="messages">
 			<ul>
 			    {% for message in messages %}
-			    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+			    <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
 			    {% endfor %}
 			</ul>
 			</div>
@@ -421,9 +302,7 @@ var $ = jQuery;
             </li>
 
             <li>
-              <a href=
-              "http://www.sfu.ca/contact/terms-conditions.html">Terms
-              and conditions</a>
+              <a href="http://www.sfu.ca/contact/terms-conditions.html">Terms and conditions</a>
             </li>
 
             <li>© Simon Fraser University</li>
@@ -432,8 +311,8 @@ var $ = jQuery;
       </div><!-- end page-content -->
     </div><!-- end page -->
   </div><!-- end container -->
-  <script type="text/javascript" src="http://www.sfu.ca/etc/designs/clf/clientlibs/pack/footer.scripts.js">
-</script> <script type="text/javascript" src="http://www.sfu.caetc/designs/sfu/clientlibs/toggleFormContent.js">
+  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/footer.scripts.js">
+</script> <script type="text/javascript" src="{{MEDIA_URL}}newsfu/toggleFormContent.js">
 </script>
 </body>
 </html>
