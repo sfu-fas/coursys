@@ -839,14 +839,16 @@ def update_all_userids():
                 else:
                     # this case: proposing to replace a non-null userid with null. i.e. deactivate the account
                     # let's not do that. If userids get reused, this is the wrong thing.
-                    print "!!! not deactivating userid %s" % (p.userid)
+                    print "!!! not deactivating userid %s (1)" % (p.userid)
 
 
         else:
             if p.userid:
-                p.config['old_userid'] = p.userid
-                p.userid = None
-                p.save()
+                # as above: don't deactivate old userids
+                print "!!! not deactivating userid %s (2)" % (p.userid)
+                #p.config['old_userid'] = p.userid
+                #p.userid = None
+                #p.save()
 
 
 def update_grads():
