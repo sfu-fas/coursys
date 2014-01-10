@@ -33,10 +33,11 @@ CareerEventType:
 
 CareerEventTypes we know about at the moment:
   appointment (when hired/left, was spousal hire?, reason for leaving: retired, moved to other Uni, etc)
+    contract (appointment fraction)
+    rank (associate professor, lecturer, emeritus, etc)
+    teaching load (default = 3/year, etc)
+  applied for tenure
   received tenure
-  contract (appointment fraction)
-  rank (associate professor, lecturer, emeritus, etc)
-  teaching load (default = 3/year, etc)
   research group membership?
   external affiliation (adjunct, external company/not-for-profit, research institute/centre)
   admin position (position: director, assoc director, etc; teaching/supervision reduction)
@@ -52,6 +53,9 @@ CareerEventTypes we know about at the moment:
   study leave report received
   received teaching credit (number of credits, reason, approved by, funded by)
   accreditation flags (is PEng, has PhD, ...)
+  
+Visitor's offices? 
+Phone numbers?  
 
 You know what'd be cool? NSERC common-CV XML importing.
 
