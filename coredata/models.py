@@ -825,21 +825,23 @@ class Member(models.Model):
             return fractions.Fraction(0), 'no scheduled lectures'
         else:
             # now probably a real offering: split the credit among the (real SIMS) instructors and across joint offerings
-            joint_with = len(self.offering.combined_with()) + 1
-            n_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').count()
+            joint_with = CourseOffering.objects.filter(slug__in=self.offering.combined_with())
+            other_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').exclude(id=self.id)
             credits = fractions.Fraction(1)
             reasons = []
-            if n_instr > 1:
-                credits /= n_instr
-                reasons.append('%i instructors' % (n_instr))
-            if joint_with > 1:
-                credits /= joint_with
-                reasons.append('joint with %i other' % (joint_with-1))
+            if other_instr:
+                other_instr = list(other_instr)
+                credits /= len(other_instr) + 1
+                reasons.append('co-taught with %s' % (', '.join(m.person.name() for m in other_instr)))
+            if joint_with:
+                joint_with = list(joint_with)
+                credits /= len(joint_with) + 1
+                reasons.append('joint with %s' % (', '.join(o.name() for o in joint_with)))
             #if self.offering.units is not None and self.offering.units != 3:
             #    # TODO: is this consistent with other units on campus? Do some have a different default credit count?
             #    credits *= fractions.Fraction(self.offering.units, 3)
             #    reasons.append('%i unit course' % (self.offering.units))
-            return credits, ', '.join(reasons)
+            return credits, '; '.join(reasons)
 
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
