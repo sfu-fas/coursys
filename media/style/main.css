@@ -145,25 +145,18 @@ span.warning {
 
 /* action box */
 #actions {
-  border: 1px solid #AAAAAA;
-  float: right;
-  width: 200px;
-  margin: 0 18px 18px;
 }
 #actions h2 {
   display: none;
 }
 
 #actions ul li.newsec {
-  border-top: 1px solid #aaa;
+  border-top: 1px solid #fff;
 }
 #actions li a {
-  height: 1.4em;
-  line-height: 1.4em;
-  text-decoration: none;
-  text-indent: 0.8em;
-  display: block;
-  padding: 3px 0 3px 0;
+  height: 1.8em;
+  line-height: 1.8em;
+  padding: 3px;
 }
 
 
@@ -243,24 +236,15 @@ td[scope] {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
   DataTable styles
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
- 
-/* DataTables features */
-disabled .dataTables_wrapper {
-    margin: 1em 0;
-    clear: both;
-    
-    /* Override style in "media/style/main.css" */
-    margin: 1em 0 0 0;
-    zoom: 1; /* Feeling sorry for IE */
-}
-disabled div.bigdatatable .dataTables_wrapper {
-    overflow: auto;
+
+div.bigdatatable .dataTables_wrapper {
+    x-overflow: auto;
     font-size: smaller;
 }
-disabled div.bigdatatable .dataTables_wrapper td {
+div.bigdatatable .dataTables_wrapper td {
     padding: 2px 1px;
 }
-disabled div.bigdatatable span.more {
+div.bigdatatable span.more {
     display: none;
 }
 
@@ -298,7 +282,7 @@ disabled table.display {
     margin: 0;
     width: 100%;
     clear: both;
-    
+
     /* Override style in "media/style/main.css" */
     border-width: 0;
 }
@@ -310,7 +294,7 @@ disabled table.display thead th {
 }
 disabled table.display td {
     padding: 3px 10px;
-    
+
     /* Override style in "media/style/main.css" */
     border-width: 0;
 }
