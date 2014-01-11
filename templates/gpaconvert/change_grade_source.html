@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}GPA Convert Admin Interface{% endblock %}
+{% block h1 %}GPA Convert Admin Interface{% endblock %}
+
+{% block subbreadcrumbs %}
+&gt; <a href="{% url 'grade_source_index' %}">GPA Calculator</a> &gt; Change {{ grade_source }}
+{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    .hideshow input{
+        font-size: x-small;
+    }
+    .deleted{
+        background-color: pink;
+    }
+</style>
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url 'new_grade_source' %}">New Grade Source</a></li>
+        <li><a href="#" class='show_deleted'>Show Deleted Grade Sources</a></li> 
+        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Grade Sources</a></li> 
+        
+    </ul>
+</div>
+{% endblock %}
+
+{%block content%}
+<div class="form_container">
+    <form action="." method="post">
+        {% csrf_token %}
+        <fieldset>
+        <legend>Grade Source</legend>
+        {{ grade_source_form.id }}
+        <dl class="dlform">
+            {% for field in grade_source_form %}
+            <dt class="{{ field.html_name }}">
+                <label for="{{ field.auto_id }}">
+                    {{ field.label }}:
+                    {% if field.field.required %}
+                        <span class="required">*</span>
+                    {% endif %}
+                </label>
+            </dt>
+            <dd>
+                <div class="field">
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            </dd>
+            {% endfor %}
+        </dl>
+        <br>
+        </fieldset>
+        <fieldset>
+        <legend>{{ grade_source.get_scale_display }} Conversion Rules</legend>
+        {{ rule_formset.management_form }}
+        {% for form in rule_formset %}
+        <dl class="dlform">
+            {% for field in form %}
+            <dt class="{{ field.html_name }}">
+                <label for="{{ field.auto_id }}">
+                    {{ field.label }}:
+                    {% if field.field.required %}
+                        <span class="required">*</span>
+                    {% endif %}
+                </label>
+            </dt>
+            <dd>
+                <div class="field">
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            </dd>
+            {% endfor %}
+        </dl>        
+        {% endfor %}
+
+        <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{%endblock content%}

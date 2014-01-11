@@ -1,0 +1,92 @@
+[
+{
+    "pk": 1, 
+    "model": "gpaconvert.gradesource", 
+    "fields": {
+        "status": "ACTI", 
+        "scale": "DISC", 
+        "country": "AO", 
+        "slug": "angola-university-ao", 
+        "config": "{}", 
+        "institution": "Angola University"
+    }
+},
+{
+    "pk": 2, 
+    "model": "gpaconvert.gradesource", 
+    "fields": {
+        "status": "ACTI", 
+        "scale": "CONT", 
+        "country": "AU", 
+        "slug": "queens-university-au", 
+        "config": "{}", 
+        "institution": "Queens University"
+    }
+},
+{
+    "pk": 3, 
+    "model": "gpaconvert.gradesource", 
+    "fields": {
+        "status": "DISA", 
+        "scale": "DISC", 
+        "country": "AS", 
+        "slug": "disabled-grade-source-as", 
+        "config": "{}", 
+        "institution": "Disabled Grade Source"
+    }
+},
+{
+    "pk": 1, 
+    "model": "gpaconvert.discreterule", 
+    "fields": {
+        "transfer_value": "A+", 
+        "grade_source": 1, 
+        "lookup_value": "A Good"
+    }
+},
+{
+    "pk": 2, 
+    "model": "gpaconvert.discreterule", 
+    "fields": {
+        "transfer_value": "F", 
+        "grade_source": 1, 
+        "lookup_value": "A Bad"
+    }
+},
+{
+    "pk": 1, 
+    "model": "gpaconvert.continuousrule", 
+    "fields": {
+        "transfer_value": "F", 
+        "grade_source": 2, 
+        "lookup_lbound": "0"
+    }
+},
+{
+    "pk": 2, 
+    "model": "gpaconvert.continuousrule", 
+    "fields": {
+        "transfer_value": "C-", 
+        "grade_source": 2, 
+        "lookup_lbound": "50"
+    }
+},
+{
+    "pk": 3, 
+    "model": "gpaconvert.continuousrule", 
+    "fields": {
+        "transfer_value": "B-", 
+        "grade_source": 2, 
+        "lookup_lbound": "70"
+    }
+},
+{
+    "pk": 4, 
+    "model": "gpaconvert.continuousrule", 
+    "fields": {
+        "transfer_value": "A-", 
+        "grade_source": 2, 
+        "lookup_lbound": "90"
+    }
+}
+]

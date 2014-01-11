@@ -13,6 +13,12 @@ from courselib.slugs import make_slug
 DECIMAL_ZERO = decimal.Decimal('0.00')
 
 
+class GradeSourceManager(models.Manager):
+    def active(self):
+        qs = self.get_query_set()
+        return qs.filter(status='ACTI')
+
+
 class GradeSource(models.Model):
     """
     The source of a set of user grades, may be an institution in
@@ -36,6 +42,8 @@ class GradeSource(models.Model):
     def _auto_slug(self):
         return make_slug("%s-%s" % (self.institution, self.country))    
     slug = AutoSlugField(populate_from=_auto_slug, null=False, editable=False)
+
+    objects = GradeSourceManager()
 
     def __unicode__(self):
         return "%s, %s" % (self.institution, self.country)
@@ -123,7 +131,8 @@ class ContinuousRule(models.Model):
     """
     grade_source = models.ForeignKey('GradeSource')
     lookup_lbound = models.DecimalField(max_digits=8,
-                                        decimal_places=2)
+                                        decimal_places=2,
+                                        verbose_name="Lookup lower bound")
     transfer_value = models.CharField(max_length=2,
                                       null=False, blank=False,
                                       choices=TRANSFER_VALUES)
