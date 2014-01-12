@@ -22,7 +22,7 @@ def create_or_update_student( emplid, dryrun=False ):
     print "Create/Update Student: ", emplid
 
     person = coredata.queries.find_or_generate_person( emplid )
-    print "\t", person
+    #print "\t", person
 
     prog_map = program_map()
     timeline = coredata.queries.get_timeline(emplid)
@@ -34,7 +34,7 @@ def create_or_update_student( emplid, dryrun=False ):
 
     adm_appl_nbrs = [] 
     for group_no, group in groups.iteritems(): 
-        print "\tGroup: ", group_no
+        #print "\tGroup: ", group_no
 
         # ignore empty groups 
         if len(group) < 1:
@@ -45,7 +45,7 @@ def create_or_update_student( emplid, dryrun=False ):
         all_previous_programs = group[:-1]
 
         if IGNORE_CMPT_STUDENTS and first_program['program_code'].startswith("CP"):
-            print "\tIgnoring CMPT data" 
+            #print "\tIgnoring CMPT data"
             continue
 
         for program in group:
@@ -64,7 +64,7 @@ def create_or_update_student( emplid, dryrun=False ):
                 student.save()
             # create a new GradStudent
         elif len(gradstudents) > 1:
-            print "\tRECOVERABLE ERROR: Found more than one GradStudent record"
+            #print "\tRECOVERABLE ERROR: Found more than one GradStudent record"
             if 'adm_appl_nbr' in first_program: 
                 with_adm_appl = [x for x in gradstudents if 
                                     'adm_appl_nbr' in x.config 
@@ -102,13 +102,13 @@ def create_or_update_student( emplid, dryrun=False ):
                     student = student, 
                     program = program_object,
                     start_semester = start_semester )
-                print "\tFound Program History:", gph
+                #print "\tFound Program History:", gph
             except GradProgramHistory.DoesNotExist:
                 gph = GradProgramHistory(
                     student = student, 
                     program = program_object,
                     start_semester = start_semester )
-                print "\tCreating Program History:", gph
+                #print "\tCreating Program History:", gph
                 if not dryrun:
                     gph.save()
 
@@ -168,20 +168,20 @@ def create_or_update_student( emplid, dryrun=False ):
     
     #create records for any spare adm_appl_nbrs
     all_adm_appl_nbrs = coredata.queries.get_adm_appl_nbrs(emplid)
-    print "\t All Adm Appl Nbrs: ", all_adm_appl_nbrs
-    print "\t Adm Appl Nbrs: ", adm_appl_nbrs
+    #print "\t All Adm Appl Nbrs: ", all_adm_appl_nbrs
+    #print "\t Adm Appl Nbrs: ", adm_appl_nbrs
     remaining_adm_appl_nbrs = [a for a in all_adm_appl_nbrs if str(a[0]) not in adm_appl_nbrs]
-    print "\t Remaining Adm Appl Nbrs: ", remaining_adm_appl_nbrs
+    #print "\t Remaining Adm Appl Nbrs: ", remaining_adm_appl_nbrs
 
     for adm_appl_nbr, program_code in remaining_adm_appl_nbrs:
-        print "\tAdm Appl Nbr: ", adm_appl_nbr
+        #print "\tAdm Appl Nbr: ", adm_appl_nbr
         
         if IGNORE_CMPT_STUDENTS and program_code.startswith("CP"):
-            print "\tIgnoring CMPT data" 
+            #print "\tIgnoring CMPT data"
             continue
 
         if program_code not in prog_map.keys():
-            print "\t", program_code, " is not a grad program." 
+            #print "\t", program_code, " is not a grad program."
             continue
 
         program = prog_map[program_code] 
@@ -192,14 +192,14 @@ def create_or_update_student( emplid, dryrun=False ):
                                                     s.config['adm_appl_nbr'] == adm_appl_nbr ]
 
         if len(with_adm_appl) == 0:
-            print "\tNot found." 
+            #print "\tNot found."
             student = GradStudent.create( person, program )
             student.config['adm_appl_nbr'] = adm_appl_nbr
             if not dryrun:
                 student.save()
         else:
             student = with_adm_appl[0]
-            print "\t Found." 
+            #print "\t Found."
 
         admission_records = coredata.queries.get_admission_records( emplid, adm_appl_nbr )
         admission_statuses = admission_records_to_grad_statuses( admission_records, student )
@@ -328,13 +328,13 @@ def find_or_create_status( student, status, semester):
     if len(active_statuses) > 0: 
         active_status = active_statuses[0]
         active_status.hidden = False
-        print "\tFound Status: ", status, active_status.start
+        #print "\tFound Status: ", status, active_status.start
     else:
         active_status = GradStatus(
             student = student,
             status = status, 
             start = semester)
-        print "\tCreated Status: ", status, active_status.start
+        #print "\tCreated Status: ", status, active_status.start
     return active_status
 
 def supervisor_sims_to_supervisor_type( supervisor_sims ):
@@ -370,14 +370,14 @@ def find_or_create_supervisor( student, supervisor_type, supervisor, date ):
                                     supervisor=supervisor,
                                     supervisor_type=supervisor_type )
     if len(s) > 0:
-        print "\tFound Supervisor:", s[0]
+        #print "\tFound Supervisor:", s[0]
         return s[0]
     else:
         s = Supervisor(student=student,
                         supervisor=supervisor, 
                         supervisor_type=supervisor_type, 
                         updated_at=date)
-        print "\tCreated Supervisor:", s
+        #print "\tCreated Supervisor:", s
         return s
 
 class GradProgram(models.Model):
