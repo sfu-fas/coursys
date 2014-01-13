@@ -283,7 +283,7 @@ def is_discipline_user(request, course_slug, **kwargs):
         roles.add("INSTR")
     
     # record why we have permission in the session
-    request.session['discipline-'+course_slug] = roles
+    request.session['discipline-'+course_slug] = list(roles)
     return bool(roles)
 
 

@@ -30,10 +30,25 @@ dt {
   font-weight: bold;
   margin-top: 1em;
 }
+label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
+  display: inline;
+}
+input[type="radio"], input[type="checkbox"] {
+  float: none;
+  margin: inherit;
+  padding: inherit;
+}
 
 .empty {
   font-style: italic;
 }
+span.sort {
+  display: none;
+}
+
+
+
+
 
 /* breadcrumb styling */
 div.breadcrumb ul li {
@@ -144,16 +159,15 @@ span.warning {
 }
 
 /* action box */
-#actions {
+disabled #actions {
 }
 #actions h2 {
   display: none;
 }
-
-#actions ul li.newsec {
+#actions li.newsec {
   border-top: 1px solid #fff;
 }
-#actions li a {
+disabled #actions li a {
   height: 1.8em;
   line-height: 1.8em;
   padding: 3px;
@@ -163,9 +177,6 @@ span.warning {
 
 div#newsitems {
   clear: left;
-}
-div#newsitems div {
-  /*margin: 0 2em;*/
 }
 div#newsitems .newsitem {
     line-height: 1.4em;
@@ -344,9 +355,6 @@ tr.even {
     background-color: white;
 }
 
-span.sort {
-  display: none;
-}
 
 
 /* jQuery UI specific styling */
@@ -365,34 +373,34 @@ span.sort {
 
 
 /* The following css will make the datatable sorting icon float to right. */
-.css_right {
+disabled .css_right {
     float: right;
 }
 
 /* Row action in course activity page  */
-.row-actions {
+disabled .row-actions {
   visibility: hidden;
   font-weight: normal;
 }
-tr:hover .row-actions {
+disabled tr:hover .row-actions {
   visibility: visible;
 }
-#activities td {
+disabled #activities td {
   vertical-align: top;
 }
 
-table.activity_box_info tbody th {
+disabled table.activity_box_info tbody th {
   font-weight: bold;
   text-align: left;
   width: 20%;
   /* Override default table style */
   background-color: transparent;
 }
-table.activity_box_info th, table.activity_box_info td {
+disabled table.activity_box_info th, table.activity_box_info td {
   /* Override default table style */
   border-width: 0px;
 }
-table.activity_box_info {
+disabled table.activity_box_info {
   width: 100%;
   color: #555555;
   /* Override default table style */
@@ -400,11 +408,11 @@ table.activity_box_info {
 }
 
 /* visualize plugin chart style */
-.visualize {
+disabled .visualize {
   margin: 2em 2em 4em 2em;
 }
 
-.ajax_status{
+disabled .ajax_status{
   padding-left: 1em;
   color: gray;
   font-style: italic;
@@ -415,11 +423,11 @@ a.editlink {
 }
 
 /* CSS for group */
-#groupcontainer {
+disabled #groupcontainer {
     padding:0 0 0 0;
     margin:0 0 0 0;
 }
-#groupmembership {
+disabled #groupmembership {
     float:right;
     width: 200px;
     margin-top:20px;
@@ -430,7 +438,7 @@ a.editlink {
     padding:5px 15px 15px 5px;
 }
 
-#groupcontent {
+disabled #groupcontent {
     width:400px;
     padding:0 30px 30px 0;
     margin:0 0 0 0;
@@ -438,7 +446,7 @@ a.editlink {
 
 
 /* things under container */
-#main a.button {
+disabled #main a.button {
 /* need to add '#main' as selector in order to override SFU template style */
     display: block;
     width: 10em;
@@ -452,28 +460,28 @@ a.editlink {
     border-right: 1px solid white;
     border-bottom: 5px solid #fff;
 }
-#main #current_type {
+disabled #main #current_type {
     background-color: #B5111B;
 }
-#main a.button:hover {
+disabled #main a.button:hover {
     background-color: #B5111B;
     border-bottom: 5px solid #d8d5d5;
     text-decoration: none;
 }
 
 /* red button */
-#main a.redbutton.submit_button {
+disabled #main a.redbutton.submit_button {
     margin: 0.5em;
     float: right;
     clear: both;
 }
 
-#main a.redbutton.reset_button {
+disabled #main a.redbutton.reset_button {
     margin: 0.5em;
     float: right;
 }
 
-#main a.redbutton {
+disabled #main a.redbutton {
   /* need to add '#main' as selector in order to override SFU template style */
   width: auto;
   margin: 0.2em 0 0.2em 0;
@@ -488,7 +496,7 @@ a.editlink {
   padding: 0.3em 0.5em 0.3em 0.5em;
 }
 
-#main span.disabledbutton {
+disabled #main span.disabledbutton {
   width: auto;
   margin: 0.2em 0 0.2em 0;
   height: 1.4em;
@@ -501,65 +509,69 @@ a.editlink {
   font-weight: bold;
   padding: 0.3em 0.5em 0.3em 0.5em;
 }
-#main span.disabledbutton.submit_button {
+disabled #main span.disabledbutton.submit_button {
     margin: 0.5em;
     float: right;
     clear: both;
 }
 
-#main a.redbutton:hover {
+disabled #main a.redbutton:hover {
   border-color: #BCBCB4;
   text-decoration: none;
 }
-#main a.redbutton_onclick {
+disabled #main a.redbutton_onclick {
   background-color: #F0EFEA;
 }
 
-.buttongroup {
+disabled .buttongroup {
   margin: 0.5em 0em 0.5em 0em;
 }
 table.info thead th {
   font-weight: bold;
 }
-table.info tbody th {
+disabled table.info tbody th {
   font-weight: bold;
   text-align: left;
 }
-table.info tbody th {
+disabled table.info tbody th {
   width: 30%;
 }
-table.info thead th, table.info thead td, table.info tbody th, table.info tbody td{
+disabled table.info thead th, table.info thead td, table.info tbody th, table.info tbody td{
   border-color:#ccc;
 }
-table.info {
+disabled table.info {
   border-color: #ccc;
   width: 100%;
 }
-div#main table.info p {
+disabled div#main table.info p {
   padding: 0;
   margin: 0;
 }
-div#main table.info p input {
+disabled div#main table.info p input {
   float: right;
   font-size: 75%;
   padding: 0;
 }
+
+
 .due_verysoon {
   background-color: #f22;
 }
 .due_soon {
   background-color: #ff0;
 }
-.table_container {
+disabled .table_container {
   width: 600px;
 }
-.datatable_container {
+disabled .datatable_container {
   /*width: 695px;*/
   margin: 0 1em 0 0;
 }
-.activity_reference_container {
+disabled .activity_reference_container {
   width: 500px;
 }
+
+
 body#formula_tester {
   font-family:Arial,Helvetica,sans-serif;
   font-size:13px;
@@ -580,7 +592,7 @@ body#formula_tester {
 }
 
 
-.table_container p.errorindicator {
+disabled .table_container p.errorindicator {
     border: 2px solid red;
     padding: 0.5em;
     background-color: #fffead;
@@ -588,10 +600,10 @@ body#formula_tester {
     margin-bottom: 1em;
 }
 
-.position_button {
+disabled .position_button {
   float: left;
 }
-.position_placeholder {
+disabled .position_placeholder {
   float: left;
   display: block;
   width: 16px;

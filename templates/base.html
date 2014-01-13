@@ -30,6 +30,8 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   <link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
   <script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript" src="{{MEDIA_URL}}js/core.js"></script>
+
+
   {% block headextra %}{% endblock %}
 </head>
 
@@ -187,7 +189,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                 </ul>
               </li>
               -->
-              <li>Actions
+              <li class="rule"><a href="/">Actions</a>
                   {% block actions %}{% endblock %}
               </li>
             </ul>
