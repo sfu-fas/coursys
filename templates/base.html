@@ -1,36 +1,48 @@
 {% comment %}
 Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate/important-forms.html
-{% endcomment %}<!DOCTYPE html>
+{% endcomment %}{% load staticfiles %}{% load compress %}<!DOCTYPE html>
 <html>
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>{% block wholetitle %}CourSys - {% block title %}{% endblock %}{% endblock %}</title>
-  <link rel="stylesheet" href="{{MEDIA_URL}}newsfu/head.styles.css" type="text/css">
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/jquery.js"></script>
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/jquery-ui.js"></script>
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/head.scripts.js"></script>
+  {% compress js %}
+  <script type="text/javascript" src="{% static "newsfu/jquery.js" %}"></script>
+  <script type="text/javascript" src="{% static "newsfu/jquery-ui.js" %}"></script>
+  <script type="text/javascript" src="{% static "newsfu/head.scripts.js" %}"></script>
   <script type="text/javascript">var $ = jQuery;</script>
+
+  <script type="text/javascript" src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
+  <script type="text/javascript" src="{% static "js/core.js" %}"></script>
+  {% endcompress %}
+
   <!--[if lt IE 9]>
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/html5shiv.js"></script>
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/respond.js"></script>
+  {% compress js %}
+  <script type="text/javascript" src="{% static "newsfu/html5shiv.js" %}"></script>
+  <script type="text/javascript" src="{% static "newsfu/respond.js" %}"></script>
+  {% endcompress %}
   <![endif]-->
   <!--[if lte IE 9]>
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/matchmedia.js"></script>
+  {% compress js %}
+  <script type="text/javascript" src="{% static "newsfu/matchmedia.js" %}"></script>
+  {% endcompress %}
   <![endif]-->
 
-  <link rel="stylesheet" href="{{MEDIA_URL}}style/jqueryui-smoothness/jquery-ui-1.10.3.custom.min.css" media="all" />
-  <link rel="stylesheet" href="{{MEDIA_URL}}style/main.css" media="all" />
+  {% compress css %}
+  <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" type="text/css">
+  <link rel="stylesheet" href="{% static "style/main.css" media="all" %}" />
+  <link rel="stylesheet" href="{% static "style/jqueryui-smoothness/jquery-ui-1.10.3.custom.min.css" %}" media="all" />
+  {% endcompress %}
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+
   <!--[if lte IE 8]>
-  <link rel="stylesheet" href="{{MEDIA_URL}}style/main-ie.css" type="text/css" />
+  {% compress css %}
+  <link rel="stylesheet" href="{% static "style/main-ie.css" %}" type="text/css" />
+  {% endcompress %}
   <![endif]-->
-  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
-  <link rel="icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
-  <link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
-  <script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
-  <script type="text/javascript" src="{{MEDIA_URL}}js/core.js"></script>
-
+  <link rel="icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
+  <link rel="shortcut icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
 
   {% block headextra %}{% endblock %}
 </head>
@@ -347,7 +359,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
       </div><!-- end page-content -->
     </div><!-- end page -->
   </div><!-- end container -->
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/footer.scripts.js"></script>
-  <script type="text/javascript" src="{{MEDIA_URL}}newsfu/toggleFormContent.js"></script>
+  <script type="text/javascript" src="{% static "newsfu/footer.scripts.js" %}"></script>
+  <script type="text/javascript" src="{% static "newsfu/toggleFormContent.js" %}"></script>
 </body>
 </html>
