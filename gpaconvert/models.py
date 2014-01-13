@@ -92,7 +92,7 @@ class DiscreteRule(models.Model):
     mapped to an SFU transfer value (one of the options in the
     TRANSFER_VALUES tuple.
     """
-    grade_source = models.ForeignKey('GradeSource')
+    grade_source = models.ForeignKey('GradeSource', related_name='discrete_rules')
     lookup_value = models.CharField(max_length=64)
     transfer_value = models.CharField(max_length=2,
                                       null=False, blank=False,
@@ -120,7 +120,7 @@ class ContinuousRule(models.Model):
     for example: score of <= 90 is considered an A, 89.99 is
     still considered a B.
     """
-    grade_source = models.ForeignKey('GradeSource')
+    grade_source = models.ForeignKey('GradeSource', related_name='continuous_rules')
     lookup_lbound = models.DecimalField(max_digits=8,
                                         decimal_places=2)
     transfer_value = models.CharField(max_length=2,
