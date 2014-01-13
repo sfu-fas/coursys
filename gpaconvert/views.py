@@ -56,6 +56,8 @@ def change_grade_source(request, slug):
             # Do any post processing here
             # ---------------------------
             grade_source.save()
+            data.update({"grade_source": grade_source,
+                         "grade_source_form" : GradeSourceForm(instance=grade_source)})
             #return HttpResponseRedirect(reverse("change_grade_source", args=[grade_source.slug]))
         
         else:

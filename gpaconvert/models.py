@@ -142,6 +142,7 @@ class ContinuousRule(models.Model):
                                           self.grade_source,
                                           self.transfer_value)
 
+    # TODO should conversion rules have a mute/unmute flag instead of delete?  Delete method causes issues for formsets.
     def delete(self):
         raise NotImplementedError, "It's a bad thing to delete stuff"
 
