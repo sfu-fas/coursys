@@ -39,7 +39,7 @@ class GradeSource(models.Model):
         return "%s, %s" % (self.institution, self.country)
 
     def delete(self):
-        raise NotImplementedError, "It's a bad thing to delete stuff"
+        raise NotImplementedError("It's a bad thing to delete stuff")
 
     class Meta:
         unique_together = (("country", "institution"),)
@@ -133,7 +133,7 @@ class ContinuousRule(models.Model):
                                            self.transfer_value)
 
     def delete(self):
-        raise NotImplementedError, "It's a bad thing to delete stuff"
+        raise NotImplementedError("It's a bad thing to delete stuff")
 
     class Meta:
         unique_together = (("grade_source", "lookup_lbound"),)
