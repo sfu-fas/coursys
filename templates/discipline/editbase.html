@@ -2,9 +2,9 @@
 {% load discipline_filters %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/discipline.js"></script>
+<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/discipline.js"></script>
 <script type="text/javascript">
 var templates = {{templatesJSON}};
 var groupmembers = {{groupmembersJSON}};

@@ -6,9 +6,9 @@
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li><a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li>{% if page %}<li><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Edit</li>{% else %}<li>New Page</li>{% endif %}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}tiny_mce/tiny_mce.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.cookie.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/pages.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}tiny_mce/tiny_mce.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/jquery.cookie.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/pages.js"></script>
 <script type="text/javascript">
 var convert_url = '{% if page %}{% url "pages.views.convert_content" course_slug=offering.slug page_label=page.label %}{% else %}{% url "pages.views.convert_content" course_slug=offering.slug %}{% endif %}';
 var csrf_token = '{{csrf_token}}';

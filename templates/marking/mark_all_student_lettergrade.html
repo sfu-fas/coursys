@@ -27,7 +27,7 @@ $(document).ready(function() {
 {% block content %}
 <form id="import_file_form" action="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}?import=true" method="post" enctype="multipart/form-data" onsubmit="return clear_filter()">{% csrf_token %}
 {% if fileform.file.errors %}
-<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
+<div class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
 {% endif %} 
 <div>
 {{fileform.file}}
@@ -80,7 +80,7 @@ column is the grade.  Other columns will be ignored.</li>
 		<td>
 		{{ form.value }}
 		{% if form.value.errors %}
-		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
+		<div class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
 		{% endif %} 
 		</td>
 		{% endwith %}	    

@@ -49,7 +49,7 @@ $(document).ready(function() {
 		<td>
 		{{ form.value }} / {{activity.max_grade}}
 		{% if form.value.errors %}
-		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
+		<div class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
 		{% endif %} 
 		</td>
 		{% endwith %}	    

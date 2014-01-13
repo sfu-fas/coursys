@@ -7,8 +7,8 @@
 {% block subbreadcrumbs %}<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>Default BUs</li>{% endblock %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript">
   function get_fieldset() {
   	var level = $('#id_level :selected').val();

@@ -1,4 +1,4 @@
-{# be sure to include this if using this fragment: <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />  #}
+{# be sure to include this if using this fragment: <link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />  #}
 
 {% for sheet_sub, fields in sheet_submissions %}
 	<form class="sheetsub sheetsub-{{ sheet_sub.status }}" action="">

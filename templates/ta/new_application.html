@@ -7,8 +7,8 @@
 {% block subbreadcrumbs %}{% if manual %}<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>Apply for student</li>{% else %}<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li>{{ posting.unit.label }} {{ posting.semester }}</li>{% endif %}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}js/application.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/application.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <style type="text/css">
 div#phones {
   float: right;
@@ -74,7 +74,7 @@ $(document).ready(function() {
         {{search_form.as_p}}
         
         <div id="simsresult">
-        <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
+        <img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
         </div>
     {% endif %}
 

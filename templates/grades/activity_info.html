@@ -364,9 +364,9 @@ Column logic:
 		  {% if mark_comps %}
 		  <td class="iconcell">
 		    {% if marked|hash:userid %}
-		    <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+		    <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 		    {% else %}
-		    <a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
+		    <a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{STATIC_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
 		    {% endif %}
 		  </td>
 		  {% else %}
@@ -376,15 +376,15 @@ Column logic:
 		{% if not activity.is_calculated %}
 		  {% if sub_comps %}
 		  <td class="iconcell">
-		    {% if submitted|hash:userid %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
-		    <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}" class="calculate"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
+		    {% if submitted|hash:userid %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
+		    <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}" class="calculate"><img src="{{STATIC_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
 		  </td>
 		  {% else %}
 		  <td class="iconcell disabled"></td>
 		  {% endif %}
 		{% endif %}
 		{% if activity.is_calculated and activity.is_numeric %}
-		  <td class="iconcell"><a href="" class="calculator" id="calc-{{member.person.userid }}"><img src="{{MEDIA_URL}}icons/calculator.png" title="recalculate this student" /></a></td>
+		  <td class="iconcell"><a href="" class="calculator" id="calc-{{member.person.userid }}"><img src="{{STATIC_URL}}icons/calculator.png" title="recalculate this student" /></a></td>
 		{% endif %}
 	    </tr>
 	    {% endwith %}

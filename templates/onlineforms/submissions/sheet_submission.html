@@ -9,11 +9,11 @@
 {% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
-  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'both'});
 });

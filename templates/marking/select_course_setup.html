@@ -11,7 +11,7 @@
     <h2> Please select the course to duplicate:</h2>
     <div>Source Course: {{select_form.course}} <input type="submit" value="Continue" ></div> 
     {% if select_form.course.errors %}
-	<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{select_form.course.errors.0}}</div>
+	<div class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/>&nbsp;{{select_form.course.errors.0}}</div>
     {% endif %} 
     <p>This will copy all activities, along with their submission and marking configuration to this course.</p>
 </form>

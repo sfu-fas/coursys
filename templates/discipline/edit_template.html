@@ -5,7 +5,7 @@
 {% block h1 %}Edit Dishonesty Template "{{template.label}}"{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}js/discipline.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/discipline.js"></script>
 <script type="text/javascript">
 function confirmSubmit() {
   return confirm("Are you sure you want to delete this template?");

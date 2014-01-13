@@ -5,8 +5,8 @@
 {% block subbreadcrumbs %}<li>Browse Course Offerings</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/browse.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-bbq.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/browse.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   browser_ready('{% url "coredata.views.browse_courses" %}');

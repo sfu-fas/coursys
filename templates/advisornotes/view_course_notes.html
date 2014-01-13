@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 $(function() {
     $('.artifact-notes').delegate('.artifact-note-header', 'click', function() {
@@ -34,7 +34,7 @@ $(function() {
         });
     });
 
-	$('div.table_container').html('<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
+	$('div.table_container').html('<img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
     more_course_info('{% url "advisornotes.views.course_more_info" unit_course_slug=course.slug %}');
 } );
 
@@ -121,7 +121,7 @@ $(function() {
                 {% endfor %}
             </td>
             {{ endspaceless }}
-            <td>{% if offering.id in with_note_ids %}<span class="sort">yes</span><img src="{{ MEDIA_URL }}icons/tick.png" alt="yes" />{% endif %}</td>
+            <td>{% if offering.id in with_note_ids %}<span class="sort">yes</span><img src="{{ STATIC_URL }}icons/tick.png" alt="yes" />{% endif %}</td>
         </tr>
         {% endfor %}
     </tbody>

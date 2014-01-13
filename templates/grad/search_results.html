@@ -2,9 +2,9 @@
 {% load getattribute %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
-<script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
+<link rel="stylesheet" href="{{STATIC_URL}}style/print.css" media="print" />
+<script type="text/javascript" src="{{STATIC_URL}}js/grad.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript">
 var self_url = "{% filter escapejs %}{% url "grad.views.search" %}{% endfilter %}";
 var query_string = "{{query_string|escapejs}}";

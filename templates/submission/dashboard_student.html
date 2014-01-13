@@ -89,12 +89,12 @@
 
         {% ifequal pair.1 None %}
             <div class="warningindicator">
-                <img src="{{MEDIA_URL}}icons/cancel.png" alt="warning" />
+                <img src="{{STATIC_URL}}icons/cancel.png" alt="warning" />
                 You haven't made a submission for this component.
             </div>
         {% else %}
             <div class="successindicator">
-                <img src="{{MEDIA_URL}}icons/tick.png" alt="check" />
+                <img src="{{STATIC_URL}}icons/tick.png" alt="check" />
                 You have made submission to this component.
                 <ul class="component_description">
                     <li><label>Latest Submission: </label>{{pair.1.get_time}}</li>
@@ -104,7 +104,7 @@
                     {% if pair.1.get_size %}
                         <li><label>File Size:</label>{{pair.1.get_size|filesizeformat}} </li>
                     {% endif %}
-                    <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}">Download {% if pair.1.get_filename %}{{ pair.1.get_filename }}{% else %}submission{% endif %}</a></li>
+                    <li><img src="{{STATIC_URL}}icons/attach.png" alt="download" /><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}">Download {% if pair.1.get_filename %}{{ pair.1.get_filename }}{% else %}submission{% endif %}</a></li>
                 </ul>
             </div>
 

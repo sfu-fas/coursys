@@ -2,7 +2,7 @@ from django import template
 register = template.Library()
 
 from django.conf import settings
-MEDIA_URL = settings.MEDIA_URL
+STATIC_URL = settings.STATIC_URL
 from django.template import Context, Template
 from django.utils.safestring import mark_safe
 
@@ -11,13 +11,13 @@ FIELD_TEMPLATE = Template('''<li>
                     {{ field.label_tag }}
                     <div class="inputfield">
                         {{ field }}
-			{% if field.errors %}<div class="errortext"><img src="''' + MEDIA_URL + '''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>{% endif %}
+			{% if field.errors %}<div class="errortext"><img src="''' + STATIC_URL + '''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>{% endif %}
 			<div class="helptext">{{field.help_text}}</div>
                     </div>
                 </li>''')
 ERROR_NOTE_TEMPLATE = Template('''
     <p class="errorindicator">
-        <img src="''' + MEDIA_URL + '''icons/exclamation.png" alt="exclamation" />
+        <img src="''' + STATIC_URL + '''icons/exclamation.png" alt="exclamation" />
         Please correct the error below.
     </p>''')
 
@@ -26,7 +26,7 @@ def display_form(form, text="Submit", extrabutton=""):
     """
     Convert the form to HTML as we like it.
     """
-    output = ['<p class="requireindicator"><img src="'+MEDIA_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
+    output = ['<p class="requireindicator"><img src="'+STATIC_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
     output.append("<ul>")
     for field in form:
         c = Context({"field":field})
@@ -56,7 +56,7 @@ def error_note(form):
 
 FIELD_AS_TD_TEMPLATE = Template('''<td>
                            {% if field.errors %}
-                           <div class="errortext"><img src="''' + MEDIA_URL + '''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>
+                           <div class="errortext"><img src="''' + STATIC_URL + '''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>
                            {% endif %}
                         {{ field }}
                 </td>''')
