@@ -1,15 +1,10 @@
-# Django
-from django.test import TestCase
-from django.db import IntegrityError
-
-# CourSys
-from .models import GradeSource
-from .models import DiscreteRule
-from .models import ContinuousRule
-
-
-# Built-In
 import decimal
+
+from django.db import IntegrityError
+from django.test import TestCase
+
+from gpaconvert.models import GradeSource
+from gpaconvert.models import DiscreteRule
 
 
 class GradeSourceTest(TestCase):
@@ -48,7 +43,7 @@ class DiscreteRuleTest(TestCase):
             dr = DiscreteRule.objects.create(grade_source=self.gs1,
                                              lookup_value="Penguin",
                                              transfer_value='asdfasdf')
-    
+
     def test_good_transfer_value_decimal(self):
         """
         Tests decimal value 4.33 for 'transfer_value' field.

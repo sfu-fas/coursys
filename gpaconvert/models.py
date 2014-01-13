@@ -1,4 +1,3 @@
-import datetime
 import decimal
 
 from django.db import models
@@ -7,7 +6,6 @@ from autoslug import AutoSlugField
 from django_countries.fields import CountryField
 from jsonfield import JSONField
 
-from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 
 DECIMAL_ZERO = decimal.Decimal('0.00')
@@ -34,7 +32,7 @@ class GradeSource(models.Model):
     scale = models.CharField(max_length=4, choices=SCALE_CHOICES, default='DISC')
 
     def _auto_slug(self):
-        return make_slug("%s-%s" % (self.institution, self.country))    
+        return make_slug("%s-%s" % (self.institution, self.country))
     slug = AutoSlugField(populate_from=_auto_slug, null=False, editable=False)
 
     def __unicode__(self):
@@ -82,6 +80,7 @@ TRANSFER_VALUES = (
 from grades.models import GPA_GRADE_CHOICES
 TRANSFER_VALUES = GPA_GRADE_CHOICES
 
+
 # TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods. [No reason: go for it]
 # TODO Do conversion rules have to apply to specific courses?  requirements.txt mentions course title as a user input field. [don't care]
 class DiscreteRule(models.Model):
@@ -98,11 +97,11 @@ class DiscreteRule(models.Model):
     transfer_value = models.CharField(max_length=2,
                                       null=False, blank=False,
                                       choices=TRANSFER_VALUES)
-    
+
     def __unicode__(self):
-        return "%s:%s :: %s:SFU" %(self.lookup_value,
-                                   self.grade_source,
-                                   self.transfer_value)
+        return "%s:%s :: %s:SFU" % (self.lookup_value,
+                                    self.grade_source,
+                                    self.transfer_value)
 
     def delete(self):
         raise NotImplementedError, "It's a bad thing to delete stuff"
@@ -129,13 +128,12 @@ class ContinuousRule(models.Model):
                                       choices=TRANSFER_VALUES)
 
     def __unicode__(self):
-        return "%s:%s :: %s and up:SFU" %(self.lookup_lbound,
-                                          self.grade_source,
-                                          self.transfer_value)
+        return "%s:%s :: %s and up:SFU" % (self.lookup_lbound,
+                                           self.grade_source,
+                                           self.transfer_value)
 
     def delete(self):
         raise NotImplementedError, "It's a bad thing to delete stuff"
 
     class Meta:
         unique_together = (("grade_source", "lookup_lbound"),)
-
