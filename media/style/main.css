@@ -162,10 +162,12 @@ span.warning {
 disabled #actions {
 }
 #actions h2 {
-  display: none;
+  float: none;
+  padding-top: 0;
 }
 #actions li.newsec {
-  border-top: 1px solid #fff;
+  border-top: 1px solid #d28c96;
+  margin-top: 2px;
 }
 disabled #actions li a {
   height: 1.8em;

@@ -170,7 +170,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 
             <ul>
               <li class=""><a href="/">CourSys</a></li>
-              <!--
+
               <li class=""><a href="/">Thing Two</a></li>
               <li class="rule active">
                 <a href="/">More Things</a>
@@ -188,14 +188,12 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                   <li class="nav-overview-item"><a href="/">Sub Thing 3</a></li>
                 </ul>
               </li>
-              -->
-              <li class="rule"><a href="/">Actions</a>
-                  {% block actions %}{% endblock %}
-              </li>
+
             </ul>
           </nav>
 
           <div class="inherited-parsys below-nav">
+          {% block actions %}{% endblock %}
           </div>
         </div>
 
