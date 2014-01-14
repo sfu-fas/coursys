@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>Grade Sources</h3>
+<ul>
+{% for grade_source in grade_sources %}
+  <li>{{ grade_source }}</li>
+{% endfor %}
+</ul>
+{% endblock %}
