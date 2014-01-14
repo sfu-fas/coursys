@@ -92,6 +92,22 @@ TRANSFER_VALUES = GPA_GRADE_CHOICES
 
 # TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods. [No reason: go for it]
 # TODO Do conversion rules have to apply to specific courses?  requirements.txt mentions course title as a user input field. [don't care]
+class Rule(models.Model):
+    """
+    Base Conversion rule for GPA Calculator.  This model is
+    abstract, and should be inherited for Discrete and Continuous
+    Conversion Rules.
+    """
+    grade_source = models.ForeignKey('GradeSource')
+    transfer_value = models.CharField(max_length=2,
+                                      null=False,
+                                      blank=False,
+                                      choices=TRANFER_VALUES)
+
+    class Meta:
+        abstract = True
+
+
 class DiscreteRule(models.Model):
     """
     Discrete GPA Conversion Rule represents the conversions
@@ -149,3 +165,23 @@ class ContinuousRule(models.Model):
     class Meta:
         unique_together = (("grade_source", "lookup_lbound"),)
 
+
+class UserArchive(models.Model):
+    """
+    Model to encapsulate a user's gpa calculation event.
+    The user may obtain an anonymous URL to go back to the
+    calculations at any time, or to share with anyone.
+    """
+    slug = models.SlugField(max_length=64, unique=True)
+    data = JSONField(blank=False, null=False, default={})
+    # Defaults
+    # TODO decide how the calculations should be layed out in the JSON Field?
+    # 'calculations': [
+    #   {'queensland-university-au': [
+    #       ('MATH100', 'Very Good', 'A+'),
+    #       ('COGS100', 'Very Good', 'A+'),
+    #   }
+    #]
+
+    def __unicode__(self):
+        return "Calculation Archive: %s" %self.slug
