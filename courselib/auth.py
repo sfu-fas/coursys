@@ -271,7 +271,9 @@ def is_discipline_user(request, course_slug, **kwargs):
         return False
 
     perms = Role.objects.filter(person__userid=request.user.username, role='DISC', unit=offering.owner).count()
-    perms += Role.objects.filter(person__userid=request.user.username, role='DISC', unit__name='UNIV').count()
+    print perms
+    perms += Role.objects.filter(person__userid=request.user.username, role='DISC', unit__label='UNIV').count()
+    print perms
     if perms>0:
         roles.add("DEPT")
 
@@ -284,7 +286,7 @@ def is_discipline_user(request, course_slug, **kwargs):
         roles.add("INSTR")
     
     # record why we have permission in the session
-    request.session['discipline-'+course_slug] = roles
+    request.session['discipline-'+course_slug] = list(roles)
     return bool(roles)
 
 
