@@ -1,13 +1,12 @@
-from django.db import models
 from django import forms
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
 from django_countries.countries import COUNTRIES
 
-from models import ContinuousRule
-from models import DiscreteRule
-from models import GradeSource
+from gpaconvert.models import ContinuousRule
+from gpaconvert.models import DiscreteRule
+from gpaconvert.models import GradeSource
 
 
 class GradeSourceListForm(forms.Form):
