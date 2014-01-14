@@ -8,6 +8,8 @@ from jsonfield import JSONField
 
 from courselib.slugs import make_slug
 
+from gpaconvert.utils import get_object_or_None
+
 DECIMAL_ZERO = decimal.Decimal('0.00')
 
 
@@ -40,6 +42,23 @@ class GradeSource(models.Model):
 
     def delete(self):
         raise NotImplementedError("It's a bad thing to delete stuff")
+
+    def get_rule(self, grade):
+        """
+        Returns the DiscreteRule or ContinuousRule instance that goes with the given grade.
+        """
+
+        if self.scale == 'DISC':
+            rule = get_object_or_None(self.discrete_rules, lookup_value=grade)
+        else:
+            # TODO: Make this nicer somehow.
+            rules = self.continuous_rules.filter(lookup_lbound__lte=grade)
+            if rules.count():
+                rule = rules.order_by('-lookup_lbound').first()
+            else:
+                rule = None
+
+        return rule
 
     class Meta:
         unique_together = (("country", "institution"),)
