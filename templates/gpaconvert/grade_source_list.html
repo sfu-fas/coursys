@@ -7,11 +7,17 @@
 {% block h1 %}Grade Sources{% endblock %}
 
 {% block content %}
+<form action="{% url 'gpaconvert.views.list_grade_sources' %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form>
 <ul>
   {% for grade_source in grade_sources %}
   <li>
     <a href="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}">{{ grade_source }}</a>
   </li>
+  {% empty %}
+  <div>No Sources for selected country</div>
   {% endfor %}
 </ul>
 {% endblock %}

@@ -7,11 +7,14 @@ from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext, loader
 from django.forms.formsets import formset_factory
 
+from django_countries.countries import COUNTRIES
+
 from courselib.auth import requires_global_role
 
 from gpaconvert.models import GradeSource
 from gpaconvert.forms import ContinuousGradeForm
 from gpaconvert.forms import DiscreteGradeForm
+from gpaconvert.forms import GradeSourceListForm
 from gpaconvert.utils import render_to
 from gpaconvert.forms import GradeSourceForm
 from gpaconvert.forms import rule_formset_factory
@@ -100,13 +103,21 @@ def change_grade_source(request, slug):
 
 # user interface views
 
+
+
 @render_to('gpaconvert/grade_source_list.html')
 def list_grade_sources(request):
-    grade_sources = GradeSource.objects.filter(status='ACTI')
+	form = GradeSourceListForm(request.GET)
+	country = request.GET.get('country', None)
+	if country == None:
+		grade_sources = GradeSource.objects.filter(status='ACTI')
+	else:
+		grade_sources = GradeSource.objects.filter(status='ACTI').filter(country=country)
 
-    return {
-        'grade_sources': grade_sources,
-    }
+	return {
+		'form': form,
+		'grade_sources': grade_sources,
+	}
 
 
 @render_to('gpaconvert/convert_grades_form.html')

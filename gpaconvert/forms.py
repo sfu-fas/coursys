@@ -1,10 +1,17 @@
+from django.db import models
 from django import forms
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
+from django_countries.countries import COUNTRIES
+
 from models import ContinuousRule
 from models import DiscreteRule
 from models import GradeSource
+
+
+class GradeSourceListForm(forms.Form):
+    country = forms.ChoiceField(choices=COUNTRIES)
 
 
 class GradeSourceForm(ModelForm):

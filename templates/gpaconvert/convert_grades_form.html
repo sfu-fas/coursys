@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/gpaconvert.css" media="all" />
+{% endblock %}
+
 {% block title %}Convert Grades{% endblock %}
 
 {% block breadcrumbs %}
@@ -38,4 +42,7 @@
   </table>
   <input type="submit" value="Convert" />
 </form>
+{% if form.grade.value != nill %}
+	<div id="result">{{ form.grade.value }}</div>
+{% endif %}
 {% endblock %}
