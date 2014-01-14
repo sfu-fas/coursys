@@ -1,3 +1,6 @@
+import functools
+
+from django.forms.formsets import formset_factory
 from django.shortcuts import get_object_or_404
 
 from gpaconvert.forms import ContinuousGradeForm, DiscreteGradeForm
@@ -18,17 +21,26 @@ def list_grade_sources(request):
 def convert_grades(request, grade_source_slug):
     grade_source = get_object_or_404(GradeSource, slug=grade_source_slug)
     RuleForm = (grade_source.scale == 'DISC') and DiscreteGradeForm or ContinuousGradeForm
-    transfer_grade = ''
 
+    # XXX: This is required because our form class requires a GradeSource.
+    RuleFormSet = formset_factory(RuleForm, extra=10)
+    RuleFormSet.form = functools.partial(RuleForm, grade_source=grade_source)
+
+    # TODO: Figure out a better way to handle the transfer grades.
     if request.POST:
-        form = RuleForm(request.POST, grade_source=grade_source)
-        if form.is_valid():
-            transfer_grade = form.cleaned_data['rule'].transfer_value
+        formset = RuleFormSet(request.POST)
+        if formset.is_valid():
+            transfer_grades = [form.cleaned_data['rule'].transfer_value
+                               if 'rule' in form.cleaned_data else ''
+                               for form in formset]
+        else:
+            transfer_grades = ['' for _ in xrange(len(formset))]
     else:
-        form = RuleForm(grade_source=grade_source)
+        formset = RuleFormSet()
+        transfer_grades = ['' for _ in xrange(len(formset))]
 
     return {
         'grade_source': grade_source,
-        'form': form,
-        'transfer_grade': transfer_grade,
+        'formset': formset,
+        'transfer_grades': iter(transfer_grades),
     }
