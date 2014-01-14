@@ -1028,6 +1028,7 @@ ROLE_CHOICES = (
         ('GRPD', 'Graduate Program Director'),
         ('FUND', 'Grad Funding Administrator'),
         ('TECH', 'Tech Staff'),
+        ('GPA', 'GPA conversion system admin'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
