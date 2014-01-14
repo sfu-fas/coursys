@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Convert Grades{% endblock %}
+
+{% block breadcrumbs %}
+<li>
+  <a href="{% url 'gpaconvert.views.list_grade_sources' %}">Grade Sources<a/>
+</li>
+<li>&gt;</li>
+<li>{{ grade_source }}</li>
+{% endblock %}
+
+{% block h1 %}Convert Grades{% endblock %}
+
+{% block content %}
+<form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <table>
+    <thead>
+      <tr>
+        <th>Course Name*</th>
+        <th>Your Grade*</th>
+        <th>SFU Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for form in formset %}
+      <tr>
+        <!-- TODO: Show error messages -->
+        {% for field in form %}
+        <td>{{ field }}</td>
+        {% endfor %}
+        <td>{{ transfer_grades.next }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <input type="submit" value="Convert" />
+</form>
+{% endblock %}

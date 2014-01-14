@@ -1,10 +1,17 @@
 {% extends 'base.html' %}
 
+{% block title %}Grade Sources{% endblock %}
+
+{% block allbreadcrumbs %}{% endblock %}
+
+{% block h1 %}Grade Sources{% endblock %}
+
 {% block content %}
-<h3>Grade Sources</h3>
 <ul>
-{% for grade_source in grade_sources %}
-  <li>{{ grade_source }}</li>
-{% endfor %}
+  {% for grade_source in grade_sources %}
+  <li>
+    <a href="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}">{{ grade_source }}</a>
+  </li>
+  {% endfor %}
 </ul>
 {% endblock %}
