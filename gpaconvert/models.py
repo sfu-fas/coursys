@@ -102,7 +102,7 @@ class Rule(models.Model):
     transfer_value = models.CharField(max_length=2,
                                       null=False,
                                       blank=False,
-                                      choices=TRANFER_VALUES)
+                                      choices=TRANSFER_VALUES)
 
     class Meta:
         abstract = True
