@@ -96,8 +96,11 @@ TRANSFER_VALUES = (
     (decimal.Decimal('0.00'), 'F'),
 )
 
-from grades.models import GPA_GRADE_CHOICES
+from grades.models import GPA_GRADE_CHOICES, LETTER_POSITION
 TRANSFER_VALUES = GPA_GRADE_CHOICES
+#GPA_LOOKUP = {}
+#assert dict(TRANSFER_VALUES).keys() == GPA_LOOKUP.keys()
+
 
 
 # TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods. [No reason: go for it]
