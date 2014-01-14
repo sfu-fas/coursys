@@ -20,7 +20,7 @@ from gpaconvert.forms import rule_formset_factory
 
 # admin interface views
 
-@requires_global_role('GPA')
+# @requires_global_role('GPA')
 def grade_sources(request):
     # Get list of grade sources
     grade_sources = GradeSource.objects.active()
