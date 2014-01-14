@@ -104,7 +104,7 @@ class DiscreteRule(models.Model):
                                     self.transfer_value)
 
     def delete(self):
-        raise NotImplementedError, "It's a bad thing to delete stuff"
+        raise NotImplementedError("It's a bad thing to delete stuff")
 
     class Meta:
         unique_together = ("grade_source", "lookup_value")
