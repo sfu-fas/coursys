@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Convert Grades{% endblock %}
+
+{% block breadcrumbs %}
+<li>
+  <a href="{% url 'gpaconvert.views.list_grade_sources' %}">Grade Sources<a/>
+</li>
+<li>&gt;</li>
+<li>{{ grade_source }}</li>
+{% endblock %}
+
+{% block h1 %}Convert Grades{% endblock %}
+
+{% block content %}
+<form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
+  {% csrf_token %}
+  {{ form.as_table }}
+  <input type="submit" value="Convert" />
+</form>
+{% endblock %}
