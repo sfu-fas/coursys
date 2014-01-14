@@ -271,6 +271,7 @@ def is_discipline_user(request, course_slug, **kwargs):
         return False
 
     perms = Role.objects.filter(person__userid=request.user.username, role='DISC', unit=offering.owner).count()
+    perms += Role.objects.filter(person__userid=request.user.username, role='DISC', unit__name='UNIV').count()
     if perms>0:
         roles.add("DEPT")
 
