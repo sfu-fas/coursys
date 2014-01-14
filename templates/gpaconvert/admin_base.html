@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}GPA Convert Admin Interface{% endblock %}
+{% block h1 %}GPA Convert Admin Interface{% endblock %}
+
+{% block subbreadcrumbs %}
+> GPA Calculator
+{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    .hideshow input{
+        font-size: x-small;
+    }
+    .deleted{
+        background-color: pink;
+    }
+</style>
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url 'new_grade_source' %}">New Grade Source</a></li>
+        <li><a href="?show_deleted=1" class='show_deleted'>Show Deleted Grade Sources</a></li> 
+        <li><a href="?show_deleted=0" class='hide_deleted'>Hide Deleted Grade Sources</a></li> 
+        
+    </ul>
+</div>
+{% endblock %}
+
+{%block content%}
+<div class="table_container">
+    {% if grade_sources %}
+    <table class="info">
+        <thead>
+            <tr>
+                <th class="ui-state-default">Country</th>
+                <th class="ui-state-default">Institution/Grade Scale</th>
+                <th class="ui-state-default">Status</th>
+                <th class="ui-state-default"># Rules</th>
+                <th class="ui-state-default">Scale</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for source in grade_sources %}
+            <tr>
+                <td>{{ source.country }}</td>
+                <td><a href="{% url 'change_grade_source' source.slug %}">{{ source.institution }}</a></td>
+                <td>{{ source.get_status_display }}</td>
+                <td>{% if source.scale == 'DISC' %}{{ source.discreterule_set.count }}{% else %}{{ source.continuousrule_set.count }}{% endif %}</td>
+                <td>{{ source.get_scale_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nothing to show, <a href="{% url 'new_grade_source' %}">create your first Grade Source</a></p>
+    {% endif %}
+</div>
+
+
+{%endblock content%}

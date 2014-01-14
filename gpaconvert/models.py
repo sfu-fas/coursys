@@ -13,6 +13,12 @@ from gpaconvert.utils import get_object_or_None
 DECIMAL_ZERO = decimal.Decimal('0.00')
 
 
+class GradeSourceManager(models.Manager):
+    def active(self):
+        qs = self.get_query_set()
+        return qs.filter(status='ACTI')
+
+
 class GradeSource(models.Model):
     """
     The source of a set of user grades, may be an institution in
@@ -36,6 +42,8 @@ class GradeSource(models.Model):
     def _auto_slug(self):
         return make_slug("%s-%s" % (self.institution, self.country))
     slug = AutoSlugField(populate_from=_auto_slug, null=False, editable=False)
+
+    objects = GradeSourceManager()
 
     def __unicode__(self):
         return "%s, %s" % (self.institution, self.country)
@@ -102,6 +110,22 @@ TRANSFER_VALUES = GPA_GRADE_CHOICES
 
 # TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods. [No reason: go for it]
 # TODO Do conversion rules have to apply to specific courses?  requirements.txt mentions course title as a user input field. [don't care]
+class Rule(models.Model):
+    """
+    Base Conversion rule for GPA Calculator.  This model is
+    abstract, and should be inherited for Discrete and Continuous
+    Conversion Rules.
+    """
+    grade_source = models.ForeignKey('GradeSource')
+    transfer_value = models.CharField(max_length=2,
+                                      null=False,
+                                      blank=False,
+                                      choices=TRANSFER_VALUES)
+
+    class Meta:
+        abstract = True
+
+
 class DiscreteRule(models.Model):
     """
     Discrete GPA Conversion Rule represents the conversions
@@ -141,7 +165,8 @@ class ContinuousRule(models.Model):
     """
     grade_source = models.ForeignKey('GradeSource', related_name='continuous_rules')
     lookup_lbound = models.DecimalField(max_digits=8,
-                                        decimal_places=2)
+                                        decimal_places=2,
+                                        verbose_name="Lookup lower bound")
     transfer_value = models.CharField(max_length=2,
                                       null=False, blank=False,
                                       choices=TRANSFER_VALUES)
@@ -151,8 +176,31 @@ class ContinuousRule(models.Model):
                                            self.grade_source,
                                            self.transfer_value)
 
+    # TODO should conversion rules have a mute/unmute flag instead of delete?  Delete method causes issues for formsets.
     def delete(self):
         raise NotImplementedError("It's a bad thing to delete stuff")
 
     class Meta:
         unique_together = (("grade_source", "lookup_lbound"),)
+
+
+class UserArchive(models.Model):
+    """
+    Model to encapsulate a user's gpa calculation event.
+    The user may obtain an anonymous URL to go back to the
+    calculations at any time, or to share with anyone.
+    """
+    slug = models.SlugField(max_length=64, unique=True)
+    data = JSONField(blank=False, null=False, default={})
+    # Defaults
+    # TODO decide how the calculations should be layed out in the JSON Field?
+    # 'calculations': [
+    #   {'queensland-university-au': [
+    #       ('MATH100', 'Very Good', 'A+'),
+    #       ('COGS100', 'Very Good', 'A+'),
+    #   }
+    #]
+
+    def __unicode__(self):
+        return "Calculation Archive: %s" %self.slug
+

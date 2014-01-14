@@ -459,6 +459,12 @@ urlpatterns += patterns('',
 
     # GPA Calculator
     url(r'^gpacalc/', include('gpaconvert.urls')),
+
+    #GPA calculator
+    url(r'^gpa-calculator/$', 'gpaconvert.views.grade_sources', name = 'grade_source_index'),   
+    url(r'^gpa-calculator/new-grade-source/$', 'gpaconvert.views.new_grade_source', name='new_grade_source'),
+    url(r'^gpa-calculator/edit-grade-source/(?P<slug>.+)/$', 'gpaconvert.views.change_grade_source', name='change_grade_source'),
+
 )
 
 if not settings.DEPLOYED:
