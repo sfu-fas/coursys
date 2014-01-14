@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.template import RequestContext, loader
+from courselib.auth import requires_global_role
 
 from gpaconvert.models import GradeSource, DiscreteRule, ContinuousRule
 from gpaconvert.forms import ContinuousGradeForm, DiscreteGradeForm
@@ -19,6 +20,7 @@ from gpaconvert.forms import rule_formset_factory
 
 # admin interface views
 
+@requires_global_role('GPA')
 def grade_sources(request):
     # Get list of grade sources
     grade_sources = GradeSource.objects.active()
