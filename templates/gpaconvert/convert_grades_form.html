@@ -15,7 +15,25 @@
 {% block content %}
 <form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
   {% csrf_token %}
-  {{ form.as_table }}
+  <table>
+    <thead>
+      <tr>
+        {% for field in form %}
+        <th>{{ field.label }}</th>
+        {% endfor %}
+        <th>SFU Grade</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <!-- TODO: Show error messages -->
+        {% for field in form %}
+        <td>{{ field }}</td>
+        {% endfor %}
+        <td>{{ transfer_grade }}</td>
+      </tr>
+    </tbody>
+  </table>
   <input type="submit" value="Convert" />
 </form>
 {% endblock %}

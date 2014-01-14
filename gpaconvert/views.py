@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 
-from gpaconvert.forms import DiscreteGradeForm
+from gpaconvert.forms import ContinuousGradeForm, DiscreteGradeForm
 from gpaconvert.models import GradeSource
 from gpaconvert.utils import render_to
 
@@ -17,13 +17,18 @@ def list_grade_sources(request):
 @render_to('gpaconvert/convert_grades_form.html')
 def convert_grades(request, grade_source_slug):
     grade_source = get_object_or_404(GradeSource, slug=grade_source_slug)
+    RuleForm = (grade_source.scale == 'DISC') and DiscreteGradeForm or ContinuousGradeForm
+    transfer_grade = ''
 
     if request.POST:
-        form = DiscreteGradeForm(request.POST, grade_source=grade_source)
+        form = RuleForm(request.POST, grade_source=grade_source)
+        if form.is_valid():
+            transfer_grade = form.cleaned_data['rule'].transfer_value
     else:
-        form = DiscreteGradeForm(grade_source=grade_source)
+        form = RuleForm(grade_source=grade_source)
 
     return {
         'grade_source': grade_source,
         'form': form,
+        'transfer_grade': transfer_grade,
     }
