@@ -205,5 +205,4 @@ class UserArchive(models.Model):
     #]
 
     def __unicode__(self):
-        return "Calculation Archive: %s" %self.slug
-
+        return "Calculation Archive: %s" % self.slug

@@ -1,10 +1,11 @@
-<<<<<<< HEAD
+from django import forms
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
-from models import GradeSource
-from models import DiscreteRule
 from models import ContinuousRule
+from models import DiscreteRule
+from models import GradeSource
+
 
 class GradeSourceForm(ModelForm):
     class Meta:
@@ -31,8 +32,6 @@ def rule_formset_factory(grade_source, reqpost=None):
         formset = ContinuousRuleFormSet(reqpost, instance=grade_source)
 
     return formset
-=======
-from django import forms
 
 
 class BaseGradeForm(forms.Form):
@@ -74,4 +73,3 @@ class ContinuousGradeForm(BaseGradeForm):
         # TODO: Agree on min/max grade fields for GradeSource and limit the value of grade
         #       accordingly.
         pass
->>>>>>> gpaconvert-user-view
