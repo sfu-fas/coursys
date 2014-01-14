@@ -1,5 +1,6 @@
 import functools
 
+from django.db import models
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
@@ -31,3 +32,25 @@ def render_to(template_filepath):
                 return result
         return func_wrapper
     return wrapper
+
+
+# XXX: This is also provided in django-annoying.
+def get_object_or_None(model_thing, **kwargs):
+    """
+    Shortcut to catch the exception thrown by Model.objects.get if nothing is found and
+    returns None instead.
+
+    Example:
+        obj = get_object_or_None(MyModelClass, id=3)
+    """
+
+    if isinstance(model_thing, models.Manager):
+        try:
+            return model_thing.get(**kwargs)
+        except model_thing.model.DoesNotExist:
+            return None
+    else:
+        try:
+            return model_thing.objects.get(**kwargs)
+        except model_thing.DoesNotExist:
+            return None
