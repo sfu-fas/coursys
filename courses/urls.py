@@ -26,7 +26,7 @@ urlpatterns += patterns('',
 #---------------------------------------
     url(r'^$', 'dashboard.views.index'),
         url(r'^m/$', 'mobile.views.index'),
-    url(r'^favicon.ico$', RedirectView.as_view(url='/media/icons/favicon.ico', permanent=True)),
+    url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
     url(r'^history$', 'dashboard.views.index_full'),
     url(r'^config/$', 'dashboard.views.config'),
     url(r'^news/$', 'dashboard.views.news_list'),
