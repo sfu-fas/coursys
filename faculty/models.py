@@ -1,3 +1,6 @@
 from django.db import models
 
-# Create your models here.
+#from event_types.foo import BarEvent
+#EVENT_TYPES = {
+#        'BAR': BarEvent,
+#        }
