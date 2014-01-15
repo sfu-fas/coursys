@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 import urllib, zipfile
 
 
-_required_star = '<em><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></em>'
+_required_star = '<em><img src="'+settings.STATIC_URL+'icons/required_star.gif" alt="required"/></em>'
 
 class ComponentForm(ModelForm):
     #override title to have 'required star'

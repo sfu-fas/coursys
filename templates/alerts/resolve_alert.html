@@ -19,10 +19,10 @@ $(document).ready(function() {
 
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
-<li>&gt; <a href="{% url "alerts.views.view_alerts" alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
-<li>&gt; <a href="{% url "alerts.views.view_alert" alert_type=alert.alerttype.slug alert_id=alert.id %}">{{alert.person}}</a></li>
-<li>&gt; {{resolve_reopen_or_comment_on}} Alert </li>
+<li><a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
+<li><a href="{% url "alerts.views.view_alerts" alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
+<li><a href="{% url "alerts.views.view_alert" alert_type=alert.alerttype.slug alert_id=alert.id %}">{{alert.person}}</a></li>
+<li>{{resolve_reopen_or_comment_on}} Alert </li>
 {% endblock %}
 
 {% block content %}

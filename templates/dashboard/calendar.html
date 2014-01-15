@@ -3,11 +3,11 @@
 {% block title %}Calendar{% endblock %}
 {% block h1 %}Calendar{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; Calendar</li>{% endblock %}
+{% block subbreadcrumbs %}<li>Calendar</li>{% endblock %}
 
 {% block headextra %}
-<link rel='stylesheet' type='text/css' href='{{MEDIA_URL}}fullcalendar/fullcalendar.css' />
-<script type='text/javascript' src='{{MEDIA_URL}}fullcalendar/fullcalendar.js'></script>
+<link rel='stylesheet' type='text/css' href='{{STATIC_URL}}fullcalendar/fullcalendar.css' />
+<script type='text/javascript' src='{{STATIC_URL}}fullcalendar/fullcalendar.js'></script>
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {

@@ -2,7 +2,7 @@
 {% block title %}{{unit.label}} Unknown Instructors{% endblock %}
 {% block h1 %}{{unit.label}} Unknown Instructors{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "coredata.views.unit_admin" %}">Admin</a></li><li>&gt; {{unit.label}} Unknown Instructors</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.unit_admin" %}">Admin</a></li><li>{{unit.label}} Unknown Instructors</li>{% endblock %}
 
 {% block content %}
 

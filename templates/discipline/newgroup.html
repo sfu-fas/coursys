@@ -5,8 +5,8 @@
 {% block h1 %}New Dishonesty Case Cluster{% endblock %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
     $("#id_students").multiselect();
@@ -14,7 +14,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li>&gt; New Cluster</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li>New Cluster</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 

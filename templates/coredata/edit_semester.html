@@ -4,9 +4,9 @@
 {% block h1 %}{% if newsem %}New{% else %}Edit{% endif %} Semester{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
-<li>&gt; <a href="{% url "coredata.views.semester_list" %}">Semesters</a></li>
-<li>&gt; {% if newsem %}New{% else %}Edit {{ semester.name }}{% endif %}</li>
+<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "coredata.views.semester_list" %}">Semesters</a></li>
+<li>{% if newsem %}New{% else %}Edit {{ semester.name }}{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}

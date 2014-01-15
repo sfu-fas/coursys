@@ -5,9 +5,9 @@
 {% block h1 %}Financial Summary for TA Appointments{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a>
-<li>&gt; Financial</li>
+<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a>
+<li>Financial</li>
 {% endblock %}
 
 {% block headextra %}

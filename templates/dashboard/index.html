@@ -2,7 +2,7 @@
 {% load mobile_tags %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
@@ -13,8 +13,8 @@ $(document).ready(function() {
 //]]></script>
 {% endblock %}
 
-{% block title %}CourSys{% endblock %}
-{% block h1 %}CourSys{% endblock %} 
+{% block wholetitle %}CourSys{% endblock %}
+{% block h1 %}CourSys{% endblock %}
 
 
 {% block allbreadcrumbs %}{% endblock %}

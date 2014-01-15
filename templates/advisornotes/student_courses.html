@@ -3,9 +3,9 @@
 {% block h1 %}Current Courses for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li>&gt; <a href="{% url "advisornotes.views.student_notes" userid=userid %}">{{ student.name }}</a></li>
-<li>&gt; Courses</li>
+<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advisornotes.views.student_notes" userid=userid %}">{{ student.name }}</a></li>
+<li>Courses</li>
 {% endblock %}
 
 {% block actions %}
@@ -19,8 +19,8 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">//<![CDATA[
 	function show_titles() {
 		$('.coursetitle').show();
@@ -110,7 +110,7 @@ table.courses td {
 {% block content %}
 <div id="messages"><ul><li class="warning">Many things are wrong here. Do not rely on any of this data until this page is complete.</li></ul></div>
 
-<div id="coursecontent"><img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" /></div>
+<div id="coursecontent"><img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" /></div>
 
 
 {% endblock content %}

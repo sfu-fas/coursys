@@ -5,9 +5,9 @@
 {% block h1 %} Assign Form {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li>&gt; <a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
-    <li>&gt; Assign Form</li>
+    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+    <li>Assign Form</li>
 {% endblock %}
 
 {% block headextra %}
@@ -44,7 +44,7 @@
     <div class="form_container">
         {% if form.non_field_errors %}
             <p class="errorindicator">
-                <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation"/>
+                <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation"/>
                 {{ form.non_field_errors }}
             </p>
         {% endif %}

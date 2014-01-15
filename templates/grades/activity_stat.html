@@ -4,13 +4,13 @@
 {% block h1 %}{{ activity.name }} Statistics{% endblock %}
 
 {% block subbreadcrumbs %}{% spaceless %}
-<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li>
-<li>&gt; <a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
-<li>&gt; Statistics</li>
+<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li>
+<li><a href="{{activity.get_absolute_url}}">{{ activity.name }}</a></li>
+<li>Statistics</li>
 {% endspaceless %}{% endblock %}
 
 {% block grades_headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
 {% if activity_stat.count %}

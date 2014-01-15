@@ -6,7 +6,7 @@
 
 {% block grades_headextra %}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Setup</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Setup</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
@@ -25,7 +25,7 @@
 <div class="form_container">
     {% if form.non_field_errors %}
     <p class="errorindicator">
-        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
         {{ form.non_field_errors }}
     </p>
     {% endif %}
