@@ -60,7 +60,7 @@ $(document).ready(function() {
                 <td>{{ source.country }}</td>
                 <td><a href="{% url 'change_grade_source' source.slug %}">{{ source.institution }}</a></td>
                 <td>{{ source.get_status_display }}</td>
-                <td>{% if source.scale == 'DISC' %}{{ source.discreterule_set.count }}{% else %}{{ source.continuousrule_set.count }}{% endif %}</td>
+                <td>{% if source.scale == 'DISC' %}{{ source.discrete_rules.count }}{% else %}{{ source.continuous_rules.count }}{% endif %}</td>
                 <td>{{ source.get_scale_display }}</td>
             </tr>
             {% endfor %}
