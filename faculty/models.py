@@ -1,6 +1,8 @@
 from django.db import models
 
-#from event_types.foo import BarEvent
-#EVENT_TYPES = {
-#        'BAR': BarEvent,
-#        }
+from event_types.career import AppointmentEventType
+EVENT_TYPES = {
+        'APPOINT': AppointmentEventType,
+        }
+
+

@@ -1,0 +1,128 @@
+[
+{
+ "fields": {
+  "config": "{}", 
+  "emplid": 200000101, 
+  "first_name": "Gregory", 
+  "last_name": "Baker", 
+  "middle_name": "Garnet", 
+  "pref_first_name": "Gregory", 
+  "title": "Mr", 
+  "userid": "ggbaker"
+ }, 
+ "model": "coredata.person", 
+ "pk": 15
+},
+{
+ "fields": {
+  "config": "{}", 
+  "emplid": 200000107, 
+  "first_name": "Anthony", 
+  "last_name": "Dixon", 
+  "middle_name": "", 
+  "pref_first_name": "Anthony", 
+  "title": "Dr", 
+  "userid": "dixon"
+ }, 
+ "model": "coredata.person", 
+ "pk": 1
+},
+{
+ "fields": {
+  "config": "{}", 
+  "emplid": 200000674, 
+  "first_name": "Danyu", 
+  "last_name": "Zhao", 
+  "middle_name": null, 
+  "pref_first_name": "Danyu", 
+  "title": null, 
+  "userid": "dzhao"
+ }, 
+ "model": "coredata.person", 
+ "pk": 575
+},
+{
+ "fields": {
+  "acad_org": "COMP SCI", 
+  "config": "{\"deptid\":\"12345\",\"web\":\"http://www.cs.sfu.ca/\",\"fax\":\"778-782-3045\",\"tel\":\"778-782-4277\",\"informal_name\":\"Computing Science\",\"address\":[\"9971 Applied Sciences Building\",\"8888 University Drive, Burnaby, BC\",\"Canada V5A 1S6\"],\"sessional_pay\":10000,\"email\":\"csdept@sfu.ca\"}", 
+  "label": "CMPT", 
+  "name": "School of Computing Science", 
+  "parent": null, 
+  "slug": "cmpt"
+ }, 
+ "model": "coredata.unit", 
+ "pk": 4
+},
+{
+ "fields": {
+  "acad_org": "ENG SCI", 
+  "config": "{}", 
+  "label": "ENSC", 
+  "name": "School of Engineering Science", 
+  "parent": null, 
+  "slug": "ensc"
+ }, 
+ "model": "coredata.unit", 
+ "pk": 3
+},
+{
+ "fields": {
+  "acad_org": null, 
+  "config": "{}", 
+  "label": "FAS", 
+  "name": "Faculty of Applied Sciences", 
+  "parent": 1, 
+  "slug": "fas"
+ }, 
+ "model": "coredata.unit", 
+ "pk": 2
+},
+{
+ "fields": {
+  "acad_org": null, 
+  "config": "{}", 
+  "label": "UNIV", 
+  "name": "Simon Fraser University", 
+  "parent": null, 
+  "slug": "unit"
+ }, 
+ "model": "coredata.unit", 
+ "pk": 1
+},
+{
+ "fields": {
+  "person": 1, 
+  "role": "FAC", 
+  "unit": 4
+ }, 
+ "model": "coredata.role", 
+ "pk": 5
+},
+{
+ "fields": {
+  "person": 15, 
+  "role": "FAC", 
+  "unit": 4
+ }, 
+ "model": "coredata.role", 
+ "pk": 4
+},
+{
+ "fields": {
+  "person": 1, 
+  "role": "ADMN", 
+  "unit": 4
+ }, 
+ "model": "coredata.role", 
+ "pk": 17
+},
+{
+ "fields": {
+  "person": 575, 
+  "role": "ADMN", 
+  "unit": 2
+ }, 
+ "model": "coredata.role", 
+ "pk": null
+}
+]

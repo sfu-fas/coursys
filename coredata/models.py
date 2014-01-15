@@ -1012,6 +1012,18 @@ class Unit(models.Model):
             cache.set(key, res, 24*3600)
             return res
 
+    def super_units():
+        """
+        Units directly above this in the heirarchy
+        """
+        if not u.parent:
+            return []
+        else:
+            return [u.parent] + u.parent.super_units()
+            
+            
+
+
 
 ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
