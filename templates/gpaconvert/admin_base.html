@@ -17,6 +17,16 @@
 </style>
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 
+$<script type="text/javascript">
+$(document).ready(function() {
+  $('#gradesourcetable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
 {% endblock %}
 
 {% block actions %}
@@ -32,9 +42,9 @@
 {% endblock %}
 
 {%block content%}
-<div class="table_container">
+<div class="datatable_container">
     {% if grade_sources %}
-    <table class="info">
+    <table id="gradesourcetable" class="info">
         <thead>
             <tr>
                 <th class="ui-state-default">Country</th>
