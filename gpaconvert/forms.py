@@ -2,7 +2,8 @@ from django import forms
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
-from django_countries.countries import COUNTRIES
+from django_countries import countries
+COUNTRIES = countries
 
 from gpaconvert.models import ContinuousRule
 from gpaconvert.models import DiscreteRule
@@ -19,6 +20,12 @@ class GradeSourceForm(ModelForm):
         exclude = ("config",)
 
 
+class GradeSourceChangeForm(ModelForm):
+    class Meta:
+        model = GradeSource
+        exclude = ("config", "scale", "lower_bound", "upper_bound")
+
+
 class DiscreteRuleForm(ModelForm):
     class Meta:
         model = DiscreteRule
@@ -31,10 +38,10 @@ class ContinuousRuleForm(ModelForm):
 
 def rule_formset_factory(grade_source, reqpost=None):
     if grade_source.scale == 'DISC':
-        DiscreteRuleFormSet = inlineformset_factory(GradeSource, DiscreteRule)
+        DiscreteRuleFormSet = inlineformset_factory(GradeSource, DiscreteRule, can_delete=False)
         formset = DiscreteRuleFormSet(reqpost, instance=grade_source)
     else:
-        ContinuousRuleFormSet = inlineformset_factory(GradeSource, ContinuousRule)
+        ContinuousRuleFormSet = inlineformset_factory(GradeSource, ContinuousRule, can_delete=False)
         formset = ContinuousRuleFormSet(reqpost, instance=grade_source)
 
     return formset

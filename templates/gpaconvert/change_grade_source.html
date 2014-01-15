@@ -40,11 +40,11 @@
         {{ grade_source_form|as_dl }}
         </fieldset>
         <fieldset>
-        <legend>{{ grade_source.get_scale_display }} Conversion Rules</legend>
+        <legend>{{ grade_source.get_scale_display|lower|capfirst }} Conversion Rules</legend>
         {{ rule_formset.management_form }}
         {% for form in rule_formset %}
         <dl class="dlform">
-            {% for field in form %}
+            {% for field in form.visible_fields %}
             <dt class="{{ field.html_name }}">
                 <label for="{{ field.auto_id }}">
                     {{ field.label }}:
@@ -58,6 +58,11 @@
                     {{ field }}
                     {{ field.errors }}
                 </div>
+            </dd>
+            {% endfor %}
+            {% for field in form.hidden_fields %}
+            <dd class="hidden">
+            {{ field }}
             </dd>
             {% endfor %}
         </dl>        

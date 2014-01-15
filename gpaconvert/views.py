@@ -15,12 +15,13 @@ from gpaconvert.forms import DiscreteGradeForm
 from gpaconvert.forms import GradeSourceListForm
 from gpaconvert.utils import render_to
 from gpaconvert.forms import GradeSourceForm
+from gpaconvert.forms import GradeSourceChangeForm
 from gpaconvert.forms import rule_formset_factory
 
 
 # admin interface views
 
-# @requires_global_role('GPA')
+@requires_global_role('GPA')
 def grade_sources(request):
     # Get list of grade sources
     grade_sources = GradeSource.objects.active()
@@ -39,7 +40,6 @@ def new_grade_source(request):
         if form.is_valid():
             instance = form.save(commit=False)
             instance.save()
-            print instance
             return HttpResponseRedirect(reverse('grade_source_index'))
         else:
             form = GradeSourceForm(form.data)
@@ -54,14 +54,22 @@ def change_grade_source(request, slug):
     t = loader.get_template('gpaconvert/change_grade_source.html')
     grade_source = get_object_or_404(GradeSource, slug__exact=slug)
     old_scale = grade_source.scale
+    ChangeForm = GradeSourceChangeForm
+
+    # Prep formset
+    # If the formset is of continuous rules and the first entry is empty
+    # populate the first entry with a default lower bound '0'
+    formset = rule_formset_factory(grade_source)
+    if formset.initial_form_count() == 0:
+        formset[0].initial.update({"lookup_lbound": 0})
     data = {
-        "grade_source_form": GradeSourceForm(instance=grade_source),
-        "rule_formset": rule_formset_factory(grade_source),
+        "grade_source_form": ChangeForm(instance=grade_source),
+        "rule_formset": formset,
         "grade_source": grade_source
     }
 
     if request.method == "POST":
-        form = GradeSourceForm(request.POST, instance=grade_source)
+        form = ChangeForm(request.POST, instance=grade_source)
         if form.is_valid():
             grade_source = form.save(commit=False)
             # ---------------------------
@@ -70,11 +78,12 @@ def change_grade_source(request, slug):
             grade_source.save()
             data.update({
                 "grade_source": grade_source,
-                "grade_source_form": GradeSourceForm(instance=grade_source)
+                "grade_source_form": ChangeForm(instance=grade_source),
+                "rule_formset": rule_formset_factory(grade_source),
             })
             #return HttpResponseRedirect(reverse("change_grade_source", args=[grade_source.slug]))
         else:
-            form = GradeSourceForm(form.data, instance=grade_source)
+            form = ChangeForm(form.data, instance=grade_source)
             data.update({
                 "grade_source_form": form,
             })
@@ -88,7 +97,7 @@ def change_grade_source(request, slug):
         if formset.is_valid():
             formset.save()
         else:
-            formset = rule_formset_factory(grade_source, data=formset.data)
+            formset = rule_formset_factory(grade_source, formset.data)
             data.update({
                 "rule_formset": formset,
             })

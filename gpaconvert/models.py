@@ -11,6 +11,7 @@ from courselib.slugs import make_slug
 from gpaconvert.utils import get_object_or_None
 
 DECIMAL_ZERO = decimal.Decimal('0.00')
+DECIMAL_HUNDRED = decimal.Decimal('100.00')
 
 
 class GradeSourceManager(models.Manager):
@@ -36,8 +37,18 @@ class GradeSource(models.Model):
     country = CountryField()
     institution = models.CharField(max_length=128, verbose_name="Institution/Scale Name")
     config = JSONField(null=False, blank=False, default={})
-    status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='DISA')
+    status = models.CharField(max_length=4, choices=STATUS_CHOICES, default='ACTI')
     scale = models.CharField(max_length=4, choices=SCALE_CHOICES, default='DISC')
+
+    # Only used for Continuous rules
+    lower_bound = models.DecimalField(max_digits=8,
+                                      decimal_places=2,
+                                      default=DECIMAL_ZERO,
+                                      help_text="Only used for continuous grade sources")
+    upper_bound = models.DecimalField(max_digits=8,
+                                      decimal_places=2,
+                                      default=DECIMAL_HUNDRED,
+                                      help_text="Only used for continuous grade sources")
 
     def _auto_slug(self):
         return make_slug("%s-%s" % (self.institution, self.country))
@@ -199,10 +210,21 @@ class UserArchive(models.Model):
     # TODO decide how the calculations should be layed out in the JSON Field?
     # 'calculations': [
     #   {'queensland-university-au': [
-    #       ('MATH100', 'Very Good', 'A+'),
-    #       ('COGS100', 'Very Good', 'A+'),
+    #       {'course': 'MATH100',
+    #        'converted_from': 'Very Good',
+    #        'converted_to': 'A+'
+    #       },
+    #       {'course': 'COGS100',
+    #        'converted_from': 'Very Good',
+    #        'converted_to': 'A+'
+    #       },
     #   }
     #]
 
     def __unicode__(self):
         return "Calculation Archive: %s" % self.slug
+
+    def delete(self):
+        raise NotImplementedError("It's bad to delete stuff")
+
+
