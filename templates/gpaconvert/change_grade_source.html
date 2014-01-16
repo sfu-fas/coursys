@@ -18,6 +18,17 @@
 </style>
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 
+$<script type="text/javascript">
+$(document).ready(function() {
+  $('#gradesourcetable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+
 {% endblock %}
 
 {% block actions %}
@@ -42,31 +53,38 @@
         <fieldset>
         <legend>{{ grade_source.get_scale_display|lower|capfirst }} Conversion Rules</legend>
         {{ rule_formset.management_form }}
+
+        <div class="datatable_container">
+        <table id="gradesourcetable" class="info">
+            <tbody>
         {% for form in rule_formset %}
-        <dl class="dlform">
+        <tr>
             {% for field in form.visible_fields %}
-            <dt class="{{ field.html_name }}">
+            <td class="{{ field.html_name }}">
                 <label for="{{ field.auto_id }}">
                     {{ field.label }}:
                     {% if field.field.required %}
                         <span class="required">*</span>
                     {% endif %}
                 </label>
-            </dt>
-            <dd>
+            </td>
+            <td>
                 <div class="field">
                     {{ field }}
                     {{ field.errors }}
                 </div>
-            </dd>
+            </td>
             {% endfor %}
             {% for field in form.hidden_fields %}
-            <dd class="hidden">
+            <td class="hidden">
             {{ field }}
-            </dd>
+            </td>
             {% endfor %}
-        </dl>        
+        </tr>
         {% endfor %}
+            </tbody>
+        </table>
+        </div>
 
         <p><input type="submit" class="submit" value="Submit" /></p>
         </fieldset>
