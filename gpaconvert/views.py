@@ -31,7 +31,7 @@ def grade_sources(request):
 
     return render(request, 'gpaconvert/admin_base.html', data)
 
-
+@requires_global_role('GPA')
 def new_grade_source(request):
     t = loader.get_template('gpaconvert/new_grade_source.html')
     data = {"grade_source_form": GradeSourceForm()}
@@ -49,7 +49,7 @@ def new_grade_source(request):
     c = RequestContext(request, data)
     return HttpResponse(t.render(c))
 
-
+@requires_global_role('GPA')
 def change_grade_source(request, slug):
     t = loader.get_template('gpaconvert/change_grade_source.html')
     grade_source = get_object_or_404(GradeSource, slug__exact=slug)
