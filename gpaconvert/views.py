@@ -128,6 +128,22 @@ def list_grade_sources(request):
     }
 
 
+def get_transfer_rules(formset):
+    transfer_rules = []
+    transfer_grade_points = decimal.Decimal('0.00')
+    transfer_credits = decimal.Decimal('0.00')
+    # XXX: Not able to use form.is_valid() here because formset.is_valid() seems to cause
+    #      that to return True for all forms.
+    for form in formset:
+        if 'rule' in form.cleaned_data:
+            transfer_rules.append(form.cleaned_data['rule'])
+            credits = form.cleaned_data['credits']
+            transfer_grade_points += credits * transfer_rules[-1].grade_points
+            transfer_credits += credits
+        else:
+            transfer_rules.append(None)
+    return transfer_rules, transfer_grade_points, transfer_credits
+
 @render_to('gpaconvert/convert_grades_form.html')
 def convert_grades(request, grade_source_slug):
     grade_source = get_object_or_404(GradeSource, slug=grade_source_slug)
@@ -137,13 +153,9 @@ def convert_grades(request, grade_source_slug):
     RuleFormSet = formset_factory(RuleForm, extra=10)
     RuleFormSet.form = functools.partial(RuleForm, grade_source=grade_source)
 
-    transfer_grade_points = decimal.Decimal('0.00')
-    transfer_credits = decimal.Decimal('0.00')
-
     if request.POST:
         formset = RuleFormSet(request.POST)
         formset.is_valid()
-        transfer_rules = []
 
         # Save the data for later
         if request.POST.get("save_grades"):
@@ -153,17 +165,8 @@ def convert_grades(request, grade_source_slug):
             arch = UserArchive.objects.create(grade_source=grade_source, slug=key, data=data)
             return HttpResponseRedirect(arch.get_absolute_url())
 
-        for form in formset:
-            # XXX: Not able to use form.is_valid() here because formset.is_valid() seems to cause
-            #      that to return True for all forms.
-            if 'rule' in form.cleaned_data:
-                transfer_rules.append(form.cleaned_data['rule'])
-                credits = form.cleaned_data['credits']
-                transfer_grade_points += credits * transfer_rules[-1].grade_points
-                transfer_credits += credits
-            else:
-                transfer_rules.append(None)
-    
+        transfer_rules, transfer_grade_points, transfer_credits = get_transfer_rules(formset)
+
     else:
         formset = RuleFormSet()
         transfer_rules = [None for _ in formset]
@@ -190,8 +193,17 @@ def view_saved(request, grade_source_slug, slug):
     RuleFormSet = formset_factory(RuleForm, extra=10)
     RuleFormSet.form = functools.partial(RuleForm, grade_source=grade_source)
     formset = RuleFormSet(arch.data)
+
+    formset.is_valid()
+    transfer_rules, transfer_grade_points, transfer_credits = get_transfer_rules(formset)
+    if transfer_credits > 0:
+        transfer_gpa = transfer_grade_points / transfer_credits
+    else:
+        transfer_gpa = decimal.Decimal('0.00')
+
     return {
         'grade_source': grade_source,
         'formset': formset,
-        'transfer_grades': ['' for _ in xrange(len(formset))]
+        'transfer_rules': iter(transfer_rules),
+        'transfer_gpa': transfer_gpa
     }
