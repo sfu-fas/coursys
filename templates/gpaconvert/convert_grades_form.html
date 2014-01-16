@@ -41,7 +41,8 @@
     </tbody>
   </table>
   <input type="submit" value="Convert" />
-</form>
+  <input type="submit" name="save_grades" value="Save for later" />
+
 {% if form.grade.value != nill %}
 	<div id="result">{{ form.grade.value }}</div>
 {% endif %}

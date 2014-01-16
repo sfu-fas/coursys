@@ -1,6 +1,7 @@
 import decimal
 
 from django.db import models
+from django.core.urlresolvers import reverse
 
 from autoslug import AutoSlugField
 from django_countries.fields import CountryField
@@ -204,25 +205,18 @@ class UserArchive(models.Model):
     The user may obtain an anonymous URL to go back to the
     calculations at any time, or to share with anyone.
     """
+    grade_source = models.ForeignKey(GradeSource)
     slug = models.SlugField(max_length=64, unique=True)
     data = JSONField(blank=False, null=False, default={})
     # Defaults
-    # TODO decide how the calculations should be layed out in the JSON Field?
-    # 'calculations': [
-    #   {'queensland-university-au': [
-    #       {'course': 'MATH100',
-    #        'converted_from': 'Very Good',
-    #        'converted_to': 'A+'
-    #       },
-    #       {'course': 'COGS100',
-    #        'converted_from': 'Very Good',
-    #        'converted_to': 'A+'
-    #       },
-    #   }
-    #]
+    # data field should store the raw data dump from the RuleFormSet.
+    # Then the form can be repopulated with ease.
 
     def __unicode__(self):
         return "Calculation Archive: %s" % self.slug
+
+    def get_absolute_url(self):
+        return reverse("view_saved_grades", args=[self.grade_source.slug, self.slug])
 
     def delete(self):
         raise NotImplementedError("It's bad to delete stuff")

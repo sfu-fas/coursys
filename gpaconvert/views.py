@@ -10,6 +10,7 @@ from django.forms.formsets import formset_factory
 from courselib.auth import requires_global_role
 
 from gpaconvert.models import GradeSource
+from gpaconvert.models import UserArchive
 from gpaconvert.forms import ContinuousGradeForm
 from gpaconvert.forms import DiscreteGradeForm
 from gpaconvert.forms import GradeSourceListForm
@@ -18,22 +19,25 @@ from gpaconvert.forms import GradeSourceForm
 from gpaconvert.forms import GradeSourceChangeForm
 from gpaconvert.forms import rule_formset_factory
 
+import random
+import hashlib
+import datetime
 
 # admin interface views
 
 @requires_global_role('GPA')
+@render_to('gpaconvert/admin_base.html')
 def grade_sources(request):
     # Get list of grade sources
     grade_sources = GradeSource.objects.active()
     if request.GET.get("show_deleted") == '1':
         grade_sources = GradeSource.objects.all()
     data = {'grade_sources': grade_sources}
+    return data
 
-    return render(request, 'gpaconvert/admin_base.html', data)
 
-
+@render_to('gpaconvert/new_grade_source.html')
 def new_grade_source(request):
-    t = loader.get_template('gpaconvert/new_grade_source.html')
     data = {"grade_source_form": GradeSourceForm()}
     if request.method == "POST":
         form = GradeSourceForm(request.POST)
@@ -43,15 +47,13 @@ def new_grade_source(request):
             return HttpResponseRedirect(reverse('grade_source_index'))
         else:
             form = GradeSourceForm(form.data)
-            c = RequestContext(request, data)
-            return HttpResponse(t.render(c))
+            return data
 
-    c = RequestContext(request, data)
-    return HttpResponse(t.render(c))
+    return data
 
 
+@render_to('gpaconvert/change_grade_source.html')
 def change_grade_source(request, slug):
-    t = loader.get_template('gpaconvert/change_grade_source.html')
     grade_source = get_object_or_404(GradeSource, slug__exact=slug)
     old_scale = grade_source.scale
     ChangeForm = GradeSourceChangeForm
@@ -81,14 +83,12 @@ def change_grade_source(request, slug):
                 "grade_source_form": ChangeForm(instance=grade_source),
                 "rule_formset": rule_formset_factory(grade_source),
             })
-            #return HttpResponseRedirect(reverse("change_grade_source", args=[grade_source.slug]))
         else:
             form = ChangeForm(form.data, instance=grade_source)
             data.update({
                 "grade_source_form": form,
             })
-            c = RequestContext(request, data)
-            return HttpResponse(t.render(c))
+            return data
 
         if grade_source.scale != old_scale:
             return HttpResponseRedirect(reverse('change_grade_source', args=[grade_source.slug]))
@@ -101,12 +101,9 @@ def change_grade_source(request, slug):
             data.update({
                 "rule_formset": formset,
             })
-            c = RequestContext(request, data)
-            return HttpResponse(t.render(c))
-
-    c = RequestContext(request, data)
-    return HttpResponse(t.render(c))
-
+            return data
+    return data
+        
 
 # user interface views
 
@@ -141,6 +138,14 @@ def convert_grades(request, grade_source_slug):
             transfer_grades = [form.cleaned_data['rule'].transfer_value
                                if 'rule' in form.cleaned_data else ''
                                for form in formset]
+            
+            # Save the data for later
+            if request.POST.get("save_grades"):
+                data = formset.data
+                salt = hashlib.sha224(str(random.random())).hexdigest()[:5]
+                key = hashlib.sha224(salt+grade_source_slug+str(datetime.datetime.now())).hexdigest()
+                arch = UserArchive.objects.create(grade_source=grade_source, slug=key, data=data)
+                return HttpResponseRedirect(arch.get_absolute_url())
         else:
             transfer_grades = ['' for _ in xrange(len(formset))]
     else:
@@ -151,4 +156,20 @@ def convert_grades(request, grade_source_slug):
         'grade_source': grade_source,
         'formset': formset,
         'transfer_grades': iter(transfer_grades),
+    }
+
+
+@render_to('gpaconvert/convert_grades_form.html')
+def view_saved(request, grade_source_slug, slug):
+    arch = get_object_or_404(UserArchive, slug=slug)
+    grade_source = arch.grade_source
+    RuleForm = (grade_source.scale == 'DISC') and DiscreteGradeForm or ContinuousGradeForm
+    
+    RuleFormSet = formset_factory(RuleForm, extra=10)
+    RuleFormSet.form = functools.partial(RuleForm, grade_source=grade_source)
+    formset = RuleFormSet(arch.data)
+    return {
+        'grade_source': grade_source,
+        'formset': formset,
+        'transfer_grades': ['' for _ in xrange(len(formset))]
     }
