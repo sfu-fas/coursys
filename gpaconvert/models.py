@@ -66,7 +66,6 @@ class GradeSource(models.Model):
         """
         Returns the DiscreteRule or ContinuousRule instance that goes with the given grade.
         """
-
         if self.scale == 'DISC':
             rule = get_object_or_None(self.discrete_rules, lookup_value=grade)
         else:
