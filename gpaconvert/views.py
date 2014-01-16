@@ -38,8 +38,8 @@ def grade_sources(request):
     return data
 
 
-@render_to('gpaconvert/new_grade_source.html')
 @requires_global_role('GPA')
+@render_to('gpaconvert/new_grade_source.html')
 def new_grade_source(request):
     data = {"grade_source_form": GradeSourceForm()}
     if request.method == "POST":
@@ -57,8 +57,8 @@ def new_grade_source(request):
     return data
 
 
-@render_to('gpaconvert/change_grade_source.html')
 @requires_global_role('GPA')
+@render_to('gpaconvert/change_grade_source.html')
 def change_grade_source(request, slug):
     grade_source = get_object_or_404(GradeSource, slug__exact=slug)
     old_scale = grade_source.scale
