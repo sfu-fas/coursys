@@ -10,7 +10,8 @@ from gpaconvert.models import DiscreteRule
 class GradeSourceTest(TestCase):
     def setUp(self):
         self.gs1 = GradeSource.objects.create(country='NZ', institution='University of Wellington')
-        self.gs2 = GradeSource.objects.create(country='FR', institution='Universite de Paris')
+        self.gs2 = GradeSource.objects.create(scale='CONT', country='FR',
+                                              institution='Universite de Paris')
 
     def test_auto_slug(self):
         """
@@ -29,6 +30,42 @@ class GradeSourceTest(TestCase):
         gs.save()
         with self.assertRaises(IntegrityError):
             gs1.save()
+
+    def test_get_rule_success(self):
+        """
+        Tests that get_rule can successfully retrieve a rule of both types.
+        """
+        # Discrete Rules
+        self.gs1.discrete_rules.create(lookup_value='some string', transfer_value='A')
+        self.gs1.discrete_rules.create(lookup_value='another string', transfer_value='C')
+
+        discrete_rule = self.gs1.get_rule('another string')
+        self.assertEqual(discrete_rule, self.gs1.discrete_rules.get(id=2))
+
+        # Continuous Rules
+        self.gs2.continuous_rules.create(lookup_lbound=90, transfer_value='A')
+        self.gs2.continuous_rules.create(lookup_lbound=50, transfer_value='C')
+
+        continuous_rule = self.gs2.get_rule(50)
+        self.assertEqual(continuous_rule, self.gs2.continuous_rules.get(id=2))
+
+    def test_get_rule_not_found(self):
+        """
+        Tests that get_rule will return None if no suitable rule is found.
+        """
+        # Discrete Rules
+        self.gs1.discrete_rules.create(lookup_value='some string', transfer_value='A')
+        self.gs1.discrete_rules.create(lookup_value='another string', transfer_value='C')
+
+        discrete_rule = self.gs1.get_rule('I do not exist')
+        self.assertIsNone(discrete_rule)
+
+        # Continuous Rules
+        self.gs2.continuous_rules.create(lookup_lbound=90, transfer_value='A')
+        self.gs2.continuous_rules.create(lookup_lbound=50, transfer_value='C')
+
+        continuous_rule = self.gs2.get_rule(40)
+        self.assertIsNone(continuous_rule)
 
 
 class DiscreteRuleTest(TestCase):
