@@ -2,8 +2,7 @@ from django import forms
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
-from django_countries import countries
-COUNTRIES = countries
+from django_countries.countries import COUNTRIES
 
 from gpaconvert.models import ContinuousRule
 from gpaconvert.models import DiscreteRule
