@@ -11,7 +11,7 @@ Each CareerEvent has:
   start date
   end date
   start/end semester (default=guess, but allow override in weird cases)
-  event_type (foreign key to CareerEventType)
+  event_type (reference to to CareerEventType)
   exclusion_type (logic: only one event with same person,unit,exclusion_type can occur simultaneously)
   other career-type-specific data
   additional comments

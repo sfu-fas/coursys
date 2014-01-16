@@ -1012,16 +1012,25 @@ class Unit(models.Model):
             cache.set(key, res, 24*3600)
             return res
 
-    def super_units():
+    def __super_units(self):
+        if not self.parent:
+            return []
+        else:
+            return [self.parent] + self.parent.super_units()
+            
+    def super_units(self):
         """
         Units directly above this in the heirarchy
         """
-        if not u.parent:
-            return []
+        key = 'superunits-' + self.slug
+        res = cache.get(key)
+        if res:
+            return res
         else:
-            return [u.parent] + u.parent.super_units()
-            
-            
+            res = self.__super_units()
+            cache.set(key, res, 24*3600)
+            return res
+        
 
 
 

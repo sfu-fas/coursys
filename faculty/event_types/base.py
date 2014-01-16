@@ -1,6 +1,6 @@
 from django import forms
 from coredata.models import Role
-import datetime
+import datetime, itertools
 
 PERMISSION_CHOICES = { # who can create/edit/approve various things?
         'MEMB': 'Faculty Member',
@@ -8,9 +8,10 @@ PERMISSION_CHOICES = { # who can create/edit/approve various things?
         'FAC': 'Dean\'s Office',
         }
 PERMISSION_LEVEL = {
-        'MEMB': 0,
-        'DEPT': 1,
-        'FAC': 2,
+        'NONE': 0,
+        'MEMB': 1,
+        'DEPT': 2,
+        'FAC': 3,
         }
 
 class BaseEntryForm(forms.Form):
@@ -22,11 +23,15 @@ class BaseEntryForm(forms.Form):
 
 
 class CareerEventType(object):
+    # type configuration stuff: override as necessary
     is_instant = False # set to True for events that have no duration
     exclusion_category = None # if set, only one CareerEvent with this exclusion_category
                               # can exist for a facuty member at a given time.
     editable_by = 'DEPT'
     approval_by = 'FAC'
+    
+    
+    # basic functionality: hopefully don't have to override
     
     def __init__(self, faculty):
         """
@@ -34,23 +39,25 @@ class CareerEventType(object):
         """
         self.faculty = faculty
 
-
     def permission(self, editor):
         """
         This editor's permission level with respect to this faculty member.
         """
         edit_units = set(r.unit for r in Role.objects.filter(person=editor, role='ADMN'))
         fac_units = set(r.unit for r in Role.objects.filter(person=self.faculty, role='FAC'))
+        super_units = set(itertools.chain(*(u.super_units() for u in fac_units)))
 
-        if editor == faculty:
+        if editor == self.faculty:
             # first on purpose: don't let dept chairs approve/edit their own stuff
-            return 'MEM'
-
-        elif False: # TODO: detect faculty-level permission
+            return 'MEMB'
+        elif edit_units & super_units:
+            # give dean's office level permission to anybody above in the hierarchy:
+            # not technically correct, but correct in practice.
             return 'FAC'
-
         elif edit_units & fac_units:
             return 'DEPT'
+        else:
+            return 'NONE'
 
         
     def has_permission(self, perm, editor):
@@ -75,14 +82,10 @@ class CareerEventType(object):
         Can the given editor (a coredata.Person) can approve this
         CareerEventType for this faculty member?
         """
-        return self.has_permission(self.approval_by, editor, faculty)
+        return self.has_permission(self.approval_by, editor)
             
-    
-    #class EntryForm(BaseEntryForm):
-    #    pass
 
-    def default_title(self):
-        return 'Some Career Event'
+    # maybe override? Hopefully we can avoid and use this as-is.
 
     def get_entry_form(self, event=None):
         """
@@ -96,12 +99,20 @@ class CareerEventType(object):
 
         return f
 
+
+    # type-specific stuff that probably need to be overridden.
     
+    class EntryForm(BaseEntryForm):
+        pass
+
+    def default_title(self):
+        return 'Some Career Event'
+
     def to_career_event(self, form):
         """
         Given an EntryForm instance, return the corresponding CareerEvent instance
         (~= inverse of get_entry_form)
         """
+        # TODO: can we be general enough here to actually have common logic here?
         raise NotImplementedError
-    
-    
+
