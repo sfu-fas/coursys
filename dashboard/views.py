@@ -74,7 +74,12 @@ def index(request):
     is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).count() > 0
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
-    
+
+    #messages.add_message(request, messages.SUCCESS, 'Success message.')
+    #messages.add_message(request, messages.WARNING, 'Warning message.')
+    #messages.add_message(request, messages.INFO, 'Info message.')
+    #messages.add_message(request, messages.ERROR, 'Error message.')
+
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad,
                'has_grads': has_grads, 'excluded': excluded, 'form_groups': form_groups}
     return render(request, "dashboard/index.html", context)

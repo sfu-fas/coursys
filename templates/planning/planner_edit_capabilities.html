@@ -13,9 +13,9 @@ function confirmDelete() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
-<li>&gt; <a href="{% url "planning.views.view_capabilities" %}">Teaching Capabilities</a></li>
-<li>&gt; Edit Teaching Capabilities for {{ instructor.name }}</li>{% endblock %}
+<li><a href="{% url "planning.views.admin_index" %}">Course Planning</a></li>
+<li><a href="{% url "planning.views.view_capabilities" %}">Teaching Capabilities</a></li>
+<li>Edit Teaching Capabilities for {{ instructor.name }}</li>{% endblock %}
 
 {% block content %}
 <div id="capability" class="table_container">

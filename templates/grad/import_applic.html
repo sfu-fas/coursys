@@ -4,7 +4,7 @@
 {% block title %}Import Grad Applicants{% endblock %}
 {% block h1 %}Import Grad Applicants{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li><li>&gt; Import Applicants</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grad.views.index" %}">Grad</a></li><li>Import Applicants</li>{% endblock %}
 {% block content %}
 <div class="form_container">
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}

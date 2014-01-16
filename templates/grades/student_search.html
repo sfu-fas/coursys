@@ -12,7 +12,7 @@ $(document).ready(function() {
 //]]></script>{% endblock %}
 {% block actions %}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; Student Search</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>Student Search</li>{% endblock %}
 
 {% block content %}
 <form action="" method="post">{% csrf_token %}

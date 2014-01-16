@@ -3,9 +3,9 @@
 {% block h1 %}Alert {{alert.alerttype.code}} for {{ alert.person }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
-<li>&gt; <a href="{% url "alerts.views.view_alerts" alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
-<li>&gt; {{alert.person}} </li>
+<li><a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
+<li><a href="{% url "alerts.views.view_alerts" alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
+<li>{{alert.person}} </li>
 {% endblock %}
 
 {% block actions %}

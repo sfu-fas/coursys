@@ -4,14 +4,14 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
-<li>&gt; <a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">{{topic.title}}</a></li>
-<li>&gt; Edit Reply</li>
+<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
+<li><a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">{{topic.title}}</a></li>
+<li>Edit Reply</li>
 {% endblock %}
 
 {% block content %}

@@ -5,9 +5,9 @@
 {% block h1 %}{{grad.person.name}}: Other Funding{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
-<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; Other Funding</li>
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>Other Funding</li>
 {% endblock %}
 
 {% block content %}

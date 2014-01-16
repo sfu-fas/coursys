@@ -4,9 +4,9 @@
 {% block h1 %}Grades{% endblock %}
 
 {% block grades_headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform.css" type="text/css" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/grades/activityform.css" type="text/css" />
 <!--[if lte IE 8]>
-<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform-ie.css" type="text/css" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/grades/activityform-ie.css" type="text/css" />
 <![endif]-->
 <script type="text/javascript">
 $(document).ready(function() {
@@ -17,15 +17,15 @@ $(document).ready(function() {
         else
             $("#numeric_formula_box").hide(500);
     });
-    $("#id_due_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+    $("#id_due_date").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true, showOn: 'button'});
 });
 </script>
 {% endblock %}
 
 {% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url "grades.views.course" course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url "grades.views.add_numeric_activity" course_slug=course.slug %}">Add Activity</a></li>
+<li><a href="{% url "grades.views.course" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "grades.views.add_numeric_activity" course_slug=course.slug %}">Add Activity</a></li>
 {% endblock %}
 
 

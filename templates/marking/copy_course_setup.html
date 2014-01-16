@@ -19,7 +19,7 @@ $(document).ready(function(){
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>&gt; Copy Setup</li>{% endblock %}
+{% block marking_subbreadcrumbs %}<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
 
 {% block content %}
 {% if source_setup %}
@@ -48,7 +48,7 @@ $(document).ready(function(){
 <h2> Current Conflicting Setup of this course: </h2>
 <div class="form_container">	
 	<p class = "warningindicator" id="setupcopy">	
-	<img alt="warning" src="{{MEDIA_URL}}/icons/exclamation.png"/>
+	<img alt="warning" src="{{STATIC_URL}}/icons/exclamation.png"/>
 	<b>
 	It's recommended that you change the name/short name of the following activities 
 	to avoid them being overridden by the activities with the same name/short name in the above setup
@@ -63,9 +63,9 @@ $(document).ready(function(){
 		{{activity.0.name}} ({{activity.0.short_name}})&nbsp;{{form.selected}}{{form.selected.label_tag}} 
 	<p class = "rename_info">
 		{{form.name.label_tag}}&nbsp;{{form.name}}
-		{% if form.name.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{form.name.errors.0}}</span>{% endif %}
+		{% if form.name.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{form.name.errors.0}}</span>{% endif %}
 		{{form.short_name.label_tag}}&nbsp;{{form.short_name}}
-		{% if form.short_name.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{form.short_name.errors.0}}</span>{% endif %}		
+		{% if form.short_name.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{form.short_name.errors.0}}</span>{% endif %}		
 	</p>
 	</li>	
 	{% endwith %}

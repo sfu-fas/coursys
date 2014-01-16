@@ -32,9 +32,9 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li>&gt; <a href="{% url "advisornotes.views.view_artifacts" %}">Artifacts</a></li>
-<li>&gt; {{ artifact }}</li>
+<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advisornotes.views.view_artifacts" %}">Artifacts</a></li>
+<li>{{ artifact }}</li>
 {% endblock %}
 
 {% block actions %}

@@ -4,7 +4,7 @@
 {% block title %}Dishonesty Case for {{case.student.name}}{% if chair %}: Instructor's case{% endif %}{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}{% if chair %}: Instructor's case{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li>&gt; <a href="{% url "discipline.views.chair_show" course_slug=case.offering.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li>{% if chair %}<li>&gt; Instructor's case</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li><a href="{% url "discipline.views.chair_show" course_slug=case.offering.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li>{% if chair %}<li>Instructor's case</li>{% endif %}{% endblock %}
 
 {% block actions %}{% endblock %}
 

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
 {% if brushes %}
-	<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/shCore.js"></script>
+	<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
 	{% for b in brushes %}
-	<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/{{b}}"></script>
+	<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/{{b}}"></script>
 	{% endfor %}
-	<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
-	<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
+	<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
 	<script type="text/javascript">
 	SyntaxHighlighter.defaults['light'] = true;
 	SyntaxHighlighter.all()
@@ -56,9 +56,9 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
-<li>&gt; {{ topic.title }}</li>
+<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a></li>
+<li>{{ topic.title }}</li>
 {% endblock %}
 {% block actions %}
 

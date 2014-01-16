@@ -11,11 +11,11 @@
 {% endblock %}
 
 {% block grades_headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
-    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
     $("#moreconfig").collapsible();
@@ -24,15 +24,15 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 {% ifequal form_type 'add' %}
-<li>&gt; Add Calculated Letter Activity</li>
+<li>Add Calculated Letter Activity</li>
 {% endifequal %}
 {% if activity %}
-<li>&gt; <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
+<li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
 {% endif %}
 {% ifequal form_type 'edit' %}
-<li>&gt; Edit</li>
+<li>Edit</li>
 {% endifequal %}
 {% endblock %}
 
@@ -43,7 +43,7 @@ $(document).ready(function() {
 <div class="form_container">
     {% if form.non_field_errors %}
     <p class="errorindicator">
-        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
         {{ form.non_field_errors }}
     </p>
     {% endif %}
@@ -51,7 +51,7 @@ $(document).ready(function() {
                 method="post">{% csrf_token %}
         <fieldset>
             <legend>Activity Info</legend>
-            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
+            <p class="requireindicator"><img src="{{STATIC_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
             <ul>
                 {{form.name|activity_field}}
                 {{form.short_name|activity_field}}

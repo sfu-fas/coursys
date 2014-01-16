@@ -5,7 +5,7 @@ $(document).ready(function() {
   setup_templates("contact_email_text");
   setup_groupmembers("contacted");
   setup_groupmembers("contact_date");
-  $("#id_contact_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+  $("#id_contact_date").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
   contact_change();
