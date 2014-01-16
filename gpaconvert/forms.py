@@ -1,4 +1,6 @@
 from django import forms
+from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
@@ -82,6 +84,7 @@ class ContinuousGradeForm(BaseGradeForm):
     grade = forms.DecimalField(max_digits=8, decimal_places=2)
 
     def initialize(self, grade_source):
-        # TODO: Agree on min/max grade fields for GradeSource and limit the value of grade
-        #       accordingly.
-        pass
+        self.fields['grade'].validators.extend([
+            MinValueValidator(grade_source.lower_bound),
+            MaxValueValidator(grade_source.upper_bound),
+        ])
