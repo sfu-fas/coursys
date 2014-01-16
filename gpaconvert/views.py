@@ -153,9 +153,14 @@ def convert_grades(request, grade_source_slug):
     RuleFormSet = formset_factory(RuleForm, extra=10)
     RuleFormSet.form = functools.partial(RuleForm, grade_source=grade_source)
 
+    transfer_rules = []
+    transfer_grade_points = decimal.Decimal('0.00')
+    transfer_credits = decimal.Decimal('0.00')
+
     if request.POST:
         formset = RuleFormSet(request.POST)
         formset.is_valid()
+        transfer_rules, transfer_grade_points, transfer_credits = get_transfer_rules(formset)
 
         # Save the data for later
         if request.POST.get("save_grades"):
@@ -165,7 +170,6 @@ def convert_grades(request, grade_source_slug):
             arch = UserArchive.objects.create(grade_source=grade_source, slug=key, data=data)
             return HttpResponseRedirect(arch.get_absolute_url())
 
-        transfer_rules, transfer_grade_points, transfer_credits = get_transfer_rules(formset)
 
     else:
         formset = RuleFormSet()
