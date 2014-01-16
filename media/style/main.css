@@ -158,23 +158,6 @@ span.warning {
     color: #e06121;
 }
 
-/* action box */
-disabled #actions {
-}
-#actions h2 {
-  float: none;
-  padding-top: 0;
-}
-#actions li.newsec {
-  border-top: 1px solid #d28c96;
-  margin-top: 2px;
-}
-disabled #actions li a {
-  height: 1.8em;
-  line-height: 1.8em;
-  padding: 3px;
-}
-
 
 
 div#newsitems {
