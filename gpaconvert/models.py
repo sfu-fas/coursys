@@ -66,14 +66,14 @@ class GradeSource(models.Model):
         """
         Returns the DiscreteRule or ContinuousRule instance that goes with the given grade.
         """
-
         if self.scale == 'DISC':
             rule = get_object_or_None(self.discrete_rules, lookup_value=grade)
         else:
             # TODO: Make this nicer somehow.
-            rules = self.continuous_rules.filter(lookup_lbound__lte=grade)
-            if rules.count():
-                rule = rules.order_by('-lookup_lbound').first()
+            rules = (self.continuous_rules.filter(lookup_lbound__lte=grade)
+                                          .order_by('-lookup_lbound'))
+            if rules:
+                rule = rules.first()
             else:
                 rule = None
 

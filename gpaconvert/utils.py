@@ -20,7 +20,6 @@ def render_to(template_filepath):
 
         template.html will be rendered using the returned dictionary as context.
     """
-
     def wrapper(func):
         @functools.wraps(func)
         def func_wrapper(request, *args, **kwargs):
@@ -43,7 +42,6 @@ def get_object_or_None(model_thing, **kwargs):
     Example:
         obj = get_object_or_None(MyModelClass, id=3)
     """
-
     if isinstance(model_thing, models.Manager):
         try:
             return model_thing.get(**kwargs)
