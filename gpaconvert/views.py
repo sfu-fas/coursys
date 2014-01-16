@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext, loader
 from django.forms.formsets import formset_factory
+from django.contrib import messages
 
 from courselib.auth import requires_global_role
 
@@ -32,7 +33,7 @@ def grade_sources(request):
 
     return render(request, 'gpaconvert/admin_base.html', data)
 
-
+@requires_global_role('GPA')
 def new_grade_source(request):
     t = loader.get_template('gpaconvert/new_grade_source.html')
     data = {"grade_source_form": GradeSourceForm()}
@@ -43,14 +44,18 @@ def new_grade_source(request):
             instance.save()
             return HttpResponseRedirect(reverse('grade_source_index'))
         else:
+            messages.error(request, "Please correct the error below")
             form = GradeSourceForm(form.data)
+            data.update({
+                "grade_source_form": form,
+            })
             c = RequestContext(request, data)
             return HttpResponse(t.render(c))
 
     c = RequestContext(request, data)
     return HttpResponse(t.render(c))
 
-
+@requires_global_role('GPA')
 def change_grade_source(request, slug):
     t = loader.get_template('gpaconvert/change_grade_source.html')
     grade_source = get_object_or_404(GradeSource, slug__exact=slug)
