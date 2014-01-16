@@ -3,7 +3,7 @@
 
 {% block title %}Import Site{% endblock %}
 {% block h1 %}Import Site{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li><li>&gt; Import Site</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li><li><a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li><li>Import Site</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">

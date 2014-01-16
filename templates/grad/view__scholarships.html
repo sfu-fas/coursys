@@ -19,7 +19,7 @@
                     {% if s.removed %}<del>{% endif %}
                         {{ s.scholarship_type.name }}
                     {% if s.removed %}</del>{% endif %}
-                    {% if s.comments %}<img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.comments}}</p>{% endif %}
+                    {% if s.comments %}<img src="{{STATIC_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.comments}}</p>{% endif %}
 				</td>
 				<td>
                     {% if s.removed %}<del>{% endif %}

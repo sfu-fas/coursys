@@ -4,7 +4,7 @@
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Letter{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/print.css" media="print" />
 <style media="print">
 h1, div#messages {
 	display: none;
@@ -16,7 +16,7 @@ div.letter {
 </style>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; {% if is_student %}Dishonesty Cases {% else %}<a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a> {% endif %}</li><li>&gt; {% if is_student %}Case for {{case.student.name}} {% else %}<a href="{% url "discipline.views.show" course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a> {% endif %}</li><li>&gt; Letter</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>{% if is_student %}Dishonesty Cases {% else %}<a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a> {% endif %}</li><li>{% if is_student %}Case for {{case.student.name}} {% else %}<a href="{% url "discipline.views.show" course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a> {% endif %}</li><li>Letter</li>{% endblock %}
 
 {% block content %}
 <p class="noprint">The following letter was sent from the instructor regarding this case:</p>

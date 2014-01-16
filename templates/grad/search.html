@@ -3,9 +3,9 @@
 {% load form_display %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
   $(function() {
     $("#id_student_status").css("min-height", "180px").multiselect();
@@ -42,8 +42,8 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
-<li>&gt; Search</li>
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>Search</li>
 {% endblock %}
 
 {% block content %}

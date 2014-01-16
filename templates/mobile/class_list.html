@@ -4,11 +4,11 @@
 {% block title %}{{course.subject}} {{course.number}} {{course.section}} Class List{% endblock %}
 {% block h1 %}{{course.subject}} {{course.number}} {{course.section}} Class List{% endblock %}
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}jquery-ui/js/jquery-1.6.2.min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
-<link type="text/css" href="{{MEDIA_URL}}jquery-ui/css/smoothness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/core.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}jquery-ui/js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}datatables/js/jquery.dataTables.min.js"></script>
+<link type="text/css" href="{{STATIC_URL}}jquery-ui/css/smoothness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
+<script type="text/javascript" src="{{STATIC_URL}}jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/core.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function() {

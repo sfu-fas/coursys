@@ -5,10 +5,10 @@
 {% block h1 %}Edit {{ owner_sheet.title }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-<li>&gt; <a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
-<li>&gt; <a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
-<li>&gt; {{ owner_sheet.title }}</li>
+<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms.views.list_all" %}">Edit Forms</a></li>
+<li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>{{ owner_sheet.title }}</li>
 {% endblock %}
 
 {% block actions %}

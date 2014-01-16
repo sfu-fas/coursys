@@ -6,10 +6,10 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
-<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug %}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; <a href="{% url "grad.views.manage_letters" grad_slug=grad.slug%}">Letters</a></li>
-<li>&gt; {{letter.template.label}}, {{letter.date}}</li>
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad.views.view" grad_slug=grad.slug %}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad.views.manage_letters" grad_slug=grad.slug%}">Letters</a></li>
+<li>{{letter.template.label}}, {{letter.date}}</li>
 {% endblock %}
 
 {% block actions %}

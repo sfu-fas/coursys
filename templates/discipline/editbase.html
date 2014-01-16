@@ -2,9 +2,9 @@
 {% load discipline_filters %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/discipline.js"></script>
+<link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/discipline.js"></script>
 <script type="text/javascript">
 var templates = {{templatesJSON}};
 var groupmembers = {{groupmembersJSON}};
@@ -14,7 +14,7 @@ var hasRelAct = {{hasRelAct|lower}};
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li>&gt; <a href="{% url "discipline.views.show" course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li><li>&gt; Edit {% block editlabel %}{% endblock %}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li><li><a href="{% url "discipline.views.show" course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a></li><li>Edit {% block editlabel %}{% endblock %}</li>{% endblock %}
 
 {% block content %}
 {% block disc_content %}{% endblock %}

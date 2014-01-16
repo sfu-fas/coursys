@@ -1,0 +1,772 @@
+.sf-menu li ul.directory li{float:left;width:20%;}
+.sf-navbar{height:2.5em;padding-bottom:2.5em;position:relative;}
+.sf-navbar li{position:static;}
+.sf-navbar a{border-top:none;}
+.sf-navbar li ul{width:100%;}
+.sf-navbar li li{background:#fff;position:relative;}
+.sf-navbar li li ul{width:13em;}
+.sf-navbar li li li{width:100%;}
+.sf-navbar ul li{width:auto;float:left;}
+.sf-navbar a,.sf-navbar a:visited{border:none;}
+.sf-menu,.sf-menu *{margin:0;padding:0;list-style:none;}
+.sf-menu{float:right;}
+.sf-menu ul{position:absolute;top:-999em;width:10em;}
+.sf-menu ul li{width:100%;}
+.sf-menu li:hover{visibility:inherit;}
+.sf-menu li{float:left;position:relative;}
+.sf-menu a{display:block;position:relative;}
+.sf-menu li:hover ul,.sf-menu li.sfHover ul{left:0;top:2.5em;z-index:99;}
+ul.sf-menu li:hover li ul,ul.sf-menu li.sfHover li ul{top:-999em;}
+ul.sf-menu li li:hover ul,ul.sf-menu li li.sfHover ul{left:10em;top:0;}
+ul.sf-menu li li:hover li ul,ul.sf-menu li li.sfHover li ul{top:-999em;}
+ul.sf-menu li li li:hover ul,ul.sf-menu li li li.sfHover ul{left:10em;top:0;}
+.sf-menu a{padding:.75em 1em .75em 0;text-decoration:none;}
+.sf-menu li li{width:100%;width:180px;padding-left:1em;background:#fff;}
+.sf-menu li li li{background:transparent;}
+.sf-menu li li:hover,.sf-menu li li.sfHover,.sf-menu li li a:focus,.sf-menu li li a:hover,.sf-menu li li a:active{background:#ddd;outline:0;}
+.sf-menu li ul.directory{width:13em;}
+.sf-menu li ul.directory li{float:left;width:20%;margin-right:0;}
+/*!fancyBox v2.0.6 fancyapps.com | fancyapps.com/fancybox/#license */ .fancybox-tmp iframe,.fancybox-tmp object{vertical-align:top;padding:0;margin:0;}
+.fancybox-wrap{position:absolute;top:0;left:0;z-index:8020;}
+.fancybox-skin{position:relative;padding:0;margin:0;background:#f9f9f9;color:#444;text-shadow:none;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;}
+.fancybox-opened{z-index:8030;}
+.fancybox-opened .fancybox-skin{-webkit-box-shadow:0 10px 25px rgba(0,0,0,0.5);-moz-box-shadow:0 10px 25px rgba(0,0,0,0.5);box-shadow:0 10px 25px rgba(0,0,0,0.5);}
+.fancybox-outer,.fancybox-inner{padding:0;margin:0;position:relative;outline:none;}
+.fancybox-inner{overflow:hidden;}
+.fancybox-type-iframe .fancybox-inner{-webkit-overflow-scrolling:touch;}
+.fancybox-error{color:#444;font:14px/20px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;padding:10px;}
+.fancybox-image,.fancybox-iframe{display:block;width:100%;height:100%;border:0;padding:0;margin:0;vertical-align:top;}
+.fancybox-image{max-width:100%;max-height:100%;}
+#fancybox-loading,.fancybox-close,.fancybox-prev span,.fancybox-next span{background-image:url('../../../sfu/clientlibs/fancybox/source/fancybox_sprite.png');}
+#fancybox-loading{position:fixed;top:50%;left:50%;margin-top:-22px;margin-left:-22px;background-position:0 -108px;opacity:.8;cursor:pointer;z-index:8020;}
+#fancybox-loading div{width:44px;height:44px;background:url('../../../sfu/clientlibs/fancybox/source/fancybox_loading.gif') center center no-repeat;}
+.fancybox-close{position:absolute;top:-18px;right:-18px;width:36px;height:36px;cursor:pointer;z-index:8040;}
+.fancybox-nav{position:absolute;top:0;width:40%;height:100%;cursor:pointer;background:transparent url('../../../sfu/clientlibs/fancybox/source/blank.gif');-webkit-tap-highlight-color:rgba(0,0,0,0);z-index:8040;}
+.fancybox-prev{left:0;}
+.fancybox-next{right:0;}
+.fancybox-nav span{position:absolute;top:50%;width:36px;height:34px;margin-top:-18px;cursor:pointer;z-index:8040;visibility:hidden;}
+.fancybox-prev span{left:20px;background-position:0 -36px;}
+.fancybox-next span{right:20px;background-position:0 -72px;}
+.fancybox-nav:hover span{visibility:visible;}
+.fancybox-tmp{position:absolute;top:-9999px;left:-9999px;padding:0;overflow:visible;visibility:hidden;}
+#fancybox-overlay{position:absolute;top:0;left:0;overflow:hidden;display:none;z-index:8010;background:#000;}
+#fancybox-overlay.overlay-fixed{position:fixed;bottom:0;right:0;}
+.fancybox-title{visibility:hidden;font:normal 13px/20px "Helvetica Neue",Helvetica,Arial,sans-serif;position:relative;text-shadow:none;z-index:8050;}
+.fancybox-opened .fancybox-title{visibility:visible;}
+.fancybox-title-float-wrap{position:absolute;bottom:0;right:50%;margin-bottom:-35px;z-index:8030;text-align:center;}
+.fancybox-title-float-wrap .child{display:inline-block;margin-right:-100%;padding:2px 20px;background:transparent;background:rgba(0,0,0,0.8);-webkit-border-radius:15px;-moz-border-radius:15px;border-radius:15px;text-shadow:0 1px 2px #222;color:#FFF;font-weight:bold;line-height:24px;white-space:nowrap;}
+.fancybox-title-outside-wrap{position:relative;margin-top:10px;color:#fff;}
+.fancybox-title-inside-wrap{margin-top:10px;}
+.fancybox-title-over-wrap{position:absolute;bottom:0;left:0;color:#fff;padding:10px;background:#000;background:rgba(0,0,0,.8);}
+#fancybox-buttons{position:fixed;top:10px;left:0;width:100%;z-index:1005;}
+#fancybox-buttons ul{display:block;width:170px;height:30px;margin:0 auto;padding:0;list-style:none;background:#111;-webkit-box-shadow:0 1px 3px #000,0 0 0 1px rgba(0,0,0,.7),inset 0 0 0 1px rgba(255,255,255,.05);-moz-box-shadow:0 1px 3px #000,0 0 0 1px rgba(0,0,0,.7),inset 0 0 0 1px rgba(255,255,255,.05);background:#111 -webkit-gradient(linear,0% 0,0% 100%,from(rgba(255,255,255,.2)),color-stop(.5,rgba(255,255,255,.15)),color-stop(.5,rgba(255,255,255,.1)),to(rgba(255,255,255,.15)));background:#111 -moz-linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,.15) 50%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.15) 100%);border-radius:3px;}
+#fancybox-buttons ul li{float:left;}
+#fancybox-buttons a{display:block;width:30px;line-height:30px;text-indent:-9999px;background-image:url('../../../sfu/clientlibs/fancybox/source/helpers/fancybox_buttons.png');background-repeat:no-repeat;}
+#fancybox-buttons a.btnPrev{width:32px;background-position:6px 0;}
+#fancybox-buttons a.btnNext{background-position:-33px 0;border-right:1px solid #3e3e3e;}
+#fancybox-buttons a.btnPlay{background-position:0 -30px;}
+#fancybox-buttons a.btnPlayOn{background-position:-30px -30px;}
+#fancybox-buttons a.btnToggle{background-position:3px -60px;border-left:1px solid #111;border-right:1px solid #3e3e3e;width:35px;}
+#fancybox-buttons a.btnToggleOn{background-position:-27px -60px;}
+#fancybox-buttons a.btnClose{border-left:1px solid #111;width:38px;background-position:-57px 0;}
+#fancybox-buttons a.btnDisabled{opacity:.5;cursor:default;}
+#fancybox-thumbs{position:fixed;bottom:2px;left:0;width:100%;overflow:hidden;z-index:1005;}
+#fancybox-thumbs ul{position:relative;list-style:none;margin:0;padding:0;}
+#fancybox-thumbs ul li{float:left;padding:1px;opacity:.5;}
+#fancybox-thumbs ul li.active{opacity:.75;padding:0;border:1px solid #fff;}
+#fancybox-thumbs ul li:hover{opacity:1;}
+#fancybox-thumbs ul li a{display:block;position:relative;overflow:hidden;border:1px solid #222;background:#111;}
+#fancybox-thumbs ul li img{display:block;position:relative;border:0;padding:0;}
+button.date-datepicker-button:after{display:inline-block;content:"";width:0;height:0;border-style:solid;border-width:.4em .4em 0 .4em;border-color:black transparent transparent transparent;margin:0 0 .2em .7em;vertical-align:middle;}
+.csstransitions div.date-calendar-dialog.date-closed{-moz-transition:opacity .4s linear;-webkit-transition:opacity .4s linear;-o-transition:opacity .4s linear;-ms-transition:opacity .4s linear;transition:opacity .4s linear;opacity:0;}
+.csstransitions div.date-calendar-dialog.date-open{-moz-transition:opacity .4s linear;-webkit-transition:opacity .4s linear;-o-transition:opacity .4s linear;-ms-transition:opacity .4s linear;transition:opacity .4s linear;opacity:1;}
+button.datetime-local-datepicker-button:after{display:inline-block;content:"";width:0;height:0;border-style:solid;border-width:.4em .4em 0 .4em;border-color:black transparent transparent transparent;margin:0 0 .2em .7em;vertical-align:middle;}
+.csstransitions div.datetime-local-calendar-dialog.datetime-local-closed{-moz-transition:opacity .4s linear;-webkit-transition:opacity .4s linear;-o-transition:opacity .4s linear;-ms-transition:opacity .4s linear;transition:opacity .4s linear;opacity:0;}
+.csstransitions div.datetime-local-calendar-dialog.datetime-local-open{-moz-transition:opacity .4s linear;-webkit-transition:opacity .4s linear;-o-transition:opacity .4s linear;-ms-transition:opacity .4s linear;transition:opacity .4s linear;opacity:1;}
+div.datetime-local-spin-btn-container{display:inline-block;position:relative;vertical-align:bottom;margin:0;padding:0;}
+div.datetime-local-spin-btn{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;border:2px outset #CCC;background-color:#CCC;width:1.2em;}
+div.datetime-local-spin-btn-up{-moz-border-radius:3px 3px 0 0;-webkit-border-radius:3px 3px 0 0;border-radius:3px 3px 0 0;border-bottom-width:1px;}
+div.datetime-local-spin-btn-down{-moz-border-radius:0 0 3px 3px;-webkit-border-radius:0 0 3px 3px;border-radius:0 0 3px 3px;border-top-width:1px;}
+div.datetime-local-spin-btn-up:before,div.datetime-local-spin-btn-down:before{content:"";width:0;height:0;border-style:solid;position:absolute;left:50%;margin:-0.15em 0 0 -0.3em;padding:0;}
+div.datetime-local-spin-btn-up:before{border-width:0 .3em .3em .3em;border-color:transparent transparent black transparent;top:25%;}
+div.datetime-local-spin-btn-down:before{border-width:.3em .3em 0 .3em;border-color:black transparent transparent transparent;top:75%;}
+div.datetime-local-spin-btn:hover{cursor:pointer;}
+div.datetime-local-spin-btn:active{border:2px inset #999;background-color:#999;}
+div.datetime-local-spin-btn-up:active:before{border-color:transparent transparent white transparent;top:26%;left:51%;}
+div.datetime-local-spin-btn-down:active:before{border-color:white transparent transparent transparent;top:76%;left:51%;}
+div.datetime-local-calendar-dialog{z-index:100;}
+.flex-container a:active,.flexslider a:active,.flex-container a:focus,.flexslider a:focus{outline:none;}
+.slides,.flex-control-nav,.flex-direction-nav{margin:0;padding:0;list-style:none;}
+.flexslider{margin:0;padding:0;}
+.flexslider .slides>li{display:none;-webkit-backface-visibility:hidden;}
+.flexslider .slides img{width:100%;display:block;}
+.flex-pauseplay span{text-transform:capitalize;}
+.slides:after{content:".";display:block;clear:both;visibility:hidden;line-height:0;height:0;}
+html[xmlns] .slides{display:block;}
+* html .slides{height:1%;}
+.no-js .slides>li:first-child{display:block;}
+.flexslider{margin:0;position:relative;zoom:1;}
+.flex-viewport{max-height:2000px;-webkit-transition:all 1s ease;-moz-transition:all 1s ease;transition:all 1s ease;}
+.loading .flex-viewport{max-height:300px;}
+.flexslider .slides{zoom:1;}
+.flex-direction-nav{*height:0;}
+.flex-direction-nav a{width:30px;height:30px;margin:-20px 0 0;display:block;background:url(../../../sfu/clientlibs/carousel/source/images/bg_direction_nav.png) no-repeat 0 0;position:absolute;top:50%;z-index:10;cursor:pointer;text-indent:-9999px;opacity:0;-webkit-transition:all .3s ease;}
+.flex-direction-nav .flex-next{background-position:100% 0;right:-36px;}
+.flex-direction-nav .flex-prev{left:-36px;}
+.flexslider:hover .flex-next{opacity:.8;right:5px;}
+.flexslider:hover .flex-prev{opacity:.8;left:5px;}
+.flexslider:hover .flex-next:hover,.flexslider:hover .flex-prev:hover{opacity:1;}
+.flex-direction-nav .flex-disabled{opacity:.3!important;filter:alpha(opacity=30);cursor:default;}
+.flex-control-nav{width:100%;position:absolute;bottom:-25px;text-align:center;}
+.flex-control-nav li{margin:0 6px;display:inline-block;zoom:1;*display:inline;}
+.flex-control-paging li a{width:11px;height:11px;display:block;background:#666;background:rgba(0,0,0,0.5);cursor:pointer;text-indent:-9999px;-webkit-border-radius:20px;-moz-border-radius:20px;-o-border-radius:20px;border-radius:20px;box-shadow:inset 0 0 3px rgba(0,0,0,0.3);}
+.flex-control-paging li a:hover{background:#333;background:rgba(0,0,0,0.7);}
+.flex-control-paging li a.flex-active{background:#000;background:rgba(0,0,0,0.9);cursor:default;}
+.flex-control-thumbs{margin:15px 0 0;position:static;overflow:hidden;}
+.flex-control-thumbs li{width:25%;float:left;margin:0;}
+.flex-control-thumbs img{width:100%;display:block;opacity:.7;cursor:pointer;}
+.flex-control-thumbs img:hover{opacity:1;}
+.flex-control-thumbs .flex-active{opacity:1;cursor:default;}
+@media screen and(max-width:860px){.flex-direction-nav .flex-prev{opacity:1;left:0;}
+.flex-direction-nav .flex-next{opacity:1;right:0;}
+}
+html{overflow:-moz-scrollbars-vertical;overflow-y:scroll;}
+*{box-sizing:border-box;-moz-box-sizing:border-box;}
+ul{margin:0;padding:0;list-style-type:none;}
+a{color:#a6192e;text-decoration:none;}
+a img{border:none;}
+#page-content p a:hover,#page-content h1 a:hover,#page-content h2 a:hover,#page-content h3 a:hover,#page-content h4 a:hover,#page-content h5 a:hover,#page-content li a:hover,#page-content table a:hover,.breadcrumb a:hover{opacity:.8;}
+fieldset{border:none;}
+body{font:normal 100% Cambria,Georgia,"Times New Roman",Times,serif;line-height:1.5em;margin:0;background:#a6192e url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/textured-red-01-small.png) top left repeat;}
+@text Colour;.brand-font-italic{font-family:"DINWebItalic";}
+@font-face{font-family:'DINWebLight';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.woff') format('woff');}
+@font-face{font-family:'DINWeb';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.woff') format('woff');}
+@font-face{font-family:'DINWebBold';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.woff') format('woff');}
+@font-face{font-family:'DINWebMedium';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Medium.woff') format('woff');}
+@font-face{font-family:'DINWebBlack';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.woff') format('woff');}
+@font-face{font-family:'DINWebLightItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.woff') format('woff');font-weight:normal;font-style:italic;}
+@font-face{font-family:'DINWebItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.woff') format('woff');font-weight:normal;font-style:italic;}
+@font-face{font-family:'DINWebMediumItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.woff') format('woff');font-weight:normal;font-style:italic;}
+@font-face{font-family:'DINWebBoldItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.woff') format('woff');font-weight:bold;font-style:italic;}
+@font-face{font-family:'DINWebBlackItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.woff') format('woff');font-weight:bold;font-style:italic;}
+@font-face{font-family:'fontawesome';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.woff') format('woff'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.ttf') format('truetype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.svg#fontawesome') format('svg');font-weight:normal;font-style:normal;}
+.icon{font-size:1em;line-height:1em;font-family:"fontawesome",sans-serif;font-weight:normal;font-size:1em;line-height:1em;font-family:"fontawesome",sans-serif;font-weight:normal;}
+.icon-plus-sign:before{content:"+";}
+.icon-minus-sign:before{content:"-";}
+h1{font-size:2em;line-height:1.1em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:2em;line-height:1.1em;font-family:"DINWebBold",sans-serif;font-weight:normal;margin-top:.9em;}
+.title h1{margin-top:12px;}
+h1 b,h1 strong{font-family:'DINWebBlack';}
+h1 i,h1 em{font-family:'DINWebBoldItalic';}
+h1 span{display:block;font-size:.5em;line-height:1.6em;font-family:"DINWebLight",sans-serif;font-weight:normal;font-size:.5em;line-height:1.6em;font-family:"DINWebLight",sans-serif;font-weight:normal;text-transform:uppercase;letter-spacing:0;}
+h2{font-size:1.75em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1.75em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;line-height:1.2;color:#777;margin-top:1em;margin-bottom:0;}
+h2 i,h2 em{font-family:'DINWebBoldItalic';}
+.section-heading h2{background-color:#3d3935;color:#fff;padding:.3em .2em .2em .4em;margin-bottom:.5em;}
+.colctrl h2{margin-top:.6em;margin-bottom:.5em;}
+h2 span{color:#3d3935;font-size:.5em;line-height:1.1em;text-transform:uppercase;font-family:"DINWebBold",sans-serif;}
+h3{font-size:1.1931818181818181em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1.1931818181818181em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;margin-bottom:1em;margin-top:1.6em;}
+.parsys_column .section:first-child h2:first-child{margin-top:-0.2em;}
+.parsys_column .section:first-child h3:first-child{margin-top:.2em;}
+.parsys_column .section:first-child p:first-child{margin-top:0;}
+h3 i,h3 em{font-family:'DINWebBoldItalic';}
+h4{font-size:.8em;line-height:1.125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:.8em;line-height:1.125em;font-family:"DINWebBold",sans-serif;font-weight:normal;color:#888;text-transform:uppercase;font-weight:normal;padding-top:1em;padding-bottom:.6em;letter-spacing:.1em;}
+h4+p{margin-top:-0.75em;}
+h5{font-size:.7em;line-height:1.125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:.7em;line-height:1.125em;font-family:"DINWebBold",sans-serif;font-weight:normal;color:#ccc;font-weight:normal;text-transform:uppercase;padding-top:1em;padding-bottom:.6em;letter-spacing:.1em;}
+h5+p{margin-top:-0.75em;}
+.ruled{border-top:10px solid #eee;padding-top:1em;}
+.ruled-below{border-bottom:10px solid #eee;padding-bottom:.5em;margin-bottom:1em;}
+.dotted-rule{border-top:1px dotted #ddd;padding-top:1em;}
+.dotted-rule-below{border-bottom:1px dotted #ddd;padding-bottom:.5em;}
+#container{width:90%;padding:0;margin:0 auto;max-width:1520px;}
+#page{background:#fff;box-shadow:0 0 15px rgba(50,50,50,0.75);}
+.toggle-search,.toggle-search-control{display:none;}
+header{position:relative;width:100%;background-color:#eee;background:-webkit-gradient(linear,left center,right center,from(#fff),to(#ddd));background:-moz-linear-gradient(left,#fff 0,#ddd 100%);float:left;padding-bottom:14px;padding-top:16px;border-top:5px solid #003087;}
+header fieldset{border:none;padding:0;width:100%;}
+.heading{float:left;width:77.7777%;padding-top:93px;position:relative;}
+.brand-title{position:absolute;top:0;left:0;}
+.branding{width:300px;height:46px;background:transparent url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo.png) top left no-repeat;background-size:contain;}
+.brand-title>a{width:300px;display:block;}
+.branding h1{display:none;}
+.site-title{color:#3d3935;clear:left;margin-left:102px;}
+.site-title h2{font-family:"DINWebMedium";font-size:1.4em;margin:0;padding:0;margin-top:12px;}
+.site-title h3{font-size:.65em;line-height:1em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.65em;line-height:1em;font-family:"DINWeb",sans-serif;font-weight:normal;text-transform:uppercase;letter-spacing:.1em;margin-bottom:0;padding-bottom:0;margin-top:10px;}
+.site-title h3+h2{margin-top:0;}
+.site-title a{color:#3d3935;}
+.actionable-header{font-size:.7428571428571429em;float:right;width:22.222222222%;padding-left:1.4619883%;position:absolute;bottom:0;right:0;padding-bottom:22px;}
+.actionable-header label,.actionable-header a{font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;}
+.actionable-header input{font-size:.925em;font-family:"Lucida Grande",sans-serif;}
+.search-scope-set,.search-scope-set label{margin-top:0;}
+.sf-menu{font-size:.8571428571428571em;padding-right:2%;position:absolute;top:30px;left:-160px;z-index:1;}
+.sf-menu li{text-transform:uppercase;letter-spacing:.1em;float:left;width:auto;padding-left:1em;}
+.sf-menu li:first-child{border-left:none;}
+.sf-menu a{color:#3d3935;}
+.sf-menu ul{background-color:#fff;}
+.mobile-global-links-container{display:none;}
+.expanded a{font-family:"DINWebMedium",sans-serif;}
+.header-divider{clear:left;height:25px;width:100%;background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-small.png) -70px 0 no-repeat;}
+.search{position:relative;z-index:999;}
+.search form{background:none;border:none;margin:0;padding:0;}
+.search .search-field{margin-top:0;}
+.search .search-field input{width:85%;padding:6px;box-shadow:inset 2px 2px 5px #ccc;border:1px solid #b8b8b8;}
+.search fieldset{line-height:1.5em;margin-bottom:4px;}
+.search-scope-set label{display:inline;}
+.search-scope-set label input{display:inline;float:none;margin:.4em .5em 0 .2em;}
+.first-col{float:left;width:22.222222222%;}
+.nav-control{display:none;}
+.default-nav{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;text-transform:uppercase;border-bottom:14px solid #777;margin-bottom:20px;padding-bottom:70px;border-top:15px solid #777;background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-textured.png) 0 0 repeat;}
+.default-nav .top.active>ul{display:block;}
+.default-nav a{display:block;padding:8px 5px 8px 12px;}
+.default-nav ul>li>a{color:#fff;}
+.default-nav li{background:#161513;border-bottom:1px solid #555;}
+.default-nav li:first-child{border-top:1px solid #aaa;}
+.main-nav li.nav-item-expanded>a,.default-nav li.nav-item-expanded>a{color:#e0d10a;}
+.default-nav nav ul ul{display:block;}
+.default-nav>ul>li>ul>li a{background-color:#ddd;color:#000;text-transform:none;padding-left:21px;}
+.default-nav>ul>li>ul>li a:hover{color:#000;background-color:#eee;}
+.default-nav>ul>li>ul>li{border:none;}
+.default-nav>ul>li.active{background-color:#333;}
+.default-nav>ul>li.active>a{color:#e0d10a;}
+.default-nav li.active li{border:none;}
+.default-nav ul .top.active .active ul{display:block;}
+.default-nav>ul>li>ul>li>ul{padding-left:12px;padding-top:4px;background-color:#fafafa;}
+.default-nav>ul>li>ul>li.active>a{color:#3d3935;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;background-color:#ccc;}
+.default-nav>ul>li>ul>li.active li a{font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;background-color:#fafafa;padding-left:8px;}
+.default-nav>ul>li>ul>li.active>ul>li.active>a{color:#a6192e;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;}
+.default-nav>ul>li>ul>li.active>ul>li.active>ul>li a{padding-left:16px;}
+.default-nav>ul>li>ul>li.active>ul>li.active>ul>li.active a{color:#3d3935;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;}
+.default-nav>ul>li>ul>li.active li:hover{background-color:transparent;}
+.default-nav .top.active>ul>li:first-child{display:none;}
+.default-nav li.rule{border-top:1px solid #fff;}
+.below-nav{padding-left:12px;}
+.main-nav .sub-menu{display:none;padding-left:16.6666667%;}
+#page-content{width:100%;float:left;padding:0;background-color:#fff;box-shadow:0 0 15px rgba(50,50,50,0.75);}
+.breadcrumb{font-size:.875em;line-height:1.3125em;font-weight:normal;font-family:Cambria,Georgia,"Times New Roman",Times,serif;font-size:.875em;line-height:1.3125em;font-weight:normal;font-family:Cambria,Georgia,"Times New Roman",Times,serif;padding-top:20px;float:left;padding-left:2.1929825%;padding-right:3.6549708%;width:77.77778%;}
+.main{padding-left:2.1929825%;padding-right:3.6549708%;padding-top:25px;float:left;width:77.77778%;padding-bottom:20px;}
+.three-column .main{width:55.55556%;padding-right:2.1929825%;}
+.no-navigation .main{width:100%;}
+.three-column.no-navigation .main{width:77.77778%;}
+.mobile-sub-menu{display:none;}
+.sub{padding-top:25px;width:22.222222%;float:left;padding-right:2.1929825%;padding-bottom:20px;}
+#page-content .mobile,#page-content .tablet,#page-content img.mobile+br,#page-content img.tablet+br{display:none;}
+.deptNews{border:1px solid #ddd;padding:1.5em;margin-bottom:6%;box-shadow:inset 0 0 10px 1px #ddd;}
+.intro p{font-size:1.1em;line-height:1.6em;margin-top:0;}
+.toggle{display:inline-block;background:url("/content/dam/sfu/images/icons/content-toggle-icon.png") 0 4px no-repeat;padding-left:20px;cursor:pointer;margin-top:1%;}
+.toggle p,.toggle h1,.toggle h2,.toggle h3,.toggle h4,.toggle h5{padding-bottom:0;padding-top:0;margin-top:0;margin-bottom:.5em;}
+.toggleContent{padding-left:2%;border-left:5px solid #ddd;}
+.toggleContent p:first-child{margin-top:1%;}
+table th{text-align:left;vertical-align:bottom;border-bottom:1px solid #999;}
+table td,table th{padding:.25em .5em;}
+.alternate table{border-bottom:1px solid #ddd;}
+.alternate table tr:nth-child(odd){background-color:#eee;}
+.category+.title h1{margin-top:0;margin-bottom:1%;padding-top:0;}
+.marginTop{margin-top:2em;}
+.marginBottom{margin-bottom:2em;}
+.xl-width{max-width:908px;}
+.l-width{max-width:726px;}
+.m-width{max-width:545px;}
+.s-width{max-width:363px;}
+.xs-width{max-width:181px;}
+footer{color:#aaa;padding-left:10.4%;padding-top:18px;padding-bottom:18px;clear:left;float:left;font-size:.75em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.75em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;background-color:#3d3935;width:100%;}
+footer section:last-child{margin-left:2%;}
+footer a,footer a:hover{color:#fff;}
+footer li.header a{color:#e0d10a;}
+footer ul{margin-top:8px;float:left;padding-right:6%;}
+footer ul:last-child{font-size:.9em;line-height:.9em;}
+footer li{margin:0;padding:0;}
+footer li>a{display:inline-block;margin:0 0 4px 0;}
+footer li.header a{margin-bottom:0;}
+footer li.header{font-size:.8181818181818181em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8181818181818181em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;color:#e0d10a;text-transform:uppercase;padding-bottom:8px;}
+footer li.header ul li{background-image:none;}
+footer address{font-style:normal;}
+.connect-with-us .text p,.contact-us .text p{margin-top:0;}
+.connect-with-us .text ul{list-style-type:none;margin-top:0;}
+.connect-with-us .text ul li{padding-left:0;background:none;}
+.cq-image-placeholder{display:none;}
+@media(max-width:980px){header{transition:margin-top .5s;-moz-transition:margin-top .5s;-webkit-transition:margin-top .5s;-o-transition:margin-top .5s;margin-top:0;}
+.heading{width:100%;}
+.reveal-search{transition:margin-top .5s;-moz-transition:margin-top .5s;-webkit-transition:margin-top .5s;-o-transition:margin-top .5s;margin-top:70px;}
+.toggle-search-control{position:absolute;top:0;right:0;z-index:1;display:block;background:#003087 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/search-icon@2x.png) 4px 5px no-repeat;background-size:21px 25px;text-indent:-999em;width:21px;border:none;cursor:pointer;margin-top:0;margin-right:6%;padding:10px 16px;}
+.actionable-header{float:none;height:70px;position:absolute;top:-75px;left:0;background-color:#485881;color:#fff;width:100%;padding:8px 2% 12px 2%;}
+.actionable-header .search{float:left;width:48%;margin-right:2%;}
+.search .search-field input{width:100%;border-radius:5px;box-shadow:none;}
+.search label{margin-bottom:0;padding-bottom:0;color:#fff;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
+.branding{width:300px;margin-top:16px;}
+header{position:relative;padding-top:0;padding-bottom:20px;}
+.header-image{display:none;}
+.global-links .sf-menu{display:none;}
+.global-links{position:static;margin-top:8px;float:left;width:50%;}
+.mobile-global-links-container{color:#fff;display:block;margin-top:-7px;}
+.mobile-global-links a{color:#fff;padding:.85em 1em .5em 1em;display:block;font-size:.9em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;font-size:.9em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;text-transform:uppercase;letter-spacing:.1em;}
+.mobile-global-links li.header{float:left;margin-left:2%;text-shadow:0 1px 1px rgba(0,0,0,0.3);background-color:#003087;border-radius:.5em;box-shadow:0 1px 2px rgba(0,0,0,0.2);}
+.mobile-global-links li.header ul{background-color:#4A6AA4;opacity:0;height:0;overflow:hidden;-webkit-transition:all .1s linear;-moz-transition:all .1s linear;-ms-transition:all .1s linear;-0-transition:all .1s linear;transition:all .1s linear;}
+.mobile-global-links li.header ul.revealed{padding-top:8px;opacity:1;height:100%;}
+.mobile-global-links li.header ul:target{opacity:1;height:75px;-webkit-transition:all 1s linear;-ms-transition:all 1s linear;-moz-transition:all 1s linear;-0-transition:all 1s linear;transition:all 1s linear;}
+.main,.three-column .main{width:77.77777778%;padding-top:1.4619883%;}
+.sub,.three-column .sub{margin-left:22.2222222%;width:77.77777778%;padding-left:2.192825%;clear:left;}
+.no-navigation .main{width:100%;}
+.three-column.no-navigation .main{width:100%;}
+.three-column.no-navigation .sub{width:100%;margin-left:0;}
+footer{padding:2.1929825%;}
+footer ul{margin-bottom:20px;}
+#page-content .tablet,#page-content img.tablet+br{display:block;}
+#page-content .tablet.toggle{display:inline-block;}
+}
+@media(max-width:768px){#container{width:100%;}
+header{padding-bottom:20px;}
+.site-title h2{font-size:1.2em;line-height:1em;}
+.header-divider{height:33px;overflow:hidden;}
+fieldset.search-field{float:none;}
+.first-col{width:100%;position:relative;}
+.main-nav,.default-nav{float:none;width:100%;min-height:0;margin-bottom:0;border-top:1px solid #ddd;border-bottom:none;padding-top:0;padding-bottom:0;}
+.main-nav{position:relative;}
+.nav-control{display:block;width:100%;position:absolute;top:-35px;overflow:hidden;height:35px;}
+.main-nav,.default-nav{border-top:0;}
+.main-nav a,.default-nav a{padding-top:10px;}
+.default-nav{box-shadow:none;}
+.default-nav li:first-child{border-top:none;}
+.default-nav .top.active>ul li:first-child{display:block;}
+.nav-revealed{background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px 9px no-repeat;background-size:21px 72px;}
+.nav-revealed:hover{background:#555 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px 9px no-repeat;background-size:21px 72px;}
+.main-nav button,.default-nav button{background:#fff url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px -46px no-repeat;background-size:21px 72px;text-indent:-999em;width:21px;border:none;cursor:pointer;margin-right:6%;padding:9px 16px 11px 16px;float:right;}
+.main-nav button:hover,.default-nav button:hover{background-color:#3d3935;background-position:5px -18px;}
+.main-nav a{display:block;color:#fff;padding:10px 0 5px 12px;}
+.main-nav ul,.default-nav ul{display:none;}
+.main-nav ul ul,.default-nav ul ul{display:none;}
+.main-nav>ul>li>ul,.default-nav>ul>li>ul{display:none;}
+.default-nav>ul>li{background-color:#3d3935;}
+.main-nav>ul>li>ul>li.active>a{color:#3d3935;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;background-color:#ccc;}
+nav>ul>li.nav-item-expandable{cursor:pointer;background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/nav-plus-minus@2x.png) 94% -16px no-repeat;background-size:23px 39px;}
+nav>ul>li.nav-item-expanded{background-position:94% 10px;}
+.default-nav li:last-child{border-bottom:none;}
+.default-nav li.rule{border-top:none;}
+.breadcrumb{width:100%;float:none;}
+.main,.three-column .main{clear:left;width:100%;padding-bottom:16px;padding-right:2.1929825%;}
+.mobile-sub-menu{display:block;margin-top:8px;padding-left:2.1929825%;}
+.mobile-global-links li.header ul{width:inherit;}
+.below-nav{padding:2.1929825%;}
+#page-content .desktop,#page-content img.desktop+br{display:none;}
+#page-content .mobile,#page-content img.mobile+br{display:block;}
+#page-content .mobile.toggle{display:inline-block;}
+.sub,.three-column .sub{width:100%;margin-left:0;padding-left:2.1929825%;}
+footer{font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
+footer ul{width:25%;}
+footer ul:last-child{width:100%;}
+}
+@media(max-width:480px){.branding{background-size:cover;width:100px;}
+.brand-title>a{width:95px;}
+.site-title{margin-left:10px;}
+.actionable-header .search{width:40%;}
+fieldset.search-scope-set{font-size:.9em;width:120%;}
+.mobile-global-links li.header ul{font-size:.9em;}
+.mobile-global-links li.header span{display:none;}
+footer ul{width:50%;}
+footer ul:nth-child(3),footer ul:last-child{clear:left;}
+table td,table th{padding:.125em .25em;}
+}
+@media(-webkit-min-device-pixel-ratio:1.25),(min-device-pixel-ratio:1.25),(min-resolution:96dpi){.branding{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo@2x.png);}
+}
+.ext-ie6 .toggle-search-control,.ext-ie7 .toggle-search-control,.ext-ie8 .toggle-search-control{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/search-icon.png);}
+.ext-ie6 .nav-revealed,.ext-ie7 .nav-revealed,.ext-ie8 .nav-revealed{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
+.ext-ie6 .nav-revealed:hover,.ext-ie7 .nav-revealed:hover,.ext-ie8 .nav-revealed:hover{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
+.ext-ie6 .main-nav button,.ext-ie7 .main-nav button,.ext-ie8 .main-nav button,.ext-ie6 .default-nav button,.ext-ie7 .default-nav button,.ext-ie8 .default-nav button{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
+.ext-ie6 .main-nav>ul>li.nav-item-expandable,.ext-ie7 .main-nav>ul>li.nav-item-expandable,.ext-ie8 .main-nav>ul>li.nav-item-expandable,.ext-ie6 .default-nav>ul>li.nav-item-expandable,.ext-ie7 .default-nav>ul>li.nav-item-expandable,.ext-ie8 .default-nav>ul>li.nav-item-expandable{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/nav-plus-minus.png);}
+@media print{body{font-size:13px;}
+.header-divider,nav,.search,.branding,.global-links,.toggle-search-control,footer,.breadcrumb,.actionable-header,.documenttools,#comments-form,.below-nav{display:none!important;}
+header{border-top:none;}
+.brand-title,.site-title,.main,.heading,.sub_content,.sub,.main-wide{float:none!important;width:100%!important;height:auto!important;padding:0!important;margin-left:0!important;margin-right:0!important;position:static;}
+.cq-colctrl-lt8>div,.cq-colctrl-lt2>div{float:left!important;width:50%!important;}
+.cq-colctrl-lt8-c2{clear:both;}
+.page-content{clear:both;margin-top:50px;}
+.site-title:before{display:block;margin-left:-33.33%!important;content:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo@2x.png);-webkit-transform:scale(0.5)!important;-ms-transform:scale(0.5)!important;transform:scale(0.5)!important;margin-top:-20px!important;}
+.site-title h2{width:100%;margin-top:-20px;font-size:1em;}
+.main a{text-decoration:none;}
+.main a[href^=http]:after{content:"\00a0(" attr(href) ") ";font-style:italic;}
+iframe{display:none;}
+@page{margin:2cm .5cm!important;}
+h1,h2,h3,h4{page-break-after:avoid;}
+*{background:transparent!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;-ms-filter:none!important;}
+.highlights .cq-colctrl-lt2-c0,.highlights .cq-colctrl-lt2-c1{margin-right:0!important;padding-right:10px!important;}
+}
+.brand-font-italic{font-family:"DINWebItalic";}
+div.par{clear:both;}
+div.parsys_column{height:100%;width:100%;float:left;border:0;vertical-align:top;padding:0;margin:.5em 0 .5em 0;}
+.clear{clear:left;}
+div.cq-colctrl-cols{width:100%;}
+div.cq-colctrl-default{width:100%;}
+div.cq-colctrl-lt0-c0{width:50%;padding-right:3%;}
+div.cq-colctrl-lt0-c1{width:50%;padding-right:3%;}
+div.cq-colctrl-lt1-c0{width:33%;padding-right:3%;}
+div.cq-colctrl-lt1-c1{width:66%;padding-right:3%;}
+div.cq-colctrl-lt2-c0{width:33%;padding-right:3%;}
+div.cq-colctrl-lt2-c1{width:33%;padding-right:3%;}
+div.cq-colctrl-lt2-c2{width:33%;padding-right:3%;}
+div.cq-colctrl-lt3-c0{width:50%;padding-right:3%;}
+div.cq-colctrl-lt3-c1{width:25%;padding-right:3%;}
+div.cq-colctrl-lt3-c2{width:25%;padding-right:3%;}
+div.cq-colctrl-lt4-c0{width:33%;padding-right:3%;}
+div.cq-colctrl-lt4-c1{width:66%;padding-right:3%;}
+div.cq-colctrl-lt5-c0{width:66%;padding-right:3%;}
+div.cq-colctrl-lt5-c1{width:33%;padding-right:3%;}
+div.cq-colctrl-lt6-c0{width:75%;padding-right:3%;}
+div.cq-colctrl-lt6-c1{width:25%;padding-right:3%;}
+div.cq-colctrl-lt7-c0{width:66%;padding-right:3%;}
+div.cq-colctrl-lt7-c1{width:33%;padding-right:3%;}
+div.cq-colctrl-lt8-c0{width:25%;padding-right:3%;}
+div.cq-colctrl-lt8-c1{width:25%;padding-right:3%;}
+div.cq-colctrl-lt8-c2{width:25%;padding-right:3%;}
+div.cq-colctrl-lt8-c3{width:25%;padding-right:3%;}
+.text ul,.dynamictext ul{list-style-type:none;margin-bottom:3%;margin-left:0;}
+.text ul li,.dynamictext ul li{background:url(/content/dam/sfu/images/common/bullet_red.gif) 0 14px no-repeat;padding-left:16px;padding-top:3px;}
+.relatedTopics h3{margin-bottom:2%;}
+.text .relatedTopics ul,.relatedTopics ul,ul.relatedTopics{margin:0;padding:0;padding-left:12px;border-left:5px solid #eee;list-style-type:none;margin-bottom:2%;}
+.relatedTopics{padding-bottom:2%;}
+.relatedTopics ul li,.default.relatedTopics li{padding:3px 6px 3px 0;border-bottom:1px solid #ddd;background-image:none;}
+footer .text ul{list-style-type:none;margin-left:0;}
+.image{margin-bottom:2%;}
+.image img,.textimage .image img{width:100%;}
+.image small{font-size:.75em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.75em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;line-height:.5em;color:#777;}
+.textimage{margin-bottom:1%;}
+.textimage .image{width:25%;margin-right:3%;float:left;margin-bottom:0;}
+.textimage .floatRight .image{margin-right:0;margin-left:3%;float:right;}
+.textimage small{color:#999;margin-bottom:2%;}
+.textimage .clear{clear:left;}
+.textimage ul li{background:none;}
+.textimage ul li:before{content:url("/content/dam/sfu/images/common/bullet_red.gif");padding-right:10px;}
+.sub .textimage .image{float:none;width:100%;margin-right:0;}
+.sub .textimage .text{width:100%;}
+.image-overlay .image{float:none;width:100%;}
+.textimage{position:relative;}
+.overlay .image,.overlay-bg .image{width:100%;}
+.overlay .text,.overlay-bg .text{bottom:0;padding:1.25em 1.5em;position:absolute;color:#fff;text-shadow:1px 1px 3px #000;margin-bottom:1em;}
+.overlay-bg .text{padding:1em 0;}
+.overlay .text p{font-size:1.8em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1.8em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;line-height:1em;letter-spacing:-0.05em;}
+.overlay .text h1,.overlay-bg .text h1,.overlay .text p,.overlay-bg .text p{font-family:"DINWebBold";font-size:2em;line-height:1.1em;margin-bottom:0;}
+.overlay-bg .text h1,.overlay-bg .text p{padding:.5em .5em .3em 1em;background:rgba(0,0,0,0.6);}
+.cq-colctrl-lt0 .overlay .text,.cq-colctrl-lt2 .overlay .text,.cq-colctrl-lt4 .overlay .text,.cq-colctrl-lt5 .overlay .text,.cq-colctrl-lt8 .overlay .text{padding:0 1em;}
+.cq-colctrl-lt0 .overlay .text p{font-size:1.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;line-height:1em;}
+.cq-colctrl-lt4 .overlay .text p,.cq-colctrl-lt4 .overlay-bg .text p,.cq-colctrl-lt5 .overlay .text p,.cq-colctrl-lt5 .overlay-bg .text p{font-size:1.375em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1.375em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;line-height:1em;}
+.cq-colctrl-lt2 .overlay .text p,.cq-colctrl-lt2 .overlay-bg .text p{font-size:1.375em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1.375em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;line-height:1em;}
+.cq-colctrl-lt8 .overlay .text p,.cq-colctrl-lt8 .overlay-bg .text p{font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;line-height:1em;}
+.cq-colctrl-lt0 .overlay-bg .text h1,.cq-colctrl-lt0 .overlay-bg .text p{font-size:1.375em;}
+div.half,img.half{width:50%;}
+div.third,img.third{width:33%;}
+div.two-thirds,img.two-thirds{width:66%;}
+.textimage div.half,.textimage div.third,.textimage div.two-thirds{width:100%;}
+.textimage div.half .image{width:12.5%;}
+.textimage div.third .image{width:8.3333333%;}
+.textimage div.two-thirds .image{width:16.5%;}
+.textimage div.half .text,.textimage div.two-thirds .text,.textimage div.third .text{width:100%;}
+.text-bg{background-color:#a6192e;color:#fff;border-radius:5px;padding:1em;margin-bottom:.5em;}
+.text-bg h2{font-size:1.5em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1.5em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;padding:0 1em;color:#fff;}
+.text-bg p{font-size:.8em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;padding:0 1em;color:#fff;}
+.text-bg a{color:#fff;}
+.text img{max-width:100%;}
+.no-margin h1,.no-margin h2,.no-margin h3,.no-margin h4,.no-margin h5{margin-top:0;}
+.table{overflow-x:auto;padding:.5em 0;background:-webkit-linear-gradient(0deg,#fff 30%,rgba(255,255,255,0)),-webkit-linear-gradient(180deg,#fff 70%,rgba(255,255,255,0)) right center,-webkit-radial-gradient(left center,farthest-side,rgba(0,0,0,0.5),rgba(0,0,0,0)),-webkit-radial-gradient(right center,farthest-side,rgba(0,0,0,0.5),rgba(0,0,0,0)) right center,-webkit-linear-gradient(0deg,rgba(0,0,0,0.4),rgba(0,0,0,0.4)),-webkit-linear-gradient(0deg,rgba(0,0,0,0.4),rgba(0,0,0,0.4)) right center;background:linear-gradient(90deg,#fff 30%,rgba(255,255,255,0)),linear-gradient(270deg,#fff 70%,rgba(255,255,255,0)) right center,radial-gradient(farthest-side at left center,rgba(0,0,0,0.5),rgba(0,0,0,0)),radial-gradient(farthest-side at right center,rgba(0,0,0,0.5),rgba(0,0,0,0)) right center,linear-gradient(0deg,rgba(0,0,0,0.4),rgba(0,0,0,0.4)),linear-gradient(0deg,rgba(0,0,0,0.4),rgba(0,0,0,0.4)) right center;background-repeat:no-repeat;background-color:white;background-size:40px 100%,40px 100%,15px 100%,15px 100%,1px 100%,1px 100%;background-attachment:local,local,scroll,scroll,scroll,scroll;}
+.table table{width:100%;border-collapse:collapse;}
+.image-table td,.image-table th{padding:.5% 1%;}
+.fullText p{margin-top:0;}
+.fullText a,.newsList a{font-weight:bold;}
+.fullText span,.newsList span{color:#555;}
+.fullText span:before,.newsList span:before{content:"\00B7 \0020";color:#555;}
+a.current{font-weight:bold;}
+.previous{border-right:1px solid #AAA;display:inline;margin-right:1em;padding-right:1em;}
+.next{display:inline;}
+.dropdown{margin-bottom:1em;}
+ul.default{margin-bottom:1em;}
+ul.default li{padding-left:.75em;margin-bottom:.1875em;background:url(/content/dam/sfu/images/common/bullet_red.gif) 0 8px no-repeat;}
+.news li{margin-bottom:1em;}
+.news-date{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
+.newsList li{margin-bottom:2em;}
+.newsList img{width:25%;margin:.3em 2% 0 0;float:left;}
+.newsList p{margin-top:0;}
+.newsList p:after{content:"";clear:left;display:block;}
+.headline{width:100%;}
+.headline li{float:left;margin:0 3% 2em 0;width:47%;}
+.headline li:nth-child(2n+1){clear:left;}
+.headline .storyLead h3{margin-bottom:0;}
+.sub .headline li{float:none;margin-right:0;width:100%;}
+.storyLead h3{margin-top:.25em;}
+.storyLead p{margin-top:.25em;margin-bottom:0;}
+.storyImage{width:100%;overflow:hidden;}
+.storyImage img{width:100%;}
+.storyImage span.storyMeta{width:100%;background:#000;color:#ccc;opacity:.8;height:30px;float:left;margin:-37px 0 0;}
+.storyComments{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;background:transparent url("/content/dam/sfu/images/icons/comment_bubble.png") 0 1px no-repeat;float:right;margin:7px 5px 0;padding:0 0 0 12px;}
+.storyDatestamp{float:left;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;text-transform:uppercase;color:#eee;margin:7px 5px 0;}
+.newsFeed li{clear:left;margin:1em 0 2em;}
+.newsThumbnail{width:25%;float:left;margin:0 2% 0 0;}
+.newsThumbnail img{width:100%;display:block;}
+.newsThumbnail a{width:100%;display:block;}
+.newsLead h3{margin:0;}
+.newsLead p{margin-top:.25em;margin-bottom:0;}
+.newsLead p:after{content:"";clear:left;display:block;}
+.newsMeta{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;color:#555;}
+.newsDatestamp{margin-right:6px;}
+.newsDatestamp+.newsComments{border-left:1px solid #ddd;padding-left:6px;}
+.teaser{float:left;margin:.3em .8em 0 0;}
+.teaser li:after{clear:both;content:"";display:block;}
+.clearList{clear:left;}
+ul.profile .subtitle{color:#777;}
+ul.profile li{border-bottom:1px solid #eee;padding-bottom:.5em;margin-top:.5em;}
+ul.profile .tag{font-style:italic;color:#777;}
+#page-content .text .directory-header ul{list-style-type:none;position:relative;margin-bottom:.5em;margin-left:0;padding-left:.5em;height:2em;font-family:"DINWebMedium";border-top:1px solid #CCC;border-bottom:1px solid #CCC;background-color:#EEE;}
+#page-content .text .directory-header ul li{position:absolute;padding-left:0;background-image:none;}
+.directory span{position:absolute;top:.5em;}
+#page-content ul.directory{width:100%;padding-left:0;margin-left:0;list-style-type:none;}
+#page-content .directory li{overflow:hidden;position:relative;border-top:1px solid #F0F4F4;padding:.5em 0 1em .5em;}
+#page-content .directory li:first-child{border-top:none;}
+#page-content.directory li:nth-of-type(even){background-color:#F2F7F7;}
+#page-content .directory a,#page-content .directory .position{position:static;display:block;width:28%;}
+#page-content .directory .name,#page-content .directory-header .name{width:28%;}
+#page-content .directory .email,#page-content .directory-header .email{left:30%;width:28%;}
+#page-content .directory .phone,#page-content .directory-header .phone{left:60%;width:16%;}
+#page-content .directory .office,#page-content .directory-header .office{left:80%;width:20%;}
+.faculty-directory li{border-top:5px solid #EEE;margin-bottom:1em;padding-top:1em;width:100%;float:left;}
+.faculty-directory li>a,.faculty-directory .position{font-family:DINWebMedium,sans-serif;}
+.faculty-directory .position{color:#555;padding-bottom:.5em;}
+.faculty-directory span{display:block;}
+.faculty-directory .email:before,.faculty-directory .phone:before,.faculty-directory .office:before{content:"Email:";padding-right:.25em;font-family:DINWeb,sans-serif;font-size:.9em;font-weight:normal;text-transform:uppercase;color:#555;}
+.faculty-directory .phone:before{content:"Phone:";}
+.faculty-directory .office:before{content:"Office:";}
+.faculty-directory .email{word-break:break-all;}
+.faculty-directory img{display:none;max-width:30%;margin:.25em 4% 0 0;float:left;}
+.faculty-directory.show-thumbnails img{display:block;}
+.faculty-directory li{width:30%;margin-right:3%;}
+.faculty-directory li:nth-child(3n+1){clear:left;}
+.three-column .faculty-directory li,.faculty-directory.show-thumbnails li{width:47%;margin-right:3%;}
+.three-column .faculty-directory li:nth-child(3n+1),.faculty-directory.show-thumbnails li:nth-child(3n+1){clear:none;}
+.three-column .faculty-directory li:nth-child(2n+1),.faculty-directory.show-thumbnails li:nth-child(2n+1){clear:left;}
+.parsys_column .faculty-directory li{width:100%;margin-right:0;}
+@media(max-width:1280px){.faculty-directory li{width:47%;margin-right:3%;}
+.faculty-directory li:nth-child(3n+1){clear:none;}
+.faculty-directory li:nth-child(2n+1){clear:left;}
+.three-column .faculty-directory.show-thumbnails li{width:100%;margin-right:0;}
+}
+@media(min-width:981px){.tiled li{float:left;width:47%;margin-right:3%;clear:none;}
+.tiled li:nth-of-type(odd){clear:left;}
+.tiled:after{content:"";display:block;clear:both;}
+}
+.category h1{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWebBlack",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWebBlack",sans-serif;font-weight:normal;margin-top:0;color:#a6192e;text-transform:uppercase;}
+.twitter-header{padding-top:5px;padding-left:6px;background-color:#E7F3F9;width:100%;border-top:1px solid #A7B0B9;border-bottom:1px solid #A7B0B9;}
+.twitter-header .image,.sub .twitter-header .image{display:inline-block;margin-right:6px;margin-bottom:0;width:24px;}
+.twitter-header .image img{vertical-align:top;margin-top:-2px;}
+.twitter-header .text,.sub .twitter-header{display:inline-block;width:75%;}
+.twitter-header .text h3{font-size:1em;line-height:1.1em;margin-top:2px;margin-bottom:0;}
+.tweet{margin-bottom:18px;border-bottom:15px solid #eee;}
+.tweet_list{font-size:.9em;line-height:1.4em;margin-top:8px;}
+.tweet_list li{padding:6px 6px 6px 6px;border-bottom:1px solid #ddd;}
+.tweet_list li.tweet_first{padding-top:0;}
+.tweet_list strong{font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;}
+.tweet_time,.tweet_action{font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
+a.linkFeed{background:url("/content/dam/sfu/images/icons/feed.png") no-repeat scroll left top transparent;font-size:.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:.75em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;padding:0 2px 2px 18px;text-transform:uppercase;}
+.datestamp{font-size:1em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;margin-bottom:3%;}
+.carousel{width:100%;margin-bottom:4%;}
+.carousel .flex-control-nav{bottom:-29px;}
+.carousel .news{background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-textured.png) 0 0 repeat;border-bottom:25px solid #ddd;}
+.carousel .news h3{font-size:1.75em;line-height:1.2em;margin-top:0;margin-bottom:6px;}
+.carousel .news .carousel-image{background-color:#000;width:61.770833%;float:left;margin:0;overflow:hidden;}
+.carousel .news .carousel-image img{max-width:100%;}
+.carousel .news .carousel-text{width:38.229167%;float:left;color:#fff;padding:3%;margin-top:6%;}
+.carousel .news .carousel-text a{color:#fff;}
+.carousel .news .carousel-text p{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;margin-bottom:0;}
+.carousel .news .carousel-text p span{display:block;padding-top:8px;text-transform:uppercase;}
+.carousel .news .carousel-text p span a{color:#e0d10a;}
+.carousel .news li{margin-bottom:0;}
+.wideCarousel .flex-viewport{max-height:230px;}
+.carousel .wideCarousel .carousel-text{margin-top:2%;}
+ul.horizontal>li{display:inline;}
+ul.horizontal>li a{display:inline-block;margin-right:2%;font-size:1em;line-height:1.125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.125em;font-family:"DINWebBold",sans-serif;font-weight:normal;color:#fff;background-color:#a6192e;padding:1%;border-bottom:5px solid #ddd;margin-bottom:6px;}
+ul.horizontal>li:last-child a{margin-right:0;}
+ul.horizontal>li a:hover{opacity:1;background-color:#e0d10a;}
+ul.horizontal>li a.current{background-color:#e0d10a;color:#3d3935;}
+.commentGuidelines{display:none;}
+div.comments{clear:right;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
+div.comments label{font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;}
+textarea.comment-text{width:100%;}
+.comment-block-author{width:50%;display:inline;}
+.comment-block-author:first-child{margin-right:8px;}
+.comments-count{font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;margin-top:18px;padding-top:10px;margin-bottom:18px;border-top:5px solid #eee;}
+.submit-block{margin-top:12px;}
+#notifyBlock{margin-top:10px;padding:1%;background-color:#e0d10a;color:#fff;}
+#notifyBlock strong{font-size:1em;line-height:1.3125em;font-family:"DINWebBlack",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBlack",sans-serif;font-weight:normal;text-transform:uppercase;}
+#notifyBlock img{margin-left:8px;vertical-align:middle;opacity:.7;cursor:pointer;cursor:hand;}
+.comment-header-avatar{display:none;}
+div.comment{font-size:.9em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.9em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
+.comment-header{margin-top:18px;padding-top:18px;border-top:1px dotted #ccc;margin-bottom:8px;}
+.comment cite{font-size:1em;line-height:1.3125em;font-family:"DINWebBlack",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBlack",sans-serif;font-weight:normal;font-style:normal;text-transform:uppercase;margin-right:6px;}
+.comment-header-meta{font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;}
+.comment-replies{margin-top:8px;}
+.comment-replies div{margin-left:3%;}
+.comment-replies>div,.comment-replies .comment-replies>div{margin-left:0;}
+.comment-replies form.comment{margin-top:8px;}
+a.cq-calendar-month-event{font-size:.8em;height:auto;}
+div.cq-calendar-agenda-item{height:auto;}
+.sidebox{display:none;}
+table.navbar .x-form-field{display:inline;margin-top:0;}
+#cq-calendar-lensdeck-lenses .x-panel-bwrap .cq-calendar-month-day{overflow:auto;}
+.upcomingevents li{margin-bottom:1em;}
+.box{box-shadow:1px 1px 2px 0 #777;border-radius:5px;display:block;height:auto;margin:10px 0;padding:.4em .4em .4em .8em;text-decoration:none;background-color:#000;}
+.l1 .box{background-color:#700210;}
+.l2 .box{background-color:#75076B;}
+.l3 .box{background-color:#003087;}
+.l4 .box{background-color:#E45E00;}
+.l5 .box{background-color:#D5B000;}
+.box h1,.box h2{margin:0;}
+.box h1{color:#FFF;font-size:1.3636363636363635em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:1.3636363636363635em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;margin-top:.2em;text-transform:uppercase;}
+.box h2{color:#FFF;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;margin-top:.2em;}
+p.galleryText{color:#555;margin:0 0 0 .8em;}
+.box:hover{opacity:.8;transition-property:background-color .2s linear .1s;transition-property:opacity .2s linear .1s;-moz-transition:background-color .2s linear .1s;-moz-transition:opacity .2s linear .1s;-webkit-transition:background-color .2s linear .1s;-webkit-transition:opacity .2s linear .1s;}
+div.download div.item{clear:both;margin:0 0 1em 0;}
+div.download span.icon img{width:16px;height:16px;}
+div.download span.icon{float:left;padding:0 1em 1em 0;background:url(http://www.sfu.ca/etc/designs/default/images/icons/default.gif) no-repeat;}
+div.download span.icon.type_doc{background:url(http://www.sfu.ca/etc/designs/default/images/icons/doc.gif) no-repeat;}
+div.download span.icon.type_docx{background:url(http://www.sfu.ca/etc/designs/default/images/icons/doc.gif) no-repeat;}
+div.download span.icon.type_eps{background:url(http://www.sfu.ca/etc/designs/default/images/icons/eps.gif) no-repeat;}
+div.download span.icon.type_gif{background:url(http://www.sfu.ca/etc/designs/default/images/icons/zip.gif) no-repeat;}
+div.download span.icon.type_jpg{background:url(http://www.sfu.ca/etc/designs/default/images/icons/jpg.gif) no-repeat;}
+div.download span.icon.type_pdf{background:url(http://www.sfu.ca/etc/designs/default/images/icons/pdf.gif) no-repeat;}
+div.download span.icon.type_ppt{background:url(etc/designs/clf/clientlibs/designs/default/images/icons/ppt.gif) no-repeat;}
+div.download span.icon.type_tif{background:url(http://www.sfu.ca/etc/designs/default/images/icons/tif.gif) no-repeat;}
+div.download span.icon.type_txt{background:url(http://www.sfu.ca/etc/designs/default/images/icons/txt.gif) no-repeat;}
+div.download span.icon.type_xls{background:url(http://www.sfu.ca/etc/designs/default/images/icons/xls.gif) no-repeat;}
+div.download span.icon.type_xlsx{background:url(http://www.sfu.ca/etc/designs/default/images/icons/xls.gif) no-repeat;}
+div.download span.icon.type_zip{background:url(http://www.sfu.ca/etc/designs/default/images/icons/zip.gif) no-repeat;}
+.image-gallery p{background-color:#3d3935;margin-top:-1px;padding:1em;color:#fff;}
+.flex-control-thumbs li:nth-of-type(4n+1){clear:left;}
+form{margin:1em 0;border:1px solid #D2E1E6;border-radius:3px 3px 3px 3px;padding:.8em;background-color:#E9EFF1;}
+form select,form .date-datepicker-button,form .datetime-local-datepicker-button{-moz-appearance:none;background-image:-moz-linear-gradient(top,#f5f5f5 0,#e0e0e0 100%);border:1px solid #AAA;cursor:pointer;}
+form select,form option,form .date-datepicker-button,form .datetime-local-datepicker-button{height:1.75em;}
+fieldset,label,input,textarea,select,.date-datepicker-button,.datetime-local-datepicker-button{display:block;width:100%;font-family:inherit;font-size:100%;}
+input[type="text"],input[type="password"],input[type="date"],input[type="datetime-local"],.searchwidget input,.search.section input,textarea,select{max-width:30em;}
+fieldset,label,.form_row button{margin:1em 0 .2em;padding:0;}
+fieldset label,input[type="text"],input[type="password"],textarea,select,.date-datepicker-button,.datetime-local-datepicker-button{margin-top:.5em;}
+input[type="text"],input[type="password"],.searchwidget input:first-child,.search.section input:first-child{height:2.25em;padding:0 0 0 .4em;}
+textarea{overflow:auto;vertical-align:top;padding:.25em 0 0 .4em;min-height:4em;height:auto;line-height:inherit;}
+.checkbox-group label,.radio-group label,.spam-protection label{padding-left:1.5em;}
+.checkbox-group label,.radio-group label{float:left;clear:left;width:auto;margin-bottom:0;}
+.checkbox-group label:last-child,.radio-group label:last-child{margin-bottom:.2em;}
+input[type="radio"],input[type="checkbox"]{float:left;width:auto;padding:.1em 0 0;margin-top:.3em;margin-left:-1.25em;}
+input[type="radio"]+b,input[type="checkbox"]+b{font-weight:normal;cursor:pointer;}
+.field-description,.form_row_description{display:block;font-size:.9em;color:#555;}
+.required-error-message,.constraint-error-message{display:block;margin:.5em 0 .25em;border-left:solid 2px;padding-left:8px;color:#a6192e;}
+.required-field:after{content:" *";color:#a6192e;}
+.error input{background-color:#FBEFEF;}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0;}
+legend{float:left;padding:0;}
+legend+label{-webkit-margin-top-collapse:separate;}
+.form_row button,#comments-submit,.login-form input[type="submit"],input[type="reset"],input[type="submit"],.ui-datepicker-current,a.logout{-webkit-backface-visibility:hidden;-webkit-appearance:none;border:none;border-bottom:3px solid #7A1024;border-radius:5px;display:block;margin:1em 0 10px;padding:.25em 1em;text-decoration:none;background-color:#a6192e;font-size:1em;line-height:1.3125em;font-family:"DINWebMedium",sans-serif;font-weight:normal;line-height:1.625;color:#FFF;width:auto;cursor:pointer;}
+button[name="Submit"]{float:left;margin-right:1em;}
+input[type="reset"],.ui-datepicker-current{background-color:#999;border-color:#777;float:left;}
+form .end .form_rightcol:after{content:"";clear:both;display:block;}
+.form_row button:hover,.form_row button:focus,#comments-submit:hover,#comments-submit:focus,.login-form input[type="submit"]:hover,.login-form input[type="submit"]:focus,input[type="reset"]:hover,input[type="reset"]:focus,input[type="submit"]:hover,input[type="submit"]:focus,.ui-datepicker-current:hover,a.logout:hover{opacity:.8;}
+.date-field b{display:block;}
+.date-datepicker-button,.datetime-local-datepicker-button{display:inline;width:auto;}
+.hasDatepicker{background:none repeat scroll 0 0 #FFF;border:1px solid #DDD;border-radius:4px;box-shadow:0 0 5px -2px #777;padding:1em;}
+.ui-datepicker-title{margin-top:.5em;}
+.ui-datepicker-calendar td{padding:0;}
+a.ui-state-default{display:block;padding:.5em .75em;text-align:center;}
+a.ui-state-default:hover{background-color:#a6192e;color:#FFF;}
+a.ui-state-active{color:#000;background-color:#DDD;}
+#page-content a.ui-state-active:hover{color:#000;background-color:#DDD;opacity:1;cursor:default;}
+.date-field input[type="text"]{display:inline-block;margin-left:.5em;max-width:10em;}
+.ui-datepicker-header a{font-size:.875em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.875em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;text-transform:uppercase;cursor:pointer;}
+.ui-datepicker-next{float:right;}
+input[type="file"]{width:auto;}
+.spam-protection label{border:1px dashed #777;border-left:none;border-right:none;padding-top:1em;padding-bottom:1em;}
+.spam-protection input[type="checkbox"]+b{font-weight:bold;}
+.full-width{width:100%;}
+.searchwidget form{background-color:transparent;border:none;padding:0;margin:0;max-width:100%;}
+.search.section form{max-width:100%;}
+.form_leftcollabel,.form_leftcollabel label,.form_leftcolmark{display:inline-block;font-weight:bold;}
+.checkbox .form_rightcol,.radio .form_rightcol{padding-left:1.5em;}
+.form_leftcolmark,.form_error{color:#A6192E;}
+.form_row:last-child .form_leftcol{display:none;}
+.externalvideo{margin-bottom:1em;}
+.externalFeed ul{border-bottom:1px dotted #ddd;}
+.externalFeed li.rssRow{color:#777;border-top:1px dotted #ddd;font-family:"DINWeb";padding-top:.5em;padding-bottom:.5em;}
+.externalFeed li.rssRow h3{font-size:.9em;margin-bottom:0;}
+.login{margin-top:-1.5em;}
+.login h1{margin-bottom:0;}
+.login>div{margin-left:-2.3%;margin-right:-3.84%;padding-left:2.19298%;padding-right:3.65497%;}
+.login>div:first-child{padding-top:1em;padding-bottom:1.5em;background-color:#E9EFF1;border-top:1px solid transparent;border-bottom:1px solid #D2E1E6;}
+.login form{background-color:transparent;border:none;padding:0;width:100%;max-width:544px;margin:0 auto;}
+.login .icon{display:none;color:#a6192e;float:left;margin-top:.6em;padding:0 8px 0 2px;}
+.login .constraint-error-message{border:none;}
+.login input[type="submit"]{padding-left:2em;padding-right:2em;}
+.phishing_warning h3,.phishing_warning p{margin-left:auto;margin-right:auto;max-width:544px;}
+.login-form fieldset{border-top:1px dashed #777;margin-top:1.5em;padding-top:1em;}
+a.logout{padding-top:.5em;font-size:.875em;font-family:"DINWeb",sans-serif;text-transform:uppercase;background-color:#700210;border-color:#350711;}
+.profile-overview{padding-bottom:1.5em;border-bottom:10px solid #EEE;margin-bottom:2em;}
+.profile-overview h1{margin-bottom:.125em;}
+.profile-overview h3{color:#555;font-family:Cambria,Georgia,"Times New Roman",Times,serif;font-size:1.125em;line-height:1.125em;margin:0 0 .5em;}
+.profile-overview ul{border-top:1px solid #DDD;margin-top:1.5em;padding-top:1.5em;margin-bottom:0;}
+.profile-overview ul li{background:none;padding-left:0;}
+.profile-overview li b{color:#555;font-family:"DINWeb",sans-serif;font-size:.9em;font-weight:normal;text-transform:uppercase;}
+img.portrait{float:right;margin-bottom:1.5em;width:36%;padding:0 3% 1px;background-color:#FFF;}
+img.portrait+br{display:none;}
+.video-slideshow .video-description{overflow:scroll;max-height:13em;}
+@media(max-width:1500px){.carousel .news .carousel-image{width:100%;}
+.carousel .news .carousel-text{clear:left;width:100%;margin-top:0;}
+.carousel .news .carousel-text h3{font-size:1.5em;}
+.video-slideshow .video-description{overflow:hidden;max-height:none;}
+.wideCarousel .flex-viewport{max-height:600px;}
+.wideCarousel .carousel-text{margin-top:6%;}
+}
+@media(max-width:980px){.sub .textimage .image{width:33%;margin-right:3%;}
+.sub .textimage .text{width:67%;float:left;}
+div.cq-colctrl-lt8-c0{width:50%;padding-right:3%;}
+div.cq-colctrl-lt8-c1{width:50%;padding-right:3%;}
+div.cq-colctrl-lt8-c2{clear:left;width:50%;padding-right:3%;}
+div.cq-colctrl-lt8-c3{width:50%;padding-right:3%;}
+.col-clear div.parsys_column{float:none;}
+.col-clear .cq-colctrl-lt2-c0,.col-clear .cq-colctrl-lt2-c1,.col-clear .cq-colctrl-lt2-c2,.col-clear .cq-colctrl-lt3-c0,.col-clear .cq-colctrl-lt3-c1,.col-clear .cq-colctrl-lt3-c2,.col-clear .cq-colctrl-lt5-c0,.col-clear .cq-colctrl-lt5-c1,.col-clear .cq-colctrl-lt0-c0,.col-clear .cq-colctrl-lt0-c1{width:100%;}
+.sub .textimage .image{float:left;width:33%;margin-right:3%;}
+.sub .textimage .text{float:left;width:67%;}
+.login{margin-top:-1.4619883%;}
+.faculty-directory.show-thumbnails li{width:100%;margin-right:0;}
+}
+@media(max-width:768px){div.cq-colctrl-lt1-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt1-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt2-c0{width:50%;padding-right:3%;}
+div.cq-colctrl-lt2-c1{width:50%;padding-right:3%;}
+div.cq-colctrl-lt2-c2{clear:left;width:50%;padding-right:3%;}
+div.cq-colctrl-lt3-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt3-c1{width:50%;padding-right:3%;}
+div.cq-colctrl-lt3-c2{width:50%;padding-right:3%;}
+div.cq-colctrl-lt6-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt6-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt7-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt7-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt0 .overlay-bg .text h1,div.cq-colctrl-lt0 .overlay-bg .text p{padding:.3em .5em .1em .75em;}
+.no-gap{margin-top:-2em;}
+a.logout{display:inline-block;margin:.5em 0;}
+.textimage div.half .image,.textimage div.third .image,.textimage div.two-thirds .image{width:25%;}
+}
+@media(max-width:480px){div.cq-colctrl-lt0-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt0-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt2-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt2-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt2-c2{width:100%;padding-right:0;}
+div.cq-colctrl-lt4-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt4-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt5-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt5-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt8-c0{width:100%;padding-right:0;}
+div.cq-colctrl-lt8-c1{width:100%;padding-right:0;}
+div.cq-colctrl-lt8-c2{width:100%;padding-right:0;}
+div.cq-colctrl-lt8-c3{width:100%;padding-right:0;}
+.overlay .text{padding:.5em .125em;}
+.overlay .text h1,.overlay-bg .text h1,.overlay .text p,.overlay-bg .text p{font-family:"DINWebMedium";font-size:1.375em;letter-spacing:-0.05em;line-height:1em;padding:.3em .5em .1em .75em;}
+.cq-colctrl-lt8 .overlay .text p,.cq-colctrl-lt8 .overlay-bg .text p{font-size:1.375em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1.375em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;}
+.sub .textimage .image{float:none;width:100%;margin-right:0;}
+.sub .textimage .text{float:none;width:100%;}
+img.half{width:100%;}
+img.third{width:100%;}
+img.two-thirds{width:100%;}
+form{width:104.385965%;margin-left:-2.1929825%;padding:2.1929825%;border-radius:0;border-left:none;border-right:none;}
+.headline li{width:100%;}
+img.portrait{display:block;float:none;width:100%;padding:0 0 1em;margin:-2em 0 0;}
+.main_content .faculty-directory li{width:100%;margin-right:0;}
+.login{position:relative;top:-30px;}
+.login h1{font-size:1.3125em;}
+.login input[type="submit"]{width:100%;}
+}

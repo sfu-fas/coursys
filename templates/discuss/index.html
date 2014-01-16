@@ -2,7 +2,7 @@
 {% load discuss_paginate %}
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('.discussion-topic-title').hover(function() {
@@ -16,8 +16,8 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; Discussion</li>
+<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>Discussion</li>
 {% endblock %}
 
 {% block actions %}

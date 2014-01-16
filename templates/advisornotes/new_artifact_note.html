@@ -4,8 +4,8 @@
 {% block h1 %}New Artifact Note for {{ related }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li>&gt; <a href="
+<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="
 {% if course %}
 {% url "advisornotes.views.view_course_notes" unit_course_slug=related.slug %}">Courses
 {% endif %}
@@ -17,7 +17,7 @@
 {% endif %}
 </a>
 </li>
-<li>&gt; 
+<li>
 {{ spaceless }}
 <a href="
 {% if course %}
@@ -32,7 +32,7 @@
 ">{{ related }}
 {{ endspaceless }}
 </a></li>
-<li>&gt; New Artifact Note</li>
+<li>New Artifact Note</li>
 {% endblock %}
 
 {% block headextra %}

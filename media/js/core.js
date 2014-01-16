@@ -261,3 +261,18 @@ function enable_disable_ordering(oSettings) {
     $('.arrow_down').hide();
   }
 }
+
+
+function fix_actions() {
+  var actions = $('div#actions');
+  var ul = $('div#actions>ul');
+  ul.detach();
+  ul.attr('id', 'actions');
+  actions.after(ul);
+  actions.remove();
+}
+/*
+$(document).ready(function(){
+  fix_actions();
+});
+*/

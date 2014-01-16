@@ -2,10 +2,10 @@
 {% load form_display course_display%}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li>&gt; <a href="{% url "ta.views.all_contracts" post_slug=posting.slug %}">Contracts</a></li>
-<li>&gt; {{ contract.application.person.name }}</li>
+<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li><a href="{% url "ta.views.all_contracts" post_slug=posting.slug %}">Contracts</a></li>
+<li>{{ contract.application.person.name }}</li>
 {% endblock %}
 
 {% block title %}Contract for {{ contract.application.person.name }}{% endblock %}
