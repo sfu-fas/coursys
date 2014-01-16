@@ -1,9 +1,10 @@
 from django import forms
+from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
-from django_countries import countries
-COUNTRIES = countries
+from django_countries import countries as COUNTRIES
 
 from gpaconvert.models import ContinuousRule
 from gpaconvert.models import DiscreteRule
@@ -11,7 +12,8 @@ from gpaconvert.models import GradeSource
 
 
 class GradeSourceListForm(forms.Form):
-    country = forms.ChoiceField(choices=COUNTRIES)
+    country_choices =  (('', '--------'),) + tuple(COUNTRIES)
+    country = forms.ChoiceField(choices=country_choices, required=False)
 
 
 class GradeSourceForm(ModelForm):
@@ -49,6 +51,8 @@ def rule_formset_factory(grade_source, reqpost=None):
 
 class BaseGradeForm(forms.Form):
     name = forms.CharField()
+    credits = forms.DecimalField(max_digits=5, decimal_places=2,
+                                 validators=[MinValueValidator(0)])
 
     def __init__(self, *args, **kwargs):
         self.grade_source = kwargs.pop('grade_source', None)
@@ -63,6 +67,7 @@ class BaseGradeForm(forms.Form):
             self.cleaned_data['rule'] = rule
             return grade
         else:
+            self.cleaned_data['rule'] = None
             raise forms.ValidationError('No rule found for grade')
 
     # Override these
@@ -83,6 +88,7 @@ class ContinuousGradeForm(BaseGradeForm):
     grade = forms.DecimalField(max_digits=8, decimal_places=2)
 
     def initialize(self, grade_source):
-        # TODO: Agree on min/max grade fields for GradeSource and limit the value of grade
-        #       accordingly.
-        pass
+        self.fields['grade'].validators.extend([
+            MinValueValidator(grade_source.lower_bound),
+            MaxValueValidator(grade_source.upper_bound),
+        ])

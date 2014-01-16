@@ -8,11 +8,29 @@ from django_countries.fields import CountryField
 from jsonfield import JSONField
 
 from courselib.slugs import make_slug
+from grades.models import GPA_GRADE_CHOICES
 
 from gpaconvert.utils import get_object_or_None
 
 DECIMAL_ZERO = decimal.Decimal('0.00')
 DECIMAL_HUNDRED = decimal.Decimal('100.00')
+
+# SFU GPA Scale: http://www.sfu.ca/students-resources/NDforms/calc1.html
+# XXX: Only here temporarily. This should be somewhere more global as it's reusable.
+GRADE_POINTS = {
+    'A+': decimal.Decimal('4.33'),
+    'A': decimal.Decimal('4.00'),
+    'A-': decimal.Decimal('3.67'),
+    'B+': decimal.Decimal('3.33'),
+    'B': decimal.Decimal('3.00'),
+    'B-': decimal.Decimal('2.67'),
+    'C+': decimal.Decimal('2.33'),
+    'C': decimal.Decimal('2.00'),
+    'C-': decimal.Decimal('1.67'),
+    'D': decimal.Decimal('1.00'),
+    'F': decimal.Decimal('0.00'),
+}
+assert set(GRADE_POINTS.keys()) == set(dict(GPA_GRADE_CHOICES).keys())
 
 
 class GradeSourceManager(models.Manager):
@@ -67,14 +85,14 @@ class GradeSource(models.Model):
         """
         Returns the DiscreteRule or ContinuousRule instance that goes with the given grade.
         """
-
         if self.scale == 'DISC':
             rule = get_object_or_None(self.discrete_rules, lookup_value=grade)
         else:
             # TODO: Make this nicer somehow.
-            rules = self.continuous_rules.filter(lookup_lbound__lte=grade)
-            if rules.count():
-                rule = rules.order_by('-lookup_lbound').first()
+            rules = (self.continuous_rules.filter(lookup_lbound__lte=grade)
+                                          .order_by('-lookup_lbound'))
+            if rules:
+                rule = rules.first()
             else:
                 rule = None
 
@@ -82,45 +100,6 @@ class GradeSource(models.Model):
 
     class Meta:
         unique_together = (("country", "institution"),)
-
-
-# SFU Grade Scale
-# Refer to: http://www.sfu.ca/continuing-studies/programs/resources/grading-scale.html
-LBOUND_VALUES = (
-    (decimal.Decimal('95.00'), 'A+'),
-    (decimal.Decimal('90.00'), 'A'),
-    (decimal.Decimal('85.00'), 'A-'),
-    (decimal.Decimal('80.00'), 'B+'),
-    (decimal.Decimal('75.00'), 'B'),
-    (decimal.Decimal('70.00'), 'B-'),
-    (decimal.Decimal('65.00'), 'C+'),
-    (decimal.Decimal('60.00'), 'C'),
-    (decimal.Decimal('55.00'), 'C-'),
-    (decimal.Decimal('50.00'), 'D'),
-    (decimal.Decimal('0.00'), 'F'),
-)
-
-# SFU GPA Scale
-# Refer to: http://www.sfu.ca/students-resources/NDforms/calc1.html
-TRANSFER_VALUES = (
-    (decimal.Decimal('4.33'), 'A+'),
-    (decimal.Decimal('4.00'), 'A'),
-    (decimal.Decimal('3.67'), 'A-'),
-    (decimal.Decimal('3.33'), 'B+'),
-    (decimal.Decimal('3.00'), 'B'),
-    (decimal.Decimal('2.67'), 'B-'),
-    (decimal.Decimal('2.33'), 'C+'),
-    (decimal.Decimal('2.00'), 'C'),
-    (decimal.Decimal('1.67'), 'C-'),
-    (decimal.Decimal('1.00'), 'D'),
-    (decimal.Decimal('0.00'), 'F'),
-)
-
-from grades.models import GPA_GRADE_CHOICES, LETTER_POSITION
-TRANSFER_VALUES = GPA_GRADE_CHOICES
-#GPA_LOOKUP = {}
-#assert dict(TRANSFER_VALUES).keys() == GPA_LOOKUP.keys()
-
 
 
 # TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods. [No reason: go for it]
@@ -135,7 +114,7 @@ class Rule(models.Model):
     transfer_value = models.CharField(max_length=2,
                                       null=False,
                                       blank=False,
-                                      choices=TRANSFER_VALUES)
+                                      choices=GPA_GRADE_CHOICES)
 
     class Meta:
         abstract = True
@@ -154,12 +133,16 @@ class DiscreteRule(models.Model):
     lookup_value = models.CharField(max_length=64)
     transfer_value = models.CharField(max_length=2,
                                       null=False, blank=False,
-                                      choices=TRANSFER_VALUES)
+                                      choices=GPA_GRADE_CHOICES)
 
     def __unicode__(self):
         return "%s:%s :: %s:SFU" % (self.lookup_value,
                                     self.grade_source,
                                     self.transfer_value)
+
+    @property
+    def grade_points(self):
+        return GRADE_POINTS[self.transfer_value]
 
     def delete(self):
         raise NotImplementedError("It's a bad thing to delete stuff")
@@ -184,12 +167,16 @@ class ContinuousRule(models.Model):
                                         verbose_name="Lookup lower bound")
     transfer_value = models.CharField(max_length=2,
                                       null=False, blank=False,
-                                      choices=TRANSFER_VALUES)
+                                      choices=GPA_GRADE_CHOICES)
 
     def __unicode__(self):
         return "%s:%s :: %s and up:SFU" % (self.lookup_lbound,
                                            self.grade_source,
                                            self.transfer_value)
+
+    @property
+    def grade_points(self):
+        return GRADE_POINTS[self.transfer_value]
 
     # TODO should conversion rules have a mute/unmute flag instead of delete?  Delete method causes issues for formsets.
     def delete(self):
@@ -220,5 +207,3 @@ class UserArchive(models.Model):
 
     def delete(self):
         raise NotImplementedError("It's bad to delete stuff")
-
-

@@ -17,27 +17,46 @@
 {% block h1 %}Convert Grades{% endblock %}
 
 {% block content %}
-<form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <table>
+<div class="table_container">
+  <form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table class="info">
+      <thead>
+        <tr>
+          <th class="ui-state-default">Course Name*</th>
+          <th class="ui-state-default">Credits*</th>
+          <th class="ui-state-default">Your Grade*</th>
+          <th class="ui-state-default">SFU Grade</th>
+          <th class="ui-state-default">SFU Grade Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form in formset %}
+        <tr>
+          <!-- TODO: Show error messages -->
+          {% for field in form %}
+          <td>{{ field }}</td>
+          {% endfor %}
+          {% with transfer_rule=transfer_rules.next %}
+          <td>{{ transfer_rule.transfer_value }}</td>
+          <td>{{ transfer_rule.grade_points }}</td>
+          {% endwith %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <input type="submit" value="Convert" />
+{% if transfer_gpa %}
+<div class="table_container">
+  <table class="info">
     <thead>
-      <tr>
-        <th>Course Name*</th>
-        <th>Your Grade*</th>
-        <th>SFU Grade</th>
-      </tr>
+      <th>SFU GPA</th>
     </thead>
     <tbody>
-      {% for form in formset %}
       <tr>
-        <!-- TODO: Show error messages -->
-        {% for field in form %}
-        <td>{{ field }}</td>
-        {% endfor %}
-        <td>{{ transfer_grades.next }}</td>
+        <td>{{ transfer_gpa|floatformat:2 }}</td>
       </tr>
-      {% endfor %}
     </tbody>
   </table>
   <input type="submit" value="Convert" />
@@ -45,5 +64,10 @@
 
 {% if form.grade.value != nill %}
 	<div id="result">{{ form.grade.value }}</div>
+</div>
 {% endif %}
+{% endif %}
+  </form>
+</div>
+
 {% endblock %}
