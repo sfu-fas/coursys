@@ -50,6 +50,8 @@ def rule_formset_factory(grade_source, reqpost=None):
 
 class BaseGradeForm(forms.Form):
     name = forms.CharField()
+    credits = forms.DecimalField(max_digits=5, decimal_places=2,
+                                 validators=[MinValueValidator(0)])
 
     def __init__(self, *args, **kwargs):
         self.grade_source = kwargs.pop('grade_source', None)
@@ -64,6 +66,7 @@ class BaseGradeForm(forms.Form):
             self.cleaned_data['rule'] = rule
             return grade
         else:
+            self.cleaned_data['rule'] = None
             raise forms.ValidationError('No rule found for grade')
 
     # Override these

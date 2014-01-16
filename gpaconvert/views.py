@@ -1,3 +1,4 @@
+import decimal
 import functools
 
 from django.core.urlresolvers import reverse
@@ -134,21 +135,37 @@ def convert_grades(request, grade_source_slug):
     RuleFormSet = formset_factory(RuleForm, extra=10)
     RuleFormSet.form = functools.partial(RuleForm, grade_source=grade_source)
 
-    # TODO: Figure out a better way to handle the transfer grades.
+    transfer_grade_points = decimal.Decimal('0.00')
+    transfer_credits = decimal.Decimal('0.00')
+
     if request.POST:
         formset = RuleFormSet(request.POST)
-        if formset.is_valid():
-            transfer_grades = [form.cleaned_data['rule'].transfer_value
-                               if 'rule' in form.cleaned_data else ''
-                               for form in formset]
-        else:
-            transfer_grades = ['' for _ in xrange(len(formset))]
+        formset.is_valid()
+
+        transfer_rules = []
+
+        for form in formset:
+            # XXX: Not able to use form.is_valid() here because formset.is_valid() seems to cause
+            #      that to return True for all forms.
+            if 'rule' in form.cleaned_data:
+                transfer_rules.append(form.cleaned_data['rule'])
+                credits = form.cleaned_data['credits']
+                transfer_grade_points += credits * transfer_rules[-1].grade_points
+                transfer_credits += credits
+            else:
+                transfer_rules.append(None)
     else:
         formset = RuleFormSet()
-        transfer_grades = ['' for _ in xrange(len(formset))]
+        transfer_rules = [None for _ in formset]
+
+    if transfer_credits > 0:
+        transfer_gpa = transfer_grade_points / transfer_credits
+    else:
+        transfer_gpa = decimal.Decimal('0.00')
 
     return {
         'grade_source': grade_source,
         'formset': formset,
-        'transfer_grades': iter(transfer_grades),
+        'transfer_rules': iter(transfer_rules),
+        'transfer_gpa': transfer_gpa,
     }
