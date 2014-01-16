@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext, loader
 from django.forms.formsets import formset_factory
+from django.contrib import messages
 
 from courselib.auth import requires_global_role
 
@@ -42,7 +43,11 @@ def new_grade_source(request):
             instance.save()
             return HttpResponseRedirect(reverse('grade_source_index'))
         else:
+            messages.error(request, "Please correct the error below")
             form = GradeSourceForm(form.data)
+            data.update({
+                "grade_source_form": form,
+            })
             c = RequestContext(request, data)
             return HttpResponse(t.render(c))
 
