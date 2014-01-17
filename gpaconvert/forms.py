@@ -12,7 +12,7 @@ from gpaconvert.models import GradeSource
 
 
 class GradeSourceListForm(forms.Form):
-    country_choices =  (('', '--------'),) + tuple(COUNTRIES)
+    country_choices = (('', '--------'),) + COUNTRIES
     country = forms.ChoiceField(choices=country_choices, required=False)
 
 
