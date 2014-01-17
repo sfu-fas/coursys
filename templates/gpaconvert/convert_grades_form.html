@@ -1,9 +1,5 @@
 {% extends 'base.html' %}
 
-{% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/gpaconvert.css" media="all" />
-{% endblock %}
-
 {% block title %}Convert Grades{% endblock %}
 
 {% block breadcrumbs %}
@@ -26,6 +22,7 @@
         <tr>
           <th class="ui-state-default">Course Name*</th>
           <th class="ui-state-default">Credits*</th>
+          <th class="ui-state-default">2nd GPA</th>
           <th class="ui-state-default">Your Grade*</th>
           <th class="ui-state-default">SFU Grade</th>
           <th class="ui-state-default">SFU Grade Points</th>
@@ -52,19 +49,20 @@
   <table class="info">
     <thead>
       <th>SFU GPA</th>
+      {% if secondary_gpa %}
+      <th>Secondary GPA</th>
+      {% endif %}
     </thead>
     <tbody>
       <tr>
         <td>{{ transfer_gpa|floatformat:2 }}</td>
+        {% if secondary_gpa %}
+        <td>{{ secondary_gpa|floatformat:2 }}</td>
+        {% endif %}
       </tr>
     </tbody>
   </table>
   <input type="submit" name="save_grades" value="Save for later" />
-
-{% if form.grade.value != nill %}
-	<div id="result">{{ form.grade.value }}</div>
-</div>
-{% endif %}
 {% endif %}
   </form>
 </div>

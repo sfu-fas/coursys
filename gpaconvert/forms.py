@@ -53,6 +53,7 @@ class BaseGradeForm(forms.Form):
     name = forms.CharField()
     credits = forms.DecimalField(max_digits=5, decimal_places=2,
                                  validators=[MinValueValidator(0)])
+    include_secondary_gpa = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.grade_source = kwargs.pop('grade_source', None)

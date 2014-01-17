@@ -132,6 +132,8 @@ def get_transfer_rules(formset):
     transfer_rules = []
     transfer_grade_points = decimal.Decimal('0.00')
     transfer_credits = decimal.Decimal('0.00')
+    secondary_grade_points = decimal.Decimal('0.00')
+    secondary_credits = decimal.Decimal('0.00')
     # XXX: Not able to use form.is_valid() here because formset.is_valid() seems to cause
     #      that to return True for all forms.
     for form in formset:
@@ -140,9 +142,12 @@ def get_transfer_rules(formset):
             credits = form.cleaned_data['credits']
             transfer_grade_points += credits * transfer_rules[-1].grade_points
             transfer_credits += credits
+            if form.cleaned_data['include_secondary_gpa']:
+                secondary_grade_points = credits * transfer_rules[-1].grade_points
+                secondary_credits = credits
         else:
             transfer_rules.append(None)
-    return transfer_rules, transfer_grade_points, transfer_credits
+    return transfer_rules, transfer_grade_points, transfer_credits, secondary_grade_points, secondary_credits
 
 @render_to('gpaconvert/convert_grades_form.html')
 def convert_grades(request, grade_source_slug):
@@ -156,11 +161,13 @@ def convert_grades(request, grade_source_slug):
     transfer_rules = []
     transfer_grade_points = decimal.Decimal('0.00')
     transfer_credits = decimal.Decimal('0.00')
+    secondary_grade_points = decimal.Decimal('0.00')
+    secondary_credits = decimal.Decimal('0.00')
 
     if request.POST:
         formset = RuleFormSet(request.POST)
         formset.is_valid()
-        transfer_rules, transfer_grade_points, transfer_credits = get_transfer_rules(formset)
+        transfer_rules, transfer_grade_points, transfer_credits, secondary_grade_points, secondary_credits = get_transfer_rules(formset)
 
         # Save the data for later
         if request.POST.get("save_grades"):
@@ -179,12 +186,18 @@ def convert_grades(request, grade_source_slug):
         transfer_gpa = transfer_grade_points / transfer_credits
     else:
         transfer_gpa = decimal.Decimal('0.00')
+    
+    if secondary_credits > 0:
+        secondary_gpa = secondary_grade_points / secondary_credits
+    else:
+        secondary_gpa = decimal.Decimal('0.00')
 
     return {
         'grade_source': grade_source,
         'formset': formset,
         'transfer_rules': iter(transfer_rules),
         'transfer_gpa': transfer_gpa,
+        'secondary_gpa': secondary_gpa,
     }
 
 
@@ -199,15 +212,21 @@ def view_saved(request, grade_source_slug, slug):
     formset = RuleFormSet(arch.data)
 
     formset.is_valid()
-    transfer_rules, transfer_grade_points, transfer_credits = get_transfer_rules(formset)
+    transfer_rules, transfer_grade_points, transfer_credits, secondary_grade_points, secondary_credits = get_transfer_rules(formset)
     if transfer_credits > 0:
         transfer_gpa = transfer_grade_points / transfer_credits
     else:
         transfer_gpa = decimal.Decimal('0.00')
 
+    if secondary_credits > 0:
+        secondary_gpa = secondary_grade_points / secondary_credits
+    else:
+        secondary_gpa = decimal.Decimal('0.00')
+
     return {
         'grade_source': grade_source,
         'formset': formset,
         'transfer_rules': iter(transfer_rules),
-        'transfer_gpa': transfer_gpa
+        'transfer_gpa': transfer_gpa,
+        'secondary_gpa': secondary_gpa
     }
