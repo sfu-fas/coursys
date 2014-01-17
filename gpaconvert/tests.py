@@ -70,7 +70,7 @@ class DiscreteRuleTest(TestCase):
 
     def setUp(self):
         gs1 = GradeSource.objects.create(country='NZ', institution='University of Wellington')
-        self.rule = gs1.discrete_rules.create(lookup_value='medicore', transfer_value='C')
+        self.rule = gs1.discrete_rules.create(lookup_value='mediocre', transfer_value='C')
 
     def test_grade_points(self):
         """
@@ -89,6 +89,6 @@ class DiscreteRuleTest(TestCase):
 class ContinuousRuleTest(DiscreteRuleTest):
 
     def setUp(self):
-        gs1 = GradeSource.objects.create(scale='CONT', country='NZ',
-                                         institution='University of Wellington')
+        gs1 = GradeSource.objects.create(scale='CONT', country='NZ', institution='University of Wellington')
         self.rule = gs1.continuous_rules.create(lookup_lbound=50, transfer_value='C')
+
