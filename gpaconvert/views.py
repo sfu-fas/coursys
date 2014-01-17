@@ -9,7 +9,7 @@ from django.template import RequestContext, loader
 from django.forms.formsets import formset_factory
 from django.contrib import messages
 
-from courselib.auth import requires_global_role
+from courselib.auth import requires_global_role, has_role
 from dashboard.models import new_feed_token
 from log.models import LogEntry
 
@@ -116,6 +116,7 @@ def list_grade_sources(request):
     form = GradeSourceListForm(request.GET)
     country = request.GET.get('country', None)
     grade_sources = GradeSource.objects.filter(status='ACTI')
+    is_admin = has_role('GPA', request)
 
     if country:
         grade_sources = grade_sources.filter(country=country)
@@ -123,6 +124,7 @@ def list_grade_sources(request):
     return {
         'form': form,
         'grade_sources': grade_sources,
+        'is_admin': is_admin,
     }
 
 
