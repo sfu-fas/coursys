@@ -102,8 +102,6 @@ class GradeSource(models.Model):
         unique_together = (("country", "institution"),)
 
 
-# TODO Why not create an abstract base class for conv. rules, there are 2 redundant fields and many redundant class methods. [No reason: go for it]
-# TODO Do conversion rules have to apply to specific courses?  requirements.txt mentions course title as a user input field. [don't care]
 class Rule(models.Model):
     """
     Base Conversion rule for GPA Calculator.  This model is
@@ -148,7 +146,7 @@ class DiscreteRule(models.Model):
         raise NotImplementedError("It's a bad thing to delete stuff")
 
     class Meta:
-        unique_together = ("grade_source", "lookup_value")
+        unique_together = (("grade_source", "lookup_value"),)
 
 
 class ContinuousRule(models.Model):
