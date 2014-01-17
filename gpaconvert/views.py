@@ -10,6 +10,8 @@ from django.forms.formsets import formset_factory
 from django.contrib import messages
 
 from courselib.auth import requires_global_role
+from dashboard.models import new_feed_token
+from log.models import LogEntry
 
 from gpaconvert.models import GradeSource
 from gpaconvert.models import UserArchive
@@ -20,10 +22,6 @@ from gpaconvert.utils import render_to
 from gpaconvert.forms import GradeSourceForm
 from gpaconvert.forms import GradeSourceChangeForm
 from gpaconvert.forms import rule_formset_factory
-
-import random
-import hashlib
-import datetime
 
 # admin interface views
 
@@ -172,10 +170,20 @@ def convert_grades(request, grade_source_slug):
         # Save the data for later
         if request.POST.get("save_grades"):
             data = formset.data
-            salt = hashlib.sha224(str(random.random())).hexdigest()[:5]
-            key = hashlib.sha224(salt+grade_source_slug+str(datetime.datetime.now())).hexdigest()
+            key = new_feed_token()
             arch = UserArchive.objects.create(grade_source=grade_source, slug=key, data=data)
-            return HttpResponseRedirect(arch.get_absolute_url())
+            url = arch.get_absolute_url()
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("saved GPA calculation from %s %s") % (grade_source, key),
+                  related_object=arch)
+            l.save()
+            messages.add_message(request, messages.SUCCESS,
+                    'Grade conversion saved. You can share this URL if you want others to see these grades: %s'
+                    % (request.build_absolute_uri(url)))
+
+            return HttpResponseRedirect(url)
 
 
     else:
@@ -203,7 +211,7 @@ def convert_grades(request, grade_source_slug):
 
 @render_to('gpaconvert/convert_grades_form.html')
 def view_saved(request, grade_source_slug, slug):
-    arch = get_object_or_404(UserArchive, slug=slug)
+    arch = get_object_or_404(UserArchive, grade_source__slug=grade_source_slug, slug=slug)
     grade_source = arch.grade_source
     RuleForm = (grade_source.scale == 'DISC') and DiscreteGradeForm or ContinuousGradeForm
     
