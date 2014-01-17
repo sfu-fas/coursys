@@ -14,19 +14,19 @@ PERMISSION_LEVEL = {
         'FAC': 3,
         }
 
+
 class BaseEntryForm(forms.Form):
     # TODO: should this be a ModelForm for a CareerEvent? We'll have a circular import if so.
     title = forms.CharField(max_length=80, required=True)
     start_date = forms.DateField()
     end_date = forms.DateField()
-    
 
 
 class CareerEventType(object):
     # type configuration stuff: override as necessary
     is_instant = False # set to True for events that have no duration
     exclusion_category = None # if set, only one CareerEvent with this exclusion_category
-                              # can exist for a facuty member at a given time.
+                              # can exist for a faculty member at a given time.
     editable_by = 'DEPT'
     approval_by = 'FAC'
     
