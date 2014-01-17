@@ -3,7 +3,8 @@
 {% block title %}Convert Grades{% endblock %}
 
 {% block subbreadcrumbs %}
-&gt; <a href="{% url 'gpaconvert.views.list_grade_sources' %}">GPA Calculator</a> &gt; {{ grade_source }}
+<li><a href="{% url 'list_grade_sources_index' %}">GPA Calculator</a></li>
+<li>{{ grade_source }}</li>
 {% endblock %}
 
 {% block h1 %}Convert Grades{% endblock %}
