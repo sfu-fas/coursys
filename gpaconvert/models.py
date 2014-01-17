@@ -16,7 +16,6 @@ DECIMAL_ZERO = decimal.Decimal('0.00')
 DECIMAL_HUNDRED = decimal.Decimal('100.00')
 
 # SFU GPA Scale: http://www.sfu.ca/students-resources/NDforms/calc1.html
-# XXX: Only here temporarily. This should be somewhere more global as it's reusable.
 GRADE_POINTS = {
     'A+': decimal.Decimal('4.33'),
     'A': decimal.Decimal('4.00'),
@@ -75,6 +74,10 @@ class GradeSource(models.Model):
 
     objects = GradeSourceManager()
 
+    class Meta:
+        unique_together = (("country", "institution"),)
+        ordering = ('institution', 'country')
+
     def __unicode__(self):
         return "%s, %s" % (self.institution, self.country)
 
@@ -97,9 +100,6 @@ class GradeSource(models.Model):
                 rule = None
 
         return rule
-
-    class Meta:
-        unique_together = (("country", "institution"),)
 
 
 class Rule(models.Model):
@@ -133,6 +133,9 @@ class DiscreteRule(models.Model):
                                       null=False, blank=False,
                                       choices=GPA_GRADE_CHOICES)
 
+    class Meta:
+        unique_together = (("grade_source", "lookup_value"),)
+
     def __unicode__(self):
         return "%s:%s :: %s:SFU" % (self.lookup_value,
                                     self.grade_source,
@@ -145,8 +148,6 @@ class DiscreteRule(models.Model):
     def delete(self):
         raise NotImplementedError("It's a bad thing to delete stuff")
 
-    class Meta:
-        unique_together = (("grade_source", "lookup_value"),)
 
 
 class ContinuousRule(models.Model):
@@ -202,6 +203,3 @@ class UserArchive(models.Model):
 
     def get_absolute_url(self):
         return reverse("view_saved_grades", args=[self.grade_source.slug, self.slug])
-
-    def delete(self):
-        raise NotImplementedError("It's bad to delete stuff")

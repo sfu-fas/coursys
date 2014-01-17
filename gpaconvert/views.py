@@ -83,9 +83,6 @@ def change_grade_source(request, slug):
         form = GradeSourceChangeForm(request.POST, instance=grade_source)
         if form.is_valid():
             grade_source = form.save(commit=False)
-            # ---------------------------
-            # Do any post processing here
-            # ---------------------------
             grade_source.save()
             data.update({
                 "grade_source": grade_source,
@@ -130,7 +127,7 @@ def list_grade_sources(request):
     }
 
 
-def get_transfer_rules(formset):
+def _get_transfer_rules(formset):
     transfer_rules = []
     transfer_grade_points = decimal.Decimal('0.00')
     transfer_credits = decimal.Decimal('0.00')
@@ -190,7 +187,7 @@ def convert_grades(request, grade_source_slug):
             messages.add_message(request, messages.SUCCESS, message)
             return HttpResponseRedirect(url)
         else:
-            tmp = get_transfer_rules(formset)
+            tmp = _get_transfer_rules(formset)
             transfer_rules, transfer_grade_points, transfer_credits, secondary_grade_points, secondary_credits = tmp
     else:
         formset = RuleFormSet()
@@ -226,7 +223,7 @@ def view_saved(request, grade_source_slug, slug):
     formset = RuleFormSet(arch.data)
 
     formset.is_valid()
-    tmp = get_transfer_rules(formset)
+    tmp = _get_transfer_rules(formset)
     transfer_rules, transfer_grade_points, transfer_credits, secondary_grade_points, secondary_credits = tmp
 
     if transfer_credits > 0:

@@ -12,8 +12,21 @@ from gpaconvert.models import GradeSource
 
 
 class GradeSourceListForm(forms.Form):
-    country_choices = (('', '--------'),) + COUNTRIES
+    country_choices = (('', 'All Countries'),) + COUNTRIES
     country = forms.ChoiceField(choices=country_choices, required=False)
+
+    def __init__(self, *args, **kwargs):
+        f = super(GradeSourceListForm, self).__init__(*args, **kwargs)
+
+        # limit country choices to those with some data
+        used_countries = set(GradeSource.objects.active().order_by().values_list('country', flat=True).distinct())
+        used_countries.add('') # the all-countries option
+        choices = self.fields['country'].choices
+        choices = [(k,v) for k,v in choices if k in used_countries]
+        self.fields['country'].choices = choices
+
+        return f
+
 
 
 class GradeSourceForm(ModelForm):
