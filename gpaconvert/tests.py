@@ -1,10 +1,8 @@
-import decimal
-
 from django.db import IntegrityError
 from django.test import TestCase
 
+from gpaconvert.models import GRADE_POINTS
 from gpaconvert.models import GradeSource
-from gpaconvert.models import DiscreteRule
 
 
 class GradeSourceTest(TestCase):
@@ -69,22 +67,28 @@ class GradeSourceTest(TestCase):
 
 
 class DiscreteRuleTest(TestCase):
+
     def setUp(self):
-        self.gs1 = GradeSource.objects.create(country='NZ', institution='University of Wellington')
+        gs1 = GradeSource.objects.create(country='NZ', institution='University of Wellington')
+        self.rule = gs1.discrete_rules.create(lookup_value='medicore', transfer_value='C')
 
-    def not_a_test_bad_transfer_value_decimal(self):
+    def test_grade_points(self):
         """
-        Tests bad decimal value 1000.44 for 'transfer_value' field.
+        Tests that the grade_points property returns the correct grade points.
         """
-        with self.assertRaises(decimal.InvalidOperation):
-            dr = DiscreteRule.objects.create(grade_source=self.gs1,
-                                             lookup_value="Penguin",
-                                             transfer_value='asdfasdf')
+        self.assertEqual(self.rule.grade_points, GRADE_POINTS['C'])
 
-    def test_good_transfer_value_decimal(self):
+    def test_delete(self):
         """
-        Tests decimal value 4.33 for 'transfer_value' field.
+        Tests that you are unable to delete a rule.
         """
-        dr = DiscreteRule.objects.create(grade_source=self.gs1,
-                                         lookup_value="Penguin",
-                                         transfer_value=decimal.Decimal("4.33"))
+        with self.assertRaises(NotImplementedError):
+            self.rule.delete()
+
+
+class ContinuousRuleTest(DiscreteRuleTest):
+
+    def setUp(self):
+        gs1 = GradeSource.objects.create(scale='CONT', country='NZ',
+                                         institution='University of Wellington')
+        self.rule = gs1.continuous_rules.create(lookup_lbound=50, transfer_value='C')
