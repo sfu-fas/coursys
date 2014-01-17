@@ -141,8 +141,8 @@ def get_transfer_rules(formset):
             transfer_grade_points += credits * transfer_rules[-1].grade_points
             transfer_credits += credits
             if form.cleaned_data['include_secondary_gpa']:
-                secondary_grade_points = credits * transfer_rules[-1].grade_points
-                secondary_credits = credits
+                secondary_grade_points += credits * transfer_rules[-1].grade_points
+                secondary_credits += credits
         else:
             transfer_rules.append(None)
     return transfer_rules, transfer_grade_points, transfer_credits, secondary_grade_points, secondary_credits
@@ -193,12 +193,12 @@ def convert_grades(request, grade_source_slug):
     if transfer_credits > 0:
         transfer_gpa = transfer_grade_points / transfer_credits
     else:
-        transfer_gpa = decimal.Decimal('0.00')
+        transfer_gpa = None
     
     if secondary_credits > 0:
         secondary_gpa = secondary_grade_points / secondary_credits
     else:
-        secondary_gpa = decimal.Decimal('0.00')
+        secondary_gpa = None
 
     return {
         'grade_source': grade_source,
@@ -224,12 +224,12 @@ def view_saved(request, grade_source_slug, slug):
     if transfer_credits > 0:
         transfer_gpa = transfer_grade_points / transfer_credits
     else:
-        transfer_gpa = decimal.Decimal('0.00')
+        transfer_gpa = None
 
     if secondary_credits > 0:
         secondary_gpa = secondary_grade_points / secondary_credits
     else:
-        secondary_gpa = decimal.Decimal('0.00')
+        secondary_gpa = None
 
     return {
         'grade_source': grade_source,

@@ -44,19 +44,19 @@
       </tbody>
     </table>
     <input type="submit" value="Convert" />
-{% if transfer_gpa %}
+{% if transfer_gpa >= 0 %}
 <div class="table_container">
   <table class="info">
     <thead>
       <th>SFU GPA</th>
-      {% if secondary_gpa %}
+      {% if secondary_gpa >= 0 %}
       <th>Secondary GPA</th>
       {% endif %}
     </thead>
     <tbody>
       <tr>
         <td>{{ transfer_gpa|floatformat:2 }}</td>
-        {% if secondary_gpa %}
+        {% if secondary_gpa >= 0 %}
         <td>{{ secondary_gpa|floatformat:2 }}</td>
         {% endif %}
       </tr>
