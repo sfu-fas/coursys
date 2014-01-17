@@ -27,9 +27,11 @@
       <tbody>
         {% for form in formset %}
         <tr>
-          <!-- TODO: Show error messages -->
           {% for field in form %}
-          <td>{{ field }}</td>
+          <td>
+            {{ field }}
+            {{ field.errors }}
+          </td>
           {% endfor %}
           {% with transfer_rule=transfer_rules.next %}
           <td>{{ transfer_rule.transfer_value }}</td>

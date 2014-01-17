@@ -171,7 +171,8 @@ def convert_grades(request, grade_source_slug):
 
     if request.POST:
         formset = RuleFormSet(request.POST)
-        formset.is_valid()
+        if not formset.is_valid():
+            messages.error(request, "Please correct the error below")
 
         # Save the data for later
         if request.POST.get("save_grades"):
