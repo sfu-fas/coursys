@@ -135,7 +135,7 @@ def get_transfer_rules(formset):
     # XXX: Not able to use form.is_valid() here because formset.is_valid() seems to cause
     #      that to return True for all forms.
     for form in formset:
-        if 'rule' in form.cleaned_data:
+        if 'rule' and 'credits' in form.cleaned_data:
             transfer_rules.append(form.cleaned_data['rule'])
             credits = form.cleaned_data['credits']
             transfer_grade_points += credits * transfer_rules[-1].grade_points
