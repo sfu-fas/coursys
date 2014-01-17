@@ -27,6 +27,11 @@ class CareerEventType(object):
     is_instant = False # set to True for events that have no duration
     exclusion_category = None # if set, only one CareerEvent with this exclusion_category
                               # can exist for a faculty member at a given time.
+    date_bias = 'DATE' # or 'SEM': which interface widget should be presented to default in the form?
+    affects_teaching = False # events of this type might affect teaching credits/load
+    affects_salary = False   # events of this type might affect salary/pay
+
+    viewable_by = 'MEMB'
     editable_by = 'DEPT'
     approval_by = 'FAC'
     
@@ -70,13 +75,20 @@ class CareerEventType(object):
         permission = self.permission(editor)
         return PERMISSION_LEVEL[permission] >= PERMISSION_LEVEL[perm]
 
+    def can_view(self, editor):
+        """
+        Can the given user (a coredata.Person) can view the
+        CareerEventType for this faculty member?
+        """
+        return self.has_permission(self.viewable_by, editor)
+            
     def can_edit(self, editor):
         """
         Can the given editor (a coredata.Person) can create/edit this
         CareerEventType for this faculty member?
         """
         return self.has_permission(self.editable_by, editor)
-            
+
     def can_approve(self, editor):
         """
         Can the given editor (a coredata.Person) can approve this
@@ -116,3 +128,14 @@ class CareerEventType(object):
         # TODO: can we be general enough here to actually have common logic here?
         raise NotImplementedError
 
+    def short_summary(self):
+        """
+        A short-line text-only summary of the event for summary displays
+        """
+        raise NotImplementedError
+
+    def to_html(self):
+        """
+        A detailed HTML presentation of this event
+        """
+        raise NotImplementedError
