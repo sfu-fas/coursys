@@ -4,8 +4,8 @@
 {% block h1 %}Edit Artifact Note for {{ related }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li>&gt; <a href="
+<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="
 {% if course %}
 {% url "advisornotes.views.view_course_notes" unit_course_slug=related.slug %}">Courses
 {% endif %}
@@ -17,7 +17,7 @@
 {% endif %}
 </a>
 </li>
-<li>&gt; 
+<li>
 {{ spaceless }}
 <a href="
 {% if course %}
@@ -32,7 +32,7 @@
 ">{{ related }}
 {{ endspaceless }}
 </a></li>
-<li>&gt; Edit Artifact Note</li>
+<li>Edit Artifact Note</li>
 {% endblock %}
 
 {% block headextra %}
@@ -120,7 +120,7 @@ $(function() {
     </dt>
     <dd>
         <div class="field">
-            <p><img class="attachment-icon" src="{{MEDIA_URL}}icons/attach.png" alt="download" />
+            <p><img class="attachment-icon" src="{{STATIC_URL}}icons/attach.png" alt="download" />
                 <a href="{% url "advisornotes.views.download_artifact_file" note_id=note.id%}">{{ note.attachment_filename }}</a>
                 ({{ note.file_attachment.size|filesizeformat }})
             </p> 

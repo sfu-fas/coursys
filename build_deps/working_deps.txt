@@ -25,4 +25,4 @@ django-datatables-view==1.7
 django-bitfield==1.6.4
 django-localflavor==1.0
 django-countries>=1.5
-
+django-compressor==1.3

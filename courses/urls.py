@@ -463,10 +463,12 @@ urlpatterns += patterns('',
 
 if not settings.DEPLOYED:
     # URLs for development only:
+    from django.conf.urls.static import static
     urlpatterns += patterns('',
         url(r'^fake_login', 'dashboard.views.fake_login'),
         url(r'^fake_logout', 'dashboard.views.fake_logout'),
         #(r'^admin/(.*)', admin.site.root),
-        (r'^media/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': settings.MEDIA_ROOT}),
+        #(r'^static/(?P<path>.*)$', 'django.views.static.serve',
+        #    {'document_root': settings.STATIC_ROOT}),
     )
+

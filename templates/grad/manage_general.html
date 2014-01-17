@@ -6,9 +6,9 @@
 {% block h1 %}{{grad.person.name}}: General Info{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
-<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; General Info</li>
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>General Info</li>
 {% endblock %}
 
 {% block actions %}

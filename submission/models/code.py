@@ -5,7 +5,7 @@ from django import forms
 from django.http import HttpResponse
 from os.path import splitext
 from django.conf import settings
-MEDIA_URL = settings.MEDIA_URL
+STATIC_URL = settings.STATIC_URL
 from django.template import Context, Template
 
 
@@ -89,7 +89,7 @@ FIELD_TEMPLATE = Template('''<li>
                     {{ field.label_tag }}
                     <div class="inputfield">
                         {{ field }}
-			{% if field.errors %}<div class="errortext"><img src="'''+ MEDIA_URL+'''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>{% endif %}
+			{% if field.errors %}<div class="errortext"><img src="'''+ STATIC_URL+'''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>{% endif %}
 			<div class="helptext">{{field.help_text}}</div>
                     </div>
                 </li>''')

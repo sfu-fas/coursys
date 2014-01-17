@@ -22,7 +22,7 @@
 
 //]]></script>{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>&gt; Manage TAs</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Manage TAs</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -55,7 +55,7 @@
 <div class="form_container">
     {% if form.non_field_errors %}
     <div class="errorindicator">
-        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
         {{ form.non_field_errors }}
     </div>
     {% endif %}

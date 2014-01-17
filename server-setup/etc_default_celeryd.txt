@@ -13,8 +13,13 @@ CELERYD_CHDIR="/home/coursys/courses"
 
 # Extra command-line arguments to the worker
 BEAT_OPTS="-B:worker --schedule=/var/run/celery/celerybeat.schedule" # options for celerybeat
-WORKER_OPTS="-Q:worker fast,batch,email -Q:fastworker fast --concurrency=4" # options for workers
-CELERYD_OPTS="$BEAT_OPTS $WORKER_OPTS --loglevel=WARN --time-limit=300" # actual command line options
+WORKER_OPTS="-Q:fastworker fast -E" # options for workers. worker handles all queues by default
+CELERYD_OPTS="$BEAT_OPTS $WORKER_OPTS --loglevel=INFO" # actual command line options
+
+CELERYD_MAX_TASKS_PER_CHILD=100
+CELERYD_CONCURRENCY=4
+CELERYD_TASK_TIME_LIMIT=300
+#CELERYBEAT_SCHEDULE_FILENAME=/var/run/celery/celerybeat.schedule
 
 # %N will be replaced with the first part of the nodename.
 CELERYD_LOG_FILE="/var/log/celery/%N.log"

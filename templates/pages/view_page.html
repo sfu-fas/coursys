@@ -2,11 +2,11 @@
 
 {% block title %}{{version.title}}{% endblock %}
 {% block h1 %}{{version.title}}{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li>&gt; <a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>&gt; Previous Version</li>{% else %}<li>&gt; {{page.label}}</li>{% endif %}{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>Pages</li>{% else %}<li><a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Previous Version</li>{% else %}<li>{{page.label}}</li>{% endif %}{% endif %}{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
-<link rel="stylesheet" href="{{MEDIA_URL}}style/pages.css" media="all" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/print.css" media="print" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/pages.css" media="all" />
 {% if version.math %}
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
@@ -17,12 +17,12 @@ MathJax.Hub.Config({
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 {% endif %}
 {% if version.syntax %}
-<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/shCore.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
 {% for b in version.brushes %}
-<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/{{b}}"></script>
+<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/{{b}}"></script>
 {% endfor %}
-<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
-<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
+<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
+<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
 <script type="text/javascript">
   SyntaxHighlighter.defaults['light'] = true;
   SyntaxHighlighter.all()

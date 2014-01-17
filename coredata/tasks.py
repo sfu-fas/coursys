@@ -19,7 +19,7 @@ def ping():
 @task(rate_limit='60/m')
 def slow_task():
     #time.sleep(5)
-    #print "HELLO SLOW TASK"
+    print "HELLO SLOW TASK"
     return True
 
 #@periodic_task(run_every=crontab())

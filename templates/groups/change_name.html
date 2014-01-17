@@ -3,7 +3,7 @@
 {% block title %}Rename group "{{group.name}}"{% endblock %}
 {% block h1 %}Rename group "{{group.name}}"{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>&gt; {{group.name}} </li><li>&gt; Change Name</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>{{group.name}} </li><li>Change Name</li>{% endblock %}
 
 {% block content %}
 <form action="{% url "groups.views.change_name" course_slug=course.slug group_slug=group.slug  %}" method="post">{% csrf_token %}

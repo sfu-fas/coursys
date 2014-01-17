@@ -4,7 +4,7 @@
 {% block h1 %}TA Postings: {{posting}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li>&gt; {{posting.short_str}}</li>
+<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li><li>{{posting.short_str}}</li>
 {% endblock %}
 
 {% block actions %}

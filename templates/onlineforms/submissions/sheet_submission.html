@@ -4,16 +4,16 @@
 {% block title %} {{ owner_form.title }}  [{{sheet.form.unit.informal_name}}] {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li>&gt; {{ sheet.title }} [{{sheet.form.unit.label}}]</li>
+    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+    <li>{{ sheet.title }} [{{sheet.form.unit.label}}]</li>
 {% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
-  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'both'});
 });
