@@ -4,7 +4,7 @@
 {% block title %}Configure Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Configure Submission for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Submission Components</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Submission Components</li>{% endblock %}
 
 {% block content %}
 <a class="button" href="{% url "submission.views.add_component" course_slug=course.slug activity_slug=activity.slug %}" id="edit_submission_component_add_button">Add Component</a>

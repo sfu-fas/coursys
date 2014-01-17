@@ -26,7 +26,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Class List</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Class List</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}

@@ -3,7 +3,7 @@
 {% block title %}Information About {{student.name}}{% endblock %}
 {% block h1 %}Information About {{student.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "dashboard.views.student_info" %}">Student Search</a></li><li>&gt; {{student.name}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "dashboard.views.student_info" %}">Student Search</a></li><li>{{student.name}}</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}

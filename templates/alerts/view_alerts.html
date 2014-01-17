@@ -18,8 +18,8 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
-<li>&gt; {{alert_type.code}}</li>
+<li><a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
+<li>{{alert_type.code}}</li>
 {% endblock %}
 
 {% block actions %}

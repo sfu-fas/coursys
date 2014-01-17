@@ -3,7 +3,7 @@
 {% block title %}Remove Student from {{group.name}}{% endblock %}
 {% block h1 %}Remove Student from {{group.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>&gt; {{group.name}} </li><li>&gt; Remove members</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>{{group.name}} </li><li>Remove members</li>{% endblock %}
 
 {% block content %}
 {% if is_staff %}{% else %}<p>Please be careful with this form: it can be difficult to re-add students to groups.</p>{% endif %}

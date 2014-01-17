@@ -9,11 +9,11 @@ Choose the type of activity.
 {% endblock %}
 
 {% block grades_headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
-    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
     $('div.collapsible').collapsible();
@@ -23,7 +23,7 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Type of activity</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Type of activity</li>{% endblock %}
 
 
 {% block content %}

@@ -5,9 +5,9 @@
 {% block h1 %}TA Contracts for {{ posting }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
-<li>&gt; <a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
-<li>&gt; Contracts</li>
+<li><a href="{% url "ta.views.view_postings" %}">TA Postings</a></li>
+<li><a href="{% url "ta.views.posting_admin" post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>Contracts</li>
 {% endblock %}
 
 {% block headextra %}

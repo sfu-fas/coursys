@@ -5,9 +5,9 @@
 {% block h1 %}{{grad.person.name}}: Requirements{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li>
-<li>&gt; <a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; Requirements</li>
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>Requirements</li>
 {% endblock %}
 
 {% block content %}

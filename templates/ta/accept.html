@@ -2,7 +2,7 @@
 {% load form_display course_display%}
 
 {% block subbreadcrumbs %}
-<li>&gt; {{ contract.application.person.first_name }}'s Contract Offer</li>
+<li>{{ contract.application.person.first_name }}'s Contract Offer</li>
 {% endblock %}
 
 {% block title %}Contract Offer for {{ contract.application.person }}{% endblock %}

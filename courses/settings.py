@@ -48,9 +48,9 @@ USE_TZ = False
 LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True
-MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
+MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploads')
 MEDIA_URL = '/media/'
-ADMIN_MEDIA_PREFIX = '/adminmedia/'
+#ADMIN_MEDIA_PREFIX = '/adminmedia/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'w@h_buddoh5**%79%0x&7h0ro2tol+-7vz=p*kn_g+0qcw8krr'
@@ -83,6 +83,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
     "django.core.context_processors.media",
     "django.contrib.messages.context_processors.messages",
     'django.core.context_processors.request',
+    'django.core.context_processors.static',
     'dashboard.context.media',
     )
 
@@ -102,7 +103,10 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     #'django.contrib.markup',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'south',
+    'compressor',
+
     'coredata',
     'dashboard',
     'grad',
@@ -137,6 +141,19 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(PROJECT_DIR, 'media')
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+COMPRESS_ENABLED = not DEBUG
+#COMPRESS_ENABLED = True
+COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
+COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
+
 
 if DEPLOYED:
     MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES

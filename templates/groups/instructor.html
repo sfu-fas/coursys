@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<link rel="stylesheet" href="{{STATIC_URL}}style/print.css" media="print" />
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 
@@ -17,7 +17,7 @@ $(document).ready(function() {
 {% block title %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 {% block h1 %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li>&gt; <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>&gt; for {{activity.name}}</li>{% else %}<li>&gt; Groups</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>for {{activity.name}}</li>{% else %}<li>Groups</li>{% endif %}{% endblock %}
 
 {% block content %}
 {% if not activity %}
