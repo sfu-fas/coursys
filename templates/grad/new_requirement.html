@@ -10,8 +10,8 @@
 <div class="form_container">
     <form action="{% url "grad.views.new_requirement" %}" method="post">{% csrf_token %}
     	<fieldset>
-			<legend>Requiremnt Info</legend>
-              {{ form|as_dl_2 }}
+			<legend>Requirment Info</legend>
+              {{ form|as_dl }}
         <p><input  class="submit"  type="submit" value="Submit" /></p>
         </fieldset>
     </form>	
