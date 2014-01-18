@@ -45,12 +45,12 @@ class GradeSource(models.Model):
     have the same name.
     """
     SCALE_CHOICES = (
-        ('DISC', 'DISCRETE'),
-        ('CONT', 'CONTINUOUS'),
+        ('DISC', 'Discrete: fixed set of allowed grades'),
+        ('CONT', 'Continuous: numeric grade range'),
     )
     STATUS_CHOICES = (
-        ('ACTI', 'ACTIVE'),
-        ('DISA', 'DISABLED'),
+        ('ACTI', 'Active'),
+        ('DISA', 'Disabled: invisible to students'),
     )
     country = CountryField()
     institution = models.CharField(max_length=128, verbose_name="Institution/Scale Name")
@@ -145,9 +145,6 @@ class DiscreteRule(models.Model):
     def grade_points(self):
         return GRADE_POINTS[self.transfer_value]
 
-    def delete(self):
-        raise NotImplementedError("It's a bad thing to delete stuff")
-
 
 
 class ContinuousRule(models.Model):
@@ -176,10 +173,6 @@ class ContinuousRule(models.Model):
     @property
     def grade_points(self):
         return GRADE_POINTS[self.transfer_value]
-
-    # TODO should conversion rules have a mute/unmute flag instead of delete?  Delete method causes issues for formsets.
-    def delete(self):
-        raise NotImplementedError("It's a bad thing to delete stuff")
 
     class Meta:
         unique_together = (("grade_source", "lookup_lbound"),)

@@ -53,19 +53,20 @@ class ContinuousRuleForm(ModelForm):
 
 def rule_formset_factory(grade_source, reqpost=None):
     if grade_source.scale == 'DISC':
-        DiscreteRuleFormSet = inlineformset_factory(GradeSource, DiscreteRule, can_delete=False)
+        DiscreteRuleFormSet = inlineformset_factory(GradeSource, DiscreteRule, can_delete=True)
         formset = DiscreteRuleFormSet(reqpost, instance=grade_source)
     else:
-        ContinuousRuleFormSet = inlineformset_factory(GradeSource, ContinuousRule, can_delete=False)
+        ContinuousRuleFormSet = inlineformset_factory(GradeSource, ContinuousRule, can_delete=True)
         formset = ContinuousRuleFormSet(reqpost, instance=grade_source)
 
     return formset
 
 
 class BaseGradeForm(forms.Form):
-    name = forms.CharField()
+    name = forms.CharField(required=False)
     credits = forms.DecimalField(max_digits=5, decimal_places=2,
-                                 validators=[MinValueValidator(0)])
+                                 validators=[MinValueValidator(0)],
+                                 widget=forms.NumberInput(attrs={'size': 3}))
     include_secondary_gpa = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):

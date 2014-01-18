@@ -38,7 +38,7 @@ GPA_GRADE_CHOICES = [
     ('C', 'C (Satisfactory performance)'),
     ('C-', 'C- (Marginal performance)'),
     ('D', 'D (Marginal performance)'),
-    ('F', 'F (Fail (Unsatisfactory performance))'),
+    ('F', 'F (Fail. Unsatisfactory Performance)'),
     ]
 
 NON_GPA_GRADE_CHOICES = [

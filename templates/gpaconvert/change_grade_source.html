@@ -31,27 +31,11 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#gradesourcetable').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[1, "desc"], [0, "asc"]],
-    "bJQueryUI": true,
-  } );
 } );
 </script>
 
 {% endblock %}
 
-{% block actions %}
-<div id="actions">
-    <h2>Actions</h2>
-    <ul>
-        <li><a href="{% url 'new_grade_source' %}">New Grade Source</a></li>
-        <li><a href="{% url 'grade_source_index' %}">Return to Grade Sources</a></li> 
-        
-    </ul>
-</div>
-{% endblock %}
 
 {%block content%}
 <div class="form_container">
@@ -61,24 +45,20 @@ $(document).ready(function() {
         <legend>Grade Source</legend>
         {{ grade_source_form|as_dl }}
         </fieldset>
-        <fieldset>
-        <legend>{{ grade_source.get_scale_display|lower|capfirst }} Conversion Rules</legend>
-        {{ rule_formset.management_form }}
 
-        <div class="datatable_container">
-        <table id="gradesourcetable" class="info">
+        <fieldset>
+        <legend>Conversion Rules</legend>
+        {{ rule_formset.management_form }}
+        <table id="gradesourcetable">
             <tbody>
+            <tr>
+                <th scope="col">{% if grade_source.scale == 'CONT' %}{{ "Minimum Source Grade"|required_label }}{% else %}{{ "Source Grade"|required_label }}{% endif %}</th>
+                <th scope="col">{{ "SFU equivalent"|required_label }}</th>
+                <th scope="col">Delete?</th>
+            </tr>
         {% for form in rule_formset %}
         <tr>
             {% for field in form.visible_fields %}
-            <td class="{{ field.html_name }}">
-                <label for="{{ field.auto_id }}">
-                    {{ field.label }}:
-                    {% if field.field.required %}
-                        <span class="required">*</span>
-                    {% endif %}
-                </label>
-            </td>
             <td>
                 <div class="field">
                     {{ field }}
@@ -95,7 +75,6 @@ $(document).ready(function() {
         {% endfor %}
             </tbody>
         </table>
-        </div>
 
         <p><input type="submit" class="submit" value="Submit" /></p>
         </fieldset>

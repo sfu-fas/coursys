@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load form_display %}
 
 {% block title %}Convert Grades{% endblock %}
 
@@ -14,15 +15,15 @@
   <form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
     {% csrf_token %}
     {{ formset.management_form }}
-    <table class="info">
+    <table>
       <thead>
         <tr>
-          <th class="ui-state-default">Course Name*</th>
-          <th class="ui-state-default">Credits*</th>
-          <th class="ui-state-default">2nd GPA</th>
-          <th class="ui-state-default">Your Grade*</th>
-          <th class="ui-state-default">SFU Grade</th>
-          <th class="ui-state-default">SFU Grade Points</th>
+          <th>Course Name</th>
+          <th>{{ "Credits"|required_label }}</th>
+          <th>2nd GPA</th>
+          <th>{{ "Your Grade"|required_label }}</th>
+          <th>SFU Grade</th>
+          <th>SFU Grade Points</th>
         </tr>
       </thead>
       <tbody>
