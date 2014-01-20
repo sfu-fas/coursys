@@ -85,24 +85,6 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'LetterGrade', fields ['activity', 'member']
         db.create_unique('grades_lettergrade', ['activity_id', 'member_id'])
 
-        # Adding model 'GradeHistory'
-        db.create_table('grades_gradehistory', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('activity', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['grades.Activity'])),
-            ('member', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Member'])),
-            ('entered_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
-            ('activity_status', self.gf('django.db.models.fields.CharField')(max_length=4)),
-            ('numeric_grade', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=8, decimal_places=2)),
-            ('letter_grade', self.gf('django.db.models.fields.CharField')(max_length=2)),
-            ('grade_flag', self.gf('django.db.models.fields.CharField')(max_length=4)),
-            ('comment', self.gf('django.db.models.fields.TextField')(null=True)),
-            ('mark', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityMark'], null=True)),
-            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['groups.Group'], null=True)),
-            ('status_change', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('timestamp', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('grades', ['GradeHistory'])
-
 
     def backwards(self, orm):
         # Removing unique constraint on 'LetterGrade', fields ['activity', 'member']
@@ -134,9 +116,6 @@ class Migration(SchemaMigration):
 
         # Deleting model 'LetterGrade'
         db.delete_table('grades_lettergrade')
-
-        # Deleting model 'GradeHistory'
-        db.delete_table('grades_gradehistory')
 
 
     models = {
@@ -242,22 +221,6 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "['deleted', 'position']", 'object_name': 'CalNumericActivity', '_ormbases': ['grades.NumericActivity']},
             'formula': ('django.db.models.fields.TextField', [], {'default': "'[[activitytotal]]'"}),
             'numericactivity_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['grades.NumericActivity']", 'unique': 'True', 'primary_key': 'True'})
-        },
-        'grades.gradehistory': {
-            'Meta': {'ordering': "['-timestamp']", 'object_name': 'GradeHistory'},
-            'activity': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['grades.Activity']"}),
-            'activity_status': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
-            'comment': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'entered_by': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']"}),
-            'grade_flag': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
-            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['groups.Group']", 'null': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'letter_grade': ('django.db.models.fields.CharField', [], {'max_length': '2'}),
-            'mark': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['marking.ActivityMark']", 'null': 'True'}),
-            'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
-            'numeric_grade': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '8', 'decimal_places': '2'}),
-            'status_change': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'timestamp': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
         },
         'grades.letteractivity': {
             'Meta': {'ordering': "['deleted', 'position']", 'object_name': 'LetterActivity', '_ormbases': ['grades.Activity']},
