@@ -1,8 +1,10 @@
 from django.db import models
 
-from event_types.career import AppointmentEventType
-EVENT_TYPES = {
+from event_types.career import AppointmentEventType, SalaryBaseEventType
+
+EVENT_TYPES = { # dictionary of CareerEvent.event_type value -> CareerEventType class
         'APPOINT': AppointmentEventType,
+        'SALARY': SalaryBaseEventType,
         }
 
 class CareerEvent(models.Model):
@@ -13,3 +15,26 @@ class CareerEvent(models.Model):
 
         res = super(CareerEvent, self).save(*args, **kwargs)
         return res
+
+
+class DocumentAttachment(models.Model):
+    """
+    Document attached to a CareerEvent.
+    """
+    pass
+
+
+class MemoTemplate(models.Model):
+    """
+    A template for memos.
+    """
+    pass
+
+
+class Memo(models.Model):
+    """
+    A memo created by the system, and attached to a CareerEvent.
+    """
+    pass
+
+

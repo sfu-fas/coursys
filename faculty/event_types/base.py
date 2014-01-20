@@ -38,11 +38,22 @@ class CareerEventType(object):
     
     # basic functionality: hopefully don't have to override
     
-    def __init__(self, faculty):
+    def __init__(self, faculty=None, event=None):
         """
         faculty: a coredata.Person representing the faculty member in question.
+        event: the CareerEvent we're manipulating, if it exists.
         """
-        self.faculty = faculty
+        self.event = event
+        if event and faculty:
+            assert event.person == faculty
+
+        if faculty:
+            self.faculty = faculty
+        elif event and event.person:
+            self.faculty = event.person
+        else:
+            raise ValueError, "A CareerEventType must know which faculty member it's dealing with."
+
 
     def permission(self, editor):
         """
@@ -99,7 +110,7 @@ class CareerEventType(object):
 
     # maybe override? Hopefully we can avoid and use this as-is.
 
-    def get_entry_form(self, event=None):
+    def get_entry_form(self):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
@@ -137,5 +148,24 @@ class CareerEventType(object):
     def to_html(self):
         """
         A detailed HTML presentation of this event
+        """
+        raise NotImplementedError
+
+
+    def get_salary(self, prev_salary):
+        """
+        Calculate salary with this CareerEvent taken into account: salary was prev_salary argument, and this
+        returns the salary after this event has happened.
+
+        Must be implemented iff self.affects_salary.
+        """
+        raise NotImplementedError
+
+    def get_teaching_balance(self, prev_teaching):
+        """
+        Calculate number of courses that must be taught with this CareerEvent taken into account: courses required
+        was prev_teaching argument, and this returns the balance after this event has happened.
+
+        Must be implemented iff self.affects_teaching.
         """
         raise NotImplementedError

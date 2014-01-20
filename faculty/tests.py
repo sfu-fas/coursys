@@ -4,6 +4,8 @@ from coredata.models import Person, Unit, Role
 from faculty.models import EVENT_TYPES
 from event_types.career import AppointmentEventType
 
+import decimal
+
 class EventTypesTest(TestCase):
     fixtures = ['faculty-test.json']
 
@@ -38,11 +40,35 @@ class EventTypesTest(TestCase):
         """
         fac_member = Person.objects.get(userid='ggbaker')
         for EType in EVENT_TYPES.values():
-            event_type = EType(fac_member)
+            try:
+                event_type = EType(faculty=fac_member)
+
+                # test salary/teaching calculation sanity
+                if event_type.affects_teaching:
+                    # if this affects teaching, get_teaching_balance must be implemented
+                    b = event_type.get_teaching_balance(4)
+                    self.assertIsInstance(b, decimal.Decimal)
+                else:
+                    # if not, it can't expect it do be called.
+                    with self.assertRaises(NotImplementedError):
+                        event_type.get_teaching_balance(4)
+
+                if event_type.affects_salary:
+                    # if this affects teaching, get_salary must be implemented
+                    s = event_type.get_salary(100000)
+                    self.assertIsInstance(s, decimal.Decimal)
+                else:
+                    # if not, it can't expect it do be called.
+                    with self.assertRaises(NotImplementedError):
+                        event_type.get_salary(4)
+
+
+                # test form creation
+                form = event_type.get_entry_form()
             
-            # test form creation
-            form = event_type.get_entry_form()
-            
-            #print form
-            #car_event = event_type.to_career_event(form)
+                #print form
+                #car_event = event_type.to_career_event(form)
+            except:
+                print "raising with event type %s" % (EType)
+                raise
             

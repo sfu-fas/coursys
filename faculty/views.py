@@ -6,6 +6,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
+
 def _get_faculty_role_or_404(allowed_units, unit_slug, userid_or_emplid):
     """
     Get the Role[role=~"faculty"] if we're allowed to see it, or raise Http404.
@@ -16,6 +17,8 @@ def _get_faculty_role_or_404(allowed_units, unit_slug, userid_or_emplid):
     return role
 
 
+###############################################################################
+# Top-level views (management, etc. Not specific to a faculty member)
 
 @requires_role('ADMN')
 def index(request):
@@ -29,8 +32,14 @@ def index(request):
 
 
 
+###############################################################################
+# Display/summary views for a faculty member
+
 @requires_role('ADMN')
 def summary(request, unit_slug, userid):
+    """
+    Summary page for a faculty member.
+    """
     role = _get_faculty_role_or_404(request.units, unit_slug, userid)
     context = {
         'role': role,
@@ -63,4 +72,16 @@ def otherinfo(request, unit_slug, userid):
         'ras': ras,
     }
     return render(request, 'faculty/otherinfo.html', context)
+
+
+
+###############################################################################
+# Creation and editing of CareerEvents
+
+
+
+###############################################################################
+# Management of DocumentAttachments and Memos
+
+
 

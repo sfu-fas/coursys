@@ -24,6 +24,9 @@ LEAVING_CHOICES = [
 
 
 class AppointmentEventType(CareerEventType):
+    """
+    The big career event: from hiring to leaving the position.
+    """
     class EntryForm(BaseEntryForm):
         spousal_hire = forms.BooleanField(initial=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
@@ -36,3 +39,25 @@ class AppointmentEventType(CareerEventType):
         event.config['spousal_hire'] = form.cleaned_data['spousal_hire']
         event.config['leaving_reason'] = form.cleaned_data['leaving_reason']
         return event
+
+
+class SalaryBaseEventType(CareerEventType):
+    """
+    An annual salary update
+    """
+    affects_salary = True
+    class EntryForm(BaseEntryForm):
+        step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
+        base_salary = forms.DecimalField(max_digits=8, decimal_places=2, help_text="Base annual salary for this rank + step.")
+
+    def default_title(self):
+        return 'Base Salary'
+
+    def to_career_event(self, form):
+        event = super(AppointmentEventType, self).__init__(form)
+        event.config['step'] = form.cleaned_data['step']
+        event.config['base_salary'] = form.cleaned_data['base_salary']
+        return event
+
+    def get_salary(self, prev_salary):
+        return self.event.base_salary
