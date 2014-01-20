@@ -7,6 +7,11 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("grades", "0001_initial"),
+        ("groups", "0001_initial"),
+    )
+
     def forwards(self, orm):
         # Adding model 'ActivityComponent'
         db.create_table('marking_activitycomponent', (
