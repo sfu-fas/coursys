@@ -27,7 +27,7 @@
 <ul>
   {% for grade_source in grade_sources %}
   <li>
-    <a href="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}">{{ grade_source }}</a>
+    <a href="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}">{{ grade_source.country }}, {{ grade_source.institution }}</a>
   </li>
   {% empty %}
   <div>No Sources for selected country</div>

@@ -53,10 +53,10 @@ class ContinuousRuleForm(ModelForm):
 
 def rule_formset_factory(grade_source, reqpost=None):
     if grade_source.scale == 'DISC':
-        DiscreteRuleFormSet = inlineformset_factory(GradeSource, DiscreteRule, can_delete=True)
+        DiscreteRuleFormSet = inlineformset_factory(GradeSource, DiscreteRule, can_delete=True, extra=10)
         formset = DiscreteRuleFormSet(reqpost, instance=grade_source)
     else:
-        ContinuousRuleFormSet = inlineformset_factory(GradeSource, ContinuousRule, can_delete=True)
+        ContinuousRuleFormSet = inlineformset_factory(GradeSource, ContinuousRule, can_delete=True, extra=10)
         formset = ContinuousRuleFormSet(reqpost, instance=grade_source)
 
     return formset
@@ -95,8 +95,9 @@ class DiscreteGradeForm(BaseGradeForm):
     grade = forms.ChoiceField()
 
     def initialize(self, grade_source):
-        values = grade_source.discrete_rules.values_list('lookup_value', flat=True)
-        self.fields['grade'].choices = [('', '----')] + zip(values, values)
+        values = grade_source.all_discrete_grades()
+        values = [v.lookup_value for v in values]
+        self.fields['grade'].choices = [('', u'\u2014')] + zip(values, values)
 
 
 class ContinuousGradeForm(BaseGradeForm):

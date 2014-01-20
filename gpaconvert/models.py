@@ -101,6 +101,18 @@ class GradeSource(models.Model):
 
         return rule
 
+    def all_discrete_grades(self):
+        """
+        A all input grades we know about for a discrete scale, sorted in a reasonable way.
+        """
+        assert self.scale == 'DISC'
+        rules = list(DiscreteRule.objects.filter(grade_source=self))
+        rules.sort(key=lambda r: r.sortkey(), reverse=True)
+        return rules
+
+    def all_discrete_grades_str(self):
+        return u', '.join(r.lookup_value for r in self.all_discrete_grades())
+
 
 class Rule(models.Model):
     """
@@ -144,6 +156,12 @@ class DiscreteRule(models.Model):
     @property
     def grade_points(self):
         return GRADE_POINTS[self.transfer_value]
+
+    def sortkey(self):
+        """
+        a key to sensibly sort discrete rules
+        """
+        return (self.grade_points, self.lookup_value)
 
 
 

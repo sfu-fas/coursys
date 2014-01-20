@@ -1,16 +1,23 @@
 {% extends 'base.html' %}
 {% load form_display %}
 
-{% block title %}Convert Grades{% endblock %}
+{% block title %}Convert Grades: {{ grade_source.institution }}, {{ grade_source.get_country_display }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url 'list_grade_sources_index' %}">GPA Calculator</a></li>
 <li>{{ grade_source }}</li>
 {% endblock %}
 
-{% block h1 %}Convert Grades{% endblock %}
+{% block h1 %}Convert Grades: {{ grade_source.institution }}, {{ grade_source.get_country_display }}{% endblock %}
 
 {% block content %}
+<p>
+{% if grade_source.scale == 'CONT' %}
+Numeric scale from {{ grade_source.lower_bound }} to {{ grade_source.upper_bound }}.
+{% else %}
+Fixed grades chosen from {{ grade_source.all_discrete_grades_str }}.
+{% endif %}
+</p>
 <div class="table_container">
   <form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
     {% csrf_token %}

@@ -23,7 +23,7 @@ $(document).ready(function() {
   $('#gradesourcetable').dataTable( {
     'bPaginate': false,
     'bInfo': false,
-    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "aaSorting": [[0, "asc"], [1, "asc"]],
     "bJQueryUI": true,
   } );
 } );
@@ -48,17 +48,17 @@ $(document).ready(function() {
     <table id="gradesourcetable" class="info">
         <thead>
             <tr>
-                <th class="ui-state-default">Country</th>
-                <th class="ui-state-default">Institution/Grade Scale</th>
-                <th class="ui-state-default">Status</th>
-                <th class="ui-state-default"># Rules</th>
-                <th class="ui-state-default">Scale</th>
+                <th scope="col">Country</th>
+                <th scope="col">Institution/Grade Scale</th>
+                <th scope="col">Status</th>
+                <th scope="col"># Rules</th>
+                <th scope="col">Scale</th>
             </tr>
         </thead>
         <tbody>
             {% for source in grade_sources %}
             <tr>
-                <td>{{ source.country }}</td>
+                <td>{{ source.get_country_display }}</td>
                 <td><a href="{% url 'change_grade_source' source.slug %}">{{ source.institution }}</a></td>
                 <td>{{ source.get_status_display }}</td>
                 <td>{% if source.scale == 'DISC' %}{{ source.discrete_rules.count }}{% else %}{{ source.continuous_rules.count }}{% endif %}</td>
