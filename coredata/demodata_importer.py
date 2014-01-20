@@ -5,7 +5,7 @@
 
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
-from coredata.models import Member, Person, CourseOffering, ComputingAccount, Semester, SemesterWeek
+from coredata.models import Member, Person, CourseOffering, ComputingAccount, Semester, SemesterWeek, Unit
 import datetime
 
 NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157]
@@ -134,6 +134,7 @@ def main():
     for strm in NEEDED_SEMESTERS:
         create_fake_semester(strm)
     create_semesters()
+    Unit(label='UNIV', name='Simon Fraser University').save()
 
     print "getting emplid/userid mapping"
     update_amaint_userids()
