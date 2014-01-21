@@ -934,6 +934,9 @@ def main():
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
     # cleanup old log entries
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
+    # cleanup old official grades
+    Member.clear_old_official_grades()
+    
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
         import djkombu.models
