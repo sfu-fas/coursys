@@ -74,3 +74,5 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     def get_salary(self, prev_salary):
         return decimal.Decimal(10000)
         #return self.event.base_salary
+
+
