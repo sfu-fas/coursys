@@ -39922,7 +39922,7 @@
   "config": "{\"deptid\":\"12345\",\"web\":\"http://www.cs.sfu.ca/\",\"fax\":\"778-782-3045\",\"tel\":\"778-782-4277\",\"informal_name\":\"Computing Science\",\"address\":[\"9971 Applied Sciences Building\",\"8888 University Drive, Burnaby, BC\",\"Canada V5A 1S6\"],\"sessional_pay\":10000,\"email\":\"csdept@sfu.ca\"}", 
   "label": "CMPT", 
   "name": "School of Computing Science", 
-  "parent": null, 
+  "parent": 2, 
   "slug": "cmpt"
  }, 
  "model": "coredata.unit", 
@@ -39934,7 +39934,7 @@
   "config": "{}", 
   "label": "ENSC", 
   "name": "School of Engineering Science", 
-  "parent": null, 
+  "parent": 2, 
   "slug": "ensc"
  }, 
  "model": "coredata.unit", 
