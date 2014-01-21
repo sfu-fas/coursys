@@ -26,8 +26,7 @@ class BaseEntryForm(forms.Form):
 class CareerEventHandlerBase(object):
     # type configuration stuff: override as necessary
     is_instant = False # set to True for events that have no duration
-    exclusion_category = None # if set, only one CareerEvent with this exclusion_category
-                              # can exist for a faculty member at a given time.
+    exclusive = False # if True, other events with this type are automatically closed when another is created
     date_bias = 'DATE' # or 'SEM': which interface widget should be presented to default in the form?
     affects_teaching = False # events of this type might affect teaching credits/load
     affects_salary = False   # events of this type might affect salary/pay
@@ -170,6 +169,23 @@ class CareerEventHandlerBase(object):
         """
         raise NotImplementedError
 
+    def get_bonus(self, prev_bonus):
+        """
+        Calculate bonus (or "add pay") with this CareerEvent taken into account: bonus was prev_bonus argument, and this
+        returns the bonus after this event has happened.
+
+        Must be implemented iff self.affects_salary.
+        """
+        raise NotImplementedError
+
+    # TODO: is this a good idea?
+    def teaching_release_per_semester(self):
+        raise NotImplementedError
+
+    def teaching_credit_per_semester(self):
+        raise NotImplementedError
+
+'''
     def get_teaching_balance(self, prev_teaching):
         """
         Calculate number of courses that must be taught with this CareerEvent taken into account: courses required
@@ -189,4 +205,4 @@ class CareerEventHandlerBase(object):
         raise NotImplementedError
 
 
-
+'''
