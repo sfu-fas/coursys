@@ -1,4 +1,5 @@
 from django import forms
+from django.template import Context, Template
 from coredata.models import Role
 import datetime, itertools
 
@@ -114,7 +115,7 @@ class CareerEventHandlerBase(object):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
-        initial = {'title': self.default_title(), 'start_date': datetime.date.today()}
+        initial = {'title': self.default_title, 'start_date': datetime.date.today()}
         f = self.EntryForm(initial=initial)
 
         if self.is_instant and 'end_date' in f.fields:
@@ -122,12 +123,24 @@ class CareerEventHandlerBase(object):
 
         return f
 
+    def to_html(self):
+        """
+        A detailed HTML presentation of this event
+        """
+        if not self.event:
+            raise ValueError, "Handler must have its 'event' set to be converted to HTML."
+
+        t = Template(self.TO_HTML_TEMPLATE)
+        c = Context({'event': self.event, 'handler': self, 'faculty': self.faculty})
+        return t.render(c)
+
 
     # type-specific stuff that probably need to be overridden.
     
     class EntryForm(BaseEntryForm):
         pass
 
+    @property
     def default_title(self):
         return 'Some Career Event'
 
@@ -137,17 +150,13 @@ class CareerEventHandlerBase(object):
         (~= inverse of get_entry_form)
         """
         # TODO: can we be general enough here to actually have common logic here?
+        # if self.event:
+        #     should modify and return that
         raise NotImplementedError
 
     def short_summary(self):
         """
         A short-line text-only summary of the event for summary displays
-        """
-        raise NotImplementedError
-
-    def to_html(self):
-        """
-        A detailed HTML presentation of this event
         """
         raise NotImplementedError
 

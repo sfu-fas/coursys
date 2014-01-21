@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.utils import safestring
 
 from coredata.models import Person, Unit, Role
 from faculty.models import EVENT_TYPES
@@ -36,38 +37,44 @@ class EventTypesTest(TestCase):
 
     def test_event_types(self):
         """
-        Basic tests of each event type
+        Basic tests of each event handler
         """
         fac_member = Person.objects.get(userid='ggbaker')
         for Handler in EVENT_TYPES.values():
             try:
-                event_type = Handler(faculty=fac_member)
+                handler = Handler(faculty=fac_member)
 
                 # test salary/teaching calculation sanity
-                if event_type.affects_teaching:
+                if handler.affects_teaching:
                     # if this affects teaching, get_teaching_balance must be implemented
-                    b = event_type.get_teaching_balance(4)
+                    b = handler.get_teaching_balance(4)
                     self.assertIsInstance(b, decimal.Decimal)
                 else:
                     # if not, it can't expect it do be called.
                     with self.assertRaises(NotImplementedError):
-                        event_type.get_teaching_balance(4)
+                        handler.get_teaching_balance(4)
 
-                if event_type.affects_salary:
+                if handler.affects_salary:
                     # if this affects teaching, get_salary must be implemented
-                    s = event_type.get_salary(100000)
+                    s = handler.get_salary(100000)
                     self.assertIsInstance(s, decimal.Decimal)
                 else:
                     # if not, it can't expect it do be called.
                     with self.assertRaises(NotImplementedError):
-                        event_type.get_salary(4)
+                        handler.get_salary(4)
 
+                self.assertIsInstance(handler.default_title, basestring)
 
                 # test form creation
-                form = event_type.get_entry_form()
-            
-                #print form
-                #car_event = event_type.to_career_event(form)
+                form = handler.get_entry_form()
+
+                # tests that I think should probably work eventually...
+                #event = event_type.to_career_event(form)
+                #handler = Handler(event=event)
+                #html = handler.to_html()
+                #self.assertIsInstance(html, safestring)
+
+
             except:
                 print "raising with event handler %s" % (Handler)
                 raise

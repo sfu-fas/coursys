@@ -2,7 +2,7 @@
 
 from base import CareerEventHandlerBase, BaseEntryForm
 from django import forms
-import decimal
+import decimal, datetime
 
 RANK_CHOICES = [
         ('LABI', 'Laboratory Instructor'),
@@ -33,10 +33,13 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     """
     The big career event: from hiring to leaving the position.
     """
+    TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
+
     class EntryForm(BaseEntryForm):
         spousal_hire = forms.BooleanField(initial=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
+    @property
     def default_title(self):
         return 'Appointment'
 
@@ -51,13 +54,16 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     """
     An annual salary update
     """
+    TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
+
     affects_salary = True
     class EntryForm(BaseEntryForm):
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
         base_salary = forms.DecimalField(max_digits=8, decimal_places=2, help_text="Base annual salary for this rank + step.")
 
+    @property
     def default_title(self):
-        return 'Base Salary'
+        return 'Base Salary %s' % (datetime.date.today().year)
 
     def to_career_event(self, form):
         event = super(SalaryBaseEventHandler, self).to_career_event(form)
