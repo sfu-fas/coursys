@@ -178,3 +178,15 @@ class CareerEventHandlerBase(object):
         Must be implemented iff self.affects_teaching.
         """
         raise NotImplementedError
+
+    def get_teaching_credit(self, prev_credit):
+        """
+        Calculate number of courses that faculty member gets credit for teaching, with this CareerEvent taken into account: previous credit
+        was prev_credit argument, and this returns the balance after this event has happened.
+
+        Must be implemented iff self.affects_teaching.
+        """
+        raise NotImplementedError
+
+
+
