@@ -632,6 +632,8 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     # record official grade if we have it (and might need it)
     if has_letter_activities(m.offering):
         m.official_grade = grade or None
+    else:
+        m.official_grade = None
     
     # if offering is being given lab/tutorial sections, flag it as having them
     # there must be some way to detect this in ps_class_tbl, but I can't see it.
