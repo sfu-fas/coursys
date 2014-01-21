@@ -1,10 +1,10 @@
 from django.db import models
 
-from event_types.career import AppointmentEventType, SalaryBaseEventType
+from event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
 
-EVENT_TYPES = { # dictionary of CareerEvent.event_type value -> CareerEventType class
-        'APPOINT': AppointmentEventType,
-        'SALARY': SalaryBaseEventType,
+EVENT_TYPES = { # dictionary of CareerEvent.event_type value -> CareerEventManager class
+        'APPOINT': AppointmentEventHandler,
+        'SALARY': SalaryBaseEventHandler,
         }
 
 class CareerEvent(models.Model):

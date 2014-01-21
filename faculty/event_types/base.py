@@ -22,7 +22,7 @@ class BaseEntryForm(forms.Form):
     end_date = forms.DateField()
 
 
-class CareerEventType(object):
+class CareerEventHandlerBase(object):
     # type configuration stuff: override as necessary
     is_instant = False # set to True for events that have no duration
     exclusion_category = None # if set, only one CareerEvent with this exclusion_category

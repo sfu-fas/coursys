@@ -1,14 +1,19 @@
 # career-level event types: appointment, salary
 
-from base import CareerEventType, BaseEntryForm
+from base import CareerEventHandlerBase, BaseEntryForm
 from django import forms
+import decimal
 
 RANK_CHOICES = [
+        ('LABI', 'Laboratory Instructor'),
         ('LECT', 'Lecturer'),
-        ('SLET', 'Senior Lecturer'),
+        ('SLEC', 'Senior Lecturer'),
+        ('INST', 'Instructor'),
         ('ASSI', 'Assistant Professor'),
         ('ASSO', 'Associate Professor'),
         ('FULL', 'Full Professor'),
+        #('UNIV', 'University Professor'),
+        #('UNIR', 'University Research Professor'),
         ]
 
 LEAVING_CHOICES = [
@@ -18,12 +23,13 @@ LEAVING_CHOICES = [
         ('UNIV', 'Left: job at another University'),
         ('PRIV', 'Left: private-sector job'),
         ('GONE', 'Left: employment status unknown'),
+        ('FIRE', 'Dismissal'),
         ('DIED', 'Deceased'),
         ('OTHR', 'Other/Unknown'),
         ]
 
 
-class AppointmentEventType(CareerEventType):
+class AppointmentEventHandler(CareerEventHandlerBase):
     """
     The big career event: from hiring to leaving the position.
     """
@@ -35,13 +41,13 @@ class AppointmentEventType(CareerEventType):
         return 'Appointment'
 
     def to_career_event(self, form):
-        event = super(AppointmentEventType, self).__init__(form)
+        event = super(AppointmentEventHandler, self).to_career_event(form)
         event.config['spousal_hire'] = form.cleaned_data['spousal_hire']
         event.config['leaving_reason'] = form.cleaned_data['leaving_reason']
         return event
 
 
-class SalaryBaseEventType(CareerEventType):
+class SalaryBaseEventHandler(CareerEventHandlerBase):
     """
     An annual salary update
     """
@@ -54,10 +60,11 @@ class SalaryBaseEventType(CareerEventType):
         return 'Base Salary'
 
     def to_career_event(self, form):
-        event = super(AppointmentEventType, self).__init__(form)
+        event = super(SalaryBaseEventHandler, self).to_career_event(form)
         event.config['step'] = form.cleaned_data['step']
         event.config['base_salary'] = form.cleaned_data['base_salary']
         return event
 
     def get_salary(self, prev_salary):
-        return self.event.base_salary
+        return decimal.Decimal(10000)
+        #return self.event.base_salary

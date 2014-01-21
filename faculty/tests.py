@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from coredata.models import Person, Unit, Role
 from faculty.models import EVENT_TYPES
-from event_types.career import AppointmentEventType
+from event_types.career import AppointmentEventHandler
 
 import decimal
 
@@ -20,18 +20,18 @@ class EventTypesTest(TestCase):
         dept_admin = Person.objects.get(userid='dixon')
         dean_admin = Person.objects.get(userid='dzhao')
 
-        event_type = AppointmentEventType(fac_member)
+        handler = AppointmentEventHandler(fac_member)
         # tests below assume these permission settings for this event type
-        self.assertEquals(event_type.editable_by, 'DEPT')
-        self.assertEquals(event_type.approval_by, 'FAC')
+        self.assertEquals(handler.editable_by, 'DEPT')
+        self.assertEquals(handler.approval_by, 'FAC')
 
-        self.assertFalse(event_type.can_edit(fac_member))
-        self.assertTrue(event_type.can_edit(dept_admin))
-        self.assertTrue(event_type.can_edit(dean_admin))
+        self.assertFalse(handler.can_edit(fac_member))
+        self.assertTrue(handler.can_edit(dept_admin))
+        self.assertTrue(handler.can_edit(dean_admin))
 
-        self.assertFalse(event_type.can_approve(fac_member))
-        self.assertFalse(event_type.can_approve(dept_admin))
-        self.assertTrue(event_type.can_approve(dean_admin))
+        self.assertFalse(handler.can_approve(fac_member))
+        self.assertFalse(handler.can_approve(dept_admin))
+        self.assertTrue(handler.can_approve(dean_admin))
 
 
     def test_event_types(self):
@@ -39,9 +39,9 @@ class EventTypesTest(TestCase):
         Basic tests of each event type
         """
         fac_member = Person.objects.get(userid='ggbaker')
-        for EType in EVENT_TYPES.values():
+        for Handler in EVENT_TYPES.values():
             try:
-                event_type = EType(faculty=fac_member)
+                event_type = Handler(faculty=fac_member)
 
                 # test salary/teaching calculation sanity
                 if event_type.affects_teaching:
@@ -69,6 +69,6 @@ class EventTypesTest(TestCase):
                 #print form
                 #car_event = event_type.to_career_event(form)
             except:
-                print "raising with event type %s" % (EType)
+                print "raising with event handler %s" % (Handler)
                 raise
             
