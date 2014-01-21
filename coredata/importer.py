@@ -13,6 +13,7 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.contrib.sessions.models import Session
 from django.conf import settings
+from django.core.cache import cache
 from courselib.svn import update_offering_repositories
 from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, random
@@ -599,6 +600,16 @@ def import_meeting_times(offering):
     MeetingTime.objects.filter(offering=offering).exclude(id__in=found_mtg).delete()
 
 
+def has_letter_activities(offering):
+    key = 'has-letter-' + offering.slug
+    res = cache.get(key)
+    if res is not None:
+        return res
+    else:
+        las = LetterActivity.objects.filter(offering=offering, deleted=False)
+        res = las.count() > 0
+        cache.set(key, res, 12*60*60)
+
 
 def ensure_member(person, offering, role, cred, added_reason, career, labtut_section=None, grade=None):
     """
@@ -629,8 +640,9 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     m.added_reason = added_reason
     m.career = career
 
-    # record official grade if we have it
-    m.official_grade = grade or None
+    # record official grade if we have it (and might need it)
+    if has_letter_activities(m.offering):
+        m.official_grade = grade or None
     
     # if offering is being given lab/tutorial sections, flag it as having them
     # there must be some way to detect this in ps_class_tbl, but I can't see it.
