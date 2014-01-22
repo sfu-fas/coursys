@@ -253,6 +253,14 @@ class DashboardTest(TestCase):
         
 
 
+    def test_pages(self):
+        person = Person.objects.filter()[0]
+        c = Client()
+        
+        # as instructor
+        c.login_user(person.userid)
+        test_views(self, c, 'dashboard.views.', ['news_list'],
+                {})
 
 
 
