@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 from pages.models import Page, PageVersion, brushes_used
 from coredata.models import CourseOffering, Member, Person
-from courselib.testing import TEST_COURSE_SLUG, Client, basic_page_tests
+from courselib.testing import TEST_COURSE_SLUG, Client, test_views
 import re
 
 wikitext = """Some Python code:
@@ -231,13 +231,10 @@ class PagesTest(TestCase):
         c.login_user('ggbaker')
         
         # test the basic rendering of the core pages
-        for v in ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site']:
-            view = 'pages.views.' + v
-            url = reverse(view, kwargs={'course_slug': crs.slug})
-            response = basic_page_tests(self, c, url)
-        
-        for v in ['view_page', 'page_history', 'edit_page', 'import_page']:
-            view = 'pages.views.' + v
-            url = reverse(view, kwargs={'course_slug': crs.slug, 'page_label': 'OtherPage'})
-            response = basic_page_tests(self, c, url)
+        test_views(self, c, 'pages.views.', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
+                {'course_slug': crs.slug})
+
+        test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
+                {'course_slug': crs.slug, 'page_label': 'OtherPage'})
+
 

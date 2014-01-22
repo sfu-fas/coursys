@@ -38,6 +38,10 @@ input[type="radio"], input[type="checkbox"] {
   margin: inherit;
   padding: inherit;
 }
+input[type="email"] { /* other text-like input types not covered in head.styles.css */
+  height:2.25em;padding:0 0 0 .4em;
+}
+
 
 .empty {
   font-style: italic;
