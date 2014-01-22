@@ -28,6 +28,7 @@ if DEPLOYED:
             'PASSWORD': '?????',
             'HOST': '127.0.0.1',
             'PORT': '4000',
+            'CONN_MAX_AGE': 3600,
             #'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # needed only for initial table creation
             'OPTIONS': {"init_command": "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;"}, # Celeryd misbehaves if not set
         }
@@ -37,6 +38,7 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': 'db.sqlite',
+            'CONN_MAX_AGE': 3600,
         }
     }
 
@@ -126,6 +128,7 @@ INSTALLED_APPS = (
     #'techreq',
     'onlineforms',
     'faculty',
+    'gpaconvert',
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)

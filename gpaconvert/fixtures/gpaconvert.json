@@ -1,0 +1,549 @@
+[
+{
+ "fields": {
+  "person": 15, 
+  "role": "GPA", 
+  "unit": 1
+ }, 
+ "model": "coredata.role", 
+ "pk": 17
+},
+{
+ "fields": {
+  "config": "{}", 
+  "country": "CN", 
+  "institution": "Generic", 
+  "lower_bound": "0", 
+  "scale": "CONT", 
+  "slug": "generic-cn", 
+  "status": "ACTI", 
+  "upper_bound": "100"
+ }, 
+ "model": "gpaconvert.gradesource", 
+ "pk": 2
+},
+{
+ "fields": {
+  "config": "{}", 
+  "country": "DZ", 
+  "institution": "Generic", 
+  "lower_bound": "0", 
+  "scale": "DISC", 
+  "slug": "generic-dz", 
+  "status": "ACTI", 
+  "upper_bound": "100"
+ }, 
+ "model": "gpaconvert.gradesource", 
+ "pk": 1
+},
+{
+ "fields": {
+  "config": "{}", 
+  "country": "CA", 
+  "institution": "Queen's University (Prior to May 2011)", 
+  "lower_bound": "0", 
+  "scale": "CONT", 
+  "slug": "queens-university-ca", 
+  "status": "ACTI", 
+  "upper_bound": "100"
+ }, 
+ "model": "gpaconvert.gradesource", 
+ "pk": 5
+},
+{
+ "fields": {
+  "config": "{}", 
+  "country": "CA", 
+  "institution": "University of Alberta (as of Sept 2003)", 
+  "lower_bound": "0", 
+  "scale": "DISC", 
+  "slug": "university-of-alberta-as-of-sept-2003-ca", 
+  "status": "ACTI", 
+  "upper_bound": "100"
+ }, 
+ "model": "gpaconvert.gradesource", 
+ "pk": 4
+},
+{
+ "fields": {
+  "config": "{}", 
+  "country": "CA", 
+  "institution": "University of Alberta (pre 2003)", 
+  "lower_bound": "0", 
+  "scale": "DISC", 
+  "slug": "university-of-alberta-pre-2003-ca", 
+  "status": "ACTI", 
+  "upper_bound": "100"
+ }, 
+ "model": "gpaconvert.gradesource", 
+ "pk": 3
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "20", 
+  "transfer_value": "A+"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 1
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "19", 
+  "transfer_value": "A+"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 2
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "18", 
+  "transfer_value": "A+"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 3
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "17", 
+  "transfer_value": "A"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 4
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "16", 
+  "transfer_value": "A"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 5
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "15", 
+  "transfer_value": "A"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 6
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "14", 
+  "transfer_value": "A-"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 7
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "13", 
+  "transfer_value": "B+"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 8
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "12", 
+  "transfer_value": "B"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 9
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "11", 
+  "transfer_value": "C"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 10
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "10", 
+  "transfer_value": "D"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 11
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "9", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 12
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "8", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 13
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "7", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 14
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "6", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 15
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "5", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 16
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "4", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 17
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "3", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 18
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "2", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 19
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "1", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 20
+},
+{
+ "fields": {
+  "grade_source": 1, 
+  "lookup_value": "0", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 21
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "9", 
+  "transfer_value": "A"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 22
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "8", 
+  "transfer_value": "A-"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 23
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "7", 
+  "transfer_value": "B"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 24
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "6", 
+  "transfer_value": "B-"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 25
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "5", 
+  "transfer_value": "C"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 26
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "4", 
+  "transfer_value": "D"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 27
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "3", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 28
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "2", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 29
+},
+{
+ "fields": {
+  "grade_source": 3, 
+  "lookup_value": "1", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 30
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "A+", 
+  "transfer_value": "A+"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 31
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "A", 
+  "transfer_value": "A"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 32
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "A-", 
+  "transfer_value": "A-"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 33
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "B+", 
+  "transfer_value": "B+"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 34
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "B", 
+  "transfer_value": "B"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 35
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "B-", 
+  "transfer_value": "B-"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 36
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "C+", 
+  "transfer_value": "C+"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 37
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "C", 
+  "transfer_value": "C"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 38
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "C-", 
+  "transfer_value": "C-"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 39
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "D+", 
+  "transfer_value": "D"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 40
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "D", 
+  "transfer_value": "D"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 41
+},
+{
+ "fields": {
+  "grade_source": 4, 
+  "lookup_value": "F", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.discreterule", 
+ "pk": 42
+},
+{
+ "fields": {
+  "grade_source": 2, 
+  "lookup_lbound": "0", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 1
+},
+{
+ "fields": {
+  "grade_source": 2, 
+  "lookup_lbound": "60", 
+  "transfer_value": "D"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 2
+},
+{
+ "fields": {
+  "grade_source": 2, 
+  "lookup_lbound": "70", 
+  "transfer_value": "C"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 3
+},
+{
+ "fields": {
+  "grade_source": 2, 
+  "lookup_lbound": "80", 
+  "transfer_value": "B"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 4
+},
+{
+ "fields": {
+  "grade_source": 2, 
+  "lookup_lbound": "90", 
+  "transfer_value": "A"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 5
+},
+{
+ "fields": {
+  "grade_source": 5, 
+  "lookup_lbound": "0", 
+  "transfer_value": "F"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 6
+},
+{
+ "fields": {
+  "grade_source": 5, 
+  "lookup_lbound": "50", 
+  "transfer_value": "C"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 7
+},
+{
+ "fields": {
+  "grade_source": 5, 
+  "lookup_lbound": "65", 
+  "transfer_value": "B+"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 8
+},
+{
+ "fields": {
+  "grade_source": 5, 
+  "lookup_lbound": "80", 
+  "transfer_value": "A"
+ }, 
+ "model": "gpaconvert.continuousrule", 
+ "pk": 9
+},
+{
+ "fields": {
+  "data": "{\"form-0-grade\":\"A\",\"form-1-name\":\"Math\",\"form-4-name\":\"\",\"form-6-name\":\"\",\"form-4-grade\":\"\",\"form-7-name\":\"\",\"form-2-credits\":\"4\",\"form-8-name\":\"\",\"save_grades\":\"Save for later\",\"form-9-grade\":\"\",\"form-5-name\":\"\",\"form-6-grade\":\"\",\"form-8-grade\":\"\",\"form-9-name\":\"\",\"form-2-name\":\"More Math\",\"csrfmiddlewaretoken\":\"J1H3MlmalRi9I7U7Yl0u3lY22O6xaKEz\",\"form-2-grade\":\"B-\",\"form-0-name\":\"English\",\"form-8-credits\":\"\",\"form-3-credits\":\"\",\"form-5-grade\":\"\",\"form-7-credits\":\"\",\"form-7-grade\":\"\",\"form-0-credits\":\"3\",\"form-3-grade\":\"\",\"form-TOTAL_FORMS\":\"10\",\"form-4-credits\":\"\",\"form-INITIAL_FORMS\":\"0\",\"form-1-grade\":\"B\",\"form-1-credits\":\"4\",\"form-3-name\":\"\",\"form-MAX_NUM_FORMS\":\"1000\",\"form-6-credits\":\"\",\"form-9-credits\":\"\",\"form-5-credits\":\"\"}", 
+  "grade_source": 4, 
+  "slug": "926338335d4dfe354697b520eceeff79"
+ }, 
+ "model": "gpaconvert.userarchive", 
+ "pk": 1
+}
+]

@@ -7,6 +7,8 @@ from django.utils.functional import Promise
 from django.forms.widgets import RadioSelect
 from grad.forms import SupervisorWidget
 
+required_icon = '<i class="reqicon fa fa-star-o"></i>'
+
 @register.filter
 def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform'):
     """
@@ -32,7 +34,8 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
 
         reqtext = ''
         if field.field.required:
-            reqtext = ' <span class="required">*</span>'
+            #reqtext = ' <span class="required">*</span>'
+            reqtext = '&nbsp;' + required_icon
             reqcount += 1
         
         if field.label:
@@ -58,7 +61,7 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
     
     out.append('</dl>')
     if reqcount > 0:
-        out.append('<p class="helptext"><span class="required">*</span> This field is required.</p>')
+        out.append('<p class="helptext">' + required_icon + ' This field is required.</p>')
     return mark_safe('\n'.join(out))
 
 @register.filter
@@ -181,3 +184,11 @@ def as_dl_includefields(form, incl):
 def as_dl_onlineforms(form):
     return as_dl(form)
     #return as_dl(form, formclass="onlineform")
+
+
+@register.filter
+def required_label(label):
+    """
+    Style label as it should be if on a required field.
+    """
+    return mark_safe(escape(label) + '&nbsp;' + required_icon)

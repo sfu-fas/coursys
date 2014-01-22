@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load form_display %}
+
+{% block title %}Convert Grades: {{ grade_source.institution }}, {{ grade_source.get_country_display }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'list_grade_sources_index' %}">GPA Calculator</a></li>
+<li>{{ grade_source }}</li>
+{% endblock %}
+
+{% block h1 %}Convert Grades: {{ grade_source.institution }}, {{ grade_source.get_country_display }}{% endblock %}
+
+{% block content %}
+<p>
+{% if grade_source.scale == 'CONT' %}
+Numeric scale from {{ grade_source.lower_bound }} to {{ grade_source.upper_bound }}.
+{% else %}
+Fixed grades chosen from {{ grade_source.all_discrete_grades_str }}.
+{% endif %}
+</p>
+<div class="table_container">
+  <form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table>
+      <thead>
+        <tr>
+          <th>Course Name</th>
+          <th>{{ "Credits"|required_label }}</th>
+          <th>2nd GPA</th>
+          <th>{{ "Your Grade"|required_label }}</th>
+          <th>SFU Grade</th>
+          <th>SFU Grade Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form in formset %}
+        <tr>
+          {% for field in form %}
+          <td>
+            {{ field }}
+            {{ field.errors }}
+          </td>
+          {% endfor %}
+          {% with transfer_rule=transfer_rules.next %}
+          <td>{{ transfer_rule.transfer_value }}</td>
+          <td>{{ transfer_rule.grade_points }}</td>
+          {% endwith %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <input type="submit" value="Convert" />
+{% if transfer_gpa >= 0 %}
+<div class="table_container">
+  <table class="info">
+    <thead>
+      <th>SFU GPA</th>
+      {% if secondary_gpa >= 0 %}
+      <th>Secondary GPA</th>
+      {% endif %}
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ transfer_gpa|floatformat:2 }}</td>
+        {% if secondary_gpa >= 0 %}
+        <td>{{ secondary_gpa|floatformat:2 }}</td>
+        {% endif %}
+      </tr>
+    </tbody>
+  </table>
+  <input type="submit" name="save_grades" value="Save for later" />
+{% endif %}
+  </form>
+</div>
+
+{% endblock %}

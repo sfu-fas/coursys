@@ -42,6 +42,15 @@ input[type="email"] { /* other text-like input types not covered in head.styles.
   height:2.25em;padding:0 0 0 .4em;
 }
 
+legend {
+  float: none;
+}
+.table {
+  background: inherit;
+}
+.table th {
+  background-color: #fff;
+}
 
 .empty {
   font-style: italic;
@@ -161,7 +170,6 @@ div#messages .info:before {
 span.warning {
     color: #e06121;
 }
-
 
 
 div#newsitems {
@@ -773,7 +781,6 @@ disabled dl.dlform .helptext {
 }
 dl.dlform dt{
     clear: both;
-	margin-left: 1em;
 }
 dl.dlform dt label{
 	clear: both;
@@ -799,6 +806,9 @@ dl.dlform div.field.radio ul {
 dl.dlform  dd .explanation_block {
     margin-left: 9.5em;
 }
+.reqicon {
+  font-size: 80%;
+}
 
 fieldset .errortext {
     color: red;
@@ -806,7 +816,7 @@ fieldset .errortext {
 }
 legend {
     padding: 0;
-    margin-left: 1em;
+    margin: 0 0 0.5em 0;
     color: #B5111A;
     font-weight: bold;
     font-size: 1.2em;
