@@ -259,12 +259,14 @@ class DashboardTest(TestCase):
         
         # as instructor
         c.login_user(person.userid)
-        test_views(self, c, 'dashboard.views.', ['index', 'index_full', 'news_list', 'config'],
-                {})
+        test_views(self, c, 'dashboard.views.', ['index', 'index_full', 'news_list', 'config', 'calendar',
+                'create_calendar_url', 'disable_calendar_url', 'news_config', 'create_news_url',
+                'disable_news_url', 'list_docs', 'photo_agreement'], {})
+        test_views(self, c, 'dashboard.views.', ['view_doc'], {'doc_slug': 'impersonate'})
 
-
-
-
-
+        # admin views for signatures
+        r = Role.objects.filter(role='ADMN')[0]
+        c.login_user(r.person.userid)
+        test_views(self, c, 'dashboard.views.', ['signatures', 'new_signature'], {})
 
 
