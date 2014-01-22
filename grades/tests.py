@@ -627,7 +627,6 @@ class PagesTests(TestCase):
                 'activity_stat', 'edit_activity'],
                 {'course_slug': crs.slug, 'activity_slug': cla.slug})
 
-
         # as student
         c.login_user(student.person.userid)
         test_views(self, c, 'grades.views.', ['course_info'],
