@@ -38,7 +38,7 @@ input[type="radio"], input[type="checkbox"] {
   margin: inherit;
   padding: inherit;
 }
-input[type="email"] { /* other text-like input types not covered in head.styles.css */
+input[type="email"], input[type="number"] { /* other text-like input types not covered in head.styles.css */
   height:2.25em;padding:0 0 0 .4em;
 }
 
