@@ -8,10 +8,12 @@ import datetime
 
 from event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
 
-EVENT_TYPES = { # dictionary of CareerEvent.event_type value -> CareerEventManager class
-        'APPOINT': AppointmentEventHandler,
-        'SALARY': SalaryBaseEventHandler,
-        }
+EVENT_TYPE_CHOICES = [ # CareerEvent.event_type value -> CareerEventManager class
+        ('APPOINT', AppointmentEventHandler),
+        ('SALARY', SalaryBaseEventHandler),
+        ]
+EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
+
 
 class CareerEvent(models.Model):
     # ...
@@ -35,8 +37,8 @@ class MemoTemplate(models.Model):
     A template for memos.
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    # Question: Are we going to restrict choices for type?
-    memo_type = models.CharField(max_length=250, null=False)
+    label = models.CharField(max_length=250, null=False)
+    event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
     template_text = models.TextField(help_text="I.e. 'Congratulations {{first_name}} on ... '")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -44,12 +46,12 @@ class MemoTemplate(models.Model):
     hidden = models.BooleanField(default=False)
 
     def autoslug(self):
-        return make_slug(self.unit.label + "-" + self.memo_type)  
+        return make_slug(self.unit.label + "-" + self.label)  
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
     class Meta:
-        unique_together = ('unit', 'memo_type')      
+        unique_together = ('unit', 'label')      
     def __unicode__(self):
-        return u"%s in %s" % (self.memo_type, self.unit)
+        return u"%s in %s" % (self.label, self.unit)
 
 
 class Memo(models.Model):
@@ -78,7 +80,7 @@ class Memo(models.Model):
     # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
     
     defaults = {'use_sig': True}
-    use_sig, set_use_sig = getter_setter('use_sig')
+    use_sig = property(*getter_setter('use_sig'))
         
     """ need career event slugs
     def autoslug(self):
