@@ -259,7 +259,7 @@ class DashboardTest(TestCase):
         
         # as instructor
         c.login_user(person.userid)
-        test_views(self, c, 'dashboard.views.', ['news_list'],
+        test_views(self, c, 'dashboard.views.', ['index', 'index_full', 'news_list', 'config'],
                 {})
 
 

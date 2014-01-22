@@ -609,7 +609,7 @@ class PagesTests(TestCase):
         UserConfig(user=instr.person, key='photo-agreement', value={'agree':True}).save()
         test_views(self, c, 'grades.views.', ['course_config', 'course_info', 'add_numeric_activity',
                 'add_cal_numeric_activity', 'add_letter_activity', 'add_cal_letter_activity', 'formula_tester',
-                'all_grades', 'class_list', 'photo_list', 'student_search'],
+                'all_grades', 'class_list', 'photo_list', 'student_search', 'new_message'],
                 {'course_slug': crs.slug})
         test_views(self, c, 'grades.views.', ['student_info'],
                 {'course_slug': crs.slug, 'userid': student.person.userid})

@@ -11,6 +11,7 @@ from django.forms.util import ErrorList
 import datetime, decimal
 from grades.utils import parse_and_validate_formula, ValidationError
 from submission.models import Submission
+from dashboard.models import NewsItem
 
 _required_star = '<span><img src="'+settings.STATIC_URL+'icons/required_star.gif" alt="required"/></span>'
 
@@ -436,6 +437,13 @@ class CutoffForm(forms.Form):
         if d<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return d
+
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = NewsItem
+        # these fields are decided from the request at the time the form is submitted
+        exclude = ['user', 'author', 'published','updated','source_app','course', 'read']
 
 
 
