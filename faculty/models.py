@@ -37,7 +37,7 @@ def attachment_upload_to(instance, filename):
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
     fullpath = os.path.join(
-        'advisornotes',
+        'faculty',
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
@@ -48,7 +48,7 @@ class DocumentAttachment(models.Model):
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.CharField(max_length=32, null=False, help_text='Document attachment created by.')
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(upload_to=attachment_upload_to)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
 
@@ -69,7 +69,7 @@ class MemoTemplate(models.Model):
     template_text = models.TextField(help_text="I.e. 'Congratulations {{first_name}} on ... '")
 
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.CharField(max_length=32, null=False, help_text='Memo template created by.')
+    created_by = models.ForeignKey(Person, help_text='Memo template created by.', related_name='+')
     hidden = models.BooleanField(default=False)
 
     def autoslug(self):
@@ -89,7 +89,7 @@ class Memo(models.Model):
 
     sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter, editable")
     to_lines = models.TextField(help_text='Delivery address for the letter', null=True, blank=True)
-    from_person = models.ForeignKey(Person, null=True)
+    from_person = models.ForeignKey(Person, null=True, related_name='+')
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Applied Sciences, Dean"')
     subject = models.TextField(help_text='The career event of the memo')
     
@@ -99,7 +99,7 @@ class Memo(models.Model):
     closing = models.CharField(max_length=100, default="Sincerely")
     
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
+    created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+')
     hidden = models.BooleanField(default=False)
     config = JSONField(default={}) # addition configuration for within the memo
         
