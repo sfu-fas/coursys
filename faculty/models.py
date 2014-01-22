@@ -1,17 +1,21 @@
-from django.db import models
-from coredata.models import Unit, Person
-from autoslug import AutoSlugField
-from courselib.slugs import make_slug
-from courselib.json_fields import getter_setter
-from jsonfield import JSONField
 import datetime
 
-from event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
+from django.db import models
 
-EVENT_TYPE_CHOICES = [ # CareerEvent.event_type value -> CareerEventManager class
-        ('APPOINT', AppointmentEventHandler),
-        ('SALARY', SalaryBaseEventHandler),
-        ]
+from autoslug import AutoSlugField
+from jsonfield import JSONField
+
+from coredata.models import Unit, Person
+from courselib.json_fields import getter_setter
+from courselib.slugs import make_slug
+
+from faculty.event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
+
+# CareerEvent.event_type value -> CareerEventManager class
+EVENT_TYPE_CHOICES = [
+    ('APPOINT', AppointmentEventHandler),
+    ('SALARY', SalaryBaseEventHandler),
+    ]
 EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
 
 
