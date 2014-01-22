@@ -1,4 +1,10 @@
 from django.db import models
+from coredata.models import Unit, Person
+from autoslug import AutoSlugField
+from courselib.slugs import make_slug
+from courselib.json_fields import getter_setter
+from jsonfield import JSONField
+import datetime
 
 from event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
 
@@ -28,13 +34,67 @@ class MemoTemplate(models.Model):
     """
     A template for memos.
     """
-    pass
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    # Question: Are we going to restrict choices for type?
+    memo_type = models.CharField(max_length=250, null=False)
+    template_text = models.TextField(help_text="I.e. 'Congratulations {{first_name}} on ... '")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Memo template created by.')
+    hidden = models.BooleanField(default=False)
+
+    def autoslug(self):
+        return make_slug(self.unit.label + "-" + self.memo_type)  
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    class Meta:
+        unique_together = ('unit', 'memo_type')      
+    def __unicode__(self):
+        return u"%s in %s" % (self.memo_type, self.unit)
 
 
 class Memo(models.Model):
     """
     A memo created by the system, and attached to a CareerEvent.
     """
-    pass
+    career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
+
+    sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter, editable")
+    to_lines = models.TextField(help_text='Delivery address for the letter', null=True, blank=True)
+    from_person = models.ForeignKey(Person, null=True)
+    from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Applied Sciences, Dean"')
+    subject = models.TextField(help_text='The career event of the memo')
+    
+    template = models.ForeignKey(MemoTemplate)
+    memo_text = models.TextField(help_text="I.e. 'Congratulations Mr. Baker on ... '")
+    salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
+    closing = models.CharField(max_length=100, default="Sincerely")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
+    hidden = models.BooleanField(default=False)
+    config = JSONField(default={}) # addition configuration for within the memo
+        
+
+    # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
+    
+    defaults = {'use_sig': True}
+    use_sig, set_use_sig = getter_setter('use_sig')
+        
+    """ need career event slugs
+    def autoslug(self):
+        return make_slug(self.career_event.slug + "-" + self.template.memo_type)     
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
+    def __unicode__(self):
+        return u"%s letter for %s" % (self.template.label, self.student)
+    """
+    def save(self, *args, **kwargs):
+        # normalize text so it's easy to work with
+        if not self.to_lines:
+            self.to_lines = ''
+        _normalize_newlines(self.to_lines.rstrip())
+        self.from_lines = _normalize_newlines(self.from_lines.rstrip())
+        self.memo_text = _normalize_newlines(self.content.rstrip())
+        self.memo_text = many_newlines.sub('\n\n', self.content)
+        super(Memo, self).save(*args, **kwargs)
 
 
