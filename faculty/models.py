@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.core.files.storage import FileSystemStorage
 
 from autoslug import AutoSlugField
 from jsonfield import JSONField
@@ -29,11 +30,33 @@ class CareerEvent(models.Model):
         return res
 
 
+# TODO separate storage system for faculty attachments?
+#NoteSystemStorage = FileSystemStorage(location=settings.FACULTY_PATH, base_url=None)
+def attachment_upload_to(instance, filename):
+    """
+    callback to avoid path in the filename(that we have append folder structure to) being striped
+    """
+    fullpath = os.path.join(
+        'advisornotes',
+        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
+
 class DocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
     """
-    pass
+    career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Document attachment created by.')
+    contents = models.FileField(upload_to=attachment_upload_to)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+
+    def __unicode__(self):
+        return self.contents.filename
+
+    class Meta:
+        ordering = ("created_at",)
 
 
 class MemoTemplate(models.Model):
