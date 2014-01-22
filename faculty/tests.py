@@ -45,23 +45,23 @@ class EventTypesTest(TestCase):
                 handler = Handler(faculty=fac_member)
 
                 # test salary/teaching calculation sanity
-                if handler.affects_teaching:
-                    # if this affects teaching, get_teaching_balance must be implemented
-                    b = handler.get_teaching_balance(4)
-                    self.assertIsInstance(b, decimal.Decimal)
-                else:
-                    # if not, it can't expect it do be called.
-                    with self.assertRaises(NotImplementedError):
-                        handler.get_teaching_balance(4)
+                #if handler.affects_teaching:
+                #    # if this affects teaching, get_teaching_balance must be implemented
+                #    b = handler.get_teaching_balance(4)
+                #    self.assertIsInstance(b, decimal.Decimal)
+                #else:
+                #    # if not, it can't expect it do be called.
+                #    with self.assertRaises(NotImplementedError):
+                #        handler.get_teaching_balance(4)
 
-                if handler.affects_salary:
-                    # if this affects teaching, get_salary must be implemented
-                    s = handler.get_salary(100000)
-                    self.assertIsInstance(s, decimal.Decimal)
-                else:
-                    # if not, it can't expect it do be called.
-                    with self.assertRaises(NotImplementedError):
-                        handler.get_salary(4)
+                #if handler.affects_salary:
+                #    # if this affects teaching, get_salary must be implemented
+                #    s = handler.get_salary(100000)
+                #    self.assertIsInstance(s, decimal.Decimal)
+                #else:
+                #    # if not, it can't expect it do be called.
+                #    with self.assertRaises(NotImplementedError):
+                #        handler.get_salary(4)
 
                 self.assertIsInstance(handler.default_title, basestring)
 

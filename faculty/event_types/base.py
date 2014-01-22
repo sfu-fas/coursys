@@ -160,11 +160,45 @@ class CareerEventHandlerBase(object):
         raise NotImplementedError
 
 
+    def salary_adjust_annually(self):
+        """
+        Return vector of ways this CareerEvent affects the faculty member's
+        salary. Must be a triple: (add_salary, salary_fraction, add_bonus).
+        So, pay after is event is:
+            pay = (pay + add_salary) * salary_fraction + add_bonus
+        e.g.
+            return (Decimal('5000.01'), Fraction(4,5), Decimal(10000))
+        
+        Must be implemented iff self.affects_salary.
+        """
+        raise NotImplementedError
+
+    def teaching_adjust_per_semester(self):
+        """
+        Return vector of ways this CareerEvent affects the faculty member's
+        teaching expectation. Must be a pair:
+            (teaching_credits, teaching_expectation_decrease).
+        Each value is interpreted as "courses PER SEMESTER".
+            courses_taught += teaching_credits * n_semesters
+            teaching_owed -= teaching_expectation_decrease * n_semesters
+            
+        e.g.
+            return (Fraction(1,2), Fraction(1,2))
+            return (Fraction(1), Fraction(0))
+        These might indicate respectively an admin position with a 1.5 course/year
+        teaching credit, and a medical leave with a 3 course/year reduction in
+        workload.
+        
+        Must be implemented iff self.affects_teaching.
+        """
+        raise NotImplementedError
+
+'''
     def get_salary(self, prev_salary):
         """
         Calculate salary with this CareerEvent taken into account: salary was prev_salary argument, and this
         returns the salary after this event has happened.
-
+    
         Must be implemented iff self.affects_salary.
         """
         raise NotImplementedError
@@ -173,7 +207,7 @@ class CareerEventHandlerBase(object):
         """
         Calculate bonus (or "add pay") with this CareerEvent taken into account: bonus was prev_bonus argument, and this
         returns the bonus after this event has happened.
-
+    
         Must be implemented iff self.affects_salary.
         """
         raise NotImplementedError
@@ -185,7 +219,6 @@ class CareerEventHandlerBase(object):
     def teaching_credit_per_semester(self):
         raise NotImplementedError
 
-'''
     def get_teaching_balance(self, prev_teaching):
         """
         Calculate number of courses that must be taught with this CareerEvent taken into account: courses required
