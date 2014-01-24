@@ -484,12 +484,12 @@ def student_search(request):
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
 
-    #studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
-    #students = Person.objects.filter(studentQuery)[:100]
-    #data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
+    studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+    students = Person.objects.filter(studentQuery)[:100]
+    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
 
-    student_qs = SearchQuerySet().models(Person).filter(text=term)[:100]
-    data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs if r]
+    #student_qs = SearchQuerySet().models(Person).filter(text=term)[:100]
+    #data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs if r]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
