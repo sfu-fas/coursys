@@ -13,6 +13,6 @@
 
 {% block content %}
 
-<a href="{% url "faculty.views.otherinfo" unit_slug=role.unit.slug userid=role.person.userid_or_emplid %}">Other info</a>
+<a href="{% url "faculty.views.otherinfo" userid=role.person.userid_or_emplid %}">Other info</a>
 
 {% endblock %}

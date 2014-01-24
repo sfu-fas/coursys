@@ -5,6 +5,6 @@ FACULTY_SLUG = UNIT_SLUG + '/' + USERID_OR_EMPLID
 
 urlpatterns = patterns('',
     url(r'^$', 'faculty.views.index'),
-    url(r'^summary$', 'faculty.views.summary'),
-    url(r'^otherinfo$', 'faculty.views.otherinfo'),
+    url(r'^' + USERID_OR_EMPLID + '/summary$', 'faculty.views.summary'),
+    url(r'^' + USERID_OR_EMPLID + 'otherinfo$', 'faculty.views.otherinfo'),
 )

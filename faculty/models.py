@@ -5,9 +5,10 @@ from django.core.files.storage import FileSystemStorage
 
 from autoslug import AutoSlugField
 from jsonfield import JSONField
+from bitfield import BitField
 
 from coredata.models import Unit, Person
-from courselib.json_fields import getter_setter
+from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
 import os

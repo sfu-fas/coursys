@@ -7,13 +7,13 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 
-def _get_faculty_role_or_404(allowed_units, unit_slug, userid_or_emplid):
+def _get_faculty_role_or_404(allowed_units, userid_or_emplid):
     """
     Get the Role[role=~"faculty"] if we're allowed to see it, or raise Http404.
     """
     sub_unit_ids = Unit.sub_unit_ids(allowed_units)
     person = get_object_or_404(Person, find_userid_or_emplid(userid_or_emplid))
-    role = get_object_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, unit__slug=unit_slug, person=person)
+    role = get_object_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
     return role
 
 
@@ -36,19 +36,19 @@ def index(request):
 # Display/summary views for a faculty member
 
 @requires_role('ADMN')
-def summary(request, unit_slug, userid):
+def summary(request, userid):
     """
     Summary page for a faculty member.
     """
-    role = _get_faculty_role_or_404(request.units, unit_slug, userid)
+    role = _get_faculty_role_or_404(request.units, userid)
     context = {
         'role': role,
     }
     return render(request, 'faculty/summary.html', context)
 
 @requires_role('ADMN')
-def otherinfo(request, unit_slug, userid):
-    role = _get_faculty_role_or_404(request.units, unit_slug, userid)
+def otherinfo(request, userid):
+    role = _get_faculty_role_or_404(request.units, userid)
 
     # collect teaching history
     instructed = Member.objects.filter(role='INST', person=role.person, added_reason='AUTO') \
