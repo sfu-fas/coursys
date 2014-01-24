@@ -23,6 +23,8 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
 
 class PersonIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
+    emplid = indexes.CharField(model_attr='emplid')
+    search_display = indexes.CharField()
 
     def get_model(self):
         return Person
@@ -37,3 +39,6 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
         if o.userid:
             fields.append(o.userid)
         return '\n'.join(fields)
+
+    def prepare_search_display(self, o):
+        return o.search_label_value()

@@ -13,6 +13,7 @@ from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from haystack.query import SearchQuerySet
 import json, datetime
 
 @requires_global_role("SYSA")
@@ -483,8 +484,11 @@ def student_search(request):
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
 
-    studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
-    students = Person.objects.filter(studentQuery)[:100]
+    #studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+    #students = Person.objects.filter(studentQuery)[:100]
+    #data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
+
+    student_qs = SearchQuerySet().models(Person).filter(content=term)
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
@@ -492,7 +496,7 @@ def student_search(request):
     else:
         nonStudents = []
 
-    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
+    data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs]
     data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
 
     data.sort(key = lambda x: x['label'])
