@@ -488,18 +488,15 @@ def student_search(request):
     #students = Person.objects.filter(studentQuery)[:100]
     #data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
 
-    student_qs = SearchQuerySet().models(Person).filter(content=term)
+    student_qs = SearchQuerySet().models(Person).filter(text=term)[:100]
+    data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs if r]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
         nonStudents = NonStudent.objects.filter(nonStudentQuery)[:100]
-    else:
-        nonStudents = []
+        data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
 
-    data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs]
-    data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
-
-    data.sort(key = lambda x: x['label'])
+    data.sort(key=lambda x: x['label'])
 
     json.dump(data, response, indent=1)
     return response
@@ -632,7 +629,13 @@ class OfferingDataJson(BaseDatatableView):
         
         srch = GET.get('sSearch', None)
         if srch:
-            qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch)) 
+            #qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
+            sqs = SearchQuerySet().models(CourseOffering).filter(text=srch)[:1000]
+            pks = (r.pk for r in sqs if r)
+            #qs = qs.filter(pk__in=pks)
+            # above should work, but production mySQL is ancient and can't do IN + LIMIT
+            fake_in = reduce(operator.__or__, (Q(pk=pk) for pk in pks))
+            qs = qs.filter(fake_in)
 
         subject = GET.get('subject', None)
         if subject:
