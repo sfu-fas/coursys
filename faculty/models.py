@@ -140,14 +140,13 @@ class Memo(models.Model):
     
     use_sig = config_property('use_sig', default=True)
 
-        
-    """ need career event slugs
     def autoslug(self):
         return make_slug(self.career_event.slug + "-" + self.template.memo_type)     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)   
+
     def __unicode__(self):
-        return u"%s letter for %s" % (self.template.label, self.student)
-    """
+        return u"%s memo for %s" % (self.template.label, self.career_event)
+
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
         if not self.to_lines:
