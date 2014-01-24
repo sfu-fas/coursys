@@ -35,6 +35,7 @@ class CareerEvent(models.Model):
     slug = AutoSlugField(populate_from='full_title')
     started_on = models.DateTimeField()
     ended_on = models.DateTimeField(blank=True)
+    comments = models.TextField(blank=True)
 
     event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
     config = JSONField(default={})
