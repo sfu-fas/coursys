@@ -34,9 +34,8 @@ class CareerEvent(models.Model):
     unit = models.ForeignKey(Unit)
 
     title = models.CharField(max_length=255, blank=False, null=False)
-    def autoslug(self):
-        return make_slug(self.start_date.year + ' ' + self.title)
-    slug = AutoSlugField(populate_from=autoslug, unique_with=('faculty',), null=False, editable=False)
+    slug = AutoSlugField(populate_from='full_title', unique_with='faculty',
+                         slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False)
     end_date = models.DateField(null=True)
     comments = models.TextField(blank=True)
@@ -54,7 +53,7 @@ class CareerEvent(models.Model):
 
     @property
     def full_title(self):
-        return self.title
+        return '{} {}'.format(self.start_date.year, self.title)
 
     def save(self, editor, *args, **kwargs):
         assert editor.__class__.__name__ == 'Person' # we're doing to so we can add an audit trail later.
