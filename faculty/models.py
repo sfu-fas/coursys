@@ -20,7 +20,7 @@ EVENT_TYPE_CHOICES = [
     ('SALARY', SalaryBaseEventHandler),
     ]
 EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
-
+EVENT_FLAGS = ['teaching', 'salary']
 
 class CareerEvent(models.Model):
 
@@ -34,7 +34,7 @@ class CareerEvent(models.Model):
     unit = models.ForeignKey(Unit)
 
     title = models.CharField(max_length=255, blank=False, null=False)
-    slug = AutoSlugField(populate_from='full_title', unique_with='faculty',
+    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False)
     end_date = models.DateField(null=True)
@@ -43,9 +43,7 @@ class CareerEvent(models.Model):
     event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
     config = JSONField(default={})
 
-    # TODO: maybe this should be handled via the EventHandler and be stored
-    #       inside the config field
-    flags = models.CharField(max_length=255, default='foobar')
+    flags = BitField(flags=EVENT_FLAGS, default=0)
 
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
     import_key = models.TextField(null=True, blank=True)
@@ -70,6 +68,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'faculty',
+        instance.person.userid,
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
@@ -121,26 +120,25 @@ class Memo(models.Model):
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
 
     sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter, editable")
-    to_lines = models.TextField(help_text='Delivery address for the letter', null=True, blank=True)
+    to_lines = models.TextField(help_text='Recipient of the memo', null=True, blank=True)
+    cc_lines = models.TextField(help_text='additional recipients of the memo', null=True, blank=True)
     from_person = models.ForeignKey(Person, null=True, related_name='+')
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Applied Sciences, Dean"')
     subject = models.TextField(help_text='The career event of the memo')
     
     template = models.ForeignKey(MemoTemplate, null=True)
     memo_text = models.TextField(help_text="I.e. 'Congratulations Mr. Baker on ... '")
-    salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
-    closing = models.CharField(max_length=100, default="Sincerely")
+    #salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
+    #closing = models.CharField(max_length=100, default="Sincerely")
     
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+')
     hidden = models.BooleanField(default=False)
     config = JSONField(default={}) # addition configuration for within the memo
-        
-
     # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
     
-    defaults = {'use_sig': True}
-    use_sig = property(*getter_setter('use_sig'))
+    use_sig = config_property('use_sig', default=True)
+
         
     """ need career event slugs
     def autoslug(self):

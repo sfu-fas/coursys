@@ -187,7 +187,7 @@ class CareerEventHandlerBase(object):
             
         e.g.
             return TeachingAdjust(Fraction(1,2), Fraction(1,2))
-            return TeachingAdjust(Fraction(1), Fraction(0))
+            return TeachingAdjust(Fraction(0), Fraction(1))
         These might indicate respectively an admin position with a 1.5 course/year
         teaching credit, and a medical leave with a 3 course/year reduction in
         workload.

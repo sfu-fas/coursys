@@ -1,6 +1,6 @@
 # career-level event types: appointment, salary
 
-from base import CareerEventHandlerBase, BaseEntryForm
+from base import CareerEventHandlerBase, BaseEntryForm, SalaryAdjust, TeachingAdjust
 from django import forms
 import decimal, datetime
 
@@ -71,8 +71,13 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
         event.config['base_salary'] = form.cleaned_data['base_salary']
         return event
 
-    def get_salary(self, prev_salary):
-        return decimal.Decimal(10000)
-        #return self.event.base_salary
+    def salary_adjust_annually(self):
+        # s = self.event.base_salary
+        s = Decimal(10000)
+        return SalaryAdjust(s, 1, 0)
+
+
+
+
 
 
