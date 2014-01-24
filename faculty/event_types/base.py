@@ -1,7 +1,7 @@
 from django import forms
 from django.template import Context, Template
 from coredata.models import Role
-import datetime, itertools
+import datetime, itertools, collections
 
 PERMISSION_CHOICES = { # who can create/edit/approve various things?
         'MEMB': 'Faculty Member',
@@ -15,6 +15,9 @@ PERMISSION_LEVEL = {
         'FAC': 3,
         }
 
+
+SalaryAdjust = collections.namedtuple('SalaryAdjust', ['add_salary', 'salary_fraction', 'add_bonus'])
+TeachingAdjust = collections.namedtuple('TeachingAdjust', ['credits', 'load_decrease'])
 
 class BaseEntryForm(forms.Form):
     # TODO: should this be a ModelForm for a CareerEvent? We'll have a circular import if so.
@@ -163,11 +166,11 @@ class CareerEventHandlerBase(object):
     def salary_adjust_annually(self):
         """
         Return vector of ways this CareerEvent affects the faculty member's
-        salary. Must be a triple: (add_salary, salary_fraction, add_bonus).
+        salary. Must be a namedtuple: SalaryAdjust(add_salary, salary_fraction, add_bonus).
         So, pay after is event is:
             pay = (pay + add_salary) * salary_fraction + add_bonus
         e.g.
-            return (Decimal('5000.01'), Fraction(4,5), Decimal(10000))
+            return SalaryAdjust(Decimal('5000.01'), Fraction(4,5), Decimal(10000))
         
         Must be implemented iff self.affects_salary.
         """
@@ -176,15 +179,15 @@ class CareerEventHandlerBase(object):
     def teaching_adjust_per_semester(self):
         """
         Return vector of ways this CareerEvent affects the faculty member's
-        teaching expectation. Must be a pair:
-            (teaching_credits, teaching_expectation_decrease).
+        teaching expectation. Must be a namedtuple:
+            TeachingAdjust(credits, load_decrease).
         Each value is interpreted as "courses PER SEMESTER".
-            courses_taught += teaching_credits * n_semesters
-            teaching_owed -= teaching_expectation_decrease * n_semesters
+            courses_taught += credits * n_semesters
+            teaching_owed -= load_decrease * n_semesters
             
         e.g.
-            return (Fraction(1,2), Fraction(1,2))
-            return (Fraction(1), Fraction(0))
+            return TeachingAdjust(Fraction(1,2), Fraction(1,2))
+            return TeachingAdjust(Fraction(1), Fraction(0))
         These might indicate respectively an admin position with a 1.5 course/year
         teaching credit, and a medical leave with a 3 course/year reduction in
         workload.
@@ -192,6 +195,7 @@ class CareerEventHandlerBase(object):
         Must be implemented iff self.affects_teaching.
         """
         raise NotImplementedError
+
 
 '''
     def get_salary(self, prev_salary):
