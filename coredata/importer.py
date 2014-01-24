@@ -15,6 +15,7 @@ from django.contrib.sessions.models import Session
 from django.conf import settings
 from django.core.cache import cache
 from courselib.svn import update_offering_repositories
+from grades.models import LetterActivity
 from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, random
 
