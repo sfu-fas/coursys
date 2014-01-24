@@ -629,13 +629,13 @@ class OfferingDataJson(BaseDatatableView):
         
         srch = GET.get('sSearch', None)
         if srch:
-            #qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
-            sqs = SearchQuerySet().models(CourseOffering).filter(text=srch)[:1000]
-            pks = (r.pk for r in sqs if r)
+            qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
+            #sqs = SearchQuerySet().models(CourseOffering).filter(text=srch)[:1000]
+            #pks = (r.pk for r in sqs if r)
             #qs = qs.filter(pk__in=pks)
             # above should work, but production mySQL is ancient and can't do IN + LIMIT
-            fake_in = reduce(operator.__or__, (Q(pk=pk) for pk in pks))
-            qs = qs.filter(fake_in)
+            #fake_in = reduce(operator.__or__, (Q(pk=pk) for pk in pks))
+            #qs = qs.filter(fake_in)
 
         subject = GET.get('subject', None)
         if subject:

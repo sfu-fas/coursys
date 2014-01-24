@@ -1,7 +1,7 @@
 from coredata.models import CourseOffering, Person
 from haystack import indexes
 
-class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
+class OfferingIndex(indexes.SearchIndex):
     text = indexes.EdgeNgramField(document=True)
     name = indexes.CharField()
     title = indexes.EdgeNgramField(model_attr='title')
@@ -21,7 +21,7 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
         return ' '.join([o.subject, o.number, o.section])
 
 
-class PersonIndex(indexes.SearchIndex, indexes.Indexable):
+class PersonIndex(indexes.SearchIndex):
     text = indexes.EdgeNgramField(document=True)
     emplid = indexes.CharField(model_attr='emplid')
     search_display = indexes.CharField()
@@ -42,3 +42,9 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
 
     def prepare_search_display(self, o):
         return o.search_label_value()
+
+from haystack import site
+site.register(CourseOffering, OfferingIndex)
+site.register(Person, PersonIndex)
+
+
