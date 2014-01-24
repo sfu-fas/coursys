@@ -21,7 +21,35 @@ EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
 
 
 class CareerEvent(models.Model):
-    # ...
+
+    STATUS_CHOICES = (
+        ('NA', 'Needs Approval'),
+        ('A', 'Approved'),
+        ('D', 'Deleted'),
+    )
+
+    person = models.ForeignKey(Person)
+    unit = models.ForeignKey(Unit)
+
+    title = models.CharField(max_length=255)
+    slug = AutoSlugField(populate_from='full_title')
+    started_on = models.DateTimeField()
+    ended_on = models.DateTimeField(blank=True)
+
+    event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
+    config = JSONField(default={})
+
+    # TODO: maybe this should be handled via the EventHandler and be stored
+    #       inside the config field
+    flags = models.CharField(max_length=255, default='foobar')
+
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    import_key = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def full_title(self):
+        return self.title
 
     def save(self, editor, *args, **kwargs):
         assert editor.__class__.__name__ == 'Person' # we're doing to so we can add an audit trail later.
