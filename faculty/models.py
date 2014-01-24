@@ -9,6 +9,8 @@ from jsonfield import JSONField
 from coredata.models import Unit, Person
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
+from courselib.text import normalize_newlines, many_newlines
+import os
 
 from faculty.event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
 
@@ -31,10 +33,12 @@ class CareerEvent(models.Model):
     person = models.ForeignKey(Person)
     unit = models.ForeignKey(Unit)
 
-    title = models.CharField(max_length=255)
-    slug = AutoSlugField(populate_from='full_title')
-    started_on = models.DateTimeField()
-    ended_on = models.DateTimeField(blank=True)
+    title = models.CharField(max_length=255, blank=False, null=False)
+    def autoslug(self):
+        return make_slug(self.start_date.year + ' ' + self.title)
+    slug = AutoSlugField(populate_from=autoslug, unique_with=('faculty',), null=False, editable=False)
+    start_date = models.DateField(null=False)
+    end_date = models.DateField(null=True)
     comments = models.TextField(blank=True)
 
     event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
@@ -76,6 +80,7 @@ class DocumentAttachment(models.Model):
     Document attached to a CareerEvent.
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
+    title = models.CharField(max_length=250, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(upload_to=attachment_upload_to)
@@ -122,7 +127,7 @@ class Memo(models.Model):
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Applied Sciences, Dean"')
     subject = models.TextField(help_text='The career event of the memo')
     
-    template = models.ForeignKey(MemoTemplate)
+    template = models.ForeignKey(MemoTemplate, null=True)
     memo_text = models.TextField(help_text="I.e. 'Congratulations Mr. Baker on ... '")
     salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
     closing = models.CharField(max_length=100, default="Sincerely")
@@ -149,9 +154,9 @@ class Memo(models.Model):
         # normalize text so it's easy to work with
         if not self.to_lines:
             self.to_lines = ''
-        _normalize_newlines(self.to_lines.rstrip())
-        self.from_lines = _normalize_newlines(self.from_lines.rstrip())
-        self.memo_text = _normalize_newlines(self.content.rstrip())
+        self.to_lines = normalize_newlines(self.to_lines.rstrip())
+        self.from_lines = normalize_newlines(self.from_lines.rstrip())
+        self.memo_text = normalize_newlines(self.content.rstrip())
         self.memo_text = many_newlines.sub('\n\n', self.content)
         super(Memo, self).save(*args, **kwargs)
 

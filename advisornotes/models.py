@@ -5,7 +5,7 @@ from autoslug import AutoSlugField
 from coredata.models import Person, Unit, Course, CourseOffering
 from jsonfield import JSONField
 from courselib.slugs import make_slug
-from pages.models import _normalize_newlines
+from courselib.text import normalize_newlines
 from datetime import date
 import datetime
 import os.path
@@ -117,7 +117,7 @@ class AdvisorNote(models.Model):
         """
         A max-one-line preview of the note content, for the compact display.
         """
-        text = _normalize_newlines(self.text.rstrip())
+        text = normalize_newlines(self.text.rstrip())
         lines = text.split('\n')
         text = lines[0]
         if len(text) > 70:
