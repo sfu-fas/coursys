@@ -100,8 +100,6 @@ INSTALLED_APPS = (
     'django.contrib.markup',
     'django.contrib.messages',
     'south',
-    'haystack',
-
     'coredata',
     'dashboard',
     'grad',
@@ -143,16 +141,6 @@ if DEPLOYED:
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:22122',
     } }
-    HAYSTACK_CONNECTIONS = {
-        'default': {
-            'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-            'PATH': os.path.join(PROJECT_DIR, 'whoosh_index'),
-        },
-    }
-    HAYSTACK_SITECONF = 'courses.search_sites'
-    HAYSTACK_SEARCH_ENGINE = 'whoosh'
-    HAYSTACK_WHOOSH_PATH = os.path.join(PROJECT_DIR, 'whoosh_index')
-    
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
     DB_PASS_FILE = "/home/ggbaker/dbpass"
@@ -166,17 +154,6 @@ else:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
-    HAYSTACK_CONNECTIONS = {
-        'default': {
-            #'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
-            'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-            'PATH': os.path.join(PROJECT_DIR, 'whoosh_index'),
-        },
-    }
-    HAYSTACK_SITECONF = 'courses.search_sites'
-    HAYSTACK_SEARCH_ENGINE = 'whoosh'
-    HAYSTACK_WHOOSH_PATH = os.path.join(PROJECT_DIR, 'whoosh_index')
-    
     BASE_ABS_URL = "http://localhost:8000"
     DB_PASS_FILE = "./dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # changed below if using Celery

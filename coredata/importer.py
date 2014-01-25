@@ -15,7 +15,6 @@ from django.contrib.sessions.models import Session
 from django.conf import settings
 from django.core.cache import cache
 from courselib.svn import update_offering_repositories
-from grades.models import LetterActivity
 from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, random
 
@@ -942,8 +941,7 @@ def main():
 
     print "giving sysadmin permissions"
     give_sysadmin(sysadmin)
-
-    print "doing cleanup tasks"
+    
     # cleanup sessions table
     Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
     # cleanup old news items
@@ -952,10 +950,6 @@ def main():
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
     # cleanup old official grades
     Member.clear_old_official_grades()
-    call_command('clearsessions')
-    # update haystack index
-    from haystack.management.commands import update_index
-    update_index.Command().handle(remove=True)
     
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
