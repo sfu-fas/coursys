@@ -238,7 +238,7 @@ def import_semesters():
     sems = Semester.objects.filter(end__gte=past_cutoff, start__lte=future_cutoff)
     return tuple(s.name for s in sems)
 
-def get_unit(acad_org):
+def get_unit(acad_org, create=False):
     """
     Get the corresponding Unit
     """
@@ -262,16 +262,19 @@ def get_unit(acad_org):
             label = 'ENVS'
         else:
             label = acad_org[:4].strip()
-        #unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
-        #unit.save()
-        raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
+        if create:
+            unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
+            unit.save()
+        else:
+            raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
     
     return unit
         
 REQ_DES = None
 @transaction.atomic
 def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
-                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn, units):
+                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn, units,
+                    create_units=False):
     """
     Import one offering. Returns CourseOffering or None.
     
@@ -295,7 +298,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
         # mark cancelled sections
         component = "CAN"
     
-    owner = get_unit(acad_org)
+    owner = get_unit(acad_org, create=create_units)
 
     # search for existing offerings both possible ways and make sure we're consistent
     c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester).select_related('course')
@@ -382,13 +385,13 @@ def import_one_offering(strm, subject, number, section):
     row = res[0]
     return import_offering(*row)
     
-def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False):
+def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False, create_units=False):
     db = SIMSConn()
     db.execute(CLASS_TBL_QUERY + " AND ct.strm IN %s "
                " AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
-        o = import_offering(*row)
+        o = import_offering(*row, create_units=create_units)
         if o:
             imported_offerings.add(o)
 
@@ -831,16 +834,24 @@ def update_all_userids():
         if p.emplid in accounts_by_emplid:
             account_userid = accounts_by_emplid[p.emplid].userid
             if p.userid != account_userid:
-                p.userid = account_userid
                 if account_userid:
-                    p.config['replaced_userid'] = account_userid
-                p.save()
+                    if p.userid:
+                        p.config['replaced_userid'] = p.userid
+                    p.userid = account_userid
+                    p.save()
+                else:
+                    # this case: proposing to replace a non-null userid with null. i.e. deactivate the account
+                    # let's not do that. If userids get reused, this is the wrong thing.
+                    print "!!! not deactivating userid %s (1)" % (p.userid)
+
 
         else:
             if p.userid:
-                p.config['old_userid'] = p.userid
-                p.userid = None
-                p.save()
+                # as above: don't deactivate old userids
+                print "!!! not deactivating userid %s (2)" % (p.userid)
+                #p.config['old_userid'] = p.userid
+                #p.userid = None
+                #p.save()
 
 
 def update_grads():
@@ -907,15 +918,16 @@ def main():
     give_sysadmin(sysadmin)
     
     # cleanup sessions table
-    Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
+    from django.core.management import call_command
+    call_command('clearsessions')
     # cleanup old news items
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
     # cleanup old log entries
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
-        import djkombu.models
-        djkombu.models.Message.objects.cleanup()
+        #import djkombu.models
+        #djkombu.models.Message.objects.cleanup() # no longer needed with AMPQ
         from djcelery.models import TaskMeta
         TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
     

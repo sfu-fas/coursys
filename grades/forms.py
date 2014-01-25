@@ -11,6 +11,7 @@ from django.forms.util import ErrorList
 import datetime, decimal
 from grades.utils import parse_and_validate_formula, ValidationError
 from submission.models import Submission
+from dashboard.models import NewsItem
 
 _required_star = '<span><img src="'+settings.STATIC_URL+'icons/required_star.gif" alt="required"/></span>'
 
@@ -335,14 +336,14 @@ class StudentSearchForm(forms.Form):
              widget=forms.TextInput(attrs={'size':'15'}))
 
 class CourseConfigForm(forms.Form):
-    url = forms.URLField(required=False, label='Course URL:',
+    url = forms.URLField(required=False, label='Course URL',
             help_text='Course home page address',
             widget=forms.TextInput(attrs={'size':'60'}))
-    taemail = forms.EmailField(required=False, label="TA Contact Email:",
+    taemail = forms.EmailField(required=False, label="TA Contact Email",
             help_text="Email address to contact the TAs: set if you have a central contact address/list and don't want to encourage use of TAs' individual emails",)
     discussion = forms.BooleanField(required=False, label='Discussion',
             help_text="Should the student/TA/instructor discussion forum be activated for this course?")
-    indiv_svn = forms.BooleanField(required=False, label="Individual SVN access:",
+    indiv_svn = forms.BooleanField(required=False, label="Individual SVN access",
             help_text="Can the instructor and TAs access students' indivdual Subversion repositories? Set only if they are being used explicitly for grading.")
 
 
@@ -436,6 +437,13 @@ class CutoffForm(forms.Form):
         if d<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return d
+
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = NewsItem
+        # these fields are decided from the request at the time the form is submitted
+        exclude = ['user', 'author', 'published','updated','source_app','course', 'read']
 
 
 

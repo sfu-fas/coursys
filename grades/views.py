@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
@@ -21,7 +21,7 @@ from grades.models import Activity, NumericActivity, LetterActivity, CalNumericA
 from grades.models import NumericGrade, LetterGrade
 from grades.models import CalLetterActivity, ACTIVITY_TYPES
 from grades.models import neaten_activity_positions
-from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm
+from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, MessageForm
 from grades.forms import ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE
 from grades.forms import GROUP_STATUS_MAP, CourseConfigForm, CalLetterActivityForm, CutoffForm
 from grades.formulas import EvalException, activities_dictionary, eval_parse
@@ -38,7 +38,7 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
-from dashboard.models import UserConfig
+from dashboard.models import UserConfig, NewsItem
 from discuss import activity as discuss_activity
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -1213,6 +1213,31 @@ def photo_list(request, course_slug):
     
     context = {'course': course, 'members': members}
     return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
+
+
+@requires_course_staff_by_slug
+def new_message(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    staff = get_object_or_404(Person, userid=request.user.username)
+    default_message = NewsItem(user=staff, author=staff, course=offering, source_app="dashboard")
+    if request.method =='POST':
+        form = MessageForm(request.POST, instance=default_message)
+        if form.is_valid()==True:
+            NewsItem.for_members(member_kwargs={'offering': offering}, newsitem_kwargs={
+                    'author': staff, 'course': offering, 'source_app': 'dashboard',
+                    'title': form.cleaned_data['title'], 'content': form.cleaned_data['content'],
+                    'url': form.cleaned_data['url']})
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created a message for every student in %s") % (offering),
+                  related_object=offering)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'News item created.')
+            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': offering.slug}))
+    else:
+        form = MessageForm()    
+    return render(request, "grades/new_message.html", {"form" : form,'course': offering})
 
 
 @requires_course_staff_by_slug

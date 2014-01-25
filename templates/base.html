@@ -31,8 +31,9 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 
   {% compress css %}
   <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" type="text/css">
+  <link rel="stylesheet" href="{% static "newsfu/clf.main-page.css" %}" type="text/css">
   <link rel="stylesheet" href="{% static "style/main.css" media="all" %}" />
-  <link rel="stylesheet" href="{% static "style/jqueryui-smoothness/jquery-ui-1.10.3.custom.min.css" %}" media="all" />
+  <link rel="stylesheet" href="{% static "style/jqueryui-smoothness/jquery-ui-1.10.3.custom.min.css" %}" />
   {% endcompress %}
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
 
@@ -174,40 +175,9 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
       </div><!-- end header-divider -->
 
       <div id="page-content" class="two-column">
-        <div class="first-col">
-          <nav class="default-nav">
-            <div class="nav-control">
-              <button class="navtoggle">Nav</button>
-            </div>
 
-            <ul>
-              <li class=""><a href="/">CourSys</a></li>
-              <!--
-              <li class=""><a href="/">Thing Two</a></li>
-              <li class="rule active">
-                <a href="/">More Things</a>
-                <ul>
-                  <li class="active"><a href="/">Sub Thing 1</a></li>
-                  <li class=""><a href="/">Sub Thing 2</a></li>
-                  <li class="nav-overview-item"><a href="/">Sub Thing 3</a></li>
-                </ul>
-              </li>
-              <li class="">
-                <a href="/">Even More Things</a>
-                <ul>
-                  <li class="active"><a href="/">Sub Thing 1</a></li>
-                  <li class=""><a href="/">Sub Thing 2</a></li>
-                  <li class="nav-overview-item"><a href="/">Sub Thing 3</a></li>
-                </ul>
-              </li>
-              -->
-              {% block navmenu %}{% endblock %}
-            </ul>
-          </nav>
-
-          <div class="inherited-parsys below-nav">
+        <div class="subnav-wrapper">
           {% block actions %}{% endblock %}
-          </div>
         </div>
 
         {% block allbreadcrumbs %}<div class="breadcrumb">

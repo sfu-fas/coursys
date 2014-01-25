@@ -15,7 +15,7 @@ from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role, uses_feature, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
-from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
+from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from onlineforms.models import FormGroup
 from log.models import LogEntry
@@ -237,29 +237,6 @@ def _get_news_list(userid, count):
     past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
     return NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:count]
 
-@requires_course_staff_by_slug
-def new_message(request, course_slug):
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    staff = get_object_or_404(Person, userid=request.user.username)
-    default_message = NewsItem(user=staff, author=staff, course=offering, source_app="dashboard")
-    if request.method =='POST':
-        form = MessageForm(request.POST, instance=default_message)
-        if form.is_valid()==True:
-            NewsItem.for_members(member_kwargs={'offering': offering}, newsitem_kwargs={
-                    'author': staff, 'course': offering, 'source_app': 'dashboard',
-                    'title': form.cleaned_data['title'], 'content': form.cleaned_data['content'],
-                    'url': form.cleaned_data['url']})
-
-            #LOG EVENT#
-            l = LogEntry(userid=request.user.username,
-                  description=("created a message for every student in %s") % (offering),
-                  related_object=offering)
-            l.save()
-            messages.add_message(request, messages.SUCCESS, 'News item created.')
-            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': offering.slug}))
-    else:
-        form = MessageForm()    
-    return render(request, "dashboard/new_message.html", {"form" : form,'course': offering})
 
 @uses_feature('feeds')
 @cache_page(60 * 15)

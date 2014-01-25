@@ -66,7 +66,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
         url(r'^m/' + COURSE_SLUG + '/$', 'mobile.views.course_info'),
     url(r'^' + COURSE_SLUG + '/reorder_activity$', 'grades.views.reorder_activity'),
-    url(r'^' + COURSE_SLUG + '/new_message$', 'dashboard.views.new_message'),
+    url(r'^' + COURSE_SLUG + '/new_message$', 'grades.views.new_message'),
     url(r'^' + COURSE_SLUG + '/config/$', 'grades.views.course_config'),
     url(r'^' + COURSE_SLUG + '/config/tas$', 'coredata.views.manage_tas'),
     url(r'^' + COURSE_SLUG + '/config/copysetup$', 'marking.views.copy_course_setup'),
@@ -436,7 +436,7 @@ urlpatterns += patterns('',
 
     # Online Forms
     url(r'^forms/', include('onlineforms.urls')),
-    
+
     # Online Forms
     url(r'^faculty/', include('faculty.urls')),
 
@@ -454,8 +454,11 @@ urlpatterns += patterns('',
     url(r'^alerts/type/' + ALERT_TYPE_SLUG + '/(?P<alert_id>\d+)/comment', 'alerts.views.comment_alert'),
     url(r'^alerts/type/' + ALERT_TYPE_SLUG + '/automation/$', 'alerts.views.view_automation'),
     url(r'^alerts/type/' + ALERT_TYPE_SLUG + '/automation/new/$', 'alerts.views.new_automation'),
-    url(r'^alerts/type/' + ALERT_TYPE_SLUG + '/automation/(?P<automation_id>\d+)/(?P<alert_id>\d+)/$', 'alerts.views.view_email_preview' ),    
-    url(r'^alerts/type/' + ALERT_TYPE_SLUG + '/automation/(?P<automation_id>\d+)/delete/$', 'alerts.views.delete_automation' ),    
+    url(r'^alerts/type/' + ALERT_TYPE_SLUG + '/automation/(?P<automation_id>\d+)/(?P<alert_id>\d+)/$', 'alerts.views.view_email_preview' ),
+    url(r'^alerts/type/' + ALERT_TYPE_SLUG + '/automation/(?P<automation_id>\d+)/delete/$', 'alerts.views.delete_automation' ),
+
+    # GPA Calculator
+    url(r'^gpacalc/', include('gpaconvert.urls')),
 )
 
 if not settings.DEPLOYED:

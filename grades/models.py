@@ -27,7 +27,7 @@ ACTIVITY_STATUS_CHOICES = [
 ACTIVITY_STATUS = dict(ACTIVITY_STATUS_CHOICES)
 # but see also overridden get_status_display method on Activity
 
-LETTER_GRADE_CHOICES = [
+GPA_GRADE_CHOICES = [
     ('A+', 'A+ (Excellent performance)'),
     ('A', 'A (Excellent performance)'),
     ('A-', 'A- (Excellent performance)'),
@@ -38,7 +38,10 @@ LETTER_GRADE_CHOICES = [
     ('C', 'C (Satisfactory performance)'),
     ('C-', 'C- (Marginal performance)'),
     ('D', 'D (Marginal performance)'),
-    ('F', 'F (Fail (Unsatisfactory performance))'),
+    ('F', 'F (Fail. Unsatisfactory Performance)'),
+    ]
+
+NON_GPA_GRADE_CHOICES = [
     #('FD', 'FD (Fail (Academic discipline))'),
     ('N', 'N (Did not write exam or did not complete course)'),
     ('P', 'P (Satisfactory performance or better (pass, ungraded))'),
@@ -56,6 +59,8 @@ LETTER_GRADE_CHOICES = [
     ('GN', 'GN (Grade not reported)'),
     ('IP', 'IP (In progress)'),
     ]
+
+LETTER_GRADE_CHOICES = GPA_GRADE_CHOICES + NON_GPA_GRADE_CHOICES
 LETTER_GRADE = dict(LETTER_GRADE_CHOICES)
 LETTER_GRADE_CHOICES_IN = set(LETTER_GRADE.keys())
 

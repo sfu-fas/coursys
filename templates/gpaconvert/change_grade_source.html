@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}GPA Convert Admin Interface{% endblock %}
+{% block h1 %}GPA Convert Admin Interface{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'list_grade_sources_index' %}">GPA Calculator</a></li>
+<li><a href="{% url 'grade_source_index' %}">Manage Grade Sources</a></li>
+<li>{{ grade_source }}</li>
+{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    .datatable_container {
+        margin-top: 12px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .datatable_container td {
+        vertical-align: middle;
+        text-align: center;
+    }
+    .hideshow input{
+        font-size: x-small;
+    }
+    .deleted{
+        background-color: pink;
+    }
+</style>
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+} );
+</script>
+
+{% endblock %}
+
+
+{%block content%}
+<div class="form_container">
+    <form action="." method="post">
+        {% csrf_token %}
+        <fieldset>
+        <legend>Grade Source</legend>
+        {{ grade_source_form|as_dl }}
+        </fieldset>
+
+        <fieldset>
+        <legend>Conversion Rules</legend>
+        {{ rule_formset.management_form }}
+        <table id="gradesourcetable">
+            <tbody>
+            <tr>
+                <th scope="col">{% if grade_source.scale == 'CONT' %}{{ "Minimum Source Grade"|required_label }}{% else %}{{ "Source Grade"|required_label }}{% endif %}</th>
+                <th scope="col">{{ "SFU equivalent"|required_label }}</th>
+                <th scope="col">Delete?</th>
+            </tr>
+        {% for form in rule_formset %}
+        <tr>
+            {% for field in form.visible_fields %}
+            <td>
+                <div class="field">
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            </td>
+            {% endfor %}
+            {% for field in form.hidden_fields %}
+            <td class="hidden">
+            {{ field }}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+
+        <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{%endblock content%}

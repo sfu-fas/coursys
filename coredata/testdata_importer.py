@@ -10,7 +10,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 import random, socket, datetime, itertools
 from django.core import serializers
 from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff, update_amaint_userids, fix_emplid
-from demodata_importer import fake_emplid, fake_emplids, create_classes
+from demodata_importer import fake_emplid, fake_emplids, create_classes, create_fake_semester
 from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES, ComputingAccount
 from dashboard.models import UserConfig
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
@@ -514,31 +514,6 @@ def import_semesters():
     sems = Semester.objects.filter(end__gte=past_cutoff)
     return tuple(s.name for s in sems)
 
-def create_fake_semester(strm):
-    """
-    Create a close-enough Semester object for testing
-    """
-    strm = str(strm)
-    s = Semester(name=strm)
-    yr = int(strm[0:3]) + 1900
-    if strm[3] == '1':
-        mo = 1
-    elif strm[3] == '4':
-        mo = 5
-    elif strm[3] == '7':
-        mo = 9
-
-    s.start = datetime.date(yr,mo,5)
-    s.end = datetime.date(yr,mo+3,1)
-    s.save()
-
-    sw = SemesterWeek(semester=s, week=1)
-    mon = s.start
-    while mon.weekday() != 0:
-        mon -= datetime.timedelta(days=1)
-    sw.monday = mon
-    sw.save()
-
 def create_units():
     univ = Unit.objects.get(label='UNIV')
     fas = Unit(label='FAS', name='Faculty of Applied Sciences', parent=univ).save()
@@ -564,7 +539,7 @@ def main():
 
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around
-    offerings = import_offerings(import_semesters=import_semesters, extra_where=
+    offerings = import_offerings(import_semesters=import_semesters, create_units=True, extra_where=
         #"(subject='CMPT' AND (catalog_nbr LIKE '%%165%%')) "
         #"OR (subject='ENSC' AND (catalog_nbr LIKE '%% 100%%')) "
         "(subject='CMPT' AND (catalog_nbr LIKE '%% 1%%' OR catalog_nbr LIKE '%% 2%%')) "

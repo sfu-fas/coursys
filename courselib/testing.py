@@ -49,7 +49,7 @@ def validate_content(testcase, data, page_descr="unknown page"):
         fh = open("tmp-validation.html", "w")
         fh.write(data)
         fh.close()
-        testcase.fail("Invalid XHTML produced in %s:\n  %s" % (page_descr, str(parser.errors)))
+        testcase.fail("Invalid HTML5 produced in %s:\n  %s" % (page_descr, str(parser.errors)))
 
 
 
@@ -68,6 +68,21 @@ def test_auth(client, userid):
     Login as this user for testing
     """
     client.get(reverse('dashboard.views.fake_login') + '?userid=' + 'ggbaker')
+
+def test_views(testcase, client, view_prefix, views, url_args):
+    """
+    Test a collection of views, just to make sure they render
+    """
+    for v in views:
+        view = view_prefix + v
+        try:
+            url = reverse(view, kwargs=url_args)
+            response = basic_page_tests(testcase, client, url)
+        except Exception as e:
+            print "failing with view=" + view
+            raise
+
+
 
 from django.conf import settings
 from django.contrib.auth.models import User
