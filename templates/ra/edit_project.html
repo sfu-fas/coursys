@@ -5,9 +5,9 @@
 {% block h1 %}Edit Project{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
-<li>&gt; <a href="{% url "ra.views.projects_index" %}">Projects</a></li>
-<li>&gt; Edit {{ project.project_number}}</li>{% endblock %}
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra.views.projects_index" %}">Projects</a></li>
+<li>Edit {{ project.project_number}}</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">

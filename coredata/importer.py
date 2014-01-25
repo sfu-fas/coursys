@@ -13,6 +13,7 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.contrib.sessions.models import Session
 from django.conf import settings
+from django.core.cache import cache
 from courselib.svn import update_offering_repositories
 from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, random
@@ -238,7 +239,7 @@ def import_semesters():
     sems = Semester.objects.filter(end__gte=past_cutoff, start__lte=future_cutoff)
     return tuple(s.name for s in sems)
 
-def get_unit(acad_org):
+def get_unit(acad_org, create=False):
     """
     Get the corresponding Unit
     """
@@ -262,16 +263,19 @@ def get_unit(acad_org):
             label = 'ENVS'
         else:
             label = acad_org[:4].strip()
-        #unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
-        #unit.save()
-        raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
+        if create:
+            unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
+            unit.save()
+        else:
+            raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
     
     return unit
         
 REQ_DES = None
 @transaction.atomic
 def import_offering(subject, number, section, strm, crse_id, class_nbr, component, title, campus,
-                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn, units):
+                    enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org, instr_mode, rqmnt_designtn, units,
+                    create_units=False):
     """
     Import one offering. Returns CourseOffering or None.
     
@@ -295,7 +299,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
         # mark cancelled sections
         component = "CAN"
     
-    owner = get_unit(acad_org)
+    owner = get_unit(acad_org, create=create_units)
 
     # search for existing offerings both possible ways and make sure we're consistent
     c_old1 = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester).select_related('course')
@@ -382,13 +386,13 @@ def import_one_offering(strm, subject, number, section):
     row = res[0]
     return import_offering(*row)
     
-def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False):
+def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False, create_units=False):
     db = SIMSConn()
     db.execute(CLASS_TBL_QUERY + " AND ct.strm IN %s "
                " AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
-        o = import_offering(*row)
+        o = import_offering(*row, create_units=create_units)
         if o:
             imported_offerings.add(o)
 
@@ -585,6 +589,16 @@ def import_meeting_times(offering):
     MeetingTime.objects.filter(offering=offering).exclude(id__in=found_mtg).delete()
 
 
+def has_letter_activities(offering):
+    key = 'has-letter-' + offering.slug
+    res = cache.get(key)
+    if res is not None:
+        return res
+    else:
+        las = LetterActivity.objects.filter(offering=offering, deleted=False)
+        res = las.count() > 0
+        cache.set(key, res, 12*60*60)
+
 
 def ensure_member(person, offering, role, cred, added_reason, career, labtut_section=None, grade=None):
     """
@@ -615,8 +629,11 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     m.added_reason = added_reason
     m.career = career
 
-    # record official grade if we have it
-    m.official_grade = grade or None
+    # record official grade if we have it (and might need it)
+    if has_letter_activities(m.offering):
+        m.official_grade = grade or None
+    else:
+        m.official_grade = None
     
     # if offering is being given lab/tutorial sections, flag it as having them
     # there must be some way to detect this in ps_class_tbl, but I can't see it.
@@ -921,6 +938,9 @@ def main():
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
     # cleanup old log entries
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
+    # cleanup old official grades
+    Member.clear_old_official_grades()
+    
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
         #import djkombu.models

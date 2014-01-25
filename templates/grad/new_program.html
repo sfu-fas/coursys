@@ -5,7 +5,7 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url "grad.views.index" %}">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grad.views.index" %}">Grad</a></li><li>{{crumb}}</li>{% endblock %}
 {% block content %}
 <div class="form_container">
     <form action="{% url "grad.views.new_program" %}" method="post">{% csrf_token %}

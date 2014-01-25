@@ -1,6 +1,6 @@
     <h2>Change Component Type:</h2>
     <ul class="add_nav">
-        <li class="warning"><img src="{{MEDIA_URL}}icons/exclamation.png" alt="Warning" />&nbsp;Changing type takes effect immediately and may cause loss of property (e.g, max size for an archive file)</li>
+        <li class="warning"><img src="{{STATIC_URL}}icons/exclamation.png" alt="Warning" />&nbsp;Changing type takes effect immediately and may cause loss of property (e.g, max size for an archive file)</li>
         <li><a href="?type={{type}}&id={{edit_id}}&to_type=Archive" class="button"	{% ifequal type 'Archive' %}id="current_type"{% endifequal %}>Archive</a></li>
         <li><a href="?type={{type}}&id={{edit_id}}&to_type=URL" class="button"	{% ifequal type 'URL' %}id="current_type"{% endifequal %}>URL</a></li>
         <li><a href="?type={{type}}&id={{edit_id}}&to_type=Cpp" class="button"	{% ifequal type 'Cpp' %}id="current_type"{% endifequal %}>C/C++</a></li>

@@ -19,7 +19,7 @@
                         {{ s.get_status_display }}
                     {% if s.hidden %}</del>{% endif %}
 				    {% if s.notes %} 
-                        <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" />
+                        <img src="{{STATIC_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" />
                         <p class="hiddencomment">
                             {{s.notes}}
                         </p> 

@@ -4,7 +4,7 @@
 {% block h1 %}Advising{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 $(function() {
@@ -22,7 +22,7 @@ $(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; Advising</li>{% endblock %}
+{% block subbreadcrumbs %}<li>Advising</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
@@ -47,7 +47,7 @@ $(function() {
     </form>
 
     <div id="simsresult">
-        <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
+        <img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
     </div>
 
     {% if simserror %}

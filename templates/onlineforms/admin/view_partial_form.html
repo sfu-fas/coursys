@@ -5,7 +5,7 @@
 {% block title %}View {{ form.title }}{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
+<link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />
 <script type="text/javascript">
     $(document).ready(function() {
         $('#form_table').dataTable({
@@ -19,13 +19,13 @@
 
 {% block subbreadcrumbs %}
 {% if is_advisor %}
-<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li>&gt; <a href="{% url "advisornotes.views.student_notes" userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
-<li>&gt; View {{ form.title }}</li>
+<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advisornotes.views.student_notes" userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
+<li>View {{ form.title }}</li>
 {% else %}
-<li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-<li>&gt; <a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
-<li>&gt; View {{ form.title }}</li>
+<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+<li>View {{ form.title }}</li>
 {% endif %}
 {% endblock %}
 

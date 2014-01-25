@@ -12,7 +12,7 @@ import datetime, decimal
 from grades.utils import parse_and_validate_formula, ValidationError
 from submission.models import Submission
 
-_required_star = '<span><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></span>'
+_required_star = '<span><img src="'+settings.STATIC_URL+'icons/required_star.gif" alt="required"/></span>'
 
 FORMTYPE = {'add': 'add', 'edit': 'edit'}
 GROUP_STATUS_CHOICES = [

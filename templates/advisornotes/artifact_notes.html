@@ -3,13 +3,13 @@
 {% block h1 %}Notes for {{ artifact }} {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
-<li>&gt; {{ artifact }}</li>
+<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li>{{ artifact }}</li>
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
@@ -40,7 +40,7 @@ $(document).ready(function() {
     
     <p>{{note.text|linebreaks}}</p>
     {% if note.file_attachment %}
-    <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" />
+    <p><img src="{{STATIC_URL}}icons/attach.png" alt="download" />
         <a href="{% url "advisornotes.views.download_file" userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
         ({{ note.file_attachment.size|filesizeformat }})
     </p> 

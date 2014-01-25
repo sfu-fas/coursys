@@ -5,10 +5,10 @@
 {% block h1 %}Give submission away for {{ formsub.form.title }} {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url "onlineforms.views.index" %}">Forms</a></li>
-    <li>&gt; <a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
-    <li>&gt; <a href="{% url "onlineforms.views.view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">View {{ formsub.form.title }}</a></li>
-    <li>&gt; Give</li>
+    <li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+    <li><a href="{% url "onlineforms.views.admin_list_all" %}">Admin Forms</a></li>
+    <li><a href="{% url "onlineforms.views.view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">View {{ formsub.form.title }}</a></li>
+    <li>Give</li>
 {% endblock %}
 
 {% block headextra %}

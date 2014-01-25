@@ -5,9 +5,9 @@
 {% block h1 %}Edit Account{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "ra.views.search" %}">RAs</a></li>
-<li>&gt; <a href="{% url "ra.views.accounts_index" %}">Accounts</a></li>
-<li>&gt; Edit {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+<li><a href="{% url "ra.views.accounts_index" %}">Accounts</a></li>
+<li>Edit {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
 
 {% block content %}
   <div class="form_container">

@@ -5,3 +5,4 @@ flup==1.0.2
 python-memcached==1.53
 django-celery-email==1.0.4
 #django-celery==3.1.1
+MySQL-python==1.2.5

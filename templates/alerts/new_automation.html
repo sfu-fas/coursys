@@ -6,14 +6,14 @@
 {% block h1 %}New Automation{% endblock %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}style/alerts.css" rel="stylesheet" />
+<link type="text/css" href="{{STATIC_URL}}style/alerts.css" rel="stylesheet" />
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
-<li>&gt; <a href="{% url "alerts.views.view_alerts" alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>
-<li>&gt; <a href="{% url "alerts.views.view_automation" alert_type=alert_type.slug %}">Automation</a></li> 
-<li>&gt; New </li>
+<li><a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
+<li><a href="{% url "alerts.views.view_alerts" alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>
+<li><a href="{% url "alerts.views.view_automation" alert_type=alert_type.slug %}">Automation</a></li> 
+<li>New </li>
 {% endblock %}
 
 {% block content %}

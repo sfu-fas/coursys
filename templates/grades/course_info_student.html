@@ -10,7 +10,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; {{ course.name }} ({{course.semester.label}})</li>{% endblock %}
+{% block subbreadcrumbs %}<li>{{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
 {% block actions %}
 {% if any_group or has_index or course.discussion %}
@@ -23,7 +23,7 @@
     	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">
     		Course Discussion
     		{% if discussion_activity %}
-            <img src="{{ MEDIA_URL }}/icons/required_star.gif" alt="New Activity" />
+            <img src="{{ STATIC_URL }}/icons/required_star.gif" alt="New Activity" />
             {% endif %}
     	</a>
     </li>    
