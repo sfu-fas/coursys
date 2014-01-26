@@ -60,6 +60,12 @@ class CareerEvent(models.Model):
         assert editor.__class__.__name__ == 'Person'
         return super(CareerEvent, self).save(*args, **kwargs)
 
+    class Meta:
+        ordering = (
+            '-start_date',
+            '-end_date',
+            'title',
+        )
 
 # TODO separate storage system for faculty attachments?
 #NoteSystemStorage = FileSystemStorage(location=settings.FACULTY_PATH, base_url=None)
