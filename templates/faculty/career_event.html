@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ role.person.name }}{% endblock %}
+{% block h1 %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ role.person.name }}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+</script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty_summary' userid=role.person.userid_or_emplid %}">{{ role.person.name }} ({{ role.unit.label }})</a></li>
+<li>{% if event %}Change Event{% else %}New Career Event{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+    <form action="{% url 'faculty_create_event' userid=role.person.userid_or_emplid %}" method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>{{ event }}</legend>
+            {{ event_form|as_dl }}
+            <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+
+{% endblock %}

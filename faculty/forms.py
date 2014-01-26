@@ -1,8 +1,22 @@
 from django import forms
 #from django.forms.models import imlineformset_factory
 
-
+from models import CareerEvent
 from models import DocumentAttachment
+from models import MemoTemplate
+from models import Memo
+
+
+def career_event_factory(person, post_data=None, post_files=None):
+    if post_data:
+        return CareerEventForm(post_data, post_files)
+    return CareerEventForm(initial={"person": person})
+
+class CareerEventForm(forms.ModelForm):
+    class Meta:
+        model = CareerEvent
+        # TODO flags field throws 'int not iterable' error maybe to do with BitField?
+        exclude = ("config", "flags", "person",)
 
 
 class AttachmentForm(forms.ModelForm):
@@ -10,7 +24,7 @@ class AttachmentForm(forms.ModelForm):
         model = DocumentAttachment 
 
 
-class MemoTemplateForm(ModelForm):
+class MemoTemplateForm(forms.ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
     class Meta:
         model = MemoTemplate
@@ -24,7 +38,7 @@ class MemoTemplateForm(ModelForm):
             raise forms.ValidationError('Syntax error in template: ' + unicode(e))
         return content
 
-class MemoForm(ModelForm):
+class MemoForm(forms.ModelForm):
     use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
                                  help_text='Use the "From" person\'s signature, if on file?')    
     class Meta: 

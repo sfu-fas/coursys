@@ -1,10 +1,15 @@
 from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponseRedirect
 from courselib.search import find_userid_or_emplid
 
 from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
+
+from faculty.models import CareerEvent
+from faculty.forms import career_event_factory
+from faculty.forms import CareerEventForm
 
 
 def _get_faculty_role_or_404(allowed_units, userid_or_emplid):
@@ -43,6 +48,7 @@ def summary(request, userid):
     role = _get_faculty_role_or_404(request.units, userid)
     context = {
         'role': role,
+        'person': role.person,
     }
     return render(request, 'faculty/summary.html', context)
 
@@ -77,7 +83,50 @@ def otherinfo(request, userid):
 
 ###############################################################################
 # Creation and editing of CareerEvents
+@requires_role('ADMN')
+def create_event(request, userid):
+    """
+    Create new career event for a faculty member.
+    """
+    role = _get_faculty_role_or_404(request.units, userid)
+    person = role.person
+    context = {"role": role, "person": person}
+    if request.method == "POST":
+        form = CareerEventForm(request.POST)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.person = person
+            event.save()
+            return HttpResponseRedirect(event.get_change_url())
+        else:
+            context.update({"event_form": form})
+    else:
+        unit_choices = [(u.id, unicode(u)) for u in request.units]
+        form = CareerEventForm(initial={"person": person, "status": "NA"})
+        form.fields['unit'].choices = unit_choices
+        # TODO filter choice for status (some roles may not be allowed to approve events?
+        context.update({"event_form": form})
+    return render(request, 'faculty/career_event.html', context)
 
+
+@requires_role('ADMN')
+def change_event(request, userid, slug):
+    """
+    Change existing career event for a faculty member.
+    """
+    role = _get_faculty_role_or_404(request.units, userid)
+    person = role.person
+    instance = get_object_or_404(CareerEvent, slug=slug, person=person)
+    context = {"role": role, "person": person, "event": instance}
+    if request.method == "POST":
+        pass
+    else:
+        unit_choices = [(u.id, unicode(u)) for u in request.units]
+        form = CareerEventForm(instance=instance)
+        form.fields['unit'].choices = unit_choices
+        # TODO filter choice for status (as above)
+        context.update({"event_form": form})
+    return render(request, 'faculty/career_event.html', context)
 
 
 ###############################################################################

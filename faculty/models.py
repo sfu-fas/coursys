@@ -3,6 +3,7 @@ import os
 
 from django.db import models
 from django.core.files.storage import FileSystemStorage
+from django.core.urlresolvers import reverse
 
 from autoslug import AutoSlugField
 from jsonfield import JSONField
@@ -32,7 +33,7 @@ class CareerEvent(models.Model):
         ('D', 'Deleted'),
     )
 
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, related_name="career_events")
     unit = models.ForeignKey(Unit)
 
     title = models.CharField(max_length=255, blank=False, null=False)
@@ -55,10 +56,17 @@ class CareerEvent(models.Model):
     def full_title(self):
         return '{} {}'.format(self.start_date.year, self.title)
 
-    def save(self, editor, *args, **kwargs):
-        # we're doing to so we can add an audit trail later.
-        assert editor.__class__.__name__ == 'Person'
-        return super(CareerEvent, self).save(*args, **kwargs)
+    def get_change_url(self):
+        return reverse("faculty_change_event", args=[self.person.userid, self.slug])
+
+    def __unicode__(self):
+        return self.title
+
+    # TODO grab 'Person' object from request?  no well-documented way of doing this?
+    #def save(self, editor, *args, **kwargs):
+    #    # we're doing to so we can add an audit trail later.
+    #    assert editor.__class__.__name__ == 'Person'
+    #    return super(CareerEvent, self).save(*args, **kwargs)
 
     class Meta:
         ordering = (

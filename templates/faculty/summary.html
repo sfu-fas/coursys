@@ -12,7 +12,17 @@
 {% endblock %}
 
 {% block content %}
-
-<a href="{% url "faculty.views.otherinfo" userid=role.person.userid_or_emplid %}">Other info</a>
+{% with events=person.career_events.all %}
+<h4>Event list (placeholder ui)</h4>
+<ul>
+{% for e in events %}
+<li><a href="{{ e.get_change_url }}">{{ e.full_title }}</a></li>
+{% endfor %}
+</ul>
+{% endwith %}
+<ul>
+	<li><a href="{% url 'faculty_otherinfo' userid=role.person.userid_or_emplid %}">Other info</a></li>
+	<li><a href="{% url 'faculty_create_event' userid=role.person.userid_or_emplid %}">Create New Event</a></li>
+</ul>
 
 {% endblock %}
