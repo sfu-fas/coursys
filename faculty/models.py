@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from django.db import models
 from django.core.files.storage import FileSystemStorage
@@ -11,7 +12,6 @@ from coredata.models import Unit, Person
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
-import os
 
 from faculty.event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
 
@@ -22,6 +22,7 @@ EVENT_TYPE_CHOICES = [
     ]
 EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
 EVENT_FLAGS = ['teaching', 'salary']
+
 
 class CareerEvent(models.Model):
 
@@ -55,10 +56,9 @@ class CareerEvent(models.Model):
         return '{} {}'.format(self.start_date.year, self.title)
 
     def save(self, editor, *args, **kwargs):
-        assert editor.__class__.__name__ == 'Person' # we're doing to so we can add an audit trail later.
-
-        res = super(CareerEvent, self).save(*args, **kwargs)
-        return res
+        # we're doing to so we can add an audit trail later.
+        assert editor.__class__.__name__ == 'Person'
+        return super(CareerEvent, self).save(*args, **kwargs)
 
 
 # TODO separate storage system for faculty attachments?
@@ -73,6 +73,7 @@ def attachment_upload_to(instance, filename):
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
+
 
 class DocumentAttachment(models.Model):
     """
@@ -106,12 +107,14 @@ class MemoTemplate(models.Model):
     hidden = models.BooleanField(default=False)
 
     def autoslug(self):
-        return make_slug(self.unit.label + "-" + self.label)  
+        return make_slug(self.unit.label + "-" + self.label)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
-    class Meta:
-        unique_together = ('unit', 'label')      
+
     def __unicode__(self):
         return u"%s in %s" % (self.label, self.unit)
+
+    class Meta:
+        unique_together = ('unit', 'label')
 
 
 class Memo(models.Model):
@@ -126,23 +129,23 @@ class Memo(models.Model):
     from_person = models.ForeignKey(Person, null=True, related_name='+')
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Applied Sciences, Dean"')
     subject = models.TextField(help_text='The career event of the memo')
-    
+
     template = models.ForeignKey(MemoTemplate, null=True)
     memo_text = models.TextField(help_text="I.e. 'Congratulations Mr. Baker on ... '")
     #salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
     #closing = models.CharField(max_length=100, default="Sincerely")
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+')
     hidden = models.BooleanField(default=False)
-    config = JSONField(default={}) # addition configuration for within the memo
+    config = JSONField(default={})  # addition configuration for within the memo
     # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
-    
+
     use_sig = config_property('use_sig', default=True)
 
     def autoslug(self):
-        return make_slug(self.career_event.slug + "-" + self.template.memo_type)     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)   
+        return make_slug(self.career_event.slug + "-" + self.template.memo_type)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return u"%s memo for %s" % (self.template.label, self.career_event)
@@ -156,5 +159,3 @@ class Memo(models.Model):
         self.memo_text = normalize_newlines(self.content.rstrip())
         self.memo_text = many_newlines.sub('\n\n', self.content)
         super(Memo, self).save(*args, **kwargs)
-
-
