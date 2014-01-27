@@ -91,12 +91,13 @@ def create_event(request, userid):
     role = _get_faculty_role_or_404(request.units, userid)
     person = role.person
     context = {"role": role, "person": person}
+    editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == "POST":
         form = CareerEventForm(request.POST)
         if form.is_valid():
             event = form.save(commit=False)
             event.person = person
-            event.save()
+            event.save(editor)
             return HttpResponseRedirect(event.get_change_url())
         else:
             context.update({"event_form": form})
@@ -118,8 +119,14 @@ def change_event(request, userid, slug):
     person = role.person
     instance = get_object_or_404(CareerEvent, slug=slug, person=person)
     context = {"role": role, "person": person, "event": instance}
+    editor = get_object_or_404(Person, userid=request.user.username)
     if request.method == "POST":
-        pass
+        form = CareerEventForm(request.POST, instance=instance)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.save(editor)
+            context.update({"event": event,
+                            "event_form": form})
     else:
         unit_choices = [(u.id, unicode(u)) for u in request.units]
         form = CareerEventForm(instance=instance)

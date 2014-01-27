@@ -62,11 +62,10 @@ class CareerEvent(models.Model):
     def __unicode__(self):
         return self.title
 
-    # TODO grab 'Person' object from request?  no well-documented way of doing this?
-    #def save(self, editor, *args, **kwargs):
-    #    # we're doing to so we can add an audit trail later.
-    #    assert editor.__class__.__name__ == 'Person'
-    #    return super(CareerEvent, self).save(*args, **kwargs)
+    def save(self, editor, *args, **kwargs):
+        # we're doing to so we can add an audit trail later.
+        assert editor.__class__.__name__ == 'Person'
+        return super(CareerEvent, self).save(*args, **kwargs)
 
     class Meta:
         ordering = (

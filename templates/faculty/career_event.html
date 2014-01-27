@@ -16,7 +16,7 @@
 {% block content %}
 
 <div class="form_container">
-    <form action="{% url 'faculty_create_event' userid=role.person.userid_or_emplid %}" method="post">
+    <form action="{% if event %}{% url 'faculty_change_event' userid=role.person.userid_or_emplid slug=event.slug %}{% else %}{% url 'faculty_create_event' userid=role.person.userid_or_emplid %}{% endif %}" method="post">
         {% csrf_token %}
         <fieldset>
             <legend>{{ event }}</legend>
