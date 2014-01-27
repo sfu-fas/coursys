@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.template.base import TemplateDoesNotExist
+from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
@@ -979,7 +980,7 @@ def student_photo(request, emplid):
         return ForbiddenResponse(request, 'You must be an instructor of this student.')
 
     # now return the photo
-    imgpath = os.path.join(settings.MEDIA_ROOT, 'images', 'default-photo.png')
+    imgpath = os.path.join(settings.STATIC_ROOT, 'images', 'default-photo.png')
     data = open(imgpath, 'r')
     response = HttpResponse(data, content_type='image/png')
     response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)

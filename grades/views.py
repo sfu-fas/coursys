@@ -2,6 +2,7 @@ import unicodecsv as csv
 import pickle
 import datetime
 
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
@@ -10,6 +11,7 @@ from django.db.models.aggregates import Max
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.html import mark_safe
 
 from coredata.models import Member, CourseOffering, Person
 
@@ -1206,10 +1208,16 @@ def photo_list(request, course_slug):
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     
     if not (configs and configs[0].value['agree']):
-        return ForbiddenResponse(request, 'You must confirm the photo usage agreement before seeing student photos.')
+        url = reverse('dashboard.views.photo_agreement')
+        return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
     
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
+    
+    # fire off a task to fetch the photos, to warm the cache
+    from dashboard.tasks import fetch_photos
+    task = fetch_photos([m.person.emplid for m in members])
+    print task
     
     context = {'course': course, 'members': members}
     return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
