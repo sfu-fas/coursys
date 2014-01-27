@@ -1,6 +1,7 @@
 import unicodecsv as csv
 import pickle
 import datetime
+import os
 
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -12,8 +13,9 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.html import mark_safe
+from django.conf import settings
 
-from coredata.models import Member, CourseOffering, Person
+from coredata.models import Member, CourseOffering, Person, Semester
 
 from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_student_by_slug
 from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
@@ -42,6 +44,7 @@ from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig
 from discuss import activity as discuss_activity
+import celery
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -1216,11 +1219,71 @@ def photo_list(request, course_slug):
     
     # fire off a task to fetch the photos, to warm the cache
     from dashboard.tasks import fetch_photos
-    task = fetch_photos([m.person.emplid for m in members])
-    print task
-    
+    task_map = fetch_photos([m.person.emplid for m in members])
+    for emplid, task_id in task_map.iteritems():
+        cache.set('photo-task-'+unicode(emplid), task_id, 60)
+
     context = {'course': course, 'members': members}
     return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
+
+
+@login_required
+def student_photo(request, emplid):
+    # confirm user's photo agreement
+    user = get_object_or_404(Person, userid=request.user.username)
+    configs = UserConfig.objects.filter(user=user, key='photo-agreement')
+    if not (configs and configs[0].value['agree']):
+        return ForbiddenResponse(request, 'You must confirm the photo usage agreement before seeing student photos.')
+
+    # confirm user is an instructor of this student (within the last two years)
+    # TODO: cache past_semester to save the query?
+    past_semester = Semester.get_semester(datetime.date.today() - datetime.timedelta(days=730))
+    student_members = Member.objects.filter(offering__semester__name__gte=past_semester.name,
+            person__emplid=emplid, role='STUD').select_related('offering')
+    student_offerings = [m.offering for m in student_members]
+    instructor_of = Member.objects.filter(person=user, role='INST', offering__in=student_offerings)
+    if instructor_of.count() == 0:
+        return ForbiddenResponse(request, 'You must be an instructor of this student.')
+
+    # get the photo
+    from dashboard.tasks import fetch_photos_task
+    task_id = cache.get('photo-task-'+unicode(emplid), None)
+    photo_data = cache.get('photo-image-'+unicode(emplid), None)
+    data = None
+
+    if photo_data:
+        # found image in cache: was fetched previously or task already completed before we got here
+        data = photo_data
+    elif task_id:
+        # found a task fetching the photo: wait for it to complete and get the data
+        task = fetch_photos_task.AsyncResult(task_id)
+        try:
+            data = task.get(timeout=10)
+        except celery.exceptions.TimeoutError:
+            pass
+    else:
+        # no cache warming: new task to get the photo
+        task = fetch_photos_task.apply([emplid])
+        try:
+            data = task.get(timeout=10)
+        except celery.exceptions.TimeoutError:
+            pass
+
+    if not data:
+        # whatever happened above failed: use a no-photo placeholder
+        imgpath = os.path.join(settings.STATIC_ROOT, 'images', 'default-photo.png')
+        data = open(imgpath, 'r').read()
+
+    # return the photo
+    response = HttpResponse(data, content_type='image/png')
+    response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
+    # TODO: be a little less heavy-handed with the caching if it can be done safely
+    response['Cache-Control'] = 'no-store'
+    response['Pragma'] = 'no-cache'
+    return response
+
+
+
 
 
 @requires_course_staff_by_slug
