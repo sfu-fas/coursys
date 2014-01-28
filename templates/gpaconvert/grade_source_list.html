@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Grade Sources{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>GPA Calculator</li>
+{% endblock %}
+
+{% block h1 %}Grade Sources{% endblock %}
+
+{% block actions %}
+{% if is_admin %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url 'grade_source_index' %}">Manage Grade Sources</a></li> 
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'gpaconvert.views.list_grade_sources' %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form>
+<ul>
+  {% for grade_source in grade_sources %}
+  <li>
+    <a href="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}">{{ grade_source.country }}, {{ grade_source.institution }}</a>
+  </li>
+  {% empty %}
+  <div>No Sources for selected country</div>
+  {% endfor %}
+</ul>
+{% endblock %}

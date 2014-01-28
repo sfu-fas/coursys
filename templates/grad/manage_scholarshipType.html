@@ -8,13 +8,8 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url "grad.views.index" %}">Grad</a>
-</li>
-
-<li>
-	&gt; Scholarship Types
-</li>
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li>Scholarship Types</li>
 {% endblock %}
 
 
@@ -25,11 +20,10 @@
     <form action="{% url "grad.views.manage_scholarshipType" %}" method="post">
     	{% csrf_token %}
     	<fieldset>
-              {{ new_scholarshipTypeForm|as_dl_2 }}
+              {{ new_scholarshipTypeForm|as_dl }}
         <p><input  class="submit"  type="submit" value="Submit" /></p>
         </fieldset>
     </form>
-	<a class="button" href="{% url "grad.views.index" %}">Back</a>
 </div>
 {% endblock %} 
 

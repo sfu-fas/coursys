@@ -1,16 +1,16 @@
 from django.test import TestCase
 from grades.formulas import parse, cols_used, eval_parse, EvalException, ParseException
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, \
-    NumericGrade, LetterGrade, GradeHistory, all_activities_filter, ACTIVITY_STATUS, sorted_letters, median_letters
+    NumericGrade, LetterGrade, GradeHistory, all_activities_filter, ACTIVITY_STATUS, sorted_letters, \
+    median_letters
 from grades.utils import activities_dictionary, generate_grade_range_stat
 from coredata.models import Person, Member, CourseOffering
+from dashboard.models import UserConfig
 from submission.models import StudentSubmission
 from coredata.tests import create_offering
 import pickle, datetime, decimal
 
-
 from django.conf import settings
-CAS_SERVER_URL = settings.CAS_SERVER_URL
 from courselib.testing import *
 
 # TODO: test activity modifiers ([A1.max], [A1.percent], [A1.final])
@@ -590,8 +590,49 @@ class GradesTest(TestCase):
 
 
 
+class PagesTests(TestCase):
+    fixtures = ['test_data']
 
+    def test_course_level(self):
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        na = NumericActivity.objects.filter(offering=crs, group=True)[0]
+        la = LetterActivity.objects.filter(offering=crs, group=True)[0]
+        cna = CalNumericActivity.objects.filter(offering=crs)[0]
+        cla = CalLetterActivity.objects.filter(offering=crs)[0]
+
+        instr = Member.objects.filter(offering=crs, role='INST')[0]
+        student = Member.objects.filter(offering=crs, role='STUD')[0]
+        c = Client()
         
+        # as instructor
+        c.login_user(instr.person.userid)
+        UserConfig(user=instr.person, key='photo-agreement', value={'agree':True}).save()
+        test_views(self, c, 'grades.views.', ['course_config', 'course_info', 'add_numeric_activity',
+                'add_cal_numeric_activity', 'add_letter_activity', 'add_cal_letter_activity', 'formula_tester',
+                'all_grades', 'class_list', 'photo_list', 'student_search', 'new_message'],
+                {'course_slug': crs.slug})
+        test_views(self, c, 'grades.views.', ['student_info'],
+                {'course_slug': crs.slug, 'userid': student.person.userid})
         
-        
+        # various combinations of activity type and view
+        test_views(self, c, 'grades.views.', ['activity_info', 'activity_info_with_groups', 'activity_stat',
+                'edit_activity'],
+                {'course_slug': crs.slug, 'activity_slug': na.slug})
+        test_views(self, c, 'grades.views.', ['compare_official', 'activity_info',
+                'activity_info_with_groups', 'activity_stat', 'edit_activity'],
+                {'course_slug': crs.slug, 'activity_slug': la.slug})
+        test_views(self, c, 'grades.views.', ['activity_info', 'activity_stat', 'edit_activity'],
+                {'course_slug': crs.slug, 'activity_slug': cna.slug})
+        test_views(self, c, 'grades.views.', ['edit_cutoffs', 'compare_official', 'activity_info',
+                'activity_stat', 'edit_activity'],
+                {'course_slug': crs.slug, 'activity_slug': cla.slug})
+
+        # as student
+        c.login_user(student.person.userid)
+        test_views(self, c, 'grades.views.', ['course_info'],
+                {'course_slug': crs.slug})
+        test_views(self, c, 'grades.views.', ['activity_info'],
+                {'course_slug': crs.slug, 'activity_slug': na.slug})
+
+
 

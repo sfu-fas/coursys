@@ -7,6 +7,8 @@ from django.utils.functional import Promise
 from django.forms.widgets import RadioSelect
 from grad.forms import SupervisorWidget
 
+required_icon = '<i class="reqicon fa fa-star-o"></i>'
+
 @register.filter
 def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform'):
     """
@@ -32,7 +34,8 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
 
         reqtext = ''
         if field.field.required:
-            reqtext = ' <span class="required">*</span>'
+            #reqtext = ' <span class="required">*</span>'
+            reqtext = '&nbsp;' + required_icon
             reqcount += 1
         
         if field.label:
@@ -58,49 +61,9 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
     
     out.append('</dl>')
     if reqcount > 0:
-        out.append('<p class="helptext"><span class="required">*</span> This field is required.</p>')
+        out.append('<p class="helptext">' + required_icon + ' This field is required.</p>')
     return mark_safe('\n'.join(out))
 
-@register.filter
-def as_dl_nolabel(form, safe=False, includefield=[], req_text=True):
-    """
-    Output a Form as a nice <dl>
-    """
-    out = []
-    out.append(unicode(form.non_field_errors()))
-    if form.hidden_fields():
-        out.append('<div style="display:none">')
-        for field in form.hidden_fields():
-            out.append(unicode(field))
-        out.append('</div>')
-        
-    #out.append('<dl class="dlform">')
-    reqcount = 0
-    for field in form.visible_fields():
-        if field.name in includefield:
-    
-            reqtext = ''
-            if field.field.required:
-                reqtext = ' <span class="required">*</span>'
-                reqcount += 1
-#            out.append('<dt></label></dt><dd>' %  reqtext)
-            out.append('<dd>')
-            out.append(unicode(field.errors))
-            if isinstance(field.field.widget, forms.widgets.RadioSelect):
-                out.append('<div class="field radio">%s</div>' % (unicode(field)))
-            else:
-                out.append('<div class="field">%s</div>' % (unicode(field)))
-            if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default:
-                if safe:
-                    out.append('<div class="helptext">%s</div>' % (field.help_text))
-                else:
-                    out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
-            out.append('</dd>')
-    
-    #out.append('</dl>')
-    if reqcount > 0 and req_text:
-        out.append('<p class="helptext"><span class="required">*</span> This field is required.</p>')
-    return mark_safe('\n'.join(out))
 
 @register.filter
 def as_dl_2(form, safe=False):
@@ -157,15 +120,6 @@ def as_dl_excludefields(form, excl):
     return as_dl(form, excludefields=excllist)
 
 @register.filter
-def as_dl_usefield(form, incl):
-    """
-    Like as_dl, but allows including some fields with filter argument
-    Hide helptext
-    """
-    incllist = incl.split(',')
-    return as_dl_nolabel(form, includefield=incllist, req_text=False)
-
-@register.filter
 def as_dl_includefields(form, incl):
     """
     Like as_dl, but allows including some fields with filter argument
@@ -181,3 +135,11 @@ def as_dl_includefields(form, incl):
 def as_dl_onlineforms(form):
     return as_dl(form)
     #return as_dl(form, formclass="onlineform")
+
+
+@register.filter
+def required_label(label):
+    """
+    Style label as it should be if on a required field.
+    """
+    return mark_safe(escape(label) + '&nbsp;' + required_icon)

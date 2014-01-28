@@ -1,5 +1,5 @@
 {% extends "grades/base.html" %}
-{% load grade_student %}
+{% load form_display %}
 
 {% block h1 %}{{course.name}} Setup{% endblock %}
 {% block title %}{{course.name}} Setup{% endblock %}
@@ -23,25 +23,15 @@
 
 {% block content %}
 <div class="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
+  <form action="" method="post">
+  <fieldset>
+    {% if course.uses_svn %}
+    {{ form|as_dl }}
+    {% else %}
+    {{ form|as_dl_excludefields:"indiv_svn" }}
     {% endif %}
-    <form action="{% url "grades.views.course_config" course_slug=course.slug %}" method="post">{% csrf_token %}
-        <fieldset>
-            <legend>Course Settings</legend>
-            <ul>
-                {{form.url|activity_field}}
-                {{form.taemail|activity_field}}
-                {{form.discussion|activity_field}}
-                {% if course.uses_svn %}{{form.indiv_svn|activity_field}}{% endif %}
-                <li>
-                    <input class="submit" type="submit" value="Submit" />
-                </li>
-            </ul>
-        </fieldset>
-    </form>
+    <p><input class="submit" type="submit" value="Submit" /></p>
+  </fieldset>
+  </form>
 </div>
 {% endblock %}

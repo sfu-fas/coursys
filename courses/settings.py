@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     #'techreq',
     'onlineforms',
     'faculty',
+    'gpaconvert',
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)

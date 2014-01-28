@@ -39,7 +39,7 @@ class NewsItem(models.Model):
     source_app = models.CharField(max_length=20, null=False, help_text="Application that created the story")
 
     title = models.CharField(max_length=100, null=False, help_text="Story title (plain text)")
-    content = models.TextField(help_text='Main story content (<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a>)')
+    content = models.TextField(help_text=mark_safe('Main story content (<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a>)'))
     published = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     url = models.URLField(blank=True, verbose_name="URL", help_text='absolute URL for the item: starts with "http://" or "/"')
