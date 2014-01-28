@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ role.person.name }}{% endblock %}
-{% block h1 %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ role.person.name }}{% endblock %}
+{% block title %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ person.name }}{% endblock %}
+{% block h1 %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ person.name }}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -9,14 +9,14 @@
 {% endblock %}
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url 'faculty_summary' userid=role.person.userid_or_emplid %}">{{ role.person.name }} ({{ role.unit.label }})</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li>{% if event %}Change Event{% else %}New Career Event{% endif %}</li>
 {% endblock %}
 
 {% block content %}
 
 <div class="form_container">
-    <form action="{% if event %}{% url 'faculty_change_event' userid=role.person.userid_or_emplid slug=event.slug %}{% else %}{% url 'faculty_create_event' userid=role.person.userid_or_emplid %}{% endif %}" method="post">
+    <form action="{% if event %}{% url 'faculty_change_event' userid=person.userid_or_emplid event_slug=event.slug %}{% else %}{% url 'faculty_create_event' userid=person.userid_or_emplid %}{% endif %}" method="post">
         {% csrf_token %}
         <fieldset>
             <legend>{{ event }}</legend>

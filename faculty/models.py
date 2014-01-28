@@ -39,8 +39,8 @@ class CareerEvent(models.Model):
     title = models.CharField(max_length=255, blank=False, null=False)
     slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
                          slugify=make_slug, null=False, editable=False)
-    start_date = models.DateField(null=False)
-    end_date = models.DateField(null=True)
+    start_date = models.DateField(null=False, blank=False)
+    end_date = models.DateField(null=True, blank=True)
     comments = models.TextField(blank=True)
 
     event_type = models.CharField(max_length=10, choices=EVENT_TYPE_CHOICES)
