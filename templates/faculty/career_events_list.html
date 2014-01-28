@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Career Events{% endblock %}
+{% block h1 %}Career Events{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#career_event_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[2, "asc"]],
+    "aoColumns": [null,
+                  null,
+                  { "sType": "by-date" },
+                  { "sType": "by-date" },
+                  null,
+    ],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }} ({{ role.unit.label }})</a></li>
+<li>Career Events</li>
+{% endblock %}
+
+{% block content %}
+{% with events=person.career_events.all %}
+<div class="datatable_container">
+<table id="career_event_table" class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Event Type</th>
+    <th scope="col">Start Date</th>
+    <th scope="col">End Date</th>
+    <th scope="col">Status</th>
+  </tr></thead>
+  <tbody>
+  {% for e in events %}
+  <tr>
+    <td><a href="{{ e.get_change_url }}">{{ e.title }}</a></td>
+    <td>{{ e.event_type }}</td>
+    <td>{{ e.start_date }}</td>
+    <td>{{ e.end_date }}</td>
+    <td>{{ e.status }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+{% endwith %}
+</table>
+</div>
+{% endblock %}

@@ -21,6 +21,7 @@
 </ul>
 {% endwith %}
 <ul>
+	<li><a href="{% url 'faculty_events_list' userid=role.person.userid_or_emplid %}">View All Career Events</a></li>
 	<li><a href="{% url 'faculty_otherinfo' userid=role.person.userid_or_emplid %}">Other info</a></li>
 	<li><a href="{% url 'faculty_create_event' userid=role.person.userid_or_emplid %}">Create New Event</a></li>
 </ul>

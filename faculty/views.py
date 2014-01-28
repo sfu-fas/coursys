@@ -53,6 +53,19 @@ def summary(request, userid):
     return render(request, 'faculty/summary.html', context)
 
 @requires_role('ADMN')
+def events_list(request, userid):
+    """
+    Display all career events
+    """
+    role = _get_faculty_role_or_404(request.units, userid)
+
+    context = {
+        'role': role,
+        'person': role.person,
+    }
+    return render(request, 'faculty/career_events_list.html', context)
+
+@requires_role('ADMN')
 def otherinfo(request, userid):
     role = _get_faculty_role_or_404(request.units, userid)
 
