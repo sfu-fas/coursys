@@ -17,26 +17,26 @@
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a>
+    <a href="{% url "advisornotes.views.advising" %}">Advising</a>
 </li>
 
 {% if from_page == '' or from_page == 'resolved' %}
 <li>
-    &gt; <a href="{% url "advisornotes.views.view_problems" %}">Reported Problems</a>
+    <a href="{% url "advisornotes.views.view_problems" %}">Reported Problems</a>
 </li>
 {% if from_page == 'resolved' %}
 <li>
-    &gt; <a href="{% url "advisornotes.views.view_resolved_problems" %}">Resolved Problems</a>
+    <a href="{% url "advisornotes.views.view_resolved_problems" %}">Resolved Problems</a>
 </li>
 {% endif %}
 {% else %}
 <li>
-	&gt; <a href="{% url "advisornotes.views.student_notes" userid=from_page.userid %}">Notes for {{ from_page.first_name }} {{ from_page.last_name }}</a>
+	<a href="{% url "advisornotes.views.student_notes" userid=from_page.userid %}">Notes for {{ from_page.first_name }} {{ from_page.last_name }}</a>
 </li>
 {% endif %}
 
 <li>
-    &gt; Edit Problem
+    Edit Problem
 </li>
 {% endblock %}
 
