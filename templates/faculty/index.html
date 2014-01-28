@@ -14,6 +14,18 @@ $(document).ready(function() {
 } );
 </script>
 {% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    <li >
+      <a href="{% url 'faculty.views.memo_templates' %}">Memo Templates</a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li>Faculty Management</li>
 {% endblock %}

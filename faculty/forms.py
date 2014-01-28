@@ -1,10 +1,12 @@
 from django import forms
 #from django.forms.models import imlineformset_factory
+from django.template import Template, TemplateSyntaxError
 
 from models import CareerEvent
 from models import DocumentAttachment
 from models import MemoTemplate
 from models import Memo
+
 
 
 def career_event_factory(person, post_data=None, post_files=None):
@@ -25,7 +27,7 @@ class AttachmentForm(forms.ModelForm):
 
 
 class MemoTemplateForm(forms.ModelForm):
-    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
+    template_text = forms.CharField(widget=forms.Textarea(attrs={'rows':'30', 'cols': '60'}))
     class Meta:
         model = MemoTemplate
         exclude = ('created_by',)

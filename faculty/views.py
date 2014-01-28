@@ -1,15 +1,17 @@
 from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
+from django.contrib import messages
+from django.core.urlresolvers import reverse
 from courselib.search import find_userid_or_emplid
 
 from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent
+from faculty.models import CareerEvent, MemoTemplate
 from faculty.forms import career_event_factory
-from faculty.forms import CareerEventForm
+from faculty.forms import CareerEventForm, MemoTemplateForm
 
 
 def _get_faculty_role_or_404(allowed_units, userid_or_emplid):
@@ -139,5 +141,72 @@ def change_event(request, userid, slug):
 ###############################################################################
 # Management of DocumentAttachments and Memos
 
+###############################################################################
+# Creating and editing Memo Templates
 
+@requires_role('ADMN')
+def memo_templates(request):
+    templates = MemoTemplate.objects.filter(unit__in=request.units, hidden=False)
+
+    page_title = 'Memo Templates'
+    crumb = 'Memo Templates'    
+    context = {
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'templates': templates,          
+               }
+    return render(request, 'faculty/memo_templates.html', context)
+
+@requires_role('ADMN')
+def new_memo_template(request):
+    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
+    unit_choices = [(u.id, u.name) for u in request.units]
+    if request.method == 'POST':
+        form = MemoTemplateForm(request.POST)
+        form.fields['unit'].choices = unit_choices 
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.created_by = person           
+            f.save()
+            messages.success(request, "Created new memo template %s for %s." % (form.instance.label, form.instance.unit))          
+            return HttpResponseRedirect(reverse(memo_templates))
+    else:
+        form = MemoTemplateForm()
+        form.fields['unit'].choices = unit_choices 
+
+    page_title = 'New Memo Template'  
+    crumb = 'New'
+    context = {
+               'form': form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               }
+    return render(request, 'faculty/new_memo_template.html', context)
+
+@requires_role('ADMN')
+def manage_memo_template(request, slug):
+    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
+    unit_choices = [(u.id, u.name) for u in request.units]    
+    memo_template = get_object_or_404(MemoTemplate, slug=slug)
+    if request.method == 'POST':
+        form = MemoTemplateForm(request.POST, instance=memo_template)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.created_by = person            
+            f.save()
+            messages.success(request, "Updated %s letter for %s." % (form.instance.label, form.instance.unit))           
+            return HttpResponseRedirect(reverse(memo_templates))
+    else:
+        form = MemoTemplateForm(instance=memo_template)
+        form.fields['unit'].choices = unit_choices 
+
+    page_title = 'Manage Memo Template'  
+    crumb = 'Manage' 
+    context = {
+               'form': form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'memo_template' : memo_template,
+               }
+    return render(request, 'faculty/manage_memo_template.html', context)
 
