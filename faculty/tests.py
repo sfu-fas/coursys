@@ -3,6 +3,7 @@ from django.utils import safestring
 
 from coredata.models import Person, Unit, Role
 from faculty.models import EVENT_TYPES
+from event_types.base import SalaryAdjust, TeachingAdjust
 from event_types.career import AppointmentEventHandler
 
 import decimal
@@ -23,6 +24,7 @@ class EventTypesTest(TestCase):
 
         handler = AppointmentEventHandler(fac_member)
         # tests below assume these permission settings for this event type
+        self.assertEquals(handler.viewable_by, 'MEMB')
         self.assertEquals(handler.editable_by, 'DEPT')
         self.assertEquals(handler.approval_by, 'FAC')
 
@@ -45,25 +47,26 @@ class EventTypesTest(TestCase):
                 handler = Handler(faculty=fac_member)
 
                 # test salary/teaching calculation sanity
-                #if handler.affects_teaching:
-                #    # if this affects teaching, get_teaching_balance must be implemented
-                #    b = handler.get_teaching_balance(4)
-                #    self.assertIsInstance(b, decimal.Decimal)
-                #else:
-                #    # if not, it can't expect it do be called.
-                #    with self.assertRaises(NotImplementedError):
-                #        handler.get_teaching_balance(4)
+                if handler.affects_teaching:
+                    # if this affects teaching, get_teaching_balance must be implemented
+                    t = handler.teaching_adjust_per_semester()
+                    self.assertIsInstance(t, TeachingAdjust)
+                else:
+                    # if not, it can't expect it do be called.
+                    with self.assertRaises(NotImplementedError):
+                        handler.teaching_adjust_per_semester()
 
-                #if handler.affects_salary:
-                #    # if this affects teaching, get_salary must be implemented
-                #    s = handler.get_salary(100000)
-                #    self.assertIsInstance(s, decimal.Decimal)
-                #else:
-                #    # if not, it can't expect it do be called.
-                #    with self.assertRaises(NotImplementedError):
-                #        handler.get_salary(4)
+                if handler.affects_salary:
+                    # if this affects teaching, get_salary must be implemented
+                    s = handler.salary_adjust_annually()
+                    self.assertIsInstance(s, SalaryAdjust)
+                else:
+                    # if not, it can't expect it do be called.
+                    with self.assertRaises(NotImplementedError):
+                        handler.salary_adjust_annually()
 
                 self.assertIsInstance(handler.default_title, basestring)
+                self.assertIsInstance(handler.name, basestring)
 
                 # test form creation
                 form = handler.get_entry_form()
@@ -71,6 +74,7 @@ class EventTypesTest(TestCase):
                 # tests that I think should probably work eventually...
                 #event = event_type.to_career_event(form)
                 #handler = Handler(event=event)
+                #self.assertIsInstance(handler.short_summary(), basestring)
                 #html = handler.to_html()
                 #self.assertIsInstance(html, safestring)
 

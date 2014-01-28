@@ -96,6 +96,7 @@ def otherinfo(request, userid):
 
 ###############################################################################
 # Creation and editing of CareerEvents
+
 @requires_role('ADMN')
 def create_event(request, userid):
     """
@@ -119,7 +120,7 @@ def create_event(request, userid):
         form.fields['unit'].choices = unit_choices
         # TODO filter choice for status (some roles may not be allowed to approve events?
         context.update({"event_form": form})
-    return render(request, 'faculty/career_event.html', context)
+    return render(request, 'faculty/career_event_form.html', context)
 
 
 @requires_role('ADMN')
@@ -144,7 +145,7 @@ def change_event(request, userid, event_slug):
         form.fields['unit'].choices = unit_choices
         # TODO filter choice for status (as above)
         context.update({"event_form": form})
-    return render(request, 'faculty/career_event.html', context)
+    return render(request, 'faculty/career_event_form.html', context)
 
 
 ###############################################################################

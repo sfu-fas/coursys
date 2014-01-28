@@ -57,6 +57,9 @@ class CareerEventHandlerBase(object):
         else:
             raise ValueError, "A CareerEventType must know which faculty member it's dealing with."
 
+    @classmethod
+    def __unicode__(self):
+        return self.name
 
     def permission(self, editor):
         """

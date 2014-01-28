@@ -33,6 +33,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     """
     The big career event: from hiring to leaving the position.
     """
+    name = "Appointment to position"
     TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
 
     class EntryForm(BaseEntryForm):
@@ -54,9 +55,10 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     """
     An annual salary update
     """
+    name = "Base salary update"
+    affects_salary = True
     TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
 
-    affects_salary = True
     class EntryForm(BaseEntryForm):
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
         base_salary = forms.DecimalField(max_digits=8, decimal_places=2, help_text="Base annual salary for this rank + step.")
@@ -73,7 +75,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
 
     def salary_adjust_annually(self):
         # s = self.event.base_salary
-        s = Decimal(10000)
+        s = decimal.Decimal(10000)
         return SalaryAdjust(s, 1, 0)
 
 
