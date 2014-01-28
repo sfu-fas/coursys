@@ -706,12 +706,12 @@ def formula_tester(request, course_slug):
     numeric_activities = NumericActivity.objects.filter(offering=course, deleted=False)
     result = ""
     
-    if request.method == 'POST': # If the form has been submitted...
+    if 'formula' in request.GET: # If the form has been submitted...
         activity_entries = []
         faked_activities = [] # used to evaluate the formula
         has_error = False
         for numeric_activity in numeric_activities:
-            activity_form_entry = ActivityFormEntry(request.POST, prefix=numeric_activity.slug)
+            activity_form_entry = ActivityFormEntry(request.GET, prefix=numeric_activity.slug)
             if not activity_form_entry.is_valid():
                 has_error = True
             else:
@@ -725,7 +725,7 @@ def formula_tester(request, course_slug):
             activity_entries.append(FormulaTesterActivityEntry(numeric_activity, activity_form_entry))
             
 
-        formula_form_entry = FormulaFormEntry(request.POST)
+        formula_form_entry = FormulaFormEntry(request.GET)
         formula_form_entry.activate_form_entry_validation(course_slug, None)
         
         if not formula_form_entry.is_valid():

@@ -19,13 +19,13 @@ ACTIVITY_FIELD_TEMPLATE = Template('''<li>
                     </div>
                     </li>''')
 
-@register.filter
-def activity_field(field):
-    """
-    Convert the field to HTML
-    """
-    c = Context({"field":field})
-    return mark_safe(ACTIVITY_FIELD_TEMPLATE.render(c))
+#@register.filter
+#def activity_field(field):
+#    """
+#    Convert the field to HTML
+#    """
+#    c = Context({"field":field})
+#    return mark_safe(ACTIVITY_FIELD_TEMPLATE.render(c))
 
 @register.tag(name="select_grade")
 def do_select_grade(parser, token):
