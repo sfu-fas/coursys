@@ -33,10 +33,12 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     """
     The big career event: from hiring to leaving the position.
     """
+    key = 'APPOINT'
     name = "Appointment to position"
     TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
 
     class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
         spousal_hire = forms.BooleanField(initial=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
@@ -44,22 +46,18 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     def default_title(self):
         return 'Appointment'
 
-    def to_career_event(self, form):
-        event = super(AppointmentEventHandler, self).to_career_event(form)
-        event.config['spousal_hire'] = form.cleaned_data['spousal_hire']
-        event.config['leaving_reason'] = form.cleaned_data['leaving_reason']
-        return event
-
 
 class SalaryBaseEventHandler(CareerEventHandlerBase):
     """
     An annual salary update
     """
+    key = 'SALARY'
     name = "Base salary update"
     affects_salary = True
     TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
 
     class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['step', 'base_salary']
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
         base_salary = forms.DecimalField(max_digits=8, decimal_places=2, help_text="Base annual salary for this rank + step.")
 
@@ -67,11 +65,9 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     def default_title(self):
         return 'Base Salary %s' % (datetime.date.today().year)
 
-    def to_career_event(self, form):
-        event = super(SalaryBaseEventHandler, self).to_career_event(form)
-        event.config['step'] = form.cleaned_data['step']
-        event.config['base_salary'] = form.cleaned_data['base_salary']
-        return event
+    #def load_form(self, form):
+    #    e = super(AppointmentEventHandler, self).load_form(form, config_fields=)
+    #    return e
 
     def salary_adjust_annually(self):
         # s = self.event.base_salary

@@ -1,6 +1,6 @@
 from django import forms
 from django.template import Context, Template
-from coredata.models import Role
+from coredata.models import Role, Unit
 import datetime, itertools, collections
 
 PERMISSION_CHOICES = { # who can create/edit/approve various things?
@@ -21,9 +21,11 @@ TeachingAdjust = collections.namedtuple('TeachingAdjust', ['credits', 'load_decr
 
 class BaseEntryForm(forms.Form):
     # TODO: should this be a ModelForm for a CareerEvent? We'll have a circular import if so.
+    CONFIG_FIELDS = []
     title = forms.CharField(max_length=80, required=True)
-    start_date = forms.DateField()
-    end_date = forms.DateField()
+    start_date = forms.DateField(required=True)
+    end_date = forms.DateField(required=False)
+    unit = forms.ModelChoiceField(queryset=Unit.objects.none())
 
 
 class CareerEventHandlerBase(object):
@@ -46,16 +48,14 @@ class CareerEventHandlerBase(object):
         faculty: a coredata.Person representing the faculty member in question.
         event: the CareerEvent we're manipulating, if it exists.
         """
-        self.event = event
-        if event and faculty:
-            assert event.person == faculty
-
-        if faculty:
-            self.faculty = faculty
-        elif event and event.person:
-            self.faculty = event.person
+        if event:
+            self.event = event
+            assert self.event.faculty
+            assert not faculty or event.person == faculty
         else:
-            raise ValueError, "A CareerEventType must know which faculty member it's dealing with."
+            from faculty.models import CareerEvent
+            self.event = CareerEvent(event_type=self.key)
+            self.event.person = faculty
 
     @classmethod
     def __unicode__(self):
@@ -66,10 +66,10 @@ class CareerEventHandlerBase(object):
         This editor's permission level with respect to this faculty member.
         """
         edit_units = set(r.unit for r in Role.objects.filter(person=editor, role='ADMN'))
-        fac_units = set(r.unit for r in Role.objects.filter(person=self.faculty, role='FAC'))
+        fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))
         super_units = set(itertools.chain(*(u.super_units() for u in fac_units)))
 
-        if editor == self.faculty:
+        if editor == self.event.person:
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
         elif edit_units & super_units:
@@ -116,12 +116,12 @@ class CareerEventHandlerBase(object):
 
     # maybe override? Hopefully we can avoid and use this as-is.
 
-    def get_entry_form(self):
+    def get_entry_form(self, **kwargs):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
         initial = {'title': self.default_title, 'start_date': datetime.date.today()}
-        f = self.EntryForm(initial=initial)
+        f = self.EntryForm(initial=initial, **kwargs)
 
         if self.is_instant and 'end_date' in f.fields:
             del f.fields['end_date']
@@ -149,15 +149,24 @@ class CareerEventHandlerBase(object):
     def default_title(self):
         return 'Some Career Event'
 
-    def to_career_event(self, form):
+    def load_form(self, form):
         """
-        Given an EntryForm instance, return the corresponding CareerEvent instance
+        Given an EntryForm instance, return the corresponding CareerEvent instance, and update
+        self.event
         (~= inverse of get_entry_form)
         """
-        # TODO: can we be general enough here to actually have common logic here?
-        # if self.event:
-        #     should modify and return that
-        raise NotImplementedError
+        e = self.event
+        e.person = self.person
+        e.unit = form.cleaned_data['unit']
+        e.start_date = form.cleaned_data['start_date']
+        
+        for f in form.CONFIG_FIELDS:
+            d = form.cleaned_data[f]
+            # TODO: if isinstance(d, datetime.Date): d = ...
+            e.config[f] = form.cleaned_data[f]
+        
+        return e
+
 
     def short_summary(self):
         """

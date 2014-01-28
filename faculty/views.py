@@ -20,8 +20,9 @@ def _get_faculty_or_404(allowed_units, userid_or_emplid):
     """
     sub_unit_ids = Unit.sub_unit_ids(allowed_units)
     person = get_object_or_404(Person, find_userid_or_emplid(userid_or_emplid))
-    _ = get_list_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
-    return person
+    roles = get_list_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
+    units = set(r.unit for r in roles)
+    return person, units
 
 
 ###############################################################################
@@ -47,7 +48,7 @@ def summary(request, userid):
     """
     Summary page for a faculty member.
     """
-    person = _get_faculty_or_404(request.units, userid)
+    person, _ = _get_faculty_or_404(request.units, userid)
     context = {
         'person': person,
     }
@@ -58,7 +59,7 @@ def events_list(request, userid):
     """
     Display all career events
     """
-    person = _get_faculty_or_404(request.units, userid)
+    person, _ = _get_faculty_or_404(request.units, userid)
 
     context = {
         'person': person,
@@ -67,7 +68,7 @@ def events_list(request, userid):
 
 @requires_role('ADMN')
 def otherinfo(request, userid):
-    person = _get_faculty_or_404(request.units, userid)
+    person, _ = _get_faculty_or_404(request.units, userid)
     # TODO: should some or all of these be limited by request.units?
 
     # collect teaching history
@@ -102,11 +103,13 @@ def create_event(request, userid):
     """
     Create new career event for a faculty member.
     """
-    person = _get_faculty_or_404(request.units, userid)
+    person, member_units = _get_faculty_or_404(request.units, userid)
     context = {"person": person}
     editor = get_object_or_404(Person, userid=request.user.username)
+    unit_choices = [(u.id, unicode(u)) for u in member_units & request.units]
     if request.method == "POST":
         form = CareerEventForm(request.POST)
+        form.fields['unit'].choices = unit_choices
         if form.is_valid():
             event = form.save(commit=False)
             event.person = person
@@ -115,7 +118,6 @@ def create_event(request, userid):
         else:
             context.update({"event_form": form})
     else:
-        unit_choices = [(u.id, unicode(u)) for u in request.units]
         form = CareerEventForm(initial={"person": person, "status": "NA"})
         form.fields['unit'].choices = unit_choices
         # TODO filter choice for status (some roles may not be allowed to approve events?
@@ -128,7 +130,7 @@ def change_event(request, userid, event_slug):
     """
     Change existing career event for a faculty member.
     """
-    person = _get_faculty_or_404(request.units, userid)
+    person, _ = _get_faculty_or_404(request.units, userid)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     context = {"person": person, "event": instance}
     editor = get_object_or_404(Person, userid=request.user.username)

@@ -17,10 +17,8 @@ from courselib.text import normalize_newlines, many_newlines
 from faculty.event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
-EVENT_TYPE_CHOICES = [
-    ('APPOINT', AppointmentEventHandler),
-    ('SALARY', SalaryBaseEventHandler),
-    ]
+HANDLERS = [AppointmentEventHandler, SalaryBaseEventHandler]
+EVENT_TYPE_CHOICES = [(h.key, h) for h in HANDLERS]
 EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
 EVENT_FLAGS = ['teaching', 'salary']
 
