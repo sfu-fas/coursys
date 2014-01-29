@@ -38,7 +38,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     The big career event: from hiring to leaving the position.
     """
     EVENT_TYPE = 'APPOINT'
-    DEFAULT_TITLE = 'Appointment to Position'
+    NAME = 'Appointment to Position'
     TO_HTML_TEMPLATE = "event.person.name }}'s event {{ event.title }}"
 
     class EntryForm(BaseEntryForm):
@@ -55,7 +55,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     An annual salary update
     """
     EVENT_TYPE = 'SALARY'
-    DEFAULT_TITLE = "Base Salary Update"
+    NAME = "Base Salary Update"
     TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
 
     class EntryForm(BaseEntryForm):

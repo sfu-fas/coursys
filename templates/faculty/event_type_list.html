@@ -33,7 +33,7 @@ $(document).ready(function() {
   <tbody>
   {% for type in event_types %}
   <tr>
-    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid handler=type.EVENT_TYPE|lower %}">{{ type.DEFAULT_TITLE}}</a></td>
+    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid handler=type.EVENT_TYPE|lower %}">{{ type.default_title }}</a></td>
     <td>{{ type.is_instant }}</td>
     <td>{{ type.affects_teaching }}</td>
     <td>{{ type.affects_salary }}</td>

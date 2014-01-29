@@ -79,7 +79,7 @@ class CareerEventHandlerBase(object):
     HOOKS = []
     FLAGS = []
 
-    DEFAULT_TITLE = ''
+    NAME = ''
     EVENT_TYPE = ''
 
     # View / Edit flags
@@ -130,30 +130,6 @@ class CareerEventHandlerBase(object):
         event = CareerEvent(person=person,
                             unit=unit,
                             event_type=cls.EVENT_TYPE)
-        return cls(event)
-
-    @classmethod
-    def create_from(cls, person, form):
-        """
-        Given a form, create a new instance of the handler.
-
-        """
-        from faculty.models import CareerEvent
-        event = CareerEvent(person=form.cleaned_data['person'],
-                            unit=form.cleaned_data['unit'],
-                            event_type=cls.EVENT_TYPE,
-                            title=form.cleaned_data['title'],
-                            start_date=form.cleaned_data['start_date'],
-                            end_date=form.cleaned_data.get('end_date', None),
-                            comments=form.cleaned_data.get('comments', None),
-                            status=form.cleaned_data.get('status', 'NA'))
-
-        # XXX: status field: choose highest possible value for the available unit(s)?
-
-        for field in form.CONFIG_FIELDS:
-            # TODO: Do some type checking or something
-            event.config[field] = form.cleaned_data[field]
-
         return cls(event)
 
     # Stuff involving permissions
@@ -214,6 +190,26 @@ class CareerEventHandlerBase(object):
     class EntryForm(BaseEntryForm):
         pass
 
+    def load_from(self, form):
+        """
+        Given a valid form, load its data into the handler.
+
+        """
+        self.event.unit = form.cleaned_data['unit'],
+        self.event.event_type = self.EVENT_TYPE,
+        self.event.title = form.cleaned_data['title'],
+        self.event.start_date = form.cleaned_data['start_date'],
+        self.event.end_date = form.cleaned_data.get('end_date', None),
+        self.event.comments = form.cleaned_data.get('comments', None),
+        self.event.status = form.cleaned_data.get('status', 'NA')
+
+        # XXX: status field: choose highest possible value for the available unit(s)?
+        # XXX: Does _apply_hooks_to_entry_form(...) need to be run here?
+
+        for field in form.CONFIG_FIELDS:
+            # TODO: Do some type checking or something
+            self.event.config[field] = form.cleaned_data[field]
+
     def _apply_hooks_to_entry_form(self, form):
         for hook in self.hooks:
             hook.modify_entry_form(form)
@@ -223,7 +219,7 @@ class CareerEventHandlerBase(object):
         Return a Django Form that can be used to create/edit a CareerEvent
         """
         initial = {
-            'title': self.DEFAULT_TITLE,
+            'title': self.default_title,
             'start_date': datetime.date.today(),
         }
         form = self.EntryForm(event=self.event,
@@ -267,6 +263,10 @@ class CareerEventHandlerBase(object):
 
         '''
         pass
+
+    @property
+    def default_title(self):
+        return self.NAME
 
     # Override these
 
