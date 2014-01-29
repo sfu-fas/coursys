@@ -122,16 +122,6 @@ jQuery.fn.dataTableExt.oSort['by-nolinkletter-desc'] = function(x,y) { return no
 jQuery.fn.dataTableExt.oSort['by-letter-asc']  = function(x,y) { return letter_cmp(x,y) };
 jQuery.fn.dataTableExt.oSort['by-letter-desc'] = function(x,y) { return letter_cmp(y,x) };
 
-// Seems to be causing some kind of TypeError in firefox, not IE or chrome though...
-function date_cmp(x,y){
-  var a = new Date(x),
-  b = new Date(y);
-  return ((a < b) ? -1 : ((a > b) ?  1 : 0));
-}
-
-jQuery.fn.dataTableExt.oSort['by-date-asc']  = function(x,y) { return date_cmp(x,y) };
-jQuery.fn.dataTableExt.oSort['by-date-desc'] = function(x,y) { return date_cmp(y,x) };
-
 // toggle display of news item bodies
 function togglenews(e, elt) {
   var event = e || window.event;
