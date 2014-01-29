@@ -39,7 +39,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
-        spousal_hire = forms.BooleanField(initial=False)
+        spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
     @property

@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% load form_display %}
+{% load form_display %}{% load staticfiles %}
 {% block title %}{% if event %}Change Event{% else %}New {{ handler.default_title }} Event{% endif %}: {{ person.name }}{% endblock %}
 {% block h1 %}{% if event %}Change Event{% else %}New {{ handler.default_title }} Event{% endif %}: {{ person.name }}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
-</script>
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 {% endblock %}
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>

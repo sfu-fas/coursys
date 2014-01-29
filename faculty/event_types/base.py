@@ -169,8 +169,8 @@ class CareerEventHandlerBase(object):
         e.unit = data['unit']
         e.title = data['title']
         e.start_date = data['start_date']
-        e.end_date = data['end_date']
-        e.comments = data['comments']
+        e.end_date = data.get('end_date', None)
+        e.comments = data.get('comments', '')
 
         # TODO: status field: choose highest possible value for the available unit(s)?
         e.status = 'NA'
@@ -178,7 +178,7 @@ class CareerEventHandlerBase(object):
         for f in form.CONFIG_FIELDS:
             d = form.cleaned_data[f]
             # TODO: if isinstance(d, datetime.Date): d = ...
-            e.config[f] = form.cleaned_data[f]
+            e.config[f] = d
         
         return e
 
