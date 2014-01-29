@@ -20,12 +20,12 @@ SalaryAdjust = collections.namedtuple('SalaryAdjust', ['add_salary', 'salary_fra
 TeachingAdjust = collections.namedtuple('TeachingAdjust', ['credits', 'load_decrease'])
 
 class BaseEntryForm(forms.Form):
-    # TODO: should this be a ModelForm for a CareerEvent? We'll have a circular import if so.
     CONFIG_FIELDS = []
     title = forms.CharField(max_length=80, required=True, widget=forms.TextInput(attrs={'size': 60}))
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
-    #comments = forms.CharField(widget=forms.Textarea(), required=False)
+    comments = forms.CharField(required=False,
+            widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
 
     def __init__(self, event, editor, units, *args, **kwargs):
@@ -35,6 +35,22 @@ class BaseEntryForm(forms.Form):
         self.units = units
         self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
         self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+
+        if event.id:
+            # it's already in the database, so load existing values as defaults
+            # TODO: should this be done differently?
+            self.initial['title'] = self.event.title
+            self.initial['start_date'] = self.event.start_date
+            self.initial['end_date'] = self.event.end_date
+            self.initial['unit'] = self.event.unit
+            self.initial['comments'] = self.event.comments
+            for f in self.CONFIG_FIELDS:
+                self.initial[f] = self.event.config.get(f, None)
+
+        # force the comments field to the bottom
+        self.fields.keyOrder = [k for k in self.fields.keyOrder if k != 'comments']
+        self.fields.keyOrder.append('comments')
+
         self.post_init()
     
     def post_init(self):
