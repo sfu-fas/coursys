@@ -72,11 +72,11 @@ class EventTypesTest(TestCase):
                 form = handler.get_entry_form()
 
                 # tests that I think should probably work eventually...
-                #event = event_type.to_career_event(form)
+                #event = handler.load_form(form)
                 #handler = Handler(event=event)
-                #self.assertIsInstance(handler.short_summary(), basestring)
-                #html = handler.to_html()
-                #self.assertIsInstance(html, safestring)
+                self.assertIsInstance(handler.short_summary(), basestring)
+                html = handler.to_html()
+                self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
 
 
             except:

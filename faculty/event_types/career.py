@@ -46,6 +46,9 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     def default_title(self):
         return 'Appointment'
 
+    def short_summary(self):
+        return "Appointment to position as of %s" % (self.event.start_date)
+
 
 class SalaryBaseEventHandler(CareerEventHandlerBase):
     """
@@ -64,6 +67,9 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     @property
     def default_title(self):
         return 'Base Salary %s' % (datetime.date.today().year)
+
+    def short_summary(self):
+        return "Base salary of %s at step %s" % (self.event.config.get('base_salary', 0), self.event.config.get('step', 0))
 
     #def load_form(self, form):
     #    e = super(AppointmentEventHandler, self).load_form(form, config_fields=)
