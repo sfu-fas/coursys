@@ -15,11 +15,13 @@ from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
 
 from faculty.event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
+from faculty.event_types.awards import FellowshipEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
-HANDLERS = [AppointmentEventHandler, SalaryBaseEventHandler]
+HANDLERS = [AppointmentEventHandler, SalaryBaseEventHandler, FellowshipEventHandler]
 EVENT_TYPE_CHOICES = [(h.key, h) for h in HANDLERS]
 EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
+
 EVENT_FLAGS = ['teaching', 'salary']
 
 
@@ -173,3 +175,14 @@ class Memo(models.Model):
         self.memo_text = normalize_newlines(self.content.rstrip())
         self.memo_text = many_newlines.sub('\n\n', self.content)
         super(Memo, self).save(*args, **kwargs)
+
+
+class EventConfig(models.Model):
+    """
+    A unit's configuration for a particular event type
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
+    config = JSONField(default={})
+
+

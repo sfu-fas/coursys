@@ -124,5 +124,14 @@
  }, 
  "model": "coredata.role", 
  "pk": null
+},
+{
+  "pk": 1, 
+  "model": "faculty.eventconfig", 
+  "fields": {
+    "config": "{\"fellowships\":[[\"LIEF\",\"Lief Chair\"],[\"BBYM\",\"Burnaby Mountain Fellowship\"],[\"CRC\",\"Canadian Research Chair\"]]}", 
+    "event_type": "FELLOW", 
+    "unit": 4
+  }
 }
 ]

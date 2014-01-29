@@ -42,6 +42,8 @@ class EventTypesTest(TestCase):
         Basic tests of each event handler
         """
         fac_member = Person.objects.get(userid='ggbaker')
+        editor = Person.objects.get(userid='dixon')
+        units = Unit.objects.all()
         for Handler in EVENT_TYPES.values():
             try:
                 handler = Handler(faculty=fac_member)
@@ -65,18 +67,16 @@ class EventTypesTest(TestCase):
                     with self.assertRaises(NotImplementedError):
                         handler.salary_adjust_annually()
 
+                # basic methods that should be implemented on all Handlers
                 self.assertIsInstance(handler.default_title, basestring)
                 self.assertIsInstance(handler.name, basestring)
-
-                # test form creation
-                form = handler.get_entry_form()
-
-                # tests that I think should probably work eventually...
-                #event = handler.load_form(form)
-                #handler = Handler(event=event)
                 self.assertIsInstance(handler.short_summary(), basestring)
                 html = handler.to_html()
                 self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
+
+                # test form creation
+                form = handler.get_entry_form(editor=editor, units=units)
+
 
 
             except:

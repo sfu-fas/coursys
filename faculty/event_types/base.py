@@ -26,9 +26,21 @@ class BaseEntryForm(forms.Form):
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
     #comments = forms.CharField(widget=forms.Textarea(), required=False)
-    # TODO: changed from Unit.objects.none(), needed to populate the values in faculty.views.create_event
-    unit = forms.ModelChoiceField(queryset=Unit.objects.all())
+    unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
 
+    def __init__(self, event, editor, units, *args, **kwargs):
+        super(BaseEntryForm, self).__init__(*args, **kwargs)
+        self.event = event
+        self.editor = editor
+        self.units = units
+        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+        self.post_init()
+    
+    def post_init(self):
+        "Hook to do setup of the form"
+        pass
+    
 
 class CareerEventHandlerBase(object):
     # type configuration stuff: override as necessary
@@ -119,21 +131,15 @@ class CareerEventHandlerBase(object):
 
     # maybe override? Hopefully we can avoid and use this as-is.
 
-    def get_entry_form(self, **kwargs):
+    def get_entry_form(self, editor, units, **kwargs):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
-        units = kwargs.get("units")
-        if units:
-            del kwargs["units"]
         initial = {'title': self.default_title, 'start_date': datetime.date.today()}
-        f = self.EntryForm(initial=initial, **kwargs)
+        f = self.EntryForm(event=self.event, editor=editor, units=units, initial=initial, **kwargs)
 
         if self.is_instant and 'end_date' in f.fields:
             del f.fields['end_date']
-
-        if units:
-            f.fields['unit'].choices = units
 
         return f
 
