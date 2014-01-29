@@ -15,10 +15,10 @@
 {% block content %}
 
 <div class="form_container">
-	{% if event %}
-	This page is currently not displaying the right edit form.
-	{% endif %}
-    <form action="{% if event %}{% url 'faculty_change_event' userid=person.userid_or_emplid event_slug=event.slug %}{% else %}{% url 'faculty_create_event' userid=person.userid_or_emplid handler=handler.key|lower %}{% endif %}" method="post">
+  {% if event %}
+  This page is currently not displaying the right edit form.
+  {% endif %}
+    <form action="{% if event %}{% url 'faculty_change_event' userid=person.userid_or_emplid event_slug=event.slug %}{% else %}{% url 'faculty_create_event' userid=person.userid_or_emplid handler=handler.EVENT_TYPE|lower %}{% endif %}" method="post">
         {% csrf_token %}
         <fieldset>
             <legend>{{ event }}</legend>

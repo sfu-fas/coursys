@@ -1,12 +1,13 @@
 from django.test import TestCase
-from django.utils import safestring
 
-from coredata.models import Person, Unit, Role
-from faculty.models import EVENT_TYPES
-from event_types.base import SalaryAdjust, TeachingAdjust
-from event_types.career import AppointmentEventHandler
+from coredata.models import Person
+from coredata.models import Role
 
-import decimal
+from faculty.event_types.career import AppointmentEventHandler
+from faculty.event_types.mixins import SalaryCareerEvent
+from faculty.event_types.mixins import TeachingCareerEvent
+from faculty.models import HANDLERS
+
 
 class EventTypesTest(TestCase):
     fixtures = ['faculty-test.json']
@@ -22,11 +23,13 @@ class EventTypesTest(TestCase):
         dept_admin = Person.objects.get(userid='dixon')
         dean_admin = Person.objects.get(userid='dzhao')
 
-        handler = AppointmentEventHandler(fac_member)
+        fac_role = Role.objects.filter(person=fac_member)[0]
+        handler = AppointmentEventHandler.create_for(fac_member, fac_role.unit)
+
         # tests below assume these permission settings for this event type
-        self.assertEquals(handler.viewable_by, 'MEMB')
-        self.assertEquals(handler.editable_by, 'DEPT')
-        self.assertEquals(handler.approval_by, 'FAC')
+        self.assertEquals(handler.VIEWABLE_BY, 'MEMB')
+        self.assertEquals(handler.EDITABLE_BY, 'DEPT')
+        self.assertEquals(handler.APPROVAL_BY, 'FAC')
 
         self.assertFalse(handler.can_edit(fac_member))
         self.assertTrue(handler.can_edit(dept_admin))
@@ -36,50 +39,24 @@ class EventTypesTest(TestCase):
         self.assertFalse(handler.can_approve(dept_admin))
         self.assertTrue(handler.can_approve(dean_admin))
 
-
     def test_event_types(self):
         """
         Basic tests of each event handler
         """
         fac_member = Person.objects.get(userid='ggbaker')
-        for Handler in EVENT_TYPES.values():
+        fac_role = Role.objects.filter(person=fac_member)[0]
+
+        for Handler in HANDLERS:
+            # Make sure all required abstract methods at least overrided
+            # XXX: should output the missing method on fail
             try:
-                handler = Handler(faculty=fac_member)
+                Handler.create_for(fac_member, fac_role.unit)
+            except TypeError:
+                self.fail('something was not implemented')
 
-                # test salary/teaching calculation sanity
-                if handler.affects_teaching:
-                    # if this affects teaching, get_teaching_balance must be implemented
-                    t = handler.teaching_adjust_per_semester()
-                    self.assertIsInstance(t, TeachingAdjust)
-                else:
-                    # if not, it can't expect it do be called.
-                    with self.assertRaises(NotImplementedError):
-                        handler.teaching_adjust_per_semester()
+            # Make sure certain handlers subclassed from the appropriate mixin
+            if 'affects_salary' in Handler.FLAGS:
+                self.assertTrue(issubclass(Handler, SalaryCareerEvent))
 
-                if handler.affects_salary:
-                    # if this affects teaching, get_salary must be implemented
-                    s = handler.salary_adjust_annually()
-                    self.assertIsInstance(s, SalaryAdjust)
-                else:
-                    # if not, it can't expect it do be called.
-                    with self.assertRaises(NotImplementedError):
-                        handler.salary_adjust_annually()
-
-                self.assertIsInstance(handler.default_title, basestring)
-                self.assertIsInstance(handler.name, basestring)
-
-                # test form creation
-                form = handler.get_entry_form()
-
-                # tests that I think should probably work eventually...
-                #event = event_type.to_career_event(form)
-                #handler = Handler(event=event)
-                #self.assertIsInstance(handler.short_summary(), basestring)
-                #html = handler.to_html()
-                #self.assertIsInstance(html, safestring)
-
-
-            except:
-                print "raising with event handler %s" % (Handler)
-                raise
-            
+            if 'affects_teaching' in Handler.FLAGS:
+                self.assertTrue(issubclass(Handler, TeachingCareerEvent))

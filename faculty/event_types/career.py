@@ -1,40 +1,40 @@
-# career-level event types: appointment, salary
-
-from base import CareerEventHandlerBase, BaseEntryForm, SalaryAdjust, TeachingAdjust
 from django import forms
-import decimal, datetime
+
+from faculty.event_types.base import BaseEntryForm
+from faculty.event_types.base import CareerEventHandlerBase
+
 
 RANK_CHOICES = [
-        ('LABI', 'Laboratory Instructor'),
-        ('LECT', 'Lecturer'),
-        ('SLEC', 'Senior Lecturer'),
-        ('INST', 'Instructor'),
-        ('ASSI', 'Assistant Professor'),
-        ('ASSO', 'Associate Professor'),
-        ('FULL', 'Full Professor'),
-        #('UNIV', 'University Professor'),
-        #('UNIR', 'University Research Professor'),
-        ]
+    ('LABI', 'Laboratory Instructor'),
+    ('LECT', 'Lecturer'),
+    ('SLEC', 'Senior Lecturer'),
+    ('INST', 'Instructor'),
+    ('ASSI', 'Assistant Professor'),
+    ('ASSO', 'Associate Professor'),
+    ('FULL', 'Full Professor'),
+    #('UNIV', 'University Professor'),
+    #('UNIR', 'University Research Professor'),
+]
 
 LEAVING_CHOICES = [
-        ('HERE', u'\u2014'), # hasn't left yet
-        ('RETI', 'Retired'),
-        ('END', 'Limited-term contract ended'),
-        ('UNIV', 'Left: job at another University'),
-        ('PRIV', 'Left: private-sector job'),
-        ('GONE', 'Left: employment status unknown'),
-        ('FIRE', 'Dismissal'),
-        ('DIED', 'Deceased'),
-        ('OTHR', 'Other/Unknown'),
-        ]
+    ('HERE', u'\u2014'),  # hasn't left yet
+    ('RETI', 'Retired'),
+    ('END', 'Limited-term contract ended'),
+    ('UNIV', 'Left: job at another University'),
+    ('PRIV', 'Left: private-sector job'),
+    ('GONE', 'Left: employment status unknown'),
+    ('FIRE', 'Dismissal'),
+    ('DIED', 'Deceased'),
+    ('OTHR', 'Other/Unknown'),
+]
 
 
 class AppointmentEventHandler(CareerEventHandlerBase):
     """
     The big career event: from hiring to leaving the position.
     """
-    key = 'APPOINT'
-    name = "Appointment to position"
+    EVENT_TYPE = 'APPOINT'
+    DEFAULT_TITLE = 'Appointment to Position'
     TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
 
     class EntryForm(BaseEntryForm):
@@ -42,24 +42,24 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
-    @property
-    def default_title(self):
-        return 'Appointment'
+    def short_summary(self):
+        return 'uhhhhhhh'
 
-
+'''
 class SalaryBaseEventHandler(CareerEventHandlerBase):
     """
     An annual salary update
     """
-    key = 'SALARY'
-    name = "Base salary update"
+    EVENT_TYPE = 'SALARY'
+    NAME = "Base salary update"
     affects_salary = True
     TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['step', 'base_salary']
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
-        base_salary = forms.DecimalField(max_digits=8, decimal_places=2, help_text="Base annual salary for this rank + step.")
+        base_salary = forms.DecimalField(max_digits=8, decimal_places=2,
+                                         help_text="Base annual salary for this rank + step.")
 
     @property
     def default_title(self):
@@ -73,9 +73,4 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
         # s = self.event.base_salary
         s = decimal.Decimal(10000)
         return SalaryAdjust(s, 1, 0)
-
-
-
-
-
-
+'''

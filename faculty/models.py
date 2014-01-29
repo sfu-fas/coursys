@@ -2,25 +2,31 @@ import datetime
 import os
 
 from django.db import models
-from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
 
 from autoslug import AutoSlugField
-from jsonfield import JSONField
 from bitfield import BitField
+from jsonfield import JSONField
 
 from coredata.models import Unit, Person
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
 
-from faculty.event_types.career import AppointmentEventHandler, SalaryBaseEventHandler
+from faculty.event_types.career import AppointmentEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
-HANDLERS = [AppointmentEventHandler, SalaryBaseEventHandler]
-EVENT_TYPE_CHOICES = [(h.key, h) for h in HANDLERS]
-EVENT_TYPES = dict(EVENT_TYPE_CHOICES)
-EVENT_FLAGS = ['teaching', 'salary']
+HANDLERS = [
+    AppointmentEventHandler,
+]
+EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
+EVENT_TYPE_CHOICES = EVENT_TYPES.items()
+
+# XXX: There's probably a nicer way to generate this automatically from the mixin classes
+EVENT_FLAGS = [
+    'affects_teaching',
+    'affects_salary',
+]
 
 
 class CareerEvent(models.Model):
@@ -65,12 +71,16 @@ class CareerEvent(models.Model):
         assert editor.__class__.__name__ == 'Person'
         return super(CareerEvent, self).save(*args, **kwargs)
 
+    def get_handler(self):
+        return EVENT_TYPE_CHOICES[self.event_type](self)
+
     class Meta:
         ordering = (
             '-start_date',
             '-end_date',
             'title',
         )
+
 
 # TODO separate storage system for faculty attachments?
 #NoteSystemStorage = FileSystemStorage(location=settings.FACULTY_PATH, base_url=None)
@@ -150,7 +160,8 @@ class Memo(models.Model):
     created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+')
     hidden = models.BooleanField(default=False)
     config = JSONField(default={})  # addition configuration for within the memo
-    # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
+    # XXX: 'use_sig': use the from_person's signature if it exists?
+    #                 (Users set False when a real legal signature is required.
 
     use_sig = config_property('use_sig', default=True)
 
