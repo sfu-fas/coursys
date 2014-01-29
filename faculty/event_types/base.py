@@ -22,7 +22,7 @@ TeachingAdjust = collections.namedtuple('TeachingAdjust', ['credits', 'load_decr
 class BaseEntryForm(forms.Form):
     # TODO: should this be a ModelForm for a CareerEvent? We'll have a circular import if so.
     CONFIG_FIELDS = []
-    title = forms.CharField(max_length=80, required=True)
+    title = forms.CharField(max_length=80, required=True, widget=forms.TextInput(attrs={'size': 60}))
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
     #comments = forms.CharField(widget=forms.Textarea(), required=False)
@@ -57,7 +57,8 @@ class CareerEventHandlerBase(object):
         else:
             from faculty.models import CareerEvent
             self.event = CareerEvent(event_type=self.key)
-            self.person = faculty
+            assert faculty
+            self.event.person = faculty
 
     @classmethod
     def __unicode__(self):

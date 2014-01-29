@@ -22,7 +22,7 @@ class EventTypesTest(TestCase):
         dept_admin = Person.objects.get(userid='dixon')
         dean_admin = Person.objects.get(userid='dzhao')
 
-        handler = AppointmentEventHandler(fac_member)
+        handler = AppointmentEventHandler(faculty=fac_member)
         # tests below assume these permission settings for this event type
         self.assertEquals(handler.viewable_by, 'MEMB')
         self.assertEquals(handler.editable_by, 'DEPT')

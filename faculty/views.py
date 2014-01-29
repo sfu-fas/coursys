@@ -128,7 +128,7 @@ def create_event(request, userid, handler):
         'handler': Handler,
     }
 
-    handler = Handler(person)
+    handler = Handler(faculty=person)
     if request.method == "POST":
         # TODO: is there a better way to grab the form class?  concern is unit choices is not populated
         form = handler.EntryForm(request.POST)

@@ -70,8 +70,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     #    return e
 
     def salary_adjust_annually(self):
-        # s = self.event.base_salary
-        s = decimal.Decimal(10000)
+        s = decimal.Decimal(self.event.config.get('base_salary', 0))
         return SalaryAdjust(s, 1, 0)
 
 
