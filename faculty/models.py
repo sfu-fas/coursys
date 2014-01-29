@@ -54,6 +54,9 @@ class CareerEvent(models.Model):
     def full_title(self):
         return '{} {}'.format(self.start_date.year, self.title)
 
+    def get_absolute_url(self):
+        return reverse("faculty_event_view", args=[self.person.userid, self.slug])
+
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 

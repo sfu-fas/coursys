@@ -145,7 +145,7 @@ class CareerEventHandlerBase(object):
             raise ValueError, "Handler must have its 'event' set to be converted to HTML."
 
         t = Template(self.TO_HTML_TEMPLATE)
-        c = Context({'event': self.event, 'handler': self, 'faculty': self.faculty})
+        c = Context({'event': self.event, 'handler': self})
         return t.render(c)
 
 
@@ -166,7 +166,6 @@ class CareerEventHandlerBase(object):
         """
         data = form.cleaned_data
         e = self.event
-        e.person = self.person
         e.unit = data['unit']
         e.title = data['title']
         e.start_date = data['start_date']

@@ -9,7 +9,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES
+from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES, EVENT_TYPE_CHOICES
 from faculty.forms import career_event_factory
 from faculty.forms import CareerEventForm, MemoTemplateForm
 
@@ -94,12 +94,34 @@ def otherinfo(request, userid):
     return render(request, 'faculty/otherinfo.html', context)
 
 
+@requires_role('ADMN')
+def view_event(request, userid, event_slug):
+    """
+    Change existing career event for a faculty member.
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    Handler = EVENT_TYPES[instance.event_type](event=instance)
+
+    context = {
+        'person': person,
+        'editor': editor,
+        'handler': Handler,
+        'event': instance,
+    }
+    return render(request, 'faculty/view_event.html', context)
+
 
 ###############################################################################
 # Creation and editing of CareerEvents
 @requires_role('ADMN')
 def event_type_list(request, userid):
-    types = EVENT_TYPES
+    types = [
+        {'key': key, 'name': Handler.name, 'is_instant': Handler.is_instant,
+         'affects_teaching': Handler.affects_teaching, 'affects_salary': Handler.affects_salary}
+        for key, Handler in EVENT_TYPE_CHOICES]
     person, _ = _get_faculty_or_404(request.units, userid)
     context = {
         'event_types': types,
@@ -122,10 +144,12 @@ def create_event(request, userid, handler):
         raise Http404
 
     unit_choices = [(u.id, unicode(u)) for u in member_units & request.units]
+    name = Handler.name
     context = {
         'person': person,
         'editor': editor,
         'handler': Handler,
+        'name': name,
     }
 
     handler = Handler(faculty=person)
@@ -137,7 +161,7 @@ def create_event(request, userid, handler):
             # Event is updated in the load_form method
             event = handler.load_form(form)
             event.save(editor)
-            return HttpResponseRedirect(event.get_change_url())
+            return HttpResponseRedirect(event.get_absolute_url())
         else:
             context.update({"event_form": form})
     else:
@@ -155,7 +179,7 @@ def change_event(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
-    
+
     Handler = EVENT_TYPES[instance.event_type]
     unit_choices = [(u.id, unicode(u)) for u in member_units & request.units]
     context = {
@@ -179,6 +203,7 @@ def change_event(request, userid, event_slug):
         #form = CareerEventForm(instance=instance)
         # TODO filter choice for status (as above)
         context.update({"event_form": form})
+
     return render(request, 'faculty/career_event_form.html', context)
 
 

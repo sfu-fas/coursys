@@ -34,7 +34,7 @@ $(document).ready(function() {
   <tbody>
   {% for e in events %}
   <tr>
-    <td><a href="{{ e.get_change_url }}">{{ e.title }}</a></td>
+    <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
     <td>{{ e.event_type }}</td>
     <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
     <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
