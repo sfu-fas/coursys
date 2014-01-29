@@ -25,7 +25,9 @@ class BaseEntryForm(forms.Form):
     title = forms.CharField(max_length=80, required=True)
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
-    unit = forms.ModelChoiceField(queryset=Unit.objects.none())
+    #comments = forms.CharField(widget=forms.Textarea(), required=False)
+    # TODO: changed from Unit.objects.none(), needed to populate the values in faculty.views.create_event
+    unit = forms.ModelChoiceField(queryset=Unit.objects.all())
 
 
 class CareerEventHandlerBase(object):
@@ -50,12 +52,12 @@ class CareerEventHandlerBase(object):
         """
         if event:
             self.event = event
-            assert self.event.faculty
+            assert self.event.person
             assert not faculty or event.person == faculty
         else:
             from faculty.models import CareerEvent
             self.event = CareerEvent(event_type=self.key)
-            self.event.person = faculty
+            self.person = faculty
 
     @classmethod
     def __unicode__(self):
@@ -120,11 +122,17 @@ class CareerEventHandlerBase(object):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
+        units = kwargs.get("units")
+        if units:
+            del kwargs["units"]
         initial = {'title': self.default_title, 'start_date': datetime.date.today()}
         f = self.EntryForm(initial=initial, **kwargs)
 
         if self.is_instant and 'end_date' in f.fields:
             del f.fields['end_date']
+
+        if units:
+            f.fields['unit'].choices = units
 
         return f
 
@@ -155,11 +163,18 @@ class CareerEventHandlerBase(object):
         self.event
         (~= inverse of get_entry_form)
         """
+        data = form.cleaned_data
         e = self.event
         e.person = self.person
-        e.unit = form.cleaned_data['unit']
-        e.start_date = form.cleaned_data['start_date']
-        
+        e.unit = data['unit']
+        e.title = data['title']
+        e.start_date = data['start_date']
+        e.end_date = data['end_date']
+        e.comments = data['comments']
+
+        # TODO: status field: choose highest possible value for the available unit(s)?
+        e.status = 'NA'
+
         for f in form.CONFIG_FIELDS:
             d = form.cleaned_data[f]
             # TODO: if isinstance(d, datetime.Date): d = ...

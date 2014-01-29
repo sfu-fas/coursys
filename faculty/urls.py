@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/summary$', 'faculty.views.summary', name="faculty_summary"),
     url(r'^' + USERID_OR_EMPLID + '/career_events$', 'faculty.views.events_list', name="faculty_events_list"),
     url(r'^' + USERID_OR_EMPLID + '/otherinfo$', 'faculty.views.otherinfo', name="faculty_otherinfo"),
-    url(r'^' + USERID_OR_EMPLID + '/new-event$', 'faculty.views.create_event', name="faculty_create_event"),
+    url(r'^' + USERID_OR_EMPLID + '/new-event$', 'faculty.views.event_type_list', name="faculty_event_types"),
+    url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<handler>[a-z]+)$', 'faculty.views.create_event', name="faculty_create_event"),
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
 )

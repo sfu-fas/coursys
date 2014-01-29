@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Career Events{% endblock %}
+{% block h1 %}Career Events{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#event_type_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aoColumns": [null,
+    ],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Event Types</li>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table id="event_type_table" class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Instantaneous</th>
+    <th scope="col">Affects Teaching</th>
+    <th scope="col">Affects Salary</th>
+  </tr></thead>
+  <tbody>
+  {% for key, type in event_types.items %}
+  {{ type }}
+  <tr>
+    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid handler=type.key|lower %}">{{ type.key|lower|capfirst }} Event</a></td>
+    <td>{{ type.is_instant }}</td>
+    <td>{{ type.affects_teaching }}</td>
+    <td>{{ type.affects_salary }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ person.name }}{% endblock %}
-{% block h1 %}{% if event %}Change Event{% else %}New Career Event{% endif %}: {{ person.name }}{% endblock %}
+{% block title %}{% if event %}Change Event{% else %}New {{ handler.default_title }} Event{% endif %}: {{ person.name }}{% endblock %}
+{% block h1 %}{% if event %}Change Event{% else %}New {{ handler.default_title }} Event{% endif %}: {{ person.name }}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -10,13 +10,16 @@
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li>{% if event %}Change Event{% else %}New Career Event{% endif %}</li>
+<li>{% if event %}Change Event{% else %}New {{ handler.default_title }} Event{% endif %}</li>
 {% endblock %}
 
 {% block content %}
 
 <div class="form_container">
-    <form action="{% if event %}{% url 'faculty_change_event' userid=person.userid_or_emplid event_slug=event.slug %}{% else %}{% url 'faculty_create_event' userid=person.userid_or_emplid %}{% endif %}" method="post">
+	{% if event %}
+	This page is currently not displaying the right edit form.
+	{% endif %}
+    <form action="{% if event %}{% url 'faculty_change_event' userid=person.userid_or_emplid event_slug=event.slug %}{% else %}{% url 'faculty_create_event' userid=person.userid_or_emplid handler=handler.key|lower %}{% endif %}" method="post">
         {% csrf_token %}
         <fieldset>
             <legend>{{ event }}</legend>

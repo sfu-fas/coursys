@@ -9,7 +9,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, MemoTemplate
+from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES
 from faculty.forms import career_event_factory
 from faculty.forms import CareerEventForm, MemoTemplateForm
 
@@ -97,30 +97,52 @@ def otherinfo(request, userid):
 
 ###############################################################################
 # Creation and editing of CareerEvents
+@requires_role('ADMN')
+def event_type_list(request, userid):
+    types = EVENT_TYPES
+    person, _ = _get_faculty_or_404(request.units, userid)
+    context = {
+        'event_types': types,
+        'person': person
+    }
+    return render(request, 'faculty/event_type_list.html', context)
+
 
 @requires_role('ADMN')
-def create_event(request, userid):
+def create_event(request, userid, handler):
     """
     Create new career event for a faculty member.
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
-    context = {"person": person}
     editor = get_object_or_404(Person, userid=request.user.username)
+    
+    try:
+        Handler = EVENT_TYPES[handler.upper()]
+    except KeyError:
+        raise Http404
+
     unit_choices = [(u.id, unicode(u)) for u in member_units & request.units]
+    context = {
+        'person': person,
+        'editor': editor,
+        'handler': Handler,
+    }
+
+    handler = Handler(person)
     if request.method == "POST":
-        form = CareerEventForm(request.POST)
-        form.fields['unit'].choices = unit_choices
+        # TODO: is there a better way to grab the form class?  concern is unit choices is not populated
+        form = handler.EntryForm(request.POST)
         if form.is_valid():
-            event = form.save(commit=False)
-            event.person = person
+            # Event is created in the handler init
+            # Event is updated in the load_form method
+            event = handler.load_form(form)
             event.save(editor)
             return HttpResponseRedirect(event.get_change_url())
         else:
             context.update({"event_form": form})
     else:
-        form = CareerEventForm(initial={"person": person, "status": "NA"})
-        form.fields['unit'].choices = unit_choices
-        # TODO filter choice for status (some roles may not be allowed to approve events?
+        # Display new blank form
+        form = handler.get_entry_form(units=unit_choices) 
         context.update({"event_form": form})
     return render(request, 'faculty/career_event_form.html', context)
 
@@ -130,11 +152,22 @@ def change_event(request, userid, event_slug):
     """
     Change existing career event for a faculty member.
     """
-    person, _ = _get_faculty_or_404(request.units, userid)
+    person, member_units = _get_faculty_or_404(request.units, userid)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
-    context = {"person": person, "event": instance}
     editor = get_object_or_404(Person, userid=request.user.username)
+    
+    Handler = EVENT_TYPES[instance.event_type]
+    unit_choices = [(u.id, unicode(u)) for u in member_units & request.units]
+    context = {
+        'person': person,
+        'editor': editor,
+        'handler': Handler,
+        'event': instance,
+    }
+
+    handler = Handler(person, instance)
     if request.method == "POST":
+        raise NotImplementedError
         form = CareerEventForm(request.POST, instance=instance)
         if form.is_valid():
             event = form.save(commit=False)
@@ -142,9 +175,8 @@ def change_event(request, userid, event_slug):
             context.update({"event": event,
                             "event_form": form})
     else:
-        unit_choices = [(u.id, unicode(u)) for u in request.units]
-        form = CareerEventForm(instance=instance)
-        form.fields['unit'].choices = unit_choices
+        form = handler.get_entry_form()
+        #form = CareerEventForm(instance=instance)
         # TODO filter choice for status (as above)
         context.update({"event_form": form})
     return render(request, 'faculty/career_event_form.html', context)

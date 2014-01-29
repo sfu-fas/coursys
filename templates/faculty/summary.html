@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Faculty Summary: {{ role.person.name }}{% endblock %}
-{% block h1 %}Faculty Summary: {{ role.person.name }}{% endblock %}
+{% block title %}Faculty Summary: {{ person.name }}{% endblock %}
+{% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -12,18 +12,11 @@
 {% endblock %}
 
 {% block content %}
-{% with events=person.career_events.all %}
-<h4>Event list (placeholder ui)</h4>
-<ul>
-{% for e in events %}
-<li><a href="{{ e.get_change_url }}">{{ e.full_title }}</a></li>
-{% endfor %}
-</ul>
-{% endwith %}
+<h4>Actions</h4>
 <ul>
 	<li><a href="{% url 'faculty_events_list' userid=person.userid_or_emplid %}">View All Career Events</a></li>
+	<li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}">Create New Event</a></li>
 	<li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}">Other info</a></li>
-	<li><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid %}">Create New Event</a></li>
 </ul>
 
 {% endblock %}
