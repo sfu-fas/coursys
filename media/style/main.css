@@ -65,7 +65,9 @@ legend {
 span.sort {
   display: none;
 }
-
+.collapsible-content-collapsed {
+  display: none;
+}
 
 
 
