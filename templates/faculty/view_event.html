@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}{{ person.name }}: {{ event.title }}{% endblock %}
+{% block h1 %}{{ person.name }}: {{ event.title }}{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>{{ event.title }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    <li><a href="{{ event.get_change_url }}">Edit event</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+
+{% block content %}
+
+{{ handler.to_html }}
+
+{% endblock %}
