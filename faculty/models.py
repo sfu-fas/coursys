@@ -13,11 +13,15 @@ from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
 
+from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AppointmentEventHandler
+from faculty.event_types.career import SalaryBaseEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
     AppointmentEventHandler,
+    FellowshipEventHandler,
+    SalaryBaseEventHandler,
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = EVENT_TYPES.items()
@@ -59,6 +63,9 @@ class CareerEvent(models.Model):
     @property
     def full_title(self):
         return '{} {}'.format(self.start_date.year, self.title)
+
+    def get_absolute_url(self):
+        return reverse("faculty_event_view", args=[self.person.userid, self.slug])
 
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
@@ -181,3 +188,12 @@ class Memo(models.Model):
         self.memo_text = normalize_newlines(self.content.rstrip())
         self.memo_text = many_newlines.sub('\n\n', self.content)
         super(Memo, self).save(*args, **kwargs)
+
+
+class EventConfig(models.Model):
+    """
+    A unit's configuration for a particular event type
+    """
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
+    config = JSONField(default={})

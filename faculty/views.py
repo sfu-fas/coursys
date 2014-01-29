@@ -1,4 +1,4 @@
-from courselib.auth import requires_role
+from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect
 from django.contrib import messages
@@ -9,7 +9,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES
+from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES, EVENT_TYPE_CHOICES
 from faculty.forms import career_event_factory
 from faculty.forms import CareerEventForm, MemoTemplateForm
 
@@ -94,12 +94,34 @@ def otherinfo(request, userid):
     return render(request, 'faculty/otherinfo.html', context)
 
 
+@requires_role('ADMN')
+def view_event(request, userid, event_slug):
+    """
+    Change existing career event for a faculty member.
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    Handler = EVENT_TYPES[instance.event_type](event=instance)
+
+    context = {
+        'person': person,
+        'editor': editor,
+        'handler': Handler,
+        'event': instance,
+    }
+    return render(request, 'faculty/view_event.html', context)
+
 
 ###############################################################################
 # Creation and editing of CareerEvents
 @requires_role('ADMN')
 def event_type_list(request, userid):
-    types = EVENT_TYPES
+    types = [
+        {'key': key, 'name': Handler.name, 'is_instant': Handler.is_instant,
+         'affects_teaching': Handler.affects_teaching, 'affects_salary': Handler.affects_salary}
+        for key, Handler in EVENT_TYPE_CHOICES]
     person, _ = _get_faculty_or_404(request.units, userid)
     context = {
         'event_types': types,
@@ -119,30 +141,30 @@ def create_event(request, userid, handler):
     try:
         Handler = EVENT_TYPES[handler.upper()]
     except KeyError:
-        raise Http404
+        return NotFoundResponse(request)
 
-    unit_choices = [(u.id, unicode(u)) for u in member_units & request.units]
+    name = Handler.name
     context = {
         'person': person,
         'editor': editor,
         'handler': Handler,
+        'name': name,
     }
 
-    handler = Handler(person)
+    handler = Handler(faculty=person)
     if request.method == "POST":
-        # TODO: is there a better way to grab the form class?  concern is unit choices is not populated
-        form = handler.EntryForm(request.POST)
+        form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
             # Event is created in the handler init
             # Event is updated in the load_form method
             event = handler.load_form(form)
             event.save(editor)
-            return HttpResponseRedirect(event.get_change_url())
+            return HttpResponseRedirect(event.get_absolute_url())
         else:
             context.update({"event_form": form})
     else:
         # Display new blank form
-        form = handler.get_entry_form(units=unit_choices) 
+        form = handler.get_entry_form(editor=editor, units=member_units) 
         context.update({"event_form": form})
     return render(request, 'faculty/career_event_form.html', context)
 
@@ -155,9 +177,8 @@ def change_event(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
-    
+
     Handler = EVENT_TYPES[instance.event_type]
-    unit_choices = [(u.id, unicode(u)) for u in member_units & request.units]
     context = {
         'person': person,
         'editor': editor,
@@ -168,17 +189,18 @@ def change_event(request, userid, event_slug):
     handler = Handler(person, instance)
     if request.method == "POST":
         raise NotImplementedError
-        form = CareerEventForm(request.POST, instance=instance)
+        form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
             event = form.save(commit=False)
             event.save(editor)
             context.update({"event": event,
                             "event_form": form})
     else:
-        form = handler.get_entry_form()
+        form = handler.get_entry_form(editor=editor, units=member_units)
         #form = CareerEventForm(instance=instance)
         # TODO filter choice for status (as above)
         context.update({"event_form": form})
+
     return render(request, 'faculty/career_event_form.html', context)
 
 

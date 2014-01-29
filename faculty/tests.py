@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from coredata.models import Person
 from coredata.models import Role
+from coredata.models import Unit
 
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
@@ -45,12 +46,14 @@ class EventTypesTest(TestCase):
         """
         fac_member = Person.objects.get(userid='ggbaker')
         fac_role = Role.objects.filter(person=fac_member)[0]
+        editor = Person.objects.get(userid='dixon')
+        units = Unit.objects.all()
 
         for Handler in HANDLERS:
             # Make sure all required abstract methods at least overrided
             # XXX: should output the missing method on fail
             try:
-                Handler.create_for(fac_member, fac_role.unit)
+                handler = Handler.create_for(fac_member, fac_role.unit)
             except TypeError:
                 self.fail('something was not implemented')
 
@@ -60,3 +63,6 @@ class EventTypesTest(TestCase):
 
             if 'affects_teaching' in Handler.FLAGS:
                 self.assertTrue(issubclass(Handler, TeachingCareerEvent))
+
+            # test form creation
+            handler.get_entry_form(editor=editor, units=units)

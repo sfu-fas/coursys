@@ -1,4 +1,5 @@
 import abc
+import collections
 import datetime
 import itertools
 
@@ -8,6 +9,16 @@ from django.template import Context, Template
 from coredata.models import Role, Unit
 
 from faculty.event_types.constants import PERMISSION_LEVEL
+
+SalaryAdjust = collections.namedtuple('SalaryAdjust', [
+    'add_salary',
+    'salary_fraction',
+    'add_bonus',
+])
+TeachingAdjust = collections.namedtuple('TeachingAdjust', [
+    'credits',
+    'load_decrease',
+])
 
 
 class CareerEventMeta(abc.ABCMeta):
@@ -23,14 +34,42 @@ class CareerEventMeta(abc.ABCMeta):
 
 
 class BaseEntryForm(forms.Form):
-    # TODO: should this be a ModelForm for a CareerEvent? We'll have a circular import if so.
     CONFIG_FIELDS = []
-    title = forms.CharField(max_length=80, required=True)
+    title = forms.CharField(max_length=80, required=True, widget=forms.TextInput(attrs={'size': 60}))
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
-    #comments = forms.CharField(widget=forms.Textarea(), required=False)
-    # TODO: changed from Unit.objects.none(), needed to populate the values in faculty.views.create_event
-    unit = forms.ModelChoiceField(queryset=Unit.objects.all())
+    comments = forms.CharField(required=False,
+                               widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
+    unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
+
+    def __init__(self, event, editor, units, *args, **kwargs):
+        super(BaseEntryForm, self).__init__(*args, **kwargs)
+        self.event = event
+        self.editor = editor
+        self.units = units
+        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+
+        if event.id:
+            # it's already in the database, so load existing values as defaults
+            # TODO: should this be done differently?
+            self.initial['title'] = self.event.title
+            self.initial['start_date'] = self.event.start_date
+            self.initial['end_date'] = self.event.end_date
+            self.initial['unit'] = self.event.unit
+            self.initial['comments'] = self.event.comments
+            for f in self.CONFIG_FIELDS:
+                self.initial[f] = self.event.config.get(f, None)
+
+        # force the comments field to the bottom
+        self.fields.keyOrder = [k for k in self.fields.keyOrder if k != 'comments']
+        self.fields.keyOrder.append('comments')
+
+        self.post_init()
+
+    def post_init(self):
+        "Hook to do setup of the form"
+        pass
 
 
 class CareerEventHandlerBase(object):
@@ -179,27 +218,24 @@ class CareerEventHandlerBase(object):
         for hook in self.hooks:
             hook.modify_entry_form(form)
 
-    def get_entry_form(self, **kwargs):
+    def get_entry_form(self, editor, units, **kwargs):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
-        units = kwargs.pop('units')
         initial = {
             'title': self.DEFAULT_TITLE,
             'start_date': datetime.date.today(),
         }
-
-        form = self.EntryForm(initial=initial, **kwargs)
+        form = self.EntryForm(event=self.event,
+                              editor=editor,
+                              units=units,
+                              initial=initial,
+                              **kwargs)
 
         # Apply hooks
         self._apply_hooks_to_entry_form(form)
 
-        if units:
-            form.fields['unit'].choices = units
-
         return form
-
-    # Stuff relating to presentation
 
     def to_html(self):
         """
@@ -210,7 +246,6 @@ class CareerEventHandlerBase(object):
         context = Context({
             'event': self.event,
             'handler': self,
-            'faculty': self.faculty,
         })
         return template.render(context)
 

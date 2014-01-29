@@ -36,6 +36,9 @@ form {
 label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
   display: inline;
 }
+fieldset, label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
+  width: auto;
+}
 input[type="radio"], input[type="checkbox"] {
   float: none;
   margin: inherit;

@@ -1,7 +1,11 @@
+import datetime
+import decimal
+
 from django import forms
 
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
+from faculty.event_types.base import SalaryAdjust
 
 
 RANK_CHOICES = [
@@ -35,7 +39,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     """
     EVENT_TYPE = 'APPOINT'
     DEFAULT_TITLE = 'Appointment to Position'
-    TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
+    TO_HTML_TEMPLATE = "event.person.name }}'s event {{ event.title }}"
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
@@ -43,17 +47,16 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
     def short_summary(self):
-        return 'uhhhhhhh'
+        return "Appointment to position as of %s" % (self.event.start_date)
 
-'''
+
 class SalaryBaseEventHandler(CareerEventHandlerBase):
     """
     An annual salary update
     """
     EVENT_TYPE = 'SALARY'
-    NAME = "Base salary update"
-    affects_salary = True
-    TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
+    DEFAULT_TITLE = "Base Salary Update"
+    TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['step', 'base_salary']
@@ -65,12 +68,10 @@ class SalaryBaseEventHandler(CareerEventHandlerBase):
     def default_title(self):
         return 'Base Salary %s' % (datetime.date.today().year)
 
-    #def load_form(self, form):
-    #    e = super(AppointmentEventHandler, self).load_form(form, config_fields=)
-    #    return e
+    def short_summary(self):
+        return "Base salary of %s at step %s" % (self.event.config.get('base_salary', 0),
+                                                 self.event.config.get('step', 0))
 
     def salary_adjust_annually(self):
-        # s = self.event.base_salary
-        s = decimal.Decimal(10000)
+        s = decimal.Decimal(self.event.config.get('base_salary', 0))
         return SalaryAdjust(s, 1, 0)
-'''
