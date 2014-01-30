@@ -124,12 +124,12 @@ class CareerEventHandlerBase(object):
     def create_for(cls, person, unit):
         """
         Given a person, create a new instance of the handler for them.
-
         """
         from faculty.models import CareerEvent
         event = CareerEvent(person=person,
-                            unit=unit,
                             event_type=cls.EVENT_TYPE)
+        if unit:
+            event.unit = unit
         return cls(event)
 
     # Stuff involving permissions
@@ -193,14 +193,13 @@ class CareerEventHandlerBase(object):
     def load_from(self, form):
         """
         Given a valid form, load its data into the handler.
-
         """
-        self.event.unit = form.cleaned_data['unit'],
-        self.event.event_type = self.EVENT_TYPE,
-        self.event.title = form.cleaned_data['title'],
-        self.event.start_date = form.cleaned_data['start_date'],
-        self.event.end_date = form.cleaned_data.get('end_date', None),
-        self.event.comments = form.cleaned_data.get('comments', None),
+        self.event.unit = form.cleaned_data['unit']
+        self.event.event_type = self.EVENT_TYPE
+        self.event.title = form.cleaned_data['title']
+        self.event.start_date = form.cleaned_data['start_date']
+        self.event.end_date = form.cleaned_data.get('end_date', None)
+        self.event.comments = form.cleaned_data.get('comments', None)
         self.event.status = form.cleaned_data.get('status', 'NA')
 
         # XXX: status field: choose highest possible value for the available unit(s)?
@@ -209,6 +208,8 @@ class CareerEventHandlerBase(object):
         for field in form.CONFIG_FIELDS:
             # TODO: Do some type checking or something
             self.event.config[field] = form.cleaned_data[field]
+
+        return self.event
 
     def _apply_hooks_to_entry_form(self, form):
         for hook in self.hooks:
@@ -277,3 +278,4 @@ class CareerEventHandlerBase(object):
 
         """
         pass
+

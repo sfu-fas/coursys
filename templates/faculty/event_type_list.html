@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Career Events{% endblock %}
-{% block h1 %}Career Events{% endblock %}
+{% block title %}{{ person.name }}: New Event{% endblock %}
+{% block h1 %}{{ person.name }}: New Event{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -18,7 +18,7 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li>Event Types</li>
+<li>New Event</li>
 {% endblock %}
 
 {% block content %}
@@ -33,7 +33,7 @@ $(document).ready(function() {
   <tbody>
   {% for type in event_types %}
   <tr>
-    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid handler=type.EVENT_TYPE|lower %}">{{ type.default_title }}</a></td>
+    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid handler=type.slug %}">{{ type.name }}</a></td>
     <td>{{ type.is_instant }}</td>
     <td>{{ type.affects_teaching }}</td>
     <td>{{ type.affects_salary }}</td>

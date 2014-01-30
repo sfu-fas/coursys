@@ -12,7 +12,8 @@
 {% if event %}
 <li>Edit {{ event.title }}</li>
 {% else %}
-<li>New {{ name|title }}</li>
+<li><a href="{% url "faculty.views.event_type_list" userid=person.userid_or_emplid %}">New Event</a></li>
+<li>{{ name|title }}</li>
 {% endif %}
 {% endblock %}
 
@@ -22,7 +23,6 @@
     <form action="" method="post">
         {% csrf_token %}
         <fieldset>
-            <legend>{{ event }}</legend>
             {{ event_form|as_dl }}
             <p><input type="submit" class="submit" value="Submit" /></p>
         </fieldset>

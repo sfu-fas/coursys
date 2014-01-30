@@ -118,9 +118,10 @@ def view_event(request, userid, event_slug):
 # Creation and editing of CareerEvents
 @requires_role('ADMN')
 def event_type_list(request, userid):
-    types = [
-        {'key': key, 'name': Handler.name, 'is_instant': Handler.is_instant,
-         'affects_teaching': Handler.affects_teaching, 'affects_salary': Handler.affects_salary}
+    types = [ # TODO: how do we check is_instant now?
+        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': False,
+         'affects_teaching': 'affects_teaching' in Handler.FLAGS,
+         'affects_salary': 'affects_salary' in Handler.FLAGS}
         for key, Handler in EVENT_TYPE_CHOICES]
     person, _ = _get_faculty_or_404(request.units, userid)
     context = {
@@ -143,7 +144,7 @@ def create_event(request, userid, handler):
     except KeyError:
         return NotFoundResponse(request)
 
-    name = Handler.name
+    name = Handler.NAME
     context = {
         'person': person,
         'editor': editor,
@@ -151,13 +152,13 @@ def create_event(request, userid, handler):
         'name': name,
     }
 
-    handler = Handler(faculty=person)
+    handler = Handler.create_for(person=person, unit=None)
     if request.method == "POST":
         form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
             # Event is created in the handler init
             # Event is updated in the load_form method
-            event = handler.load_form(form)
+            event = handler.load_from(form)
             event.save(editor)
             return HttpResponseRedirect(event.get_absolute_url())
         else:
@@ -186,7 +187,7 @@ def change_event(request, userid, event_slug):
         'event': instance,
     }
 
-    handler = Handler(person, instance)
+    handler = Handler(instance)
     if request.method == "POST":
         raise NotImplementedError
         form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
