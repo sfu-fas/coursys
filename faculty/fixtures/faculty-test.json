@@ -109,6 +109,15 @@
 },
 {
  "fields": {
+  "person": 15, 
+  "role": "FAC", 
+  "unit": 3
+ }, 
+ "model": "coredata.role", 
+ "pk": 5
+},
+{
+ "fields": {
   "person": 1, 
   "role": "ADMN", 
   "unit": 4

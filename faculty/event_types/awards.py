@@ -1,22 +1,31 @@
-import itertools
+import itertools, decimal
 
 from django import forms
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
+from faculty.event_types.base import SalaryAdjust
+from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 
-class FellowshipEventHandler(CareerEventHandlerBase):
+class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent,):
     """
     Appointment to a fellowship/chair
     """
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
     TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
+    FLAGS = ['affects_salary']
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['position']
+        CONFIG_FIELDS = ['position', 'add_salary', 'add_pay']
         position = forms.ChoiceField(required=True, choices=[])
+        add_salary = forms.DecimalField(max_digits=8, decimal_places=2, initial=0,
+                                         help_text="Additional salary associated with this position")
+        add_pay = forms.DecimalField(max_digits=8, decimal_places=2, initial=0,
+                                         help_text="Add-pay associated with this position")
+        #teaching_credit = forms.DecimalField(max_digits=8, decimal_places=2, initial=0,
+        #                                 help_text="Add-pay associated with this position")
 
         def post_init(self):
             # set the allowed position choices from the config from allowed units
@@ -53,7 +62,16 @@ class FellowshipEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         from faculty.models import EventConfig
-        ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.EVENT_TYPE)
-        fellowships = dict(ec.config.get('fellowships', []))
+        try:
+            ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.EVENT_TYPE)
+            fellowships = dict(ec.config.get('fellowships', []))
+        except EventConfig.DoesNotExist:
+            fellowships = {}
 
-        return "Appointment to %s" % (fellowships[self.event.config['position']])
+        pos = self.event.config.get('position', '???')
+        return "Appointment to %s" % (fellowships.get(pos, pos))
+
+    def salary_adjust_annually(self):
+        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0))
+        add_pay  = decimal.Decimal(self.event.config.get('add_salary', 0))
+        return SalaryAdjust(add_salary, 1, add_pay)

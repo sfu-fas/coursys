@@ -1,9 +1,11 @@
 from django.test import TestCase
+from django.utils import safestring
 
 from coredata.models import Person
 from coredata.models import Role
 from coredata.models import Unit
 
+from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
@@ -54,15 +56,27 @@ class EventTypesTest(TestCase):
             # XXX: should output the missing method on fail
             try:
                 handler = Handler.create_for(fac_member, fac_role.unit)
-            except TypeError:
-                self.fail('something was not implemented')
 
-            # Make sure certain handlers subclassed from the appropriate mixin
-            if 'affects_salary' in Handler.FLAGS:
-                self.assertTrue(issubclass(Handler, SalaryCareerEvent))
+                # Make sure certain handlers subclassed from the appropriate mixin
+                self.assertEqual('affects_salary' in Handler.FLAGS, hasattr(handler, 'salary_adjust_annually'))
+                if 'affects_salary' in Handler.FLAGS:
+                    self.assertIsInstance(handler, SalaryCareerEvent)
+                    self.assertIsInstance(handler.salary_adjust_annually(), SalaryAdjust)
 
-            if 'affects_teaching' in Handler.FLAGS:
-                self.assertTrue(issubclass(Handler, TeachingCareerEvent))
+                self.assertEqual('affects_teaching' in Handler.FLAGS, hasattr(handler, 'teaching_adjust_per_semester'))
+                if 'affects_teaching' in Handler.FLAGS:
+                    self.assertIsInstance(handler, TeachingCareerEvent)
+                    self.assertIsInstance(handler.teaching_adjust_per_semester(), TeachingAdjust)
 
-            # test form creation
-            handler.get_entry_form(editor=editor, units=units)
+                # test form creation
+                handler.get_entry_form(editor=editor, units=units)
+
+                # display methods that each handler must implement
+                self.assertIsInstance(handler.short_summary(), basestring)
+                html = handler.to_html()
+                self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
+
+
+            except:
+                print "failure with Handler==%s" % (Handler)
+                raise

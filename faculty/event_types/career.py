@@ -6,6 +6,7 @@ from django import forms
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import SalaryAdjust
+from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 
 RANK_CHOICES = [
@@ -39,7 +40,8 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     """
     EVENT_TYPE = 'APPOINT'
     NAME = 'Appointment to Position'
-    TO_HTML_TEMPLATE = "event.person.name }}'s event {{ event.title }}"
+    TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ event.title }}"
+    FLAGS = []
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
@@ -50,13 +52,14 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         return "Appointment to position as of %s" % (self.event.start_date)
 
 
-class SalaryBaseEventHandler(CareerEventHandlerBase):
+class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
     An annual salary update
     """
     EVENT_TYPE = 'SALARY'
     NAME = "Base Salary Update"
     TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
+    FLAGS = ['affects_salary']
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['step', 'base_salary']
