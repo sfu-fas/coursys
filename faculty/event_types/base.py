@@ -113,7 +113,7 @@ class CareerEventHandlerBase(object):
 
         # TODO: store handler flags in the CareerEvent instance
         self.event.event_type = self.EVENT_TYPE
-        self.event.save()
+        self.event.save(editor)
 
         self.post_hook_save()
         self.post_save()
@@ -195,12 +195,12 @@ class CareerEventHandlerBase(object):
         Given a valid form, load its data into the handler.
 
         """
-        self.event.unit = form.cleaned_data['unit'],
-        self.event.event_type = self.EVENT_TYPE,
-        self.event.title = form.cleaned_data['title'],
-        self.event.start_date = form.cleaned_data['start_date'],
-        self.event.end_date = form.cleaned_data.get('end_date', None),
-        self.event.comments = form.cleaned_data.get('comments', None),
+        self.event.unit = form.cleaned_data['unit']
+        self.event.event_type = self.EVENT_TYPE
+        self.event.title = form.cleaned_data['title']
+        self.event.start_date = form.cleaned_data['start_date']
+        self.event.end_date = form.cleaned_data.get('end_date', None)
+        self.event.comments = form.cleaned_data.get('comments', None)
         self.event.status = form.cleaned_data.get('status', 'NA')
 
         # XXX: status field: choose highest possible value for the available unit(s)?

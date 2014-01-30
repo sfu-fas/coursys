@@ -119,9 +119,12 @@ def view_event(request, userid, event_slug):
 @requires_role('ADMN')
 def event_type_list(request, userid):
     types = [
-        {'key': key, 'name': Handler.name, 'is_instant': Handler.is_instant,
-         'affects_teaching': Handler.affects_teaching, 'affects_salary': Handler.affects_salary}
-        for key, Handler in EVENT_TYPE_CHOICES]
+            {'key': key,
+             'name': Handler.NAME,
+            'type': Handler.EVENT_TYPE,
+        }
+        for key, Handler in EVENT_TYPE_CHOICES
+    ]
     person, _ = _get_faculty_or_404(request.units, userid)
     context = {
         'event_types': types,
@@ -143,7 +146,7 @@ def create_event(request, userid, handler):
     except KeyError:
         return NotFoundResponse(request)
 
-    name = Handler.name
+    name = Handler.NAME
     context = {
         'person': person,
         'editor': editor,
@@ -151,15 +154,18 @@ def create_event(request, userid, handler):
         'name': name,
     }
 
-    handler = Handler(faculty=person)
+    # TODO how to pick the unit to use?
+    units = sorted(list(member_units))
+    print units[0]
+    handler = Handler.create_for(person, units[0])
     if request.method == "POST":
         form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
             # Event is created in the handler init
             # Event is updated in the load_form method
-            event = handler.load_form(form)
-            event.save(editor)
-            return HttpResponseRedirect(event.get_absolute_url())
+            handler.load_from(form)
+            handler.save(editor)
+            return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
     else:
@@ -185,20 +191,17 @@ def change_event(request, userid, event_slug):
         'handler': Handler,
         'event': instance,
     }
-
-    handler = Handler(person, instance)
+    handler = Handler(instance)
     if request.method == "POST":
-        raise NotImplementedError
         form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
-            event = form.save(commit=False)
-            event.save(editor)
-            context.update({"event": event,
+            handler.load_from(form)
+            handler.save(editor)
+            context.update({"event": handler.event,
                             "event_form": form})
     else:
+        # Display form from db instance
         form = handler.get_entry_form(editor=editor, units=member_units)
-        #form = CareerEventForm(instance=instance)
-        # TODO filter choice for status (as above)
         context.update({"event_form": form})
 
     return render(request, 'faculty/career_event_form.html', context)

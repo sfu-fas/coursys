@@ -39,7 +39,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     """
     EVENT_TYPE = 'APPOINT'
     NAME = 'Appointment to Position'
-    TO_HTML_TEMPLATE = "event.person.name }}'s event {{ event.title }}"
+    TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ event.title }}"
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
