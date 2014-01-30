@@ -1,5 +1,6 @@
 import abc
 import collections
+import copy
 import datetime
 import itertools
 
@@ -8,6 +9,7 @@ from django.template import Context, Template
 
 from coredata.models import Role, Unit
 
+from faculty.event_types.mixins import CareerEventMixinBase
 from faculty.event_types.constants import PERMISSION_LEVEL
 
 SalaryAdjust = collections.namedtuple('SalaryAdjust', [
@@ -26,11 +28,22 @@ class CareerEventMeta(abc.ABCMeta):
     def __init__(cls, name, bases, members):
         super(CareerEventMeta, cls).__init__(name, bases, members)
 
+        # Make a new list so we don't accidentally reference the base class' FLAGS
+        cls.FLAGS = copy.copy(cls.FLAGS)
+        cls.HOOKS = copy.copy(cls.HOOKS)
+
         for base in bases:
-            if hasattr(base, 'FLAGS'):
-                cls.FLAGS.extend(base.FLAGS)
+            # Add the flags from every mixin base class
+            if issubclass(base, CareerEventMixinBase):
+                for flag in base.FLAGS:
+                    if flag not in cls.FLAGS:
+                        cls.FLAGS.append(flag)
+
+            # Add the hooks from every handler base class
             if hasattr(base, 'HOOKS'):
-                cls.HOOKS.extend(base.HOOKS)
+                for hook in base.HOOKS:
+                    if hook not in cls.HOOKS:
+                        cls.HOOKS.append(hook)
 
 
 class BaseEntryForm(forms.Form):
@@ -278,4 +291,3 @@ class CareerEventHandlerBase(object):
 
         """
         pass
-
