@@ -43,6 +43,8 @@ CODE_TYPES = [
     (".r", "R (.r)"),
     (".dat", "Binary Output (.dat)"),
     (".mdx", "SQL Server Multi-Dimensional Expression (.mdx)"),
+    (".clj", "Clojure (.clj)"),
+    (".pde", "Processing IDE file (.pde)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()
