@@ -113,7 +113,7 @@ class CareerEventHandlerBase(object):
 
         # TODO: store handler flags in the CareerEvent instance
         self.event.event_type = self.EVENT_TYPE
-        self.event.save()
+        self.event.save(editor)
 
         self.post_hook_save()
         self.post_save()
