@@ -118,13 +118,11 @@ def view_event(request, userid, event_slug):
 # Creation and editing of CareerEvents
 @requires_role('ADMN')
 def event_type_list(request, userid):
-    types = [
-            {'key': key,
-             'name': Handler.NAME,
-            'type': Handler.EVENT_TYPE,
-        }
-        for key, Handler in EVENT_TYPE_CHOICES
-    ]
+    types = [ # TODO: how do we check is_instant now?
+        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': False,
+         'affects_teaching': 'affects_teaching' in Handler.FLAGS,
+         'affects_salary': 'affects_salary' in Handler.FLAGS}
+        for key, Handler in EVENT_TYPE_CHOICES]
     person, _ = _get_faculty_or_404(request.units, userid)
     context = {
         'event_types': types,

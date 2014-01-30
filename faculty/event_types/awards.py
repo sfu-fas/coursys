@@ -53,7 +53,7 @@ class FellowshipEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         from faculty.models import EventConfig
-        ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.key)
+        ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.EVENT_TYPE)
         fellowships = dict(ec.config.get('fellowships', []))
 
         return "Appointment to %s" % (fellowships[self.event.config['position']])
