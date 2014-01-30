@@ -15,7 +15,6 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent,):
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
     TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
-    FLAGS = ['affects_salary']
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['position', 'add_salary', 'add_pay']

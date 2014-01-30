@@ -55,16 +55,19 @@ class EventTypesTest(TestCase):
             # Make sure all required abstract methods at least overrided
             # XXX: should output the missing method on fail
             try:
+                # If a handler is missing any required methods (like teaching, salary, etc),
+                # then instantiation will raise an Exception. This means that there is no need
+                # to explicitly check if a handler with a flag has overriden a specific base
+                # mixin method.
                 handler = Handler.create_for(fac_member, fac_role.unit)
 
-                # Make sure certain handlers subclassed from the appropriate mixin
-                self.assertEqual('affects_salary' in Handler.FLAGS, hasattr(handler, 'salary_adjust_annually'))
                 if 'affects_salary' in Handler.FLAGS:
+                    self.assertTrue(issubclass(Handler, SalaryCareerEvent))
                     self.assertIsInstance(handler, SalaryCareerEvent)
                     self.assertIsInstance(handler.salary_adjust_annually(), SalaryAdjust)
 
-                self.assertEqual('affects_teaching' in Handler.FLAGS, hasattr(handler, 'teaching_adjust_per_semester'))
                 if 'affects_teaching' in Handler.FLAGS:
+                    self.assertTrue(issubclass(Handler, TeachingCareerEvent))
                     self.assertIsInstance(handler, TeachingCareerEvent)
                     self.assertIsInstance(handler.teaching_adjust_per_semester(), TeachingAdjust)
 

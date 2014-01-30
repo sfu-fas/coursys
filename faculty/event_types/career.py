@@ -41,7 +41,6 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'APPOINT'
     NAME = 'Appointment to Position'
     TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ event.title }}"
-    FLAGS = []
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
@@ -59,7 +58,6 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     EVENT_TYPE = 'SALARY'
     NAME = "Base Salary Update"
     TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
-    FLAGS = ['affects_salary']
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['step', 'base_salary']
