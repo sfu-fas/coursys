@@ -19,6 +19,10 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+ACTIVE_DEVELOPER = os.environ['DEVELOPER']
+if not ACTIVE_DEVELOPER:
+    ACTIVE_DEVELOPER = 'ggbaker'
+
 if DEPLOYED:
     DATABASES = {
         'default': {
@@ -188,7 +192,9 @@ EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
-SIMS_USER = "ggbaker"
+SIMS_USER = ACTIVE_DEVELOPER
+SIMS_DB_NAME = "csrpt"
+SIMS_DB_SCHEMA = "dbcsown"
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"
@@ -212,6 +218,9 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
+
+if ACTIVE_DEVELOPER == "classam":
+    DISABLE_REPORTING_DB = False
 
 try:
     from local_settings import *
