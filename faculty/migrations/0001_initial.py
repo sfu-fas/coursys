@@ -11,12 +11,12 @@ class Migration(SchemaMigration):
         # Adding model 'CareerEvent'
         db.create_table(u'faculty_careerevent', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('person', self.gf('django.db.models.fields.related.ForeignKey')(related_name='career_events', to=orm['coredata.Person'])),
+            ('person', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
             ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
             ('title', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=('person', 'unit'), max_length=50, populate_from='full_title')),
             ('start_date', self.gf('django.db.models.fields.DateField')()),
-            ('end_date', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
+            ('end_date', self.gf('django.db.models.fields.DateField')(null=True)),
             ('comments', self.gf('django.db.models.fields.TextField')(blank=True)),
             ('event_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
             ('config', self.gf('jsonfield.fields.JSONField')(default={})),
@@ -76,15 +76,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'faculty', ['Memo'])
 
-        # Adding model 'EventConfig'
-        db.create_table(u'faculty_eventconfig', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
-            ('event_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
-        ))
-        db.send_create_signal(u'faculty', ['EventConfig'])
-
 
     def backwards(self, orm):
         # Removing unique constraint on 'MemoTemplate', fields ['unit', 'label']
@@ -101,9 +92,6 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Memo'
         db.delete_table(u'faculty_memo')
-
-        # Deleting model 'EventConfig'
-        db.delete_table(u'faculty_eventconfig')
 
 
     models = {
@@ -134,12 +122,12 @@ class Migration(SchemaMigration):
             'comments': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'end_date': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
+            'end_date': ('django.db.models.fields.DateField', [], {'null': 'True'}),
             'event_type': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
             'flags': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'import_key': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'person': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'career_events'", 'to': u"orm['coredata.Person']"}),
+            'person': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['coredata.Person']"}),
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': "('person', 'unit')", 'max_length': '50', 'populate_from': "'full_title'"}),
             'start_date': ('django.db.models.fields.DateField', [], {}),
             'status': ('django.db.models.fields.CharField', [], {'max_length': '2'}),
@@ -155,13 +143,6 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'mediatype': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '250'})
-        },
-        u'faculty.eventconfig': {
-            'Meta': {'object_name': 'EventConfig'},
-            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
-            'event_type': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['coredata.Unit']"})
         },
         u'faculty.memo': {
             'Meta': {'object_name': 'Memo'},
