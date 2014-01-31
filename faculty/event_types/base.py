@@ -2,6 +2,7 @@ import abc
 import collections
 import copy
 import datetime
+import fractions
 import itertools
 
 from django import forms
@@ -219,8 +220,10 @@ class CareerEventHandlerBase(object):
         # XXX: Does _apply_hooks_to_entry_form(...) need to be run here?
 
         for field in form.CONFIG_FIELDS:
-            # TODO: Do some type checking or something
-            self.event.config[field] = form.cleaned_data[field]
+            data = form.cleaned_data[field]
+            if isinstance(data, fractions.Fraction):
+                data = unicode(data)
+            self.event.config[field] = data
 
         return self.event
 
