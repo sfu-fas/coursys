@@ -147,11 +147,12 @@ class Query(models.Model):
 
 class AccessRule(models.Model):
     """
-        Defines a unit/role pair that's allowed to see the output of this report. 
+        This person can see this report. 
     """
     report = models.ForeignKey(Report)
-    unit = models.ForeignKey(Unit, null=False)
-    viewable_by = models.CharField(max_length=4, choices=ROLE_CHOICES)
+    person = models.ForeignKey(Person)
+    notify = models.BooleanField(null=False, default=False, 
+        help_text="Email this person when a report completes.")
 
     hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})

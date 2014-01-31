@@ -38,8 +38,8 @@
     <ul>
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
         <li><a href="{% url reports.views.new_query report=report.slug %}">New Query</a></li>
-        <li><a href="#">New Schedule Rule</a></li>
         <li><a href="#">New Access Rule</a></li>
+        <li><a href="#">New Schedule Rule</a></li>
         <li><a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
 </div>
@@ -48,6 +48,10 @@
 {% block content %}
 
 <em>{{report.description}}</em>
+
+<h2>Access Rules</h2>
+
+<h2>Schedule Rules</h2>
 
 <h2>Report Components</h2>
 
@@ -63,13 +67,9 @@
     <li><strong>{{query.name}} </strong> 
         <pre>{{query.query}}</pre> - 
         <small><a href="{% url reports.views.delete_query report=report.slug query_id=query.id %}">Delete</a></small> | 
-        <small><a href="{% url reports.views.new_query report=report.slug query_id=query.id %}">Edit</a></small></li> 
+        <small><a href="{% url reports.views.edit_query report=report.slug query_id=query.id %}">Edit</a></small></li> 
 {% endfor %}
 </ul>
-
-<h2>Schedule Rules</h2>
-
-<h2>Access Rules</h2>
 
 <h2>Results</h2>
 <ul class='results'>

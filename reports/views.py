@@ -77,10 +77,8 @@ def delete_component(request, report, component_id):
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
 @requires_role('REPR')
-def new_query(request, report, query_id=None):
+def new_query(request, report):
     report = get_object_or_404(Report, slug=report) 
-    if query_id:
-        query = get_object_or_404(Query, id=int(query_id))
 
     if request.method == 'POST':
         form = QueryForm(request.POST)
@@ -89,23 +87,32 @@ def new_query(request, report, query_id=None):
             f.report = report
             f.created_by = request.user.username
             f.save()
-            if query_id:
-                query.delete()
-                messages.success(request, "Edited query: %s" % f.query)
-            else:
-                messages.success(request, "Created new report query: %s" % f.query)
+            messages.success(request, "Created new report query: %s" % f.query)
             return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
     else:
-        if query_id:
-            form = QueryForm(instance=query)
-        else:
-            form = QueryForm()
+        form = QueryForm()
 
-    return render(request, 'reports/new_query.html', {'form': form, 'report': report, 'query_id':query_id })
+    return render(request, 'reports/new_query.html', {'form': form, 'report': report })
 
 @requires_role('REPR')
 def edit_query(request, report, query_id):
     report = get_object_or_404(Report, slug=report)
+    query = get_object_or_404(Query, id=int(query_id))
+
+    if request.method == 'POST':
+        form = QueryForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.report = report
+            f.created_by = request.user.username
+            f.save()
+            query.delete()
+            messages.success(request, "Edited query: %s" % f.query)
+            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    else:
+        form = QueryForm(instance=query)
+
+    return render(request, 'reports/edit_query.html', {'form': form, 'report': report, 'query_id':query_id })
     
 
 @requires_role('REPR')
