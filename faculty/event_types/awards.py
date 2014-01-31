@@ -1,14 +1,15 @@
-import itertools, decimal
+import itertools, decimal, fractions
 
 from django import forms
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
-from faculty.event_types.base import SalaryAdjust
+from faculty.event_types.base import SalaryAdjust, TeachingAdjust
+from faculty.event_types.fields import AddSalaryField, AddPayField, TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 
-class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent,):
+class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
     Appointment to a fellowship/chair
     """
@@ -17,14 +18,11 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent,):
     TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['position', 'add_salary', 'add_pay']
+        CONFIG_FIELDS = ['position', 'add_salary', 'add_pay', 'teaching_credit']
         position = forms.ChoiceField(required=True, choices=[])
-        add_salary = forms.DecimalField(max_digits=8, decimal_places=2, initial=0,
-                                         help_text="Additional salary associated with this position")
-        add_pay = forms.DecimalField(max_digits=8, decimal_places=2, initial=0,
-                                         help_text="Add-pay associated with this position")
-        #teaching_credit = forms.DecimalField(max_digits=8, decimal_places=2, initial=0,
-        #                                 help_text="Add-pay associated with this position")
+        add_salary = AddSalaryField(required=False)
+        add_pay = AddPayField(required=False)
+        teaching_credit = TeachingCreditField(required=False)
 
         def post_init(self):
             # set the allowed position choices from the config from allowed units
@@ -71,6 +69,10 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent,):
         return "Appointment to %s" % (fellowships.get(pos, pos))
 
     def salary_adjust_annually(self):
-        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0))
-        add_pay  = decimal.Decimal(self.event.config.get('add_salary', 0))
+        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0) or 0)
+        add_pay  = decimal.Decimal(self.event.config.get('add_salary', 0) or 0)
         return SalaryAdjust(add_salary, 1, add_pay)
+
+    def teaching_adjust_per_semester(self):
+        adjust = fractions.Fraction(self.event.config.get('add_salary', 0) or 0)
+        return TeachingAdjust(adjust, adjust)
