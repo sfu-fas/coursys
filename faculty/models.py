@@ -155,6 +155,7 @@ class Memo(models.Model):
     A memo created by the system, and attached to a CareerEvent.
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False)
 
     sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter, editable")
     to_lines = models.TextField(help_text='Recipient of the memo', null=True, blank=True)

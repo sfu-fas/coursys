@@ -13,10 +13,18 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(default='', max_length=255),
                       keep_default=False)
 
+        # Adding field 'Memo.unit'
+        db.add_column(u'faculty_memo', 'unit',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['coredata.Unit']),
+                      keep_default=False)
+
 
     def backwards(self, orm):
         # Deleting field 'MemoTemplate.subject'
         db.delete_column(u'faculty_memotemplate', 'subject')
+
+        # Deleting field 'Memo.unit'
+        db.delete_column(u'faculty_memo', 'unit_id')
 
 
     models = {
@@ -92,7 +100,8 @@ class Migration(SchemaMigration):
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'subject': ('django.db.models.fields.TextField', [], {}),
             'template': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['faculty.MemoTemplate']", 'null': 'True'}),
-            'to_lines': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
+            'to_lines': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['coredata.Unit']"})
         },
         u'faculty.memotemplate': {
             'Meta': {'unique_together': "(('unit', 'label'),)", 'object_name': 'MemoTemplate'},
