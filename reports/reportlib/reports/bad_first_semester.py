@@ -38,7 +38,7 @@ class BadFirstSemesterReport( Report ):
         
         def credits_below_15_but_not_zero( row_map ):
             try:
-                return float(row_map["CREDITS"]) < 15 and float(row_map["CREDITS"]) > 0
+                return float(row_map["CREDITS"]) < 18 and float(row_map["CREDITS"]) > 0
             except:
                 print row_map
 
