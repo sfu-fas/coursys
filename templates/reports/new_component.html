@@ -7,9 +7,9 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url reports.views.view_reports %}">Reports</a></li> 
-<li>&gt; <a href="{% url reports.views.view_report report=report.slug %}">{{report.name}}</a></li>
-<li>&gt; New Component</li>
+<li><a href="{% url reports.views.view_reports %}">Reports</a></li> 
+<li><a href="{% url reports.views.view_report report=report.slug %}">{{report.name}}</a></li>
+<li>New Component</li>
 {% endblock %}
 
 {% block actions %}

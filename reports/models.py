@@ -157,39 +157,6 @@ class AccessRule(models.Model):
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
-def create_table_hints(): 
-    """
-        Get a list of tables from DB2, then find all of their columns
-    """ 
-
-class TableHint(models.Model):
-    """
-        Save information about a DB2 table. 
-    """
-    name = models.CharField(max_length=50)
-
-class TableColumnHint(models.Model):
-    """
-        Save information about a row of a DB2 table.
-    """
-    table = models.ForeignKey(TableHint)
-    name = models.CharField(max_length=50)
-
-class TableHintComment(models.Model):
-    table = models.ForeignKey(TableHint)
-    created_by = models.ForeignKey(Person)
-    created_at = models.DateTimeField(auto_now_add=True)
-    comment = models.TextField()
-    hidden = models.BooleanField(null=False, default=False)
-
-class TableColumnComment(models.Model):
-    table = models.ForeignKey(TableColumnHint)
-    created_by = models.ForeignKey(Person)
-    created_at = models.DateTimeField(auto_now_add=True)
-    comment = models.TextField()
-    hidden = models.BooleanField(null=False, default=False)
-    
-
 # Schedule
 # When do we run this report? 
 
