@@ -165,6 +165,7 @@ def delete_run(request, report, run):
 def view_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)
     report = run.report
+    # TODO: replace with slug
     result = get_object_or_404(Result, id=result)
     
     return render(request, 'reports/view_result.html', {'report':report, 'run': run, 'result':result})
@@ -175,7 +176,8 @@ def csv_result(request, report, run, result):
     report = run.report
     result = get_object_or_404(Result, id=result)
 
-    filename = str(report.slug) + '.csv'
+    print result.autoslug()
+    filename = str(report.slug) + '-' + result.autoslug() + '.csv'
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'inline; filename=%s'% filename
     csvWriter = csv.writer(response)

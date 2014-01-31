@@ -240,6 +240,14 @@ class Result(models.Model):
     table = JSONField(null=False, blank=False, default={})
     config = JSONField(null=False, blank=False, default={})
 
+    def autoslug(self):
+        if self.name: 
+            return make_slug( self.name )
+        else: 
+            return make_slug( self.id )
+    
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+
     cached_table = None
     cached_summary = None
 
@@ -258,6 +266,3 @@ class Result(models.Model):
             self.cached_summary.rows = self.cached_summary.rows[0:5]
         return self.cached_summary
     
-    def autoslug(self):
-        return make_slug( self.created_at )
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
