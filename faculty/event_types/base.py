@@ -90,6 +90,9 @@ class CareerEventHandlerBase(object):
 
     __metaclass__ = CareerEventMeta
 
+    IS_INSTANT = False # event has no duration: start_date==end_date
+    IS_EXCLUSIVE = False # there can only be one (with same person,unit,event_type)
+    SEMESTER_BIAS = False # present semester (instead of date) selection widgets by default
     HOOKS = []
     FLAGS = []
 
@@ -253,7 +256,6 @@ class CareerEventHandlerBase(object):
     def to_html(self):
         """
         A detailed HTML presentation of this event
-
         """
         template = Template(self.TO_HTML_TEMPLATE)
         context = Context({

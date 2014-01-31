@@ -155,7 +155,7 @@ def create_event(request, userid, handler):
 
     # TODO how to pick the unit to use?
     units = sorted(list(member_units))
-    handler = Handler.create_for(person, units[0])
+    handler = Handler.create_for(person=person, unit=None)
     AttachmentFormset = attachment_formset_factory()
     if request.method == "POST":
         form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
