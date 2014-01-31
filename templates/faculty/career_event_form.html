@@ -4,6 +4,9 @@
 {% block h1 %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
 
 {% block headextra %}
+<script>
+var event_type = "{{ event_type|escapejs }}";
+</script>
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 <script>
 // http://stackoverflow.com/questions/501719/dynamically-adding-a-form-to-a-django-formset-with-ajax
@@ -42,7 +45,6 @@ function addForm(selector, type) {
 {% endblock %}
 
 {% block content %}
-
 <div class="form_container">
     <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}

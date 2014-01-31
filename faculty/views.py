@@ -145,12 +145,12 @@ def create_event(request, userid, handler):
     except KeyError:
         return NotFoundResponse(request)
 
-    name = Handler.NAME
     context = {
         'person': person,
         'editor': editor,
         'handler': Handler,
-        'name': name,
+        'name': Handler.NAME,
+        'event_type': Handler.EVENT_TYPE
     }
 
     # TODO how to pick the unit to use?
@@ -176,6 +176,7 @@ def create_event(request, userid, handler):
         formset = AttachmentFormset()
         context.update({"event_form": form,
                         "attach_formset": formset})
+
     return render(request, 'faculty/career_event_form.html', context)
 
 
@@ -194,6 +195,7 @@ def change_event(request, userid, event_slug):
         'editor': editor,
         'handler': Handler,
         'event': instance,
+        'event_type': Handler.EVENT_TYPE
     }
     handler = Handler(instance)
     AttachmentFormset = attachment_formset_factory()

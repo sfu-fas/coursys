@@ -1,9 +1,8 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 {% load form_display %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}Edit Memo Template{% endblock %}
+{% block h1 %}Edit Memo Template{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
@@ -13,72 +12,30 @@
 	<a href="{% url "faculty.views.memo_templates" %}">Memo Template</a>
 </li>
 <li>
-	{{crumb}}
+	Edit
 </li>
 {% endblock %}
 
 {% block headextra %}
-<style type="text/css">
-dl dt {
-	margin-top: 0;
-}
-</style>
+<script>
+$( document ).ready(function() {
+    var help = $('#template-help');
+    var field = $('#id_template_text');
+    help.css('float', 'right');
+    help.insertBefore(field);
+});
+</script>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
 	<form action="{% url "faculty.views.manage_memo_template" slug=memo_template.slug%}" method="post">
 		{% csrf_token %}
-		<fieldset>
-			<legend>
-				Letter Template Info
-			</legend>
-			<br>
-			{% if form.non_field_errors %}
-			{{ form.non_field_errors }}
-			{% endif %}
-			<div style="float: left; width: 40%;">
-				<dl class="dlform">
-					<dt>
-						Template Name:
-					</dt>
-					<dd>
-						{{form.label}}{{form.label.errors}}
-					</dd>
-				</dl>
-			</div>
-			<div style="float: left;">
-				<dl class="dlform">
-					<dt>
-						Department:
-					</dt>
-					<dd>
-						{{form.unit}} {{form.unit.errors}}
-					</dd>
-				</dl>
-			</div>
-			<div style="float: left; width: 100%">
-				<dl class="dlform">
-					<dt>
-						Career Event Type:
-					</dt>
-					<dd>
-						{{form.event_type}} {{form.event_type.errors}}
-					</dd>
-				</dl>
-			</div>
-			<div style="float:left; width: 100%">
-				<div style="float: left">
-					<dl class="dlform">
-						<dt>
-							Contents:*
-						</dt>
-						<dd>
-							{{form.template_text}}{{form.template_text.errors}}
-						</dd>
-					</dl>
-				</div>
-				<div style="float: left; width: 25%">
+        <fieldset>
+            {{ form|as_dl }}
+        </fieldset>
+
+				<div id="template-help">
 						<h3>Available tags:</h3>
 							<dl>
 								<dt>
@@ -89,14 +46,11 @@ dl dt {
 								</dd>
 							</dl>
 				</div>
-			</div>
-			<div style="float: left; width: 100%">
 			<p>
 				<input  class="submit"  type="submit" value="Submit" />
 			</p>
 			</div>
 		</fieldset>
 	</form>
-	<a class="button" href="{% url "faculty.views.memo_templates" %}">Back</a>
 </div>
 {% endblock %} 

@@ -142,5 +142,43 @@
     "event_type": "FELLOW", 
     "unit": 4
   }
+},
+{
+ "fields": {
+  "created_at": "2014-01-31T13:33:35.244",
+  "created_by": 575,
+  "event_type": "APPOINT",
+  "hidden": false,
+  "label": "Welcome",
+  "slug": "fas-welcome",
+  "subject": "Welcome",
+  "template_text": "Welcome to the job, {{first_name}}.\n\nThanks for coming out.",
+  "unit": 2
+ },
+ "model": "faculty.memotemplate",
+ "pk": 1
+},
+{
+ "fields": {
+  "career_event": 1,
+  "cc_lines": "Greg\nThe Dean",
+  "config": "{}",
+  "created_at": "2014-01-31T14:46:25.478",
+  "created_by": 575,
+  "from_lines": "Danyu Zhao\nUnrelated Observer",
+  "from_person": 575,
+  "hidden": false,
+  "memo_text": "Welcome to the job, Greg.\n\nThanks for coming out.",
+  "sent_date": "2014-01-31",
+  "slug": "2014-appointment-to-position-welcome",
+  "subject": "Appointment",
+  "template": 1,
+  "to_lines": "The President\nSFU"
+ },
+ "model": "faculty.memo",
+ "pk": 1
 }
+
+
+
 ]
