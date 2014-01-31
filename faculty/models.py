@@ -126,8 +126,9 @@ class MemoTemplate(models.Model):
     A template for memos.
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    label = models.CharField(max_length=250, null=False)
+    label = models.CharField(max_length=250, null=False, verbose_name='Template Name')
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
+    subject = models.CharField(help_text='The default subject of the memo', max_length=255)
     template_text = models.TextField(help_text="I.e. 'Congratulations {{first_name}} on ... '")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -143,6 +144,10 @@ class MemoTemplate(models.Model):
 
     class Meta:
         unique_together = ('unit', 'label')
+
+    def save(self, *args, **kwargs):
+        self.template_text = normalize_newlines(self.template_text.rstrip())
+        super(MemoTemplate, self).save(*args, **kwargs)
 
 
 class Memo(models.Model):
@@ -185,8 +190,8 @@ class Memo(models.Model):
             self.to_lines = ''
         self.to_lines = normalize_newlines(self.to_lines.rstrip())
         self.from_lines = normalize_newlines(self.from_lines.rstrip())
-        self.memo_text = normalize_newlines(self.content.rstrip())
-        self.memo_text = many_newlines.sub('\n\n', self.content)
+        self.memo_text = normalize_newlines(self.memo_text.rstrip())
+        self.memo_text = many_newlines.sub('\n\n', self.memo_text)
         super(Memo, self).save(*args, **kwargs)
 
 
