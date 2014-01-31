@@ -16,12 +16,16 @@ from courselib.text import normalize_newlines, many_newlines
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.career import TenureApplicationEventHandler
+from faculty.event_types.career import TenureReceivedEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
     AppointmentEventHandler,
     FellowshipEventHandler,
     SalaryBaseEventHandler,
+    TenureApplicationEventHandler,
+    TenureReceivedEventHandler,
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = EVENT_TYPES.items()

@@ -76,3 +76,48 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     def salary_adjust_annually(self):
         s = decimal.Decimal(self.event.config.get('base_salary', 0))
         return SalaryAdjust(s, 1, 0)
+
+
+class TenureApplicationEventHandler(CareerEventHandlerBase):
+    """
+    Tenure Application Career event
+    """
+    EVENT_TYPE = 'TENUREAPP'
+    NAME = "Tenure Application"
+    TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
+
+    class EntryForm(BaseEntryForm):
+        # CONFIG_FIELDS = ['credits']
+        # base_salary = forms.DecimalField(max_digits=8, decimal_places=2,
+        #                                  help_text="Base annual salary for this rank + step.")
+        pass
+
+    @property
+    def default_title(self):
+        return 'Applied for Tenure'
+
+    def short_summary(self):
+        return '%s Applied for Tenure on %s' % (self.event.person.name(),
+                                                datetime.date.today())
+
+class TenureReceivedEventHandler(CareerEventHandlerBase):#, TenureApplicationCareerEvent):
+    """
+    Received Tenure Career event
+    """
+    EVENT_TYPE = 'TENUREREC'
+    NAME = "Tenure Received"
+    TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
+
+    class EntryForm(BaseEntryForm):
+        # CONFIG_FIELDS = ['credits']
+        # base_salary = forms.DecimalField(max_digits=8, decimal_places=2,
+        #                                  help_text="Base annual salary for this rank + step.")
+        pass
+
+    @property
+    def default_title(self):
+        return 'Tenure Received'
+
+    def short_summary(self):
+        return '%s received for Tenure on %s' % (self.event.person.name(),
+                                                datetime.date.today())
