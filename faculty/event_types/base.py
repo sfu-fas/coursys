@@ -93,6 +93,7 @@ class CareerEventHandlerBase(object):
     IS_INSTANT = False # event has no duration: start_date==end_date
     IS_EXCLUSIVE = False # there can only be one (with same person,unit,event_type)
     SEMESTER_BIAS = False # present semester (instead of date) selection widgets by default
+    HOOKS = []
     FLAGS = []
 
     NAME = ''
