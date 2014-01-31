@@ -178,7 +178,7 @@ class Memo(models.Model):
     use_sig = config_property('use_sig', default=True)
 
     def autoslug(self):
-        return make_slug(self.career_event.slug + "-" + self.template.memo_type)
+        return make_slug(self.career_event.slug + "-" + self.template.label)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
