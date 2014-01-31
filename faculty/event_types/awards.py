@@ -15,6 +15,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     """
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
+    #HOOKS = [InstantCareerEvent]
     TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
 
     class EntryForm(BaseEntryForm):
@@ -70,9 +71,12 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     def salary_adjust_annually(self):
         add_salary = decimal.Decimal(self.event.config.get('add_salary', 0) or 0)
-        add_pay  = decimal.Decimal(self.event.config.get('add_salary', 0) or 0)
+        add_pay  = decimal.Decimal(self.event.config.get('add_pay', 0) or 0)
         return SalaryAdjust(add_salary, 1, add_pay)
 
     def teaching_adjust_per_semester(self):
-        adjust = fractions.Fraction(self.event.config.get('add_salary', 0) or 0)
+        adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0) or 0)
         return TeachingAdjust(adjust, adjust)
+
+
+
