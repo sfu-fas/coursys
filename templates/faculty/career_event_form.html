@@ -5,6 +5,30 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+<script>
+// http://stackoverflow.com/questions/501719/dynamically-adding-a-form-to-a-django-formset-with-ajax
+function addForm(selector, type) {
+    var newElement = $(selector).clone(true);
+    var total = $('#id_' + type + '-TOTAL_FORMS').val();
+    newElement.find(':input').each(function() {
+        var name = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
+        var id = 'id_' + name;
+        $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+    });
+    newElement.find('label').each(function() {
+        var newFor = $(this).attr('for').replace('-' + (total-1) + '-','-' + total + '-');
+        $(this).attr('for', newFor);
+    });
+    newElement.find('h5').each(function() {
+    	var num = total;
+    	num++;
+    	$(this).text('Attachment ' + num);
+    })
+    total++;
+    $('#id_' + type + '-TOTAL_FORMS').val(total);
+    $(selector).after(newElement);
+}
+</script>
 {% endblock %}
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
@@ -20,13 +44,28 @@
 {% block content %}
 
 <div class="form_container">
-    <form action="" method="post">
+    <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <fieldset>
             {{ event_form|as_dl }}
             <p><input type="submit" class="submit" value="Submit" /></p>
         </fieldset>
+   
+		{{ attach_formset.management_form }}
+   		<div class="attachments">
+		    {% for form in attach_formset.forms %}
+		    	<div class="attachment_form">
+   			    	<h5>Attachment {{ forloop.counter }}</h5>
+		    		{{ form|as_dl }}
+		    	</div>
+		    {% endfor %}
+		</div>
+	    <input type="button" value="Add Another" id="add_one">
+	    <script>
+	    	$("#add_one").click(function() {
+	    		addForm('div.form_container .attachments:last', 'form');
+	    	})
+	    </script>
     </form>
 </div>
-
 {% endblock %}

@@ -8,102 +8,22 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'CareerEvent'
-        db.create_table(u'faculty_careerevent', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('person', self.gf('django.db.models.fields.related.ForeignKey')(related_name='career_events', to=orm['coredata.Person'])),
-            ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=('person', 'unit'), max_length=50, populate_from='full_title')),
-            ('start_date', self.gf('django.db.models.fields.DateField')()),
-            ('end_date', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('comments', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('event_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
-            ('flags', self.gf('django.db.models.fields.BigIntegerField')(default=0)),
-            ('status', self.gf('django.db.models.fields.CharField')(max_length=2)),
-            ('import_key', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal(u'faculty', ['CareerEvent'])
+        # Deleting model 'DocumentAttachment'
+        db.delete_table(u'faculty_documentattachment')
 
+
+    def backwards(self, orm):
         # Adding model 'DocumentAttachment'
         db.create_table(u'faculty_documentattachment', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('career_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['faculty.CareerEvent'])),
             ('title', self.gf('django.db.models.fields.CharField')(max_length=250)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('contents', self.gf('django.db.models.fields.files.FileField')(max_length=100)),
             ('mediatype', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
         ))
         db.send_create_signal(u'faculty', ['DocumentAttachment'])
-
-        # Adding model 'MemoTemplate'
-        db.create_table(u'faculty_memotemplate', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
-            ('label', self.gf('django.db.models.fields.CharField')(max_length=250)),
-            ('event_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('template_text', self.gf('django.db.models.fields.TextField')()),
-            ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['coredata.Person'])),
-            ('hidden', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
-        ))
-        db.send_create_signal(u'faculty', ['MemoTemplate'])
-
-        # Adding unique constraint on 'MemoTemplate', fields ['unit', 'label']
-        db.create_unique(u'faculty_memotemplate', ['unit_id', 'label'])
-
-        # Adding model 'Memo'
-        db.create_table(u'faculty_memo', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('career_event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['faculty.CareerEvent'])),
-            ('sent_date', self.gf('django.db.models.fields.DateField')(default=datetime.date.today)),
-            ('to_lines', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('cc_lines', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('from_person', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', null=True, to=orm['coredata.Person'])),
-            ('from_lines', self.gf('django.db.models.fields.TextField')()),
-            ('subject', self.gf('django.db.models.fields.TextField')()),
-            ('template', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['faculty.MemoTemplate'], null=True)),
-            ('memo_text', self.gf('django.db.models.fields.TextField')()),
-            ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['coredata.Person'])),
-            ('hidden', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique=True, max_length=50, populate_from=None, unique_with=())),
-        ))
-        db.send_create_signal(u'faculty', ['Memo'])
-
-        # Adding model 'EventConfig'
-        db.create_table(u'faculty_eventconfig', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
-            ('event_type', self.gf('django.db.models.fields.CharField')(max_length=10)),
-            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
-        ))
-        db.send_create_signal(u'faculty', ['EventConfig'])
-
-
-    def backwards(self, orm):
-        # Removing unique constraint on 'MemoTemplate', fields ['unit', 'label']
-        db.delete_unique(u'faculty_memotemplate', ['unit_id', 'label'])
-
-        # Deleting model 'CareerEvent'
-        db.delete_table(u'faculty_careerevent')
-
-        # Deleting model 'DocumentAttachment'
-        db.delete_table(u'faculty_documentattachment')
-
-        # Deleting model 'MemoTemplate'
-        db.delete_table(u'faculty_memotemplate')
-
-        # Deleting model 'Memo'
-        db.delete_table(u'faculty_memo')
-
-        # Deleting model 'EventConfig'
-        db.delete_table(u'faculty_eventconfig')
 
 
     models = {
@@ -145,16 +65,6 @@ class Migration(SchemaMigration):
             'status': ('django.db.models.fields.CharField', [], {'max_length': '2'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['coredata.Unit']"})
-        },
-        u'faculty.documentattachment': {
-            'Meta': {'ordering': "('created_at',)", 'object_name': 'DocumentAttachment'},
-            'career_event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['faculty.CareerEvent']"}),
-            'contents': ('django.db.models.fields.files.FileField', [], {'max_length': '100'}),
-            'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'created_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['coredata.Person']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mediatype': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '250'})
         },
         u'faculty.eventconfig': {
             'Meta': {'object_name': 'EventConfig'},

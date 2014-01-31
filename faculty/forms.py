@@ -1,5 +1,5 @@
 from django import forms
-#from django.forms.models import imlineformset_factory
+from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 
 from models import CareerEvent
@@ -21,9 +21,14 @@ class CareerEventForm(forms.ModelForm):
         exclude = ("config", "flags", "person",)
 
 
+def attachment_formset_factory():
+    return modelformset_factory(DocumentAttachment, form=AttachmentForm, extra=1)
+
+
 class AttachmentForm(forms.ModelForm):
     class Meta:
-        model = DocumentAttachment 
+        model = DocumentAttachment
+        exclude = ("career_event", "created_by")
 
 
 class MemoTemplateForm(forms.ModelForm):
