@@ -58,9 +58,9 @@
         </tbody>
         </table>
     </div>
-    <a href="{% url reports.views.view_result report=report.slug run=run.slug result=result.id %}">View all {{result.table_rendered.rows|length}} rows</a> 
+    <a href="{% url reports.views.view_result report=report.slug run=run.slug result=result.slug %}">View all {{result.table_rendered.rows|length}} rows</a> 
     -
-    <a href="{% url reports.views.csv_result report=report.slug run=run.slug result=result.id %}">CSV</a> 
+    <a href="{% url reports.views.csv_result report=report.slug run=run.slug result=result.slug %}">CSV</a> 
 
 {% endfor %}
 

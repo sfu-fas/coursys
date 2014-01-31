@@ -165,8 +165,7 @@ def delete_run(request, report, run):
 def view_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)
     report = run.report
-    # TODO: replace with slug
-    result = get_object_or_404(Result, id=result)
+    result = get_object_or_404(Result, slug=result)
     
     return render(request, 'reports/view_result.html', {'report':report, 'run': run, 'result':result})
 
@@ -174,7 +173,7 @@ def view_result(request, report, run, result):
 def csv_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)
     report = run.report
-    result = get_object_or_404(Result, id=result)
+    result = get_object_or_404(Result, slug=result)
 
     print result.autoslug()
     filename = str(report.slug) + '-' + result.autoslug() + '.csv'
