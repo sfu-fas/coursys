@@ -9,7 +9,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES, EVENT_TYPE_CHOICES
+from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES
 from faculty.forms import career_event_factory
 from faculty.forms import attachment_formset_factory
 from faculty.forms import CareerEventForm, MemoTemplateForm
@@ -288,4 +288,18 @@ def manage_memo_template(request, slug):
                'memo_template' : memo_template,
                }
     return render(request, 'faculty/manage_memo_template.html', context)
+
+@requires_role('ADMN')
+def manage_memos(request, userid, event_slug):
+    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
+    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    letters = Memo.objects.filter(career_event = instance)
+    templates = MemoTemplate.objects.filter(unit__in=request.units, hidden=False)
+
+
+    context = {
+               'letters': letters,
+               'templates': templates,                
+               }
+    return render(request, 'faculty/view_memos.html', context)
 

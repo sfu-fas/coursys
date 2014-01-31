@@ -17,4 +17,5 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<handler>[a-z]+)$', 'faculty.views.create_event', name="faculty_create_event"),
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/$', 'faculty.views.view_event', name="faculty_event_view"),
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
+    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/memos$', 'faculty.views.manage_memos', name="faculty_event_memos_view"),
 )
