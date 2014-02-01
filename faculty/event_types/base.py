@@ -10,7 +10,6 @@ from django.template import Context, Template
 
 from coredata.models import Role, Unit
 
-from faculty.event_types.mixins import CareerEventMixinBase
 from faculty.event_types.constants import PERMISSION_LEVEL
 
 SalaryAdjust = collections.namedtuple('SalaryAdjust', [
@@ -35,7 +34,7 @@ class CareerEventMeta(abc.ABCMeta):
 
         for base in bases:
             # Add the flags from every mixin base class
-            if issubclass(base, CareerEventMixinBase):
+            if hasattr(base, 'FLAGS'):
                 for flag in base.FLAGS:
                     if flag not in cls.FLAGS:
                         cls.FLAGS.append(flag)
