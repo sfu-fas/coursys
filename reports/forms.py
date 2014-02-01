@@ -2,6 +2,7 @@ from django import forms
 from django.forms.models import ModelForm
 from models import Report, HardcodedReport, Query, AccessRule, ScheduleRule
 from django.template import Template, TemplateSyntaxError
+from coredata.forms import PersonField
 
 class ReportForm(ModelForm):
     class Meta:
@@ -17,3 +18,12 @@ class QueryForm(ModelForm):
     class Meta:
         model = Query
         exclude = ('report', 'hidden', 'config', 'created_at') 
+
+class AccessRuleForm(ModelForm):
+    person = PersonField(label="Emplid", help_text="or type to search")
+    class Meta:
+        model = AccessRule
+        exclude = ('report', 'hidden', 'config', 'created_at')
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AccessRuleForm, self).is_valid(*args, **kwargs)

@@ -36,10 +36,10 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
+        <li><a href="{% url reports.views.new_access_rule report=report.slug %}">New Access Rule</a></li>
+        <li><a href="#">New Schedule Rule</a></li>
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
         <li><a href="{% url reports.views.new_query report=report.slug %}">New Query</a></li>
-        <li><a href="#">New Access Rule</a></li>
-        <li><a href="#">New Schedule Rule</a></li>
         <li><a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
 </div>
@@ -50,6 +50,16 @@
 <em>{{report.description}}</em>
 
 <h2>Access Rules</h2>
+<ul>
+{% for access_rule in access_rules %}
+    <li>
+        {{access_rule.person.name}}
+        {% if access_rule.notify %}
+            <small> - this person receives an email every time this report is successfully run.</small> 
+        {% endif %}
+    </li>
+{% endfor %} 
+</ul>
 
 <h2>Schedule Rules</h2>
 
@@ -57,7 +67,11 @@
 
 <ul>
 {% for component in components %}
-    <li>{{component.file_location}} - <small><a href="{% url reports.views.delete_component report=report.slug component_id=component.id %}">Delete</a></small></li>
+    <li>{{component.file_location}} - 
+        <small>
+            <a href="{% url reports.views.delete_component report=report.slug component_id=component.id %}">Delete</a>
+        </small>
+    </li>
 {% endfor %}
 </ul>
 

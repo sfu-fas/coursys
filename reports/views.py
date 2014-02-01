@@ -1,5 +1,5 @@
-from models import Report, HardcodedReport, Result, Run, RunLine, Query
-from forms import ReportForm, HardcodedReportForm, QueryForm
+from models import Report, HardcodedReport, Result, Run, RunLine, Query, AccessRule
+from forms import ReportForm, HardcodedReportForm, QueryForm, AccessRuleForm
 from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -34,15 +34,36 @@ def new_report(request):
 @requires_role('REPR')
 def view_report(request, report):
     report = get_object_or_404(Report, slug=report) 
-    
-    components = HardcodedReport.objects.filter(report=report)
-    queries = Query.objects.filter(report=report)
+   
+    access_rules = AccessRule.objects.filter(report=report, hidden=False)
+    components = HardcodedReport.objects.filter(report=report, hidden=False)
+    queries = Query.objects.filter(report=report, hidden=False)
     runs = Run.objects.filter(report=report).order_by("created_at")
 
     return render(request, 'reports/view_report.html', {'report':report, 
                                                         'queries':queries, 
+                                                        'access_rules':access_rules,
                                                         'runs':runs, 
                                                         'components':components})
+
+@requires_role('REPR')
+def new_access_rule(request, report):
+    report = get_object_or_404(Report, slug=report) 
+
+    if request.method == 'POST':
+        form = AccessRuleForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.report = report
+            f.created_by = request.user.username
+            f.save()
+            messages.success(request, "Created new access rule:  %s." % str(f.person) )
+            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    else:
+        form = AccessRuleForm()
+
+    return render(request, 'reports/new_access_rule.html', {'form': form, 'report': report })
+
 
 @requires_role('REPR')
 def new_component(request, report):
