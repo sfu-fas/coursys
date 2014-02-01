@@ -19,8 +19,9 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-ACTIVE_DEVELOPER = os.environ['DEVELOPER']
-if not ACTIVE_DEVELOPER:
+if 'DEVELOPER' in os.environ:
+    ACTIVE_DEVELOPER = os.environ['DEVELOPER']
+else:
     ACTIVE_DEVELOPER = 'ggbaker'
 
 if DEPLOYED:
