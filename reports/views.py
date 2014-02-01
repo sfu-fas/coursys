@@ -182,13 +182,20 @@ def run(request, report):
     
     if not __has_access(request, report):
         return ForbiddenResponse(request)
-    
-    run = report.run()
-    if( run.success ):
-        messages.success(request, "Run Succeeded!")
-    else: 
-        messages.error(request, "Run Failed!")
-    return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
+   
+    # TODO: this really shouldn't be a synchronous operation. 
+    runs = report.run()
+    if len(runs) > 0: 
+        for run in runs: 
+            if( run.success ):
+                messages.success(request, "Run Succeeded!")
+            else: 
+                messages.error(request, "Run Failed!")
+        run = runs[0]
+        return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
+    else:
+        messages.error(request, "You haven't added any queries or reports to run, yet!")
+        return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
 def view_run(request, report, run):
     run = get_object_or_404(Run, slug=run)

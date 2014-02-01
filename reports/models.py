@@ -3,6 +3,9 @@ from coredata.models import Role, Person, Unit, ROLE_CHOICES
 from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from dashboard.models import NewsItem
+from django.core.urlresolvers import reverse
+
 import datetime
 import os
 import sys
@@ -33,18 +36,16 @@ class Report(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     
     def run(self):
-        reports = HardcodedReport.objects.filter(report=self)
+        hardcoded_reports = HardcodedReport.objects.filter(report=self)
         queries = Query.objects.filter(report=self)
-        
+
         runs = []
-        for report in reports:
+        for report in hardcoded_reports:
             runs.append(report.run())
-        for report in queries:
-            runs.append(report.run())
-        if len(runs) > 0:
-            return runs[0]
-        else:
-            return None
+        for query in queries:
+            runs.append(query.run())
+
+        return runs
 
 def all_reports():
     """
@@ -156,6 +157,15 @@ class AccessRule(models.Model):
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def send_notification(self, run):
+        n = NewsItem( user= self.person, 
+                        source_app='reports',
+                        title="Completed Run: " + self.report.name + " : " + run.slug, 
+                        url= reverse('reports.views.view_run', kwargs={'report':self.report.slug, 'run':run.slug}),
+                        content= "You have a scheduled report that has completed! \n" + self.report.description );
+        n.save()
+
+
 # Schedule
 # When do we run this report? 
 
@@ -217,6 +227,13 @@ class Run(models.Model):
     
     def getLines(self):
         return [ (line.created_at, line.description) for line in RunLine.objects.filter(run=self).order_by('created_at')]
+    
+    def save(self, *args, **kwargs):
+        super(Run, self).save(*args, **kwargs)
+        if self.success: 
+            notify_targets = AccessRule.objects.filter(report=self.report, notify=True)
+            for target in notify_targets:
+                target.send_notification(self)
 
 class RunLineLogger(object):
     def __init__(self, run):
