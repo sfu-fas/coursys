@@ -33,8 +33,8 @@ class Report(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     
     def run(self):
-        reports = HardcodedReport.objects.filter(hidden=False, report=self)
-        queries = Query.objects.filter(hidden=False, report=self)
+        reports = HardcodedReport.objects.filter(report=self)
+        queries = Query.objects.filter(report=self)
         
         runs = []
         for report in reports:
@@ -85,7 +85,6 @@ class HardcodedReport(models.Model):
     file_location = models.CharField(help_text="The location of this report, on disk.", 
         max_length=80, choices=all_reports(), null=False)
 
-    hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -120,7 +119,6 @@ class Query(models.Model):
     name = models.CharField(max_length=150, null=False)
     query = models.TextField()
     
-    hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -145,6 +143,7 @@ class Query(models.Model):
             logger.log( ",".join(traceback.format_tb( traceback_ )) )
         return r
 
+
 class AccessRule(models.Model):
     """
         This person can see this report. 
@@ -154,7 +153,6 @@ class AccessRule(models.Model):
     notify = models.BooleanField(null=False, default=False, 
         help_text="Email this person when a report completes.")
 
-    hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -190,7 +188,6 @@ class ScheduleRule(models.Model):
     last_run = models.DateTimeField() # the last time this ScheduleRule was run
     next_run = models.DateTimeField() # the next time to run this ScheduleRule
 
-    hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 

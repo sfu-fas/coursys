@@ -21,9 +21,12 @@
 <style>
 .code{
   padding: 5px; 
-  word-wrap: break-word;
   background-color: #222;
   color: white;
+
+  word-wrap: break-word; /* IE */
+  white-space: pre-wrap; /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
 }
 
 .tablewrap{

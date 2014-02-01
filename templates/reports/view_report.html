@@ -28,18 +28,20 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url reports.views.view_reports %}">Reports</a></li> 
-<li>&gt; {{report.name}} </li>
+<li><a href="{% url reports.views.view_reports %}">Reports</a></li> 
+<li>{{report.name}} </li>
 {% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2>Actions</h2>
     <ul>
+        {% if not readonly %}
         <li><a href="{% url reports.views.new_access_rule report=report.slug %}">New Access Rule</a></li>
         <li><a href="#">New Schedule Rule</a></li>
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
         <li><a href="{% url reports.views.new_query report=report.slug %}">New Query</a></li>
+        {% endif %}
         <li><a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
 </div>
@@ -54,6 +56,9 @@
 {% for access_rule in access_rules %}
     <li>
         {{access_rule.person.name}}
+        {% if not readonly %}
+        - <a href="{% url reports.views.delete_access_rule report=report.slug access_rule_id=access_rule.id%}">Delete</a>
+        {% endif %}
         {% if access_rule.notify %}
             <small> - this person receives an email every time this report is successfully run.</small> 
         {% endif %}
@@ -68,9 +73,9 @@
 <ul>
 {% for component in components %}
     <li>{{component.file_location}} - 
-        <small>
-            <a href="{% url reports.views.delete_component report=report.slug component_id=component.id %}">Delete</a>
-        </small>
+        {% if not readonly %}
+        <a href="{% url reports.views.delete_component report=report.slug component_id=component.id %}">Delete</a>
+        {% endif %}
     </li>
 {% endfor %}
 </ul>
@@ -79,9 +84,12 @@
 <ul>
 {% for query in queries %}
     <li><strong>{{query.name}} </strong> 
-        <pre>{{query.query}}</pre> - 
-        <small><a href="{% url reports.views.delete_query report=report.slug query_id=query.id %}">Delete</a></small> | 
-        <small><a href="{% url reports.views.edit_query report=report.slug query_id=query.id %}">Edit</a></small></li> 
+        <pre>{{query.query}}</pre>
+        {% if not readonly %}
+        - 
+        <a href="{% url reports.views.delete_query report=report.slug query_id=query.id %}">Delete</a> | 
+        <a href="{% url reports.views.edit_query report=report.slug query_id=query.id %}">Edit</a></li> 
+        {% endif %}
 {% endfor %}
 </ul>
 
@@ -90,7 +98,9 @@
 {% for run in runs %}
     <li class='{{run.success|yesno:"success,fail,other"}}'>
         <a href="{% url reports.views.view_run report=report.slug run=run.slug %}">{{run.created_at}}</a>
-        <a style='float:right' href="{% url reports.views.delete_run report=report.slug run=run.slug %}"><small>Delete</small></a>
+        {% if not readonly %}
+        <a style='float:right' href="{% url reports.views.delete_run report=report.slug run=run.slug %}">Delete</a>
+        {% endif %}
     </li>
 {% endfor %}
 </ul>
