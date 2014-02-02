@@ -127,6 +127,9 @@ class CareerEventHandlerBase(object):
     def get_config(self, key, default=None):
         return self.event.config.get(key, default)
 
+    def set_config(self, key, value):
+        self.event.config[key] = value
+
     # Other ways to create a new handler instance
 
     @classmethod
