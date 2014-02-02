@@ -16,6 +16,7 @@ from courselib.text import normalize_newlines, many_newlines
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.position import AdminPositionEventHandler
 
@@ -23,6 +24,7 @@ from faculty.event_types.position import AdminPositionEventHandler
 HANDLERS = [
     AdminPositionEventHandler,
     AppointmentEventHandler,
+    CommitteeMemberHandler,
     ExternalAffiliationHandler,
     FellowshipEventHandler,
     SalaryBaseEventHandler,
