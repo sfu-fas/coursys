@@ -85,6 +85,8 @@ class CareerEventHandlerBase(object):
     NAME = ''
     EVENT_TYPE = ''
 
+    TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
+
     # Event has no duration (start_date is set to end_date automagically)
     IS_INSTANT = False
     # There can only be one (with same person, unit, event_type without an end_date)
