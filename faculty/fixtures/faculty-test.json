@@ -173,7 +173,8 @@
   "slug": "2014-appointment-to-position-welcome",
   "subject": "Appointment",
   "template": 1,
-  "to_lines": "The President\nSFU"
+  "to_lines": "The President\nSFU",
+  "unit": 4
  },
  "model": "faculty.memo",
  "pk": 1

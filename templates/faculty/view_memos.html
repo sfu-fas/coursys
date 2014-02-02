@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#memo_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[2, "asc"]],
+    "aoColumns": [null,
+                  null,
+                  { "sType": "by-date" },
+                  { "sType": "by-date" },
+                  null,
+    ],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
 <h2>Actions</h2>
@@ -19,8 +38,8 @@
 {% endblock %}
 
 {% if index and can_edit %}<p class="manage_link"><a href="">Manage Letters</a></p>{% endif %}
-<div class="datatable_container datatable">
-	<table class="display sort-1">
+<div class="datatable_container">
+	<table class="display" id="memo_table">
 		<thead>
 			<tr>
 				<th scope="col">Template</th>

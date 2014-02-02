@@ -16,21 +16,22 @@ from courselib.text import normalize_newlines, many_newlines
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.constants import EVENT_FLAGS
+from faculty.event_types.info import CommitteeMemberHandler
+from faculty.event_types.info import ExternalAffiliationHandler
+from faculty.event_types.position import AdminPositionEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
+    AdminPositionEventHandler,
     AppointmentEventHandler,
+    CommitteeMemberHandler,
+    ExternalAffiliationHandler,
     FellowshipEventHandler,
     SalaryBaseEventHandler,
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = EVENT_TYPES.items()
-
-# XXX: There's probably a nicer way to generate this automatically from the mixin classes
-EVENT_FLAGS = [
-    'affects_teaching',
-    'affects_salary',
-]
 
 
 class CareerEvent(models.Model):
@@ -67,6 +68,9 @@ class CareerEvent(models.Model):
     def get_absolute_url(self):
         return reverse("faculty_event_view", args=[self.person.userid, self.slug])
 
+    def get_attachment_url(self):
+        return reverse("faculty_add_attachment", args=[self.person.userid, self.slug])
+
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 
@@ -97,7 +101,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'faculty',
-        instance.person.userid,
+        instance.created_by.userid,
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
@@ -155,6 +159,7 @@ class Memo(models.Model):
     A memo created by the system, and attached to a CareerEvent.
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False)
 
     sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter, editable")
     to_lines = models.TextField(help_text='Recipient of the memo', null=True, blank=True)

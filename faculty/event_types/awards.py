@@ -15,7 +15,6 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     """
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
-    #HOOKS = [InstantCareerEvent]
     TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
 
     class EntryForm(BaseEntryForm):
