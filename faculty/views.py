@@ -10,9 +10,9 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES, EVENT_TYPE_CHOICES
-from faculty.forms import career_event_factory
-from faculty.forms import attachment_formset_factory
-from faculty.forms import CareerEventForm, MemoTemplateForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, AttachmentForm
+
+import mimetypes
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -156,7 +156,6 @@ def create_event(request, userid, handler):
     # TODO how to pick the unit to use?
     units = sorted(list(member_units))
     handler = Handler.create_for(person=person, unit=None)
-    AttachmentFormset = attachment_formset_factory()
     if request.method == "POST":
         form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
@@ -165,17 +164,13 @@ def create_event(request, userid, handler):
             handler.load_from(form)
             handler.save(editor)
             
-            # Handle document attachments for event
-            formset = AttachmentFormset(request.POST, request.FILES)
             return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
     else:
         # Display new blank form
         form = handler.get_entry_form(editor=editor, units=member_units) 
-        formset = AttachmentFormset()
-        context.update({"event_form": form,
-                        "attach_formset": formset})
+        context.update({"event_form": form})
 
     return render(request, 'faculty/career_event_form.html', context)
 
@@ -198,7 +193,6 @@ def change_event(request, userid, event_slug):
         'event_type': Handler.EVENT_TYPE
     }
     handler = Handler(instance)
-    AttachmentFormset = attachment_formset_factory()
     if request.method == "POST":
         form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
@@ -207,20 +201,41 @@ def change_event(request, userid, event_slug):
             context.update({"event": handler.event,
                             "event_form": form})
 
-            formset = AttachmentFormset(request.POST, request.FILES)
-            # TODO process this formset
     else:
         # Display form from db instance
         form = handler.get_entry_form(editor=editor, units=member_units)
-        formset = AttachmentFormset(queryset=instance.attachments.all())
-        context.update({"event_form": form,
-                        "attach_formset": formset})
+        context.update({"event_form": form})
 
     return render(request, 'faculty/career_event_form.html', context)
 
 
 ###############################################################################
 # Management of DocumentAttachments and Memos
+@requires_role('ADMN')
+def new_attachment(request, userid, event_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = AttachmentForm()
+    context = {"event": event,
+               "person": person,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = AttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.career_event = event
+            attachment.created_by = editor
+            attachment.mediatype = mimetypes.guess_type(attachment.contents.url)[0]
+            attachment.save()
+            return HttpResponseRedirect(event.get_absolute_url())
+        else:
+            context.update({"attachment_form": form})
+    
+    return render(request, 'faculty/document_attachment_form.html', context)
+
 
 ###############################################################################
 # Creating and editing Memo Templates
