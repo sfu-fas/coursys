@@ -16,10 +16,12 @@ from courselib.text import normalize_newlines, many_newlines
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.info import ExternalAffiliationHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
     AppointmentEventHandler,
+    ExternalAffiliationHandler,
     FellowshipEventHandler,
     SalaryBaseEventHandler,
 ]
