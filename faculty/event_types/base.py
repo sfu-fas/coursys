@@ -30,7 +30,6 @@ class CareerEventMeta(abc.ABCMeta):
 
         # Make a new list so we don't accidentally reference the base class' FLAGS
         cls.FLAGS = copy.copy(cls.FLAGS)
-        cls.HOOKS = copy.copy(cls.HOOKS)
 
         for base in bases:
             # Add the flags from every mixin base class
@@ -38,12 +37,6 @@ class CareerEventMeta(abc.ABCMeta):
                 for flag in base.FLAGS:
                     if flag not in cls.FLAGS:
                         cls.FLAGS.append(flag)
-
-            # Add the hooks from every handler base class
-            if hasattr(base, 'HOOKS'):
-                for hook in base.HOOKS:
-                    if hook not in cls.HOOKS:
-                        cls.HOOKS.append(hook)
 
 
 class BaseEntryForm(forms.Form):
@@ -92,7 +85,6 @@ class CareerEventHandlerBase(object):
     IS_INSTANT = False # event has no duration: start_date==end_date
     IS_EXCLUSIVE = False # there can only be one (with same person,unit,event_type)
     SEMESTER_BIAS = False # present semester (instead of date) selection widgets by default
-    HOOKS = []
     FLAGS = []
 
     NAME = ''
@@ -104,8 +96,6 @@ class CareerEventHandlerBase(object):
     APPROVAL_BY = 'FAC'
 
     def __init__(self, event):
-        self.hooks = [hook_class() for hook_class in self.HOOKS]
-
         # XXX: I think that creating the CareerEvent instance should be left up to the caller.
         self.event = event
 
@@ -113,25 +103,15 @@ class CareerEventHandlerBase(object):
         # add initialization logic.
         self.initialize()
 
-    def pre_hook_save(self):
-        for hook in self.hooks:
-            hook.pre_save(self.event)
-
-    def post_hook_save(self):
-        for hook in self.hooks:
-            hook.post_save(self.event)
-
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
         self.pre_save()
-        self.pre_hook_save()
 
         # TODO: store handler flags in the CareerEvent instance
         self.event.event_type = self.EVENT_TYPE
         self.event.save(editor)
 
-        self.post_hook_save()
         self.post_save()
 
     # Other ways to create a new handler instance
@@ -219,7 +199,6 @@ class CareerEventHandlerBase(object):
         self.event.status = form.cleaned_data.get('status', 'NA')
 
         # XXX: status field: choose highest possible value for the available unit(s)?
-        # XXX: Does _apply_hooks_to_entry_form(...) need to be run here?
 
         for field in form.CONFIG_FIELDS:
             data = form.cleaned_data[field]
@@ -228,10 +207,6 @@ class CareerEventHandlerBase(object):
             self.event.config[field] = data
 
         return self.event
-
-    def _apply_hooks_to_entry_form(self, form):
-        for hook in self.hooks:
-            hook.modify_entry_form(form)
 
     def get_entry_form(self, editor, units, **kwargs):
         """
@@ -246,9 +221,6 @@ class CareerEventHandlerBase(object):
                               units=units,
                               initial=initial,
                               **kwargs)
-
-        # Apply hooks
-        self._apply_hooks_to_entry_form(form)
 
         return form
 
