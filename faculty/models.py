@@ -17,9 +17,11 @@ from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 from faculty.event_types.info import ExternalAffiliationHandler
+from faculty.event_types.position import AdminPositionEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
+    AdminPositionEventHandler,
     AppointmentEventHandler,
     ExternalAffiliationHandler,
     FellowshipEventHandler,
