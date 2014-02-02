@@ -111,6 +111,9 @@ class CareerEventHandlerBase(object):
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
+        if self.IS_INSTANT:
+            self.event.end_date = self.event.start_date
+
         self.pre_save()
 
         # TODO: store handler flags in the CareerEvent instance
@@ -226,6 +229,9 @@ class CareerEventHandlerBase(object):
                               units=units,
                               initial=initial,
                               **kwargs)
+
+        if self.IS_INSTANT:
+            del form.fields['end_date']
 
         return form
 
