@@ -124,6 +124,9 @@ class CareerEventHandlerBase(object):
 
         self.post_save()
 
+    def get_config(self, key, default=None):
+        return self.event.config.get(key, default)
+
     # Other ways to create a new handler instance
 
     @classmethod
