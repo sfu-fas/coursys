@@ -82,18 +82,23 @@ class CareerEventHandlerBase(object):
 
     __metaclass__ = CareerEventMeta
 
-    IS_INSTANT = False # event has no duration: start_date==end_date
-    IS_EXCLUSIVE = False # there can only be one (with same person,unit,event_type)
-    SEMESTER_BIAS = False # present semester (instead of date) selection widgets by default
-    FLAGS = []
-
     NAME = ''
     EVENT_TYPE = ''
 
-    # View / Edit flags
+    # Event has no duration (start_date is set to end_date automagically)
+    IS_INSTANT = False
+    # There can only be one (with same person, unit, event_type without an end_date)
+    IS_EXCLUSIVE = False
+    # Show a semester selection widget for start/end date instead of a raw date picker
+    SEMESTER_BIAS = False
+
     VIEWABLE_BY = 'MEMB'
     EDITABLE_BY = 'DEPT'
     APPROVAL_BY = 'FAC'
+
+    # Internal mumbo jumbo
+
+    FLAGS = []
 
     def __init__(self, event):
         # XXX: I think that creating the CareerEvent instance should be left up to the caller.
