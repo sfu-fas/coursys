@@ -16,6 +16,7 @@ from courselib.text import normalize_newlines, many_newlines
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.position import AdminPositionEventHandler
@@ -31,12 +32,6 @@ HANDLERS = [
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = EVENT_TYPES.items()
-
-# XXX: There's probably a nicer way to generate this automatically from the mixin classes
-EVENT_FLAGS = [
-    'affects_teaching',
-    'affects_salary',
-]
 
 
 class CareerEvent(models.Model):

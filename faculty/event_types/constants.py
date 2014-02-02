@@ -10,3 +10,9 @@ PERMISSION_LEVEL = {
     'DEPT': 2,
     'FAC': 3,
 }
+
+EVENT_FLAGS = [
+    'affects_teaching',
+    'affects_salary',
+    # You should add new flags just above this line
+]
