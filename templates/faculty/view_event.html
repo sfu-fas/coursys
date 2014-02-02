@@ -16,6 +16,7 @@
   <h2>Actions</h2>
   <ul>
     <li><a href="{{ event.get_change_url }}">Edit event</a></li>
+    <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
   </ul>
 </div>
 {% endblock %}
@@ -24,5 +25,14 @@
 {% block content %}
 
 {{ handler.to_html }}
+
+<h4>Placeholder UI</h4>
+{% with attachments=event.attachments.all %}
+{% for a in attachments %}
+<div>
+	<a href="{{ a.contents.url }}">{{ a.title }} ({{ a.mediatype }})</a>
+</div>
+{% endfor %}
+{% endwith %}
 
 {% endblock %}

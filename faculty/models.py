@@ -69,6 +69,9 @@ class CareerEvent(models.Model):
     def get_absolute_url(self):
         return reverse("faculty_event_view", args=[self.person.userid, self.slug])
 
+    def get_attachment_url(self):
+        return reverse("faculty_add_attachment", args=[self.person.userid, self.slug])
+
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 
@@ -99,7 +102,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'faculty',
-        instance.person.userid,
+        instance.created_by.userid,
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
