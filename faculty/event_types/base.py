@@ -10,7 +10,6 @@ from django.template import Context, Template
 
 from coredata.models import Role, Unit
 
-from faculty.event_types.mixins import CareerEventMixinBase
 from faculty.event_types.constants import PERMISSION_LEVEL
 
 SalaryAdjust = collections.namedtuple('SalaryAdjust', [
@@ -31,20 +30,13 @@ class CareerEventMeta(abc.ABCMeta):
 
         # Make a new list so we don't accidentally reference the base class' FLAGS
         cls.FLAGS = copy.copy(cls.FLAGS)
-        cls.HOOKS = copy.copy(cls.HOOKS)
 
         for base in bases:
             # Add the flags from every mixin base class
-            if issubclass(base, CareerEventMixinBase):
+            if hasattr(base, 'FLAGS'):
                 for flag in base.FLAGS:
                     if flag not in cls.FLAGS:
                         cls.FLAGS.append(flag)
-
-            # Add the hooks from every handler base class
-            if hasattr(base, 'HOOKS'):
-                for hook in base.HOOKS:
-                    if hook not in cls.HOOKS:
-                        cls.HOOKS.append(hook)
 
 
 class BaseEntryForm(forms.Form):
@@ -90,20 +82,27 @@ class CareerEventHandlerBase(object):
 
     __metaclass__ = CareerEventMeta
 
-    HOOKS = []
-    FLAGS = []
-
     NAME = ''
     EVENT_TYPE = ''
 
-    # View / Edit flags
+    TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
+
+    # Event has no duration (start_date is set to end_date automagically)
+    IS_INSTANT = False
+    # There can only be one (with same person, unit, event_type without an end_date)
+    IS_EXCLUSIVE = False
+    # Show a semester selection widget for start/end date instead of a raw date picker
+    SEMESTER_BIAS = False
+
     VIEWABLE_BY = 'MEMB'
     EDITABLE_BY = 'DEPT'
     APPROVAL_BY = 'FAC'
 
-    def __init__(self, event):
-        self.hooks = [hook_class() for hook_class in self.HOOKS]
+    # Internal mumbo jumbo
 
+    FLAGS = []
+
+    def __init__(self, event):
         # XXX: I think that creating the CareerEvent instance should be left up to the caller.
         self.event = event
 
@@ -111,26 +110,37 @@ class CareerEventHandlerBase(object):
         # add initialization logic.
         self.initialize()
 
-    def pre_hook_save(self):
-        for hook in self.hooks:
-            hook.pre_save(self.event)
-
-    def post_hook_save(self):
-        for hook in self.hooks:
-            hook.post_save(self.event)
-
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
+        if self.IS_INSTANT:
+            self.event.end_date = self.event.start_date
+
+        if self.IS_EXCLUSIVE:
+            from faculty.models import CareerEvent
+            previous_event = (CareerEvent.objects.filter(person=self.event.person,
+                                                         unit=self.event.unit,
+                                                         event_type=self.EVENT_TYPE,
+                                                         start_date__lte=self.event.start_date,
+                                                         end_date=None)
+                                                 .order_by('start_date').last())
+            if previous_event:
+                previous_event.end_date = self.event.start_date
+                previous_event.save(editor)
+
         self.pre_save()
-        self.pre_hook_save()
 
         # TODO: store handler flags in the CareerEvent instance
         self.event.event_type = self.EVENT_TYPE
         self.event.save(editor)
 
-        self.post_hook_save()
         self.post_save()
+
+    def get_config(self, key, default=None):
+        return self.event.config.get(key, default)
+
+    def set_config(self, key, value):
+        self.event.config[key] = value
 
     # Other ways to create a new handler instance
 
@@ -217,7 +227,6 @@ class CareerEventHandlerBase(object):
         self.event.status = form.cleaned_data.get('status', 'NA')
 
         # XXX: status field: choose highest possible value for the available unit(s)?
-        # XXX: Does _apply_hooks_to_entry_form(...) need to be run here?
 
         for field in form.CONFIG_FIELDS:
             data = form.cleaned_data[field]
@@ -226,10 +235,6 @@ class CareerEventHandlerBase(object):
             self.event.config[field] = data
 
         return self.event
-
-    def _apply_hooks_to_entry_form(self, form):
-        for hook in self.hooks:
-            hook.modify_entry_form(form)
 
     def get_entry_form(self, editor, units, **kwargs):
         """
@@ -245,15 +250,14 @@ class CareerEventHandlerBase(object):
                               initial=initial,
                               **kwargs)
 
-        # Apply hooks
-        self._apply_hooks_to_entry_form(form)
+        if self.IS_INSTANT:
+            del form.fields['end_date']
 
         return form
 
     def to_html(self):
         """
         A detailed HTML presentation of this event
-
         """
         template = Template(self.TO_HTML_TEMPLATE)
         context = Context({
@@ -294,3 +298,18 @@ class CareerEventHandlerBase(object):
 
         """
         pass
+
+
+class Choices(collections.OrderedDict):
+    '''
+    An ordered dictionary that also acts as an iterable of (key, value) pairs.
+    '''
+
+    def __init__(self, *choices):
+        super(Choices, self).__init__(choices)
+
+    def __iter__(self):
+        # XXX: Can't call super(Choices, self).iteritems() here because it will call our
+        #      __iter__ and recurse infinitely.
+        for key in super(Choices, self).__iter__():
+            yield (key, self[key])

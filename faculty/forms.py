@@ -35,7 +35,7 @@ class MemoTemplateForm(forms.ModelForm):
     template_text = forms.CharField(widget=forms.Textarea(attrs={'rows':'30', 'cols': '60'}))
     class Meta:
         model = MemoTemplate
-        exclude = ('created_by',)
+        exclude = ('created_by', 'hidden')
     
     def clean_content(self):
         content = self.cleaned_data['content']

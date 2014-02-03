@@ -18,10 +18,17 @@ from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
 from faculty.event_types.career import TenureReceivedEventHandler
+from faculty.event_types.constants import EVENT_FLAGS
+from faculty.event_types.info import CommitteeMemberHandler
+from faculty.event_types.info import ExternalAffiliationHandler
+from faculty.event_types.position import AdminPositionEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
+    AdminPositionEventHandler,
     AppointmentEventHandler,
+    CommitteeMemberHandler,
+    ExternalAffiliationHandler,
     FellowshipEventHandler,
     SalaryBaseEventHandler,
     TenureApplicationEventHandler,
@@ -29,12 +36,6 @@ HANDLERS = [
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = EVENT_TYPES.items()
-
-# XXX: There's probably a nicer way to generate this automatically from the mixin classes
-EVENT_FLAGS = [
-    'affects_teaching',
-    'affects_salary',
-]
 
 
 class CareerEvent(models.Model):
@@ -71,6 +72,9 @@ class CareerEvent(models.Model):
     def get_absolute_url(self):
         return reverse("faculty_event_view", args=[self.person.userid, self.slug])
 
+    def get_attachment_url(self):
+        return reverse("faculty_add_attachment", args=[self.person.userid, self.slug])
+
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 
@@ -101,7 +105,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
         'faculty',
-        instance.person.userid,
+        instance.created_by.userid,
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
@@ -130,8 +134,9 @@ class MemoTemplate(models.Model):
     A template for memos.
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    label = models.CharField(max_length=250, null=False)
+    label = models.CharField(max_length=250, null=False, verbose_name='Template Name')
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
+    subject = models.CharField(help_text='The default subject of the memo', max_length=255)
     template_text = models.TextField(help_text="I.e. 'Congratulations {{first_name}} on ... '")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -148,12 +153,17 @@ class MemoTemplate(models.Model):
     class Meta:
         unique_together = ('unit', 'label')
 
+    def save(self, *args, **kwargs):
+        self.template_text = normalize_newlines(self.template_text.rstrip())
+        super(MemoTemplate, self).save(*args, **kwargs)
+
 
 class Memo(models.Model):
     """
     A memo created by the system, and attached to a CareerEvent.
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False)
 
     sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter, editable")
     to_lines = models.TextField(help_text='Recipient of the memo', null=True, blank=True)
@@ -177,7 +187,7 @@ class Memo(models.Model):
     use_sig = config_property('use_sig', default=True)
 
     def autoslug(self):
-        return make_slug(self.career_event.slug + "-" + self.template.memo_type)
+        return make_slug(self.career_event.slug + "-" + self.template.label)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
@@ -189,8 +199,8 @@ class Memo(models.Model):
             self.to_lines = ''
         self.to_lines = normalize_newlines(self.to_lines.rstrip())
         self.from_lines = normalize_newlines(self.from_lines.rstrip())
-        self.memo_text = normalize_newlines(self.content.rstrip())
-        self.memo_text = many_newlines.sub('\n\n', self.content)
+        self.memo_text = normalize_newlines(self.memo_text.rstrip())
+        self.memo_text = many_newlines.sub('\n\n', self.memo_text)
         super(Memo, self).save(*args, **kwargs)
 
 
