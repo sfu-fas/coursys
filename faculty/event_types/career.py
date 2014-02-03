@@ -7,6 +7,7 @@ from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import SalaryAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
+from faculty.event_types.fields import AddSalaryField, AddPayField
 
 
 RANK_CHOICES = [
@@ -41,7 +42,11 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     IS_EXCLUSIVE = True
     EVENT_TYPE = 'APPOINT'
     NAME = 'Appointment to Position'
-    TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ event.title }}"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Leaving Reason</dt><dd>{{ event|get_config:"leaving_reason" }}</dd>
+        <dt>Spousal hire</dt><dd>{{ event|get_config:"spousal_hire"|yesno }}</dd>
+        {% endblock %}
+        """
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
@@ -58,21 +63,39 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
     EVENT_TYPE = 'SALARY'
     NAME = "Base Salary Update"
-    TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
+    IS_EXCLUSIVE = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Base salary</dt><dd>${{ event|get_config:"base_salary"|floatformat:2 }}</dd>
+        <dt>Add salary</dt><dd>${{ event|get_config:"add_salary"|floatformat:2 }}</dd>
+        <dt>Add pay</dt><dd>${{ event|get_config:"add_pay"|floatformat:2 }}</dd>
+        <dt>Total</dt><dd>${{ total|floatformat:2 }}</dd>
+        <!--<dt>Biweekly</dt><dd>${{ biweekly|floatformat:2 }}</dd>-->
+        {% endblock %}
+        """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['step', 'base_salary']
+        CONFIG_FIELDS = ['step', 'base_salary', 'add_salary', 'add_pay']
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
-        base_salary = forms.DecimalField(max_digits=8, decimal_places=2,
-                                         help_text="Base annual salary for this rank + step.")
+        base_salary = AddSalaryField(help_text="Base annual salary for this rank + step.")
+        add_salary = AddSalaryField()
+        add_pay = AddPayField()
 
     @property
     def default_title(self):
-        return 'Base Salary %s' % (datetime.date.today().year)
+        return 'Base Salary'
 
     def short_summary(self):
         return "Base salary of %s at step %s" % (self.event.config.get('base_salary', 0),
                                                  self.event.config.get('step', 0))
+
+    def to_html_context(self):
+        total = decimal.Decimal(self.event.config.get('base_salary', 0))
+        total += decimal.Decimal(self.event.config.get('add_salary', 0))
+        total += decimal.Decimal(self.event.config.get('add_pay', 0))
+        return {
+            'total': total,
+            'biweekly': total/365*14,
+        }
 
     def salary_adjust_annually(self):
         s = decimal.Decimal(self.event.config.get('base_salary', 0))
@@ -86,7 +109,7 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'TENUREAPP'
     NAME = "Tenure Application"
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
 
     @property
     def default_title(self):
@@ -103,7 +126,7 @@ class TenureReceivedEventHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'TENUREREC'
     NAME = "Tenure Received"
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
 
     @property
     def default_title(self):

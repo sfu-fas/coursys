@@ -16,6 +16,7 @@ from faculty.event_types.mixins import TeachingCareerEvent
 from faculty.models import CareerEvent
 from faculty.models import HANDLERS
 
+import datetime
 
 class EventTypesTest(TestCase):
     fixtures = ['faculty-test.json']
@@ -138,4 +139,4 @@ class CareerEventHandlerBaseTest(TestCase):
         #      so we must grab a fresh copy to verify.
         handler1_modified_event = CareerEvent.objects.get(id=handler1.event.id)
 
-        self.assertEqual(handler1_modified_event.end_date, handler2.event.start_date)
+        self.assertEqual(handler1_modified_event.end_date, handler2.event.start_date - datetime.timedelta(days=1))

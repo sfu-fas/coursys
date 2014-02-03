@@ -85,7 +85,7 @@ class CareerEventHandlerBase(object):
     NAME = ''
     EVENT_TYPE = ''
 
-    TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
 
     # Event has no duration (start_date is set to end_date automagically)
     IS_INSTANT = False
@@ -103,7 +103,6 @@ class CareerEventHandlerBase(object):
     FLAGS = []
 
     def __init__(self, event):
-        # XXX: I think that creating the CareerEvent instance should be left up to the caller.
         self.event = event
 
         # Just in case we add more complicated logic to __init__ we have to let subclasses easily
@@ -125,7 +124,7 @@ class CareerEventHandlerBase(object):
                                                          end_date=None)
                                                  .order_by('start_date').last())
             if previous_event:
-                previous_event.end_date = self.event.start_date
+                previous_event.end_date = self.event.start_date - datetime.timedelta(days=1)
                 previous_event.save(editor)
 
         self.pre_save()
@@ -260,11 +259,12 @@ class CareerEventHandlerBase(object):
         A detailed HTML presentation of this event
         """
         template = Template(self.TO_HTML_TEMPLATE)
-        context = Context({
+        context = {
             'event': self.event,
             'handler': self,
-        })
-        return template.render(context)
+        }
+        context.update(self.to_html_context())
+        return template.render(Context(context))
 
     # Optionally override these
 
@@ -298,6 +298,12 @@ class CareerEventHandlerBase(object):
 
         """
         pass
+
+    def to_html_context(self):
+        """
+        Additional context for the TO_HTML_TEMPLATE
+        """
+        return {}
 
 
 class Choices(collections.OrderedDict):

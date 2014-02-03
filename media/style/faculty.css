@@ -1,0 +1,27 @@
+/* dl style adapted from http://www.maxdesign.com.au/articles/definition/ */
+.careerevent dl
+{
+    float: left;
+    width: 100%;
+	margin: 1em 0;
+	padding: 0;
+}
+.careerevent dt
+{
+	clear: left;
+	float: left;
+	width: 25%;
+	margin: 0;
+	padding: 5px;
+	font-weight: bold;
+}
+.careerevent dd
+{
+	float: left;
+	width: 75%;
+	margin: 0;
+	padding: 5px;
+}
+.clearfix {
+  clear: both;
+}

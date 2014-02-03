@@ -34,7 +34,7 @@ def index(request):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
     fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
-    fac_roles = [(p, ', '.join(r.unit.name for r in roles)) for p, roles in fac_roles]
+    fac_roles = [(p, ', '.join(r.unit.informal_name() for r in roles)) for p, roles in fac_roles]
 
     context = {
         'fac_roles': fac_roles,
