@@ -120,7 +120,7 @@ def view_event(request, userid, event_slug):
 @requires_role('ADMN')
 def event_type_list(request, userid):
     types = [ # TODO: how do we check is_instant now?
-        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': False,
+        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': Handler.IS_INSTANT,
          'affects_teaching': 'affects_teaching' in Handler.FLAGS,
          'affects_salary': 'affects_salary' in Handler.FLAGS}
         for key, Handler in EVENT_TYPE_CHOICES]

@@ -85,13 +85,8 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     EVENT_TYPE = 'TENUREAPP'
     NAME = "Tenure Application"
+    IS_INSTANT = True
     TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
-
-    class EntryForm(BaseEntryForm):
-        # CONFIG_FIELDS = ['credits']
-        # base_salary = forms.DecimalField(max_digits=8, decimal_places=2,
-        #                                  help_text="Base annual salary for this rank + step.")
-        pass
 
     @property
     def default_title(self):
@@ -101,19 +96,14 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
         return '%s Applied for Tenure on %s' % (self.event.person.name(),
                                                 datetime.date.today())
 
-class TenureReceivedEventHandler(CareerEventHandlerBase):#, TenureApplicationCareerEvent):
+class TenureReceivedEventHandler(CareerEventHandlerBase):
     """
     Received Tenure Career event
     """
     EVENT_TYPE = 'TENUREREC'
     NAME = "Tenure Received"
+    IS_INSTANT = True
     TO_HTML_TEMPLATE = """{{ event.person.name }}'s event {{ event.title }}"""
-
-    class EntryForm(BaseEntryForm):
-        # CONFIG_FIELDS = ['credits']
-        # base_salary = forms.DecimalField(max_digits=8, decimal_places=2,
-        #                                  help_text="Base annual salary for this rank + step.")
-        pass
 
     @property
     def default_title(self):
