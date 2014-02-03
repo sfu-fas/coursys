@@ -24,8 +24,10 @@ var event_type = "{{ event_type|escapejs }}";
 <div id="actions">
   <h2>Actions</h2>
   <ul>
+    {% if event %}
     <li><a href="{{ event.get_absolute_url }}">View Event</a></li>
     <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
+    {% endif %}
   </ul>
 </div>
 {% endblock %}
