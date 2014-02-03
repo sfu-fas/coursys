@@ -12,8 +12,6 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES, EVENT_TYPE_CHOICES
 from faculty.forms import CareerEventForm, MemoTemplateForm, AttachmentForm
 
-import mimetypes
-
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
     """
@@ -228,7 +226,11 @@ def new_attachment(request, userid, event_slug):
             attachment = form.save(commit=False)
             attachment.career_event = event
             attachment.created_by = editor
-            attachment.mediatype = mimetypes.guess_type(attachment.contents.url)[0]
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
             attachment.save()
             return HttpResponseRedirect(event.get_absolute_url())
         else:

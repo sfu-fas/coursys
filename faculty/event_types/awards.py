@@ -69,12 +69,12 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return "Appointment to %s" % (fellowships.get(pos, pos))
 
     def salary_adjust_annually(self):
-        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0) or 0)
-        add_pay  = decimal.Decimal(self.event.config.get('add_pay', 0) or 0)
+        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0))
+        add_pay  = decimal.Decimal(self.event.config.get('add_pay', 0))
         return SalaryAdjust(add_salary, 1, add_pay)
 
     def teaching_adjust_per_semester(self):
-        adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0) or 0)
+        adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0))
         return TeachingAdjust(adjust, adjust)
 
 

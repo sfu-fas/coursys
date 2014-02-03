@@ -65,9 +65,13 @@ class CareerEvent(models.Model):
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    @property
-    def full_title(self):
-        return '{} {}'.format(self.start_date.year, self.title)
+    def __unicode__(self):
+        return self.title
+
+    def save(self, editor, *args, **kwargs):
+        # we're doing to so we can add an audit trail later.
+        assert editor.__class__.__name__ == 'Person'
+        return super(CareerEvent, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("faculty_event_view", args=[self.person.userid, self.slug])
@@ -78,17 +82,13 @@ class CareerEvent(models.Model):
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 
+    @property
+    def full_title(self):
+        return '{} {}'.format(self.start_date.year, self.title)
+
     def get_event_type_display(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
-
-    def __unicode__(self):
-        return self.title
-
-    def save(self, editor, *args, **kwargs):
-        # we're doing to so we can add an audit trail later.
-        assert editor.__class__.__name__ == 'Person'
-        return super(CareerEvent, self).save(*args, **kwargs)
 
     def get_handler(self):
         return EVENT_TYPE_CHOICES[self.event_type](self)
