@@ -116,6 +116,18 @@ class CareerEventHandlerBase(object):
         if self.IS_INSTANT:
             self.event.end_date = self.event.start_date
 
+        if self.IS_EXCLUSIVE:
+            from faculty.models import CareerEvent
+            previous_event = (CareerEvent.objects.filter(person=self.event.person,
+                                                         unit=self.event.unit,
+                                                         event_type=self.EVENT_TYPE,
+                                                         start_date__lte=self.event.start_date,
+                                                         end_date=None)
+                                                 .order_by('start_date').last())
+            if previous_event:
+                previous_event.end_date = self.event.start_date
+                previous_event.save(editor)
+
         self.pre_save()
 
         # TODO: store handler flags in the CareerEvent instance
