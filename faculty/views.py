@@ -12,6 +12,8 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, EVENT_TYPES, EVENT_TYPE_CHOICES
 from faculty.forms import CareerEventForm, MemoTemplateForm, AttachmentForm
 
+import itertools
+
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
     """
@@ -31,6 +33,8 @@ def _get_faculty_or_404(allowed_units, userid_or_emplid):
 def index(request):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    fac_roles = [(p, ', '.join(r.unit.name for r in roles)) for p, roles in fac_roles]
 
     context = {
         'fac_roles': fac_roles,
