@@ -35,7 +35,7 @@ HANDLERS = [
     TenureReceivedEventHandler,
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
-EVENT_TYPE_CHOICES = EVENT_TYPES.items()
+EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
 
 
 class CareerEvent(models.Model):
@@ -77,6 +77,10 @@ class CareerEvent(models.Model):
 
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
+
+    def get_event_type_display(self):
+        "Override to display nicely"
+        return EVENT_TYPES[self.event_type].NAME
 
     def __unicode__(self):
         return self.title
@@ -134,10 +138,13 @@ class MemoTemplate(models.Model):
     A template for memos.
     """
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    label = models.CharField(max_length=250, null=False, verbose_name='Template Name')
-    event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
+    label = models.CharField(max_length=250, null=False, verbose_name='Template Name',
+                             help_text='The name for this template (that you select it by when using it)')
+    event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES,
+                                  help_text='The type of event that this memo applies to')
     subject = models.CharField(help_text='The default subject of the memo', max_length=255)
-    template_text = models.TextField(help_text="I.e. 'Congratulations {{first_name}} on ... '")
+    template_text = models.TextField(help_text="The template for the memo. It may be edited when creating "
+            "each memo. (i.e. 'Congratulations {{first_name}} on ... ')")
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Memo template created by.', related_name='+')
@@ -156,6 +163,10 @@ class MemoTemplate(models.Model):
     def save(self, *args, **kwargs):
         self.template_text = normalize_newlines(self.template_text.rstrip())
         super(MemoTemplate, self).save(*args, **kwargs)
+
+    def get_event_type_display(self):
+        "Override to display nicely"
+        return EVENT_TYPES[self.event_type].NAME
 
 
 class Memo(models.Model):

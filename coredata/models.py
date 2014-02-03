@@ -1012,6 +1012,12 @@ class Unit(models.Model):
             cache.set(key, res, 24*3600)
             return res
 
+    @classmethod
+    def sub_units(cls, units, by_id=False):
+        ids = cls.sub_unit_ids(units, by_id=by_id)
+        return Unit.objects.filter(id__in=ids)
+
+
     def __super_units(self):
         if not self.parent:
             return []

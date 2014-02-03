@@ -6,7 +6,7 @@ from models import CareerEvent
 from models import DocumentAttachment
 from models import MemoTemplate
 from models import Memo
-
+from models import EVENT_TYPE_CHOICES
 
 
 def career_event_factory(person, post_data=None, post_files=None):
@@ -32,13 +32,19 @@ class AttachmentForm(forms.ModelForm):
 
 
 class MemoTemplateForm(forms.ModelForm):
-    template_text = forms.CharField(widget=forms.Textarea(attrs={'rows':'30', 'cols': '60'}))
     class Meta:
         model = MemoTemplate
         exclude = ('created_by', 'hidden')
-    
-    def clean_content(self):
-        content = self.cleaned_data['content']
+
+    def __init__(self, *args, **kwargs):
+        super(MemoTemplateForm, self).__init__(*args, **kwargs)
+        self.fields['subject'].widget.attrs['size'] = 50
+        self.fields['template_text'].widget.attrs['rows'] = 20
+        self.fields['template_text'].widget.attrs['cols'] = 50
+        self.fields['event_type'].choices = [(k, h.NAME) for k,h in EVENT_TYPE_CHOICES]
+
+    def clean_template_text(self):
+        content = self.cleaned_data['template_text']
         try:
             Template(content)
         except TemplateSyntaxError as e:
