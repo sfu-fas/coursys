@@ -214,6 +214,21 @@ class Memo(models.Model):
         self.memo_text = many_newlines.sub('\n\n', self.memo_text)
         super(Memo, self).save(*args, **kwargs)
 
+    def write_pdf(self, response):
+        from dashboard.letters import OfficialLetter, LetterContents
+        doc = OfficialLetter(response, unit=self.unit)
+        l = LetterContents(to_addr_lines=self.to_lines.split("\n"),
+                        from_name_lines=self.from_lines.split("\n"),
+                        date=self.sent_date,
+                        salutation="Heeeeeyyyy",
+                        closing="Later",
+                        signer=self.from_person,
+                        use_sig=self.use_sig)
+        content_lines = self.memo_text.split("\n\n")
+        l.add_paragraphs(content_lines)
+        doc.add_letter(l)
+        doc.write()
+
 
 class EventConfig(models.Model):
     """
