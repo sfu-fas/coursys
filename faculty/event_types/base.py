@@ -104,6 +104,7 @@ class CareerEventHandlerBase(object):
 
     def __init__(self, event):
         self.event = event
+        assert len(self.EVENT_TYPE) < 10
 
         # Just in case we add more complicated logic to __init__ we have to let subclasses easily
         # add initialization logic.

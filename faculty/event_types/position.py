@@ -14,7 +14,7 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
     Given admin position
     """
-    EVENT_TYPE = 'ADMIN_POSITION'
+    EVENT_TYPE = 'ADMINPOS'
     NAME = 'Admin Position'
 
     class EntryForm(BaseEntryForm):

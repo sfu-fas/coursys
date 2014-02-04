@@ -308,8 +308,8 @@ def manage_memo_template(request, slug):
 
 @requires_role('ADMN')
 def new_memo(request, userid, event_slug, memo_template_slug):
-    template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=request.units)
-    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username)) 
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
 
     from_choices = [('', u'\u2014')] \
@@ -346,7 +346,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
 
 @requires_role('ADMN')
 def manage_memo(request, userid, event_slug, memo_slug):
-    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username)) 
+    person, member_units = _get_faculty_or_404(request.units, userid)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
