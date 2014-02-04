@@ -43,6 +43,7 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig
+from dashboard.photos import fetch_photos
 from discuss import activity as discuss_activity
 import celery
 
@@ -1218,7 +1219,6 @@ def photo_list(request, course_slug):
     members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
     
     # fire off a task to fetch the photos, to warm the cache
-    from dashboard.tasks import fetch_photos
     task_map = fetch_photos([m.person.emplid for m in members])
     for emplid, task_id in task_map.iteritems():
         cache.set('photo-task-'+unicode(emplid), task_id, 60)
