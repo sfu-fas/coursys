@@ -7,9 +7,10 @@ EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 
 urlpatterns = patterns('',
     url(r'^$', 'faculty.views.index'),
-    url(r'^memo-templates$', 'faculty.views.memo_templates', name="template_index"),
-    url(r'^memo-templates/new$', 'faculty.views.new_memo_template', name="faculty_create_template"),
-    url(r'^memo-templates/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name="faculty_manage_template"),
+    url(r'^event-management$', 'faculty.views.manage_event_index', name="faculty_events_manage_index"),
+    url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates$', 'faculty.views.memo_templates', name="template_index"),
+    url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/new$', 'faculty.views.new_memo_template', name="faculty_create_template"),
+    url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name="faculty_manage_template"),
     url(r'^' + USERID_OR_EMPLID + '/summary$', 'faculty.views.summary', name="faculty_summary"),
     url(r'^' + USERID_OR_EMPLID + '/career_events$', 'faculty.views.events_list', name="faculty_events_list"),
     url(r'^' + USERID_OR_EMPLID + '/otherinfo$', 'faculty.views.otherinfo', name="faculty_otherinfo"),

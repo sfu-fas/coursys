@@ -7,6 +7,7 @@ $(document).ready(function() {
   $('#memo_templates').dataTable( {
     'bPaginate': false,
     'bInfo': false,
+    'bFilter': false,
     "aaSorting": [[2, "asc"]],
     "aoColumns": [null,
                   null,
@@ -25,7 +26,7 @@ $(document).ready(function() {
 	<h2>Actions</h2>
 	<ul>
 		<li >
-			<a href="{% url 'faculty.views.new_memo_template' %}">New Memo Template</a>
+			<a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">New Memo Template</a>
 		</li>
 	</ul>
 </div>
@@ -35,12 +36,9 @@ $(document).ready(function() {
 {% block h1 %}Memo Templates{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	<a href="{% url "faculty.views.index" %}">Faculty</a>
-</li>
-<li>
-	Memo Templates
-</li>
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
+<li>{{ event_type_slug }} Memo Templates</li>
 {% endblock %}
 
 {% block content %}
@@ -62,7 +60,7 @@ $(document).ready(function() {
 				<td>{{s.get_event_type_display}}</td>
 				<td>{{s.template_text|truncatechars:50}}</td>
 				<td>{{s.created_at}}</td>
-				<td><a href="{% url "faculty.views.manage_memo_template" slug=s.slug %}">Edit</a></td>
+				<td><a href="{% url "faculty.views.manage_memo_template" event_type=event_type_slug slug=s.slug %}">Edit</a></td>
 			</tr>
 			{% endfor %}
 		</tbody>

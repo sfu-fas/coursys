@@ -34,14 +34,13 @@ class AttachmentForm(forms.ModelForm):
 class MemoTemplateForm(forms.ModelForm):
     class Meta:
         model = MemoTemplate
-        exclude = ('created_by', 'hidden')
+        exclude = ('created_by', 'event_type', 'hidden')
 
     def __init__(self, *args, **kwargs):
         super(MemoTemplateForm, self).__init__(*args, **kwargs)
         self.fields['subject'].widget.attrs['size'] = 50
         self.fields['template_text'].widget.attrs['rows'] = 20
         self.fields['template_text'].widget.attrs['cols'] = 50
-        self.fields['event_type'].choices = [(k, h.NAME) for k,h in EVENT_TYPE_CHOICES]
 
     def clean_template_text(self):
         content = self.cleaned_data['template_text']

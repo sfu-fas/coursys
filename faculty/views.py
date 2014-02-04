@@ -108,7 +108,7 @@ def view_event(request, userid, event_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
     memos = Memo.objects.filter(career_event = instance)
-    templates = MemoTemplate.objects.filter(unit__in=request.units, hidden=False)
+    templates = MemoTemplate.objects.filter(unit__in=request.units, event_type=instance.event_type, hidden=False)
 
     Handler = EVENT_TYPES[instance.event_type](event=instance)
 
@@ -253,16 +253,30 @@ def new_attachment(request, userid, event_slug):
 # Creating and editing Memo Templates
 
 @requires_role('ADMN')
-def memo_templates(request):
-    templates = MemoTemplate.objects.filter(unit__in=request.units, hidden=False)
+def manage_event_index(request):
+    types = [ # TODO: how do we check is_instant now?
+        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': Handler.IS_INSTANT,
+         'affects_teaching': 'affects_teaching' in Handler.FLAGS,
+         'affects_salary': 'affects_salary' in Handler.FLAGS}
+        for key, Handler in EVENT_TYPE_CHOICES]
 
     context = {
-               'templates': templates,          
+               'events': types,          
+               }
+    return render(request, 'faculty/manage_events_index.html', context)
+
+@requires_role('ADMN')
+def memo_templates(request, event_type):
+    templates = MemoTemplate.objects.filter(unit__in=request.units, event_type=event_type.upper(), hidden=False)
+
+    context = {
+               'templates': templates,
+               'event_type_slug':event_type,          
                }
     return render(request, 'faculty/memo_templates.html', context)
 
 @requires_role('ADMN')
-def new_memo_template(request):
+def new_memo_template(request, event_type):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
@@ -270,21 +284,23 @@ def new_memo_template(request):
         form.fields['unit'].choices = unit_choices 
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = person           
+            f.created_by = person  
+            f.event_type = event_type.upper()         
             f.save()
             messages.success(request, "Created memo template %s for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(memo_templates))
+            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm()
         form.fields['unit'].choices = unit_choices
 
     context = {
                'form': form,
+               'event_type_slug': event_type,
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
 @requires_role('ADMN')
-def manage_memo_template(request, slug):
+def manage_memo_template(request, event_type, slug):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     memo_template = get_object_or_404(MemoTemplate, slug=slug)
@@ -292,10 +308,11 @@ def manage_memo_template(request, slug):
         form = MemoTemplateForm(request.POST, instance=memo_template)
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = person            
+            f.created_by = person
+            f.event_type = event_type.upper()             
             f.save()
             messages.success(request, "Updated %s template for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(memo_templates))
+            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices 
@@ -303,6 +320,7 @@ def manage_memo_template(request, slug):
     context = {
                'form': form,
                'memo_template': memo_template,
+               'event_type_slug':event_type,
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
