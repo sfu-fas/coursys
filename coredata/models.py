@@ -913,7 +913,6 @@ ROLE_CHOICES = (
         ('FUND', 'Grad Funding Administrator'),
         ('TECH', 'Tech Staff'),
         ('SYSA', 'System Administrator'),
-        ('REPR', 'Reporting Database Access'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)

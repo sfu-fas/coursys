@@ -25,6 +25,17 @@
     color: white;
 }
 </style>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#schedule_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "bFilter": false
+        });
+    });
+</script>
+
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -38,7 +49,7 @@
     <ul>
         {% if not readonly %}
         <li><a href="{% url reports.views.new_access_rule report=report.slug %}">New Access Rule</a></li>
-        <li><a href="#">New Schedule Rule</a></li>
+        <li><a href="{% url reports.views.new_schedule_rule report=report.slug %}">New Schedule Rule</a></li>
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
         <li><a href="{% url reports.views.new_query report=report.slug %}">New Query</a></li>
         {% endif %}
@@ -52,7 +63,11 @@
 <em>{{report.description}}</em>
 
 <h2>Access Rules</h2>
+<p>These people can see the output of this report:</p>
 <ul>
+{% if not access_rules %}
+    <li>Only Report Administrators can view this report. </li>
+{% endif %}
 {% for access_rule in access_rules %}
     <li>
         {{access_rule.person.name}}
@@ -67,10 +82,52 @@
 </ul>
 
 <h2>Schedule Rules</h2>
+<p>Run the report at these intervals: </p> 
+<div class='datatable_container'>
+{% if not schedule_rules %}
+    <p>There are no scheduled rules for this report.</p>
+{% else %}
+    <table class='display' id='schedule_table'>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Last Run</th>
+                <th>Next Run</th>
+                {% if not readonly %}
+                <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for rule in schedule_rules %}
+            <tr>
+                <td>{{rule.get_schedule_type_display}}</td>
+                <td>{{rule.last_run}}</td>
+                <td>{{rule.next_run}}</td>
+                {% if not readonly %}
+                <td><a href="{% url reports.views.delete_schedule_rule report=report.slug schedule_rule_id=rule.id %}">Delete</a></td>
+                {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if is_scheduled_to_run %}
+    <div>
+        This report is scheduled to run <em>today</em>. 
+        <a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a>
+    </div>
+{% endif %}
+</div>
+
 
 <h2>Report Components</h2>
 
+<h3>Hardcoded Reports</h3>
 <ul>
+{% if not components %}
+    <li>There are no hardcoded components to this report.</li>
+{% endif %}
 {% for component in components %}
     <li>{{component.file_location}} - 
         {% if not readonly %}
@@ -80,8 +137,11 @@
 {% endfor %}
 </ul>
 
-<h2>Queries</h2>
+<h3>Queries</h3>
 <ul>
+{% if not queries %}
+    <li>There are no SIMS queries in this report.</li> 
+{% endif %}
 {% for query in queries %}
     <li><strong>{{query.name}} </strong> 
         <pre>{{query.query}}</pre>
@@ -93,11 +153,15 @@
 {% endfor %}
 </ul>
 
-<h2>Results</h2>
+<h2>Runs</h2>
+<p>Report output:</p>
 <ul class='results'>
+{% if not runs %}
+    <li class='fail'><a>This report has not been run yet.</a></li>
+{% endif %}
 {% for run in runs %}
     <li class='{{run.success|yesno:"success,fail,other"}}'>
-        <a href="{% url reports.views.view_run report=report.slug run=run.slug %}">{{run.created_at}}</a>
+    <a href="{% url reports.views.view_run report=report.slug run=run.slug %}">{{run.created_at}} - {{run.name}}</a>
         {% if not readonly %}
         <a style='float:right' href="{% url reports.views.delete_run report=report.slug run=run.slug %}">Delete</a>
         {% endif %}

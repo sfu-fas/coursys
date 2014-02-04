@@ -21,11 +21,13 @@ REPORT_LOCATION = os.path.join( '.', 'reports', 'reportlib', 'reports' )
 
 class Report(models.Model):
     """ 
-        The core object of Reports. Contains Queries, Hardcoded Reports, Results, the
-        whole nine yards.
+        The core object of Reports. Contains Queries, Hardcoded Reports, 
+        Results, the whole nine yards.
     """
-    name = models.CharField(help_text="Name of the report.", max_length=150, null=False)
-    description = models.TextField(help_text="Description of the report.", null=True, blank=True)
+    name = models.CharField(help_text="Name of the report.", 
+                            max_length=150, null=False)
+    description = models.TextField(help_text="Description of the report.", 
+                                   null=True, blank=True)
 
     hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
@@ -33,7 +35,18 @@ class Report(models.Model):
 
     def autoslug(self):
         return make_slug( self.name )
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, 
+                         unique=True)
+
+    def expired_schedule_rules(self):
+        return ScheduleRule.objects.filter(next_run__lte=datetime.datetime.now(),
+                                           report=self)
+
+    def is_scheduled_to_run(self):
+        """
+        Returns true if this Report has a run queued. 
+        """
+        return len(self.expired_schedule_rules()) > 0
     
     def run(self):
         hardcoded_reports = HardcodedReport.objects.filter(report=self)
@@ -44,6 +57,10 @@ class Report(models.Model):
             runs.append(report.run())
         for query in queries:
             runs.append(query.run())
+
+        for rule in self.expired_schedule_rules():
+            rule.set_next_run()
+            rule.save()
 
         return runs
 
@@ -65,22 +82,29 @@ def report_map(report_location, logger):
     """
     report_without_extension = report_location[:-3]
     try:
-        module = importlib.import_module("reports.reportlib.reports." + report_without_extension)
+        module = importlib.import_module("reports.reportlib.reports." + 
+                                         report_without_extension)
     except ImportError:
-        raise ReportLoadingException( report_location + " could not be found in /reports/reportlib/reports/" )
-    candidates = [item for item in dir(module) if item.endswith("Report") and item != "Report"] 
+        raise ReportLoadingException( report_location + 
+                          " could not be found in /reports/reportlib/reports/" )
+
+    candidates = [item for item in dir(module) if item.endswith("Report") 
+                  and item != "Report"] 
+
     if len(candidates) == 1:
         report_class = getattr(module, candidates[0])
         return report_class(logger)
     elif len(candidates) < 1:
-        raise ReportLoadingException( "No Report could be found in " + report_location )
+        raise ReportLoadingException( "No Report could be found in " + 
+                                     report_location )
     else:
-        raise ReportLoadingException( report_location + " loads more than one Report object." )
+        raise ReportLoadingException( report_location + 
+                                     " loads more than one Report object." )
 
 class HardcodedReport(models.Model):
     """
-        Represents a report that exists as a python file in courses/reports/reportlib/reports
-        ... yes, I understand how redundant redundant that path path is is 
+        Represents a report that exists as a python file in 
+        courses/reports/reportlib/reports
     """
     report = models.ForeignKey(Report)
     file_location = models.CharField(help_text="The location of this report, on disk.", 
@@ -91,7 +115,7 @@ class HardcodedReport(models.Model):
 
     def run(self):
         """ execute the code in this file """ 
-        r = Run(report=self.report)
+        r = Run(report=self.report, name=self.file_location)
         r.save()
         logger = RunLineLogger(r)
         try:
@@ -124,7 +148,7 @@ class Query(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def run(self):
-        r = Run(report=self.report)
+        r = Run(report=self.report, name=self.name)
         r.save()
         logger = RunLineLogger(r)
         try:
@@ -170,52 +194,107 @@ class AccessRule(models.Model):
 # When do we run this report? 
 
 SCHEDULE_TYPE_CHOICES = (
+        ('ONE', 'One-Time'),
         ('DAI', 'Daily'),
         ('MON', 'Monthly'),
         ('YEA', 'Yearly'),
-        ('ONE', 'One-Time'),
 )
 
+
 def increment_year(date):
-    return datetime.datetime( date.year+1, date.month, date.day, date.hour, date.hour, date.minute, date.second, date.microsecond, date.tzinfo )
+    # the only special case I can think of is leap years. 
+    if date.month == 2 and date.day == 29:
+        return datetime.datetime( date.year+1, date.month, 28, date.hour, date.minute, date.second, date.microsecond, date.tzinfo )
+    return datetime.datetime( date.year+1, date.month, date.day, date.hour, date.minute, date.second, date.microsecond, date.tzinfo )
+
 
 def increment_month(date):
-    if date.month >= 12: 
-        return datetime.datetime( date.year+1, 1, date.day, date.hour, date.minute, date.second, date.microsecond, date.tzinfo )
+    """
+    There's a bit of a strange special case here. 
+    
+    "End of the month" is traditionally a pretty important day to schedule
+    things, so if you're at the end of the current month, this function will
+    attempt to smoothly transition you to the end of the next month.
+
+    On top of that, it is impossible to smoothly transition from Jan 30 to 
+    Feb 30 (as such a date does not exist), so Jan 30 will transition to
+    Feb 28 (the end of the month). However, this loses information - the next
+    time a month with 31 days comes around, the report will run at the end
+    of the month rather than on the 30th as initially intended. 
+
+    This means, functionally, that any date after the 28th of the month
+    will be treated as "the end of the month" for the purposes of calculating
+    when the next report should be run. 
+    """
+    import calendar
+
+    if date.month == 12:
+        year = date.year + 1
+        month = 1
     else:
-        return datetime.datetime( date.year, date.month+1, date.day, date.hour, date.minute, date.second, date.microsecond, date.tzinfo )
+        year = date.year
+        month = date.month + 1
+
+    end_of_this_month = calendar.monthrange(date.year, date.month)[1]
+    end_of_next_month = calendar.monthrange(year, month)[1]
+
+    day = date.day
+    if day == end_of_this_month or date.day >= end_of_next_month:
+        day = end_of_next_month
+
+    return datetime.datetime( year, month, day, date.hour, date.minute, 
+                             date.second,
+                             date.microsecond, date.tzinfo )
+
 
 def increment_day(date):
-    if date.day >= 29:
-        return increment_month( datetime.datetime(date.year, date.month, 1, date.hour, date.minute, date.second, date.microsecond, date.tzinfo) )
-    else:
-        return datetime.datetime( date.year, date.month, date.day+1, date.hour, date.minute, date.second, date.microsecond, date.tzinfo )
+    new_date = date + datetime.timedelta(days=1)
+    return new_date
 
 
 class ScheduleRule(models.Model):
+    """
+    Run this Report at this time. 
+    """
     report = models.ForeignKey(Report)
-    schedule_type = models.CharField(max_length=3, choices=SCHEDULE_TYPE_CHOICES)
-    last_run = models.DateTimeField() # the last time this ScheduleRule was run
+    schedule_type = models.CharField(max_length=3, 
+                                     choices=SCHEDULE_TYPE_CHOICES,
+                                     null=False,
+                                     default="ONE")
+    last_run = models.DateTimeField(null=True) # the last time this ScheduleRule was run
     next_run = models.DateTimeField() # the next time to run this ScheduleRule
 
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
     def set_next_run(self):
-        last_run = next_run
-        if schedule_type == 'DAI': 
-            next_run = increment_day( next_run )
-        if schedule_type == 'MON':
-            next_run = increment_month( next_run )
-        if schedule_type == 'YEA':
-            next_run = increment_year( next_run )
-        if schedule_type == 'ONE': 
-            next_run = None
-        save()
+        self.last_run = self.next_run
+        if self.schedule_type == 'DAI': 
+            self.next_run = increment_day( self.next_run )
+        if self.schedule_type == 'MON':
+            self.next_run = increment_month( self.next_run )
+        if self.schedule_type == 'YEA':
+            self.next_run = increment_year( self.next_run )
+        if self.schedule_type == 'ONE': 
+            self.next_run = None
+
+        # if this doesn't get the run to past the current date, try again. 
+        if self.next_run < datetime.datetime.now():
+            self.set_next_run()
+
+
+def schedule_ping():
+    rules = ScheduleRule.objects.filter(next_run__lte=datetime.datetime.now())
+    reports = [rule.report for rule in rules]
+    set_of_reports_that_need_to_be_run = set(reports)
+    for report in set_of_reports_that_need_to_be_run:
+        report.run()
+
 
 class Run(models.Model): 
     report = models.ForeignKey(Report)
     created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=150, null=False)
     success = models.BooleanField(default=False)
     def autoslug(self):
         return make_slug( self.created_at )
@@ -230,6 +309,7 @@ class Run(models.Model):
     
     def save(self, *args, **kwargs):
         super(Run, self).save(*args, **kwargs)
+        #TODO: should we send these on failure too? 
         if self.success: 
             notify_targets = AccessRule.objects.filter(report=self.report, notify=True)
             for target in notify_targets:

@@ -27,3 +27,11 @@ class AccessRuleForm(ModelForm):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(AccessRuleForm, self).is_valid(*args, **kwargs)
+
+class ScheduleRuleForm(ModelForm):
+    class Meta:
+        model = ScheduleRule
+        exclude = ('last_run', 'report', 'hidden', 'config', 'created_at')
+        widgets = {
+            'schedule_type': forms.RadioSelect()
+                }

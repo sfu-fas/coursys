@@ -1,6 +1,9 @@
-from models import Report, HardcodedReport, Result, Run, RunLine, Query, AccessRule
-from forms import ReportForm, HardcodedReportForm, QueryForm, AccessRuleForm
-from courselib.auth import requires_role, has_role, HttpResponseRedirect, ForbiddenResponse
+from models import Report, HardcodedReport, Result, Run, RunLine, \
+                    Query, AccessRule, ScheduleRule
+from forms import ReportForm, HardcodedReportForm, QueryForm, \
+                    AccessRuleForm, ScheduleRuleForm
+from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
+                    ForbiddenResponse
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
@@ -10,9 +13,9 @@ from django.forms.util import ErrorList
 import unicodecsv as csv
 import datetime
 
-def view_reports(request):
 
-    if has_role('REPR', request):
+def view_reports(request):
+    if has_role('SYSA', request):
         reports = Report.objects.filter(hidden=False)
         readonly = False
     else:
@@ -22,7 +25,8 @@ def view_reports(request):
 
     return render(request, 'reports/view_reports.html', {'readonly':readonly, 'reports':reports})
 
-@requires_role('REPR')
+
+@requires_role('SYSA')
 def new_report(request):     
     if request.method == 'POST':
         form = ReportForm(request.POST)
@@ -38,33 +42,37 @@ def new_report(request):
 
     return render(request, 'reports/new_report.html', {'form': form })
 
+
+def _has_access(request, report):
+    return has_role('SYSA', request) or AccessRule.objects.get(report=report, person__userid=request.user.username)
+
+
 def view_report(request, report):
     report = get_object_or_404(Report, slug=report) 
     readonly = True
-
-    access_rules = AccessRule.objects.filter(report=report)
-
-    # is the user on the special list? 
-    access_rule_usernames = [rule.person.userid for rule in access_rules]
-    if has_role('REPR', request):
-        readonly = False
-    elif request.user.username in access_rule_usernames:
-        readonly = True
-    else: 
+    
+    if not _has_access(request, report):
         return ForbiddenResponse(request)
-   
+    if has_role('SYSA', request):
+        readonly = False
+  
+    access_rules = AccessRule.objects.filter(report=report)
+    schedule_rules = ScheduleRule.objects.filter(report=report)
     components = HardcodedReport.objects.filter(report=report)
     queries = Query.objects.filter(report=report)
     runs = Run.objects.filter(report=report).order_by("created_at")
 
     return render(request, 'reports/view_report.html', {'readonly':readonly,
-                                                        'report':report, 
+                                                        'report':report,
+                                                        'is_scheduled_to_run':report.is_scheduled_to_run(),
                                                         'queries':queries, 
+                                                        'schedule_rules':schedule_rules,
                                                         'access_rules':access_rules,
                                                         'runs':runs, 
                                                         'components':components})
 
-@requires_role('REPR')
+
+@requires_role('SYSA')
 def new_access_rule(request, report):
     report = get_object_or_404(Report, slug=report) 
 
@@ -73,7 +81,6 @@ def new_access_rule(request, report):
         if form.is_valid():
             f = form.save(commit=False)
             f.report = report
-            f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new access rule:  %s." % str(f.person) )
             return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
@@ -82,7 +89,8 @@ def new_access_rule(request, report):
 
     return render(request, 'reports/new_access_rule.html', {'form': form, 'report': report })
 
-@requires_role('REPR')
+
+@requires_role('SYSA')
 def delete_access_rule(request, report, access_rule_id):
     report = get_object_or_404(Report, slug=report)
     access_rule = get_object_or_404(AccessRule, id=int(access_rule_id))
@@ -92,7 +100,35 @@ def delete_access_rule(request, report, access_rule_id):
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
 
-@requires_role('REPR')
+@requires_role('SYSA')
+def new_schedule_rule(request, report):
+    report = get_object_or_404(Report, slug=report)
+
+    if request.method == 'POST':
+        form = ScheduleRuleForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.report = report
+            f.save()
+            messages.success(request, "Created new schedule:  %s." % str(f.next_run) )
+            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    else:
+        form = ScheduleRuleForm()
+
+    return render(request, 'reports/new_schedule_rule.html', {'form': form, 'report': report })
+
+
+@requires_role('SYSA')
+def delete_schedule_rule(request, report, schedule_rule_id):
+    report = get_object_or_404(Report, slug=report)
+    schedule_rule = get_object_or_404(ScheduleRule, id=int(schedule_rule_id))
+
+    schedule_rule.delete()
+    messages.success(request, "Deleted schedule rule")
+    return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+
+
+@requires_role('SYSA')
 def new_component(request, report):
     report = get_object_or_404(Report, slug=report) 
     file_locations = [component.file_location for component in 
@@ -115,7 +151,8 @@ def new_component(request, report):
 
     return render(request, 'reports/new_component.html', {'form': form, 'report': report })
 
-@requires_role('REPR')
+
+@requires_role('SYSA')
 def delete_component(request, report, component_id):
     report = get_object_or_404(Report, slug=report)
     component = get_object_or_404(HardcodedReport, id=int(component_id))
@@ -124,7 +161,8 @@ def delete_component(request, report, component_id):
     messages.success(request, "Deleted component")
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
-@requires_role('REPR')
+
+@requires_role('SYSA')
 def new_query(request, report):
     report = get_object_or_404(Report, slug=report) 
 
@@ -142,7 +180,8 @@ def new_query(request, report):
 
     return render(request, 'reports/new_query.html', {'form': form, 'report': report })
 
-@requires_role('REPR')
+
+@requires_role('SYSA')
 def edit_query(request, report, query_id):
     report = get_object_or_404(Report, slug=report)
     query = get_object_or_404(Query, id=int(query_id))
@@ -163,7 +202,7 @@ def edit_query(request, report, query_id):
     return render(request, 'reports/edit_query.html', {'form': form, 'report': report, 'query_id':query_id })
     
 
-@requires_role('REPR')
+@requires_role('SYSA')
 def delete_query(request, report, query_id):
     report = get_object_or_404(Report, slug=report)
     query = get_object_or_404(Query, id=int(query_id))
@@ -171,16 +210,13 @@ def delete_query(request, report, query_id):
     query.delete()
     messages.success(request, "Deleted query")
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
-    
 
-def __has_access(request, report):
-    return has_role('REPR', request) or AccessRule.objects.get(report=report, person__userid=request.user.username)
 
 def run(request, report):
     """ Actually execute the report. """
     report = get_object_or_404(Report, slug=report)
     
-    if not __has_access(request, report):
+    if not _has_access(request, report):
         return ForbiddenResponse(request)
    
     # TODO: this really shouldn't be a synchronous operation. 
@@ -197,11 +233,12 @@ def run(request, report):
         messages.error(request, "You haven't added any queries or reports to run, yet!")
         return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
+
 def view_run(request, report, run):
     run = get_object_or_404(Run, slug=run)
     report = run.report
     
-    if not __has_access(request, report):
+    if not _has_access(request, report):
         return ForbiddenResponse(request)
     
     runlines = run.getLines()
@@ -209,7 +246,8 @@ def view_run(request, report, run):
     
     return render(request, 'reports/view_run.html', {'report':report, 'run': run, 'runlines':runlines, 'results':results})
 
-@requires_role('REPR')
+
+@requires_role('SYSA')
 def delete_run(request, report, run):
     run = get_object_or_404(Run, slug=run)
     report = run.report
@@ -225,22 +263,24 @@ def delete_run(request, report, run):
     messages.success(request, "Run Deleted!")
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
+
 def view_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)
     report = run.report
     
-    if not __has_access(request, report):
+    if not _has_access(request, report):
         return ForbiddenResponse(request)
     
     result = get_object_or_404(Result, slug=result)
     
     return render(request, 'reports/view_result.html', {'report':report, 'run': run, 'result':result})
 
+
 def csv_result(request, report, run, result):
     run = get_object_or_404(Run, slug=run)
     report = run.report
     
-    if not __has_access(request, report):
+    if not _has_access(request, report):
         return ForbiddenResponse(request)
     
     result = get_object_or_404(Result, slug=result)
