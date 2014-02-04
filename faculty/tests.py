@@ -1,4 +1,5 @@
 from datetime import date
+from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import safestring
@@ -12,8 +13,10 @@ from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
+from faculty.models import CareerEvent
 from faculty.models import HANDLERS
 
+import datetime
 
 class EventTypesTest(TestCase):
     fixtures = ['faculty-test.json']
@@ -119,3 +122,21 @@ class CareerEventHandlerBaseTest(TestCase):
         # 'start_date' should be equal to 'end_date' after saving
         handler.save(self.person)
         self.assertEqual(handler.event.start_date, handler.event.end_date)
+
+    def test_is_exclusive_close_previous(self):
+        self.Handler.IS_EXCLUSIVE = True
+        handler1 = self.Handler.create_for(self.person, self.unit)
+        handler1.event.title = 'hello world'
+        handler1.event.start_date = date.today()
+        handler1.save(self.person)
+
+        handler2 = self.Handler.create_for(self.person, self.unit)
+        handler2.event.title = 'Foobar'
+        handler2.event.start_date = date.today() + timedelta(days=1)
+        handler2.save(self.person)
+
+        # XXX: handler1's event won't be automatically refreshed after we've 'closed' it
+        #      so we must grab a fresh copy to verify.
+        handler1_modified_event = CareerEvent.objects.get(id=handler1.event.id)
+
+        self.assertEqual(handler1_modified_event.end_date, handler2.event.start_date - datetime.timedelta(days=1))

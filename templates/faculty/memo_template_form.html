@@ -1,35 +1,29 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
-{% block title %}Edit Memo Template{% endblock %}
-{% block h1 %}Edit Memo Template{% endblock %}
+{% block title %}{% if memo_template %}Edit{% else %}New{% endif %} Memo Template{% endblock %}
+{% block h1 %}{% if memo_template %}Edit{% else %}New{% endif %} Memo Template{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
 	<a href="{% url "faculty.views.index" %}">Faculty</a>
 </li>
 <li>
-	<a href="{% url "faculty.views.memo_templates" %}">Memo Template</a>
+	<a href="{% url "faculty.views.memo_templates" %}">Memo Templates</a>
 </li>
 <li>
-	Edit
+	{% if memo_template %}Edit &ldquo;{{ memo_template.label }}&rdquo;{% else %}New{% endif %}
 </li>
 {% endblock %}
 
 {% block headextra %}
-<script>
-$( document ).ready(function() {
-    var help = $('#template-help');
-    var field = $('#id_template_text');
-    help.css('float', 'right');
-    help.insertBefore(field);
-});
-</script>
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-	<form action="{% url "faculty.views.manage_memo_template" slug=memo_template.slug%}" method="post">
+	<form action="" method="post">
 		{% csrf_token %}
         <fieldset>
             {{ form|as_dl }}
@@ -47,7 +41,7 @@ $( document ).ready(function() {
 							</dl>
 				</div>
 			<p>
-				<input  class="submit"  type="submit" value="Submit" />
+				<input  class="submit"  type="submit" value="Save" />
 			</p>
 			</div>
 		</fieldset>

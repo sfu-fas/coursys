@@ -36,10 +36,10 @@ $(document).ready(function() {
 <table id="facultytable" class="display">
   <thead><tr><th scope="col">Name</th><th scope="col">Unit</th></tr></thead>
   <tbody>
-  {% for r in fac_roles %}
+  {% for person,units in fac_roles %}
   <tr>
-  <td><a href="{% url "faculty.views.summary" userid=r.person.userid_or_emplid %}">{{r.person.sortname}}</a></td>
-  <td>{{ r.unit.name }}</td>
+  <td><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  <td>{{ units }}</td>
   </tr>
   {% endfor %}
   </tbody>

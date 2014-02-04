@@ -1,25 +1,12 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
+
 {% block title %}{{ person.name }}: {{ event.title }}{% endblock %}
 {% block h1 %}{{ person.name }}: {{ event.title }}{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#memo_table').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[2, "asc"]],
-    "aoColumns": [null,
-                  null,
-                  { "sType": "by-date" },
-                  { "sType": "by-date" },
-                  null,
-    ],
-    "bJQueryUI": true,
-  } );
-} );
-</script>
+<link rel="stylesheet" href="{% static "style/faculty.css" %}" />
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -42,16 +29,20 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-
+<div class="careerevent">
 {{ handler.to_html }}
-
-<h4>Placeholder UI</h4>
-{% with attachments=event.attachments.all %}
-{% for a in attachments %}
-<div>
-	<a href="{{ a.contents.url }}">{{ a.title }} ({{ a.mediatype }})</a>
 </div>
+<div class="clearfix"></div>
+
+{% with attachments=event.attachments.all %}
+{% if attachments %}
+<h2 id="attach">Attachments</h2>
+<ul>
+{% for a in attachments %}
+<li><a href="{{ a.contents.url }}">{{ a.title }} ({{ a.mediatype }}, {{ a.contents.file.size|filesizeformat }})</a></li>
 {% endfor %}
+</ul>
+{% endif %}
 {% endwith %}
 
 <h4>Memos</h4>

@@ -31,15 +31,15 @@ $(document).ready(function() {
 </div>
 {% endblock %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}Memo Templates{% endblock %}
+{% block h1 %}Memo Templates{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
 	<a href="{% url "faculty.views.index" %}">Faculty</a>
 </li>
 <li>
-	{{crumb}}
+	Memo Templates
 </li>
 {% endblock %}
 
@@ -59,10 +59,10 @@ $(document).ready(function() {
 			{% for s in templates %}
 			<tr>
 				<td>{{s.label}}</td>
-				<td>{{s.event_type}}</td>
-				<td>{{s.template_text|slice:":75"}}</td>
+				<td>{{s.get_event_type_display}}</td>
+				<td>{{s.template_text|truncatechars:50}}</td>
 				<td>{{s.created_at}}</td>
-				<td><a href="{% url "faculty.views.manage_memo_template" slug=s.slug %}">Manage</a></td>
+				<td><a href="{% url "faculty.views.manage_memo_template" slug=s.slug %}">Edit</a></td>
 			</tr>
 			{% endfor %}
 		</tbody>

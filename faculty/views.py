@@ -14,7 +14,7 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm
 
-import mimetypes
+import itertools
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -35,6 +35,8 @@ def _get_faculty_or_404(allowed_units, userid_or_emplid):
 def index(request):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    fac_roles = [(p, ', '.join(r.unit.informal_name() for r in roles)) for p, roles in fac_roles]
 
     context = {
         'fac_roles': fac_roles,
@@ -126,7 +128,7 @@ def view_event(request, userid, event_slug):
 @requires_role('ADMN')
 def event_type_list(request, userid):
     types = [ # TODO: how do we check is_instant now?
-        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': False,
+        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': Handler.IS_INSTANT,
          'affects_teaching': 'affects_teaching' in Handler.FLAGS,
          'affects_salary': 'affects_salary' in Handler.FLAGS}
         for key, Handler in EVENT_TYPE_CHOICES]
@@ -234,7 +236,11 @@ def new_attachment(request, userid, event_slug):
             attachment = form.save(commit=False)
             attachment.career_event = event
             attachment.created_by = editor
-            attachment.mediatype = mimetypes.guess_type(attachment.contents.url)[0]
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
             attachment.save()
             return HttpResponseRedirect(event.get_absolute_url())
         else:
@@ -250,11 +256,7 @@ def new_attachment(request, userid, event_slug):
 def memo_templates(request):
     templates = MemoTemplate.objects.filter(unit__in=request.units, hidden=False)
 
-    page_title = 'Memo Templates'
-    crumb = 'Memo Templates'    
     context = {
-               'page_title' : page_title,
-               'crumb' : crumb,
                'templates': templates,          
                }
     return render(request, 'faculty/memo_templates.html', context)
@@ -262,7 +264,7 @@ def memo_templates(request):
 @requires_role('ADMN')
 def new_memo_template(request):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
-    unit_choices = [(u.id, u.name) for u in request.units]
+    unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST)
         form.fields['unit'].choices = unit_choices 
@@ -270,25 +272,21 @@ def new_memo_template(request):
             f = form.save(commit=False)
             f.created_by = person           
             f.save()
-            messages.success(request, "Created new memo template %s for %s." % (form.instance.label, form.instance.unit))          
+            messages.success(request, "Created memo template %s for %s." % (form.instance.label, form.instance.unit))
             return HttpResponseRedirect(reverse(memo_templates))
     else:
         form = MemoTemplateForm()
-        form.fields['unit'].choices = unit_choices 
+        form.fields['unit'].choices = unit_choices
 
-    page_title = 'New Memo Template'  
-    crumb = 'New'
     context = {
                'form': form,
-               'page_title' : page_title,
-               'crumb' : crumb,
                }
-    return render(request, 'faculty/new_memo_template.html', context)
+    return render(request, 'faculty/memo_template_form.html', context)
 
 @requires_role('ADMN')
 def manage_memo_template(request, slug):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
-    unit_choices = [(u.id, u.name) for u in request.units]    
+    unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     memo_template = get_object_or_404(MemoTemplate, slug=slug)
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST, instance=memo_template)
@@ -296,21 +294,17 @@ def manage_memo_template(request, slug):
             f = form.save(commit=False)
             f.created_by = person            
             f.save()
-            messages.success(request, "Updated %s memo for %s." % (form.instance.label, form.instance.unit))           
+            messages.success(request, "Updated %s template for %s." % (form.instance.label, form.instance.unit))
             return HttpResponseRedirect(reverse(memo_templates))
     else:
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices 
 
-    page_title = 'Manage Memo Template'  
-    crumb = 'Manage' 
     context = {
                'form': form,
-               'page_title' : page_title,
-               'crumb' : crumb,
-               'memo_template' : memo_template,
+               'memo_template': memo_template,
                }
-    return render(request, 'faculty/manage_memo_template.html', context)
+    return render(request, 'faculty/memo_template_form.html', context)
 
 @requires_role('ADMN')
 def new_memo(request, userid, event_slug, memo_template_slug):

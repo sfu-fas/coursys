@@ -15,7 +15,13 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     """
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
-    TO_HTML_TEMPLATE = "{{ event.person.name }}'s event {{ handler.short_summary }}"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Position</dt><dd>{{ position_display }}</dd>
+        <dt>Add salary</dt><dd>${{ event|get_config:"add_salary"|floatformat:2 }}</dd>
+        <dt>Add pay</dt><dd>${{ event|get_config:"add_pay"|floatformat:2 }}</dd>
+        <dt>Teaching credit</dt><dd>{{ event|get_config:"teaching_credit" }} (per semester)</dd>
+        {% endblock %}
+        """
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['position', 'add_salary', 'add_pay', 'teaching_credit']
@@ -57,24 +63,34 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def default_title(self):
         return 'Fellowship / Chair'
 
-    def short_summary(self):
+    def get_position_display(self):
+        """
+        Get the name of this fellowship/chair, for display to the user
+        """
         from faculty.models import EventConfig
         try:
             ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.EVENT_TYPE)
-            fellowships = dict(ec.config.get('fellowships', []))
+            fellowships = dict(ec.config.get('fellowships', {}))
         except EventConfig.DoesNotExist:
             fellowships = {}
 
         pos = self.event.config.get('position', '???')
-        return "Appointment to %s" % (fellowships.get(pos, pos))
+        return fellowships.get(pos, pos)
+
+    def short_summary(self):
+        pos = self.get_position_display()
+        return "Appointment to %s" % (pos,)
+
+    def to_html_context(self):
+        return {'position_display': self.get_position_display()}
 
     def salary_adjust_annually(self):
-        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0) or 0)
-        add_pay  = decimal.Decimal(self.event.config.get('add_pay', 0) or 0)
+        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0))
+        add_pay  = decimal.Decimal(self.event.config.get('add_pay', 0))
         return SalaryAdjust(add_salary, 1, add_pay)
 
     def teaching_adjust_per_semester(self):
-        adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0) or 0)
+        adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0))
         return TeachingAdjust(adjust, adjust)
 
 
