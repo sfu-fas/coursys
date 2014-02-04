@@ -19,5 +19,6 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/$', 'faculty.views.view_event', name="faculty_event_view"),
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/attach$', 'faculty.views.new_attachment', name="faculty_add_attachment"),
-    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/memos$', 'faculty.views.manage_memos', name="faculty_event_memos_view"),
+    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name="faculty_event_memo_create"),
+    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name="faculty_event_memo_manage"),
 )

@@ -50,18 +50,15 @@ class MemoForm(forms.ModelForm):
                                  help_text='Use the "From" person\'s signature, if on file?')    
     class Meta: 
         model = Memo
-        exclude = ('created_by', 'config', 'template')
+        exclude = ('created_by', 'config', 'template', 'career_event')
         widgets = {
                    'career_event': forms.HiddenInput(),
                    'to_lines': forms.Textarea(attrs={'rows': 4, 'cols': 50}),
                    'from_lines': forms.Textarea(attrs={'rows': 3, 'cols': 30}),
-                   'content': forms.Textarea(attrs={'rows':'25', 'cols': '70'}),
+                   'memo_text': forms.Textarea(attrs={'rows':25, 'cols': 70}),
+                   'subject': forms.Textarea(attrs={'rows':2, 'cols':70}),
+                   'cc_lines': forms.Textarea(attrs={'rows':3, 'cols':50}),
                    }
-    
-    def __init__(self, *args, **kwargs):
-        super(MemoForm, self).__init__(*args, **kwargs)
-        if 'instance' in kwargs:
-            self.initial['use_sig'] = kwargs['instance'].use_sig()
     
     def clean_use_sig(self):
         use_sig = self.cleaned_data['use_sig']

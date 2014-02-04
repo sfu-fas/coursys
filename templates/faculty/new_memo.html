@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}New {{ template.label|title }} Memo{% endblock %}
+{% block h1 %}New {{ template.label|title }} Memo{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty.views.view_event" userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.title }}</a></li>
+<li>New {{ template.label|title }} Memo</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+	<form action="{% url "faculty.views.new_memo" userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=template.slug %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Memo Info
+			</legend>
+			<div style="clear: both"></div>
+            {{form|as_dl}}
+			<p>
+				<input  class="submit"  type="submit" value="Submit" />
+			</p>
+		</fieldset>
+	</form>
+</div>
+<p><a class="button" href="{% url "faculty.views.view_event" userid=person.userid_or_emplid event_slug=event.slug %}">Return to Career Event</a></p>
+{% endblock %} 

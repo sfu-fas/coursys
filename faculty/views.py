@@ -1,3 +1,5 @@
+import datetime
+
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect
@@ -10,7 +12,7 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES
-from faculty.forms import CareerEventForm, MemoTemplateForm, AttachmentForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm
 
 import mimetypes
 
@@ -103,6 +105,8 @@ def view_event(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
+    memos = Memo.objects.filter(career_event = instance)
+    templates = MemoTemplate.objects.filter(unit__in=request.units, hidden=False)
 
     Handler = EVENT_TYPES[instance.event_type](event=instance)
 
@@ -111,6 +115,8 @@ def view_event(request, userid, event_slug):
         'editor': editor,
         'handler': Handler,
         'event': instance,
+        'memos': memos,
+        'templates': templates,
     }
     return render(request, 'faculty/view_event.html', context)
 
@@ -290,7 +296,7 @@ def manage_memo_template(request, slug):
             f = form.save(commit=False)
             f.created_by = person            
             f.save()
-            messages.success(request, "Updated %s letter for %s." % (form.instance.label, form.instance.unit))           
+            messages.success(request, "Updated %s memo for %s." % (form.instance.label, form.instance.unit))           
             return HttpResponseRedirect(reverse(memo_templates))
     else:
         form = MemoTemplateForm(instance=memo_template)
@@ -307,16 +313,75 @@ def manage_memo_template(request, slug):
     return render(request, 'faculty/manage_memo_template.html', context)
 
 @requires_role('ADMN')
-def manage_memos(request, userid, event_slug):
-    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
+def new_memo(request, userid, event_slug, memo_template_slug):
+    template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=request.units)
+    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username)) 
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
-    letters = Memo.objects.filter(career_event = instance)
-    templates = MemoTemplate.objects.filter(unit__in=request.units, hidden=False)
 
-
+    from_choices = [('', u'\u2014')] \
+                    + [(r.person.id, "%s. %s, %s" %
+                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+                        for r in Role.objects.filter(unit=instance.unit)]
+    #TODO: implement templating function (text to dictionary)
+    #ls = faculty.memo_info()
+    if request.method == 'POST':
+        form = MemoForm(request.POST)
+        form.fields['from_person'].choices = from_choices
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.created_by = person
+            f.career_event = instance
+            #f.config.update(ls)
+            f.template = template;
+            f.save()
+            messages.success(request, "Created new %s memo for %s." % (form.instance.template.label, form.instance.career_event.title))            
+            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+        else:
+            messages.success(request, "error!")   
+    else:
+        form = MemoForm(initial={'date': datetime.date.today()})
+        form.fields['from_person'].choices = from_choices
+        
     context = {
-               'letters': letters,
-               'templates': templates,                
+               'form': form,
+               'template' : template,
+               'person': person,
+               'event': instance,
                }
-    return render(request, 'faculty/view_memos.html', context)
+    return render(request, 'faculty/new_memo.html', context)
 
+@requires_role('ADMN')
+def manage_memo(request, userid, event_slug, memo_slug):
+    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username)) 
+    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
+
+    from_choices = [('', u'\u2014')] \
+                    + [(r.person.id, "%s. %s, %s" %
+                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+                        for r in Role.objects.filter(unit=instance.unit)]
+
+    if request.method == 'POST':
+        form = MemoForm(request.POST, instance=memo)
+        form.fields['from_person'].choices = from_choices
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.created_by = person
+            f.career_event = instance
+            f.template = memo.template
+            f.save()
+            messages.success(request, "Updated memo for %s" % (form.instance.career_event.title))            
+            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+        else:
+            messages.success(request, "error!")   
+    else:
+        form = MemoForm(instance=memo, initial={'date': datetime.date.today()})
+        form.fields['from_person'].choices = from_choices
+        
+    context = {
+               'form': form,
+               'person': person,
+               'event': instance,
+               'memo': memo,
+               }
+    return render(request, 'faculty/manage_memo.html', context)
