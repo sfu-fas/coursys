@@ -51,7 +51,7 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
 
 class CommitteeMemberHandler(CareerEventHandlerBase):
 
-    EVENT_TYPE = 'COMMITTEE_MEMB'
+    EVENT_TYPE = 'COMMITTEE'
     NAME = 'Committee Member'
 
     class EntryForm(BaseEntryForm):
@@ -81,7 +81,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
 
     @property
     def default_title(self):
-        return 'On the <...> committee'
+        return 'Joined a committee'
 
     def short_summary(self):
         return 'On the {} committee for the {}'.format(self.get_config('committee_name', ''),
