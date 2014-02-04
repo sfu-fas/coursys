@@ -104,7 +104,18 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
             </div>
 
             <ul class="sf-menu">
-              <li>
+              <li class="header">
+                <a href="/">Courses</a>
+                  {% regroup memberships by offering.semester as by_semester %}
+                  {% for semester in by_semester %}
+                    <ul>
+                    {% for membership in semester.list %}
+                      <li><a href="{{membership.offering.get_absolute_url}}">{{semester.grouper.label}} - {{membership.offering.name}}</a></li>
+                    {% endfor %}
+                    </ul>
+                  {% endfor %}
+              </li>
+<!--              <li>
                 <a href="#">A-Z Directory</a>
 
                 <ul class="expanded directory">
@@ -136,7 +147,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                   <li><a href="http://www.sfu.ca/main/dir/z.html">z</a></li>
                 </ul>
               </li>
-
+-->
               <li>
                 {% if user.is_authenticated %}
                     <a href="{{ LOGOUT_URL }}">Sign Out</a>

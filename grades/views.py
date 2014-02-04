@@ -39,7 +39,9 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig, NewsItem
+from dashboard.views import _get_memberships
 from discuss import activity as discuss_activity
+
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -1125,8 +1127,10 @@ def all_grades(request, course_slug):
             gs = a.lettergrade_set.all().select_related('member', 'member__person')
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
+
+    memberships, excluded=_get_memberships(userid=request.user.username)
     
-    context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
+    context = {'course': course, 'students': students, 'activities': activities, 'grades': grades, 'memberships': memberships}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 
 
@@ -1195,8 +1199,10 @@ def class_list(request, course_slug):
     for m in members:
         data = {'member': m, 'groups': groups.get(m.id, [])}
         rows.append(data)
+
+    memberships, excluded=_get_memberships(userid=request.user.username)
     
-    context = {'course': course, 'rows': rows}
+    context = {'course': course, 'rows': rows, 'memberships': memberships}
     return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
 
 
