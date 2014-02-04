@@ -7,6 +7,22 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/faculty.css" %}" />
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#memo_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[2, "asc"]],
+    "aoColumns": [null,
+                  null,
+                  { "sType": "by-date" },
+                  { "sType": "by-date" },
+                  null,
+    ],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -67,7 +83,7 @@
 				<td> {{ l.from_person }} </td>
 				{% if not index %}<td><a href="">Get PDF</a>
 					| <a href="">View Body</a>
-					| <a href="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Manage Memo</a></td>{% endif %}
+					| <a href="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a></td>{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>
