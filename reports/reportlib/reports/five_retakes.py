@@ -1,8 +1,8 @@
-from reports.reportlib.report import Report
-from reports.reportlib.queries import StudentCourseQuery, RepeatableCourseQuery, ActiveInProgramOrPlanQuery, EmailQuery, NameQuery
-from reports.reportlib.semester import registration_semester, current_semester, semester_range 
-from reports.reportlib import rules
-from reports.reportlib.table import Table 
+from ..report import Report
+from ..queries import StudentCourseQuery, RepeatableCourseQuery, ActiveInProgramOrPlanQuery, EmailQuery, NameQuery
+from ..semester import registration_semester, current_semester, semester_range 
+from .. import rules
+from ..table import Table 
 
 class FiveRetakeReport( Report ):
     title = "Five Retake Report"

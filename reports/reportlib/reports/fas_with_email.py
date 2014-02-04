@@ -1,6 +1,7 @@
-from reports.reportlib.report import Report
-from reports.reportlib.queries import CGPAQuery, ActiveInProgramOrPlanQuery, EmailQuery, NameQuery, PreferredPhoneQuery, OriginQuery 
-from reports.reportlib import rules
+from ..report import Report
+from ..queries import CGPAQuery, ActiveInProgramOrPlanQuery, EmailQuery, NameQuery, PreferredPhoneQuery, OriginQuery 
+from .. import rules
+
 import copy
 
 class FasStudentReport( Report ):

@@ -1,6 +1,6 @@
-from reports.reportlib.report import Report
-from reports.reportlib.queries import CGPAQuery, ActiveInProgramOrPlanQuery, EmailQuery, NameQuery, PreferredPhoneQuery
-from reports.reportlib import rules
+from ..report import Report
+from ..queries import CGPAQuery, ActiveInProgramOrPlanQuery, EmailQuery, NameQuery, PreferredPhoneQuery
+from .. import rules
 
 import copy
 

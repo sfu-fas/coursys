@@ -84,9 +84,8 @@ def report_map(report_location, logger):
     try:
         module = importlib.import_module("reports.reportlib.reports." + 
                                          report_without_extension)
-    except ImportError:
-        raise ReportLoadingException( report_location + 
-                          " could not be found in /reports/reportlib/reports/" )
+    except ImportError as e:
+        raise ReportLoadingException( report_location + " : " + str(e) )
 
     candidates = [item for item in dir(module) if item.endswith("Report") 
                   and item != "Report"] 

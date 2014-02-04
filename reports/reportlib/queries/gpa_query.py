@@ -1,5 +1,5 @@
-from reports.reportlib.db2_query import DB2_Query
-from reports.reportlib.semester import current_semester
+from ..db2_query import DB2_Query
+from ..semester import current_semester
 import string
 
 class CGPAQuery(DB2_Query):

@@ -61,9 +61,6 @@ class ImmediateRetakeReport( Report ):
         output_table.title=self.title
         output_table.description=self.description
 
-        #cat = CoursysAlertTable( table=output_table, code="IMMEDIATE RETAKE", unique_columns=['COURSE'],  unit="APSC", )
-        #print cat.send()
-
         # Output
         self.artifacts.append( output_table )
         self.artifacts.append( current_semester_query ) 

@@ -1,4 +1,4 @@
-from reports.reportlib.db2_query import DB2_Query, Unescaped
+from ..db2_query import DB2_Query, Unescaped
 import string
 import datetime
 

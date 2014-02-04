@@ -1,5 +1,5 @@
-from reports.reportlib.db2_query import DB2_Query
-from reports.reportlib.semester import Semester, current_semester
+from ..db2_query import DB2_Query
+from ..semester import Semester, current_semester
 
 import string
 

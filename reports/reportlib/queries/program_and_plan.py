@@ -1,7 +1,6 @@
-
-from reports.reportlib.db2_query import DB2_Query
-from reports.reportlib.table import Table
-from reports.reportlib.semester import Semester, current_semester, registration_semester
+from ..db2_query import DB2_Query
+from ..table import Table
+from ..semester import Semester, current_semester, registration_semester
 
 import datetime
 import copy
