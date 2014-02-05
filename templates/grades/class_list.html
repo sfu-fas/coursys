@@ -33,10 +33,10 @@
     <ul>
     {% regroup memberships by offering.semester as by_semester %}
         {% for semester in by_semester %}
-        <li><a>View Other Class Lists</a></li>
+        <li><a>View {{semester.grouper.label}} class lists</a></li>
         <ul>
         {% for membership in semester.list %}
-          <li><a href="{{membership.offering.get_absolute_url}}list/">{{semester.grouper.label}} - {{membership.offering.name}}</a></li>
+          <li><a href="{{membership.offering.get_absolute_url}}list/">{{membership.offering.name}}</a></li>
         {% endfor %}
         </ul>
     {% endfor %}

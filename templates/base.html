@@ -101,13 +101,13 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
               <li class="header">
                 <a href="/">Courses</a>
                   {% regroup memberships by offering.semester as by_semester %}
-                  {% for semester in by_semester %}
                     <ul>
+                    {% for semester in by_semester %}
                     {% for membership in semester.list %}
                       <li><a href="{{membership.offering.get_absolute_url}}">{{semester.grouper.label}} - {{membership.offering.name}}</a></li>
                     {% endfor %}
+                    {% endfor %}
                     </ul>
-                  {% endfor %}
               </li>
 <!--              <li>
                 <a href="#">A-Z Directory</a>
