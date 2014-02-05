@@ -11,7 +11,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES
+from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm
 
 import itertools
@@ -293,9 +293,11 @@ def new_memo_template(request, event_type):
         form = MemoTemplateForm()
         form.fields['unit'].choices = unit_choices
 
+    lt = sorted(EVENT_TAGS.iteritems())
     context = {
                'form': form,
                'event_type_slug': event_type,
+               'EVENT_TAGS': lt
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
@@ -317,10 +319,12 @@ def manage_memo_template(request, event_type, slug):
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices 
 
+    lt = sorted(EVENT_TAGS.iteritems())
     context = {
                'form': form,
                'memo_template': memo_template,
                'event_type_slug':event_type,
+               'EVENT_TAGS': lt,
                }
     return render(request, 'faculty/memo_template_form.html', context)
 

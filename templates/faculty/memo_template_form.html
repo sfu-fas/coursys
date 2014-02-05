@@ -23,16 +23,17 @@
         <fieldset>
             {{ form|as_dl }}
         </fieldset>
-
 				<div id="template-help">
 						<h3>Available tags:</h3>
 							<dl>
+								{%for tag, val in EVENT_TAGS %}
 								<dt>
-									TBD
+									{%templatetag openvariable%} {{tag}} {%templatetag closevariable%} 
 								</dt>
 								<dd>
-									TBD
+									{{val}}
 								</dd>
+								{%endfor%}
 							</dl>
 				</div>
 			<p>

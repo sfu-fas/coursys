@@ -37,6 +37,16 @@ HANDLERS = [
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
 
+#basic list to get templating working
+#TODO: event_type specific tags
+EVENT_TAGS = {
+               'title': '"Mr", "Miss", etc.',
+               'first_name': 'recipient\'s first name',
+               'last_name': 'recipients\'s last name',
+               'his_her' : '"his" or "her" (or use His_Her for capitalized)',
+               'he_she' : '"he" or "she" (or use He_She for capitalized)',
+               }
+
 
 class CareerEvent(models.Model):
 
