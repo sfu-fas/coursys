@@ -241,7 +241,6 @@ class Memo(models.Model):
         doc.add_letter(l)
         doc.write()
 
-
 class EventConfig(models.Model):
     """
     A unit's configuration for a particular event type

@@ -2,6 +2,8 @@ import datetime
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
+from django.http import HttpResponse
+from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -259,7 +261,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
 
     # TODO: is this the right approach?
     if not (event.unit in member_units):
-        return ForbiddenResponse(request, "Not allowed to view this attachment")
+        return HttpResponseForbidden(request, "Not allowed to view this attachment")
 
     resp = HttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + attachment.contents.file.name + '"'
