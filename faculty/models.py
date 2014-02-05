@@ -131,6 +131,7 @@ class DocumentAttachment(models.Model):
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False, related_name="attachments")
     title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(upload_to=attachment_upload_to)
@@ -141,6 +142,7 @@ class DocumentAttachment(models.Model):
 
     class Meta:
         ordering = ("created_at",)
+        unique_together = (("career_event", "slug"),)
 
 
 class MemoTemplate(models.Model):

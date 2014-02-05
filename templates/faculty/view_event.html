@@ -38,7 +38,7 @@ $(document).ready(function() {
   <ul>
     <li><a href="{{ event.get_change_url }}">Edit event</a></li>
     <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
-    {% for t in templates%}
+    {% for t in templates %}
 	<li><a href="{% url "faculty.views.new_memo" userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{t.label|title}} Memo</a></li>
 	{% endfor %}
   </ul>
@@ -56,7 +56,7 @@ $(document).ready(function() {
 <h2 id="attach">Attachments</h2>
 <ul>
 {% for a in attachments %}
-<li><a href="{{ a.contents.url }}">{{ a.title }} ({{ a.mediatype }}, {{ a.contents.file.size|filesizeformat }})</a></li>
+<li><a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">{{ a.title }} ({{ a.mediatype }}, {{ a.contents.file.size|filesizeformat }})</a></li>
 {% endfor %}
 </ul>
 {% endif %}

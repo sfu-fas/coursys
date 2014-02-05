@@ -3,6 +3,7 @@ from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
 
 #FACULTY_SLUG = UNIT_SLUG + '/' + USERID_OR_EMPLID
 EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
+EVENT_PREFIX = USERID_OR_EMPLID + '/events/' + EVENT_SLUG
 
 
 urlpatterns = patterns('',
@@ -17,9 +18,11 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/new-event$', 'faculty.views.event_type_list', name="faculty_event_types"),
     url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<handler>[a-z_]+)$', 'faculty.views.create_event', name="faculty_create_event"),
     url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<handler>[a-z]+)$', 'faculty.views.create_event', name="faculty_create_event"),
-    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/$', 'faculty.views.view_event', name="faculty_event_view"),
-    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
-    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/attach$', 'faculty.views.new_attachment', name="faculty_add_attachment"),
-    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name="faculty_event_memo_create"),
-    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name="faculty_event_memo_manage"),
+    url(r'^' + EVENT_PREFIX + '/$', 'faculty.views.view_event', name="faculty_event_view"),
+    url(r'^' + EVENT_PREFIX + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
+    url(r'^' + EVENT_PREFIX + '/attach$', 'faculty.views.new_attachment', name="faculty_add_attachment"),
+    url(r'^' + EVENT_PREFIX + '/attach/(?P<attach_slug>' + SLUG_RE + ')/view$', 'faculty.views.view_attachment', name="faculty_view_attachment"),
+    url(r'^' + EVENT_PREFIX + '/attach/(?P<attach_slug>' + SLUG_RE + ')/download$', 'faculty.views.download_attachment', name="faculty_download_attachment"),
+    url(r'^' + EVENT_PREFIX + '/(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name="faculty_event_memo_create"),
+    url(r'^' + EVENT_PREFIX + '/(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name="faculty_event_memo_manage"),
 )

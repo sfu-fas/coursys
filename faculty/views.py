@@ -249,6 +249,28 @@ def new_attachment(request, userid, event_slug):
     return render(request, 'faculty/document_attachment_form.html', context)
 
 
+@requires_role('ADMN')
+def view_attachment(request, userid, event_slug, attach_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
+    attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
+
+    # TODO: is this the right approach?
+    if not (event.unit in member_units):
+        return ForbiddenResponse(request, "Not allowed to view this attachment")
+
+    resp = HttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + attachment.contents.file.name + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+@requires_role('ADMN')
+def download_attachment(request, userid, event_slug, attach_slug):
+    pass
+
+
 ###############################################################################
 # Creating and editing Memo Templates
 
