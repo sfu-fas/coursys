@@ -39,7 +39,9 @@ label, input, textarea, select, .date-datepicker-button, .datetime-local-datepic
 fieldset, label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
   width: auto;
 }
-
+form select[multiple] {
+  height: auto;
+}
 input[type="radio"], input[type="checkbox"] {
   float: none;
   margin: inherit;
