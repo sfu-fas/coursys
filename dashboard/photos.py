@@ -7,6 +7,7 @@ CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
 
+
 # from http://docs.python.org/2/library/itertools.html
 def _grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
