@@ -49,7 +49,7 @@ class StudentCourseQuery(DB2_Query):
 
 class SingleCourseQuery(DB2_Query):
     title = "Single Course Query"
-    description = "Fetch a list of students and whether or not they have taken a single course." 
+    description = "Fetch a list of students who have taken a course." 
     query = string.Template("""
     SELECT DISTINCT
         enrl.emplid,

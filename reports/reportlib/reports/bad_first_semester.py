@@ -7,7 +7,6 @@ import copy
 class BadFirstSemesterReport( Report ):
     title = "Bad First Semester Report"
     description = "This report lists FAS undergrad students with a GPA below 2.0, with less than 15 credits of courses." 
-    users = ["cameron", "classam", "fasmgr", "spa41", "danielad"]
 
     def run( self ):
         # Queries 
