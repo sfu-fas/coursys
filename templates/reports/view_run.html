@@ -34,11 +34,6 @@
   overflow-x: scroll;
 }
 </style>
-<pre class='code'>
-{% for line in runlines %}
-{{line.0.hour}}:{{line.0.minute}}- {{line.1|linebreaksbr}} 
-{% endfor %}
-</pre>
 
 <h2> Output </h2>
 {% for result in results %}
@@ -66,5 +61,12 @@
     <a href="{% url reports.views.csv_result report=report.slug run=run.slug result=result.slug %}">CSV</a> 
 
 {% endfor %}
+
+<h2> Console </h2>
+<pre class='code'>
+{% for line in runlines %}
+{{line.0.hour}}:{{line.0.minute}}- {{line.1|linebreaksbr}} 
+{% endfor %}
+</pre>
 
 {% endblock %}

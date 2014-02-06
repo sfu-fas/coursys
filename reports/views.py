@@ -71,6 +71,22 @@ def view_report(request, report):
                                                         'runs':runs, 
                                                         'components':components})
 
+def console(request, report):
+    report = get_object_or_404(Report, slug=report) 
+    
+    if not _has_access(request, report):
+        return ForbiddenResponse(request)
+
+    runs = Run.objects.filter(report=report).order_by("-created_at")
+    if len(runs) == 0:
+        return ""
+    
+    last_run = runs[0]
+    runlines = last_run.getLines()
+    log_lines = [line[1] for line in runlines]
+
+    return HttpResponse("\n".join(log_lines), content_type="text/plain")
+
 
 @requires_role('SYSA')
 def new_access_rule(request, report):

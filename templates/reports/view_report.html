@@ -24,16 +24,48 @@
 .results .success a, .results .fail a{
     color: white;
 }
+
+#code{
+  padding: 5px; 
+  background-color: #222;
+  color: white;
+  width: 750px;
+
+  word-wrap: break-word; /* IE */
+  white-space: pre-wrap; /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+}
 </style>
 
 <script type="text/javascript">
+
+    var console_url = '{% url reports.views.console report=report.slug %}';
+
+    var show_console = function(){
+        $("#console-modal").dialog({
+            height:400, 
+            width:800,
+            modal: true
+        });
+        setInterval(reload, 1000);
+    }
+
+    var reload = function(){
+        $.ajax( console_url, {
+                success: function(data){
+                    $("#console-modal").html("<pre id='code'>"+data+"</pre>");
+                }});
+    };
+
     $(document).ready(function() {
         $('#schedule_table').dataTable({
                     "bPaginate": false,
                     "bJQueryUI": true,
                     "bFilter": false
         });
+        $('.run').click(show_console);
     });
+
 </script>
 
 {% endblock %}
@@ -53,12 +85,19 @@
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
         <li><a href="{% url reports.views.new_query report=report.slug %}">New Query</a></li>
         {% endif %}
-        <li><a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
+        <li><a class='run' href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
+
+<div id="console-modal" style="display:none;" title="Console"> 
+    <pre id='code'> 
+        Now running your report! 
+        Extended console output won't display on a single-threaded server. (Django &lt; 1.4) 
+    </pre>
+</div> 
 
 <em>{{report.description}}</em>
 
@@ -115,7 +154,7 @@
 {% if is_scheduled_to_run %}
     <div>
         This report is scheduled to run <em>today</em>. 
-        <a href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a>
+        <a class='run' href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a>
     </div>
 {% endif %}
 </div>
@@ -152,6 +191,10 @@
         {% endif %}
 {% endfor %}
 </ul>
+
+<h2>Console</h2>
+<div id='console'> </div> 
+
 
 <h2>Runs</h2>
 <p>Report output:</p>

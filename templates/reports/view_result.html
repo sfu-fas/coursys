@@ -9,7 +9,8 @@ $(function() {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
-    "bJQueryUI": true
+    'bAutoWidth': true, 
+    'bJQueryUI': true
   } );
 } );
 </script>
@@ -27,6 +28,7 @@ $(function() {
 
 {% block content %}
 
+<div class='datatable_container'>
 <table class='datatable'>
 <thead>
 {% for column in result.table_rendered.headers %}
@@ -43,5 +45,6 @@ $(function() {
 {% endfor %}
 </tbody>
 </table>
+</div> 
 
 {% endblock %}
