@@ -227,15 +227,16 @@ class Memo(models.Model):
         super(Memo, self).save(*args, **kwargs)
 
     def write_pdf(self, response):
-        from dashboard.letters import OfficialLetter, LetterContents
+        from dashboard.letters import OfficialLetter, MemoContents
         doc = OfficialLetter(response, unit=self.unit)
-        l = LetterContents(to_addr_lines=self.to_lines.split("\n"),
+        l = MemoContents(to_addr_lines=self.to_lines.split("\n"),
                         from_name_lines=self.from_lines.split("\n"),
                         date=self.sent_date,
-                        salutation="Heeeeeyyyy",
-                        closing="Later",
                         signer=self.from_person,
-                        use_sig=self.use_sig)
+                        subject1=self.career_event.person.name(),
+                        subject2=self.subject,
+                        cc_lines=self.cc_lines.split("\n"),
+                        )
         content_lines = self.memo_text.split("\n\n")
         l.add_paragraphs(content_lines)
         doc.add_letter(l)

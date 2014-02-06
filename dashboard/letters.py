@@ -6,7 +6,7 @@ even though they serve very different parts of the overall system.
 """
 
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
+from reportlab.platypus import Flowable, Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch, mm
 from reportlab.lib.utils import ImageReader
@@ -351,6 +351,70 @@ class LetterContents(object):
         contents.append(PageBreak())
         
         return contents
+
+class MemoHead(Flowable, SFUMediaMixin):
+    """
+    A flowable styled like a SFU memo header line
+    """
+    def __init__(self, xoffset=0, width=None, key='', value='', bold=False, keywidth=1*inch):
+        self.key = key
+        self.value = value
+        self.keyfont = 'DINPro-Bold' if bold else 'DINPro'
+        self.xoffset = xoffset
+        self.keywidth = keywidth
+        self.width = width
+        self.height = 24
+        self._media_setup()
+
+    def wrap(self, availWidth, availHeight):
+        if not self.width:
+            self.width = availWidth - self.xoffset
+        return (self.xoffset, self.height)
+
+    def draw(self):
+        c = self.canv
+        c.setLineWidth(0.5)
+        c.setStrokeColor(black)
+        p = c.beginPath()
+        p.moveTo(self.xoffset, 11)
+        p.lineTo(self.xoffset, 0)
+        p.lineTo(self.xoffset + self.width, 0)
+        c.drawPath(p)
+
+        c.setFont(self.keyfont, 8)
+        self._drawStringLeading(c, self.xoffset + 5, 4, self.key.upper(), charspace=1 )
+        c.setFont('BemboMTPro', 12)
+        c.drawString(self.xoffset + self.keywidth, 4, self.value)
+
+class MemoContents(LetterContents):
+    def __init__(self, subject1, subject2, cc_lines, **kwargs):
+        self.subject1 = subject1
+        self.subject2 = subject2
+        self.cc_lines = cc_lines
+        super(MemoContents, self).__init__(**kwargs)
+
+    def _contents(self, memo):
+        contents = []
+        space_height = self.line_height
+        style = self.content_style
+        contents.append(MemoHead(key='Attention', value=', '.join(self.to_addr_lines), bold=True))
+        contents.append(MemoHead(key='From', value=', '.join(self.from_name_lines)))
+        contents.append(MemoHead(key='Re', value=self.subject1))
+        contents.append(MemoHead(key='', value=self.subject2))
+        contents.append(MemoHead(key='Date', value=self.date.strftime('%B %d, %Y').replace(' 0', ' ')))
+        contents.append(Spacer(1, 2*space_height))
+
+        for f in self.flowables:
+            # last paragraph is put in the KeepTogether below, to prevent bad page break
+            contents.append(f)
+            contents.append(Spacer(1, space_height))
+
+        contents.append(self.make_flowable('cc: ' + '; '.join(self.cc_lines)))
+
+        return contents
+
+
+
 
 class RAForm(object, SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box
