@@ -262,6 +262,10 @@ def get_unit(acad_org, create=False):
         name, = db.fetchone()
         if acad_org == 'ENVIRO SCI':
             label = 'ENVS'
+        elif acad_org == 'COMP SCI': # for test/demo imports
+            label = 'CMPT'
+        elif acad_org == 'ENG SCI': # for test/demo imports
+            label = 'ENSC'
         else:
             label = acad_org[:4].strip()
         if create:
