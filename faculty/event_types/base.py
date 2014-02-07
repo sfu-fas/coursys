@@ -2,10 +2,10 @@ import abc
 import collections
 import copy
 import datetime
-import fractions
 import itertools
 
 from django import forms
+from django.db import models
 from django.template import Context, Template
 
 from coredata.models import Role, Unit
@@ -42,34 +42,47 @@ class CareerEventMeta(abc.ABCMeta):
                     if flag not in cls.FLAGS:
                         cls.FLAGS.append(flag)
 
+        # Figure out what fields are required by the Handler subclass
+        cls.CONFIG_FIELDS = collections.OrderedDict()
+
+        for name, field in cls.EntryForm.base_fields.iteritems():
+            if name not in BaseEntryForm.base_fields:
+                cls.CONFIG_FIELDS[name] = field
+
+        # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
+        if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
+            del cls.EntryForm.base_fields['end_date']
+
 
 class BaseEntryForm(forms.Form):
-    CONFIG_FIELDS = []
-    title = forms.CharField(max_length=80, required=True, widget=forms.TextInput(attrs={'size': 60}))
+    title = forms.CharField(max_length=80, required=True,
+                            widget=forms.TextInput(attrs={'size': 60}))
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=False)
     comments = forms.CharField(required=False,
                                widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
 
-    def __init__(self, event, editor, units, *args, **kwargs):
-        super(BaseEntryForm, self).__init__(*args, **kwargs)
-        self.event = event
+    def __init__(self, editor, units, *args, **kwargs):
+        handler = kwargs.pop('handler', None)
         self.editor = editor
         self.units = units
+        super(BaseEntryForm, self).__init__(*args, **kwargs)
+
         self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
         self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
 
-        if event.id:
-            # it's already in the database, so load existing values as defaults
-            # TODO: should this be done differently?
-            self.initial['title'] = self.event.title
-            self.initial['start_date'] = self.event.start_date
-            self.initial['end_date'] = self.event.end_date
-            self.initial['unit'] = self.event.unit
-            self.initial['comments'] = self.event.comments
-            for f in self.CONFIG_FIELDS:
-                self.initial[f] = self.event.config.get(f, None)
+        # Load initial data from the handler instance if possible
+        if handler:
+            self.initial['title'] = handler.event.title
+            self.initial['start_date'] = handler.event.start_date
+            self.initial['end_date'] = handler.event.end_date
+            self.initial['unit'] = handler.event.unit
+            self.initial['comments'] = handler.event.comments
+
+            # Load any handler specific field values
+            for name in handler.CONFIG_FIELDS:
+                self.initial[name] = handler.get_config(name, None)
 
         # force the comments field to the bottom
         self.fields.keyOrder = [k for k in self.fields.keyOrder if k != 'comments']
@@ -104,6 +117,7 @@ class CareerEventHandlerBase(object):
 
     # Internal mumbo jumbo
 
+    CONFIG_FIELDS = {}
     FLAGS = []
 
     def __init__(self, event):
@@ -139,25 +153,30 @@ class CareerEventHandlerBase(object):
 
         self.post_save()
 
-    def get_config(self, key, default=None):
-        return self.event.config.get(key, default)
+    def get_config(self, name, default=None):
+        raw_value = self.event.config.get(name) or self.CONFIG_FIELDS[name].default or default
+        return self.CONFIG_FIELDS[name].to_python(raw_value)
 
-    def set_config(self, key, value):
-        self.event.config[key] = value
+    def set_config(self, name, value):
+        if isinstance(value, models.Model):
+            raw_value = unicode(value.pk)
+        else:
+            raw_value = unicode(value)
+        self.event.config[name] = raw_value
 
     # Other ways to create a new handler instance
 
     @classmethod
-    def create_for(cls, person, unit):
+    def create_for(cls, person, form):
         """
         Given a person, create a new instance of the handler for them.
         """
         from faculty.models import CareerEvent
         event = CareerEvent(person=person,
                             event_type=cls.EVENT_TYPE)
-        if unit:
-            event.unit = unit
-        return cls(event)
+        ret = cls(event)
+        ret.load(form)
+        return ret
 
     # Stuff involving permissions
 
@@ -217,12 +236,11 @@ class CareerEventHandlerBase(object):
     class EntryForm(BaseEntryForm):
         pass
 
-    def load_from(self, form):
+    def load(self, form):
         """
         Given a valid form, load its data into the handler.
         """
         self.event.unit = form.cleaned_data['unit']
-        self.event.event_type = self.EVENT_TYPE
         self.event.title = form.cleaned_data['title']
         self.event.start_date = form.cleaned_data['start_date']
         self.event.end_date = form.cleaned_data.get('end_date', None)
@@ -231,32 +249,26 @@ class CareerEventHandlerBase(object):
 
         # XXX: status field: choose highest possible value for the available unit(s)?
 
-        for field in form.CONFIG_FIELDS:
-            data = form.cleaned_data[field]
-            if isinstance(data, fractions.Fraction):
-                data = unicode(data)
-            self.event.config[field] = data
+        for name in self.CONFIG_FIELDS:
+            self.set_config(name, form.cleaned_data.get(name, None))
 
-        return self.event
-
-    def get_entry_form(self, editor, units, **kwargs):
+    @classmethod
+    def get_entry_form(cls, editor, units, handler=None, **kwargs):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
         initial = {
-            'title': self.default_title,
+            'title': cls.default_title(),
             'start_date': datetime.date.today(),
         }
-        form = self.EntryForm(event=self.event,
-                              editor=editor,
-                              units=units,
-                              initial=initial,
-                              **kwargs)
-
-        if self.IS_INSTANT:
-            del form.fields['end_date']
-
+        form = cls.EntryForm(editor=editor,
+                             units=units,
+                             initial=initial,
+                             handler=handler,
+                             **kwargs)
         return form
+
+    # Stuff relating to HTML display
 
     def to_html(self):
         """
@@ -289,9 +301,9 @@ class CareerEventHandlerBase(object):
         '''
         pass
 
-    @property
-    def default_title(self):
-        return self.NAME
+    @classmethod
+    def default_title(cls):
+        return cls.NAME
 
     # Override these
 

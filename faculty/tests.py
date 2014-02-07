@@ -65,6 +65,7 @@ class EventTypesTest(TestCase):
                 # then instantiation will raise an Exception. This means that there is no need
                 # to explicitly check if a handler with a flag has overriden a specific base
                 # mixin method.
+                print Handler.NAME, Handler.CONFIG_FIELDS.keys()
                 handler = Handler.create_for(fac_member, fac_role.unit)
 
                 if 'affects_salary' in Handler.FLAGS:

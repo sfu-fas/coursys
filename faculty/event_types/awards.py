@@ -24,7 +24,6 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['position', 'add_salary', 'add_pay', 'teaching_credit']
         position = forms.ChoiceField(required=True, choices=[])
         add_salary = AddSalaryField(required=False)
         add_pay = AddPayField(required=False)
@@ -59,8 +58,8 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
             return data
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Fellowship / Chair'
 
     def get_position_display(self):
@@ -111,7 +110,6 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['category', 'teaching_credits', 'reason', 'approved_by', 'funded_by']
         CATEGORIES =[('BUYOUT', 'Buyout'), ('RELEASE', 'Teaching Release')]
         category = forms.ChoiceField(label='Type', choices=CATEGORIES)
         # Maybe don't want to use TeachingCreditField since it's not per semester?
@@ -120,8 +118,8 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         funded_by = forms.CharField(label='Funded By', max_length=255, required=False)
         approved_by = forms.CharField(label='Approved By', max_length=255, required=False)
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Recevied Teaching Credit'
 
     def short_summary(self):
@@ -150,7 +148,6 @@ class AwardEventHandler(CareerEventHandlerBase):
         """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['award', 'awarded_by', 'amount', 'externally_funded', 'in_payroll']
         award = forms.CharField(label='Award Name', max_length=255) 
         awarded_by = forms.CharField(label='Awarded By', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
@@ -158,8 +155,8 @@ class AwardEventHandler(CareerEventHandlerBase):
         in_payroll = forms.BooleanField(required=False)
 
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Award Received'
 
     def short_summary(self):
@@ -181,13 +178,12 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['funding_agency', 'grant_name', 'amount']
         funding_agency = forms.CharField(label='Funding Agency', max_length=255)
         grant_name = forms.CharField(label='Grant Name', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Applied for Grant'
 
     def short_summary(self):

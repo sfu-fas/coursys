@@ -170,15 +170,10 @@ def create_event(request, userid, handler):
         'event_type': Handler.EVENT_TYPE
     }
 
-    # TODO how to pick the unit to use?
-    units = sorted(list(member_units))
-    handler = Handler.create_for(person=person, unit=None)
     if request.method == "POST":
-        form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form = Handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
         if form.is_valid():
-            # Event is created in the handler init
-            # Event is updated in the load_form method
-            handler.load_from(form)
+            handler = Handler.create_for(person=person, form=form)
             handler.save(editor)
             
             return HttpResponseRedirect(handler.event.get_absolute_url())
@@ -186,7 +181,7 @@ def create_event(request, userid, handler):
             context.update({"event_form": form})
     else:
         # Display new blank form
-        form = handler.get_entry_form(editor=editor, units=member_units) 
+        form = Handler.get_entry_form(editor=editor, units=member_units)
         context.update({"event_form": form})
 
     return render(request, 'faculty/career_event_form.html', context)
@@ -211,16 +206,16 @@ def change_event(request, userid, event_slug):
     }
     handler = Handler(instance)
     if request.method == "POST":
-        form = handler.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form = Handler.get_entry_form(editor, member_units, handler=handler, data=request.POST)
         if form.is_valid():
-            handler.load_from(form)
+            handler.load(form)
             handler.save(editor)
             context.update({"event": handler.event,
                             "event_form": form})
 
     else:
         # Display form from db instance
-        form = handler.get_entry_form(editor=editor, units=member_units)
+        form = Handler.get_entry_form(editor, member_units, handler=handler)
         context.update({"event_form": form})
 
     return render(request, 'faculty/career_event_form.html', context)

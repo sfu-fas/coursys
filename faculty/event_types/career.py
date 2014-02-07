@@ -49,7 +49,6 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['spousal_hire', 'leaving_reason']
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
@@ -74,14 +73,13 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['step', 'base_salary', 'add_salary', 'add_pay']
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
         base_salary = AddSalaryField(help_text="Base annual salary for this rank + step.")
         add_salary = AddSalaryField()
         add_pay = AddPayField()
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Base Salary'
 
     def short_summary(self):
@@ -114,14 +112,13 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         """
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = ['amount', 'source']
         STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend')]
         source = forms.ChoiceField(label='Stipend Source', choices=STIPEND_SOURCES)
         # Do we want this to be adjusted during leaves?
         amount = AddSalaryField()
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Salary Modification/Stipend'
 
     def short_summary(self):
@@ -142,8 +139,8 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     IS_INSTANT = True
     TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Applied for Tenure'
 
     def short_summary(self):
@@ -159,8 +156,8 @@ class TenureReceivedEventHandler(CareerEventHandlerBase):
     IS_INSTANT = True
     TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Tenure Received'
 
     def short_summary(self):

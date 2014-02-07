@@ -12,15 +12,20 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'EXTERN_AFF'
     NAME = 'External Affiliation'
 
+    TO_HTML_TEMPLATE = '''
+{% extends 'faculty/event_base.html' %}
+{% load event_display %}
+{% block dl %}
+<dt>Organization Name</dt><dd>{{ handler|get_config:'org_name' }}</dd>
+<dt>Organization Type</dt><dd>{{ handler.get_org_type_display }}</dd>
+<dt>Organization Class</dt><dd>{{ handler.get_org_class_display }}</dd>
+<dt>Is Research Institute / Centre?</dt><dd>{{ handler|get_config:'is_research' }}</dd>
+<dt>Is Adjunct?</dt><dd>{{ handler|get_config:'is_adjunct' }}</dd>
+{% endblock %}
+'''
+
     class EntryForm(BaseEntryForm):
 
-        CONFIG_FIELDS = [
-            'org_name',
-            'org_type',
-            'org_class',
-            'is_research',
-            'is_adjunct',
-        ]
         ORG_TYPES = Choices(
             ('SFU', 'Internal SFU'),
             ('ACADEMIC', 'Academic'),
@@ -37,15 +42,21 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         is_research = forms.BooleanField(label='Research Institute/Centre?', required=False)
         is_adjunct = forms.BooleanField(label='Adjunct?', required=False)
 
-    @property
-    def default_title(self):
-        return 'Affiliated with {}'.format(self.event.config.get('org_name', ''))
+    @classmethod
+    def default_title(cls):
+        return 'Affiliated with '
+
+    def get_org_type_display(self):
+        return self.EntryForm.ORG_TYPES[self.get_config('org_type')]
+
+    def get_org_class_display(self):
+        return self.EntryForm.ORG_CLASSES[self.get_config('org_class')]
 
     def short_summary(self):
         # TODO: Figure out a nicer format that includes all relevant information.
-        org_name = self.event.config.get('org_name', '')
-        org_type = self.EntryForm.ORG_TYPES.get(self.event.config.get('org_type'), '')
-        org_class = self.EntryForm.ORG_CLASSES.get(self.event.config.get('org_class'), '')
+        org_name = self.get_config('org_name')
+        org_type = self.get_org_type_display()
+        org_class = self.get_org_class_display()
         return 'Affiliated with {} - a {} {}'.format(org_name, org_type, org_class)
 
 
@@ -54,33 +65,23 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'COMMITTEE'
     NAME = 'Committee Member'
 
+    TO_HTML_TEMPLATE = '''
+{% extends 'faculty/event_base.html' %}
+{% load event_display %}
+{% block dl %}
+<dt>Committee Name</dt><dd>{{ handler|get_config:'committee_name' }}</dd>
+<dt>Committee Unit</dt><dd>{{ handler|get_config:'committee_unit' }}</dd>
+{% endblock %}
+'''
+
     class EntryForm(BaseEntryForm):
 
-        CONFIG_FIELDS = [
-            'committee_name',
-            'committee_unit',
-        ]
-
         committee_name = forms.CharField(label='Committee Name', max_length=255)
-        committee_unit = forms.ModelChoiceField(label='Committee Unit', queryset=Unit.objects.all())
+        committee_unit = forms.ModelChoiceField(label='Committee Unit',
+                                                queryset=Unit.objects.all())
 
-    def initialize(self):
-        # TODO: Figure out a better way to do this
-        unit_id = self.get_config('committee_unit')
-
-        if unit_id is not None:
-            self.set_config('committee_unit', Unit.objects.get(id=unit_id))
-
-    def pre_save(self):
-        # TODO: and this
-        self.set_config('committee_unit', self.get_config('committee_unit').id)
-
-    def post_save(self):
-        # TODO: and also this.
-        self.set_config('committee_unit', Unit.objects.get(id=self.get_config('committee_unit')))
-
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Joined a committee'
 
     def short_summary(self):

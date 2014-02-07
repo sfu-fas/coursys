@@ -18,10 +18,7 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     NAME = 'Admin Position'
 
     class EntryForm(BaseEntryForm):
-        CONFIG_FIELDS = [
-            'position',
-            'teaching_credit',
-        ]
+
         POSITIONS = Choices(
             ('DEAN', 'Dean'),
             ('UGRAD_DIRECTOR', 'Undergrad Director'),
@@ -30,8 +27,8 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         position = forms.ChoiceField(required=True, choices=POSITIONS)
         teaching_credit = TeachingCreditField(required=False)
 
-    @property
-    def default_title(self):
+    @classmethod
+    def default_title(cls):
         return 'Admin Position'
 
     def short_summary(self):
