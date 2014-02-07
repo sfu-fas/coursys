@@ -2,9 +2,9 @@ from django.conf.urls import patterns, url, include
 from django.conf import settings
 from django.views.generic import TemplateView,  RedirectView
 
-if not settings.DEPLOYED:
-    from django.contrib import admin
-    admin.autodiscover()
+#if not settings.DEPLOYED:
+#    from django.contrib import admin
+#    admin.autodiscover()
 
 from courselib.urlparts import *
 
@@ -61,7 +61,7 @@ urlpatterns += patterns('',
     url(r'^data/scholarships/(?P<student_id>\d{9})$', 'ra.views.search_scholarships_by_student'),
     url(r'^students/$', 'dashboard.views.student_info'),
     url(r'^students/' + USERID_OR_EMPLID + '$', 'dashboard.views.student_info'),
-    url(r'^photos/' + EMPLID_SLUG + '$', 'dashboard.views.student_photo'),
+    url(r'^photos/' + EMPLID_SLUG + '$', 'grades.views.student_photo'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
         url(r'^m/' + COURSE_SLUG + '/$', 'mobile.views.course_info'),

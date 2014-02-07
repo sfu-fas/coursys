@@ -27,3 +27,6 @@ django-localflavor==1.0
 django-countries==1.5
 django-compressor==1.3
 django-cache-utils==0.7.2
+celery==3.1.8
+django-celery==3.1.1
+django-celery-email==1.0.4
