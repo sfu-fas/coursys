@@ -60,6 +60,10 @@ legend {
 .table th {
   background-color: #fff;
 }
+table th[scope=row] {
+  vertical-align: middle;
+  border: none;
+}
 
 .empty {
   font-style: italic;
@@ -221,30 +225,9 @@ div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-stat
 }
 
 
-disabled table {
-  border-collapse: collapse;
-  border: 1px solid black;
-  margin: 0.5em 0;
-}
-disabled table td, table th {
-  border: 1px solid black;
-  padding: 0.1em 0.25em;
-  vertical-align: top;
-}
-disabled table th {
-  font-size: 110%;
-  vertical-align: middle;
-  /* from jqueryui .ui-state-default */
-  border: 1px solid #d3d3d3; background: #e6e6e6 url(../jquery-ui/css/smoothness/images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50% repeat-x; font-weight: normal; color: #555555; outline: none;
-}
-disabled th.sorting_asc, th.sorting_desc {
-  border-width: 2px;
-}
-
 td[scope] {
   font-weight: bold;
 }
-
 #formulahelp dt {
   font-weight: bold;
   margin-top: 1em;
@@ -433,42 +416,28 @@ disabled #main span.disabledbutton.submit_button {
     clear: both;
 }
 
-disabled #main a.redbutton:hover {
-  border-color: #BCBCB4;
-  text-decoration: none;
-}
-disabled #main a.redbutton_onclick {
-  background-color: #F0EFEA;
-}
 
 disabled .buttongroup {
   margin: 0.5em 0em 0.5em 0em;
 }
-table.info thead th {
+table.info th {
   font-weight: bold;
+  width: 12em;
 }
-disabled table.info tbody th {
-  font-weight: bold;
-  text-align: left;
-}
-disabled table.info tbody th {
-  width: 30%;
-}
-disabled table.info thead th, table.info thead td, table.info tbody th, table.info tbody td{
-  border-color:#ccc;
-}
-disabled table.info {
-  border-color: #ccc;
-  width: 100%;
-}
-disabled div#main table.info p {
+section.main table.info p {
   padding: 0;
   margin: 0;
 }
-disabled div#main table.info p input {
+section.main table.info form {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+section.main table.info p input {
   float: right;
   font-size: 75%;
-  padding: 0;
+  padding: 0 0.5em;
 }
 
 
