@@ -47,10 +47,10 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         return 'Affiliated with '
 
     def get_org_type_display(self):
-        return self.EntryForm.ORG_TYPES[self.get_config('org_type')]
+        return self.EntryForm.ORG_TYPES.get(self.get_config('org_type'))
 
     def get_org_class_display(self):
-        return self.EntryForm.ORG_CLASSES[self.get_config('org_class')]
+        return self.EntryForm.ORG_CLASSES.get(self.get_config('org_class'))
 
     def short_summary(self):
         # TODO: Figure out a nicer format that includes all relevant information.
