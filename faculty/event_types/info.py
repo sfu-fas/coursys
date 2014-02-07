@@ -9,7 +9,7 @@ from faculty.event_types.base import Choices
 
 class ExternalAffiliationHandler(CareerEventHandlerBase):
 
-    EVENT_TYPE = 'EXTERN'
+    EVENT_TYPE = 'EXTERN_AFF'
     NAME = 'External Affiliation'
 
     class EntryForm(BaseEntryForm):
