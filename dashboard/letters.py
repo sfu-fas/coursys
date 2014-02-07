@@ -368,7 +368,7 @@ class MemoHead(Flowable, SFUMediaMixin):
 
     def wrap(self, availWidth, availHeight):
         if not self.width:
-            self.width = availWidth - self.xoffset
+            self.width = availWidth - self.xoffset - 1*inch
         return (self.xoffset, self.height)
 
     def draw(self):
@@ -387,29 +387,49 @@ class MemoHead(Flowable, SFUMediaMixin):
         c.drawString(self.xoffset + self.keywidth, 4, self.value)
 
 class MemoContents(LetterContents):
-    def __init__(self, subject1, subject2, cc_lines, **kwargs):
-        self.subject1 = subject1
-        self.subject2 = subject2
-        self.cc_lines = cc_lines
+    def __init__(self, subject, cc_lines, **kwargs):
+        self.subject = subject
+        self.cc_lines = [cc for cc in cc_lines if cc.strip()]
         super(MemoContents, self).__init__(**kwargs)
 
     def _contents(self, memo):
+        """
+        Produce a list of Flowables to form the body of the memo
+        """
         contents = []
         space_height = self.line_height
-        style = self.content_style
+        # the header block
         contents.append(MemoHead(key='Attention', value=', '.join(self.to_addr_lines), bold=True))
         contents.append(MemoHead(key='From', value=', '.join(self.from_name_lines)))
-        contents.append(MemoHead(key='Re', value=self.subject1))
-        contents.append(MemoHead(key='', value=self.subject2))
+        contents.append(MemoHead(key='Re', value=self.subject[0]))
+        for subjectline in self.subject[1:]:
+            contents.append(MemoHead(key='', value=subjectline))
         contents.append(MemoHead(key='Date', value=self.date.strftime('%B %d, %Y').replace(' 0', ' ')))
         contents.append(Spacer(1, 2*space_height))
 
+        # insert each paragraph
         for f in self.flowables:
-            # last paragraph is put in the KeepTogether below, to prevent bad page break
             contents.append(f)
             contents.append(Spacer(1, space_height))
 
-        contents.append(self.make_flowable('cc: ' + '; '.join(self.cc_lines)))
+        # the CC lines
+        if self.cc_lines:
+            data = []
+            for cc in self.cc_lines:
+                data.append(['', self.make_flowable(cc)])
+
+            cc = self.make_flowable('cc:')
+            data[0][0] = cc
+
+            cc_table = Table(data, colWidths=[0.3*inch, 5*inch])
+            cc_table.hAlign = "LEFT"
+            cc_table.setStyle(TableStyle(
+                    [('LEFTPADDING', (0,0), (-1,-1), 0),
+                     ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                     ('TOPPADDING', (0,0), (-1,-1), 0),
+                     ('BOTTOMPADDING', (0,0), (-1,-1), 0)]))
+
+            contents.append(cc_table)
 
         return contents
 

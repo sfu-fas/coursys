@@ -358,15 +358,15 @@ def new_memo(request, userid, event_slug, memo_template_slug):
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
 
-    from_choices = [('', u'\u2014')] \
-                    + [(r.person.id, "%s. %s, %s" %
-                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=instance.unit)]
+    #from_choices = [('', u'\u2014')] \
+    #                + [(r.person.id, "%s. %s, %s" %
+    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+    #                    for r in Role.objects.filter(unit=instance.unit)]
     #TODO: implement templating function (text to dictionary)
     #ls = faculty.memo_info()
     if request.method == 'POST':
         form = MemoForm(request.POST)
-        form.fields['from_person'].choices = from_choices
+        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -379,9 +379,13 @@ def new_memo(request, userid, event_slug, memo_template_slug):
         else:
             messages.success(request, "error!")   
     else:
-        form = MemoForm(initial={'date': datetime.date.today()})
-        form.fields['from_person'].choices = from_choices
-        
+        initial = {
+            'date': datetime.date.today(),
+            'subject': '%s %s\n%s ' % (person.get_title(), person.name(), 'Default subject'),
+        }
+        form = MemoForm(initial=initial)
+        #form.fields['from_person'].choices = from_choices
+
     context = {
                'form': form,
                'template' : template,
@@ -396,14 +400,14 @@ def manage_memo(request, userid, event_slug, memo_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    from_choices = [('', u'\u2014')] \
-                    + [(r.person.id, "%s. %s, %s" %
-                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=instance.unit)]
+    #from_choices = [('', u'\u2014')] \
+    #                + [(r.person.id, "%s. %s, %s" %
+    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+    #                    for r in Role.objects.filter(unit=instance.unit)]
 
     if request.method == 'POST':
         form = MemoForm(request.POST, instance=memo)
-        form.fields['from_person'].choices = from_choices
+        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -415,8 +419,8 @@ def manage_memo(request, userid, event_slug, memo_slug):
         else:
             messages.success(request, "error!")   
     else:
-        form = MemoForm(instance=memo, initial={'date': datetime.date.today()})
-        form.fields['from_person'].choices = from_choices
+        form = MemoForm(instance=memo)
+        #form.fields['from_person'].choices = from_choices
         
     context = {
                'form': form,
