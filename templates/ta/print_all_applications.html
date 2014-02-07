@@ -4,12 +4,10 @@
 {% block h1 %}{{ application.posting.unit.label }} TA Applications for {{posting.short_str}}{% endblock %}
 
 {% block headextra %}
-<link type="text/css" href="{{STATIC_URL}}style/print.css" rel="stylesheet" />
 <script type="text/javascript">
   $(function() {
       window.print()
   });
-
 </script>
 {% endblock %}
 

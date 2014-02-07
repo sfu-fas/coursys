@@ -865,7 +865,15 @@ class Member(models.Model):
         ordering = ['offering', 'person']
     def get_absolute_url(self):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})
-        
+    
+    @classmethod
+    def clear_old_official_grades(cls):
+        """
+        Clear out the official grade field on old records: no need to tempt fate.
+        """
+        cutoff = datetime.date.today() - datetime.timedelta(days=240)
+        old_grades = Member.objects.filter(offering__semester__end__lt=cutoff, official_grade__isnull=False)
+        old_grades.update(official_grade=None)
 
 
 WEEKDAY_CHOICES = (
@@ -1031,7 +1039,6 @@ class Unit(models.Model):
             cache.set(key, res, 24*3600)
             return res
         
-
 
 
 ROLE_CHOICES = (

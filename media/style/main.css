@@ -39,6 +39,9 @@ label, input, textarea, select, .date-datepicker-button, .datetime-local-datepic
 fieldset, label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
   width: auto;
 }
+form select[multiple] {
+  height: auto;
+}
 input[type="radio"], input[type="checkbox"] {
   float: none;
   margin: inherit;
@@ -68,7 +71,6 @@ span.sort {
 
 
 
-
 /* breadcrumb styling */
 div.breadcrumb ul li {
   display: inline;
@@ -89,28 +91,30 @@ div.breadcrumb ul li:first-child:before {
   right: 1em;
 }
 
+/* collapsibles */
 
-
-disabled ul#services li#online:hover ul{
-    width: 165px;
+.collapsible-content-collapsed {
+  display: none;
+}
+.collapsible-heading:before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-right: 0.25em;
+  content: '\00f147';
+}
+.collapsible-heading-collapsed:before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-right: 0.25em;
+  content: '\00f196';
 }
 
-disabled ul#services li input {
-  line-height: 20px;
-  padding-top: 0;
-}
-
-disabled ul#services li#search fieldset {
-  border: 0;
-  margin: 0;
-}
-
-disabled input[type="button"],
-disabled input[type="submit"],
-disabled input[type="reset"],
-disabled input[type="file"] {
-  padding: 1px 6px
-}
 
 
 

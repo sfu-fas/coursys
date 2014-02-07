@@ -1,5 +1,5 @@
 {% extends "grades/base.html" %}
-{% load grade_student %}
+{% load form_display %}
 
 {% block h1 %}
 {% ifequal form_type 'add' %}Add Calculated Letter Grade Activity{% endifequal %}
@@ -38,45 +38,20 @@ $(document).ready(function() {
 
 
 {% block content %}
-<br/>
-
 <div class="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
     <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_cal_letter_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
                 method="post">{% csrf_token %}
         <fieldset>
             <legend>Activity Info</legend>
-            <p class="requireindicator"><img src="{{STATIC_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
-            <ul>
-                {{form.name|activity_field}}
-                {{form.short_name|activity_field}}
-                {{form.status|activity_field}}
-                {{form.url|activity_field}}
-                {{form.percent|activity_field}}
-                {{form.numeric_activity|activity_field}}	
-                {{form.exam_activity|activity_field}}
-                <li>
-                    <input class="submit" type="submit" value="Submit" />
-                </li>
-            </ul>
+            {{ form|as_dl_excludefields:"showstats,showhisto" }}
+            <p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>
         <fieldset>
             <legend id="moreconfig">Additional Options</legend>
-            <ul>
-                {{form.showstats|activity_field}}
-                {{form.showhisto|activity_field}}
-            </ul>
+            {{ form|as_dl_includefields:"showstats,showhisto" }}
         </fieldset>
     </form>
 </div>
-    {% ifequal form_type 'add' %}
-    <a class="button" href="{% url "grades.views.activity_choice" course_slug=course.slug %}">Back</a>
-    {% endifequal %}
     {% ifequal form_type 'edit' %}
     <form action="{% url "grades.views.delete_activity" course_slug=course.slug activity_slug=activity.slug %}" method="post" name="deleteform">{% csrf_token %}
     <p><input type="submit" class="submit" value="Delete Activity" id="deletesubmit" onclick="return confirmSubmit('delete this activity');" /></p>

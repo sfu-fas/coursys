@@ -133,10 +133,10 @@ class Activity(models.Model):
             # newly-released grades: record that grade was released
             assert entered_by
             entered_by = get_entry_person(entered_by)
-            create_grade_released_history(self, entered_by)
+            create_grade_released_history(self.id, entered_by.id)
 
             # newly-released grades: create news items
-            send_grade_released_news(self)
+            send_grade_released_news(self.id)
             
         
         if old and old.group and not self.group:

@@ -32,8 +32,9 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
   {% compress css %}
   <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" type="text/css">
   <link rel="stylesheet" href="{% static "newsfu/clf.main-page.css" %}" type="text/css">
-  <link rel="stylesheet" href="{% static "style/main.css" media="all" %}" />
+  <link rel="stylesheet" href="{% static "style/main.css" %}" />
   <link rel="stylesheet" href="{% static "style/jqueryui-smoothness/jquery-ui-1.10.3.custom.min.css" %}" />
+  <link rel="stylesheet" href="{% static "style/print.css" %}" media="print" />
   {% endcompress %}
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
 
@@ -92,18 +93,23 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 				  {% else %}
                     <a href="{{ LOGIN_URL }}">Sign In</a>
 				  {% endif %}
-
-                  <ul>
-                    <li><a href="http://connect.sfu.ca">Connect</a></li>
-                    <li><a href="http://go.sfu.ca">SIS</a></li>
-                    <li><a href="https://canvas.sfu.ca">Canvas</a></li>
-                  </ul>
                 </li>
               </ul>
             </div>
 
             <ul class="sf-menu">
-              <li>
+              <li class="header">
+                <a href="/">Courses</a>
+                  {% regroup memberships by offering.semester as by_semester %}
+                    <ul>
+                    {% for semester in by_semester %}
+                    {% for membership in semester.list %}
+                      <li><a href="{{membership.offering.get_absolute_url}}">{{semester.grouper.label}} - {{membership.offering.name}}</a></li>
+                    {% endfor %}
+                    {% endfor %}
+                    </ul>
+              </li>
+<!--              <li>
                 <a href="#">A-Z Directory</a>
 
                 <ul class="expanded directory">
@@ -135,7 +141,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                   <li><a href="http://www.sfu.ca/main/dir/z.html">z</a></li>
                 </ul>
               </li>
-
+-->
               <li>
                 {% if user.is_authenticated %}
                     <a href="{{ LOGOUT_URL }}">Sign Out</a>

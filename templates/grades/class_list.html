@@ -1,5 +1,4 @@
 {% extends "grades/base.html" %}
-{% load grade_student %}
 
 {% block title %}{{ course.name }} Class List{% endblock %}
 {% block h1 %}{{ course.name }} Class List{% endblock %}
@@ -29,6 +28,20 @@
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Class List</li>{% endblock %}
 
 {% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    {% regroup memberships by offering.semester as by_semester %}
+        {% for semester in by_semester %}
+        <li><a>View {{semester.grouper.label}} class lists</a></li>
+        <ul>
+        {% for membership in semester.list %}
+          <li><a href="{{membership.offering.get_absolute_url}}list/">{{membership.offering.name}}</a></li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}

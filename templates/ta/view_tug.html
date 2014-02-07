@@ -12,7 +12,7 @@
 
 {% block subbreadcrumbs %}
     {% if user_role == "ADMN" %}
-    <li><a href="{% url "ta.views.all_tugs_admin" %}">All TUGs</a> &gt; {{tug.member.person}}</li>
+    <li><a href="{% url "ta.views.all_tugs_admin" %}">All TUGs</a> {{tug.member.person}}</li>
     {% else %}
     <li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li><a href="{% url "ta.views.all_tugs" course_slug=course.slug %}">TUGs</a></li><li>{{ta.person.name}}</li>
     {% endif %}
@@ -182,7 +182,7 @@
 	</p>
 </div>
 
-<div id="tugReview">
+<div id="tugReview" class="noprint">
 <h3>Conducting Teaching Assistant Workload Reviews:</h3>
 <ul>
   <li>
