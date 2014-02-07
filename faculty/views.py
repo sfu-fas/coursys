@@ -260,8 +260,9 @@ def view_attachment(request, userid, event_slug, attach_slug):
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
 
-    # TODO: is this the right approach?
-    if not (event.unit in member_units):
+    Handler = EVENT_TYPES[event.event_type]
+    handler = Handler(event)
+    if not handler.can_view(viewer):
         return HttpResponseForbidden(request, "Not allowed to view this attachment")
 
     filename = attachment.contents.name.rsplit('/')[-1]
@@ -278,7 +279,9 @@ def download_attachment(request, userid, event_slug, attach_slug):
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
 
-    if not (event.unit in member_units):
+    Handler = EVENT_TYPES[event.event_type]
+    handler = Handler(event)
+    if not handler.can_view(viewer):
         return HttpResponseForbidden(request, "Not allowed to download this attachment")
 
     filename = attachment.contents.name.rsplit('/')[-1]
