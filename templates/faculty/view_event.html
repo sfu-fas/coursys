@@ -50,6 +50,7 @@ $(document).ready(function() {
 <div class="careerevent">
 {{ handler.to_html }}
 <em>{% if person|can_approve:handler %}You can approve this event{% else %}You cannot approve this event{% endif %}</em>
+{% if approval_form %}{{ approval_form }}{% else %}No approval form{% endif %}
 </div>
 <div class="clearfix"></div>
 

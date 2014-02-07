@@ -15,7 +15,7 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm
 
 import itertools
 
@@ -112,8 +112,13 @@ def view_event(request, userid, event_slug):
     editor = get_object_or_404(Person, userid=request.user.username)
     memos = Memo.objects.filter(career_event = instance)
     templates = MemoTemplate.objects.filter(unit__in=request.units, event_type=instance.event_type, hidden=False)
-
+    
     Handler = EVENT_TYPES[instance.event_type](event=instance)
+
+    # TODO: can editors change the status of events to something else?
+    approval = None
+    if Handler.can_approve(editor):
+        approval = ApprovalForm(instance=instance)
 
     context = {
         'person': person,
@@ -122,6 +127,7 @@ def view_event(request, userid, event_slug):
         'event': instance,
         'memos': memos,
         'templates': templates,
+        'approval_form': approval,
     }
     return render(request, 'faculty/view_event.html', context)
 

@@ -21,6 +21,11 @@ class CareerEventForm(forms.ModelForm):
         exclude = ("config", "flags", "person",)
 
 
+class ApprovalForm(forms.ModelForm):
+    class Meta:
+        model = CareerEvent
+        fields = ("status",)
+
 def attachment_formset_factory():
     return modelformset_factory(DocumentAttachment, form=AttachmentForm, extra=1)
 
