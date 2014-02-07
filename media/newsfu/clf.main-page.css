@@ -62,3 +62,20 @@
         content: " || ";
     }
 }
+
+/* mods for base-wide */
+body.widebody .subnav-wrapper {
+  float: none;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+body.widebody .subnav-wrapper h2 {
+  padding-left: 0;
+}
+body.widebody .subnav-wrapper li {
+  padding-left: 0;
+}
+body.widebody .subnav-wrapper ul {
+  padding-left: 0;
+}

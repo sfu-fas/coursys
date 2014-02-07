@@ -68,7 +68,14 @@ span.sort {
   display: none;
 }
 
-
+/* for the base-wide template */
+body.widebody .main {
+  width: 100%;
+  padding-top: 12px;
+}
+body.widebody .main_content {
+  margin-top: 2em;
+}
 
 
 /* breadcrumb styling */
