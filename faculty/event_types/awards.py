@@ -93,6 +93,46 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0))
         return TeachingAdjust(adjust, adjust)
 
+
+class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
+    """
+    Received Teaching credit event
+    """
+    EVENT_TYPE = 'TEACHING'
+    NAME = "Teaching Credit Received"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
+        <dt>Type</dt><dd>{{ event|get_config:"category"}}</dd>
+        <dt>Reason</dt><dd>{{ event|get_config:"amount" }}</dd>
+        <dt>Approved By</dt><dd>{{ event|get_config:"approved_by"|yesno }}</dd>
+        <dt>Funded By</dt><dd>{{ event|get_config:"funded_by"|yesno }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['category', 'teaching_credits', 'reason', 'approved_by', 'funded_by']
+        CATEGORIES =[('BUYOUT', 'Buyout'), ('RELEASE', 'Teaching Release')]
+        category = forms.ChoiceField(label='Type', choices=CATEGORIES)
+        # Maybe don't want to use TeachingCreditField since it's not per semester?
+        teaching_credits = TeachingCreditField()
+        reason = forms.CharField(max_length=255, required=False)
+        funded_by = forms.CharField(label='Funded By', max_length=255, required=False)
+        approved_by = forms.CharField(label='Approved By', max_length=255, required=False)
+
+    @property
+    def default_title(self):
+        return 'Recevied Teaching Credit'
+
+    def short_summary(self):
+        return 'Received %s teaching credits due to %s' % (self.event.config.get('teaching_credits', 0),
+                                                            self.event.config.get('category', 0))
+
+    def teaching_adjust_per_semester(self):
+        # not sure if this is what we want to do here
+        adjust = fractions.Fraction(self.event.config.get('teaching_credits', 0))
+        return TeachingAdjust(adjust, adjust)
+
 class AwardEventHandler(CareerEventHandlerBase):
     """
     Award Career event
