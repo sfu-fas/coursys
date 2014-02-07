@@ -28,6 +28,10 @@ class CareerEventMeta(abc.ABCMeta):
     def __init__(cls, name, bases, members):
         super(CareerEventMeta, cls).__init__(name, bases, members)
 
+        # Some integrity checks
+        if not len(cls.EVENT_TYPE) <= 10:
+            raise ValueError('{}.EVENT_TYPE is too long'.format(name))
+
         # Make a new list so we don't accidentally reference the base class' FLAGS
         cls.FLAGS = copy.copy(cls.FLAGS)
 
@@ -104,7 +108,6 @@ class CareerEventHandlerBase(object):
 
     def __init__(self, event):
         self.event = event
-        assert len(self.EVENT_TYPE) < 10
 
         # Just in case we add more complicated logic to __init__ we have to let subclasses easily
         # add initialization logic.
