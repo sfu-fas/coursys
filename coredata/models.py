@@ -5,6 +5,7 @@ from django.conf import settings
 import datetime, urlparse, decimal
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from cache_utils.decorators import cached
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter

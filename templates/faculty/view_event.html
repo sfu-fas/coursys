@@ -49,7 +49,7 @@ $(document).ready(function() {
 {% block content %}
 <div class="careerevent">
 {{ handler.to_html }}
-{% if person|can_approve:handler %}You can approve{% else %}You cannot approve{% endif %}
+<em>{% if person|can_approve:handler %}You can approve this event{% else %}You cannot approve this event{% endif %}</em>
 </div>
 <div class="clearfix"></div>
 
