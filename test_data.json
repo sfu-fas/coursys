@@ -39959,7 +39959,7 @@
   "label": "UNIV", 
   "name": "Simon Fraser University", 
   "parent": null, 
-  "slug": "unit"
+  "slug": "univ"
  }, 
  "model": "coredata.unit", 
  "pk": 1
