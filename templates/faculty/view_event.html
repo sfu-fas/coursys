@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load event_display %}
 {% load staticfiles %}
 
 {% block title %}{{ person.name }}: {{ event.title }}{% endblock %}
@@ -48,15 +49,19 @@ $(document).ready(function() {
 {% block content %}
 <div class="careerevent">
 {{ handler.to_html }}
+<em>{% if person|can_approve:handler %}You can approve this event{% else %}You cannot approve this event{% endif %}</em>
 </div>
 <div class="clearfix"></div>
 
 {% with attachments=event.attachments.all %}
 {% if attachments %}
-<h2 id="attach">Attachments</h2>
+<h4>Attachments</h4>
 <ul>
 {% for a in attachments %}
-<li><a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">{{ a.title }} ({{ a.mediatype }}, {{ a.contents.file.size|filesizeformat }})</a></li>
+<li>{{ a.title }} ({{ a.mediatype }}, {{ a.contents.file.size|filesizeformat }})
+	<a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
+	<a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a>
+</li>
 {% endfor %}
 </ul>
 {% endif %}

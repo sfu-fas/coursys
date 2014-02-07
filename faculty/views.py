@@ -3,6 +3,7 @@ import datetime
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponse
+from django.http import StreamingHttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.contrib import messages
@@ -259,18 +260,35 @@ def view_attachment(request, userid, event_slug, attach_slug):
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
 
-    # TODO: is this the right approach?
-    if not (event.unit in member_units):
+    Handler = EVENT_TYPES[event.event_type]
+    handler = Handler(event)
+    if not handler.can_view(viewer):
         return HttpResponseForbidden(request, "Not allowed to view this attachment")
 
-    resp = HttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
-    resp['Content-Disposition'] = 'inline; filename="' + attachment.contents.file.name + '"'
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
     resp['Content-Length'] = attachment.contents.size
     return resp
 
 @requires_role('ADMN')
 def download_attachment(request, userid, event_slug, attach_slug):
-    pass
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
+    attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
+
+    Handler = EVENT_TYPES[event.event_type]
+    handler = Handler(event)
+    if not handler.can_view(viewer):
+        return HttpResponseForbidden(request, "Not allowed to download this attachment")
+
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
 
 
 ###############################################################################
@@ -358,15 +376,15 @@ def new_memo(request, userid, event_slug, memo_template_slug):
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
 
-    from_choices = [('', u'\u2014')] \
-                    + [(r.person.id, "%s. %s, %s" %
-                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=instance.unit)]
+    #from_choices = [('', u'\u2014')] \
+    #                + [(r.person.id, "%s. %s, %s" %
+    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+    #                    for r in Role.objects.filter(unit=instance.unit)]
     #TODO: implement templating function (text to dictionary)
     #ls = faculty.memo_info()
     if request.method == 'POST':
         form = MemoForm(request.POST)
-        form.fields['from_person'].choices = from_choices
+        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -379,9 +397,13 @@ def new_memo(request, userid, event_slug, memo_template_slug):
         else:
             messages.success(request, "error!")   
     else:
-        form = MemoForm(initial={'date': datetime.date.today()})
-        form.fields['from_person'].choices = from_choices
-        
+        initial = {
+            'date': datetime.date.today(),
+            'subject': '%s %s\n%s ' % (person.get_title(), person.name(), 'Default subject'),
+        }
+        form = MemoForm(initial=initial)
+        #form.fields['from_person'].choices = from_choices
+
     context = {
                'form': form,
                'template' : template,
@@ -396,14 +418,14 @@ def manage_memo(request, userid, event_slug, memo_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    from_choices = [('', u'\u2014')] \
-                    + [(r.person.id, "%s. %s, %s" %
-                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=instance.unit)]
+    #from_choices = [('', u'\u2014')] \
+    #                + [(r.person.id, "%s. %s, %s" %
+    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+    #                    for r in Role.objects.filter(unit=instance.unit)]
 
     if request.method == 'POST':
         form = MemoForm(request.POST, instance=memo)
-        form.fields['from_person'].choices = from_choices
+        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -415,8 +437,8 @@ def manage_memo(request, userid, event_slug, memo_slug):
         else:
             messages.success(request, "error!")   
     else:
-        form = MemoForm(instance=memo, initial={'date': datetime.date.today()})
-        form.fields['from_person'].choices = from_choices
+        form = MemoForm(instance=memo)
+        #form.fields['from_person'].choices = from_choices
         
     context = {
                'form': form,

@@ -1,9 +1,13 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block title %}New {{ template.label|title }} Memo{% endblock %}
 {% block h1 %}New {{ template.label|title }} Memo{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
