@@ -111,8 +111,8 @@ class AwardEventHandler(CareerEventHandlerBase):
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['award', 'awarded_by', 'amount', 'externally_funded', 'in_payroll']
-        award = forms.CharField() 
-        awarded_by = forms.CharField()
+        award = forms.CharField(label='Award Name', max_length=255) 
+        awarded_by = forms.CharField(label='Awarded By', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
         externally_funded = forms.BooleanField(required=False)
         in_payroll = forms.BooleanField(required=False)
@@ -142,8 +142,8 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
 
     class EntryForm(BaseEntryForm):
         CONFIG_FIELDS = ['funding_agency', 'grant_name', 'amount']
-        funding_agency = forms.CharField()
-        grant_name = forms.CharField()
+        funding_agency = forms.CharField(label='Funding Agency', max_length=255)
+        grant_name = forms.CharField(label='Grant Name', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
 
     @property
