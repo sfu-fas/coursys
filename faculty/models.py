@@ -18,6 +18,7 @@ from faculty.event_types.awards import GrantApplicationEventHandler
 from faculty.event_types.awards import AwardEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
 from faculty.event_types.career import TenureReceivedEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
@@ -35,6 +36,7 @@ HANDLERS = [
     FellowshipEventHandler,
     GrantApplicationEventHandler,
     SalaryBaseEventHandler,
+    SalaryModificationEventHandler,
     TenureApplicationEventHandler,
     TenureReceivedEventHandler,
 ]
