@@ -14,3 +14,13 @@ $(document).ready(function(){
   });
 
 });
+
+function getData(url) {
+  $.ajax({
+    type : "GET",
+    url : url,
+    success : function(data) {
+      $("#id_memo_text").append(data);
+    }
+  })
+}

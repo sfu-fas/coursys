@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}View Memo{% endblock %}
+{% block h1 %}View Memo{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty.views.view_event" userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.title }}</a></li>
+<li>View Memo</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url "faculty.views.get_memo_pdf" userid=person.userid_or_emplid event_slug=event.slug memo_slug=memo.slug %}">Get PDF</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+	<fieldset>
+		<legend>
+			Memo Info
+		</legend>
+		<div style="float: left; width: 40%;">
+			<dl class="dlform">
+				<dt>
+					Recipient:
+				</dt>
+				<dd>
+					{{memo.to_lines}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float: left;">
+			<dl class="dlform">
+				<dt>
+					Template:
+				</dt>
+				<dd>
+					{{memo.template.label}} Memo for {{memo.template.unit.label}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float: left; width: 40%">
+			<dl class="dlform">
+				<dt>
+					Send Date:
+				</dt>
+				<dd>
+					{{memo.sent_date}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float: left; width: 20%">
+			<dl class="dlform">
+				<dt>
+					Created By:
+				</dt>
+				<dd>
+					{{memo.created_by.userid}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float: left;">
+			<dl class="dlform">
+				<dt>
+					Created At:
+				</dt>
+				<dd>
+					{{memo.created_at}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float: left; width: 50%">
+			<dl class="dlform">
+				<dt>
+					Subject:
+				</dt>
+				<dd>
+					{{memo.subject}}
+				</dd>
+			</dl>
+		</div>			
+		<div style="float:left; width:100%">
+			<dl class="dlform">
+				<dt>
+					Contents:
+				</dt>
+				<dd>
+					<div style="width: 90%; margin: 15px;">
+					{{memo.memo_text|linebreaks}}
+					</div>
+				</dd>
+			</dl>
+		</div>
+	</fieldset>
+</div>
+{% endblock %} 

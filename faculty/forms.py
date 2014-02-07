@@ -43,19 +43,19 @@ class MemoTemplateForm(forms.ModelForm):
         self.fields['template_text'].widget.attrs['cols'] = 50
 
     def clean_template_text(self):
-        content = self.cleaned_data['template_text']
+        template_text = self.cleaned_data['template_text']
         try:
-            Template(content)
+            Template(template_text)
         except TemplateSyntaxError as e:
             raise forms.ValidationError('Syntax error in template: ' + unicode(e))
-        return content
+        return template_text
 
 class MemoForm(forms.ModelForm):
     use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
                                  help_text='Use the "From" person\'s signature, if on file?')    
     class Meta: 
         model = Memo
-        exclude = ('created_by', 'config', 'template', 'career_event')
+        exclude = ('created_by', 'config', 'template', 'career_event', 'unit')
         widgets = {
                    'career_event': forms.HiddenInput(),
                    'to_lines': forms.Textarea(attrs={'rows': 4, 'cols': 50}),

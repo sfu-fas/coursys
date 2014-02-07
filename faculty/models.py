@@ -40,12 +40,15 @@ EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
 #basic list to get templating working
 #TODO: event_type specific tags
 EVENT_TAGS = {
-               'title': '"Mr", "Miss", etc.',
-               'first_name': 'recipient\'s first name',
-               'last_name': 'recipients\'s last name',
-               'his_her' : '"his" or "her" (or use His_Her for capitalized)',
-               'he_she' : '"he" or "she" (or use He_She for capitalized)',
-               }
+                'title': '"Mr", "Miss", etc.',
+                'first_name': 'recipient\'s first name',
+                'last_name': 'recipients\'s last name',
+                'his_her' : '"his" or "her" (or use His_Her for capitalized)',
+                'he_she' : '"he" or "she" (or use He_She for capitalized)',
+                'start_date': 'start date of the event, if applicable',
+                'end_date': 'end date of the event, if applicable',
+                'event_title': 'name of event',
+            }
 
 
 class CareerEvent(models.Model):
@@ -109,6 +112,40 @@ class CareerEvent(models.Model):
             '-end_date',
             'title',
         )
+
+    def memo_info(self):
+        """
+        Context dictionary for building memo text
+        """
+
+        # basic personal stuff
+        gender = self.person.gender()
+        title = self.person.get_title()
+        
+        if gender == "M" :
+            hisher = "his"
+            heshe = 'he'
+        elif gender == "F":
+            hisher = "her"
+            heshe = 'she'
+        else:
+            hisher = "his/her"
+            heshe = 'he/she'
+        
+        ls = { # if changing, also update EVENT_TAGS above!
+               # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
+                'title' : title,
+                'his_her' : hisher,
+                'His_Her' : hisher.title(),
+                'he_she' : heshe,
+                'He_She' : heshe.title(),
+                'first_name': self.person.first_name,
+                'last_name': self.person.last_name,
+                'start_date': self.start_date,
+                'end_date': self.end_date,
+                'event_title': self.title,
+              }
+        return ls
 
 
 # TODO separate storage system for faculty attachments?

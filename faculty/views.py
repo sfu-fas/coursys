@@ -2,9 +2,11 @@ import datetime
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.template.base import Template
+from django.template.context import Context
 from courselib.search import find_userid_or_emplid
 
 from coredata.models import Person, Unit, Role, Member, CourseOffering
@@ -254,7 +256,7 @@ def new_attachment(request, userid, event_slug):
 
 @requires_role('ADMN')
 def manage_event_index(request):
-    types = [ # TODO: how do we check is_instant now?
+    types = [ 
         {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': Handler.IS_INSTANT,
          'affects_teaching': 'affects_teaching' in Handler.FLAGS,
          'affects_salary': 'affects_salary' in Handler.FLAGS}
@@ -328,6 +330,9 @@ def manage_memo_template(request, event_type, slug):
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
+###############################################################################
+# Creating and editing Memos
+
 @requires_role('ADMN')
 def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
@@ -338,8 +343,9 @@ def new_memo(request, userid, event_slug, memo_template_slug):
                     + [(r.person.id, "%s. %s, %s" %
                             (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
                         for r in Role.objects.filter(unit=instance.unit)]
-    #TODO: implement templating function (text to dictionary)
-    #ls = faculty.memo_info()
+
+    ls = instance.memo_info()
+
     if request.method == 'POST':
         form = MemoForm(request.POST)
         form.fields['from_person'].choices = from_choices
@@ -347,7 +353,8 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             f = form.save(commit=False)
             f.created_by = person
             f.career_event = instance
-            #f.config.update(ls)
+            f.unit = template.unit
+            f.config.update(ls)
             f.template = template;
             f.save()
             messages.success(request, "Created new %s memo for %s." % (form.instance.template.label, form.instance.career_event.title))            
@@ -355,7 +362,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
         else:
             messages.success(request, "error!")   
     else:
-        form = MemoForm(initial={'date': datetime.date.today()})
+        form = MemoForm(initial={'subject': template.subject, 'date': datetime.date.today(), 'to_lines': person.letter_name()})
         form.fields['from_person'].choices = from_choices
         
     context = {
@@ -384,7 +391,6 @@ def manage_memo(request, userid, event_slug, memo_slug):
             f = form.save(commit=False)
             f.created_by = person
             f.career_event = instance
-            f.template = memo.template
             f.save()
             messages.success(request, "Updated memo for %s" % (form.instance.career_event.title))            
             return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
@@ -401,3 +407,40 @@ def manage_memo(request, userid, event_slug, memo_slug):
                'memo': memo,
                }
     return render(request, 'faculty/manage_memo.html', context)
+
+@requires_role('ADMN')
+def get_memo_text(request, userid, event_slug, memo_template_id):
+    """ Get the text from memo template """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    lt = get_object_or_404(MemoTemplate, id=memo_template_id, unit__in=request.units)
+    temp = Template(lt.template_text)
+    ls = event.memo_info()
+    text = temp.render(Context(ls))
+
+    return HttpResponse(text, content_type='text/plain')
+
+@requires_role('ADMN')
+def get_memo_pdf(request, userid, event_slug, memo_slug):
+    person,  member_units = _get_faculty_or_404(request.units, userid)
+    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
+
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (memo_slug)
+
+    memo.write_pdf(response) 
+    return response
+
+@requires_role('ADMN')
+def view_memo(request, userid, event_slug, memo_slug):
+    person,  member_units = _get_faculty_or_404(request.units, userid)
+    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
+
+    context = {
+               'memo': memo,
+               'event': instance,
+               'person': person,
+               }
+    return render(request, 'faculty/view_memo.html', context)

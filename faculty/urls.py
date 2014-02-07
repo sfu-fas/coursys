@@ -22,4 +22,7 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/attach$', 'faculty.views.new_attachment', name="faculty_add_attachment"),
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name="faculty_event_memo_create"),
     url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name="faculty_event_memo_manage"),
+    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/_get_text/(?P<memo_template_id>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_text', name="faculty_event_memo_manage"),
+    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_slug>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_pdf', name="faculty_event_memo_pdf"),
+    url(r'^' + USERID_OR_EMPLID + '/events/' + EVENT_SLUG + '/(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name="faculty_event_view_memo"),
 )
