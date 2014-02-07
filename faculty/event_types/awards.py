@@ -93,6 +93,39 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0))
         return TeachingAdjust(adjust, adjust)
 
+class AwardEventHandler(CareerEventHandlerBase):
+    """
+    Award Career event
+    """
+    EVENT_TYPE = 'AWARD'
+    NAME = "Award Received"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Award</dt><dd>{{ event|get_config:"award"}}</dd>
+        <dt>Awarded By</dt><dd>{{ event|get_config:"awarded_by" }}</dd>
+        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+        <dt>Externally Funded?</dt><dd>{{ event|get_config:"externally_funded"|yesno }}</dd>
+        <dt>In Payroll?</dt><dd>{{ event|get_config:"in_payroll"|yesno }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['award', 'awarded_by', 'amount', 'externally_funded', 'in_payroll']
+        award = forms.CharField() 
+        awarded_by = forms.CharField()
+        amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
+        externally_funded = forms.BooleanField(required=False)
+        in_payroll = forms.BooleanField(required=False)
+
+
+    @property
+    def default_title(self):
+        return 'Award Received'
+
+    def short_summary(self):
+        return 'Award: %s reveieved from %s' % (self.event.config.get('award', 0),
+                                                self.event.config.get('awarded_by', 0))
+
 class GrantApplicationEventHandler(CareerEventHandlerBase):
     """
     Grant Application Career event
@@ -111,7 +144,7 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         CONFIG_FIELDS = ['funding_agency', 'grant_name', 'amount']
         funding_agency = forms.CharField()
         grant_name = forms.CharField()
-        amount = forms.DecimalField(widget=DollarInput,decimal_places=2,initial=0,)
+        amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
 
     @property
     def default_title(self):
