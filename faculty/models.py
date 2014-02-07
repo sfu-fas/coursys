@@ -241,7 +241,7 @@ class Memo(models.Model):
     subject = models.TextField(help_text='The subject of the memo (lines will be formatted separately in the memo header)')
 
     template = models.ForeignKey(MemoTemplate, null=True)
-    memo_text = models.TextField(help_text="I.e. 'Congratulations Mr. Baker on ... '")
+    memo_text = models.TextField(help_text="I.e. 'Congratulations on ... '")
     #salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
     #closing = models.CharField(max_length=100, default="Sincerely")
 
