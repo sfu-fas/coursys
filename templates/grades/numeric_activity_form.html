@@ -1,5 +1,4 @@
 {% extends "grades/base.html" %}
-{% load grade_student %}
 {% load form_display %}
 
 {% block h1 %}
@@ -37,16 +36,11 @@ $(document).ready(function() {
 
 {% block content %}
 <div class="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
     <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Activity Info</legend>
             {{ form|as_dl_excludefields:"showstats,showhisto" }}
+            <p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>
         <fieldset>
             <legend id="moreconfig">Additional Options</legend>

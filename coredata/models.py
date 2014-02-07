@@ -1,12 +1,12 @@
 from django.db import models
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
-#from timezones.fields import TimeZoneField
 from django.conf import settings
 import datetime, urlparse, decimal
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
+from cache_utils.decorators import cached
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from django.utils.safestring import mark_safe
@@ -865,7 +865,15 @@ class Member(models.Model):
         ordering = ['offering', 'person']
     def get_absolute_url(self):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})
-        
+    
+    @classmethod
+    def clear_old_official_grades(cls):
+        """
+        Clear out the official grade field on old records: no need to tempt fate.
+        """
+        cutoff = datetime.date.today() - datetime.timedelta(days=240)
+        old_grades = Member.objects.filter(offering__semester__end__lt=cutoff, official_grade__isnull=False)
+        old_grades.update(official_grade=None)
 
 
 WEEKDAY_CHOICES = (
@@ -978,6 +986,7 @@ class Unit(models.Model):
         return self.slug in ['cmpt', 'ensc']
     
     @classmethod
+    @cached(24*3600)
     def __sub_unit_ids(cls, unitids):
         """
         Do the actual work for sub_unit_ids
@@ -1003,14 +1012,7 @@ class Unit(models.Model):
             unitids = sorted(list(set(units)))
         else:
             unitids = sorted(list(set(u.id for u in units)))
-        key = 'subunits-' + str(unitids)
-        res = cache.get(key)
-        if res:
-            return res
-        else:
-            res = Unit.__sub_unit_ids(unitids)
-            cache.set(key, res, 24*3600)
-            return res
+        return Unit.__sub_unit_ids(unitids)
 
     @classmethod
     def sub_units(cls, units, by_id=False):
@@ -1037,7 +1039,6 @@ class Unit(models.Model):
             cache.set(key, res, 24*3600)
             return res
         
-
 
 
 ROLE_CHOICES = (

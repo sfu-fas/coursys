@@ -5,7 +5,6 @@
 {% block h1 %}{{ course.name }} Grades{% endblock %}
 
 {% block grades_headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/print.css" media="print" />
 <script type="text/javascript">
     $(document).ready(function() {
 	// activate dataTable ui
@@ -45,6 +44,15 @@
     <h2 class="heading">Actions</h2>
     <ul>
 	<li><a href="{% url "grades.views.all_grades_csv" course_slug=course.slug %}">Export CSV</a></li>
+    {% regroup memberships by offering.semester as by_semester %}
+        {% for semester in by_semester %}
+        <li><a>View {{semester.grouper.label}} grades</a></li>
+        <ul>
+        {% for membership in semester.list %}
+          <li><a href="{{membership.offering.get_absolute_url}}grades">{{membership.offering.name}}</a></li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
     </ul>
 </div>
 {% endblock %}

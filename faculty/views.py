@@ -2,7 +2,12 @@ import datetime
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
-from django.http import HttpResponseRedirect, HttpResponse
+
+from django.http import HttpResponse
+from django.http import StreamingHttpResponse
+from django.http import HttpResponseForbidden
+from django.http import HttpResponseRedirect
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.template.base import Template
@@ -14,7 +19,7 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm
 
 import itertools
 
@@ -56,22 +61,13 @@ def summary(request, userid):
     Summary page for a faculty member.
     """
     person, _ = _get_faculty_or_404(request.units, userid)
+    career_events = CareerEvent.objects.filter(person=person).exclude(status='D')
     context = {
         'person': person,
+        'career_events': career_events,
     }
     return render(request, 'faculty/summary.html', context)
 
-@requires_role('ADMN')
-def events_list(request, userid):
-    """
-    Display all career events
-    """
-    person, _ = _get_faculty_or_404(request.units, userid)
-
-    context = {
-        'person': person,
-    }
-    return render(request, 'faculty/career_events_list.html', context)
 
 @requires_role('ADMN')
 def otherinfo(request, userid):
@@ -111,8 +107,13 @@ def view_event(request, userid, event_slug):
     editor = get_object_or_404(Person, userid=request.user.username)
     memos = Memo.objects.filter(career_event = instance)
     templates = MemoTemplate.objects.filter(unit__in=request.units, event_type=instance.event_type, hidden=False)
-
+    
     Handler = EVENT_TYPES[instance.event_type](event=instance)
+
+    # TODO: can editors change the status of events to something else?
+    approval = None
+    if Handler.can_approve(editor):
+        approval = ApprovalForm(instance=instance)
 
     context = {
         'person': person,
@@ -121,12 +122,14 @@ def view_event(request, userid, event_slug):
         'event': instance,
         'memos': memos,
         'templates': templates,
+        'approval_form': approval,
     }
     return render(request, 'faculty/view_event.html', context)
 
 
 ###############################################################################
 # Creation and editing of CareerEvents
+
 @requires_role('ADMN')
 def event_type_list(request, userid):
     types = [ # TODO: how do we check is_instant now?
@@ -251,6 +254,45 @@ def new_attachment(request, userid, event_slug):
     return render(request, 'faculty/document_attachment_form.html', context)
 
 
+@requires_role('ADMN')
+def view_attachment(request, userid, event_slug, attach_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
+    attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
+
+    Handler = EVENT_TYPES[event.event_type]
+    handler = Handler(event)
+    if not handler.can_view(viewer):
+        return HttpResponseForbidden(request, "Not allowed to view this attachment")
+
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+@requires_role('ADMN')
+def download_attachment(request, userid, event_slug, attach_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
+    attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
+
+    Handler = EVENT_TYPES[event.event_type]
+    handler = Handler(event)
+    if not handler.can_view(viewer):
+        return HttpResponseForbidden(request, "Not allowed to download this attachment")
+
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
 ###############################################################################
 # Creating and editing Memo Templates
 
@@ -339,16 +381,16 @@ def new_memo(request, userid, event_slug, memo_template_slug):
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
 
-    from_choices = [('', u'\u2014')] \
-                    + [(r.person.id, "%s. %s, %s" %
-                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=instance.unit)]
+    #from_choices = [('', u'\u2014')] \
+    #                + [(r.person.id, "%s. %s, %s" %
+    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+    #                    for r in Role.objects.filter(unit=instance.unit)]
 
     ls = instance.memo_info()
 
     if request.method == 'POST':
         form = MemoForm(request.POST)
-        form.fields['from_person'].choices = from_choices
+        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -362,9 +404,15 @@ def new_memo(request, userid, event_slug, memo_template_slug):
         else:
             messages.success(request, "error!")   
     else:
-        form = MemoForm(initial={'subject': template.subject, 'date': datetime.date.today(), 'to_lines': person.letter_name()})
-        form.fields['from_person'].choices = from_choices
-        
+
+        initial = {
+            'date': datetime.date.today(),
+            'subject': '%s %s\n%s ' % (person.get_title(), person.name(), 'Default subject'),
+            'to_lines': person.letter_name()
+        }
+        form = MemoForm(initial=initial)
+        #form.fields['from_person'].choices = from_choices
+
     context = {
                'form': form,
                'template' : template,
@@ -379,14 +427,14 @@ def manage_memo(request, userid, event_slug, memo_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    from_choices = [('', u'\u2014')] \
-                    + [(r.person.id, "%s. %s, %s" %
-                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-                        for r in Role.objects.filter(unit=instance.unit)]
+    #from_choices = [('', u'\u2014')] \
+    #                + [(r.person.id, "%s. %s, %s" %
+    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+    #                    for r in Role.objects.filter(unit=instance.unit)]
 
     if request.method == 'POST':
         form = MemoForm(request.POST, instance=memo)
-        form.fields['from_person'].choices = from_choices
+        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -397,8 +445,8 @@ def manage_memo(request, userid, event_slug, memo_slug):
         else:
             messages.success(request, "error!")   
     else:
-        form = MemoForm(instance=memo, initial={'date': datetime.date.today()})
-        form.fields['from_person'].choices = from_choices
+        form = MemoForm(instance=memo)
+        #form.fields['from_person'].choices = from_choices
         
     context = {
                'form': form,

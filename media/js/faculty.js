@@ -1,6 +1,6 @@
 $(document).ready(function(){
   /* date pickers for date inputs */
-  var dates = $('#id_start_date, #id_end_date');
+  var dates = $('#id_start_date, #id_end_date, #id_sent_date');
   dates.datepicker({
     dateFormat: 'yy-mm-dd',
     changeMonth: true,

@@ -5,7 +5,7 @@ from django import forms
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
-from faculty.event_types.fields import AddSalaryField, AddPayField, TeachingCreditField
+from faculty.event_types.fields import DollarInput, AddSalaryField, AddPayField, TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 
@@ -92,6 +92,108 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def teaching_adjust_per_semester(self):
         adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0))
         return TeachingAdjust(adjust, adjust)
+
+
+class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
+    """
+    Received Teaching credit event
+    """
+    EVENT_TYPE = 'TEACHING'
+    NAME = "Teaching Credit Received"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
+        <dt>Type</dt><dd>{{ event|get_config:"category"}}</dd>
+        <dt>Reason</dt><dd>{{ event|get_config:"amount" }}</dd>
+        <dt>Approved By</dt><dd>{{ event|get_config:"approved_by"|yesno }}</dd>
+        <dt>Funded By</dt><dd>{{ event|get_config:"funded_by"|yesno }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['category', 'teaching_credits', 'reason', 'approved_by', 'funded_by']
+        CATEGORIES =[('BUYOUT', 'Buyout'), ('RELEASE', 'Teaching Release')]
+        category = forms.ChoiceField(label='Type', choices=CATEGORIES)
+        # Maybe don't want to use TeachingCreditField since it's not per semester?
+        teaching_credits = TeachingCreditField()
+        reason = forms.CharField(max_length=255, required=False)
+        funded_by = forms.CharField(label='Funded By', max_length=255, required=False)
+        approved_by = forms.CharField(label='Approved By', max_length=255, required=False)
+
+    @property
+    def default_title(self):
+        return 'Recevied Teaching Credit'
+
+    def short_summary(self):
+        return 'Received %s teaching credits due to %s' % (self.event.config.get('teaching_credits', 0),
+                                                            self.event.config.get('category', 0))
+
+    def teaching_adjust_per_semester(self):
+        # not sure if this is what we want to do here
+        adjust = fractions.Fraction(self.event.config.get('teaching_credits', 0))
+        return TeachingAdjust(adjust, adjust)
+
+class AwardEventHandler(CareerEventHandlerBase):
+    """
+    Award Career event
+    """
+    EVENT_TYPE = 'AWARD'
+    NAME = "Award Received"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Award</dt><dd>{{ event|get_config:"award"}}</dd>
+        <dt>Awarded By</dt><dd>{{ event|get_config:"awarded_by" }}</dd>
+        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+        <dt>Externally Funded?</dt><dd>{{ event|get_config:"externally_funded"|yesno }}</dd>
+        <dt>In Payroll?</dt><dd>{{ event|get_config:"in_payroll"|yesno }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['award', 'awarded_by', 'amount', 'externally_funded', 'in_payroll']
+        award = forms.CharField(label='Award Name', max_length=255) 
+        awarded_by = forms.CharField(label='Awarded By', max_length=255)
+        amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
+        externally_funded = forms.BooleanField(required=False)
+        in_payroll = forms.BooleanField(required=False)
+
+
+    @property
+    def default_title(self):
+        return 'Award Received'
+
+    def short_summary(self):
+        return 'Award: %s reveieved from %s' % (self.event.config.get('award', 0),
+                                                self.event.config.get('awarded_by', 0))
+
+class GrantApplicationEventHandler(CareerEventHandlerBase):
+    """
+    Grant Application Career event
+    """
+    EVENT_TYPE = 'GRANTAPP'
+    NAME = "Grant Application"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Funding Agency</dt><dd>{{ event|get_config:"funding_agency"}}</dd>
+        <dt>Grant Name</dt><dd>{{ event|get_config:"grant_name" }}</dd>
+        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['funding_agency', 'grant_name', 'amount']
+        funding_agency = forms.CharField(label='Funding Agency', max_length=255)
+        grant_name = forms.CharField(label='Grant Name', max_length=255)
+        amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
+
+    @property
+    def default_title(self):
+        return 'Applied for Grant'
+
+    def short_summary(self):
+        return 'Applied to %s for Grant: %s  for the amount of %s' % (self.event.config.get('funding_agency', 0),
+                                                                    self.event.config.get('grant_name', 0),
+                                                                    self.event.config.get('amount', 0))
 
 
 

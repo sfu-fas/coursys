@@ -21,6 +21,11 @@ class CareerEventForm(forms.ModelForm):
         exclude = ("config", "flags", "person",)
 
 
+class ApprovalForm(forms.ModelForm):
+    class Meta:
+        model = CareerEvent
+        fields = ("status",)
+
 def attachment_formset_factory():
     return modelformset_factory(DocumentAttachment, form=AttachmentForm, extra=1)
 
@@ -51,21 +56,30 @@ class MemoTemplateForm(forms.ModelForm):
         return template_text
 
 class MemoForm(forms.ModelForm):
-    use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
-                                 help_text='Use the "From" person\'s signature, if on file?')    
+    #use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
+    #                             help_text='Use the "From" person\'s signature, if on file?')
     class Meta: 
         model = Memo
-        exclude = ('created_by', 'config', 'template', 'career_event', 'unit')
+        exclude = ('unit', 'from_person', 'created_by', 'config', 'template', 'career_event', 'hidden')
+
         widgets = {
                    'career_event': forms.HiddenInput(),
-                   'to_lines': forms.Textarea(attrs={'rows': 4, 'cols': 50}),
-                   'from_lines': forms.Textarea(attrs={'rows': 3, 'cols': 30}),
+                   'to_lines': forms.TextInput(attrs={'size': 50}),
+                   'from_lines': forms.TextInput(attrs={'size': 50}),
                    'memo_text': forms.Textarea(attrs={'rows':25, 'cols': 70}),
                    'subject': forms.Textarea(attrs={'rows':2, 'cols':70}),
                    'cc_lines': forms.Textarea(attrs={'rows':3, 'cols':50}),
                    }
-    
-    def clean_use_sig(self):
-        use_sig = self.cleaned_data['use_sig']
-        self.instance.config['use_sig'] = use_sig
-        return use_sig
+
+    def __init__(self,*args, **kwargs):
+        super(MemoForm, self).__init__(*args, **kwargs)
+        # reorder the fields to the order of the printed memo
+        keys = ['to_lines', 'from_lines', 'subject', 'sent_date', 'memo_text', 'cc_lines']
+        keys.extend([k for k in self.fields.keyOrder if k not in keys])
+        self.fields.keyOrder = keys
+
+    #def clean_use_sig(self):
+    #    use_sig = self.cleaned_data['use_sig']
+    #    self.instance.config['use_sig'] = use_sig
+    #    return use_sig
+

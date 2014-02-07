@@ -49,17 +49,17 @@ class CustomSplitDateTimeWidget(forms.SplitDateTimeWidget):
             (('Date:'), rendered_widgets[0], ('Time:'), rendered_widgets[1]))
 
 class ActivityForm(forms.Form):
-    name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star),
-                    help_text='name of the activity, e.g "Assignment 1" or "Midterm"',
+    name = forms.CharField(max_length=30,
+                    help_text='Name of the activity, e.g "Assignment 1" or "Midterm"',
                     widget=forms.TextInput(attrs={'size':'30'}))
-    short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star),
-                                help_text='short version of the name for column headings, e.g. "A1" or "MT"',
+    short_name = forms.CharField(max_length=15,
+                                help_text='Short version of the name for column headings, e.g. "A1" or "MT"',
                                 widget=forms.TextInput(attrs={'size':'8'}))
-    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
-                                 help_text='percent of final mark',
+    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage',
+                                 help_text='Percent of final mark',
                                  widget=forms.TextInput(attrs={'size':'2'}))
-    url = forms.URLField(required=False, label='URL:',
-                                 help_text='page for more information, e.g. assignment description or exam info',
+    url = forms.URLField(required=False, label='URL',
+                                 help_text='Page for more information, e.g. assignment description or exam info',
                                  widget=forms.TextInput(attrs={'size':'60'}))
 
     def __init__(self, *args, **kwargs):
@@ -140,9 +140,9 @@ class ActivityForm(forms.Form):
 
     def clean_extend_group(self):
         extend_group = self.cleaned_data['extend_group']
-        if extend_group == 'None':
+        if extend_group in ['None', '']:
             return None
-        
+
         if 'group' not in self.cleaned_data or self.cleaned_data['group'] == '1':
             raise forms.ValidationError('Cannot extend groups on non-group activity.')
         
@@ -165,25 +165,24 @@ class ActivityForm(forms.Form):
 class NumericActivityForm(ActivityForm):
         
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
-            label=mark_safe('Status:' + _required_star),
             help_text='visibility of grades/activity to students')
-    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
+    due_date = forms.SplitDateTimeField(required=False,
             help_text='Time format: HH:MM:SS, 24-hour time',
             widget=CustomSplitDateTimeWidget())
-    max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
-            help_text='maximum grade for the activity',
+    max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label='Maximum grade',
+            help_text='Maximum grade for the activity',
             widget=forms.TextInput(attrs={'size':'3'}))
-    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
+    group = forms.ChoiceField(label='Group activity', initial='1',
             choices=GROUP_STATUS_CHOICES,
             widget=forms.RadioSelect())
     extend_group = forms.ChoiceField(choices = [('NO', 'None')],
-            label=mark_safe('Extend groups from:'),
-            help_text = 'extend groups from earlier group activities')
+            label='Extend groups from', required=False,
+            help_text='Extend groups from earlier group activity?')
     showstats = forms.BooleanField(initial=True, required=False,
-            label="Show summary stats:", 
+            label="Show summary stats",
             help_text="Should students be able to view the summary stats: max, min, median, etc?")
     showhisto = forms.BooleanField(initial=True, required=False,
-            label="Show histogram:", 
+            label="Show histogram",
             help_text="Should students be able to view the grade distribution histogram?")
 
     def __init__(self, *args, **kwargs):
@@ -198,22 +197,21 @@ class NumericActivityForm(ActivityForm):
     
 class LetterActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
-                               label=mark_safe('Status:' + _required_star),
-                               help_text='visibility of grades/activity to students')
-    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
+                               help_text='Visibility of grades/activity to students')
+    due_date = forms.SplitDateTimeField(required=False,
                                         help_text='Time format: HH:MM:SS',
                                         widget=CustomSplitDateTimeWidget())
-    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
+    group = forms.ChoiceField(label='Group activity', initial='1',
                               choices=GROUP_STATUS_CHOICES,
                               widget=forms.RadioSelect())
-    extend_group = forms.ChoiceField(choices = [('NO', 'None')],
-                                     label=mark_safe('Extend groups from:'),
-                                     help_text = 'extend groups from earlier group activities')
+    extend_group = forms.ChoiceField(choices = [('NO', 'None')], required=False,
+                                     label='Extend groups from',
+                                     help_text = 'Extend groups from earlier group activities?')
     showstats = forms.BooleanField(initial=True, required=False,
-            label="Show summary stats:", 
+            label="Show summary stats",
             help_text="Should students be able to view the summary stats: max, min, median, etc?")
     showhisto = forms.BooleanField(initial=True, required=False,
-            label="Show histogram:", 
+            label="Show histogram",
             help_text="Should students be able to view the grade distribution histogram?")
 
     def __init__(self, *args, **kwargs):
@@ -229,13 +227,12 @@ class LetterActivityForm(ActivityForm):
 class CalNumericActivityForm(ActivityForm):
     # default status is invisible
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='INVI',
-                               label=mark_safe('Status:' + _required_star),
-                               help_text='visibility of grades/activity to students')
-    max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
-                                   help_text='maximum grade of the calculated result',
+                               help_text='Visibility of grades/activity to students')
+    max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label='Maximum grade',
+                                   help_text='Maximum grade of the calculated result',
                                    widget=forms.TextInput(attrs={'size':'3'}))
-    formula = forms.CharField(max_length=2000, label=mark_safe('Formula:'+_required_star),
-                    help_text=mark_safe('formula to calculate the numeric grade: see <a href="#help">formula help</a> below for more info'),
+    formula = forms.CharField(max_length=2000,
+                    help_text=mark_safe('Formula to calculate the numeric grade: see <a href="#help">formula help</a> below for more info'),
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
     showstats = forms.BooleanField(initial=True, required=False,
             label="Show summary stats:", 
@@ -270,18 +267,17 @@ class CalNumericActivityForm(ActivityForm):
 class CalLetterActivityForm(ActivityForm):
     # default status is invisible
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='INVI',
-                               label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
     
-    numeric_activity = forms.ChoiceField(choices=[], label=mark_safe('Source Activity:' + _required_star),
-                                         help_text="numeric grades that these letters will be based on")
+    numeric_activity = forms.ChoiceField(choices=[], label='Source Activity',
+                                         help_text="Numeric grades that these letters will be based on")
     exam_activity = forms.ChoiceField(choices=[], required=False,
-                                      help_text="the course's exam: used to guess N and DE grades where appropriate.  Leave blank if you don't want these values guessed.")
+                                      help_text="The course's exam: used to guess N and DE grades where appropriate. Leave blank if you don't want these values guessed.")
     showstats = forms.BooleanField(initial=True, required=False,
-            label="Show summary stats:", 
+            label="Show summary stats",
             help_text="Should students be able to view the summary stats: max, min, median, etc?")
     showhisto = forms.BooleanField(initial=True, required=False,
-            label="Show histogram:", 
+            label="Show histogram",
             help_text="Should students be able to view the grade distribution histogram?")
     
     def activate_addform_validation(self, course_slug):
@@ -305,8 +301,8 @@ class Activity_ChoiceForm(forms.Form):
 
 
 class FormulaFormEntry(forms.Form):
-    formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
-                    help_text='parsed formula to calculate final numeric grade',
+    formula = forms.CharField(max_length=250,
+                    help_text='Formula to calculate numeric grade',
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
     
     def __init__(self, *args, **kwargs):

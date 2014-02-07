@@ -30,15 +30,15 @@
 
 {% block subbreadcrumbs %}
 <li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
+	<a href="{% url grad.views.index %}">Grad</a>
 </li>
 {% if grad %}
 <li>
-	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a>
+	<a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a>
 </li>
 {% endif %}
 <li>
-	&gt; {{crumb}}
+	{{crumb}}
 </li>
 {% endblock %}
 

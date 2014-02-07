@@ -1,5 +1,5 @@
 {% extends "grades/base.html" %}
-{% load grade_student %}
+{% load form_display %}
 
 {% block h1 %}
 {% ifequal form_type 'add' %}Add Calculated Numeric Activity{% endifequal %}
@@ -29,37 +29,13 @@ $(document).ready(function() {
 
 
 {% block content %}
-<br/>
-
-{{ form.errors }}
 <div class="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
     <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_cal_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
                 method="post">{% csrf_token %}
         <fieldset>
             <legend>Activity Info</legend>
-            <p class="requireindicator"><img src="{{STATIC_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
-            <ul>
-                {{form.name|activity_field}}
-                {{form.short_name|activity_field}}
-                {{form.status|activity_field}}
-                {{form.url|activity_field}}
-                {{form.percent|activity_field}}
-                {{form.max_grade|activity_field}}
-                <li>
-                    {{ form.formula.label_tag }}
-                    <div class="inputfield">
-                        {{ form.formula }}
-                        {% if form.formula.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{form.formula.errors.0}}</span>{% endif %}
-                        {% if form.formula.help_text %}<div class="helptext">({{form.formula.help_text}})</div>{% endif %}
-                        <div class="buttongroup">
-                            <a href="{% url "grades.views.formula_tester" course_slug=course.slug %}" id="testerlink" class="redbutton">Formula Tester</a>
-                        </div>
+            {{ form|as_dl_excludefields:"showstats,showhisto" }}
+
                         <div class="collapsible">The applicable numeric activities:</div>
                         <div class="activity_reference_container">
                             <table class="info">
@@ -77,9 +53,9 @@ $(document).ready(function() {
                                         <td>{{ numeric_activity.name }}</td>
                                         <td>{{ numeric_activity.max_grade }}</td>
                                         {% if numeric_activity.percent %}
-                                        <td>{{ numeric_activity.percent }}%</td>
+                                          <td>{{ numeric_activity.percent }}%</td>
                                         {% else %}
-                                        <td>&mdash;</td>
+                                          <td>&mdash;</td>
                                         {% endif %}
                                         <td><a href="javascript:insert_activity('{{numeric_activity.short_name|escapejs}}')" title="the grade the student received on {{numeric_activity.name}}">{{numeric_activity.short_name}} grade</a></td>
                                         <td><a href="javascript:insert_max('{{numeric_activity.short_name|escapejs}}')" title="the maximum grade for {{numeric_activity.name}} (currently {{numeric_activity.max_grade}})">{{numeric_activity.short_name}} out of</a></td>
@@ -94,27 +70,23 @@ $(document).ready(function() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </li>
-                <li>
-                    <input class="submit" type="submit" value="Submit" />
-                </li>
-            </ul>
+                        <div class="buttongroup"><a href="{% url "grades.views.formula_tester" course_slug=course.slug %}" id="testerlink">Formula Tester</a></div>
+
+            <p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>
         <fieldset>
             <legend id="moreconfig">Additional Options</legend>
-            <ul>
-                {{form.showstats|activity_field}}
-                {{form.showhisto|activity_field}}
-            </ul>
+            {{ form|as_dl_includefields:"showstats,showhisto" }}
         </fieldset>
+
+
     </form>
-</div>
     {% ifequal form_type 'edit' %}
     <form action="{% url "grades.views.delete_activity" course_slug=course.slug activity_slug=activity.slug %}" method="post" name="deleteform">{% csrf_token %}
     <p><input type="submit" class="submit" value="Delete Activity" id="deletesubmit" onclick="return confirmSubmit('delete this activity');" /></p>
     </form>
     {% endifequal %}
+</div>
 
 <h2 id="help">Formula Help</h2>
 

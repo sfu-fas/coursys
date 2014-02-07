@@ -417,7 +417,9 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
         new_activity.status = 'INVI'        
     else:
         new_activity.status = 'URLS'
+
     new_activity.offering = target_course_offering
+
     if source_activity.due_date != None:
         week, wkday = source_course_offering.semester.week_weekday(source_activity.due_date)
         new_due_date = target_course_offering.semester.duedate(week, wkday, source_activity.due_date)
@@ -432,13 +434,13 @@ def save_copied_activity(target_activity, model, target_course_offering):
     try:
         old_activity = model.objects.get(Q(name=target_activity.name) | 
                                          Q(short_name=target_activity.short_name, deleted = False), 
-                                        offering = target_course_offering, deleted = False)
+                                        offering=target_course_offering, deleted=False)
     except model.DoesNotExist:
-        target_activity.save()
+        target_activity.save(force_insert=True)
     else:    
         old_activity.deleted = True
         old_activity.save()
-        target_activity.save()            
+        target_activity.save(force_insert=True)            
 
 @transaction.atomic
 def copyCourseSetup(course_copy_from, course_copy_to):
@@ -467,16 +469,14 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_activity_component.pk = None
             new_activity_component.numeric_activity = new_activity
             new_activity_component.slug = None
-            new_activity_component.save()
-            #print "-- marking component %s is copied" % new_activity_component            
+            new_activity_component.save(force_insert=True)
             for common_problem in CommonProblem.objects.filter(activity_component=activity_component, deleted=False):
                 new_common_problem = copy.deepcopy(common_problem)
                 new_common_problem.id = None
                 new_common_problem.pk = None
                 new_common_problem.penalty = str(new_common_problem.penalty)
                 new_common_problem.activity_component = new_activity_component
-                new_common_problem.save()
-                #print "--- common problem %s is copied" % new_common_problem
+                new_common_problem.save(force_insert=True)
         
         for submission_component in select_all_components(activity):
             new_submission_component = copy.deepcopy(submission_component)
@@ -484,8 +484,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_submission_component.pk = None
             new_submission_component.activity = new_activity
             new_submission_component.slug = None
-            new_submission_component.save()
-            #print "-- submission component %s is copied" % new_submission_component
+            new_submission_component.save(force_insert=True)
     
     for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
         # fix up source and exam activities as best possible
@@ -517,7 +516,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             count = 0
             orig_label = new_p.label
             try:
-                new_p.save()
+                new_p.save(force_insert=True)
                 break
             except IntegrityError:
                 count += 1
@@ -567,7 +566,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 import shutil
                 shutil.copyfile(src, dst)
 
-        new_v.save()
+        new_v.save(force_insert=True)
 
 
 

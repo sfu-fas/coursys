@@ -6,16 +6,16 @@
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url "planning.views.instructor_index" %}">Teaching Preferences</a>
+    <a href="{% url "planning.views.instructor_index" %}">Teaching Preferences</a>
 </li>
 <li>
-    &gt; <a href="{% url "planning.views.view_teaching_credits_inst" %}">Teaching Credits</a>
+    <a href="{% url "planning.views.view_teaching_credits_inst" %}">Teaching Credits</a>
 </li>
 <li>
-    &gt; <a href="{% url "planning.views.view_teaching_equivalent_inst" equivalent_id=equivalent.id %}">Teaching Equivalent</a>
+    <a href="{% url "planning.views.view_teaching_equivalent_inst" equivalent_id=equivalent.id %}">Teaching Equivalent</a>
 </li>
 <li>
-    &gt; Edit Teaching Equivalent
+    Edit Teaching Equivalent
 </li>
 {% endblock %}
 

@@ -14,8 +14,12 @@ from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
 
 from faculty.event_types.awards import FellowshipEventHandler
+from faculty.event_types.awards import GrantApplicationEventHandler
+from faculty.event_types.awards import AwardEventHandler
+from faculty.event_types.awards import TeachingCreditEventHandler
 from faculty.event_types.career import AppointmentEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
 from faculty.event_types.career import TenureReceivedEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
@@ -27,10 +31,14 @@ from faculty.event_types.position import AdminPositionEventHandler
 HANDLERS = [
     AdminPositionEventHandler,
     AppointmentEventHandler,
+    AwardEventHandler,
     CommitteeMemberHandler,
     ExternalAffiliationHandler,
     FellowshipEventHandler,
+    GrantApplicationEventHandler,
     SalaryBaseEventHandler,
+    SalaryModificationEventHandler,
+    TeachingCreditEventHandler,
     TenureApplicationEventHandler,
     TenureReceivedEventHandler,
 ]
@@ -168,6 +176,7 @@ class DocumentAttachment(models.Model):
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False, related_name="attachments")
     title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(upload_to=attachment_upload_to)
@@ -178,6 +187,7 @@ class DocumentAttachment(models.Model):
 
     class Meta:
         ordering = ("created_at",)
+        unique_together = (("career_event", "slug"),)
 
 
 class MemoTemplate(models.Model):
@@ -221,14 +231,14 @@ class Memo(models.Model):
     A memo created by the system, and attached to a CareerEvent.
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False)
-    unit = models.ForeignKey(Unit, null=False, blank=False)
+    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="The unit producing the memo: will determine the letterhead used for the memo.")
 
-    sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter, editable")
-    to_lines = models.TextField(help_text='Recipient of the memo', null=True, blank=True)
-    cc_lines = models.TextField(help_text='additional recipients of the memo', null=True, blank=True)
+    sent_date = models.DateField(default=datetime.date.today, help_text="The sending date of the letter")
+    to_lines = models.TextField(verbose_name='Attention', help_text='Recipient of the memo', null=True, blank=True)
+    cc_lines = models.TextField(verbose_name='CC lines', help_text='Additional recipients of the memo', null=True, blank=True)
     from_person = models.ForeignKey(Person, null=True, related_name='+')
-    from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Applied Sciences, Dean"')
-    subject = models.TextField(help_text='The career event of the memo')
+    from_lines = models.TextField(verbose_name='From', help_text='Name (and title) of the sender, e.g. "John Smith, Applied Sciences, Dean"')
+    subject = models.TextField(help_text='The subject of the memo (lines will be formatted separately in the memo header)')
 
     template = models.ForeignKey(MemoTemplate, null=True)
     memo_text = models.TextField(help_text="I.e. 'Congratulations Mr. Baker on ... '")
@@ -257,25 +267,24 @@ class Memo(models.Model):
             self.to_lines = ''
         self.to_lines = normalize_newlines(self.to_lines.rstrip())
         self.from_lines = normalize_newlines(self.from_lines.rstrip())
+        self.subject = normalize_newlines(self.subject.rstrip())
         self.memo_text = normalize_newlines(self.memo_text.rstrip())
         self.memo_text = many_newlines.sub('\n\n', self.memo_text)
         super(Memo, self).save(*args, **kwargs)
 
     def write_pdf(self, response):
-        from dashboard.letters import OfficialLetter, LetterContents
+        from dashboard.letters import OfficialLetter, MemoContents
         doc = OfficialLetter(response, unit=self.unit)
-        l = LetterContents(to_addr_lines=self.to_lines.split("\n"),
+        l = MemoContents(to_addr_lines=self.to_lines.split("\n"),
                         from_name_lines=self.from_lines.split("\n"),
                         date=self.sent_date,
-                        salutation="Heeeeeyyyy",
-                        closing="Later",
-                        signer=self.from_person,
-                        use_sig=self.use_sig)
+                        subject=self.subject.split("\n"),
+                        cc_lines=self.cc_lines.split("\n"),
+                        )
         content_lines = self.memo_text.split("\n\n")
         l.add_paragraphs(content_lines)
         doc.add_letter(l)
         doc.write()
-
 
 class EventConfig(models.Model):
     """

@@ -269,7 +269,7 @@ class GradesTest(TestCase):
         # formula tester
         url = reverse('grades.views.formula_tester', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        response = client.post(url, {'formula': '[A1]+5', 'a1-status': 'RLS', 'a1-value': '6', 'total-status': 'URLS'})
+        response = client.get(url, {'formula': '[A1]+5', 'a1-status': 'RLS', 'a1-value': '6', 'total-status': 'URLS'})
         self.assertContains(response, '<div id="formula_result">11.0</div>')
         validate_content(self, response.content, url)
         
