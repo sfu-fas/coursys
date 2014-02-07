@@ -266,93 +266,45 @@ div.bigdatatable span.more {
     display: none;
 }
 
-disabled .dataTables_length {
-    width: 40%;
-    float: left;
-}
-disabled .dataTables_filter {
-    width: 50%;
-    float: right;
-    text-align: right;
-}
-disabled .dataTables_filter input[type=text] {
-  margin: 2px;
-}
-disabled .dataTables_info {
-    width: 40%;
-    float: left;
-}
-disabled .dataTables_paginate {
-    width: 40%;
-    float: right;
-    text-align: right;
-}
-disabled .datatable_container .iconcell {
-  text-align: center;
-}
-disabled .datatable_container .disabled {
-  background-color: #eee;
-  color: #999;
-}
-
-/* DataTables display */
-disabled table.display {
-    margin: 0;
-    width: 100%;
-    clear: both;
-
-    /* Override style in "media/style/main.css" */
-    border-width: 0;
-}
-disabled table.display thead th {
-    padding: 3px 0px 3px 10px;
-    font-weight: bold;
-    cursor: pointer;
-    * cursor: hand;
-}
-disabled table.display td {
-    padding: 3px 10px;
-
-    /* Override style in "media/style/main.css" */
-    border-width: 0;
-}
-disabled table.display td.center {
-    text-align: center;
-}
-disabled table.display td.num {
-    text-align: right;
-}
-disabled table.display td textarea{
-	width: 180px;
-	height: 60px;
-}
-
-disabled table.display td select{
-	width: 100px;
-}
-
-disabled table.display tr:hover {
-  background-color: #EAF2FA;
-}
-
-disabled table td.hidden, disabled table tr.hidden {
-	display: none;
-}
-
-
-
-
 .dataTables_length {
+  width: 40%;
+  float: left;
   font-size: 75%;
   text-align: left;
 }
-.dataTables_filter, .dataTables_info {
+.dataTables_filter {
   font-size: 75%;
+  width: 50%;
+  float: right;
   text-align: right;
+}
+.dataTables_info {
+  font-size: 75%;
+  width: 40%;
+  float: left;
+  text-align: left;
+  height: 22px;
+  line-height: 22px;
+}
+.dataTables_paginate {
+  width: 40%;
+  float: right;
+  text-align: right;
+}
+.dataTables_paginate a {
+  display: inline;
 }
 .dataTables_filter input, .dataTables_length select {
   display: inline;
 }
+.paging_full_numbers .fg-button {
+    padding: 2px 6px;
+}
+.fg-toolbar {
+    padding: 2px 4px;
+}
+
+
 
 /* DataTables row classes */
 tr.odd {
@@ -362,93 +314,45 @@ tr.even {
     background-color: white;
 }
 
-
-
-/* jQuery UI specific styling */
-.paging_full_numbers .fg-button {
-    padding: 2px 6px;
-    cursor: pointer;
-    * cursor: hand;
+/* DataTables cell types */
+.datatable_container .iconcell {
+  text-align: center;
 }
-.fg-toolbar {
-    padding: 2px 4px;
+.datatable_container .disabled {
+  background-color: #eee;
+  color: #999;
 }
-.dataTables_info {
-    height: 22px;
-    line-height: 22px;
+table.display td.center {
+    text-align: center;
 }
-
-
-/* The following css will make the datatable sorting icon float to right. */
-disabled .css_right {
+table.display td.num {
+    text-align: right;
+}
+table td.hidden, table tr.hidden {
+	display: none;
+}
+/* makes the datatable sorting icon float to right. */
+.dataTables_wrapper .css_right {
     float: right;
 }
 
-/* Row action in course activity page  */
-disabled .row-actions {
-  visibility: hidden;
-  font-weight: normal;
+/*
+table.display td textarea {
+	width: 180px;
+	height: 60px;
 }
-disabled tr:hover .row-actions {
-  visibility: visible;
+disabled table.display td select{
+	width: 100px;
 }
-disabled #activities td {
-  vertical-align: top;
+disabled table.display tr:hover {
+  background-color: #EAF2FA;
 }
+*/
 
-disabled table.activity_box_info tbody th {
-  font-weight: bold;
-  text-align: left;
-  width: 20%;
-  /* Override default table style */
-  background-color: transparent;
-}
-disabled table.activity_box_info th, table.activity_box_info td {
-  /* Override default table style */
-  border-width: 0px;
-}
-disabled table.activity_box_info {
-  width: 100%;
-  color: #555555;
-  /* Override default table style */
-  border-width: 0px;
-}
 
-/* visualize plugin chart style */
-disabled .visualize {
-  margin: 2em 2em 4em 2em;
-}
-
-disabled .ajax_status{
-  padding-left: 1em;
-  color: gray;
-  font-style: italic;
-}
 a.editlink {
   float: right;
   font-size: smaller;
-}
-
-/* CSS for group */
-disabled #groupcontainer {
-    padding:0 0 0 0;
-    margin:0 0 0 0;
-}
-disabled #groupmembership {
-    float:right;
-    width: 200px;
-    margin-top:20px;
-    margin-right:10px;
-    margin-left:0;
-    border: 1px solid;
-    border-color:#FFCA91;
-    padding:5px 15px 15px 5px;
-}
-
-disabled #groupcontent {
-    width:400px;
-    padding:0 30px 30px 0;
-    margin:0 0 0 0;
 }
 
 
