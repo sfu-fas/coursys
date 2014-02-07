@@ -1,5 +1,5 @@
 {% extends "grades/base.html" %}
-{% load grade_student %}
+{% load form_display %}
 
 {% block h1 %}{{course.name}} TAs{% endblock %}
 {% block title %}{{course.name}} TAs{% endblock %}
@@ -53,24 +53,17 @@
 </div>
 
 <div class="form_container">
-    {% if form.non_field_errors %}
-    <div class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </div>
-    {% endif %}
     <form action="{% url "coredata.views.manage_tas" course_slug=course.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add TA</legend>
-            <ul>
-                {{form.userid|activity_field}}
-                {% if longform %}
-                  {{form.fname|activity_field}}
-                  {{form.lname|activity_field}}
-                {% endif %}
-                <li><input type="hidden" name="action" value="add" />
+            {% if longform %}
+            {{ form|as_dl }}
+            {% else %}
+            {{ form|as_dl_excludefields:"fname,lname" }}
+            {% endif %}
+                <p><input type="hidden" name="action" value="add" />
                     <input class="submit" type="submit" value="Add TA" />
-                </li>
+                </p>
             </ul>
         </fieldset>
     </form>

@@ -15,6 +15,7 @@ from django.contrib.sessions.models import Session
 from django.conf import settings
 from django.core.cache import cache
 from courselib.svn import update_offering_repositories
+from grades.models import LetterActivity
 from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, random
 
@@ -261,6 +262,10 @@ def get_unit(acad_org, create=False):
         name, = db.fetchone()
         if acad_org == 'ENVIRO SCI':
             label = 'ENVS'
+        elif acad_org == 'COMP SCI': # for test/demo imports
+            label = 'CMPT'
+        elif acad_org == 'ENG SCI': # for test/demo imports
+            label = 'ENSC'
         else:
             label = acad_org[:4].strip()
         if create:

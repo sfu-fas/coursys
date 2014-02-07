@@ -1,70 +1,194 @@
-from django import forms
-from django.template import Context, Template
-from coredata.models import Role
-import datetime, itertools
+import abc
+import collections
+import copy
+import datetime
+import itertools
 
-PERMISSION_CHOICES = { # who can create/edit/approve various things?
-        'MEMB': 'Faculty Member',
-        'DEPT': 'Department',
-        'FAC': 'Dean\'s Office',
-        }
-PERMISSION_LEVEL = {
-        'NONE': 0,
-        'MEMB': 1,
-        'DEPT': 2,
-        'FAC': 3,
-        }
+from django import forms
+from django.db import models
+from django.template import Context, Template
+
+from coredata.models import Role, Unit
+
+from faculty.event_types.constants import PERMISSION_LEVEL
+
+SalaryAdjust = collections.namedtuple('SalaryAdjust', [
+    'add_salary',
+    'salary_fraction',
+    'add_bonus',
+])
+TeachingAdjust = collections.namedtuple('TeachingAdjust', [
+    'credits',
+    'load_decrease',
+])
+
+
+class CareerEventMeta(abc.ABCMeta):
+
+    def __init__(cls, name, bases, members):
+        super(CareerEventMeta, cls).__init__(name, bases, members)
+
+        # Some integrity checks
+        if not len(cls.EVENT_TYPE) <= 10:
+            raise ValueError('{}.EVENT_TYPE is too long'.format(name))
+
+        # Make a new list so we don't accidentally reference the base class' FLAGS
+        cls.FLAGS = copy.copy(cls.FLAGS)
+
+        for base in bases:
+            # Add the flags from every mixin base class
+            if hasattr(base, 'FLAGS'):
+                for flag in base.FLAGS:
+                    if flag not in cls.FLAGS:
+                        cls.FLAGS.append(flag)
+
+        # Figure out what fields are required by the Handler subclass
+        cls.CONFIG_FIELDS = collections.OrderedDict()
+
+        for name, field in cls.EntryForm.base_fields.iteritems():
+            if name not in BaseEntryForm.base_fields:
+                cls.CONFIG_FIELDS[name] = field
+
+        # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
+        if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
+            del cls.EntryForm.base_fields['end_date']
 
 
 class BaseEntryForm(forms.Form):
-    # TODO: should this be a ModelForm for a CareerEvent? We'll have a circular import if so.
-    title = forms.CharField(max_length=80, required=True)
-    start_date = forms.DateField()
-    end_date = forms.DateField()
+    title = forms.CharField(max_length=80, required=True,
+                            widget=forms.TextInput(attrs={'size': 60}))
+    start_date = forms.DateField(required=True)
+    end_date = forms.DateField(required=False)
+    comments = forms.CharField(required=False,
+                               widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
+    unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
+
+    def __init__(self, editor, units, *args, **kwargs):
+        handler = kwargs.pop('handler', None)
+        self.editor = editor
+        self.units = units
+        super(BaseEntryForm, self).__init__(*args, **kwargs)
+
+        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+
+        # Load initial data from the handler instance if possible
+        if handler:
+            self.initial['title'] = handler.event.title
+            self.initial['start_date'] = handler.event.start_date
+            self.initial['end_date'] = handler.event.end_date
+            self.initial['unit'] = handler.event.unit
+            self.initial['comments'] = handler.event.comments
+
+            # Load any handler specific field values
+            for name in handler.CONFIG_FIELDS:
+                self.initial[name] = handler.get_config(name, None)
+
+        # force the comments field to the bottom
+        self.fields.keyOrder = [k for k in self.fields.keyOrder if k != 'comments']
+        self.fields.keyOrder.append('comments')
+
+        self.post_init()
+
+    def post_init(self):
+        "Hook to do setup of the form"
+        pass
 
 
 class CareerEventHandlerBase(object):
-    # type configuration stuff: override as necessary
-    is_instant = False # set to True for events that have no duration
-    exclusion_category = None # if set, only one CareerEvent with this exclusion_category
-                              # can exist for a faculty member at a given time.
-    date_bias = 'DATE' # or 'SEM': which interface widget should be presented to default in the form?
-    affects_teaching = False # events of this type might affect teaching credits/load
-    affects_salary = False   # events of this type might affect salary/pay
 
-    viewable_by = 'MEMB'
-    editable_by = 'DEPT'
-    approval_by = 'FAC'
-    
-    
-    # basic functionality: hopefully don't have to override
-    
-    def __init__(self, faculty=None, event=None):
-        """
-        faculty: a coredata.Person representing the faculty member in question.
-        event: the CareerEvent we're manipulating, if it exists.
-        """
+    __metaclass__ = CareerEventMeta
+
+    NAME = ''
+    EVENT_TYPE = ''
+
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
+
+    # Event has no duration (start_date is set to end_date automagically)
+    IS_INSTANT = False
+    # There can only be one (with same person, unit, event_type without an end_date)
+    IS_EXCLUSIVE = False
+    # Show a semester selection widget for start/end date instead of a raw date picker
+    SEMESTER_BIAS = False
+
+    VIEWABLE_BY = 'MEMB'
+    EDITABLE_BY = 'DEPT'
+    APPROVAL_BY = 'FAC'
+
+    # Internal mumbo jumbo
+
+    CONFIG_FIELDS = {}
+    FLAGS = []
+
+    def __init__(self, event):
         self.event = event
-        if event and faculty:
-            assert event.person == faculty
 
-        if faculty:
-            self.faculty = faculty
-        elif event and event.person:
-            self.faculty = event.person
+        # Just in case we add more complicated logic to __init__ we have to let subclasses easily
+        # add initialization logic.
+        self.initialize()
+
+    def save(self, editor):
+        # TODO: Log the fact that `editor` made some changes to the CareerEvent.
+
+        if self.IS_INSTANT:
+            self.event.end_date = self.event.start_date
+
+        if self.IS_EXCLUSIVE:
+            from faculty.models import CareerEvent
+            previous_event = (CareerEvent.objects.filter(person=self.event.person,
+                                                         unit=self.event.unit,
+                                                         event_type=self.EVENT_TYPE,
+                                                         start_date__lte=self.event.start_date,
+                                                         end_date=None)
+                                                 .order_by('start_date').last())
+            if previous_event:
+                previous_event.end_date = self.event.start_date - datetime.timedelta(days=1)
+                previous_event.save(editor)
+
+        self.pre_save()
+
+        # TODO: store handler flags in the CareerEvent instance
+        self.event.event_type = self.EVENT_TYPE
+        self.event.save(editor)
+
+        self.post_save()
+
+    def get_config(self, name, default=None):
+        raw_value = self.event.config.get(name) or self.CONFIG_FIELDS[name].default or default
+        return self.CONFIG_FIELDS[name].to_python(raw_value)
+
+    def set_config(self, name, value):
+        if isinstance(value, models.Model):
+            raw_value = unicode(value.pk)
         else:
-            raise ValueError, "A CareerEventType must know which faculty member it's dealing with."
+            raw_value = unicode(value)
+        self.event.config[name] = raw_value
 
+    # Other ways to create a new handler instance
+
+    @classmethod
+    def create_for(cls, person, form):
+        """
+        Given a person, create a new instance of the handler for them.
+        """
+        from faculty.models import CareerEvent
+        event = CareerEvent(person=person,
+                            event_type=cls.EVENT_TYPE)
+        ret = cls(event)
+        ret.load(form)
+        return ret
+
+    # Stuff involving permissions
 
     def permission(self, editor):
         """
         This editor's permission level with respect to this faculty member.
         """
         edit_units = set(r.unit for r in Role.objects.filter(person=editor, role='ADMN'))
-        fac_units = set(r.unit for r in Role.objects.filter(person=self.faculty, role='FAC'))
+        fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))
         super_units = set(itertools.chain(*(u.super_units() for u in fac_units)))
 
-        if editor == self.faculty:
+        if editor == self.event.person:
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
         elif edit_units & super_units:
@@ -76,12 +200,11 @@ class CareerEventHandlerBase(object):
         else:
             return 'NONE'
 
-        
     def has_permission(self, perm, editor):
         """
         Does the given editor (a coredata.Person) have this permission
         for this faculty member?
-        
+
         Implemented as a method so we can override or extend if necessary.
         """
         permission = self.permission(editor)
@@ -92,89 +215,123 @@ class CareerEventHandlerBase(object):
         Can the given user (a coredata.Person) can view the
         CareerEventType for this faculty member?
         """
-        return self.has_permission(self.viewable_by, editor)
-            
+        return self.has_permission(self.VIEWABLE_BY, editor)
+
     def can_edit(self, editor):
         """
         Can the given editor (a coredata.Person) can create/edit this
         CareerEventType for this faculty member?
         """
-        return self.has_permission(self.editable_by, editor)
+        return self.has_permission(self.EDITABLE_BY, editor)
 
     def can_approve(self, editor):
         """
         Can the given editor (a coredata.Person) can approve this
         CareerEventType for this faculty member?
         """
-        return self.has_permission(self.approval_by, editor)
-            
+        return self.has_permission(self.APPROVAL_BY, editor)
 
-    # maybe override? Hopefully we can avoid and use this as-is.
+    # Stuff relating to forms
 
-    def get_entry_form(self):
+    class EntryForm(BaseEntryForm):
+        pass
+
+    def load(self, form):
+        """
+        Given a valid form, load its data into the handler.
+        """
+        self.event.unit = form.cleaned_data['unit']
+        self.event.title = form.cleaned_data['title']
+        self.event.start_date = form.cleaned_data['start_date']
+        self.event.end_date = form.cleaned_data.get('end_date', None)
+        self.event.comments = form.cleaned_data.get('comments', None)
+        self.event.status = form.cleaned_data.get('status', 'NA')
+
+        # XXX: status field: choose highest possible value for the available unit(s)?
+
+        for name in self.CONFIG_FIELDS:
+            self.set_config(name, form.cleaned_data.get(name, None))
+
+    @classmethod
+    def get_entry_form(cls, editor, units, handler=None, **kwargs):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
-        initial = {'title': self.default_title, 'start_date': datetime.date.today()}
-        f = self.EntryForm(initial=initial)
+        initial = {
+            'title': cls.default_title(),
+            'start_date': datetime.date.today(),
+        }
+        form = cls.EntryForm(editor=editor,
+                             units=units,
+                             initial=initial,
+                             handler=handler,
+                             **kwargs)
+        return form
 
-        if self.is_instant and 'end_date' in f.fields:
-            del f.fields['end_date']
-
-        return f
+    # Stuff relating to HTML display
 
     def to_html(self):
         """
         A detailed HTML presentation of this event
         """
-        if not self.event:
-            raise ValueError, "Handler must have its 'event' set to be converted to HTML."
+        template = Template(self.TO_HTML_TEMPLATE)
+        context = {
+            'event': self.event,
+            'handler': self,
+        }
+        context.update(self.to_html_context())
+        return template.render(Context(context))
 
-        t = Template(self.TO_HTML_TEMPLATE)
-        c = Context({'event': self.event, 'handler': self, 'faculty': self.faculty})
-        return t.render(c)
+    # Optionally override these
 
-
-    # type-specific stuff that probably need to be overridden.
-    
-    class EntryForm(BaseEntryForm):
+    def initialize(self):
         pass
 
-    @property
-    def default_title(self):
-        return 'Some Career Event'
+    def pre_save(self):
+        '''
+        Executed prior to saving the associated CareerEvent.
 
-    def to_career_event(self, form):
-        """
-        Given an EntryForm instance, return the corresponding CareerEvent instance
-        (~= inverse of get_entry_form)
-        """
-        # TODO: can we be general enough here to actually have common logic here?
-        # if self.event:
-        #     should modify and return that
-        raise NotImplementedError
+        '''
+        pass
 
+    def post_save(self):
+        '''
+        Executed after saving the associated CareerEvent.
+
+        '''
+        pass
+
+    @classmethod
+    def default_title(cls):
+        return cls.NAME
+
+    # Override these
+
+    @abc.abstractmethod
     def short_summary(self):
         """
         A short-line text-only summary of the event for summary displays
+
         """
-        raise NotImplementedError
+        pass
+
+    def to_html_context(self):
+        """
+        Additional context for the TO_HTML_TEMPLATE
+        """
+        return {}
 
 
-    def get_salary(self, prev_salary):
-        """
-        Calculate salary with this CareerEvent taken into account: salary was prev_salary argument, and this
-        returns the salary after this event has happened.
+class Choices(collections.OrderedDict):
+    '''
+    An ordered dictionary that also acts as an iterable of (key, value) pairs.
+    '''
 
-        Must be implemented iff self.affects_salary.
-        """
-        raise NotImplementedError
+    def __init__(self, *choices):
+        super(Choices, self).__init__(choices)
 
-    def get_teaching_balance(self, prev_teaching):
-        """
-        Calculate number of courses that must be taught with this CareerEvent taken into account: courses required
-        was prev_teaching argument, and this returns the balance after this event has happened.
-
-        Must be implemented iff self.affects_teaching.
-        """
-        raise NotImplementedError
+    def __iter__(self):
+        # XXX: Can't call super(Choices, self).iteritems() here because it will call our
+        #      __iter__ and recurse infinitely.
+        for key in super(Choices, self).__iter__():
+            yield (key, self[key])

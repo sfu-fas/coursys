@@ -1,78 +1,165 @@
-# career-level event types: appointment, salary
+import datetime
+import decimal
 
-from base import CareerEventHandlerBase, BaseEntryForm
 from django import forms
-import decimal, datetime
+
+from faculty.event_types.base import BaseEntryForm
+from faculty.event_types.base import CareerEventHandlerBase
+from faculty.event_types.base import SalaryAdjust
+from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
+from faculty.event_types.fields import AddSalaryField, AddPayField
+
 
 RANK_CHOICES = [
-        ('LABI', 'Laboratory Instructor'),
-        ('LECT', 'Lecturer'),
-        ('SLEC', 'Senior Lecturer'),
-        ('INST', 'Instructor'),
-        ('ASSI', 'Assistant Professor'),
-        ('ASSO', 'Associate Professor'),
-        ('FULL', 'Full Professor'),
-        #('UNIV', 'University Professor'),
-        #('UNIR', 'University Research Professor'),
-        ]
+    ('LABI', 'Laboratory Instructor'),
+    ('LECT', 'Lecturer'),
+    ('SLEC', 'Senior Lecturer'),
+    ('INST', 'Instructor'),
+    ('ASSI', 'Assistant Professor'),
+    ('ASSO', 'Associate Professor'),
+    ('FULL', 'Full Professor'),
+    #('UNIV', 'University Professor'),
+    #('UNIR', 'University Research Professor'),
+]
 
 LEAVING_CHOICES = [
-        ('HERE', u'\u2014'), # hasn't left yet
-        ('RETI', 'Retired'),
-        ('END', 'Limited-term contract ended'),
-        ('UNIV', 'Left: job at another University'),
-        ('PRIV', 'Left: private-sector job'),
-        ('GONE', 'Left: employment status unknown'),
-        ('FIRE', 'Dismissal'),
-        ('DIED', 'Deceased'),
-        ('OTHR', 'Other/Unknown'),
-        ]
+    ('HERE', u'\u2014'),  # hasn't left yet
+    ('RETI', 'Retired'),
+    ('END', 'Limited-term contract ended'),
+    ('UNIV', 'Left: job at another University'),
+    ('PRIV', 'Left: private-sector job'),
+    ('GONE', 'Left: employment status unknown'),
+    ('FIRE', 'Dismissal'),
+    ('DIED', 'Deceased'),
+    ('OTHR', 'Other/Unknown'),
+]
 
 
 class AppointmentEventHandler(CareerEventHandlerBase):
     """
     The big career event: from hiring to leaving the position.
     """
-    TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
+    IS_EXCLUSIVE = True
+    EVENT_TYPE = 'APPOINT'
+    NAME = 'Appointment to Position'
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Leaving Reason</dt><dd>{{ event|get_config:"leaving_reason" }}</dd>
+        <dt>Spousal hire</dt><dd>{{ event|get_config:"spousal_hire"|yesno }}</dd>
+        {% endblock %}
+        """
 
     class EntryForm(BaseEntryForm):
-        spousal_hire = forms.BooleanField(initial=False)
+        spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
-    @property
-    def default_title(self):
-        return 'Appointment'
-
-    def to_career_event(self, form):
-        event = super(AppointmentEventHandler, self).to_career_event(form)
-        event.config['spousal_hire'] = form.cleaned_data['spousal_hire']
-        event.config['leaving_reason'] = form.cleaned_data['leaving_reason']
-        return event
+    def short_summary(self):
+        return "Appointment to position as of %s" % (self.event.start_date)
 
 
-class SalaryBaseEventHandler(CareerEventHandlerBase):
+class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
     An annual salary update
     """
-    TO_HTML_TEMPLATE = """{{ faculty.name }}: {{ event.title }}"""
+    EVENT_TYPE = 'SALARY'
+    NAME = "Base Salary Update"
+    IS_EXCLUSIVE = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Base salary</dt><dd>${{ event|get_config:"base_salary"|floatformat:2 }}</dd>
+        <dt>Add salary</dt><dd>${{ event|get_config:"add_salary"|floatformat:2 }}</dd>
+        <dt>Add pay</dt><dd>${{ event|get_config:"add_pay"|floatformat:2 }}</dd>
+        <dt>Total</dt><dd>${{ total|floatformat:2 }}</dd>
+        <!--<dt>Biweekly</dt><dd>${{ biweekly|floatformat:2 }}</dd>-->
+        {% endblock %}
+        """
 
-    affects_salary = True
     class EntryForm(BaseEntryForm):
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
-        base_salary = forms.DecimalField(max_digits=8, decimal_places=2, help_text="Base annual salary for this rank + step.")
+        base_salary = AddSalaryField(help_text="Base annual salary for this rank + step.")
+        add_salary = AddSalaryField()
+        add_pay = AddPayField()
 
-    @property
-    def default_title(self):
-        return 'Base Salary %s' % (datetime.date.today().year)
+    @classmethod
+    def default_title(cls):
+        return 'Base Salary'
 
-    def to_career_event(self, form):
-        event = super(SalaryBaseEventHandler, self).to_career_event(form)
-        event.config['step'] = form.cleaned_data['step']
-        event.config['base_salary'] = form.cleaned_data['base_salary']
-        return event
+    def short_summary(self):
+        return "Base salary of %s at step %s" % (self.event.config.get('base_salary', 0),
+                                                 self.event.config.get('step', 0))
 
-    def get_salary(self, prev_salary):
-        return decimal.Decimal(10000)
-        #return self.event.base_salary
+    def to_html_context(self):
+        total = decimal.Decimal(self.event.config.get('base_salary', 0))
+        total += decimal.Decimal(self.event.config.get('add_salary', 0))
+        total += decimal.Decimal(self.event.config.get('add_pay', 0))
+        return {
+            'total': total,
+            'biweekly': total/365*14,
+        }
 
+    def salary_adjust_annually(self):
+        s = decimal.Decimal(self.event.config.get('base_salary', 0))
+        return SalaryAdjust(s, 1, 0)
 
+class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
+    """
+    Salary modification/stipend event
+    """
+    EVENT_TYPE = 'STIPEND'
+    NAME = "Salary Modification/Stipend"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Source</dt><dd>{{ event|get_config:"source" }}</dd>
+        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend')]
+        source = forms.ChoiceField(label='Stipend Source', choices=STIPEND_SOURCES)
+        # Do we want this to be adjusted during leaves?
+        amount = AddSalaryField()
+
+    @classmethod
+    def default_title(cls):
+        return 'Salary Modification/Stipend'
+
+    def short_summary(self):
+        return "%s for $%s" % (self.event.config.get('source', 0),
+                                            self.event.config.get('amount', 0))
+
+    def salary_adjust_annually(self):
+        # Not sure if this is what we want for this
+        s = decimal.Decimal(self.event.config.get('amount', 0))
+        return SalaryAdjust(s, 1, 0)
+        
+class TenureApplicationEventHandler(CareerEventHandlerBase):
+    """
+    Tenure Application Career event
+    """
+    EVENT_TYPE = 'TENUREAPP'
+    NAME = "Tenure Application"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
+
+    @classmethod
+    def default_title(cls):
+        return 'Applied for Tenure'
+
+    def short_summary(self):
+        return '%s Applied for Tenure on %s' % (self.event.person.name(),
+                                                datetime.date.today())
+
+class TenureReceivedEventHandler(CareerEventHandlerBase):
+    """
+    Received Tenure Career event
+    """
+    EVENT_TYPE = 'TENUREREC'
+    NAME = "Tenure Received"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
+
+    @classmethod
+    def default_title(cls):
+        return 'Tenure Received'
+
+    def short_summary(self):
+        return '%s received for Tenure on %s' % (self.event.person.name(),
+                                                datetime.date.today())

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
+{% block h1 %}{% if event %}Change Event{% else %}New {{ name|title }}{% endif %}: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<script>
+var event_type = "{{ event_type|escapejs }}";
+</script>
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+{% if event %}
+<li>Edit {{ event.title }}</li>
+{% else %}
+<li><a href="{% url "faculty.views.event_type_list" userid=person.userid_or_emplid %}">New Event</a></li>
+<li>{{ name|title }}</li>
+{% endif %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    {% if event %}
+    <li><a href="{{ event.get_absolute_url }}">View Event</a></li>
+    <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
+    {% endif %}
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ event_form|as_dl }}
+            <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

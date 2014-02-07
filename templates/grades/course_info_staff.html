@@ -135,7 +135,7 @@
         <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}">Display Class List</a></li>
         <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}">Display All Grades</a></li>
         <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}">Student Search</a></li>
-	<li class="newsec"><a href="{% url "dashboard.views.new_message" course_slug=course.slug %}">Create News Item</a></li>
+	<li class="newsec"><a href="{% url "grades.views.new_message" course_slug=course.slug %}">Create News Item</a></li>
 	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
         <li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li>
         <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}">Course Pages</a></li>

@@ -1,5 +1,4 @@
 {% extends "grades/base.html" %}
-{% load grade_student %}
 
 {% block h1 %}
 Choose the type of activity.
@@ -36,7 +35,5 @@ $(document).ready(function() {
     <li><a href="{% url "grades.views.add_cal_letter_activity" course_slug=course.slug %}">Calculated Letter Activity</a> <span class="helptext">(a letter grade calculated by specifying cutoffs for each grade)</span></li>
 </ul>
 </div>
-  <p>
-    <a class="button" href="{% url "grades.views.course_info" course_slug=course.slug %}">Back</a>
-  </p>
+
 {% endblock %}

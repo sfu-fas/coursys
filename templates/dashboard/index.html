@@ -42,7 +42,8 @@ $(document).ready(function() {
     {% if 'TAAD' in roles %}<li  class='newsec'><a href="{% url "ta.views.view_postings" %}">TA Job Postings</a></li>{% endif %}
     <!--{% if is_grad %}<li class='newsec'><a href="{% url "grad.views.student_financials" %}">Financial Summary</a></li>{% endif %}-->
     {% if has_grads %}<li ><a href="{% url "grad.views.supervisor_index" %}">My Grad Students</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li><a href="{% url "coredata.views.unit_admin" %}">Department Management</a></li>{% endif %}
+    {% if 'ADMN' in roles %}<li><a href="{% url "faculty.views.index" %}">Faculty Management</a></li>
+    <li><a href="{% url "coredata.views.unit_admin" %}">Department Management</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}

@@ -3,29 +3,9 @@ register = template.Library()
 
 from django.conf import settings
 STATIC_URL = settings.STATIC_URL
-from django.template import Context, Template
 from django.utils.safestring import mark_safe
 from django.utils.html import escape 
 
-@register.filter(name='stu_grade')
-def stu_grade(Activity,Person):
-    return Activity.display_grade_student(Person)
-ACTIVITY_FIELD_TEMPLATE = Template('''<li>
-                    {{ field.label_tag }}
-                    <div class="inputfield" id="div_id_{{field.name}}">
-                        {{ field }}
-                        {% if field.errors %}<span class="errortext"><img src="''' + STATIC_URL + '''icons/error.png" alt="error"/> {{field.errors.0}}</span>{% endif %}
-                        {% if field.help_text %}<div class="helptext">({{field.help_text}})</div>{% endif %}
-                    </div>
-                    </li>''')
-
-@register.filter
-def activity_field(field):
-    """
-    Convert the field to HTML
-    """
-    c = Context({"field":field})
-    return mark_safe(ACTIVITY_FIELD_TEMPLATE.render(c))
 
 @register.tag(name="select_grade")
 def do_select_grade(parser, token):

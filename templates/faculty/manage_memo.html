@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+
+{% block title %}Edit Memo{% endblock %}
+{% block h1 %}Edit Memo{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url "faculty.views.view_event" userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.title }}</a></li>
+<li>Manage Memo</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+	<form action="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=memo.slug %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+            {{form|as_dl}}
+			<p>
+				<input  class="submit"  type="submit" value="Submit" />
+			</p>
+		</fieldset>
+	</form>
+</div>
+{% endblock %}

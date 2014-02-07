@@ -3,13 +3,18 @@ GradeSource:
   institution/scale (string)
   scale type: discrete/continuous
   min/max grade (for continuous scales only)
-  active (bool)
-  slug
-  config
+  status ('ACTI', 'DISA')
+  slug (AutoSlugField)
+  config (JSONField)
 
-ConversionRule:
+DiscreteConversionRule:
   GPASource (foreign key)
-  value: the lookup value (or bottom-of-range for continuous scales)
+  value: the lookup values
+  sfu_grade: one of A+, A, A-, ...
+
+ContinuousConversionRule:
+  GPASource (foreign key)
+  lower_bound: lowest mark that gets this grade
   sfu_grade: one of A+, A, A-, ...
 
 "discrete scales" are things like A+,A,A-,... or Excellent,Good,Fair,Poor. Lookup tables, basically.

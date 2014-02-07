@@ -1,12 +1,12 @@
 from django.db import models
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
-#from timezones.fields import TimeZoneField
 from django.conf import settings
 import datetime, urlparse, decimal
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
+from cache_utils.decorators import cached
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from django.utils.safestring import mark_safe
@@ -986,6 +986,7 @@ class Unit(models.Model):
         return self.slug in ['cmpt', 'ensc']
     
     @classmethod
+    @cached(24*3600)
     def __sub_unit_ids(cls, unitids):
         """
         Do the actual work for sub_unit_ids
@@ -1011,14 +1012,13 @@ class Unit(models.Model):
             unitids = sorted(list(set(units)))
         else:
             unitids = sorted(list(set(u.id for u in units)))
-        key = 'subunits-' + str(unitids)
-        res = cache.get(key)
-        if res:
-            return res
-        else:
-            res = Unit.__sub_unit_ids(unitids)
-            cache.set(key, res, 24*3600)
-            return res
+        return Unit.__sub_unit_ids(unitids)
+
+    @classmethod
+    def sub_units(cls, units, by_id=False):
+        ids = cls.sub_unit_ids(units, by_id=by_id)
+        return Unit.objects.filter(id__in=ids)
+
 
     def __super_units(self):
         if not self.parent:
@@ -1041,7 +1041,6 @@ class Unit(models.Model):
         
 
 
-
 ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
         ('FAC', 'Faculty Member'),
@@ -1059,6 +1058,7 @@ ROLE_CHOICES = (
         ('GRPD', 'Graduate Program Director'),
         ('FUND', 'Grad Funding Administrator'),
         ('TECH', 'Tech Staff'),
+        ('GPA', 'GPA conversion system admin'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )

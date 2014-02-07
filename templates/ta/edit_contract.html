@@ -209,10 +209,9 @@
 <div class="form_container">
 <form action="" method="post">{% csrf_token %}
 
-<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
-
-<fieldset class="wide">
+<fieldset>
 <legend>General Info</legend>
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
 {%if editing%}
 {{ form|as_dl_excludefields:"pay_per_bu,scholarship_per_bu"}}   
 {%else%}
@@ -272,22 +271,22 @@
         <tbody>
         	<tr> 
         		<th class="ui-state-default">Salary</th>
-				<td>{{ form|as_dl_usefield:"pay_per_bu"}} </td>	
+				<td> {{ form.pay_per_bu }} </td>	
         		<td><input id="salary_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="salary_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         	<tr>
         		<th class="ui-state-default">Scholarship</th>
-				<td>{{ form|as_dl_usefield:"scholarship_per_bu"}} </td>
+				<td>{{ form.scholarship_per_bu }} </td>
         		<td><input id="schol_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="schol_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         </tbody>
       </table>
    </div>
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
 </fieldset>
 
-<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
 
 </form>
 </div>

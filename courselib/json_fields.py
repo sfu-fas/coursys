@@ -17,3 +17,14 @@ def getter_setter_2(field, subfield):
     def setter(self, val):
         self.config[field][subfield] = val
     return getter, setter
+
+# better version of getter_setter
+def config_property(field, default):
+    def getter(self):
+        return self.config[field] if field in self.config else copy.copy(default)
+    def setter(self, val):
+        self.config[field] = val
+    return property(getter, setter)
+
+
+

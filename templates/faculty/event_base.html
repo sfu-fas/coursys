@@ -1,0 +1,14 @@
+{% load event_display %}
+<dl>
+<dt>Effective date</dt>
+<dd>{{ event.start_date }}
+  {% if not handler.IS_INSTANT %}
+  &ndash; {{ event.end_date|default:'<span class="empty">present</span>' }}
+  {% endif %}
+</dd>
+
+{% block dl %}{% endblock %}
+
+{% if event.comments %}<dt>Comments</dt><dd>{{ event.comments|linebreaksbr }}</dd>{% endif %}
+<dt>Status</dt><dd>{{ event.get_status_display }}</dd>
+</dl>

@@ -5,13 +5,12 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from jsonfield import JSONField
-from pages.models import _normalize_newlines
-import re, itertools, datetime
+from courselib.text import normalize_newlines, many_newlines
+import itertools, datetime
 import coredata.queries
 from django.conf import settings
-import json
+#import json
 from collections import defaultdict
-many_newlines = re.compile(r'\n{3,}')
 
 IGNORE_CMPT_STUDENTS = True
 def create_or_update_student( emplid, dryrun=False ):
@@ -1359,9 +1358,9 @@ class Letter(models.Model):
         # normalize text so it's easy to work with
         if not self.to_lines:
             self.to_lines = ''
-        _normalize_newlines(self.to_lines.rstrip())
-        self.from_lines = _normalize_newlines(self.from_lines.rstrip())
-        self.content = _normalize_newlines(self.content.rstrip())
+        self.to_lines = normalize_newlines(self.to_lines.rstrip())
+        self.from_lines = normalize_newlines(self.from_lines.rstrip())
+        self.content = normalize_newlines(self.content.rstrip())
         self.content = many_newlines.sub('\n\n', self.content)
         super(Letter, self).save(*args, **kwargs)
 

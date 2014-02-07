@@ -5,7 +5,7 @@ from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
-from pages.models import _normalize_newlines
+from courselib.text import normalize_newlines
 import datetime
 
 HIRING_CATEGORY_CHOICES = (
@@ -174,7 +174,7 @@ class RAAppointment(models.Model):
         Return list of paragraphs in the letter (for PDF creation)
         """
         text = self.offer_letter_text or self.default_letter_text()
-        text = _normalize_newlines(text)
+        text = normalize_newlines(text)
         return text.split("\n\n") 
     
     @classmethod

@@ -9,6 +9,7 @@ from grades.models import Activity
 
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
+from courselib.text import normalize_newlines
 import creoleparser, pytz
 import os, datetime, re, difflib, json
 
@@ -317,7 +318,7 @@ class PageVersion(models.Model):
                 or (not has_wikitext and not has_difffrom and not has_diff and has_file)
         
             # normalize newlines so our diffs are consistent later
-            self.wikitext = _normalize_newlines(self.wikitext)
+            self.wikitext = normalize_newlines(self.wikitext)
         
             # set the SyntaxHighlighter brushes used on this page.
             self.set_brushes([])
@@ -368,13 +369,6 @@ class PageVersion(models.Model):
             html = self.Creole.text2html(self.get_wikitext())
             cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
-        
-
-
-# from http://code.activestate.com/recipes/435882-normalizing-newlines-between-windowsunixmacs/
-_newlines_re = re.compile(r'(\r\n|\r|\r)')
-def _normalize_newlines(string):
-    return _newlines_re.sub('\n', string)
 
 
 # signal for cache invalidation

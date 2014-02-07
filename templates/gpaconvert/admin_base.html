@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}GPA Convert Admin Interface{% endblock %}
+{% block h1 %}GPA Convert Admin Interface{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'list_grade_sources_index' %}">GPA Calculator</a></li>
+<li>Manage Grade Sources</li>
+{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    .hideshow input{
+        font-size: x-small;
+    }
+    .deleted{
+        background-color: pink;
+    }
+</style>
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#gradesourcetable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"], [1, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url 'new_grade_source' %}">New Grade Source</a></li>
+        <li><a href="?show_deleted=1" class='show_deleted'>Show Disabled Grade Sources</a></li> 
+        <li><a href="?show_deleted=0" class='hide_deleted'>Hide Disabled Grade Sources</a></li> 
+        
+    </ul>
+</div>
+{% endblock %}
+
+{%block content%}
+<div class="datatable_container">
+    {% if grade_sources %}
+    <table id="gradesourcetable" class="info">
+        <thead>
+            <tr>
+                <th scope="col">Country</th>
+                <th scope="col">Institution/Grade Scale</th>
+                <th scope="col">Status</th>
+                <th scope="col"># Rules</th>
+                <th scope="col">Scale</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for source in grade_sources %}
+            <tr>
+                <td>{{ source.get_country_display }}</td>
+                <td><a href="{% url 'change_grade_source' source.slug %}">{{ source.institution }}</a></td>
+                <td>{{ source.get_status_display }}</td>
+                <td>{% if source.scale == 'DISC' %}{{ source.discrete_rules.count }}{% else %}{{ source.continuous_rules.count }}{% endif %}</td>
+                <td>{{ source.get_scale_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nothing to show, <a href="{% url 'new_grade_source' %}">create your first Grade Source</a></p>
+    {% endif %}
+</div>
+
+
+{%endblock content%}

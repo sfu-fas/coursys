@@ -30,13 +30,35 @@ dt {
   font-weight: bold;
   margin-top: 1em;
 }
+form {
+  overflow: hidden; /* keep the floating submit button contained http://stackoverflow.com/questions/7861276/clearboth-before-the-end-of-the-block */
+}
 label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
   display: inline;
+}
+fieldset, label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
+  width: auto;
+}
+form select[multiple] {
+  height: auto;
 }
 input[type="radio"], input[type="checkbox"] {
   float: none;
   margin: inherit;
   padding: inherit;
+}
+input[type="email"], input[type="number"] { /* other text-like input types not covered in head.styles.css */
+  height:2.25em;padding:0 0 0 .4em;
+}
+
+legend {
+  float: none;
+}
+.table {
+  background: inherit;
+}
+.table th {
+  background-color: #fff;
 }
 
 .empty {
@@ -45,7 +67,6 @@ input[type="radio"], input[type="checkbox"] {
 span.sort {
   display: none;
 }
-
 
 
 
@@ -70,28 +91,30 @@ div.breadcrumb ul li:first-child:before {
   right: 1em;
 }
 
+/* collapsibles */
 
-
-disabled ul#services li#online:hover ul{
-    width: 165px;
+.collapsible-content-collapsed {
+  display: none;
+}
+.collapsible-heading:before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-right: 0.25em;
+  content: '\00f147';
+}
+.collapsible-heading-collapsed:before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-right: 0.25em;
+  content: '\00f196';
 }
 
-disabled ul#services li input {
-  line-height: 20px;
-  padding-top: 0;
-}
-
-disabled ul#services li#search fieldset {
-  border: 0;
-  margin: 0;
-}
-
-disabled input[type="button"],
-disabled input[type="submit"],
-disabled input[type="reset"],
-disabled input[type="file"] {
-  padding: 1px 6px
-}
 
 
 
@@ -157,7 +180,6 @@ div#messages .info:before {
 span.warning {
     color: #e06121;
 }
-
 
 
 div#newsitems {
@@ -769,7 +791,6 @@ disabled dl.dlform .helptext {
 }
 dl.dlform dt{
     clear: both;
-	margin-left: 1em;
 }
 dl.dlform dt label{
 	clear: both;
@@ -795,6 +816,9 @@ dl.dlform div.field.radio ul {
 dl.dlform  dd .explanation_block {
     margin-left: 9.5em;
 }
+.reqicon {
+  font-size: 80%;
+}
 
 fieldset .errortext {
     color: red;
@@ -802,7 +826,7 @@ fieldset .errortext {
 }
 legend {
     padding: 0;
-    margin-left: 1em;
+    margin: 0 0 0.5em 0;
     color: #B5111A;
     font-weight: bold;
     font-size: 1.2em;

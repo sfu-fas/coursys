@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load mobile_tags %}
+
+{% block title %}Manage Event Types{% endblock %}
+{% block h1 %}Manage Event Types{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Manage Event Types</li>
+{% endblock %}
+
+{% block content %}
+<h2>Memo Templates by Event Type</h2>
+<ul>
+	{% for e in events %}
+	<li>
+		<a href="{% url 'faculty.views.memo_templates' event_type=e.slug %}">{{ e.name }}</a>
+	</li>
+	{% endfor %}
+</ul> 
+{% endblock %}

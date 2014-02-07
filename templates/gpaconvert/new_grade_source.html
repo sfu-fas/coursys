@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}GPA Convert Admin Interface{% endblock %}
+{% block h1 %}GPA Convert Admin Interface{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'list_grade_sources_index' %}">GPA Calculator</a></li>
+<li><a href="{% url 'grade_source_index' %}">Manage Grade Sources</a></li>
+<li>New Grade Source</li>
+{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    .hideshow input{
+        font-size: x-small;
+    }
+    .deleted{
+        background-color: pink;
+    }
+</style>
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+
+{% endblock %}
+
+{%block content%}
+<div class="form_container">
+    <form action="." method="post">
+        {% csrf_token %}
+        <fieldset>
+        <legend>Grade Source</legend>
+        {{ grade_source_form.id }}
+        <dl class="dlform">
+            {% for field in grade_source_form %}
+            <dt class="{{ field.html_name }}">
+                <label for="{{ field.auto_id }}">
+                    {{ field.label }}:
+                    {% if field.field.required %}
+                        <span class="required">*</span>
+                    {% endif %}
+                </label>
+            </dt>
+            <dd>
+                <div class="field">
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            </dd>
+            {% endfor %}
+        </dl>
+
+        <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{%endblock content%}

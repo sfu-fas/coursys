@@ -1,34 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-<title>Formula Tester</title>
-<link rel="stylesheet" href="/media/style/main.css" media="all" />
-<script type="text/javascript" src="/media/js/jquery.js"></script>
-<link type="text/css" href="/media/jquery-ui/css/smoothness/jquery-ui-1.8.custom.css" rel="stylesheet" />
-<script type="text/javascript" src="/media/jquery-ui/js/jquery-ui-1.8.custom.min.js"></script>
-</head>
+{% extends "grades/base.html" %}
+{% load form_display %}
+{% block h1 %}Formula Tester{% endblock %}
+{% block title %}Formula Tester{% endblock %}
 
-<body id="formula_tester">
-<div class="formula_tester_container">
-    <h1>Formula Tester</h1>
-    <div class="form_container">
-        <form action="{% url "grades.views.formula_tester" course_slug=course.slug %}" method="post">{% csrf_token %}
-            {% if messages %}
-            <div id="messages">
-            <!--<h3>Messages</h3>-->
-            <ul>
-                {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                {% endfor %}
-            </ul>
-            </div>
-            {% endif %}
-            <p class="requireindicator"><img src="{{STATIC_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Formula Tester</li>{% endblock %}
+
+
+{% block content %}
+        <form action="{% url "grades.views.formula_tester" course_slug=course.slug %}" method="get">
             <fieldset>
-                <legend><span>Activity Info</span></legend>
-                <ul>
-                    <li>
+                <legend>Activities</legend>
                         <p>Give status and grade to the numeric activities to test formula</p>
                         <div class="activity_reference_container">
                             <table class="info">
@@ -69,24 +50,13 @@
                                 </tbody>
                             </table>
                         </div>
-                    </li>
-                </ul>
             </fieldset>
             <fieldset>
-                <legend><span>Specify Formula</span></legend>
-                <ul>
-                    <li>
-                        {{ formula_form_entry.formula.label_tag }}
-                        <div class="inputfield">
-                            {{ formula_form_entry.formula }}
-                            {% if formula_form_entry.formula.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{formula_form_entry.formula.errors.0}}</span>{% endif %}
-                            {% if formula_form_entry.formula.help_text %}<div class="helptext">({{formula_form_entry.formula.help_text}})</div>{% endif %}
-                        </div>
-                    </li>
-                </ul>
+                <legend>Formula</legend>
+                {{ formula_form_entry|as_dl }}
             </fieldset>
             <fieldset>
-                <legend><span>Result</span></legend>
+                <legend>Result</legend>
                 <ul>
                     <li>
                         <div id="formula_result">{{ result }}</div>
@@ -97,7 +67,5 @@
                 </ul>
             </fieldset>
         </form>
-    </div>
-</div>
-</body>
-</html>
+
+{% endblock %}

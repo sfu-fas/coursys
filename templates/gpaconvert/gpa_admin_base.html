@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}GPA Convert Admin Interface{% endblock %}
+{% block h1 %}GPA Convert Admin Interface{% endblock %}
+
+{% block subbreadcrumbs %}
+
+{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    .hideshow input{
+        font-size: x-small;
+    }
+    .deleted{
+        background-color: pink;
+    }
+</style>
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="">New Grade Source</a></li>
+        <li><a href="#" class='show_deleted'>Show Deleted Grade Sources</a></li> 
+        <li><a href="#" class='hide_deleted' style='display:none;'>Hide Deleted Grade Sources</a></li> 
+        
+    </ul>
+</div>
+{% endblock %}
+
+{%block content%}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th class="ui-state-default">Country</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Institution</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Status</th>
+                <td> </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Scale</th>
+                <td></td>
+            </tr>
+            
+        </tbody>
+    </table>
+</div>
+
+
+{%endblock content%}

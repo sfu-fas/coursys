@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load event_display %}
+{% load staticfiles %}
+
+{% block title %}{{ person.name }}: {{ event.title }}{% endblock %}
+{% block h1 %}{{ person.name }}: {{ event.title }}{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/faculty.css" %}" />
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#memo_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bFilter': false,
+    "aaSorting": [[2, "asc"]],
+    "aoColumns": [null,
+                  null,
+                  { "sType": "by-date" },
+                  { "sType": "by-date" },
+                  null,
+    ],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>{{ event.title }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    <li><a href="{{ event.get_change_url }}">Edit event</a></li>
+    <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
+    {% for t in templates %}
+	<li><a href="{% url "faculty.views.new_memo" userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{t.label|title}} Memo</a></li>
+	{% endfor %}
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="careerevent">
+{{ handler.to_html }}
+<em>{% if person|can_approve:handler %}You can approve this event{% else %}You cannot approve this event{% endif %}</em>
+{% if approval_form %}{{ approval_form }}{% else %}No approval form{% endif %}
+</div>
+<div class="clearfix"></div>
+
+{% with attachments=event.attachments.all %}
+{% if attachments %}
+<h4>Attachments</h4>
+<ul>
+{% for a in attachments %}
+<li>{{ a.title }} ({{ a.mediatype }}, {{ a.contents.file.size|filesizeformat }})
+	<a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
+	<a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+{% if memos %}
+<h2>Memos</h2>
+{% if index and can_edit %}<p class="manage_link"><a href="">Manage Memos</a></p>{% endif %}
+<div class="datatable_container">
+	<table class="display" id="memo_table">
+		<thead>
+			<tr>
+				<th scope="col">Template</th>
+				<th scope="col">Send Date</th>
+                <th scope="col">Creation Date</th>
+				<th scope="col">From</th>
+				{% if not index %}<th scope="col">Actions</th>{% endif %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for l in memos %}
+			<tr>
+				<td> {{ l.template.label }} </td>
+				<td> <span class="sort">{{ l.date.isoformat }}</span>{{ l.sent_date }} </td>
+				<td> <span class="sort">{{ l.created_at.isoformat }}</span>{{ l.created_at }} </td>
+				<td> {{ l.from_person }} </td>
+				{% if not index %}<td>
+					  <a href="{% url "faculty.views.get_memo_pdf" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a>
+					| <a href="{% url "faculty.views.view_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a>
+					| <a href="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a></td>{% endif %}
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+
+{% endblock %}
+

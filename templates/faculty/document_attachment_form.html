@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load form_display %}{% load staticfiles %}
+{% block title %}Add Attachment: {{ event }}{% endblock %}
+{% block h1 %}Add Attachment: {{ event }}{% endblock %}
+
+{% block headextra %}
+<script>
+var event_type = "{{ event_type|escapejs }}";
+</script>
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+{% if event %}
+<li><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></li>
+{% else %}
+<li><a href="{% url "faculty.views.event_type_list" userid=person.userid_or_emplid %}">New Event</a></li>
+<li><a href="{{ event.get_absolute_url }}">{{ name|title }}</a></li>
+{% endif %}
+<li>Add Attachment</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    <li><a href="{{ event.get_change_url }}">Edit event</a></li>
+    <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="{{ event.get_attachment_form }}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

@@ -28,7 +28,8 @@ $(document).ready(function() {
 {% endblock %}
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li>{{ person.name }} ({{ role.unit.label }})</li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Other Info</li>
 {% endblock %}
 
 {% block content %}

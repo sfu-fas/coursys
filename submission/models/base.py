@@ -50,14 +50,14 @@ class SubmissionComponent(models.Model):
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
         
-    def save(self):
+    def save(self, **kwargs):
         if self.position is None:
             lastpos = SubmissionComponent.objects.filter(activity=self.activity) \
                     .aggregate(Max('position'))['position__max']
             if lastpos is None:
                 lastpos = 0
             self.position = lastpos+1
-        super(SubmissionComponent, self).save()
+        super(SubmissionComponent, self).save(**kwargs)
 
 
 
