@@ -57,22 +57,13 @@ def summary(request, userid):
     Summary page for a faculty member.
     """
     person, _ = _get_faculty_or_404(request.units, userid)
+    career_events = CareerEvent.objects.filter(person=person).exclude(status='D')
     context = {
         'person': person,
+        'career_events': career_events,
     }
     return render(request, 'faculty/summary.html', context)
 
-@requires_role('ADMN')
-def events_list(request, userid):
-    """
-    Display all career events
-    """
-    person, _ = _get_faculty_or_404(request.units, userid)
-
-    context = {
-        'person': person,
-    }
-    return render(request, 'faculty/career_events_list.html', context)
 
 @requires_role('ADMN')
 def otherinfo(request, userid):
@@ -134,6 +125,7 @@ def view_event(request, userid, event_slug):
 
 ###############################################################################
 # Creation and editing of CareerEvents
+
 @requires_role('ADMN')
 def event_type_list(request, userid):
     types = [ # TODO: how do we check is_instant now?
