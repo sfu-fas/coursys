@@ -1233,7 +1233,7 @@ def student_photo(request, emplid):
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     if not (configs and configs[0].value['agree']):
-        return ForbiddenResponse(request, 'You must confirm the photo usage agreement before seeing student photos.')
+        return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
     # confirm user is an instructor of this student (within the last two years)
     # TODO: cache past_semester to save the query?
@@ -1247,35 +1247,42 @@ def student_photo(request, emplid):
 
     # get the photo
     from dashboard.tasks import fetch_photos_task
+    from dashboard.photos import DUMMY_IMAGE_FILE, PHOTO_TIMEOUT
     task_id = cache.get('photo-task-'+unicode(emplid), None)
     photo_data = cache.get('photo-image-'+unicode(emplid), None)
     data = None
+    status = 200
 
     if photo_data:
         # found image in cache: was fetched previously or task already completed before we got here
+        #print "cache data", emplid
         data = photo_data
     elif task_id:
         # found a task fetching the photo: wait for it to complete and get the data
         task = fetch_photos_task.AsyncResult(task_id)
         try:
-            data = task.get(timeout=10)
+            #print "cache task", emplid
+            task.get(timeout=PHOTO_TIMEOUT)
+            data = cache.get('photo-image-'+unicode(emplid), None)
         except celery.exceptions.TimeoutError:
             pass
     else:
         # no cache warming: new task to get the photo
+        #print "no cache", emplid
         task = fetch_photos_task.apply([emplid])
         try:
-            data = task.get(timeout=10)
+            data = task.get(timeout=PHOTO_TIMEOUT)
         except celery.exceptions.TimeoutError:
             pass
 
     if not data:
         # whatever happened above failed: use a no-photo placeholder
-        imgpath = os.path.join(settings.STATIC_ROOT, 'images', 'default-photo.png')
-        data = open(imgpath, 'r').read()
+        data = open(DUMMY_IMAGE_FILE, 'r').read()
+        status = 404
 
     # return the photo
-    response = HttpResponse(data, content_type='image/png')
+    response = HttpResponse(data, content_type='image/jpeg')
+    response.status_code = status
     response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
     # TODO: be a little less heavy-handed with the caching if it can be done safely
     response['Cache-Control'] = 'no-store'

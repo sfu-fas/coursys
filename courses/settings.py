@@ -173,7 +173,9 @@ else:
     SUBMISSION_PATH = "submitted_files"
     #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     CACHES = { 'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        #'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
     BASE_ABS_URL = "http://localhost:8000"
     DB_PASS_FILE = "./dbpass"
@@ -182,6 +184,7 @@ else:
 
 # should we use the Celery job queue (for sending email, etc)?  Must have celeryd running to process jobs.
 USE_CELERY = DEPLOYED
+USE_CELERY = True
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (
