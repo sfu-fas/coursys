@@ -5,7 +5,7 @@ from django import forms
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
-from faculty.event_types.fields import AddSalaryField, AddPayField, TeachingCreditField
+from faculty.event_types.fields import DollarInput, AddSalaryField, AddPayField, TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 
@@ -92,6 +92,35 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def teaching_adjust_per_semester(self):
         adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0))
         return TeachingAdjust(adjust, adjust)
+
+class GrantApplicationEventHandler(CareerEventHandlerBase):
+    """
+    Grant Application Career event
+    """
+    EVENT_TYPE = 'GRANTAPP'
+    NAME = "Grant Application"
+    IS_INSTANT = True
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Funding Agency</dt><dd>{{ event|get_config:"funding_agency"}}</dd>
+        <dt>Grant Name</dt><dd>{{ event|get_config:"grant_name" }}</dd>
+        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['funding_agency', 'grant_name', 'amount']
+        funding_agency = forms.CharField()
+        grant_name = forms.CharField()
+        amount = forms.DecimalField(widget=DollarInput,decimal_places=2,initial=0,)
+
+    @property
+    def default_title(self):
+        return 'Applied for Grant'
+
+    def short_summary(self):
+        return 'Applied to %s for Grant: %s  for the amount of %s' % (self.event.config.get('funding_agency', 0),
+                                                                    self.event.config.get('grant_name', 0),
+                                                                    self.event.config.get('amount', 0))
 
 
 
