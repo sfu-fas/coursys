@@ -101,7 +101,38 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         s = decimal.Decimal(self.event.config.get('base_salary', 0))
         return SalaryAdjust(s, 1, 0)
 
+class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
+    """
+    Salary modification/stipend event
+    """
+    EVENT_TYPE = 'STIPEND'
+    NAME = "Salary Modification/Stipend"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Source</dt><dd>{{ event|get_config:"source" }}</dd>
+        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+        {% endblock %}
+        """
 
+    class EntryForm(BaseEntryForm):
+        CONFIG_FIELDS = ['amount', 'source']
+        STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend')]
+        source = forms.ChoiceField(label='Stipend Source', choices=STIPEND_SOURCES)
+        # Do we want this to be adjusted during leaves?
+        amount = AddSalaryField()
+
+    @property
+    def default_title(self):
+        return 'Salary Modification/Stipend'
+
+    def short_summary(self):
+        return "%s for $%s" % (self.event.config.get('source', 0),
+                                            self.event.config.get('amount', 0))
+
+    def salary_adjust_annually(self):
+        # Not sure if this is what we want for this
+        s = decimal.Decimal(self.event.config.get('amount', 0))
+        return SalaryAdjust(s, 1, 0)
+        
 class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     Tenure Application Career event
