@@ -2,12 +2,26 @@
 {% load form_display %}
 {% load staticfiles %}
 
-{% block title %}New {{ template.label|title }} Memo{% endblock %}
-{% block h1 %}New {{ template.label|title }} Memo{% endblock %}
-
 {% block headextra %}
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+<script type="text/javascript">//<![CDATA[
+
+	$(document).ready(function() {
+		$("#id_sent_date").datepicker({
+			'dateFormat' : 'yy-mm-dd'
+		});
+
+		url = '{% url "faculty.views.get_memo_text" userid=person.userid_or_emplid event_slug=event.slug memo_template_id=template.id %}'
+		getData(url);
+
+		$("#id_from_lines").html(subject);
+	});
+
+//]]></script>
 {% endblock %}
+
+{% block title %}New {{ template.label|title }} Memo{% endblock %}
+{% block h1 %}New {{ template.label|title }} Memo{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>

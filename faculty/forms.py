@@ -48,19 +48,20 @@ class MemoTemplateForm(forms.ModelForm):
         self.fields['template_text'].widget.attrs['cols'] = 50
 
     def clean_template_text(self):
-        content = self.cleaned_data['template_text']
+        template_text = self.cleaned_data['template_text']
         try:
-            Template(content)
+            Template(template_text)
         except TemplateSyntaxError as e:
             raise forms.ValidationError('Syntax error in template: ' + unicode(e))
-        return content
+        return template_text
 
 class MemoForm(forms.ModelForm):
     #use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
     #                             help_text='Use the "From" person\'s signature, if on file?')
     class Meta: 
         model = Memo
-        exclude = ('from_person', 'created_by', 'config', 'template', 'career_event', 'hidden')
+        exclude = ('unit', 'from_person', 'created_by', 'config', 'template', 'career_event', 'hidden')
+
         widgets = {
                    'career_event': forms.HiddenInput(),
                    'to_lines': forms.TextInput(attrs={'size': 50}),
@@ -73,7 +74,7 @@ class MemoForm(forms.ModelForm):
     def __init__(self,*args, **kwargs):
         super(MemoForm, self).__init__(*args, **kwargs)
         # reorder the fields to the order of the printed memo
-        keys = ['unit', 'to_lines', 'from_lines', 'subject', 'sent_date', 'memo_text', 'cc_lines']
+        keys = ['to_lines', 'from_lines', 'subject', 'sent_date', 'memo_text', 'cc_lines']
         keys.extend([k for k in self.fields.keyOrder if k not in keys])
         self.fields.keyOrder = keys
 
