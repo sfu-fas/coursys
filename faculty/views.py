@@ -3,6 +3,7 @@ import datetime
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponse
+from django.http import StreamingHttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.contrib import messages
@@ -263,14 +264,28 @@ def view_attachment(request, userid, event_slug, attach_slug):
     if not (event.unit in member_units):
         return HttpResponseForbidden(request, "Not allowed to view this attachment")
 
-    resp = HttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
-    resp['Content-Disposition'] = 'inline; filename="' + attachment.contents.file.name + '"'
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
     resp['Content-Length'] = attachment.contents.size
     return resp
 
 @requires_role('ADMN')
 def download_attachment(request, userid, event_slug, attach_slug):
-    pass
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
+    attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
+
+    if not (event.unit in member_units):
+        return HttpResponseForbidden(request, "Not allowed to download this attachment")
+
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
 
 
 ###############################################################################
