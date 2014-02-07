@@ -4,6 +4,7 @@ package "python-pip"
 package "python-dev"
 package "python-lxml"
 package "sqlite3" 
+package "rabbitmq-server"
 
 # pip install any listed requirements
 execute "install_pip_requirements" do

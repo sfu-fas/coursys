@@ -2,9 +2,9 @@ from django.conf.urls import patterns, url, include
 from django.conf import settings
 from django.views.generic import TemplateView,  RedirectView
 
-if not settings.DEPLOYED:
-    from django.contrib import admin
-    admin.autodiscover()
+#if not settings.DEPLOYED:
+#    from django.contrib import admin
+#    admin.autodiscover()
 
 from courselib.urlparts import *
 
