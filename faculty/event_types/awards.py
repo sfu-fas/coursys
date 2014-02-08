@@ -99,7 +99,7 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
     EVENT_TYPE = 'TEACHING'
     NAME = "Teaching Credit Received"
-    IS_INSTANT = True
+    IS_INSTANT = False
     TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
         <dt>Type</dt><dd>{{ event|get_config:"category"}}</dd>
