@@ -191,6 +191,12 @@ div#messages .info:before {
 span.warning {
     color: #e06121;
 }
+.due_verysoon {
+  background-color: #f22;
+}
+.due_soon {
+  background-color: #ff0;
+}
 
 
 div#newsitems {
@@ -345,84 +351,14 @@ a.editlink {
   font-size: smaller;
 }
 
-
-/* things under container */
-disabled #main a.button {
-/* need to add '#main' as selector in order to override SFU template style */
-    display: block;
-    width: 10em;
-    height: 2em;
-    color: #FFFFFF;
-    text-align: center;
-    line-height: 2em;
-    background-color: #0054a6;
-    text-decoration: none;
-    font-weight: bold;
-    border-right: 1px solid white;
-    border-bottom: 5px solid #fff;
-}
-disabled #main #current_type {
-    background-color: #B5111B;
-}
-disabled #main a.button:hover {
-    background-color: #B5111B;
-    border-bottom: 5px solid #d8d5d5;
-    text-decoration: none;
-}
-
-/* red button */
-disabled #main a.redbutton.submit_button {
-    margin: 0.5em;
-    float: right;
-    clear: both;
-}
-
-disabled #main a.redbutton.reset_button {
-    margin: 0.5em;
-    float: right;
-}
-
-disabled #main a.redbutton {
-  /* need to add '#main' as selector in order to override SFU template style */
-  width: auto;
-  margin: 0.2em 0 0.2em 0;
-  height: 1.4em;
-  color: #FFFFFF;
-  text-align: center;
-  line-height: 1.4em;
-  background-color: #B5111A;
-  border: 1px solid #FFF;
-  text-decoration: none;
-  font-weight: bold;
-  padding: 0.3em 0.5em 0.3em 0.5em;
-}
-
-disabled #main span.disabledbutton {
-  width: auto;
-  margin: 0.2em 0 0.2em 0;
-  height: 1.4em;
-  color: #FFFFFF;
-  text-align: center;
-  line-height: 1.4em;
-  background-color: #bba;
-  border: 1px solid #FFF;
-  text-decoration: none;
-  font-weight: bold;
-  padding: 0.3em 0.5em 0.3em 0.5em;
-}
-disabled #main span.disabledbutton.submit_button {
-    margin: 0.5em;
-    float: right;
-    clear: both;
-}
-
-
-disabled .buttongroup {
-  margin: 0.5em 0em 0.5em 0em;
-}
 table.info th {
   font-weight: bold;
   width: 12em;
+  background-color: #eee;
+  border: 1px solid #ddd;
+}
+table.info td {
+  border: 1px solid #eee;
 }
 section.main table.info p {
   padding: 0;
@@ -440,43 +376,6 @@ section.main table.info p input {
   padding: 0 0.5em;
 }
 
-
-.due_verysoon {
-  background-color: #f22;
-}
-.due_soon {
-  background-color: #ff0;
-}
-disabled .table_container {
-  width: 600px;
-}
-disabled .datatable_container {
-  /*width: 695px;*/
-  margin: 0 1em 0 0;
-}
-disabled .activity_reference_container {
-  width: 500px;
-}
-
-
-body#formula_tester {
-  font-family:Arial,Helvetica,sans-serif;
-  font-size:13px;
-  margin:0;
-  padding:0;
-}
-#formula_tester h1 {
-  text-align: center;
-  color: #B5111A;
-}
-.formula_tester_container {
-  -moz-border-radius:5px 5px 5px 5px;
-  background:none repeat scroll 0 0 #FAFAFA;
-  border:2px solid #AAAAAA;
-  margin:20px auto;
-  padding:1em 20px;
-  width:630px;
-}
 
 
 disabled .table_container p.errorindicator {

@@ -88,19 +88,19 @@
     <table class="info">
         <tbody>
             <tr>
-                <th class="ui-state-default">Last Name</th>
+                <th>Last Name</th>
                 <td>{{ student.last_name }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">First Name</th>
+                <th>First Name</th>
                 <td>{{ student.first_name }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Middle Name</th>
+                <th>Middle Name</th>
                 <td>{{ student.middle_name|default:"—" }} </td>
             </tr>
             <tr>
-                <th class="ui-state-default">Student Number</th>
+                <th>Student Number</th>
                 <td> {% if nonstudent %}
                 Not a student (<a href="{% url "advisornotes.views.merge_nonstudent" nonstudent_slug=student.slug %}">Merge with existing student</a>)
                 {% endif %}
@@ -111,33 +111,33 @@
             </tr>
             {% if not nonstudent %}
             <tr>
-                <th class="ui-state-default">Email Address</th>
+                <th>Email Address</th>
                 <td>{{ student.email_mailto }}</td>
             </tr>
             {% endif %}
             {% if nonstudent %}
             <tr>
-                <th class="ui-state-default">High School</th>
+                <th>High School</th>
                 <td>{{ student.high_school|default:"--" }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">College</th>
+                <th>College</th>
                 <td>{{ student.college|default:"--" }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Start Year:</th>
+                <th>Start Year:</th>
                 <td>{{ student.start_year|default_if_none:"--" }}</td>
             </tr>
             {% endif %}
             {% if not nonstudent and student.nonstudent_hs %}
             <tr>
-                <th class="ui-state-default">High School (Pre-admission record)</th>
+                <th>High School (Pre-admission record)</th>
                 <td>{{ student.nonstudent_hs }}</td>
             </tr>
             {% endif %}
             {% if not nonstudent and student.nonstudent_colg %}
             <tr>
-                <th class="ui-state-default">College (Pre-admission record)</th>
+                <th>College (Pre-admission record)</th>
                 <td>{{ student.nonstudent_colg }}</td>
             </tr>
             {% endif %}
