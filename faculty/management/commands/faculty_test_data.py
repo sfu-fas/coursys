@@ -15,18 +15,47 @@ def event_get_or_create(**kwargs):
     h = EVENT_TYPES[e.event_type](event=e)
     return e, h
 
+def get_or_create_nosave(Model, **kwargs):
+    try:
+        m = Model.objects.get(**kwargs)
+    except Model.DoesNotExist:
+        m = Model(**kwargs)
+    return m
+
 
 class Command(BaseCommand):
     help = 'Build some test data for development.'
 
     def handle(self, *args, **options):
+        self.global_data()
         self.department_data()
         self.personal_data()
 
-    def department_data(self):
-        cmpt = Unit.objects.get(slug='cmpt')
-        danyu = Person.objects.get(userid='dzhao')
+    def global_data(self):
+        univ, _ = Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University', parent=None)
+        fas, _ = Unit.objects.get_or_create(label='FAS', name='Faculty of Applied Sciences', parent=univ)
+        cmpt, _ = Unit.objects.get_or_create(label='CMPT', name='School of Computing Science', parent=fas)
+        ensc, _ = Unit.objects.get_or_create(label='ENSC', name='School of Engineering Science', parent=fas)
 
+        danyu = get_or_create_nosave(Person, userid='dzhao', first_name='Danyu', last_name='Zhao')
+        danyu.emplid = 220000123
+        danyu.save()
+
+        greg = get_or_create_nosave(Person, userid='ggbaker', first_name='Gregory', last_name='Baker')
+        greg.emplid = 220000124
+        greg.save()
+
+        diana = get_or_create_nosave(Person, userid='diana', first_name='Diana', last_name='Cukierman')
+        diana.emplid = 220000125
+        diana.save()
+
+        tony = get_or_create_nosave(Person, userid='dixon', first_name='Anthony', last_name='Dixon')
+        tony.emplid = 220000126
+        tony.save()
+
+    def department_data(self):
+        danyu = Person.objects.get(userid='dzhao')
+        cmpt = Unit.objects.get(slug='cmpt')
         mt, _ = MemoTemplate.objects.get_or_create(unit=cmpt, label='Welcome', event_type='APPOINT',
                 subject='Appointment to faculty position', created_by=danyu)
         mt.template_text = ("We are pleased to appoint {{first_name}} {{last_name}} to a new job.\n\n" +

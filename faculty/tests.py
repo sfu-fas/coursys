@@ -15,15 +15,14 @@ from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
 from faculty.models import CareerEvent
 from faculty.models import HANDLERS
+from faculty.management.commands import faculty_test_data
 
 import datetime
 
 
 class EventTypesTest(TestCase):
-    fixtures = ['faculty-test.json']
-
     def setUp(self):
-        pass
+        faculty_test_data.Command().handle()
 
     def test_management_permissions(self):
         """
@@ -94,9 +93,9 @@ class EventTypesTest(TestCase):
 
 
 class CareerEventHandlerBaseTest(TestCase):
-    fixtures = ['faculty-test.json']
-
     def setUp(self):
+        faculty_test_data.Command().handle()
+
         class FoobarHandler(CareerEventHandlerBase):
 
             EVENT_TYPE = 'FOOBAR'
