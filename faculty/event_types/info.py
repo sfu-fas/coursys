@@ -87,3 +87,37 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
     def short_summary(self):
         return 'On the {} committee for the {}'.format(self.get_config('committee_name', ''),
                                                        self.get_config('committee_unit'))
+
+
+class ResearchMembershipHandler(CareerEventHandlerBase):
+
+    EVENT_TYPE = 'LABMEMB'
+    NAME = 'Research Group/Lab Membership'
+    TO_HTML_TEMPLATE = '''
+        {% extends 'faculty/event_base.html' %}{% load event_display %}{% block dl %}
+        <dt>Lab Name</dt><dd>{{ handler|get_config:'lab_name' }}</dd>
+        <dt>Location</dt><dd>{{ handler|get_config:'location' }}</dd>
+        {% endblock %}
+        '''
+
+    class EntryForm(BaseEntryForm):
+
+        CONFIG_FIELDS = [
+            'lab_name',
+            'location',
+        ]
+        LOCATION_TYPES = (
+            ('SFU', 'Internal SFU'),
+            ('ACADEMIC', 'Other Academic'),
+            ('EXTERNAL', 'External'),
+        )
+
+        lab_name = forms.CharField(label='Research Group/Lab Name', max_length=255)
+        location = forms.ChoiceField(choices=LOCATION_TYPES)
+
+    @classmethod
+    def default_title(cls):
+        return 'Member of Reseach Group/Lab'
+
+    def short_summary(self):
+        return 'Member of %s' % (self.event.config.get('lab_name', 0))
