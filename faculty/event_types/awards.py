@@ -102,17 +102,16 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     IS_INSTANT = False
     TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
-        <dt>Type</dt><dd>{{ event|get_config:"category"}}</dd>
+        <dt>Type</dt><dd>{{ event|get_config:"category" }}</dd>
         <dt>Reason</dt><dd>{{ event|get_config:"amount" }}</dd>
-        <dt>Approved By</dt><dd>{{ event|get_config:"approved_by"|yesno }}</dd>
-        <dt>Funded By</dt><dd>{{ event|get_config:"funded_by"|yesno }}</dd>
+        <dt>Approved By</dt><dd>{{ event|get_config:"approved_by" }}</dd>
+        <dt>Funded By</dt><dd>{{ event|get_config:"funded_by" }}</dd>
         {% endblock %}
         """
 
     class EntryForm(BaseEntryForm):
-        CATEGORIES =[('BUYOUT', 'Buyout'), ('RELEASE', 'Teaching Release')]
+        CATEGORIES =[('BUYOUT', 'Buyout'), ('RELEASE', 'Teaching Release'), ('OTHER', 'Other')]
         category = forms.ChoiceField(label='Type', choices=CATEGORIES)
-        # Maybe don't want to use TeachingCreditField since it's not per semester?
         teaching_credits = TeachingCreditField()
         reason = forms.CharField(max_length=255, required=False)
         funded_by = forms.CharField(label='Funded By', max_length=255, required=False)
@@ -127,7 +126,6 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
                                                             self.event.config.get('category', 0))
 
     def teaching_adjust_per_semester(self):
-        # not sure if this is what we want to do here
         adjust = fractions.Fraction(self.event.config.get('teaching_credits', 0))
         return TeachingAdjust(adjust, adjust)
 
