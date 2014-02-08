@@ -1,6 +1,6 @@
 BeautifulSoup==3.2.1
 Creoleparser==0.7.4
-Django==1.6.1
+Django==1.6.2
 Genshi==0.6
 South==0.8.3
 Unidecode>=0.04.9
