@@ -23,7 +23,7 @@
 
 {% block content %}
 <div class="form_container">
-  <form action="" method="post">
+  <form action="" method="post">{% csrf_token %}
   <fieldset>
     {% if course.uses_svn %}
     {{ form|as_dl }}
