@@ -69,7 +69,8 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     if not cansubmit:
         messages.add_message(request, messages.ERROR, "This activity is not submittable.")
         return render_to_response("submission/" + template,
-        {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
+        {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components,
+         "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
         context_instance=RequestContext(request))
 
     # get all components of activity

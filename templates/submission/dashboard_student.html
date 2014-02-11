@@ -58,25 +58,24 @@
             <p>This is a group-based activity: you cannot submit because you aren't in a group.</p>
             <p>You need to <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
             {% else %}
-            <div id="submission_form_container">
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-                <fieldset>
-                    <legend>New Submission</legend>
                     {% for data in component_form_list %}
-                        <h2>{{data.comp.title}}</h2>
-                        <ul>
-                        {% if data.comp.description %}<li><label>Description:</label><div class="fieldcontent">{{data.comp.description|linebreaksbr}}</div></li>{% endif %}
-                        {% if data.comp.max_size %}<li><label>Max File Size:</label><div>{{data.comp.max_size}} KB</div></li>{% endif %}
-                        {% if data.comp.allowed %}<li><label>Allowed File Types:</label><div>{{data.comp.get_allowed_display}}</div></li>{% endif %}
-                        {% if data.comp.specified_filename %}<li><label>Specified File Name:</label><div>{{data.comp.specified_filename}}</div></li>{% endif %}
-                        {{data.form.as_ul}}
-                        </ul>
+                        <fieldset>
+                        <legend>{{data.comp.title}}</legend>
+                        <dl>
+                        {% if data.comp.description %}<dt>Description</dt><dd>{{data.comp.description|linebreaksbr}}</dd>{% endif %}
+                        {% if data.comp.max_size %}<dt>Max File Size</dt><dd>{{data.comp.max_size}} KB</dd>{% endif %}
+                        {% if data.comp.allowed %}<dt>Allowed File Types</dt><dd>{{data.comp.get_allowed_display}}</dd>{% endif %}
+                        {% if data.comp.specified_filename %}<dt>Specified File Name</dt><dd>{{data.comp.specified_filename}}</dd>{% endif %}
+                        {% for f in data.form.visible_fields %}
+                        <dt>{{ f.label }}</dt><dd>{{ f }}</dd>
+                        {% endfor %}
+                        </dl>
+                        </fieldset>
                     {% endfor %}
-                <input type ="submit" value ="Submit" class ="submit"/>
-                </fieldset>
+                <input type="submit" value="Submit" class="submit"/>
 
             </form>
-            </div>
             {% endif %}
         {% endif %}
         {% endif %}

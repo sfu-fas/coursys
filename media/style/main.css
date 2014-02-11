@@ -568,6 +568,7 @@ disabled fieldset p.helptext,
 disabled dl.dlform .helptext {
     margin-left: 10.5em;
 }
+
 dl.dlform dt{
     clear: both;
 }
@@ -649,92 +650,56 @@ disabled fieldset.wide label span {
     left: 12em;
 }
 
-/* Formula tester style */
-#formula_tester fieldset label span {
-    position: absolute;
-    left: auto;
-}
 
-#formula_tester fieldset {
-  border-color:#AAAAAA -moz-use-text-color -moz-use-text-color;
-  border-right:0 none;
-  border-style:dotted none none;
-  border-width:1px 0 0;
-  margin:1em 0 0;
-  /* Override style */
-  padding: inherit;
-  background: none;
-}
-/* Override style */
-#formula_tester fieldset legend {
-  font-size:1.5em;
-  margin:0;
-}
-#formula_tester fieldset legend span {
-  background:none repeat scroll 0 0 #FAFAFA;
-  left:0px;
-  padding-right:10px;
-  position:relative;
-  top:-0.1em;
-}
-#formula_tester .requireindicator {
-  /* Override style */
-  padding:0;
-}
-#formula_result {
-  font-weight: bold;
-  font-size: 2em;
-  color: gray;
-}
 
-fieldset .position {
+X fieldset .position {
     float:right;
     width: 20%;
 }
-fieldset .view {
+X fieldset .view {
     float:left;
     width: 80%;
 }
-fieldset .view label {
+X fieldset .view label {
     width: 7em;
     text-align: right;
     line-height: 1em;
     font-weight: bold;
 }
-fieldset .editbutton a.button{
+X fieldset .editbutton a.button{
     float: right;
 }
-fieldset .editbutton a.button:hover{
+X fieldset .editbutton a.button:hover{
     border: 0;
 }
 fieldset .hidden {
     display: none;
 }
-fieldset .ui-multiselect {
+X fieldset .ui-multiselect {
     max-width: inherit;
     min-width: inherit;
 }
 
-.add_nav {
+X .add_nav {
     list-style-type: none;
     margin: 0;
     padding: 0;
     float: left;
 }
-.add_nav li {
+X .add_nav li {
     float: left;
 }
-.add_nav .warning {
+X .add_nav .warning {
     margin-bottom: 0.2em;
     width:100%;
     clear:both;
     color: gray;
 }
-#main .add_nav .button {
+X #main .add_nav .button {
     background-color: #b4b4aa;
     width: 9em;
 }
-#main .add_nav #current_type {
+X #main .add_nav #current_type {
     background-color: #0054a6;
 }
 
@@ -742,137 +707,121 @@ fieldset .ui-multiselect {
  *  containers
  */
  /*view submission error*/
-#submission_error_container{
+X #submission_error_container{
     margin: 1em;
     width: 50em;
 }
-#submission_error_container .button{
+X #submission_error_container .button{
     float:right;
     clear:right;
 }
 
-#submission_error_container .text{
+X #submission_error_container .text{
     text-align: right;
 }
-#submission_error_container table {
+X #submission_error_container table {
     border: 1px;
     width: 60em;
 }
-#submission_error_container table td{
+X #submission_error_container table td{
     border: 1px solid #DBDBDB;
     width: 75%;
 }
-#submission_error_container ul, #submission_error_container li {
+X #submission_error_container ul, #submission_error_container li {
     margin: 0;
     padding: 0;
     list-style: none;
 }
-#submission_error_container td.error {
+X #submission_error_container td.error {
     color: red;
     text-align: left;
 }
-#submission_error_container td.submitted {
+X #submission_error_container td.submitted {
     color: green;
     text-align: left;
 }
 
- /*#submission_error_container table td.column1 {
-    background: #E8E8E8;
-    font-weight:bold;
-    padding: 0.1em 2em;
-    text-align: right;
-    width: 10em;
- }
-  #submission_error_container table td.column2 {
-       color:red;
-       padding: 0.1em 4em;      
- }
-  #submission_error_container table td.column3 {
-       color:green;
-       padding: 0.1em 4em;      
- }
- */
   
 /* view submission history */
-#add_submission_component_container {
+X #add_submission_component_container {
     clear: left;
 }
-#edit_single_submission_component_form_container {
+X #edit_single_submission_component_form_container {
     margin: 1.5em 0 0.5em 0;
 }
-#edit_submission_component_add_button {
+X #edit_submission_component_add_button {
     margin-left: 0em;
 }
-#component_view_student_container {
+X #component_view_student_container {
     clear: left;
 }
-#submission_history_view_container{
+X #submission_history_view_container{
     clear: left;
 }
-#submission_history_view_container .submitter{
+X #submission_history_view_container .submitter{
     margin-top: 2em;
     font-weight: bold;
     font-size: 1.4em;
     color: gray;
 }
-#submission_history_view_container h2{
+X #submission_history_view_container h2{
     color: #999;
 }
-#submission_history_view_container table{
+X #submission_history_view_container table{
     border: 0px solid gray;
     margin: 0;
 }
-#submission_history_view_container table tr {
+X #submission_history_view_container table tr {
     margin: 1em 10em;
     
 }
-#submission_history_view_container table th {
+X #submission_history_view_container table th {
     background-color:#e9eef7;
     padding: 0.3em 5em;
     border: 0px;
 }
 
-#submission_history_view_container table td {
+X #submission_history_view_container table td {
     border: 0px;
     padding: 0.3em 5em;
     text-align: center;
 }
 
-#submission_history_view_container table tr.row1 {
+X #submission_history_view_container table tr.row1 {
     background-color: white;
 }
-#submission_history_view_container table tr.row2 {
+X #submission_history_view_container table tr.row2 {
     background-color: #e9eef7;
 }
 
-div#submission_form_container{
+X div#submission_form_container{
     width: 600px;
     margin: 0.5em;
     background: none;
 
 }
 
-#submission_form_container fieldset{
+X #submission_form_container fieldset{
    background: none;
    background-color: #FFE6ED;
 
 }
 
-#submission_form_container fieldset h2{
+X #submission_form_container fieldset h2{
     margin: 0.5em 0 0 2em;
     font-size: 1.1em;
     color: #666;
 }
 
-#submission_form_container fieldset p {
+X #submission_form_container fieldset p {
     margin-left: 11em;
 }
 
-#submission_form_container fieldset li{
+X #submission_form_container fieldset li{
     list-style-type: none;
 }
 
-#submission_form_container fieldset li input{
+X #submission_form_container fieldset li input{
     width: 350px;
 }
 

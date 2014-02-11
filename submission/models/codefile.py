@@ -27,7 +27,8 @@ class CodefileComponent(SubmissionComponent):
 
 class SubmittedCodefile(SubmittedComponent):
     component = models.ForeignKey(CodefileComponent, null=False)
-    code = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage)
+    code = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage,
+                            verbose_name='Code submission')
 
     class Meta:
         app_label = 'submission'

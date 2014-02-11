@@ -26,7 +26,7 @@ class ImageComponent(SubmissionComponent):
 class SubmittedImage(SubmittedComponent):
     component = models.ForeignKey(ImageComponent, null=False)
     image = models.FileField(upload_to=submission_upload_path, blank=False,  max_length=500, 
-          storage=SubmissionSystemStorage)
+          storage=SubmissionSystemStorage, verbose_name='Image submission')
         
     class Meta:
         app_label = 'submission'
