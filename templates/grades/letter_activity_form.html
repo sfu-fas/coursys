@@ -45,7 +45,6 @@ $(document).ready(function() {
     <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_letter_activity" course_slug=course.slug %}{% endifequal %}
                 {% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}" method="post">{% csrf_token %}
         <fieldset>
-            <legend>Activity Info</legend>
             {{ form|as_dl_excludefields:"showstats,showhisto" }}
             <p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>

@@ -118,10 +118,10 @@ div.breadcrumb ul li:first-child:before {
 }
 
 #sysmenu {
-  text-align: right;
-  position: relative;
+  display: inline;
+  float: right;
   font-size: 0.875em;
-  margin-left: 50%;
+  position: relative;
   top: 4em;
   right: 1em;
 }
@@ -395,6 +395,10 @@ section.main table.info p input {
   float: right;
   font-size: 75%;
   padding: 0 0.5em;
+}
+.arrow_up, .arrow_down { /* student_info_staff reorder arrows */
+  font-size: smaller;
+  font-weight: normal;
 }
 
 

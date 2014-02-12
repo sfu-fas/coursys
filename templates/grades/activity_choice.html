@@ -1,39 +1,17 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
-{% block h1 %}
-Choose the type of activity.
-{% endblock %}
-{% block title %}
-Choose the type of activity.
-{% endblock %}
+{% block h1 %}Add Activity: select type{% endblock %}
+{% block title %}Add Activity: select type{% endblock %}
 
-{% block grades_headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
-<script type="text/javascript">
-$(document).ready(function() {
-    addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
-    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
-    $('div.collapsible').collapsible();
-    $('div#helphandle').collapsible();
-    document.getElementById('testerlink').setAttribute('target', '_blank');
-});
-</script>
-{% endblock %}
-
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Type of activity</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>Add activity</li>{% endblock %}
 
 
 {% block content %}
-<div>
-
 <ul>
     <li><a href="{% url "grades.views.add_numeric_activity" course_slug=course.slug %}">Numeric Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a numeric grade)</span></li>
     <li><a href="{% url "grades.views.add_letter_activity" course_slug=course.slug %}">Letter Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a letter grade)</span></li>
     <li><a href="{% url "grades.views.add_cal_numeric_activity" course_slug=course.slug %}">Calculated Numeric Activity</a> <span class="helptext">(a numeric grade calculated by a formula)</span></li>
     <li><a href="{% url "grades.views.add_cal_letter_activity" course_slug=course.slug %}">Calculated Letter Activity</a> <span class="helptext">(a letter grade calculated by specifying cutoffs for each grade)</span></li>
 </ul>
-</div>
-
 {% endblock %}
