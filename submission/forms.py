@@ -1,10 +1,9 @@
 from django import forms
-from submission.models import *
-from django.forms.widgets import Textarea, TextInput, FileInput
-from django.forms import ModelForm, URLField
+from submission.models import SubmittedComponent
+from django.forms import ModelForm
 from django.conf import settings
 from django.utils.safestring import mark_safe
-import urllib, zipfile
+import gzip, zipfile
 
 
 _required_star = '<em><img src="'+settings.STATIC_URL+'icons/required_star.gif" alt="required"/></em>'

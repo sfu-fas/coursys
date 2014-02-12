@@ -1,16 +1,14 @@
-from submission.models import GroupSubmission
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render, get_object_or_404
-from django.template import RequestContext
-from django.http import HttpResponseRedirect, QueryDict
+from django.http import HttpResponseRedirect
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
-from submission.forms import *
+from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug, uses_feature
-from submission.models import *
+from submission.models import StudentSubmission, GroupSubmission, get_current_submission, select_all_components, \
+    get_submission_components, get_component, find_type_by_label, generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from datetime import *
 from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
@@ -242,7 +240,7 @@ def _show_components_staff(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def edit_single(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
     component_list = select_all_components(activity)
 
     #get component
@@ -275,7 +273,6 @@ def edit_single(request, course_slug, activity_slug):
             form = new_form
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
 
-    #render the page
     return render(request, "submission/component_edit_single.html",
             {"course":course, "activity":activity, "component":component, "edit_id":edit_id, "form":form})
 
@@ -313,7 +310,7 @@ def add_component(request, course_slug, activity_slug):
             form = new_form
     type_classes = [cls for cls in ALL_TYPE_CLASSES
                     if not hasattr(cls, 'active') or cls.active]
-    return render("submission/component_add.html",
+    return render(request, "submission/component_add.html",
         {"course":course, "activity":activity, "form":form, "type":Type, "types": type_classes})
 
 def get_submission(submission_id):
