@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from coredata.models import Unit, Role, Person
-from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES
+from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, EVENT_TYPES
 from datetime import date
 
 def event_get_or_create(**kwargs):
@@ -62,6 +62,13 @@ class Command(BaseCommand):
                 "This memo will be taken as a formal welcoming, wherein the appointee waives {{ his_her}} right to " +
                 "any kind of welcoming celebrations requiring a catering order.")
         mt.save()
+        ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='FELLOW')
+        ec.config = {'fellowships': [
+            ('LIEF', 'Lief Chair'),
+            ('BBYM', 'Burnaby Mountain Chair'),
+            ('UNIR', 'University Research Chair')
+        ]}
+        ec.save()
 
     def personal_data(self):
         # get the objects that should already be there
