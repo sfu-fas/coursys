@@ -63,7 +63,7 @@
                     {% for data in component_form_list %}
                         <fieldset>
                         <legend>{{data.comp.title}}</legend>
-                        <dl>
+                        <dl class="inline">
                         {% for f in data.form.visible_fields %}
                         <dt>{{ f.label }}</dt><dd>{{ f }}</dd>
                         {% endfor %}

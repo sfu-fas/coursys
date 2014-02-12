@@ -48,7 +48,31 @@ input[type="radio"], input[type="checkbox"] {
   padding: inherit;
 }
 input[type="email"], input[type="number"] { /* other text-like input types not covered in head.styles.css */
-  height:2.25em;padding:0 0 0 .4em;
+  height:2.25em;
+  padding:0 0 0 .4em;
+}
+form.subtle { /* a form that we don't want to look so form-ish */
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+
+dl.inline {
+  overflow: hidden;
+}
+dl.inline dt, dl.inline dd {
+  float: left;
+}
+dl.inline dt {
+  clear: left;
+  margin-top: 0;
+  min-width: 8em;
+}
+dl.inline dt:after {
+  content: ':';
+}
+dl.inline dd {
+  margin: 0 2em;
 }
 
 legend {
