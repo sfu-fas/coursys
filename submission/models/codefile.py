@@ -61,7 +61,7 @@ FIELD_TEMPLATE = Template('''<li>
                         
 class Codefile:
     label = "codefile"
-    name = "Code file (beta)"
+    name = "Code file"
     descr = "a source code file"
     Component = CodefileComponent
     SubmittedComponent = SubmittedCodefile
@@ -75,7 +75,6 @@ class Codefile:
             super(Codefile.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
             self.fields['max_size'].widget = TextInput(attrs={'style':'width:5em'})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
             del self.fields['specified_filename'] # our filename and filename.type do a better job
 
         def clean_filename_type(self):

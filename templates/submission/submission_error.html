@@ -1,4 +1,4 @@
-{% extends "submission/base.html" %}
+{% extends "base.html" %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li><a href="{% url "submission.views.show_components" course.slug activity.slug%}">Submission</a></li><li>Error Detected</li>{% endblock %}
 

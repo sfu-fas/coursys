@@ -1,4 +1,4 @@
-{% extends "submission/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Submission for {{activity.name}}{% endblock %}
@@ -64,13 +64,13 @@
                         <fieldset>
                         <legend>{{data.comp.title}}</legend>
                         <dl>
+                        {% for f in data.form.visible_fields %}
+                        <dt>{{ f.label }}</dt><dd>{{ f }}</dd>
+                        {% endfor %}
                         {% if data.comp.description %}<dt>Description</dt><dd>{{data.comp.description|linebreaksbr}}</dd>{% endif %}
                         {% if data.comp.max_size %}<dt>Max File Size</dt><dd>{{data.comp.max_size}} KB</dd>{% endif %}
                         {% if data.comp.allowed %}<dt>Allowed File Types</dt><dd>{{data.comp.get_allowed_display}}</dd>{% endif %}
                         {% if data.comp.specified_filename %}<dt>Specified File Name</dt><dd>{{data.comp.specified_filename}}</dd>{% endif %}
-                        {% for f in data.form.visible_fields %}
-                        <dt>{{ f.label }}</dt><dd>{{ f }}</dd>
-                        {% endfor %}
                         </dl>
                         </fieldset>
                     {% endfor %}

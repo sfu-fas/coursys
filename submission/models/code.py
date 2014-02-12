@@ -52,14 +52,17 @@ CODE_TYPES = [(ext,desc) for (desc,ext) in CODE_TYPES]
 class CodeComponent(SubmissionComponent):
     "A Source Code submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the Code file, in kB.", null=False, default=2000)
-    allowed = models.CharField(max_length=500, null=False, help_text='Accepted file extensions. [Contact system admins if you need more file types here.]')
-    # allowed_types = {} # not in use
+    allowed = models.CharField(max_length=500, null=False, verbose_name='Allowed file types',
+                               help_text='Accepted file extensions. [Contact system admins if you need more file types here.]')
     class Meta:
         app_label = 'submission'
     def get_allowed_list(self):
         return self.allowed.split(",")
     def get_allowed_display(self):
         return self.allowed
+    def visible_type(self):
+        "Soft-delete this type to prevent creation of new"
+        return False
 
 class SubmittedCode(SubmittedComponent):
     component = models.ForeignKey(CodeComponent, null=False)
@@ -101,7 +104,6 @@ class Code:
     descr = "a source code file"
     Component = CodeComponent
     SubmittedComponent = SubmittedCode
-    #active = False # depricated in favour of Codefile
 
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
@@ -112,11 +114,8 @@ class Code:
             super(Code.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
             self.fields['max_size'].widget = TextInput(attrs={'style':'width:5em'})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
-
             self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:40em', 'size': 15})
             self.initial['allowed'] = self._initial_allowed
-            self.fields['allowed'].label=mark_safe("Allowed Types"+submission.forms._required_star)
 
         def _initial_allowed(self):
             """
