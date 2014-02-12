@@ -1,6 +1,6 @@
 BeautifulSoup==3.2.1
 Creoleparser==0.7.4
-Django==1.6.1
+Django==1.6.2
 Genshi==0.6
 South==0.8.3
 Unidecode>=0.04.9
@@ -24,5 +24,5 @@ xlwt==0.7.5
 django-datatables-view==1.7
 django-bitfield==1.6.4
 django-localflavor==1.0
-django-countries>=1.5
+django-countries==2.0c1
 django-compressor==1.3

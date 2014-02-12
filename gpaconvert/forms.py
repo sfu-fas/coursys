@@ -4,7 +4,8 @@ from django.core.validators import MinValueValidator
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
-from django_countries.countries import COUNTRIES
+from django_countries import countries
+COUNTRIES = countries.countries
 
 from gpaconvert.models import ContinuousRule
 from gpaconvert.models import DiscreteRule
@@ -12,7 +13,7 @@ from gpaconvert.models import GradeSource
 
 
 class GradeSourceListForm(forms.Form):
-    country_choices = (('', 'All Countries'),) + COUNTRIES
+    country_choices = [('', 'All Countries'),] + COUNTRIES
     country = forms.ChoiceField(choices=country_choices, required=False)
 
     def __init__(self, *args, **kwargs):
