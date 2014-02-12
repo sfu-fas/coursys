@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load course_display %}
+{% load form_display %}
 
 {% block headextra %}
 <link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
@@ -14,7 +14,10 @@
 {% block title %}Edit Submission Component for {{activity.name}}{% endblock %}
 {% block h1 %}Edit Submission Component for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li><li>Edit</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{ course.get_absolute_url }}">{{course.name}}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
+<li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li>
+<li>Edit {{ component.title }}</li>{% endblock %}
 
 
 {% block content %}
@@ -25,7 +28,8 @@
     <form action="" method="post">{% csrf_token %}
     <fieldset>
         <legend>{{component.title}}</legend>
-	{{form|display_form}}
+	{{form|as_dl}}
+	<p><input class="submit" type="submit" value="Update" /></p>
     </fieldset>
     </form>
     </div>
