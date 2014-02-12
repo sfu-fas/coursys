@@ -195,7 +195,7 @@
                 <th scope="col">Activity</th>
                 <th scope="col">Group?</th>
                 <th scope="col">Max Grade</th>
-		<th scope="col">Grade Type</th>
+                <th scope="col">Grade Type</th>
                 <th scope="col">Percentage</th>
                 <th scope="col">Status</th>
                 <th scope="col">Due Date</th>
@@ -211,8 +211,6 @@
 		    <a class="arrow_up" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">  
 		    <i class="fa fa-arrow-up"></i>
 		    </a>
-		    {% else %}
-		       <span class="position_placeholder"></span>
 		    {% endif %}
 		    {% if not forloop.last %}
 		    <a class="arrow_down" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
