@@ -163,34 +163,31 @@ div#messages li:before {
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
 }
-div#messages .success {
+div#messages .success, .successmessage {
   color: #92be2c;
 }
 div#messages .success:before {
   content: '\00f058';
 }
-div#messages .error {
+div#messages .error, .errormessage {
   color: #c33a41;
 }
 div#messages .error:before {
   content: '\00f057';
 }
-div#messages .warning {
+div#messages .warning, .warningmessage {
   color: #e06121;
 }
 div#messages .warning:before {
   content: '\00f06a';
 }
-div#messages .info {
+div#messages .info, .infomessage {
   color: #075fa3;
 }
 div#messages .info:before {
   content: '\00f05a';
 }
 
-span.warning {
-    color: #e06121;
-}
 .due_verysoon {
   background-color: #f22;
 }

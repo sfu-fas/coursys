@@ -1,7 +1,7 @@
 from submission.models import GroupSubmission
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, QueryDict
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
@@ -68,10 +68,9 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
 
     if not cansubmit:
         messages.add_message(request, messages.ERROR, "This activity is not submittable.")
-        return render_to_response("submission/" + template,
+        return render(request, "submission/" + template,
         {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components,
-         "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
-        context_instance=RequestContext(request))
+         "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit})
 
     # get all components of activity
     component_list = select_all_components(activity)
@@ -106,6 +105,12 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                 sub.component = component
                 submitted_comp.append(sub)
             else:
+                # hack to replace the "required" message to something more appropriate
+                for k,v in form.errors.items():
+                    for i,e in enumerate(v):
+                        if e == "This field is required.":
+                            v[i] = "Nothing submitted."
+
                 not_submitted_comp.append(component)
         # check duplicate filenames here
         all_ok = False
@@ -155,18 +160,18 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
             return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
-        return render_to_response("submission/submission_error.html",
+        return render(request, "submission/submission_error.html",
             {"course":course, "activity":activity, "component_list":component_form_list,
-            "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
-            context_instance=RequestContext(request))
+            "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp})
     else: #not POST
         if activity.group and gm:
             messages.add_message(request, messages.INFO, "This is a group submission. You will submit on behalf of the group %s." % group.name)
         
         component_form_list = make_form_from_list(component_list)
-        return render_to_response("submission/" + template,
-        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit, "is_staff":staff},
-        context_instance = RequestContext(request))
+        return render(request, "submission/" + template,
+        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission,
+         "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group,
+         "cansubmit":cansubmit, "is_staff":staff})
 
 @requires_course_by_slug
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):
@@ -200,9 +205,8 @@ def show_components_submission_history(request, course_slug, activity_slug, user
         c = get_submission_components(submission, activity, component_list)
         all_submitted_components.append({'sub':submission, 'comp':c})
     
-    return render_to_response("submission/submission_history_view.html", 
-        {"course":course, "activity":activity,'userid':userid,'submitted_components': all_submitted_components, 'course':course, 'activity':activity},
-        context_instance = RequestContext(request))
+    return render(request, "submission/submission_history_view.html",
+        {"course":course, "activity":activity,'userid':userid,'submitted_components': all_submitted_components})
 
 #staff submission configuratiton
 def _show_components_staff(request, course_slug, activity_slug):
@@ -230,9 +234,8 @@ def _show_components_staff(request, course_slug, activity_slug):
         return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
     
     component_list = select_all_components(activity, include_deleted=True)
-    return render_to_response("submission/component_view_staff.html",
-        {"course":course, "activity":activity, "component_list":component_list},
-        context_instance=RequestContext(request))
+    return render(request, "submission/component_view_staff.html",
+        {"course":course, "activity":activity, "component_list":component_list})
 
 
 
@@ -273,9 +276,8 @@ def edit_single(request, course_slug, activity_slug):
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
 
     #render the page
-    return render_to_response("submission/component_edit_single.html",
-            {"course":course, "activity":activity, "component":component, "edit_id":edit_id, "form":form},
-            context_instance=RequestContext(request))
+    return render(request, "submission/component_edit_single.html",
+            {"course":course, "activity":activity, "component":component, "edit_id":edit_id, "form":form})
 
 @requires_course_staff_by_slug
 def add_component(request, course_slug, activity_slug):
@@ -311,9 +313,8 @@ def add_component(request, course_slug, activity_slug):
             form = new_form
     type_classes = [cls for cls in ALL_TYPE_CLASSES
                     if not hasattr(cls, 'active') or cls.active]
-    return render_to_response("submission/component_add.html", 
-        {"course":course, "activity":activity, "form":form, "type":Type, "types": type_classes},
-        context_instance=RequestContext(request))
+    return render("submission/component_add.html",
+        {"course":course, "activity":activity, "form":form, "type":Type, "types": type_classes})
 
 def get_submission(submission_id):
     try:
@@ -473,6 +474,6 @@ def _override_ownership_confirm(request, course, activity, userid, group_slug, o
         group = get_object_or_404(groups, slug=group_slug)
         
     
-    return render_to_response("submission/override_ownership_confirm.html",
-        {"course":course, "activity":activity, "student":student, "group":group, "old_owner":old_owner, "true":True, "urlencode":urlencode, "userid":userid},
-        context_instance=RequestContext(request))
+    return render(request, "submission/override_ownership_confirm.html",
+        {"course":course, "activity":activity, "student":student, "group":group, "old_owner":old_owner, "true":True,
+         "urlencode":urlencode, "userid":userid})
