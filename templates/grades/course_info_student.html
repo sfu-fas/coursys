@@ -84,7 +84,8 @@
             <tr>
             <td scope="row"><a href="{{data.act.get_absolute_url}}">{{ data.act.display_label }}</a></td>
             {% if data.act.due_date %}
-            <td class="{{data.act.due_class}}">{{ data.act.due_date }} (in {{ data.act.due_in_str }})</td>
+            <td class="{{data.act.due_class}}">{{ data.act.due_date }}
+                {% if data.act.due_in_future %}(in {{ data.act.due_in_str }}){% endif %}</td>
             {% else %}
             <td class="empty">none</td>
             {% endif %}

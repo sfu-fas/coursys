@@ -30,10 +30,6 @@ dt {
   font-weight: bold;
   margin-top: 1em;
 }
-ul li {
-  list-style-type: circle;
-  margin-left: 1em;
-}
 form {
   overflow: hidden; /* keep the floating submit button contained http://stackoverflow.com/questions/7861276/clearboth-before-the-end-of-the-block */
 }
@@ -59,6 +55,10 @@ form.subtle { /* a form that we don't want to look so form-ish */
   background-color: transparent;
   border: none;
   padding: 0;
+}
+ul.bulleted li {
+  list-style-type: circle;
+  margin-left: 1em;
 }
 
 

@@ -1,4 +1,4 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 {% load form_display %}
 
 {% block h1 %}
@@ -15,10 +15,7 @@
 <script type="text/javascript" src="{{STATIC_URL}}js/formula.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-    addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
-    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
+    $("#id_due_date_0").datepicker({dateFormat: 'yy-mm-dd'});
     document.getElementById('testerlink').setAttribute('target', '_blank');
     $("#moreconfig").collapsible();
 });

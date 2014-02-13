@@ -40,7 +40,7 @@ $(document).ready(function(){
 
 {% if source_setup %}
 <p>These activities will be copied:</p>
-	<ul>
+	<ul class="bulleted">
 	{% for activity in source_setup %}
 		<li>{{activity.name}} ({{activity.short_name}})</li>
 	{% endfor %}
