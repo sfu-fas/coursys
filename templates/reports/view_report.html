@@ -84,6 +84,9 @@
         <li><a href="{% url reports.views.new_schedule_rule report=report.slug %}">New Schedule Rule</a></li>
         <li><a href="{% url reports.views.new_component report=report.slug %}">New Report Component</a></li>
         <li><a href="{% url reports.views.new_query report=report.slug %}">New Query</a></li>
+        {% if not report.alert%}
+            <li><a href="{% url reports.views.new_alert report=report.slug %}">New Alert</a></li>
+        {% endif %}
         {% endif %}
         <li><a class='run' href="{% url reports.views.run report=report.slug %}">Run This Report Right Now</a></li>
     </ul>
@@ -192,9 +195,12 @@
 {% endfor %}
 </ul>
 
-<h2>Console</h2>
-<div id='console'> </div> 
+{% if report.alert %}
+<h3>Alert : {{report.alert.code}}</h3>
+    <p><em>{{report.alert.description}}</em></p>
+    <a href="{% url alerts.views.view_alerts alert_type=report.alert.slug %}">View Alerts</a>
 
+{% endif %}
 
 <h2>Runs</h2>
 <p>Report output:</p>

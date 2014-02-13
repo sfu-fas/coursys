@@ -1,5 +1,6 @@
 from django.db import models
 from coredata.models import Role, Person, Unit, ROLE_CHOICES
+from alerts.models import AlertType, Alert
 from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -29,6 +30,7 @@ class Report(models.Model):
     description = models.TextField(help_text="Description of the report.", 
                                    null=True, blank=True)
 
+    alert = models.ForeignKey(AlertType, null=True)
     hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
@@ -57,6 +59,16 @@ class Report(models.Model):
             runs.append(report.run())
         for query in queries:
             runs.append(query.run())
+        
+        if self.alert:
+            for run in runs: 
+                for result in run.result_set.all():
+                    for row_map in result.table_rendered().row_maps():
+                        if 'EMPLID' in row_map:
+                            # for more complicated Alert handling, we need
+                            # to pass in actual unique_fields
+                            unique_fields = ["EMPLID"]
+                            Alert.create(row_map, self.alert, unique_fields)
 
         for rule in self.expired_schedule_rules():
             rule.set_next_run()
@@ -358,4 +370,3 @@ class Result(models.Model):
             self.cached_summary = copy.deepcopy(self.cached_table)
             self.cached_summary.rows = self.cached_summary.rows[0:5]
         return self.cached_summary
-    

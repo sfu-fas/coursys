@@ -7,7 +7,7 @@ from coredata.forms import PersonField
 class ReportForm(ModelForm):
     class Meta:
         model = Report
-        exclude = ('config', 'created_at', 'hidden')
+        exclude = ('config', 'created_at', 'hidden', 'alert')
 
 class HardcodedReportForm(ModelForm):
     class Meta:

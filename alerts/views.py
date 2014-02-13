@@ -1,6 +1,6 @@
 
 from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
-from forms import EmailForm, ResolutionForm, AlertUpdateForm
+from forms import EmailForm, ResolutionForm, AlertUpdateForm, EmailResolutionForm
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
 
@@ -55,7 +55,7 @@ def view_alert_types(request):
     """
     types = AlertType.objects.filter(unit__in=request.units, hidden=False)
     for alert_type in types:
-        alert_type.num_alerts = Alert.objects.filter(alerttype=alert_type, resolved=False).count() 
+        alert_type.num_alerts = Alert.objects.filter(alerttype=alert_type, resolved=False, hidden=False).count() 
 
     return render(request, 'alerts/view_alert_types.html', {'alert_types': types })
 
@@ -93,27 +93,34 @@ def view_alerts(request, alert_type, option="UNRESOLVED"):
     unresolved_flag = option == "UNRESOLVED"
     all_flag = option == "ALL"
 
-    if resolved_flag:
-        alerts = all_alerts.filter( resolved=True) 
-    elif unresolved_flag:
-        # only show Alerts that are unresolved and won't be automatically resolved. 
-        unresolved_alerts = all_alerts.filter( resolved=False)
-        
-        alert_emails = AlertEmailTemplate.objects.filter( alerttype=alert_type, hidden=False ).order_by('threshold')
-        alert_email_dict = dict( [ (key,[]) for key in alert_emails ] ) 
+    bulk_counter = 0
+    resolved_alerts = all_alerts.filter( resolved=True) 
 
-        alerts= []   
-     
-        for alert in unresolved_alerts:
-            number_of_warnings_sent = alert.alertupdate_set.filter( update_type='EMAI' ).count() 
-            alert_will_be_automatically_handled = False
-            for email in alert_emails:
-                if number_of_warnings_sent < email.threshold:
-                    alert_email_dict[email].append( alert )
-                    alert_will_be_automatically_handled = True
-                    break
-            if not alert_will_be_automatically_handled:
-                alerts.append( alert ) 
+    # only show Alerts that are unresolved and won't be automatically resolved. 
+    unresolved_alerts = all_alerts.filter( resolved=False)
+    
+    alert_emails = AlertEmailTemplate.objects.filter( alerttype=alert_type, hidden=False ).order_by('threshold')
+    alert_email_dict = dict( [ (key,[]) for key in alert_emails ] ) 
+
+    unresolved_alerts_filtered= []   
+ 
+    for alert in unresolved_alerts:
+        number_of_warnings_sent = alert.alertupdate_set.filter( update_type='EMAI' ).count() 
+        alert_will_be_automatically_handled = False
+        for email in alert_emails:
+            if number_of_warnings_sent < email.threshold:
+                alert_email_dict[email].append( alert )
+                alert_will_be_automatically_handled = True
+                break
+        if not alert_will_be_automatically_handled:
+            unresolved_alerts_filtered.append( alert ) 
+        else: 
+            bulk_counter += 1
+
+    if unresolved_flag:
+        alerts = unresolved_alerts_filtered
+    elif resolved_flag:
+        alerts = resolved_alerts
     else:
         alerts = all_alerts
 
@@ -121,6 +128,7 @@ def view_alerts(request, alert_type, option="UNRESOLVED"):
                                                         'resolved': resolved_flag,
                                                         'unresolved': unresolved_flag,
                                                         'all': all_flag,
+                                                        'bulk_counter': bulk_counter,
                                                         'most_recent_alert': most_recent_alert,
                                                         'alert_type':alert_type})
 
@@ -137,7 +145,7 @@ def view_resolved_alerts(request, alert_type):
 def view_automation(request, alert_type):
     alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
         
-    unresolved_alerts = Alert.objects.filter( alerttype=alert_type, resolved=False )
+    unresolved_alerts = Alert.objects.filter( alerttype=alert_type, resolved=False, hidden=False)
 
     try:
         most_recent_alert = unresolved_alerts.latest('created_at');
@@ -284,6 +292,14 @@ def view_alert( request, alert_type, alert_id ):
     return render(request, 'alerts/view_alert.html', {'alert': alert, 'alert_updates': alert_updates })
 
 @requires_role('ADVS')
+def hide_alert( request, alert_type, alert_id ):
+    alert = get_object_or_404(Alert, pk=alert_id, alerttype__unit__in=request.units)
+    alert.hidden = True
+    alert.save()
+    messages.success(request, "Deleted alert %s." % str(alert) )
+    return HttpResponseRedirect(reverse('alerts.views.view_resolved_alerts', kwargs={'alert_type':alert_type}))
+
+@requires_role('ADVS')
 def resolve_alert( request, alert_type, alert_id ):
     """
     Resolve an alert
@@ -351,14 +367,41 @@ def comment_alert( request, alert_type, alert_id ):
     return reopen_or_comment_alert( request, alert_type, alert_id, "COMM", "Comment on" )
 
 @requires_role('ADVS')
-def send_emails( request ):
+def email_alert( request, alert_type, alert_id ):
+    alert = get_object_or_404(Alert, id=alert_id, alerttype__unit__in=request.units)
+    
+    if request.method == 'POST':
+        form = EmailResolutionForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.alert = alert
+            f.update_type = "EMAI"
+            f.save()
+            messages.success(request, "Emailed student and resolved alert %s." % str(alert) )
+            
+            l = LogEntry(userid=request.user.username,
+                  description="Resolved alert %s." % str(alert),
+                  related_object=form.instance)
+            l.save()            
+            
+            send_mail( form.cleaned_data['subject'], f.comments, form.cleaned_data['from_email'], [form.cleaned_data['to_email']] )
+            return HttpResponseRedirect(reverse('alerts.views.view_alert', kwargs={'alert_type':alert_type, 'alert_id':alert_id}))
+    else:
+        form = EmailResolutionForm(initial={'resolved_until': datetime.date.today(), 'to_email': alert.person.email(), 'from_email': request.user.email})
+    
+    return render(request, 'alerts/email_alert.html', { 'alert_type':alert.alerttype, 
+                                                          'alert':alert,
+                                                          'form': form })
+
+@requires_role('ADVS')
+def send_emails( request, alert_type ):
     """
     Send all e-mails. 
     """
 
     alert_emails = AlertEmailTemplate.objects.all().order_by('threshold')
         
-    unresolved_alerts = Alert.objects.filter( resolved=False )
+    unresolved_alerts = Alert.objects.filter( alerttype__slug=alert_type, resolved=False, hidden=False )
     
     alert_emails = AlertEmailTemplate.objects.filter( hidden=False ).order_by('threshold')
     alert_email_dict = dict( [ (key,[]) for key in alert_emails ] ) 
@@ -382,6 +425,7 @@ def send_emails( request ):
                 email_context['details'][k] = str(v)
 
             rendered_text = t.render( Context(email_context) ) 
+            # TODO Right here: this should DEFINITELY be a celery task. 
             send_mail( email.subject, rendered_text, "noreply@courses.cs.sfu.ca", [alert.person.email()], fail_silently=True )
             update = AlertUpdate( alert=alert, update_type="EMAI", comments=rendered_text )
             update.save()

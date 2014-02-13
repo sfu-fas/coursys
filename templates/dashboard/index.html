@@ -47,7 +47,7 @@ $(document).ready(function() {
     {% if has_grads %}<li ><a href="{% url grad.views.supervisor_index %}">My Grad Students</a></li>{% endif %}
     {% if 'TADM' in roles %}<li><a href="{% url planning.views.view_insts_in_unit %}">Teaching Administration</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url coredata.views.unit_admin %}">Department Management</a></li>{% endif %}
-    {% if 'REPR' in roles %}<li><a href="{% url reports.views.view_reports %}">Reporting Database</a></li>{% endif %}
+    {% if 'SYSA' in roles %}<li><a href="{% url reports.views.view_reports %}">Reporting Database</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}

@@ -2,6 +2,8 @@ from models import Report, HardcodedReport, Result, Run, RunLine, \
                     Query, AccessRule, ScheduleRule
 from forms import ReportForm, HardcodedReportForm, QueryForm, \
                     AccessRuleForm, ScheduleRuleForm
+from alerts.models import AlertType
+from alerts.forms import AlertTypeForm
 from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
                     ForbiddenResponse
 from django.http import HttpResponse
@@ -313,3 +315,21 @@ def csv_result(request, report, run, result):
         csvWriter.writerow(row)
     
     return response
+
+@requires_role('SYSA')
+def new_alert(request, report):
+    report = get_object_or_404(Report, slug=report)
+
+    if request.method == 'POST':
+        form = AlertTypeForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.save()
+            messages.success(request, "Created new alert type:  %s." % str(f.code) )
+            report.alert = f
+            report.save()
+            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+    else:
+        form = AlertTypeForm()
+
+    return render(request, 'reports/new_alert.html', {'form': form, 'report': report })
