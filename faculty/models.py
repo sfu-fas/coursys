@@ -102,6 +102,9 @@ class CareerEvent(models.Model):
     def get_attachment_url(self):
         return reverse("faculty_add_attachment", args=[self.person.userid, self.slug])
 
+    def get_status_change_url(self):
+        return reverse("faculty_change_event_status", args=[self.person.userid, self.slug])
+
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 

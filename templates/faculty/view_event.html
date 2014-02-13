@@ -32,8 +32,15 @@
 {% block content %}
 <div class="careerevent">
 {{ handler.to_html }}
-<em>{% if person|can_approve:handler %}You can approve this event{% else %}You cannot approve this event{% endif %}</em>
-{% if approval_form %}{{ approval_form }}{% else %}No approval form{% endif %}
+{% if approval_form %}
+<form action="{{ event.get_status_change_url }}" method="post">
+	{% csrf_token %}
+	{{ approval_form }}
+	<input type="submit" value="Change">
+</form>
+{% else %}
+<em>You cannot change the status of this event (as {{ user }})</em>
+{% endif %}
 </div>
 <div class="clearfix"></div>
 
