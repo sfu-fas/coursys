@@ -46,10 +46,10 @@ $(document).ready(function() {
   {% for e in career_events %}
   <tr>
     <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
-    <td>{{ e.event_type }}</td>
+    <td>{{ e.get_event_type_display }}</td>
     <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
     <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
-    <td>{{ e.status }}</td>
+    <td>{{ e.get_status_display }}</td>
   </tr>
   {% endfor %}
 </tbody>
