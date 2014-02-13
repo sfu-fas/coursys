@@ -11,10 +11,7 @@
 
 <div id="submission_history_view_container">
     {% for submission in submitted_components %}
-    <div class="submitter">
-         <img src="{{STATIC_URL}}icons/tag_red.png" alt="submission" />
-        {{submission.sub.created_at|date:"Y-m-d H:i:s"}} {%if activity.group%} by {{submission.sub.creator.person.name}}{%endif%}
-    </div>
+    <h2 id="submission-{{ submission.sub.id }}">Submission at {{submission.sub.created_at|date:"Y-m-d H:i:s"}} {%if activity.group%} by {{submission.sub.creator.person.name}}{%endif%}</h2>
         <table>
         <tbody>
             <tr>
@@ -23,11 +20,12 @@
                 <th>Size</th>
             </tr>
         {% for comp in submission.comp %}
-            <tr class="{% if forloop.counter0|divisibleby:2 %}row1{%else%}row2{%endif%}">
-                <td>{{comp.0.title}}</td>
+            <tr>
+                <th scope="row">{{comp.0.title}}</th>
                 <td>
                     {% if comp.1 %}
-                        <img src="{{STATIC_URL}}icons/attach.png" alt="download" /><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.0.slug submission_id=submission.sub.id %}">Download File</a>
+                        <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.0.slug submission_id=submission.sub.id %}">
+                        <i class="fa fa-download"></i> Download</a>
                     {% else %}
                         &mdash;
                     {% endif %}

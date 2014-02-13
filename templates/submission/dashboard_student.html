@@ -1,4 +1,4 @@
-{% extends "submission/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Submission for {{activity.name}}{% endblock %}
@@ -12,8 +12,8 @@
     <h2 class="heading">Actions</h2>
     <ul>
         {% if submission %}
-        <li><a href="{% url "submission.views.show_components_submission_history" course_slug=course.slug activity_slug=activity.slug %}">View History</a></li>
-        <li><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=userid %}">Download</a></li>
+        <li><a href="{% url "submission.views.show_components_submission_history" course_slug=course.slug activity_slug=activity.slug %}">View Submission History</a></li>
+        <li><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=userid %}">Download Current Submission</a></li>
         {% endif %}
     </ul>
 </div>
@@ -58,62 +58,51 @@
             <p>This is a group-based activity: you cannot submit because you aren't in a group.</p>
             <p>You need to <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
             {% else %}
-            <div id="submission_form_container">
+        <h2 id="submit">Make a Submission</h2>
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-                <fieldset>
-                    <legend>New Submission</legend>
                     {% for data in component_form_list %}
-                        <h2>{{data.comp.title}}</h2>
-                        <ul>
-                        {% if data.comp.description %}<li><label>Description:</label><div class="fieldcontent">{{data.comp.description|linebreaksbr}}</div></li>{% endif %}
-                        {% if data.comp.max_size %}<li><label>Max File Size:</label><div>{{data.comp.max_size}} KB</div></li>{% endif %}
-                        {% if data.comp.allowed %}<li><label>Allowed File Types:</label><div>{{data.comp.get_allowed_display}}</div></li>{% endif %}
-                        {% if data.comp.specified_filename %}<li><label>Specified File Name:</label><div>{{data.comp.specified_filename}}</div></li>{% endif %}
-                        {{data.form.as_ul}}
-                        </ul>
+                        <fieldset>
+                        <legend>{{data.comp.title}}</legend>
+                        <dl class="inline">
+                        {% for f in data.form.visible_fields %}
+                        <dt>{{ f.label }}</dt><dd>{{ f }}</dd>
+                        {% endfor %}
+                        {% if data.comp.description %}<dt>Description</dt><dd>{{data.comp.description|linebreaksbr}}</dd>{% endif %}
+                        {% if data.comp.max_size %}<dt>Max File Size</dt><dd>{{data.comp.max_size}} KB</dd>{% endif %}
+                        {% if data.comp.allowed %}<dt>Allowed File Types</dt><dd>{{data.comp.get_allowed_display}}</dd>{% endif %}
+                        {% if data.comp.specified_filename %}<dt>Specified File Name</dt><dd>{{data.comp.specified_filename}}</dd>{% endif %}
+                        </dl>
+                        </fieldset>
                     {% endfor %}
-                <input type ="submit" value ="Submit" class ="submit"/>
-                </fieldset>
+                <input type="submit" value="Submit" class="submit"/>
 
             </form>
-            </div>
             {% endif %}
         {% endif %}
         {% endif %}
 
-        <div class="form_container">
-        <div id="component_view_student_container">
+        {% if submitted_components %}<h2 id="submitted">Current Submission</h2>
         {# <!-- pair<component, its latest submission> --> #}
         {% for pair in submitted_components %}
-        <h2>{{pair.0.title}}</h2>
+        <h3>{{pair.0.title}}</h3>
 
         {% ifequal pair.1 None %}
-            <div class="warningindicator">
-                <img src="{{STATIC_URL}}icons/cancel.png" alt="warning" />
-                You haven't made a submission for this component.
-            </div>
+            <p class="empty"><i class="fa fa-exclamation-triangle warningmessage"></i> You haven't made a submission for this component.</p>
         {% else %}
-            <div class="successindicator">
-                <img src="{{STATIC_URL}}icons/tick.png" alt="check" />
-                You have made submission to this component.
-                <ul class="component_description">
-                    <li><label>Latest Submission: </label>{{pair.1.get_time}}</li>
-                    {% if group %}
-                    <li><label>Submitter: </label>{{pair.1.get_submitter}}</li>
-                    {% endif %}
-                    {% if pair.1.get_size %}
-                        <li><label>File Size:</label>{{pair.1.get_size|filesizeformat}} </li>
-                    {% endif %}
-                    <li><img src="{{STATIC_URL}}icons/attach.png" alt="download" /><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}">Download {% if pair.1.get_filename %}{{ pair.1.get_filename }}{% else %}submission{% endif %}</a></li>
-                </ul>
-            </div>
-
+            <ul class="component_description">
+                <li>Latest Submission: {{pair.1.get_time}}</li>
+                {% if group %}
+                <li>Submitter: {{pair.1.get_submitter}}</li>
+                {% endif %}
+                {% if pair.1.get_size %}
+                <li>File Size: {{pair.1.get_size|filesizeformat}} </li>
+                {% endif %}
+                <li><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}"><i class="fa fa-download"></i>
+                    Download {% if pair.1.get_filename %}{{ pair.1.get_filename }}{% else %}submission{% endif %}</a></li>
+            </ul>
         {% endifequal %}
-
-
         {% endfor %}
-        </div>
-        </div>
+        {% endif %}
 
 {% endifequal %}
 

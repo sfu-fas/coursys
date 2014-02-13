@@ -1,6 +1,6 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">
 $(document).ready(function(){
  $('.rename_check').each(function(index){ 
@@ -19,19 +19,11 @@ $(document).ready(function(){
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Copy Setup</li>{% endblock %}
 
 {% block content %}
-{% if source_setup %}
-<h2>Setup will be copied from {{source_course}}:</h2>
-	<ul>
-	{% for activity in source_setup %}
-		<li>{{activity.name}} ({{activity.short_name}})</li>
-	{% endfor %}
-	</ul>
-{% else %}
-	<h3 class="empty">Empty Setup </h3>
-{% endif %}
+
 
 {% if source_pages %}
 <h2>These course pages will be copied:</h2>
@@ -44,30 +36,35 @@ $(document).ready(function(){
 
 
 <form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
-{% if conflicting_activities %}
-<h2> Current Conflicting Setup of this course: </h2>
-<div class="form_container">	
-	<p class = "warningindicator" id="setupcopy">	
-	<img alt="warning" src="{{STATIC_URL}}/icons/exclamation.png"/>
-	<b>
-	It's recommended that you change the name/short name of the following activities 
-	to avoid them being overridden by the activities with the same name/short name in the above setup
-	</b>
-	</p>
-</div>
 
+
+{% if source_setup %}
+<p>These activities will be copied:</p>
+	<ul class="bulleted">
+	{% for activity in source_setup %}
+		<li>{{activity.name}} ({{activity.short_name}})</li>
+	{% endfor %}
+	</ul>
+{% else %}
+	<p class="empty">No activities to copy.</p>
+{% endif %}
+
+{% if conflicting_activities %}
+<h2>Conflicting activity names: </h2>
+	<p class="warningmessage" id="setupcopy">
+	It's recommended that you change the name/short name of these activities
+	which conflict with the current course activities.
+	</p>
 <ul>
 {% for activity in conflicting_activities %}	
 	{% with activity.1 as form %}
-	<li>	
-		{{activity.0.name}} ({{activity.0.short_name}})&nbsp;{{form.selected}}{{form.selected.label_tag}} 
-	<p class = "rename_info">
+    <h3>{{activity.0.name}} ({{activity.0.short_name}})</h3>
+    <p>{{form.selected}} {{form.selected.label_tag}}<br/>
 		{{form.name.label_tag}}&nbsp;{{form.name}}
 		{% if form.name.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{form.name.errors.0}}</span>{% endif %}
 		{{form.short_name.label_tag}}&nbsp;{{form.short_name}}
 		{% if form.short_name.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{form.short_name.errors.0}}</span>{% endif %}		
 	</p>
-	</li>	
 	{% endwith %}
 {% endfor %}
 </ul> 

@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+{% block title %}Discussion: {{ topic.title }}{% endblock %}
+{% block h1 %}Discussion: {{ topic.title }}
+	{% if topic.pinned %}<i class="fa fa-tag"></i>{% endif %}
+    {% if topic.status == 'ANS' %}<i class="fa fa-check"></i>{% endif %}
+{% endblock %}
+
 {% block headextra %}
 <link rel="stylesheet" href="{{STATIC_URL}}style/discuss.css" media="all" />
 {% if brushes %}
@@ -35,7 +40,6 @@
 			$("#id_content").focus();
 		{% endif %}
 		$("#topic-reply-toggle").click(function() {
-			
 			$("#topic-reply-toggle").hide();
 			$("#discussion-topic-reply-form").show('slide');
 			$('html, body').animate({scrollTop: $(document).height()});
@@ -53,7 +57,6 @@
 </script>
 {% endblock %}
 
-{% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
@@ -67,105 +70,72 @@
 	<h2 class="heading">Actions</h2>
 	<ul>
 		{% if request.user.username == topic.author.person.userid and topic.still_editable %}
-		<li>
-		  	<a href="{% url "discuss.views.edit_topic" course_slug=course.slug topic_slug=topic.slug %}">Edit Topic ({{ topic.editable_time_left }} left)</a>
-		</li>
+		<li><a href="{% url "discuss.views.edit_topic" course_slug=course.slug topic_slug=topic.slug %}">Edit Topic ({{ topic.editable_time_left }} left)</a></li>
 		{% endif %}
 		{% if view == 'staff' %}
-		<li>
-			<a href="{% url "discuss.views.change_topic_status" course_slug=course.slug topic_slug=topic.slug %}">Manage Topic</a>
-		</li>
+		<li><a href="{% url "discuss.views.change_topic_status" course_slug=course.slug topic_slug=topic.slug %}">Manage Topic</a></li>
 		{% endif %}
 	</ul>
 </div>
 {% endif %}
-
 {% endblock %}
 
 {% block content %}
 
 {% if topic.status == 'HID' %}
-    <div id="topic-hidden-warning">
-    	This topic is currently hidden and cannot be seen by students.
-    </div>
+<p><span class="warning">This topic is currently hidden and cannot be seen by students.</span></p>
 {% endif %}
 
-<div class="discussion-topic-body">
-	<div class="discussion-topic-header">
-		<span class="discussion-topic-header-title"> 
-			{% if topic.pinned %} 
-			<span style="color: #B5111B">[Pinned]</span> 
-			{% endif %}
-			{% if topic.status == 'ANS' %} 
-			<span style="color: #1F6B08">[Answered]</span> 
-			{% endif %}
-			{{ topic.title }}
-		</span>
-		<div class="discussion-topic-meta">
-			<span class="discussion-topic-author-content">{{ topic.author.person.name_pref }} ({{ topic.author.person.userid }})</span>
-			<span class="discussion-topic-last"><span style="color:#1F6B08">{{ topic.created_at_delta }}</span></span>
-		</div>
-	</div>
+<div class="topic-body">
+<p class="discussion-author"><span class="author">{{ topic.author.person.name_pref }} ({{ topic.author.person.userid }})</span>, {{ topic.created_at_delta }}.</p>
 
-	<div class="discussion-topic-content" id="topic-content">
-		{{ topic.html_content }}
-	</div>
+<div class="discussion-content" id="topic-content">
+{{ topic.html_content }}
+</div>
 </div>
 
-<div class="discussion-topic-replies-header">
-	Replies:
-</div>
+<h2 id="replies">Replies</h2>
 
-<div class="discussion-topic-replies">
-	{% if replies|length_is:0 and topic.status != 'CLO' %} 
-	<div class="discussion-replies-warning">No replies yet...</div>
+	{% if replies|length_is:0 and topic.status != 'CLO' %}
+	<p class="empty">No replies yet.</p>
 	{% endif %}
 	{% if replies|length > 0 %}
 	{% for reply in replies %}
-		<div class="discussion-topic-reply" id="reply-{{reply.id}}">
-			<div class="discussion-reply-author {% if reply.status == 'HID' %}fade-out{% endif %}">
-				{{ reply.author.person.name_pref }} ({{reply.author.person.userid}}),
-			</div>
-			<div class="discussion-reply-time{% if reply.status == 'HID' %} fade-out{% endif %}">
-				{{ reply.create_at_delta }}
-				{% if reply.was_edited %}
-				    *
-				{% endif %}
-			</div>
-			{% if reply.status != 'HID' %}
-			<div class="discussion-reply-controls">
+        <div class="discussion-reply{% if reply.status == 'HID' %} fade-out{% endif %}" id="reply-content-{{reply.id}}">
+            <p class="reply-author ">
+                <span class="author">{{ reply.author.person.name_pref }} ({{reply.author.person.userid}})</span>, {{ reply.create_at_delta }}
+				{% if reply.was_edited %}*{% endif %}
+            </p>
+            {% if reply.status != 'HID' %}
+            <div class="discussion-reply-controls">
 			{% if view == 'staff' or request.user.username == reply.author.person.userid %}
-			<form id="remove-reply-{{ reply.pk }}" action = "{% url "discuss.views.remove_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" method="post">
+			    <form class="miniform" id="remove-reply-{{ reply.pk }}" action="{% url "discuss.views.remove_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" method="post">
 				{% csrf_token %}
-			</form>
-			<span class="remove-discussion-reply" id="topic-{{ reply.pk }}">Remove</span>
+			    </form>
+			    <span class="remove-discussion-reply" id="topic-{{ reply.pk }}"><i class="fa fa-times"></i> Remove</span>
 			{% endif %}
 			{% if reply.still_editable and request.user.username == reply.author.person.userid %}
-			    <a href="{% url "discuss.views.edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" class="edit-discussion-reply">Edit ({{ reply.editable_time_left }})</a>
+			    <a href="{% url "discuss.views.edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" class="edit-discussion-reply">
+                <i class="fa fa-pencil-square-o"></i> Edit ({{ reply.editable_time_left }})</a>
 			{% endif %}
-			</div>
-			{% endif %}
-			<div class="discussion-reply-content {% if reply.status == 'HID' %}fade-out{% endif %}" id="reply-content-{{reply.id}}">
-				{% if reply.status == 'HID' %}
-				    <i>This reply has been removed...</i>
-				{% endif %}
-				{% if reply.status != 'HID' %}
-				    {{ reply.html_content }}
-				{% endif %}
-			</div>
-		</div>
-	{% endfor %}
+            </div>
+            <div class="discussion-content">{{ reply.html_content }}</div>
+            {% else %}
+				<p class="empty">This reply has been removed.</p>
+		    {% endif %}
+        </div>
+   	{% endfor %}
 	{% endif %}
 	{% if topic.status == 'CLO' and view == 'student' %}
-	<div class="discussion-replies-warning">Replies are currently disabled for this topic...</div>
+	<p><span class="warning">Replies are currently disabled for this topic.</span></p>
 	{% endif %}
 	{% if topic.status == 'CLO' and view == 'staff' %}
-	<div class="discussion-replies-warning">Topic is closed. Students may not post replies.</div>
+	<p><span class="warning">Topic is closed. Students may not post replies.</span></p>
 	{% endif %}
-</div>
+
 
 {% if topic.status != 'CLO' or view == 'staff' %}
-<a href="#" id="topic-reply-toggle">Post a reply</a>
+<p><a href="#" id="topic-reply-toggle">Post a reply</a></p>
 <div id="discussion-topic-reply-form">
 	<form action="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}" method="post">
 		{% csrf_token %}

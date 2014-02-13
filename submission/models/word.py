@@ -26,7 +26,8 @@ class WordComponent(SubmissionComponent):
 
 class SubmittedWord(SubmittedComponent):
     component = models.ForeignKey(WordComponent, null=False)
-    word = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage)
+    word = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage,
+                            verbose_name='Word document submission')
         
     class Meta:
         app_label = 'submission'

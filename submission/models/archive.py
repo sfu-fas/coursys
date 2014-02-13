@@ -25,7 +25,8 @@ class ArchiveComponent(SubmissionComponent):
 
 class SubmittedArchive(SubmittedComponent):
     component = models.ForeignKey(ArchiveComponent, null=False)
-    archive = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage)
+    archive = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500,
+                               storage=SubmissionSystemStorage, verbose_name='Archive submission')
         
     class Meta:
         app_label = 'submission'
@@ -65,14 +66,9 @@ class Archive:
         class Meta:
             model = ArchiveComponent
             fields = ['title', 'description', 'max_size', 'specified_filename', 'deleted']
-            # widgets = {
-            #     'description': Textarea(attrs={'cols': 50, 'rows': 5}),
-            #     'max_size': TextInput(attrs={'style':'width:5em'}),
-            # }
         def __init__(self, *args, **kwargs):
             super(Archive.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:
