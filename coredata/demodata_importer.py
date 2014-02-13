@@ -432,7 +432,7 @@ def main():
     update_amaint_userids()
 
     print "importing course offerings"
-    offerings = import_offerings(import_semesters=import_semesters, create_units=True, extra_where="ct.subject='CMPT' or ct.subject='ENSC'")
+    offerings = import_offerings(import_semesters=import_semesters, create_units=True) # extra_where="ct.subject='CMPT' or ct.subject='ENSC'"
     offerings = list(offerings)
     offerings.sort()
 

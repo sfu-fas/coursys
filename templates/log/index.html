@@ -1,4 +1,4 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 {% load course_display %}
 
 {% block title %}System Logs{% endblock %}
@@ -25,9 +25,8 @@ $(document).ready(function() {
 {% block actions %}{% endblock %}
 
 {% block content %}
-<form  method="post" action="">{% csrf_token %}
-<div><input type="text" name="q" value="" /></div>
-<div><input type="submit" value="Submit" /></div>
+<form method="post" action="">{% csrf_token %}
+<p><input type="text" name="q" value="" /> <input type="submit" value="Search" /></p>
 </form>
 
 {% if logs %}
@@ -37,7 +36,7 @@ $(document).ready(function() {
   <tbody>
   {% for l in logs %}
     <tr><td><span class="sort">{{l.datetime.isoformat}}</span>{{l.datetime}}</td><td>{{l.userid}}</td><td>{{l.description}}</td>
-    <td>{% if l.related_object.get_absolute_url %}<a href="{{l.related_object.get_absolute_url}}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View" alt="View" /></a>{% endif%}</td></tr>
+    <td>{% if l.related_object.get_absolute_url %}<a href="{{l.related_object.get_absolute_url}}"><i class="fa fa-search"></i> </a>{% endif%}</td></tr>
   {% endfor %}
   </tbody>
 </table>

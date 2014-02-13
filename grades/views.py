@@ -1415,6 +1415,7 @@ def export_all(request, course_slug):
     Export everything we can about this offering
     """
     import StringIO, tempfile, zipfile, os, json
+    from django.http import StreamingHttpResponse
     from django.core.servers.basehttp import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
     from submission.models import generate_submission_contents
@@ -1425,7 +1426,7 @@ def export_all(request, course_slug):
     handle, filename = tempfile.mkstemp('.zip')
     os.close(handle)
     z = zipfile.ZipFile(filename, 'w')
-        
+
     # add all grades CSV
     allgrades = StringIO.StringIO()
     _all_grades_output(allgrades, course)    
@@ -1460,7 +1461,7 @@ def export_all(request, course_slug):
     # return the zip file
     z.close()
     zipdata = open(filename, 'rb')
-    response = HttpResponse(FileWrapper(zipdata), content_type='application/zip')
+    response = StreamingHttpResponse(FileWrapper(zipdata), content_type='application/zip')
     response['Content-Length'] = os.path.getsize(filename)    
     response['Content-Disposition'] = 'attachment; filename="' + course.slug + '.zip"'
     try:

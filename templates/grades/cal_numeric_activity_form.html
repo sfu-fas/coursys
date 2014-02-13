@@ -1,4 +1,4 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 {% load form_display %}
 
 {% block h1 %}
@@ -15,10 +15,7 @@
 <script type="text/javascript" src="{{STATIC_URL}}js/formula.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-    addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
-    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
+    $("#id_due_date_0").datepicker({dateFormat: 'yy-mm-dd'});
     document.getElementById('testerlink').setAttribute('target', '_blank');
     $("#moreconfig").collapsible();
 });
@@ -33,7 +30,6 @@ $(document).ready(function() {
     <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_cal_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
                 method="post">{% csrf_token %}
         <fieldset>
-            <legend>Activity Info</legend>
             {{ form|as_dl_excludefields:"showstats,showhisto" }}
 
                         <div class="collapsible">The applicable numeric activities:</div>

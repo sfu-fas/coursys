@@ -32,31 +32,26 @@
 
 {% block content %}
 {% if topics.object_list|length_is:0 %}
-<i>There are currently no topics</i>
+<p class="empty">There are currently no topics</p>
 {% endif %}
 {% if topics.object_list|length > 0 %}
 {{ topics|create_pagination }}
 {% for topic in topics.object_list %}
 {% if topic.status != 'HID' or view == 'staff' %}
 <div class="discussion-topic{% if topic.status == 'HID' %} fade-out{% endif %}" id="topic-{{ topic.pk }}">
-	<a class="discussion-topic-title" href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">
-		{% if topic.pinned %}
-			<span style="color: #B5111B">[Pinned]</span>
-		{% endif %}
-		{% if topic.status == 'ANS' %}
-		    <span style="color: #1F6B08">[Answered]</span>
-		{% endif %}
+	<h3><a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">
+		{% if topic.pinned %}<i class="fa fa-tag"></i>{% endif %}
+		{% if topic.status == 'ANS' %}<i class="fa fa-check"></i>{% endif %}
 		{{ topic.title }}
-	</a>
-	<div class="discussion-topic-info">
-		<span class="discussion-topic-author">{{ topic.author.person.name }} ({{topic.author.person.userid}})</span>
-		<span class="discussion-topic-last">
+	</a></h3>
+	<div>
+		<span class="author">{{ topic.author.person.name }} ({{topic.author.person.userid}})</span>
+		<span class="last">
 			{% if topic.message_count == 0 %}
-				Created: <span style="color:#1F6B08">{{ topic.last_activity_at_delta }}</span>
+				Created: {{ topic.last_activity_at_delta }}
 			{% endif %}
 			{% if topic.message_count > 0 %}
-			    Last Reply:
-			    <span style="color:#1F6B08">{{ topic.last_activity_at_delta }}</span>
+			    Last Reply: {{ topic.last_activity_at_delta }}
 			{% endif %}
 		</span>
 	</div>

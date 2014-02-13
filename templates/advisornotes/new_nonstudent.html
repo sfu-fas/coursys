@@ -13,12 +13,6 @@
 
 {% block content %}
 <div class="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
     <form action="{% url "advisornotes.views.new_nonstudent" %}" method="post">
         {% csrf_token %}
         <fieldset>

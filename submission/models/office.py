@@ -41,7 +41,8 @@ add_introspection_rules([], ["^submission\.models\.office\.JSONFieldFlexible"])
 class OfficeComponent(SubmissionComponent):
     "An office document submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the Office file, in kB.", null=False, default=10000)
-    allowed = JSONFieldFlexible(max_length=500, null=False, help_text='Accepted file extensions.')
+    allowed = JSONFieldFlexible(max_length=500, null=False, verbose_name='Allowed types',
+                                help_text='Accepted file extensions.')
 
     def get_allowed_list(self):
         return self.allowed['types']
@@ -69,7 +70,8 @@ class OfficeComponent(SubmissionComponent):
 
 class SubmittedOffice(SubmittedComponent):
     component = models.ForeignKey(OfficeComponent, null=False)
-    office = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage)
+    office = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500,
+                              storage=SubmissionSystemStorage, verbose_name='Office document submission')
         
     class Meta:
         app_label = 'submission'
@@ -112,11 +114,8 @@ class Office:
         def __init__(self, *args, **kwargs):
             super(Office.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
-
             self.fields['allowed'].widget = SelectMultiple(choices=OFFICE_CHOICES, attrs={'style':'width:40em', 'size': 15})
             self.initial['allowed'] = self._initial_allowed
-            self.fields['allowed'].label=mark_safe("Allowed Types"+submission.forms._required_star)
 
         def _initial_allowed(self):
             """

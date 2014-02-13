@@ -1,65 +1,64 @@
-{% extends "submission/base.html" %}
+{% extends "base.html" %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{course.name}}</a></li><li><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li><a href="{% url "submission.views.show_components" course.slug activity.slug%}">Submission</a></li><li>Error Detected</li>{% endblock %}
 
 {% block h1 %}
     {%ifequal not_submitted_comp|length 0 %}
-        Submission succeeded!
+        Submission succeeded
     {%else%}
         {% ifequal submitted_comp|length 0 %}
-            Error: Nothing submitted
+             Nothing submitted
         {%else%}
-            Warning: Error detected in your submission
+            Problem detected in your submission
+        {% endifequal %}
+    {%endifequal%}
+{% endblock %}
+{% block title %}
+    {%ifequal not_submitted_comp|length 0 %}
+        Submission succeeded
+    {%else%}
+        {% ifequal submitted_comp|length 0 %}
+            Nothing submitted
+        {%else%}
+            Problem detected in your submission
         {% endifequal %}
     {%endifequal%}
 {% endblock %}
 
 {% block content %}
-    <div id ="submission_error_container">
+    <div id="submission_error_container">
         {# If every component is submitted and has no error #}
         {%ifequal not_submitted_comp|length 0 %}
             <a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}" class="button">continue</a>
         {# if there are errors in several submitted component#}
         {%else%}
-            <h2>Errors in Submission</h2>
-            <table>
-                <tbody>
+            <h2 id="errors">Errors: these components were not submitted</h2>
+            <ul>
             {% for data in component_list %}
                 {%if data.form.errors %}
-                    <tr>
-                        <th class="ui-state-default">{{ data.comp.title }}</th>
-                        <td class="error">
-                        {% for field in data.form %}
-                           {{field.errors}}
-                        {% endfor %}
-                        </td>
-                    </tr>
+                <li><i class="fa fa-times-circle errormessage"></i>
+                {{ data.comp.title }}:
+                <blockquote>
+                {% for field in data.form %}
+                    {{field.errors}}
+                {% endfor %}
+                </blockquote>
+                </li>
                 {%endif%}
             {%endfor%}
-                </tbody>
-            </table>
+            </ul>
+
             {# if no component is submitted successfully #}
             {% ifequal submitted_comp|length 0 %}
             {% else %}
-                <h2>Successfully Submitted Components</h2>
-                    <table>
-                        <tbody>
-                        {% for component in submitted_comp %}
-                            <tr>
-                                <th class="ui-state-default">
-                                    {{component.component.title}}
-                                </th>
-                                <td class="submitted">
-                                     Submitted
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                <h2 id="success">Successfully Submitted</h2>
+                <ul>
+                    {% for component in submitted_comp %}
+                      <li><i class="fa fa-check-circle successmessage"></i> {{component.component.title}}</li>
+                    {% endfor %}
+                </ul>
             {% endifequal %}
-            <h2 class ="text">All components with error are not submitted.</h2>
-            <br>
-            <a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}" class="button">OK</a>
+            <p><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}" class="button">Return to {{ activity.name }} submission</a></p>
         {%endifequal%}
     </div>
 {% endblock %}

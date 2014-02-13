@@ -1,21 +1,25 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ course.name }}: Details for {{member.person.name}}{% endblock %}
 {% block h1 %}{{ course.name }}: Details for {{member.person.name}}{% endblock %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
 	// activate dataTable ui
 	oTable = $('#student_grades').dataTable({
 	    "bJQueryUI": true,
 	    "bPaginate": false,
-            "bSort": false
+            "bSort": false,
+            "bInfo": false,
+          "bFilter": false,
 	});
 	$('#grade_history').dataTable({
 	    "bJQueryUI": true,
 	    "bPaginate": false,
             "bSort": true,
+            "bInfo": false,
+          "bFilter": false,
         "aaSorting": [[0,'asc']],
 	});
     });
@@ -29,30 +33,30 @@
     <table class="info">
         <tbody>
 	    <tr>
-                <th class="ui-state-default">Last Name</th>
+                <th scope="row">Last Name</th>
                 <td>{{ member.person.last_name }}</td>
             </tr>
 	    <tr>
-                <th class="ui-state-default">First Name</th>
+                <th scope="row">First Name</th>
                 <td>{{ member.person.first_with_pref }}
                 </td>
             </tr>
 	    <tr>
-                <th class="ui-state-default">Middle Name</th>
+                <th scope="row">Middle Name</th>
                 <td>{{ member.person.middle_name }}</td>
             </tr>
 	    <tr>
-                <th class="ui-state-default">Student Number</th>
+                <th scope="row">Student Number</th>
                 <td>{{ member.person.emplid }}</td>
             </tr>
             {% if course.labtut %}
 	    <tr>
-                <th class="ui-state-default">Lab/Tutorial Section</th>
+                <th scope="row">Lab/Tutorial Section</th>
                 <td>{{ member.labtut_section }}</td>
             </tr>
             {% endif %}
 	    <tr>
-                <th class="ui-state-default">Email Address</th>
+                <th scope="row">Email Address</th>
                 <td><a href="mailto:{{ member.person.email }}">{{ member.person.email }}</a></td>
             </tr>
         </tbody>

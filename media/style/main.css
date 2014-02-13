@@ -48,7 +48,36 @@ input[type="radio"], input[type="checkbox"] {
   padding: inherit;
 }
 input[type="email"], input[type="number"] { /* other text-like input types not covered in head.styles.css */
-  height:2.25em;padding:0 0 0 .4em;
+  height:2.25em;
+  padding:0 0 0 .4em;
+}
+form.subtle { /* a form that we don't want to look so form-ish */
+  background-color: transparent;
+  border: none;
+  padding: 0;
+}
+ul.bulleted li {
+  list-style-type: circle;
+  margin-left: 1em;
+}
+
+
+dl.inline {
+  overflow: hidden;
+}
+dl.inline dt, dl.inline dd {
+  float: left;
+}
+dl.inline dt {
+  clear: left;
+  margin-top: 0;
+  min-width: 8em;
+}
+dl.inline dt:after {
+  content: ':';
+}
+dl.inline dd {
+  margin: 0 2em;
 }
 
 legend {
@@ -60,6 +89,10 @@ legend {
 .table th {
   background-color: #fff;
 }
+table th[scope=row] {
+  vertical-align: middle;
+  border: none;
+}
 
 .empty {
   font-style: italic;
@@ -68,12 +101,21 @@ span.sort {
   display: none;
 }
 
-
+/* for the base-wide template */
+body.widebody .main {
+  width: 100%;
+  padding-top: 12px;
+}
+body.widebody .main_content {
+  margin-top: 2em;
+}
 
 
 /* breadcrumb styling */
 div.breadcrumb ul li {
   display: inline;
+  margin-left: 0;
+  margin-right: 0;
 }
 div.breadcrumb ul li:before {
   content: " / ";
@@ -83,10 +125,10 @@ div.breadcrumb ul li:first-child:before {
 }
 
 #sysmenu {
-  text-align: right;
-  position: relative;
+  display: inline;
+  float: right;
   font-size: 0.875em;
-  margin-left: 50%;
+  position: relative;
   top: 4em;
   right: 1em;
 }
@@ -152,33 +194,36 @@ div#messages li:before {
   -moz-osx-font-smoothing: grayscale;
   padding-right: 0.25em;
 }
-div#messages .success {
+div#messages .success, .successmessage {
   color: #92be2c;
 }
 div#messages .success:before {
   content: '\00f058';
 }
-div#messages .error {
+div#messages .error, .errormessage {
   color: #c33a41;
 }
 div#messages .error:before {
   content: '\00f057';
 }
-div#messages .warning {
+div#messages .warning, .warningmessage {
   color: #e06121;
 }
 div#messages .warning:before {
   content: '\00f06a';
 }
-div#messages .info {
+div#messages .info, .infomessage {
   color: #075fa3;
 }
 div#messages .info:before {
   content: '\00f05a';
 }
 
-span.warning {
-    color: #e06121;
+.due_verysoon {
+  background-color: #f22;
+}
+.due_soon {
+  background-color: #ff0;
 }
 
 
@@ -214,30 +259,9 @@ div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-stat
 }
 
 
-disabled table {
-  border-collapse: collapse;
-  border: 1px solid black;
-  margin: 0.5em 0;
-}
-disabled table td, table th {
-  border: 1px solid black;
-  padding: 0.1em 0.25em;
-  vertical-align: top;
-}
-disabled table th {
-  font-size: 110%;
-  vertical-align: middle;
-  /* from jqueryui .ui-state-default */
-  border: 1px solid #d3d3d3; background: #e6e6e6 url(../jquery-ui/css/smoothness/images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50% repeat-x; font-weight: normal; color: #555555; outline: none;
-}
-disabled th.sorting_asc, th.sorting_desc {
-  border-width: 2px;
-}
-
 td[scope] {
   font-weight: bold;
 }
-
 #formulahelp dt {
   font-weight: bold;
   margin-top: 1em;
@@ -266,93 +290,45 @@ div.bigdatatable span.more {
     display: none;
 }
 
-disabled .dataTables_length {
-    width: 40%;
-    float: left;
-}
-disabled .dataTables_filter {
-    width: 50%;
-    float: right;
-    text-align: right;
-}
-disabled .dataTables_filter input[type=text] {
-  margin: 2px;
-}
-disabled .dataTables_info {
-    width: 40%;
-    float: left;
-}
-disabled .dataTables_paginate {
-    width: 40%;
-    float: right;
-    text-align: right;
-}
-disabled .datatable_container .iconcell {
-  text-align: center;
-}
-disabled .datatable_container .disabled {
-  background-color: #eee;
-  color: #999;
-}
-
-/* DataTables display */
-disabled table.display {
-    margin: 0;
-    width: 100%;
-    clear: both;
-
-    /* Override style in "media/style/main.css" */
-    border-width: 0;
-}
-disabled table.display thead th {
-    padding: 3px 0px 3px 10px;
-    font-weight: bold;
-    cursor: pointer;
-    * cursor: hand;
-}
-disabled table.display td {
-    padding: 3px 10px;
-
-    /* Override style in "media/style/main.css" */
-    border-width: 0;
-}
-disabled table.display td.center {
-    text-align: center;
-}
-disabled table.display td.num {
-    text-align: right;
-}
-disabled table.display td textarea{
-	width: 180px;
-	height: 60px;
-}
-
-disabled table.display td select{
-	width: 100px;
-}
-
-disabled table.display tr:hover {
-  background-color: #EAF2FA;
-}
-
-disabled table td.hidden, disabled table tr.hidden {
-	display: none;
-}
-
-
-
-
 .dataTables_length {
+  width: 40%;
+  float: left;
   font-size: 75%;
   text-align: left;
 }
-.dataTables_filter, .dataTables_info {
+.dataTables_filter {
   font-size: 75%;
+  width: 50%;
+  float: right;
   text-align: right;
+}
+.dataTables_info {
+  font-size: 75%;
+  width: 40%;
+  float: left;
+  text-align: left;
+  height: 22px;
+  line-height: 22px;
+}
+.dataTables_paginate {
+  width: 40%;
+  float: right;
+  text-align: right;
+}
+.dataTables_paginate a {
+  display: inline;
 }
 .dataTables_filter input, .dataTables_length select {
   display: inline;
 }
+.paging_full_numbers .fg-button {
+    padding: 2px 6px;
+}
+.fg-toolbar {
+    padding: 2px 4px;
+}
+
+
 
 /* DataTables row classes */
 tr.odd {
@@ -362,241 +338,76 @@ tr.even {
     background-color: white;
 }
 
-
-
-/* jQuery UI specific styling */
-.paging_full_numbers .fg-button {
-    padding: 2px 6px;
-    cursor: pointer;
-    * cursor: hand;
+/* DataTables cell types */
+.datatable_container .iconcell {
+  text-align: center;
 }
-.fg-toolbar {
-    padding: 2px 4px;
+.datatable_container .disabled {
+  background-color: #eee;
+  color: #999;
 }
-.dataTables_info {
-    height: 22px;
-    line-height: 22px;
+table.display td.center {
+    text-align: center;
 }
-
-
-/* The following css will make the datatable sorting icon float to right. */
-disabled .css_right {
+table.display td.num {
+    text-align: right;
+}
+table td.hidden, table tr.hidden {
+	display: none;
+}
+/* makes the datatable sorting icon float to right. */
+.dataTables_wrapper .css_right {
     float: right;
 }
 
-/* Row action in course activity page  */
-disabled .row-actions {
-  visibility: hidden;
-  font-weight: normal;
+/*
+table.display td textarea {
+	width: 180px;
+	height: 60px;
 }
-disabled tr:hover .row-actions {
-  visibility: visible;
+disabled table.display td select{
+	width: 100px;
 }
-disabled #activities td {
-  vertical-align: top;
+disabled table.display tr:hover {
+  background-color: #EAF2FA;
 }
+*/
 
-disabled table.activity_box_info tbody th {
-  font-weight: bold;
-  text-align: left;
-  width: 20%;
-  /* Override default table style */
-  background-color: transparent;
-}
-disabled table.activity_box_info th, table.activity_box_info td {
-  /* Override default table style */
-  border-width: 0px;
-}
-disabled table.activity_box_info {
-  width: 100%;
-  color: #555555;
-  /* Override default table style */
-  border-width: 0px;
-}
 
-/* visualize plugin chart style */
-disabled .visualize {
-  margin: 2em 2em 4em 2em;
-}
-
-disabled .ajax_status{
-  padding-left: 1em;
-  color: gray;
-  font-style: italic;
-}
 a.editlink {
   float: right;
   font-size: smaller;
 }
 
-/* CSS for group */
-disabled #groupcontainer {
-    padding:0 0 0 0;
-    margin:0 0 0 0;
-}
-disabled #groupmembership {
-    float:right;
-    width: 200px;
-    margin-top:20px;
-    margin-right:10px;
-    margin-left:0;
-    border: 1px solid;
-    border-color:#FFCA91;
-    padding:5px 15px 15px 5px;
-}
-
-disabled #groupcontent {
-    width:400px;
-    padding:0 30px 30px 0;
-    margin:0 0 0 0;
-}
-
-
-/* things under container */
-disabled #main a.button {
-/* need to add '#main' as selector in order to override SFU template style */
-    display: block;
-    width: 10em;
-    height: 2em;
-    color: #FFFFFF;
-    text-align: center;
-    line-height: 2em;
-    background-color: #0054a6;
-    text-decoration: none;
-    font-weight: bold;
-    border-right: 1px solid white;
-    border-bottom: 5px solid #fff;
-}
-disabled #main #current_type {
-    background-color: #B5111B;
-}
-disabled #main a.button:hover {
-    background-color: #B5111B;
-    border-bottom: 5px solid #d8d5d5;
-    text-decoration: none;
-}
-
-/* red button */
-disabled #main a.redbutton.submit_button {
-    margin: 0.5em;
-    float: right;
-    clear: both;
-}
-
-disabled #main a.redbutton.reset_button {
-    margin: 0.5em;
-    float: right;
-}
-
-disabled #main a.redbutton {
-  /* need to add '#main' as selector in order to override SFU template style */
-  width: auto;
-  margin: 0.2em 0 0.2em 0;
-  height: 1.4em;
-  color: #FFFFFF;
-  text-align: center;
-  line-height: 1.4em;
-  background-color: #B5111A;
-  border: 1px solid #FFF;
-  text-decoration: none;
+table.info th {
   font-weight: bold;
-  padding: 0.3em 0.5em 0.3em 0.5em;
+  width: 12em;
+  background-color: #eee;
+  border: 1px solid #ddd;
 }
-
-disabled #main span.disabledbutton {
-  width: auto;
-  margin: 0.2em 0 0.2em 0;
-  height: 1.4em;
-  color: #FFFFFF;
-  text-align: center;
-  line-height: 1.4em;
-  background-color: #bba;
-  border: 1px solid #FFF;
-  text-decoration: none;
-  font-weight: bold;
-  padding: 0.3em 0.5em 0.3em 0.5em;
+table.info td {
+  border: 1px solid #eee;
 }
-disabled #main span.disabledbutton.submit_button {
-    margin: 0.5em;
-    float: right;
-    clear: both;
-}
-
-disabled #main a.redbutton:hover {
-  border-color: #BCBCB4;
-  text-decoration: none;
-}
-disabled #main a.redbutton_onclick {
-  background-color: #F0EFEA;
-}
-
-disabled .buttongroup {
-  margin: 0.5em 0em 0.5em 0em;
-}
-table.info thead th {
-  font-weight: bold;
-}
-disabled table.info tbody th {
-  font-weight: bold;
-  text-align: left;
-}
-disabled table.info tbody th {
-  width: 30%;
-}
-disabled table.info thead th, table.info thead td, table.info tbody th, table.info tbody td{
-  border-color:#ccc;
-}
-disabled table.info {
-  border-color: #ccc;
-  width: 100%;
-}
-disabled div#main table.info p {
+section.main table.info p {
   padding: 0;
   margin: 0;
 }
-disabled div#main table.info p input {
-  float: right;
-  font-size: 75%;
+section.main table.info form {
+  background-color: transparent;
+  border: none;
+  margin: 0;
   padding: 0;
 }
-
-
-.due_verysoon {
-  background-color: #f22;
+section.main table.info p input {
+  float: right;
+  font-size: 75%;
+  padding: 0 0.5em;
 }
-.due_soon {
-  background-color: #ff0;
-}
-disabled .table_container {
-  width: 600px;
-}
-disabled .datatable_container {
-  /*width: 695px;*/
-  margin: 0 1em 0 0;
-}
-disabled .activity_reference_container {
-  width: 500px;
+.arrow_up, .arrow_down { /* student_info_staff reorder arrows */
+  font-size: smaller;
+  font-weight: normal;
 }
 
-
-body#formula_tester {
-  font-family:Arial,Helvetica,sans-serif;
-  font-size:13px;
-  margin:0;
-  padding:0;
-}
-#formula_tester h1 {
-  text-align: center;
-  color: #B5111A;
-}
-.formula_tester_container {
-  -moz-border-radius:5px 5px 5px 5px;
-  background:none repeat scroll 0 0 #FAFAFA;
-  border:2px solid #AAAAAA;
-  margin:20px auto;
-  padding:1em 20px;
-  width:630px;
-}
 
 
 disabled .table_container p.errorindicator {
@@ -641,48 +452,49 @@ div.collapsible {
 }
 
 
-.form_container {
+.errorlist {
+    color: #b5111b;
+    margin-top: .1em;
+    margin-bottom: .2em;
+}
+
+X .form_container {
     margin: 0 1em 0 0;
     clear: both;
 }
-.form_container .errorindicator, .form_container .successindicator, 
-.form_container .warningindicator {
+X .form_container .errorindicator, X .form_container .successindicator,
+X .form_container .warningindicator {
     border: 1px solid;
     padding: 0.5em;
     background-color: #F8F8C2;
     margin-bottom: 1em;
     margin-top: 0;
 }
-.form_container .successindicator {
+X .form_container .successindicator {
     border: 1px solid green;
     color: green;
 }
-.form_container .errorindicator {
+X .form_container .errorindicator {
     border: 1px solid red;
     color: red;
 }
-.form_container .warningindicator {
+X .form_container .warningindicator {
     border: 1px solid orange;
     color: orange;
 }
-.form_container .errorlist {
-    color: red;
-    margin-left: 9.5em;
-    margin-top: .1em;
-    margin-bottom: .2em;
-}
-.form_container .meeting-times .errorlist {
+
+X .form_container .meeting-times .errorlist {
   margin-left: 0;
 }
-.form_container .requireindicator,
-.form_container .requireindicator {
+X .form_container .requireindicator,
+X .form_container .requireindicator {
     padding: 0 0 0 1em;
     color: #D52E2D;
 }
-#main .form_container h3 {
+X #main .form_container h3 {
   margin-left: 1em;
 }
-#main .form_container p {
+X #main .form_container p {
   margin-left: 1em;
 }
 /*
@@ -789,6 +601,7 @@ disabled fieldset p.helptext,
 disabled dl.dlform .helptext {
     margin-left: 10.5em;
 }
+
 dl.dlform dt{
     clear: both;
 }
@@ -870,92 +683,56 @@ disabled fieldset.wide label span {
     left: 12em;
 }
 
-/* Formula tester style */
-#formula_tester fieldset label span {
-    position: absolute;
-    left: auto;
-}
 
-#formula_tester fieldset {
-  border-color:#AAAAAA -moz-use-text-color -moz-use-text-color;
-  border-right:0 none;
-  border-style:dotted none none;
-  border-width:1px 0 0;
-  margin:1em 0 0;
-  /* Override style */
-  padding: inherit;
-  background: none;
-}
-/* Override style */
-#formula_tester fieldset legend {
-  font-size:1.5em;
-  margin:0;
-}
-#formula_tester fieldset legend span {
-  background:none repeat scroll 0 0 #FAFAFA;
-  left:0px;
-  padding-right:10px;
-  position:relative;
-  top:-0.1em;
-}
-#formula_tester .requireindicator {
-  /* Override style */
-  padding:0;
-}
-#formula_result {
-  font-weight: bold;
-  font-size: 2em;
-  color: gray;
-}
 
-fieldset .position {
+X fieldset .position {
     float:right;
     width: 20%;
 }
-fieldset .view {
+X fieldset .view {
     float:left;
     width: 80%;
 }
-fieldset .view label {
+X fieldset .view label {
     width: 7em;
     text-align: right;
     line-height: 1em;
     font-weight: bold;
 }
-fieldset .editbutton a.button{
+X fieldset .editbutton a.button{
     float: right;
 }
-fieldset .editbutton a.button:hover{
+X fieldset .editbutton a.button:hover{
     border: 0;
 }
 fieldset .hidden {
     display: none;
 }
-fieldset .ui-multiselect {
+X fieldset .ui-multiselect {
     max-width: inherit;
     min-width: inherit;
 }
 
-.add_nav {
+X .add_nav {
     list-style-type: none;
     margin: 0;
     padding: 0;
     float: left;
 }
-.add_nav li {
+X .add_nav li {
     float: left;
 }
-.add_nav .warning {
+X .add_nav .warning {
     margin-bottom: 0.2em;
     width:100%;
     clear:both;
     color: gray;
 }
-#main .add_nav .button {
+X #main .add_nav .button {
     background-color: #b4b4aa;
     width: 9em;
 }
-#main .add_nav #current_type {
+X #main .add_nav #current_type {
     background-color: #0054a6;
 }
 
@@ -963,137 +740,121 @@ fieldset .ui-multiselect {
  *  containers
  */
  /*view submission error*/
-#submission_error_container{
+X #submission_error_container{
     margin: 1em;
     width: 50em;
 }
-#submission_error_container .button{
+X #submission_error_container .button{
     float:right;
     clear:right;
 }
 
-#submission_error_container .text{
+X #submission_error_container .text{
     text-align: right;
 }
-#submission_error_container table {
+X #submission_error_container table {
     border: 1px;
     width: 60em;
 }
-#submission_error_container table td{
+X #submission_error_container table td{
     border: 1px solid #DBDBDB;
     width: 75%;
 }
-#submission_error_container ul, #submission_error_container li {
+X #submission_error_container ul, #submission_error_container li {
     margin: 0;
     padding: 0;
     list-style: none;
 }
-#submission_error_container td.error {
+X #submission_error_container td.error {
     color: red;
     text-align: left;
 }
-#submission_error_container td.submitted {
+X #submission_error_container td.submitted {
     color: green;
     text-align: left;
 }
 
- /*#submission_error_container table td.column1 {
-    background: #E8E8E8;
-    font-weight:bold;
-    padding: 0.1em 2em;
-    text-align: right;
-    width: 10em;
- }
-  #submission_error_container table td.column2 {
-       color:red;
-       padding: 0.1em 4em;      
- }
-  #submission_error_container table td.column3 {
-       color:green;
-       padding: 0.1em 4em;      
- }
- */
   
 /* view submission history */
-#add_submission_component_container {
+X #add_submission_component_container {
     clear: left;
 }
-#edit_single_submission_component_form_container {
+X #edit_single_submission_component_form_container {
     margin: 1.5em 0 0.5em 0;
 }
-#edit_submission_component_add_button {
+X #edit_submission_component_add_button {
     margin-left: 0em;
 }
-#component_view_student_container {
+X #component_view_student_container {
     clear: left;
 }
-#submission_history_view_container{
+X #submission_history_view_container{
     clear: left;
 }
-#submission_history_view_container .submitter{
+X #submission_history_view_container .submitter{
     margin-top: 2em;
     font-weight: bold;
     font-size: 1.4em;
     color: gray;
 }
-#submission_history_view_container h2{
+X #submission_history_view_container h2{
     color: #999;
 }
-#submission_history_view_container table{
+X #submission_history_view_container table{
     border: 0px solid gray;
     margin: 0;
 }
-#submission_history_view_container table tr {
+X #submission_history_view_container table tr {
     margin: 1em 10em;
     
 }
-#submission_history_view_container table th {
+X #submission_history_view_container table th {
     background-color:#e9eef7;
     padding: 0.3em 5em;
     border: 0px;
 }
 
-#submission_history_view_container table td {
+X #submission_history_view_container table td {
     border: 0px;
     padding: 0.3em 5em;
     text-align: center;
 }
 
-#submission_history_view_container table tr.row1 {
+X #submission_history_view_container table tr.row1 {
     background-color: white;
 }
-#submission_history_view_container table tr.row2 {
+X #submission_history_view_container table tr.row2 {
     background-color: #e9eef7;
 }
 
-div#submission_form_container{
+X div#submission_form_container{
     width: 600px;
     margin: 0.5em;
     background: none;
 
 }
 
-#submission_form_container fieldset{
+X #submission_form_container fieldset{
    background: none;
    background-color: #FFE6ED;
 
 }
 
-#submission_form_container fieldset h2{
+X #submission_form_container fieldset h2{
     margin: 0.5em 0 0 2em;
     font-size: 1.1em;
     color: #666;
 }
 
-#submission_form_container fieldset p {
+X #submission_form_container fieldset p {
     margin-left: 11em;
 }
 
-#submission_form_container fieldset li{
+X #submission_form_container fieldset li{
     list-style-type: none;
 }
 
-#submission_form_container fieldset li input{
+X #submission_form_container fieldset li input{
     width: 350px;
 }
 

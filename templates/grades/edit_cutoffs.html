@@ -1,4 +1,4 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block h1 %}
 Edit Cutoffs of {{ activity.name }}
@@ -7,7 +7,7 @@ Edit Cutoffs of {{ activity.name }}
 Edit Cutoffs of {{ activity.name }}
 {% endblock %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
 //<![CDATA[
@@ -139,19 +139,17 @@ if (!Array.prototype.filter) {
 
 
 {% block content %}
-<br/>
 
-<div class="form_container">
     {% if cutoff.non_field_errors %}
     {{ cutoff.non_field_errors }}
     {% endif %}
     
         <form action="{% url "grades.views.edit_cutoffs" course_slug=course.slug activity_slug=activity.slug %}"
                 method="post" id="cutoffform">{% csrf_token %}
-        <p class="cutoffoffset">Adjust all cutoffs: <input type="text" name="offset" value="0.0" size="4" id="id_offset" /><br /><input type="button" value="Add to each" id="offsetbutton" /></p>
+        <p class="cutoffoffset">Adjust all cutoffs: <input type="text" name="offset" value="0.0" size="4" id="id_offset" />
+            <input type="button" value="Add to each" id="offsetbutton" /></p>
         <fieldset>
         	<legend>Lower bounds for each grade</legend>
-        		<ul><li>
         		<table class="cutoffs">
         		<tr>
         		<td class="label">Max</td><td><input type="text" value="{{activity.numeric_activity.max_grade}}" disabled="disabled" /></td>
@@ -178,14 +176,10 @@ if (!Array.prototype.filter) {
         		<td class="label">D</td><td>{{cutoff.d}} {{cutoff.d.errors}}</td>
         		<td class="label">F</td><td><input type="text" value="0" disabled="disabled" /></td>
         		</tr>
-        		</table></li>
-				<li>
-        				<input class="submit" type="submit" value="Submit" />
-        			</li>
-			</ul>
+        		</table>
+        		<p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>
         </form>
-</div>
 
 		
 <h2 id="histo">Live Histogram</h2>

@@ -70,7 +70,7 @@ class SupervisorField(forms.MultiValueField):
 
         choices = dict(self.fields[0].choices)
         person = None
-        if person_id in choices:
+        if person_id in choices and person_id != -1:
             # have a person from the choices
             person = Person.objects.get(id=person_id)
             if userid:

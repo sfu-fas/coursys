@@ -1,9 +1,9 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ activity.name }}: Compare Official Grades{% endblock %}
 {% block h1 %}{{ activity.name }}: Compare Official Grades{% endblock %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
 	oTable = $('#grades').dataTable({

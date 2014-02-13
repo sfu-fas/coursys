@@ -2,15 +2,19 @@ from django.core.cache import cache
 from django.conf import settings
 from coredata.models import Unit
 from cache_utils.decorators import cached
-import itertools, os, time
+import itertools, os
+import hashlib, string, datetime
 import urllib, urllib2, json, base64
 
 ACCOUNT_NAME = 'cs'
 TOKEN_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/Token'
 PHOTO_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Values/%s?includePhoto=true'
+PASSWORD_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/ChangePassword'
 DUMMY_IMAGE_FILE = os.path.join(settings.STATIC_ROOT, 'images', 'No_image.JPG') # from http://commons.wikimedia.org/wiki/File:No_image.JPG
+
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
+
 PHOTO_TIMEOUT = 10 # number of seconds the views will wait for the photo service
 
 
@@ -22,6 +26,8 @@ def _grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return itertools.izip_longest(fillvalue=fillvalue, *args)
 
+
+# functions that should actually be called to do stuff
 
 def fetch_photos(emplids):
     """
@@ -56,29 +62,17 @@ def do_photo_fetch(emplids):
         cache.set('photo-image-'+unicode(emplid), photos[emplid], 3600*24)
 
     missing = set(emplids) - set(photos.keys())
-    if not missing:
-        return
+    if missing:
+        # some images missing: cache the failure, but not for as long
+        data = open(DUMMY_IMAGE_FILE, 'rb').read()
+        for emplid in missing:
+            cache.set('photo-image-'+unicode(emplid), data, 3600)
 
-    # some images missing: cache the failure, but not for as long
-    data = open(DUMMY_IMAGE_FILE, 'rb').read()
-    for emplid in missing:
-        cache.set('photo-image-'+unicode(emplid), data, 3600)
+    return set(photos.keys())
 
 
 
-# functions that actually interact with the photo service
-
-def get_photo_password():
-    # need to record the photo password somewhere in the DB so we can retrieve and update it as necessary.
-    # This seems like the least-stupid place.
-    u = Unit.objects.get(slug='univ')
-    return u.config['photopass']
-
-def set_photo_password(p):
-    u = Unit.objects.get(slug='univ')
-    u.config['photopass'] = p
-    u.save()
-
+# functions that actually get photos
 
 @cached(45) # tokens should last for 60 seconds
 def _get_photo_token():
@@ -117,3 +111,75 @@ def _get_photos(emplids):
 
 
 
+# photo password management
+
+LETTERS = string.ascii_letters
+DIGITS = string.digits
+PUNCTUATION = string.punctuation
+ALL_CHARS = LETTERS + DIGITS + PUNCTUATION
+PW_SERIES = '2'
+
+def _choose_from(chars, seed):
+    """
+    Choose a character based on the seed: return new seed and the char.
+    """
+    l = len(chars)
+    return (chars[seed%l], seed//l)
+
+def generate_password(input_seed):
+    """
+    Generate some hard-to-guess but deterministic password.
+    (deterministic so we have some hope of password recovery if something gets lost)
+
+    Note: settings.SECRET_KEY is different (and actually secret) in production.
+    """
+    # generate seed integer
+    secret = settings.SECRET_KEY
+    seed_str = '_'.join([secret, input_seed, PW_SERIES, secret])
+    h = hashlib.new('sha512')
+    h.update(seed_str)
+    seed = int(h.hexdigest(), 16)
+
+    # use seed to pick characters: one letter, one digit, one punctuation, length 6-10
+    letter, seed = _choose_from(LETTERS, seed)
+    digit, seed = _choose_from(DIGITS, seed)
+    punc, seed = _choose_from(PUNCTUATION, seed)
+    pw = letter + digit + punc
+    for i in range(7):
+        c, seed = _choose_from(ALL_CHARS, seed)
+        pw += c
+
+    return pw
+
+
+def get_photo_password():
+    """
+    Retrieve current photo service password.
+    """
+    # need to record the photo password somewhere in the DB so we can retrieve and update it as necessary.
+    # This seems like the least-stupid place.
+    u = Unit.objects.get(slug='univ')
+    return u.config['photopass']
+
+def set_photo_password(p):
+    """
+    Set current photo service password.
+    """
+    u = Unit.objects.get(slug='univ')
+    u.config['photopass'] = p
+    u.save()
+
+def change_photo_password():
+    """
+    Change photo service password (passwords expire every 30 days, so must be automated).
+    """
+    newpw = generate_password(datetime.date.today().isoformat())
+    token_data = urllib.urlencode({
+        'AccountName': ACCOUNT_NAME,
+        'OldPassword': get_photo_password(),
+        'NewPassword': newpw,
+    })
+    resp = urllib2.urlopen(PASSWORD_URL, data=token_data)
+    resp_text = resp.read()
+    set_photo_password(newpw)
+    return resp_text
