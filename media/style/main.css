@@ -342,6 +342,9 @@ tr.even {
 .datatable_container .iconcell {
   text-align: center;
 }
+.datatable_container .iconcell .fa {
+  margin: 0 0.25em;
+}
 .datatable_container .disabled {
   background-color: #eee;
   color: #999;

@@ -1,8 +1,7 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">
-//<![CDATA[
 var oTable;
 function clear_filter() {
   oTable.fnFilter("");
@@ -17,17 +16,16 @@ $(document).ready(function() {
 	});
 
 });
-//]]>
 </script>
 {% endblock %}
 
 {% block title %}Mark All Groups{% endblock %}
 {% block h1 %}Mark All Groups{% endblock %}
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Groups</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Groups</li>{% endblock %}
 {% block content %}
 
-<form id="grades_form" action="{% url "marking.views.mark_all_groups" course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
-<div class="datatable_container">
+<form id="grades_form" class="subtle" action="{% url "marking.views.mark_all_groups" course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
      <table class="display" id="all_marks">
         <thead class="form_head">
             <tr>
@@ -65,7 +63,6 @@ $(document).ready(function() {
 	    {% endfor %}
         </tbody>
     </table>
-</div>
 <div><input class="submit" type="submit" value="Submit" /></div>
 </form>
 {% endblock %}
