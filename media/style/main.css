@@ -157,6 +157,110 @@ div.breadcrumb ul li:first-child:before {
   content: '\00f196';
 }
 
+/* big/small screen alternatives */
+.wideonly { display: inline; }
+.narrowonly { display: none; }
+@media(max-width:980px){
+  .wideonly { display: none; }
+  .narrowonly { display: inline; }
+}
+
+
+
+
+/* actions menu */
+
+/* extraction/adaptation of clf.main-pages.css for the actions menu */
+.subnav-wrapper {
+    float: left;
+    font-family: "DINWeb",sans-serif;
+    font-size: 0.9em;
+    line-height: 1.1em;
+    margin-bottom: 40px;
+    margin-top: 75px;
+    padding-left: 27px;
+    padding-top: 0;
+    width: 22.2222%;
+}
+.subnav-wrapper h2 {
+    color: #A6192E;
+    float: none;
+    font-family: "DINWebBold",sans-serif;
+    font-weight: normal;
+    line-height: 1.125em;
+    padding-top: 1em;
+    text-transform: uppercase;
+
+    letter-spacing: 0;
+    padding-bottom: 0;
+    font-size: 0.9em;
+    padding-left: 23px;
+}
+.subnav-wrapper ul {
+    margin-right: 12px;
+    padding-left: 10px;
+    padding-right: 12px;
+}
+.subnav-wrapper ul li {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 13px;
+    list-style-type: none;
+    margin-left: 0;
+}
+.subnav-wrapper ul.fa-ul li {
+    padding-left: 0;
+}
+.subnav-wrapper li.newsec {
+    border-top: 1px solid #d28c96;
+    padding-top: 6px;
+}
+
+@media(max-width:980px){
+    .subnav-wrapper {
+        width: 100%;
+        margin-top: 15px;
+    }
+    .subnav-wrapper ul li {
+        display: inline;
+        padding-left: 0;
+    }
+    .subnav-wrapper ul.fa-ul li .fa {
+        display: none;
+    }
+    .subnav-wrapper ul li:before {
+        content: " | ";
+    }
+    .subnav-wrapper ul li:first-child:before {
+        content: "";
+    }
+    .subnav-wrapper li.newsec {
+        border-top: none;
+        padding-top: inherit;
+    }
+    .subnav-wrapper li.newsec:before {
+        content: " || ";
+    }
+}
+
+/* mods for base-wide */
+body.widebody .subnav-wrapper {
+  float: none;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+body.widebody .subnav-wrapper h2 {
+  padding-left: 0;
+}
+body.widebody .subnav-wrapper li {
+  padding-left: 0;
+}
+body.widebody .subnav-wrapper ul {
+  padding-left: 0;
+}
+
+
 
 
 
