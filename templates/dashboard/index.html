@@ -2,15 +2,13 @@
 {% load mobile_tags %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
-//<![CDATA[
 $(document).ready(function() {
   $("div.newsitem h3").collapsible();
   $("h2.semester").collapsible();
   $("h2.timely").trigger('expand');
 });
-//]]></script>
+</script>
 {% endblock %}
 
 {% block wholetitle %}CourSys{% endblock %}

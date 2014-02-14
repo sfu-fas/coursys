@@ -9,7 +9,7 @@ from datetime import datetime
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.core.servers.basehttp import FileWrapper
-from django.http import HttpResponse
+from django.http import StreamingHttpResponse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
 from coredata.models import Person
@@ -251,12 +251,12 @@ def generate_activity_zip(activity, prefix=''):
     z.close()
 
     file = open(filename, 'rb')
-    response = HttpResponse(FileWrapper(file), content_type='application/zip')
+    response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="%s.zip"' % (activity.slug)
     try:
         os.remove(filename)
     except OSError:
-        print "Warning: error removing temporary file."
+        pass
     return response
 
 def generate_zip_file(submission, submitted_components):
@@ -272,11 +272,11 @@ def generate_zip_file(submission, submitted_components):
     z.close()
 
     file = open(filename, 'rb')
-    response = HttpResponse(FileWrapper(file), content_type='application/zip')
+    response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="%s_%s.zip"' % (submission.file_slug(), submission.activity.slug)
     try:
         os.remove(filename)
     except OSError:
-        print "Warning: error removing temporary file."
+        pass
     return response
 
