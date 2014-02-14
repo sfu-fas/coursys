@@ -739,7 +739,55 @@ legend {
 
 
 
-/* marking style */
+/* marking styles */
+
+#mark_details {
+  margin-bottom: 2em;
+}
+#mark_details td {
+  margin: 0;
+  padding: 0;
+  vertical-align: top;
+}
+#mark_details td.subrow {
+  width: 2em;
+}
+#mark_details h3 {
+  margin: 0;
+  padding: 0;
+  padding-top: 1.5em;
+}
+#mark_details td.comment {
+  color: #00c;
+  padding-top: 0.5em;
+}
+#mark_details td.subhead {
+  width: 8em;
+  font-weight: bold;
+}
+#mark_details td.mark {
+  text-align: right;
+  padding-top: 1.5em;
+}
+#mark_details td.mark {
+  text-align: right;
+}
+
+#mark_details td p:first-child {
+  margin-top: 0;
+}
+#mark_details #totalrow .subhead {
+  padding-top: 1.5em;
+}
+#mark_details #totalrow .mark {
+  font-weight: bold;
+}
+
+
+
+
+
+
 X .marking_a
 {
   font-weight:bold;
@@ -795,42 +843,6 @@ X #marking_container .requireindicator{
 	display: none;
 }
 
-X #mark_details {
-  width: 50em;
-  border: none;
-  margin-bottom: 2em;
-}
-X #mark_details td {
-  border: none;
-}
-X #mark_details td.comment {
-  color: #00c;
-  padding-top: 0.5em;
-}
-X #mark_details h3 {
-  margin-top: 1em !important;
-  padding-top: 0;
-}
-X #mark_details td.subrow {
-  width: 2em;
-}
-X #mark_details td.subhead {
-  width: 8em;
-  font-weight: bold;
-}
-X #mark_details td.mark {
-  text-align: right;
-  padding-top: 1.5em;
-}
-X #mark_details td p:first-child {
-  margin-top: 0;
-}
-X #mark_details #totalrow .subhead {
-  padding-top: 1.5em;
-}
-X #mark_details #totalrow .mark {
-  font-weight: bold;
-}
 
 /* navigator style for selecting different form */
 X #form_nav {

@@ -86,17 +86,17 @@
               
               
               {% if info.marked %}
-              	<td>{% if info.act.is_numeric %}<a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>{% endif %}</td>
+              	<td class="iconcell">{% if info.act.is_numeric %}<a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><i class="fa fa-search" title="View detail"></i>{% endif %}</td>
               {% else %}
-              	<td>{% if info.act.is_numeric %}<a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>{% endif %}</td>
+              	<td class="iconcell">{% if info.act.is_numeric %}<a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><i class="fa fa-edit" title="Mark"></a>{% endif %}</td>
               {% endif %}
               
 
               {% if info.sub %}
-              <td><a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="{{info.act.name}} submission" alt="info" /></a>
-              <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/page_compressed.png" title="download {{info.act.name}} submission" alt="Download" /></a></td>
+              <td class="iconcell"><a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><i class="fa fa-search" title="View detail"></i></a>
+              <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><i class="fa fa-download" title="Download"></i></a></td>
               {% else %}
-              <td></td>
+              <td class="iconcell"></td>
               {% endif %}
             </tr>
             {% endfor %}
@@ -138,7 +138,7 @@
       ({{ gh.get_activity_status_display }})
       {% endif %}
       {% if gh.mark %}
-      <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=gh.activity.slug userid=member.person.userid%}?activity_mark={{gh.mark.id}}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+      <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=gh.activity.slug userid=member.person.userid%}?activity_mark={{gh.mark.id}}"><i class="fa fa-search" title="View detail"></i></a>
       {% endif %}	
     </td>
     <td>{{ gh.entered_by.sortname }} ({{gh.entered_by.email_mailto}})</td>
