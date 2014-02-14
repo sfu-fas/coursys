@@ -92,7 +92,7 @@ class CaseContactedForm(forms.ModelForm):
             self.cleaned_data['contact_date'] = datetime.date.today()
             self.instance.send_contact_mail = True # trigger email sending in view logic
         elif contacted=="OTHR":
-            if not self.cleaned_data['contact_date']:
+            if 'contact_date' not in self.cleaned_data or not self.cleaned_data['contact_date']:
                 raise forms.ValidationError('Please enter the date of initial contact about the case.')
 
         return self.cleaned_data
