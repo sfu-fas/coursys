@@ -18,7 +18,7 @@ class PDFComponent(SubmissionComponent):
 class SubmittedPDF(SubmittedComponent):
     component = models.ForeignKey(PDFComponent, null=False)
     pdf = models.FileField(upload_to=submission_upload_path, blank=False,  max_length=500, 
-          storage=SubmissionSystemStorage)
+          storage=SubmissionSystemStorage, verbose_name='PDF submission')
         
     class Meta:
         app_label = 'submission'
@@ -58,7 +58,6 @@ class PDF:
         def __init__(self, *args, **kwargs):
             super(PDF.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:

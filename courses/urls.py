@@ -2,9 +2,9 @@ from django.conf.urls import patterns, url, include
 from django.conf import settings
 from django.views.generic import TemplateView,  RedirectView
 
-if not settings.DEPLOYED:
-    from django.contrib import admin
-    admin.autodiscover()
+#if not settings.DEPLOYED:
+#    from django.contrib import admin
+#    admin.autodiscover()
 
 from courselib.urlparts import *
 
@@ -26,7 +26,7 @@ urlpatterns += patterns('',
 #---------------------------------------
     url(r'^$', 'dashboard.views.index'),
         url(r'^m/$', 'mobile.views.index'),
-    url(r'^favicon.ico$', RedirectView.as_view(url='/media/icons/favicon.ico', permanent=True)),
+    url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
     url(r'^history$', 'dashboard.views.index_full'),
     url(r'^config/$', 'dashboard.views.config'),
     url(r'^news/$', 'dashboard.views.news_list'),
@@ -61,12 +61,12 @@ urlpatterns += patterns('',
     url(r'^data/scholarships/(?P<student_id>\d{9})$', 'ra.views.search_scholarships_by_student'),
     url(r'^students/$', 'dashboard.views.student_info'),
     url(r'^students/' + USERID_OR_EMPLID + '$', 'dashboard.views.student_info'),
-    url(r'^photos/' + EMPLID_SLUG + '$', 'dashboard.views.student_photo'),
+    url(r'^photos/' + EMPLID_SLUG + '$', 'grades.views.student_photo'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
         url(r'^m/' + COURSE_SLUG + '/$', 'mobile.views.course_info'),
     url(r'^' + COURSE_SLUG + '/reorder_activity$', 'grades.views.reorder_activity'),
-    url(r'^' + COURSE_SLUG + '/new_message$', 'dashboard.views.new_message'),
+    url(r'^' + COURSE_SLUG + '/new_message$', 'grades.views.new_message'),
     url(r'^' + COURSE_SLUG + '/config/$', 'grades.views.course_config'),
     url(r'^' + COURSE_SLUG + '/config/tas$', 'coredata.views.manage_tas'),
     url(r'^' + COURSE_SLUG + '/config/copysetup$', 'marking.views.copy_course_setup'),
@@ -107,16 +107,16 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/new_cal_numeric$', 'grades.views.add_cal_numeric_activity'),
     url(r'^' + COURSE_SLUG + '/new_cal_letter$', 'grades.views.add_cal_letter_activity'),
     url(r'^' + COURSE_SLUG + '/formula_tester$', 'grades.views.formula_tester'),
-    url(r'^' + COURSE_SLUG + '/list/$', 'grades.views.class_list'),
-    url(r'^' + COURSE_SLUG + '/photolist/$', 'grades.views.photo_list'),
-        url(r'^m/' + COURSE_SLUG + '/list/$', 'mobile.views.class_list'),
+    url(r'^' + COURSE_SLUG + '/list$', 'grades.views.class_list'),
+    url(r'^' + COURSE_SLUG + '/photolist$', 'grades.views.photo_list'),
+        url(r'^m/' + COURSE_SLUG + '/list$', 'mobile.views.class_list'),
     url(r'^' + COURSE_SLUG + '/students/$', 'grades.views.student_search'),
     url(r'^' + COURSE_SLUG + '/students/' + USERID_SLUG + '$', 'grades.views.student_info'),
         url(r'^m/' + COURSE_SLUG + '/students/' + USERID_SLUG + '$', 'mobile.views.student_info'),
         url(r'^m/' + COURSE_SLUG + '/search/$', 'mobile.views.student_search'),
     url(r'^' + COURSE_SLUG + '/export', 'grades.views.export_all'),
 
-    url(r'^' + COURSE_ACTIVITY_SLUG + '$', 'grades.views.activity_info'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/$', 'grades.views.activity_info'),
         url(r'^m/' + COURSE_ACTIVITY_SLUG + '$', 'mobile.views.activity_info'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/stat$', 'grades.views.activity_stat'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/cal_all$', 'grades.views.calculate_all'),

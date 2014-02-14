@@ -26,7 +26,7 @@ class ImageComponent(SubmissionComponent):
 class SubmittedImage(SubmittedComponent):
     component = models.ForeignKey(ImageComponent, null=False)
     image = models.FileField(upload_to=submission_upload_path, blank=False,  max_length=500, 
-          storage=SubmissionSystemStorage)
+          storage=SubmissionSystemStorage, verbose_name='Image submission')
         
     class Meta:
         app_label = 'submission'
@@ -68,7 +68,6 @@ class Image:
         def __init__(self, *args, **kwargs):
             super(Image.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:

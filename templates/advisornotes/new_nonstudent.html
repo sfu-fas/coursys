@@ -5,20 +5,14 @@
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url "advisornotes.views.advising" %}">Advising</a>
+    <a href="{% url "advisornotes.views.advising" %}">Advising</a>
 </li>
 <li>
-    &gt; New Prospective Student
+    New Prospective Student
 </li>{% endblock %}
 
 {% block content %}
 <div class="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
     <form action="{% url "advisornotes.views.new_nonstudent" %}" method="post">
         {% csrf_token %}
         <fieldset>

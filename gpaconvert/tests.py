@@ -80,10 +80,9 @@ class DiscreteRuleTest(TestCase):
 
     def test_delete(self):
         """
-        Tests that you are unable to delete a rule.
+        Tests that you can to delete a rule.
         """
-        #with self.assertRaises(NotImplementedError):
-        #    self.rule.delete()
+        self.rule.delete()
 
 
 class ContinuousRuleTest(DiscreteRuleTest):

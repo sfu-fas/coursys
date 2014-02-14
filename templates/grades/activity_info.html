@@ -1,4 +1,4 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 {% load course_display %}
 
 {% block title %}{{ activity.name }} Information{% endblock %}
@@ -27,7 +27,7 @@ Column logic:
 
 {% endcomment %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
     function fetchUserId(data) {
@@ -42,7 +42,6 @@ Column logic:
     }
 
     $(document).ready(function() {
-	addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
 	// activate dataTable ui
 	oTable = $('#student_grades').dataTable({
                 "bPaginate": false,
@@ -121,11 +120,11 @@ Column logic:
 	    {% endif %}
 	    {% if not activity.is_calculated %}
 	    <li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Submission</a></li>
-	    <li class="newsec">
 	    {% if activity.is_numeric %}
+	    <li class="newsec">
 	    <a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Marking</a>
-	    {% endif %}
 	    </li>
+	    {% endif %}
 	    {% if sub_comps %}
 	    <li><a href="{% url "submission.views.download_activity_files" course_slug=course.slug activity_slug=activity.slug%}">Download Submissions</a></li>
 	    {% endif %}
@@ -157,60 +156,64 @@ Column logic:
 {% endblock %}
 
 {% block content %}
-<div class="table_container">
     <table class="info">
         <tbody>
 	    <tr>
-                <th class="ui-state-default">Activity Type</th>
+                <th scope="row">Activity Type</th>
                 <td>{{ activity.type_long }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Name</th>
+                <th scope="row">Name</th>
                 <td>{{activity.name}}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Short name</th>
+                <th scope="row">Short name</th>
                 <td>{{activity.short_name}}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Status</th>
+                <th scope="row">Status</th>
                 <td><form action="{% url "grades.views.release_activity" course_slug=course.slug activity_slug=activity.slug %}" method="post">{% csrf_token %}<p>
                 {{activity.get_status_display}}
                 {% if activity.status == "INVI" %}
-                <input type="submit" value="make visible" onclick="return confirmSubmit('make the activity visible to students')" />
+                <input type="submit" value="Make visible" onclick="return confirmSubmit('make the activity visible to students')" />
                 {% else %}{% if activity.status == "URLS" %}
-                <input type="submit" value="release grades" onclick="return confirmSubmit('release the grades to students')" />
+                <input type="submit" value="Release grades" onclick="return confirmSubmit('release the grades to students')" />
                 {% endif %}{% endif %}</p></form></td>
             </tr>
             <tr>
-                <th class="ui-state-default">Due date</th>
+                <th scope="row">Due date</th>
                 <td class="{{activity.due_class}}">{{activity.due_date}}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Percentage</th>
-                <td>{{activity.percent}}</td>
+                <th scope="row">Percentage</th>
+                <td>{% if activity.percent == None %}&mdash;{% else %}{{activity.percent}}%{% endif %}</td>
             </tr>
             {% if not activity.is_calculated %}
 		<tr>
-                <th class="ui-state-default">Group Activity</th>
+                <th scope="row">Group Activity</th>
                 <td>{% if activity.group %}Yes{% else %}No{% endif %}</td>
             </tr>
             {% endif %}
             {% if activity.numericactivity %}
             <tr>
-                <th class="ui-state-default">Maximum grade</th>
+                <th scope="row">Maximum grade</th>
                 <td>{{activity.max_grade}}</td>
             </tr>
             {% endif %}
 	    {% if activity.calnumericactivity %}
             <tr>
-                <th class="ui-state-default">Formula</th>
-                <td>{{activity.formula}}</td>
+                <th scope="row">Formula</th>
+                <td>
+                <form action="{% url "grades.views.calculate_all" course_slug=course.slug activity_slug=activity.slug %}" method="get">
+                <p>{{activity.formula}}
+                    <input type="submit" value="Calculate all grades" /></p>
+                </form>
+                </td>
             </tr>
             {% endif %}
             {% if not activity.is_calculated %}
             <tr>
-                <th class="ui-state-default">Submission Components</th>
+                <th scope="row">Submission Components</th>
                 <td>{% if sub_comps %}{{sub_comps|join:", "}}{% else %}<span class="empty">Submission not configured.</span>{% endif %}
                 <a class="editlink" href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Submission</a>
                 </td>
@@ -218,7 +221,7 @@ Column logic:
             {% endif %}
             {% if not activity.is_calculated and activity.is_numeric %}
             <tr>
-                <th class="ui-state-default">Marking Components</th>
+                <th scope="row">Marking Components</th>
                 <td>{% if mark_comps %}{{mark_comps|join:", "}}{% else %}<span class="empty">Marking not configured.</span>{% endif %}
                 <a class="editlink" href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug%}">Configure Marking</a>
                 </td>
@@ -226,11 +229,11 @@ Column logic:
             {% endif %}
             {% if activity.is_calculated and not activity.is_numeric %}
             <tr>
-                <th class="ui-state-default">Numeric Source</th>
+                <th scope="row">Numeric Source</th>
                 <td><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.name}}</a></td>
             </tr>
             <tr>
-                <th class="ui-state-default">Exam Activity</th>
+                <th scope="row">Exam Activity</th>
                 {% if activity.exam_activity %}
                 <td><a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.exam_activity.slug %}">{{activity.exam_activity.name}}</a></td>
                 {% else %}
@@ -238,35 +241,26 @@ Column logic:
                 {% endif %}
             </tr>
             <tr>
-                <th class="ui-state-default">Cutoffs</th>
+                <th scope="row">Cutoffs</th>
                 <td>
-                {{activity.cutoff_display}}
+                <form action="{% url "grades.views.calculate_all_lettergrades" course_slug=course.slug activity_slug=activity.slug %}" method="get">
+                <p>{{activity.cutoff_display}}
+                    <input type="submit" value="Calculate all grades" /></p>
+                </form>
                 </td>
             </tr>
             {% endif %}
             {% if activity.config.url %}
             <tr>
-                <th class="ui-state-default">More Information</th>
+                <th scope="row">More Information</th>
                 <td>{{activity.config.url|urlize}}</td>
             </tr>
             {% endif %}
         </tbody>
     </table>
-</div>
 
 {% block activity_info_grades_block %}
 
-{% if activity.is_calculated %}
-{% if activity.is_numeric %}
-<div class="buttongroup">
-    <a class="redbutton" href="{% url "grades.views.calculate_all" course_slug=course.slug activity_slug=activity.slug %}">Calculate all</a>
-</div>
-{% else %}
-<div class="buttongroup">
-    <a class="redbutton" href="{% url "grades.views.calculate_all_lettergrades" course_slug=course.slug activity_slug=activity.slug %}">Calculate all</a>
-</div>
-{% endif %}
-{% endif %}
 
 <div class="datatable_container">
 	{% if students %}
@@ -364,9 +358,9 @@ Column logic:
 		  {% if mark_comps %}
 		  <td class="iconcell">
 		    {% if marked|hash:userid %}
-		    <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+		    <a href="{% url "marking.views.mark_summary_student" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><i class="fa fa-search" title="View detail"></i></a>
 		    {% else %}
-		    <a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{STATIC_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
+		    <a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><i class="fa fa-edit" title="Mark"></i></a>
 		    {% endif %}
 		  </td>
 		  {% else %}
@@ -376,15 +370,16 @@ Column logic:
 		{% if not activity.is_calculated %}
 		  {% if sub_comps %}
 		  <td class="iconcell">
-		    {% if submitted|hash:userid %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
-		    <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}" class="calculate"><img src="{{STATIC_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
+		    {% if submitted|hash:userid %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><i class="fa fa-search" title="View detail"></i></a>
+
+		    <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}" class="calculate"><i class="fa fa-download" title="Download"></i></a>{% endif %}
 		  </td>
 		  {% else %}
 		  <td class="iconcell disabled"></td>
 		  {% endif %}
 		{% endif %}
 		{% if activity.is_calculated and activity.is_numeric %}
-		  <td class="iconcell"><a href="" class="calculator" id="calc-{{member.person.userid }}"><img src="{{STATIC_URL}}icons/calculator.png" title="recalculate this student" /></a></td>
+		  <td class="iconcell"><a href="" id="calc-{{member.person.userid }}"><i class="fa fa-refresh"></i></a></td>
 		{% endif %}
 	    </tr>
 	    {% endwith %}

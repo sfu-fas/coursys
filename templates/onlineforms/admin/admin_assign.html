@@ -23,7 +23,7 @@
         $(frequent_fillers[sheetid]).each(function(i, p) {
             html += '<a href="javascript:set_assignee(' + p['emplid'] + ')">' + p['name'] + '</a> &nbsp; ';
         });
-        $('li#frequent').html(html);
+        $('#frequent').html(html);
     }
 
     $(document).ready(function() {
@@ -63,23 +63,12 @@
 
 {% block content %}
     <div class="form_container">
-        {% if form.non_field_errors %}
-            <p class="errorindicator">
-                <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation"/>
-                {{ form.non_field_errors }}
-            </p>
-        {% endif %}
         <form action="" method="post" id="assignform">{% csrf_token %}
             <fieldset>
                 <legend>Assignee Information</legend>
-                <ul>
-                    <li>
-                        {{ form|as_dl }}
-                    </li>
-                    {% if assign_to_sfu_account %}<li id="frequent"></li>{% endif %}
-                    <li>
-                        <input class="submit" type="submit" value="Submit"/>
-                    </li>
+                    {{ form|as_dl }}
+                    {% if assign_to_sfu_account %}<p id="frequent"></p>{% endif %}
+                    <p><input class="submit" type="submit" value="Submit"/></p>
                 </ul>
             </fieldset>
         </form>

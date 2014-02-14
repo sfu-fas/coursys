@@ -1,5 +1,5 @@
-{% extends "submission/base.html" %}
-{% load course_display %}
+{% extends "base.html" %}
+{% load form_display %}
 
 {% block headextra %}
 <link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
@@ -15,12 +15,15 @@
 {% block title %}Add Submission Component for {{activity.name}}{% endblock %}
 {% block h1 %}Add Submission Component for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li><li>New</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{{ course.get_absolute_url }}">{{course.name}}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
+<li><a href="{% url "submission.views.show_components" course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li>
+<li>Add</li>{% endblock %}
 
 {% block content %}
 
 {% if not type %}
-<h2>Select Type of Submission Component:</h2>
+<p>Select the type of submission component to add:</p>
 <ul>
 {% for t in types %}
   {% if t.Component.visible_type %}
@@ -36,10 +39,8 @@
 <form action="" method="post">{% csrf_token %}
 <fieldset>
     <legend>New {{type.name}} Component</legend>
-    <p>Details for {{type.descr}} submission.</p>
-    {{form|display_form}}
-    
-    
+    {{form|as_dl}}
+    <p><input class="submit" type="submit" value="Add" /></p>
 </fieldset>
 </form>
 </div>

@@ -5,7 +5,6 @@
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>Pages</li>{% else %}<li><a href="{% url "pages.views.index_page" course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li><a href="{% url "pages.views.view_page" course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>Previous Version</li>{% else %}<li>{{page.label}}</li>{% endif %}{% endif %}{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/print.css" media="print" />
 <link rel="stylesheet" href="{{STATIC_URL}}style/pages.css" media="all" />
 {% if version.math %}
 <script type="text/x-mathjax-config">

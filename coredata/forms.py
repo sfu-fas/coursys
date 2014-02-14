@@ -1,6 +1,7 @@
 from django import forms
 from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
-from coredata.queries import find_person, add_person, SIMSProblem, cache_by_args
+from coredata.queries import find_person, add_person, SIMSProblem
+from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from localflavor.ca.forms import CAPhoneNumberField
@@ -477,7 +478,7 @@ class OfferingFilterForm(forms.Form):
     subject = forms.ChoiceField()
     number = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}), label='Course Number')
     section = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}))
-    instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
+    instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '12'}), label='Instructor Userid')
     campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES_SHORT)))
     semester = forms.ChoiceField()
     crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
@@ -485,7 +486,7 @@ class OfferingFilterForm(forms.Form):
                                     widget=CheckboxSelectTerse())
     
     @classmethod
-    @cache_by_args
+    @cached(24*3600)
     def allowed_semesters(self):
         # semester choices: start of good data, to reasonably in the future
         today = datetime.date.today()
@@ -495,7 +496,7 @@ class OfferingFilterForm(forms.Form):
         return timely_sem
 
     @classmethod
-    @cache_by_args
+    @cached(24*3600)
     def all_subjects(self, semesters):
         return CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
 

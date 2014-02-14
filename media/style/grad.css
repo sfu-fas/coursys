@@ -8,18 +8,30 @@ p.hiddencomment {
   margin-left: 1em;
   font-style: italic;
 }
+
 .collapsible-heading {
   background: none !important;
 }
 
-.collapsed a {
-	background: no-repeat url("/media/icons/fold.png") top left;
-	padding-left: 20px;
+.collapsed a:before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-right: 0.25em;
+  content: '\00f196';
 }
-.displayed a {
-	background: no-repeat url("/media/icons/unfold.png") top left;
-	padding-left: 20px;
+.displayed a:before {
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-right: 0.25em;
+  content: '\00f147';
 }
+
 tr.current {
 	font-weight: bold;
 }

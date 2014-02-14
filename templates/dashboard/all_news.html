@@ -3,13 +3,13 @@
 {% block title %}All News{% endblock %}
 {% block h1 %}All News{% endblock %}
 
-{% block subbreadcrumbs %}&gt; News</li>{% endblock %}
+{% block subbreadcrumbs %}<li>News</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url "dashboard.views.config" %}">Configure external news feed</a></li>
+<li><a href="{% url "dashboard.views.config" %}">User Configuration</a></li>
 </ul>
 </div>
 {% endblock %}

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
-from django.test.client import Client
 from django.core.urlresolvers import reverse
 from pages.models import Page, PageVersion, brushes_used
 from coredata.models import CourseOffering, Member, Person
-from courselib.testing import TEST_COURSE_SLUG
+from courselib.testing import TEST_COURSE_SLUG, Client, test_views
 import re
 
 wikitext = """Some Python code:
@@ -211,6 +210,31 @@ class PagesTest(TestCase):
         self.assert_('math' in v.config)
         self.assertEqual(v.config['math'], True)
         
+    def test_pages(self):
+        """
+        Basic page rendering
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=crs, person__userid="ggbaker")
+        person = Person.objects.get(userid='ggbaker')
+
+        p = Page(offering=crs, label="Index")
+        p.save()
+        v = PageVersion(page=p, title="Index Page", wikitext="Original Contents", editor=memb)
+        v.save()
+        p = Page(offering=crs, label="OtherPage")
+        p.save()
+        v = PageVersion(page=p, title="Other Page", wikitext="Original Contents", editor=memb)
+        v.save()
         
+        c = Client()
+        c.login_user('ggbaker')
         
+        # test the basic rendering of the core pages
+        test_views(self, c, 'pages.views.', ['index_page', 'all_pages', 'new_page', 'new_file', 'import_site'],
+                {'course_slug': crs.slug})
+
+        test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
+                {'course_slug': crs.slug, 'page_label': 'OtherPage'})
+
 

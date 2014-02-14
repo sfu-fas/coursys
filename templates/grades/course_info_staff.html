@@ -1,23 +1,21 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 {% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
     /*store activity ids*/	
 	var act_ids = new Array();
 	
     $(document).ready(function() {
-        addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
-        addLinkClickStyleClass('span.position_button', 'ui-state-hover');
-	
-        // activate dataTable ui
 	var oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
 		"bSort": true,
 		"bPaginate": false,
+		"bFilter": false,
+		"bInfo": false,
 		"aaSorting": [[0, "asc"]],
 		"fnDrawCallback": enable_disable_ordering,
 		"aoColumns": [
@@ -32,7 +30,7 @@
 		],
 	});
 	
-	// The following code deals with activity reordering
+	// activity reordering
 	{%for info in activities_info%}
 		act_ids[{{forloop.counter}}-1] = "{{info.activity.id}}";
 	{%endfor%}
@@ -127,7 +125,7 @@
         	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">
         		Course Discussion
         		{% if discussion_activity %}
-                <img src="{{ STATIC_URL }}/icons/required_star.gif" alt="New Activity" />
+                <i class="fa fa-comments infomessage"></i>
                 {% endif %}
         	</a>
         </li>    
@@ -135,7 +133,7 @@
         <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}">Display Class List</a></li>
         <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}">Display All Grades</a></li>
         <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}">Student Search</a></li>
-	<li class="newsec"><a href="{% url "dashboard.views.new_message" course_slug=course.slug %}">Create News Item</a></li>
+	<li class="newsec"><a href="{% url "grades.views.new_message" course_slug=course.slug %}">Create News Item</a></li>
 	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
         <li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li>
         <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}">Course Pages</a></li>
@@ -151,19 +149,11 @@
         <tbody>
             <tr>
                 <th scope="row">Course Number</th>
-                <td>{{ course.subject }} {{ course.number }} {{ course.section }}</td>
-            </tr>
-            <tr>
-                <th scope="row">Semester</th>
-                <td>{{ course.semester.label }} ({{ course.semester.name }})</td>
+                <td>{{ course.subject }} {{ course.number }} {{ course.section }}, {{ course.semester.label }} ({{ course.semester.name }})</td>
             </tr>
             <tr>
                 <th scope="row">Title</th>
                 <td>{{ course.title }}</td>
-            </tr>
-            <tr>
-                <th scope="row">Campus</th>
-                <td>{{ course.get_campus_display }}</td>
             </tr>
             <tr>
                 <th scope="row">Instructor(s)</th>
@@ -176,7 +166,7 @@
                 <td>
                 {% if course.config.taemail %}
                 <a href="mailto:{{ course.config.taemail }}">{{ course.config.taemail }}</a>
-                ({% for ta in course.tas %}{{ ta.name_with_pref }} &lt;{{ ta.email }}&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
+                ({% for ta in course.tas %}{{ ta.name_with_pref }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
                 {% else %}
                 {% for ta in course.tas %}
                   {{ ta.name }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
@@ -196,17 +186,16 @@
     </table>
 </div>
 
-<div class="datatable_container">
-    <h2>Course Activities</h2>
+    <h2 id="act">Course Activities</h2>
     {% if activities_info %}
-    <table class="display" id="activities">
+    <table id="activities">
         <thead>
             <tr>
                 <th scope="col">Order</th>
                 <th scope="col">Activity</th>
                 <th scope="col">Group?</th>
                 <th scope="col">Max Grade</th>
-		<th scope="col">Grade Type</th>
+                <th scope="col">Grade Type</th>
                 <th scope="col">Percentage</th>
                 <th scope="col">Status</th>
                 <th scope="col">Due Date</th>
@@ -216,18 +205,16 @@
             {% for activity_info in activities_info %}
             {% with activity_info.activity as activity %}
             <tr>
-                <td id = "arrow{{forloop.counter}}">
+                <td id="arrow{{forloop.counter}}">
                     <span class="sort">{{ activity.position }}</span>
                     {% if not forloop.first %}
 		    <a class="arrow_up" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">  
-		       <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
+		    <i class="fa fa-arrow-up"></i>
 		    </a>
-		    {% else %}
-		       <span class="position_placeholder"></span>
 		    {% endif %}
 		    {% if not forloop.last %}
 		    <a class="arrow_down" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
-			<span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
+			<i class="fa fa-arrow-down"></i>
 		    </a>
 		    {% endif %}
                 </td>
@@ -272,7 +259,6 @@
     {% else %}
     <p class="empty">No activities defined. You can <a href="{% url "grades.views.activity_choice" course_slug=course.slug %}">add an activity</a> to get started.</p>
     {% endif %}
-</div>
 {% if activities_info %}
 <p>Percent total: {{total_percent}}%</p>
 {% endif %}

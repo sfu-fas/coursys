@@ -615,7 +615,7 @@ class OfferingDataJson(BaseDatatableView):
     def filter_queryset(self, qs):
         # use request parameters to filter queryset
         GET = self.request.GET
-        
+
         # no cancelled courses
         qs = qs.exclude(component='CAN')
         # no courses outside the allowed semester range

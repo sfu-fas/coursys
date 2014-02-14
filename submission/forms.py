@@ -1,17 +1,14 @@
 from django import forms
-from submission.models import *
-from django.forms.widgets import Textarea, TextInput, FileInput
-from django.forms import ModelForm, URLField
+from submission.models import SubmittedComponent
+from django.forms import ModelForm
 from django.conf import settings
 from django.utils.safestring import mark_safe
-import urllib, zipfile
+import gzip, zipfile
 
-
-_required_star = '<em><img src="'+settings.STATIC_URL+'icons/required_star.gif" alt="required"/></em>'
 
 class ComponentForm(ModelForm):
     #override title to have 'required star'
-    title = forms.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")', label=mark_safe("Title"+_required_star))
+    title = forms.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
     specified_filename = forms.CharField(max_length=200, help_text="Specify the name of the file to be submitted.  Leave blank to accept any file name.", label="File name", required=False)
 
 

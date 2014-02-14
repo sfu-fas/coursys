@@ -42,23 +42,11 @@
 
 {% block content %}
     <div class="form_container">
-        {% if form.non_field_errors %}
-            <p class="errorindicator">
-                <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation"/>
-                {{ form.non_field_errors }}
-            </p>
-        {% endif %}
         <form action="" method="post">{% csrf_token %}
             <fieldset>
                 <legend>Assignee Information</legend>
-                <ul>
-                    <li>
                         {{ form|as_dl }}
-                    </li>
-                    <li>
-                        <input class="submit" type="submit" value="Submit"/>
-                    </li>
-                </ul>
+                        <p><input class="submit" type="submit" value="Submit"/></p>
             </fieldset>
         </form>
     </div>

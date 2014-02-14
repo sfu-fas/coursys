@@ -5,16 +5,16 @@
 
 {% block subbreadcrumbs %}
 <li>
-	&gt; <a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a>
+	<a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a>
 </li>
 <li>
-	&gt; <a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a>
+	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">Discussion</a>
 </li>
 <li>
-	&gt; <a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">View Topic</a>
+	<a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">View Topic</a>
 </li>
 <li>
-	&gt; Manage Topic	
+	Manage Topic	
 </li>
 {% endblock %}
 

@@ -1,8 +1,7 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">
-//<![CDATA[
 var oTable;
 function clear_filter() {
   oTable.fnFilter("");
@@ -16,16 +15,16 @@ $(document).ready(function() {
 		"aoColumns": [null, { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
 	});
 });
-//]]>
 </script>
 {% endblock %}
 
 {% block title %}Mark All{% endblock %}
 {% block h1 %} Mark All Groups{% endblock %}
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Groups</li>{% endblock %}
-{% block content %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Groups</li>{% endblock %}
 
-<form id="grades_form" action="" method="post" onsubmit="return clear_filter()">{% csrf_token %}
+{% block content %}
+<form id="grades_form" class="subtle" action="" method="post" onsubmit="return clear_filter()">{% csrf_token %}
 <div class="datatable_container">
      <table class="display" id="all_marks">
         <thead class="form_head">

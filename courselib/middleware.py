@@ -47,9 +47,10 @@ class MonitoringMiddleware(object):
         if hasattr(request, 'monitoring_starttime'):
             duration = time.time() - request.monitoring_starttime
             if duration > getattr(settings, 'SLOW_THRESHOLD', 5):
-                logger.info('%0.1fs to return %s?%s' % (duration, request.path, request.META['QUERY_STRING']))
-                for q in connection.queries:
-                    logger.debug('%s\t%s' % (q['sql'], q['time']))
+                if not (request.path.startswith('/login/?next=')): # ignore requests we can't do anything about
+                    logger.info('%0.1fs to return %s %s?%s' % (duration, request.method, request.path, request.META['QUERY_STRING']))
+                    for q in connection.queries:
+                        logger.debug('%s\t%s' % (q['sql'], q['time']))
 
         return response
 
@@ -68,6 +69,9 @@ class ExceptionIgnorer(object):
         if isinstance(exception, IOError) and 'Connection reset by peer' in message and '_verify(ticket, service)' in format:
             # CAS verification timeout
             return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
-            
+        elif isinstance(exception, EOFError) and "return request.POST.get('csrfmiddlewaretoken', '')" in format:
+            # file upload EOF
+            return HttpError(request, status=500, title="Upload Error", error="Upload seems to have not completed properly.")
+
 
 

@@ -1,23 +1,13 @@
 @CHARSET "UTF-8";
 /* hide the SFU/site style */
-
-#header, #sideItems #sysmenu, #sideItems #breadcrumbs, #topLinks, #actions, #footer,
-#tugReview, #banner, #globalNav {
-	display:none;
-}
-div#sideItems {
-	border-left: none;
-	padding: 0;
+div.branding, div.site-title, div#actions {
+  display: none;
 }
 
 body {
 	font-family: serif;
     background: none;
     border: none;
-}
-
-#absWrapper {
-    width: auto;
 }
 
 #container {
@@ -37,7 +27,6 @@ div#main {
 .noprint {
 	display: none;
 }
-
 .datatable_container .ui-widget-header, .DataTables_sort_icon {
 	display: none;
 }

@@ -70,24 +70,12 @@
 
 {% block content %}
     <div class="form_container">
-        {% if form.non_field_errors %}
-            <p class="errorindicator">
-                <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation"/>
-                {{ form.non_field_errors }}
-            </p>
-        {% endif %}
         <form action="{% url "onlineforms.views.edit_field" form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.slug %}"
               method="post">{% csrf_token %}
             <fieldset>
                 <legend> Edit Field Type</legend>
-                <ul>
-                    <li>
                         {{ form|as_dl_safe }}
-                    </li>
-                    <li>
-                        <input class="submit" type="submit" value="Save Changes"/>
-                    </li>
-                </ul>
+                        <p><input class="submit" type="submit" value="Save Changes"/></p>
             </fieldset>
         </form>
     </div>

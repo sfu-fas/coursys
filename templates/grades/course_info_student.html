@@ -1,14 +1,7 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 {% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
-
-{% block grades_headextra %}
-<script type="text/javascript">
-    $(document).ready(function() {
-    });
-</script>
-{% endblock %}
 
 {% block subbreadcrumbs %}<li>{{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
@@ -23,7 +16,7 @@
     	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">
     		Course Discussion
     		{% if discussion_activity %}
-            <img src="{{ STATIC_URL }}/icons/required_star.gif" alt="New Activity" />
+            <i class="fa fa-comments infomessage"></i>
             {% endif %}
     	</a>
     </li>    
@@ -35,28 +28,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="table_container">
     <table class="info">
         <tbody>
             <tr>
                 <th scope="row">Course Number</th>
-                <td>{{ course.subject }} {{ course.number }}</td>
-            </tr>
-            <tr>
-                <th scope="row">Section</th>
-                <td>{{ course.section }}</td>
-            </tr>
-            <tr>
-                <th scope="row">Semester</th>
-                <td>{{ course.semester.label }}</td>
+                <td>{{ course.subject }} {{ course.number }} {{ course.section }}, {{ course.semester.label }}</td>
             </tr>
             <tr>
                 <th scope="row">Title</th>
                 <td>{{ course.title }}</td>
-            </tr>
-            <tr>
-                <th scope="row">Campus</th>
-                <td>{{ course.get_campus_display }}</td>
             </tr>
             <tr>
                 <th scope="row">Instructor(s)</th>
@@ -85,41 +65,43 @@
             {% endif %}
         </tbody>
     </table>
-</div>
 
 <h2>Course Activities</h2>
 {% if not activity_data %}
 <p class="empty">No activities defined for this course: it is likely is not using this system.</p>
 {% else %}
-<div class="table_container">
     <table class="info">
 	<thead>
 	    <tr>
 		<th scope="col">Activity</th>
-		<th scope="col">Due In</th>
+		<th scope="col">Due</th>
 		<th scope="col">Status</th>
 		<th scope="col">Grade</th>
 	    </tr>
 	</thead>
         <tbody>
-	    {% for data in activity_data %}
+        {% for data in activity_data %}
             <tr>
-		<td scope="row"><a href="{{data.act.get_absolute_url}}">{{ data.act.display_label }}</a></td>
-		<td class="{{data.act.due_class}}">{{ data.act.due_in_str }}</td>
-		<td>{{ data.act.get_status_display }}</td>
-		<td>{{ data.grade_display }}</td>
+            <td scope="row"><a href="{{data.act.get_absolute_url}}">{{ data.act.display_label }}</a></td>
+            {% if data.act.due_date %}
+            <td class="{{data.act.due_class}}">{{ data.act.due_date }}
+                {% if data.act.due_in_future %}(in {{ data.act.due_in_str }}){% endif %}</td>
+            {% else %}
+            <td class="empty">none</td>
+            {% endif %}
+            <td>{{ data.act.get_status_display }}</td>
+            <td>{{ data.grade_display }}</td>
             </tr>
 	    {% endfor %}
 	</tbody>
     </table>
-</div>
 
 {% endif %}
 
 {% if course.uses_svn %}
 <h2 id="svn">Subversion Repository</h2>
-<p>You have a personal <a href="http://svnbook.red-bean.com/">Subversion</a> repository for this course at this URL:</p>
-<blockquote><p>{{ member.svn_url|urlize }}</p></blockquote>
+<p>You have a personal <a href="http://svnbook.red-bean.com/">Subversion</a> repository for this course at this URL:
+{{ member.svn_url|urlize }}&nbsp;.</p>
 <p>The repository will be available for the duration of the course.
 {% if course.indiv_svn %}
 The instructor and TAs <strong>do</strong> have read-only access to this repository.

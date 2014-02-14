@@ -6,6 +6,7 @@
 {% block content %}
 	{% if user %}
 		<form action="{% url "groups.views.submit" course_slug=course.slug  %}" method="post">{% csrf_token %}
+		<fieldset>
 		        <div class="group_name">
 				<label for="name">Group Name </label>
 				<input type="text" name="GroupName" id="name" maxlength="30" />
@@ -34,6 +35,7 @@
 			 </table>
 		      </div>
 	              <div><input class='submit' type="submit" value="Create"/></div>
+	        </fieldset>
                 </form>
         {% else %}
 		<p> Student does not exist </p>

@@ -25,12 +25,6 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{STATIC_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
     <form action="#" method="post">{% csrf_token %}
         <fieldset>
             <legend>{{form.title}}</legend>

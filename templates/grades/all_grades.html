@@ -1,11 +1,10 @@
-{% extends "grades/base.html" %}
+{% extends "base-wide.html" %}
 {% load grade_student %}
 
 {% block title %}{{ course.name }} Grades{% endblock %}
 {% block h1 %}{{ course.name }} Grades{% endblock %}
 
-{% block grades_headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/print.css" media="print" />
+{% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
 	// activate dataTable ui
@@ -45,6 +44,7 @@
     <h2 class="heading">Actions</h2>
     <ul>
 	<li><a href="{% url "grades.views.all_grades_csv" course_slug=course.slug %}">Export CSV</a></li>
+
     </ul>
 </div>
 {% endblock %}
