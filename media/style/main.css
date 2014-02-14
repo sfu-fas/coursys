@@ -1,11 +1,11 @@
-/* some mods to SFU template CSS */
-div#main p {
-  margin-top: 1em;
-  padding: 0;
-}
-div#main h3 {
-  margin-top: 1em;
-}
+/* SFU colours: (as found at http://www.sfu.ca/clf/web/index.html)
+red     #b5111b
+blue    #0054a6
+visited #25316e
+grey    #54534a
+*/
+
+/* some mods to SFU template CSS: basic page elements */
 dfn, var {
   font-style: italic;
 }
@@ -51,15 +51,34 @@ input[type="email"], input[type="number"] { /* other text-like input types not c
   height:2.25em;
   padding:0 0 0 .4em;
 }
-form.subtle { /* a form that we don't want to look so form-ish */
+form.subtle, td.miniaction form { /* a form that we don't want to look so form-ish */
   background-color: transparent;
   border: none;
   padding: 0;
 }
-ul.bulleted li {
+ul.bulleted li, .wikicontents ul>li {
   list-style-type: circle;
   margin-left: 1em;
 }
+a img {
+    border-style: none;
+}
+ul {
+  margin-top: 1em;
+}
+ul ul {
+  margin-top: 0;
+}
+ol ol {
+  list-style-type: lower-alpha;
+}
+ol ol ol {
+  list-style-type: lower-roman;
+}
+td[scope] {
+  font-weight: bold;
+}
+
 
 
 dl.inline {
@@ -83,23 +102,25 @@ dl.inline dd {
 legend {
   float: none;
 }
-.table {
-  background: inherit;
-}
-.table th {
-  background-color: #fff;
-}
 table th[scope=row] {
   vertical-align: middle;
   border: none;
 }
 
-.empty {
+.empty { /* generically used for "nothing is here" messages */
   font-style: italic;
 }
-span.sort {
+span.sort { /* content that fixes datatables sorting but isn't user-visible */
   display: none;
 }
+.hidden {
+    display: none;
+}
+#ui-datepicker-div { /* shrink the datepicker to something more reasonable */
+  font-size:0.75em;
+}
+
+
 
 /* for the base-wide template */
 body.widebody .main {
@@ -127,7 +148,7 @@ div.breadcrumb ul li:first-child:before {
   content: "";
 }
 
-#sysmenu {
+#sysmenu { /* the "logged in as userid" message */
   display: inline;
   float: right;
   font-size: 0.875em;
@@ -138,8 +159,8 @@ div.breadcrumb ul li:first-child:before {
   text-align: right;
 }
 
-/* collapsibles */
 
+/* collapsibles */
 .collapsible-content-collapsed {
   display: none;
 }
@@ -161,6 +182,10 @@ div.breadcrumb ul li:first-child:before {
   padding-right: 0.25em;
   content: '\00f196';
 }
+div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status, h2.note .collapsible-heading-status {
+  /* hide the "show/hide" messages where appropriate */
+  display: none;
+}
 
 /* big/small screen alternatives */
 .wideonly { display: inline; }
@@ -175,7 +200,6 @@ div.breadcrumb ul li:first-child:before {
 
 /* actions menu */
 
-/* extraction/adaptation of clf.main-pages.css for the actions menu */
 .subnav-wrapper {
     float: left;
     font-family: "DINWeb",sans-serif;
@@ -220,7 +244,7 @@ div.breadcrumb ul li:first-child:before {
     border-top: 1px solid #d28c96;
     padding-top: 6px;
 }
-
+/* actions for small windows */
 @media(max-width:980px){
     .subnav-wrapper {
         width: 100%;
@@ -248,7 +272,7 @@ div.breadcrumb ul li:first-child:before {
     }
 }
 
-/* mods for base-wide */
+/* actions mods for base-wide */
 body.widebody .subnav-wrapper {
   float: none;
   margin-top: 0;
@@ -265,17 +289,6 @@ body.widebody .subnav-wrapper ul {
   padding-left: 0;
 }
 
-
-
-
-
-/* CSS for system elements */
-/* SFU colours: (as found at http://www.sfu.ca/clf/web/index.html)
-red     #b5111b
-blue    #0054a6
-visited #25316e
-grey    #54534a
-*/
 
 
 /* messages */
@@ -328,6 +341,7 @@ div#messages .info:before {
   content: '\00f05a';
 }
 
+/* highlighting of soon-due activities in grades displays */
 .due_verysoon {
   background-color: #f22;
 }
@@ -335,7 +349,7 @@ div#messages .info:before {
   background-color: #ff0;
 }
 
-
+/* news items on index and "all news items" pages */
 div#newsitems {
   clear: left;
 }
@@ -363,41 +377,10 @@ div#newsitems a.morenews {
   font-weight: bold;
   margin-right: 0.5em;
 }
-div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status, h2.note .collapsible-heading-status{
-  display: none;
-}
 
 
-td[scope] {
-  font-weight: bold;
-}
-#formulahelp dt {
-  font-weight: bold;
-  margin-top: 1em;
-}
-#formulahelp dd p {
-  margin-top: 0.5em;
-  padding-top: 0;
-}
-#formulahelp dd ul {
-  margin-top: 0.5em;
-  padding-top: 0;
-}
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-  DataTable styles
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-div.bigdatatable .dataTables_wrapper {
-    x-overflow: auto;
-    font-size: smaller;
-}
-div.bigdatatable .dataTables_wrapper td {
-    padding: 2px 1px;
-}
-div.bigdatatable span.more {
-    display: none;
-}
+/* DataTable styles */
 
 .dataTables_length {
   width: 40%;
@@ -436,8 +419,25 @@ div.bigdatatable span.more {
 .fg-toolbar {
     padding: 2px 4px;
 }
+/* makes the datatable sorting icon float to right. */
+.dataTables_wrapper .css_right {
+    float: right;
+}
+.arrow_up, .arrow_down { /* student_info_staff activity reorder arrows */
+  font-size: smaller;
+  font-weight: normal;
+}
 
 
+div.bigdatatable .dataTables_wrapper {
+    font-size: smaller;
+}
+div.bigdatatable .dataTables_wrapper td {
+    padding: 2px 1px;
+}
+div.bigdatatable span.more {
+    display: none;
+}
 
 /* DataTables row classes */
 tr.odd {
@@ -467,30 +467,9 @@ table.display td.num {
 table td.hidden, table tr.hidden {
 	display: none;
 }
-/* makes the datatable sorting icon float to right. */
-.dataTables_wrapper .css_right {
-    float: right;
-}
-
-/*
-table.display td textarea {
-	width: 180px;
-	height: 60px;
-}
-disabled table.display td select{
-	width: 100px;
-}
-disabled table.display tr:hover {
-  background-color: #EAF2FA;
-}
-*/
 
 
-a.editlink {
-  float: right;
-  font-size: smaller;
-}
-
+/* info tables */
 table.info th {
   font-weight: bold;
   width: 12em;
@@ -500,25 +479,26 @@ table.info th {
 table.info td {
   border: 1px solid #eee;
 }
-section.main table.info p {
+table.info p {
   padding: 0;
   margin: 0;
 }
-section.main table.info form {
+table.info form {
   background-color: transparent;
   border: none;
   margin: 0;
   padding: 0;
 }
-section.main table.info p input {
+table.info p input {
   float: right;
   font-size: 75%;
   padding: 0 0.5em;
 }
-.arrow_up, .arrow_down { /* student_info_staff reorder arrows */
+table.info a.editlink { /* small "edit this thing" links in table.info */
+  float: right;
   font-size: smaller;
-  font-weight: normal;
 }
+
 
 
 
@@ -714,6 +694,7 @@ disabled dl.dlform .helptext {
     margin-left: 10.5em;
 }
 
+/* form as_dl styling */
 dl.dlform dt{
     clear: both;
 }
@@ -745,9 +726,8 @@ dl.dlform  dd .explanation_block {
   font-size: 80%;
 }
 
-fieldset .errortext {
-    color: red;
-    font-size: 0.9em;
+form .errortext {
+    color: #B5111B;
 }
 legend {
     padding: 0;
@@ -756,223 +736,11 @@ legend {
     font-weight: bold;
     font-size: 1.2em;
 }
-disabled fieldset label {
-    position: relative;
-    display: block;
-    width: 10em;
-    float: left;
-    margin-right: 1em;
-    line-height: 1.5em;
-    text-align: right;
-}
 
-disabled fieldset.wide label{
-	width: 12em;
-}
-
-disabled fieldset .inputfield label {
-    width: auto;
-    text-align: left;
-}
-div.fieldcontent {
-  margin-left: 11em;
-}
-.view div.fieldcontent {
-  margin-left: 8em;
-}
-#formula_tester fieldset label {
-    float: none;
-    text-align: left;
-}
-
-/* requried_star style in the label */
-disabled fieldset label span {
-    position: absolute;
-    left: 10em;
-}
-
-disabled fieldset.wide label span {
-    left: 12em;
-}
-
-
-
-X fieldset .position {
-    float:right;
-    width: 20%;
-}
-X fieldset .view {
-    float:left;
-    width: 80%;
-}
-X fieldset .view label {
-    width: 7em;
-    text-align: right;
-    line-height: 1em;
-    font-weight: bold;
-}
-X fieldset .editbutton a.button{
-    float: right;
-}
-X fieldset .editbutton a.button:hover{
-    border: 0;
-}
-fieldset .hidden {
-    display: none;
-}
-X fieldset .ui-multiselect {
-    max-width: inherit;
-    min-width: inherit;
-}
-
-X .add_nav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    float: left;
-}
-X .add_nav li {
-    float: left;
-}
-X .add_nav .warning {
-    margin-bottom: 0.2em;
-    width:100%;
-    clear:both;
-    color: gray;
-}
-X #main .add_nav .button {
-    background-color: #b4b4aa;
-    width: 9em;
-}
-X #main .add_nav #current_type {
-    background-color: #0054a6;
-}
-
-/*
- *  containers
- */
- /*view submission error*/
-X #submission_error_container{
-    margin: 1em;
-    width: 50em;
-}
-X #submission_error_container .button{
-    float:right;
-    clear:right;
-}
-
-X #submission_error_container .text{
-    text-align: right;
-}
-X #submission_error_container table {
-    border: 1px;
-    width: 60em;
-}
-X #submission_error_container table td{
-    border: 1px solid #DBDBDB;
-    width: 75%;
-}
-X #submission_error_container ul, #submission_error_container li {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-X #submission_error_container td.error {
-    color: red;
-    text-align: left;
-}
-X #submission_error_container td.submitted {
-    color: green;
-    text-align: left;
-}
-
-  
-/* view submission history */
-X #add_submission_component_container {
-    clear: left;
-}
-X #edit_single_submission_component_form_container {
-    margin: 1.5em 0 0.5em 0;
-}
-X #edit_submission_component_add_button {
-    margin-left: 0em;
-}
-X #component_view_student_container {
-    clear: left;
-}
-X #submission_history_view_container{
-    clear: left;
-}
-X #submission_history_view_container .submitter{
-    margin-top: 2em;
-    font-weight: bold;
-    font-size: 1.4em;
-    color: gray;
-}
-X #submission_history_view_container h2{
-    color: #999;
-}
-X #submission_history_view_container table{
-    border: 0px solid gray;
-    margin: 0;
-}
-X #submission_history_view_container table tr {
-    margin: 1em 10em;
-    
-}
-X #submission_history_view_container table th {
-    background-color:#e9eef7;
-    padding: 0.3em 5em;
-    border: 0px;
-}
-
-X #submission_history_view_container table td {
-    border: 0px;
-    padding: 0.3em 5em;
-    text-align: center;
-}
-
-X #submission_history_view_container table tr.row1 {
-    background-color: white;
-}
-X #submission_history_view_container table tr.row2 {
-    background-color: #e9eef7;
-}
-
-X div#submission_form_container{
-    width: 600px;
-    margin: 0.5em;
-    background: none;
-
-}
-
-X #submission_form_container fieldset{
-   background: none;
-   background-color: #FFE6ED;
-
-}
-
-X #submission_form_container fieldset h2{
-    margin: 0.5em 0 0 2em;
-    font-size: 1.1em;
-    color: #666;
-}
-
-X #submission_form_container fieldset p {
-    margin-left: 11em;
-}
-
-X #submission_form_container fieldset li{
-    list-style-type: none;
-}
-
-X #submission_form_container fieldset li input{
-    width: 350px;
-}
 
 
 /* marking style */
-.marking_a
+X .marking_a
 {
   font-weight:bold;
   color:black;
@@ -981,41 +749,41 @@ X #submission_form_container fieldset li input{
   text-transform:capitalize;
 }
 
-.marking_a a:hover,.marking_a a:active
+X .marking_a a:hover,.marking_a a:active
 {
   background-color:#FF9900;
   margin: 10px;
 }
 
-table#common_problems p.component_info{
+X table#common_problems p.component_info{
 	font-size: 0.9em;
     text-align: right;
     color: #0054A6;
 }
 
-#marking_container input[type="text"]{
+X #marking_container input[type="text"]{
  	width: 120px;
 }
-#marking_container .component input[type="button"]{
+X #marking_container .component input[type="button"]{
 	background-color: #036;
 	color: #fff;
 	padding: 0.2em 1em;
 	border-right: 1px solid #fff;
 	margin: 0.5em 0.2em 0em 0.2em;
 }
-#marking_container textarea{
+X #marking_container textarea{
 	width: 600px;
 	height: 80px;
 }
-#marking_container .component li{
+X #marking_container .component li{
 	display: inline;
 	clear: right;	
 }
-#marking_container li.component_mark{
+X #marking_container li.component_mark{
 	width: auto;	
 	margin-left: 5.5em;
 } 
-#marking_container li.common_problems{
+X #marking_container li.common_problems{
 	background-image: url('../images/grades/bluep.png');	
 	padding: 0.2em 1em;
 	float: right;
@@ -1023,67 +791,62 @@ table#common_problems p.component_info{
 	width: auto;	
 	margin: 0.2em 5em 0.2em 5em;
 }
-#marking_container .requireindicator{
+X #marking_container .requireindicator{
 	display: none;
 }
 
-#mark_details {
+X #mark_details {
   width: 50em;
   border: none;
   margin-bottom: 2em;
 }
-#mark_details td {
+X #mark_details td {
   border: none;
 }
-#mark_details td.comment {
+X #mark_details td.comment {
   color: #00c;
   padding-top: 0.5em;
 }
-#mark_details h3 {
+X #mark_details h3 {
   margin-top: 1em !important;
   padding-top: 0;
 }
-#mark_details td.subrow {
+X #mark_details td.subrow {
   width: 2em;
 }
-#mark_details td.subhead {
+X #mark_details td.subhead {
   width: 8em;
   font-weight: bold;
 }
-#mark_details td.mark {
+X #mark_details td.mark {
   text-align: right;
   padding-top: 1.5em;
 }
-#mark_details td p:first-child {
+X #mark_details td p:first-child {
   margin-top: 0;
 }
-#mark_details #totalrow .subhead {
+X #mark_details #totalrow .subhead {
   padding-top: 1.5em;
 }
-#mark_details #totalrow .mark {
+X #mark_details #totalrow .mark {
   font-weight: bold;
 }
 
-thead.form_head th{
-	color:#555555;
-	outline:medium none;
-}
-
 /* navigator style for selecting different form */
-#form_nav {
+X #form_nav {
     margin: 0 0 1em 0;
     padding: 0;
     list-style-type: none;
     width: 603px;
     height: 33px;
 }
-#form_nav li {
+X #form_nav li {
     float: left;
     width: 200px;
     height: 28px;
     padding-right: 1px;
 }
-#form_nav li a {
+X #form_nav li a {
     display: block;
     color: #FFF;
     text-align: center;
@@ -1091,61 +854,48 @@ thead.form_head th{
     background-color: #CB5A60;
     text-decoration: none;
 }
-#form_nav li a:hover {
+X #form_nav li a:hover {
     border-bottom: 5px solid #d8d5d5;
     background-color: #B5111A;
     text-decoration: none;
 }
-#form_nav li.current a {
+X #form_nav li.current a {
     background-color: #B5111A;
     font-weight: bold;
 }
 
 /* display my submision */
-#my_submission_dashboard {
+X #my_submission_dashboard {
     margin: 1em 0 4em 0;
 }
-#my_submission_dashboard h1{
+X #my_submission_dashboard h1{
     margin: 0em;
     padding: 0em;
 }
-.form_container .component_description {
+X .form_container .component_description {
     margin: 0 0 0.5em 0;
     padding: 0 0 0 0em;
     list-style: none;
 }
-.form_container .component_description label {
+X .form_container .component_description label {
     font-weight: bold;
     margin-right: 1em;
 }
-#main #time_block, #main #time_block tr, #main #time_block td{
-    border-width: 0px;
-    padding: 0 1em 0 1em;
-}
-#time_block tr h3, #time_block td h3 {
-    margin: 0;
-}
-#time_block #late_for, #time_block #late_for h3{
-    background-color: red;
-    color: white;
-    font-weight: bold;
-}
-#student_info_submission_dashboard{
+X #student_info_submission_dashboard{
     float: right;
     text-align: right;
     margin-right: 10em;
 }
-#student_info_submission_dashboard ul {
+X #student_info_submission_dashboard ul {
     list-style: none;
     margin-top: 0.2em;
 }
-#student_info_submission_dashboard ul li {
+X #student_info_submission_dashboard ul li {
     float:right;
     clear: right;
     width: 13em;
 }
-
-#student_info_submission_dashboard ul label {
+X #student_info_submission_dashboard ul label {
     float: left;
     clear: left;
     font-weight: bold;
@@ -1217,150 +967,90 @@ div.letter p {
   padding: 0;
 }
 
-/* Override jquery UI style, otherwise the datepicker will be displayed too large */
-#ui-datepicker-div {font-size:0.8em}
-
-
-/* styles of titles, texts, etc., override SFU's template' */
-#main h2 {
-    margin: 1.5em 0 0 0;
-    padding: 0em;
-}
-
-#main h3 {
-    margin: 0;
-    padding: 0;
-}
-
-a img {
-    border-style: none;
-}
-ul {
-  margin-top: 1em;
-}
-ul ul {
-  margin-top: 0;
-}
-ol ol {
-  list-style-type: lower-alpha;
-}
-ol ol ol {
-  list-style-type: lower-roman;
-}
-#container blockquote {
+X #container blockquote {
   width: auto;
 }
-.hidden {
-    display: none;
-}
-/* This is for the form in edit.html page */
-table.cutoffs thead th {
-  border: 0;
-}
-table.cutoffs tbody th {
-  border: 0;
-  font-weight: bold;
-  text-align: left;
-}
-table.cutoffs tbody th {
-  border: 0;
-}
-table.cutoffs thead th, table.cutoffs thead td, table.cutoffs tbody th, table.cutoffs tbody td{
-  border: 0;
-}
+/* This is for the form in edit_cutoffs.html page */
 table.cutoffs td {
   vertical-align: middle
 }
 table.cutoffs td.label {
   padding-left: 2em;
 }
-table.cutoffs {
-  border: 0;
-}
 table.cutoffs input {
   width: 6em;
   text-align: right;
 }
-#main p.cutoffoffset {
+p.cutoffoffset {
   position: relative; 
   height: 0;
   margin: 0;
   padding: 0;
   right: 4em;
-  top: 6em;
+  top: 4em;
   text-align: right;
-  font-size: x-small;
-}
-#main p.cutoffoffset input {
-  font-size: x-small;
+  font-size: small;
 }
 table.info span.letter {
   font-size: x-small;
   color: #777;
 }
 
-table.inst_table thead th {
+X table.inst_table thead th {
   font-weight: bold;
 }
-table.inst_table tbody th {
+X table.inst_table tbody th {
   font-weight: bold;
   text-align: left;
 }
 
-table.inst_table thead th, table.inst_table thead td, table.inst_table tbody td{
+X table.inst_table thead th, X table.inst_table thead td, X table.inst_table tbody td{
   border-color:#ccc;
   text-align: left;
   vertical-align: middle;
 }
-table.inst_table {
+X table.inst_table {
   border-color: #ccc;
   width: 100%;
 }
-
-table.inst_table th {
+X table.inst_table th {
   vertical-align: middle;
 }
-
-table.inst_table ul {
+X table.inst_table ul {
   list-style: none;
   margin: 0.2em 0;
   padding: 0;
 }
 
-div#main table.inst_table p {
+X div#main table.inst_table p {
   padding: 0;
   margin: 0;
 }
-div#main table.inst_table p input {
+X div#main table.inst_table p input {
   float: right;
   font-size: 75%;
   padding: 0 !important;
 }
+X table.inst_table tbody td.radiocell {
+  text-align: center;
+}
+
 td.miniaction, td.miniaction p {
   margin: 2px !important;
   padding: 0 !important;
   text-align: center;
 }
+td.miniaction form {
+  margin: 0;
+}
 td.miniaction input {
   font-size: 75%;
-  padding: 0;
+  padding: 0 0.25em;
+  margin: 0.25em;
 }
 
-table.inst_table tbody td.radiocell {
-  text-align: center;
-}
 
-/* calendar display*/
-div#calendar table.fc-header, div#calendar table.fc-header td {
-  border: none;
-}
-div#calendar table.fc-border-separate {
-  width: 98% !important;
-}
-div#calendar table.fc-border-separate td{
-  width: 14% !important;
-}
-
+/* pages module styles */
 div.syntaxhighlighter {
   padding-left: 2em;
   clear: right;
@@ -1374,7 +1064,7 @@ div.updateinfo {
   clear: right;
 }
 
-
+/* advisornotes styles */
 div.note-box{
 	border:1px solid #ccc;
 	-moz-border-radius: 5px;
@@ -1452,230 +1142,7 @@ td.table-row-label{
 }
 
 
-/* Note Tooltip Display */
-.note-container {
-  display: inline-block;
-  position: relative;
-}
 
-.note-container .note-content {
-  background: #F8F8C2;
-  border: 1px solid #B5111B;
-  display: none;
-  float: left;
-  padding: 4px;
-  position: absolute;
-  left: 15px;
-  top: 0;
-  width: 300px;
-  z-index: 10;
-}
-
-.note-container .note-content.after {
-  left: 100%;
-  margin-left: 10px;
-}
-
-.note-container a.note {
-  border-bottom: 1px dotted #333;
-  cursor: pointer;
-}
-
-.note-container a.note:hover {
-  text-decoration: none;
-}
-
-.note-container a.note:focus + .note-content,
-.note-container a.note:hover + .note-content {
-  display: block;
-}
-
-/* Instructor Table */
-table.inst_table .teachingplans {
-  width: 50%;
-}
-
-/* Course Plan Table */
-table.course-plan {
-  font-size: 11px;
-}
-
-table.course-plan td {
-  border-bottom: 1px solid #CCC;
-  padding: 4px;
-  vertical-align: middle;
-}
-
-table.course-plan .time {
-  font-size: 11px;
-  padding: 3px;
-  white-space: nowrap;
-}
-
-table.course-plan .cap,
-table.course-plan .time,
-table.course-plan .section,
-table.course-plan .option {
-  text-align: center;
-}
-
-table.course-plan thead th {
-  padding: 4px;
-  text-align: center;
-}
-
-table.course-plan thead th .css_right {
-  display: inline-block;
-  float: none;
-  vertical-align: middle;
-}
-
-table.course-plan abbr {
-  border: 0;
-  text-decoration: none;
-}
-
-table.course-plan .meeting-time {
-  margin-top: 4px;
-  text-align: center;
-}
-
-table.course-plan .meeting-time:first-child {
-  margin-top: 0;
-}
-
-/* Creating a course offering */
-.add-course-offering div.course,
-.add-course-offering div.meeting-times {
-  float: left;
-  width: 50%;
-}
-
-#main .form_container.add-course-offering h3 {
-  color: #B5111A;
-  margin: 10px 0 10px 14px;
-}
-
-.add-course-offering dl,
-.add-course-offering dt {
-  clear: both;
-}
-
-.add-course-offering dt label {
-  margin-top: 3px;
-}
-
-.add-course-offering fieldset label {
-  width: 12em;
-}
-
-.add-course-offering fieldset label span {
-  left: 12em;
-}
-
-.add-course-offering fieldset p.helptext, 
-.add-course-offering dl.dlform .helptext {
-  margin-left: 158px;
-}
-
-.add-course-offering .course select {
-  width: 200px;
-}
-
-.add-course-offering .course input,
-.add-course-offering .course textarea {
-  width: 196px;
-}
-
-.add-course-offering .course ul.errorlist {
-  margin: 0;
-  margin-left: 158px;
-}
-
-.add-course-offering .meeting-time {
-  border-collapse: collapse;
-  border: 0;
-  margin: 10px 0;
-  width: 100%;
-}
-
-.add-course-offering th {
-  font-weight: bold;
-  padding: 0;
-}
-
-.add-course-offering th,
-.add-course-offering td {
-  background: transparent none;
-  border: 0;
-}
-
-.add-course-offering td {
-  padding-top: 12px;
-  padding: 12px 0 0 0;
-}
-
-.add-course-offering td + td + td + td + td {
-  text-align: center;
-}
-
-.add-course-offering .meeting-times tr {
-  display: none;
-}
-
-.add-course-offering .meeting-times tr:first-child,
-.add-course-offering .meeting-times tr.errors,
-.add-course-offering .meeting-times tr.content {
-  display: table-row;
-}
-
-.add-course-offering .meeting-times input[type=text],
-.add-course-offering .meeting-times ul.errorlist {
-  width: 85px;
-}
-
-.add-course-offering .meeting-times ul.errorlist {
-  margin: 0;
-  padding: 0;
-}
-
-.add-course-offering .meeting-time .room {
-  width: 150px;
-}
-
-.add-course-offering a.add-formset {
-  clear: both;
-  cursor: pointer;
-  display: block;
-  margin: 20px auto 10px;
-  width: 150px;
-  text-align: center;
-}
-
-.add-course-offering a.remove-formset {
-  cursor: pointer;
-  display: inline-block;
-  line-height: 24px;
-}
-
-#main .form_container.add-course-offering .meeting-times h3 {
-  margin-left: 0;
-  margin-bottom: 10px;
-}
-
-.add-course-offering .submit {
-  clear: both;
-}
-
-/* Teaching Capabilities */
-.capabilities.display td {
-  border-top: 1px solid #CCC;
-  vertical-align: middle;
-}
-
-.capabilities.display tr:first-child td {
-  border-top: 0;
-}
 
 /* Artifact Notes */
 table.artifacts th.name {
@@ -1767,12 +1234,4 @@ fieldset hr {
     padding: 5px;
     border: none;
     border-bottom: 1px solid #BFBAB0;
-}
-
-h3.red-header {
-    padding: 0;
-    margin-left: 1em;
-    color: #B5111A;
-    font-weight: bold;
-    font-size: 1.2em;
 }
