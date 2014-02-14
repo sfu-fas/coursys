@@ -112,6 +112,9 @@ body.widebody .main_content {
 
 
 /* breadcrumb styling */
+div.breadcrumb ul {
+  margin-right: 15em;
+}
 div.breadcrumb ul li {
   display: inline;
   margin-left: 0;
@@ -131,6 +134,8 @@ div.breadcrumb ul li:first-child:before {
   position: relative;
   top: 4em;
   right: 1em;
+  width: 15em;
+  text-align: right;
 }
 
 /* collapsibles */
@@ -1153,7 +1158,7 @@ div#main div.showcase h2 {
   clear: right;
 }
 div#nextstep {
-  background-color: #f44;
+  background-color: #66BCFF;
   padding: 1em;
   margin: 1em 1em 1em 0;
   font-size: 1.25em;
@@ -1162,7 +1167,7 @@ p.actionwarning {
   color: #b00;
   font-weight: bold;
 }
-div#main dl p.editlink {
+dl p.editlink {
   float: right;
   clear: right;
   width: 15%;

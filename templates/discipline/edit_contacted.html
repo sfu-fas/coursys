@@ -5,9 +5,7 @@ $(document).ready(function() {
   setup_templates("contact_email_text");
   setup_groupmembers("contacted");
   setup_groupmembers("contact_date");
-  $("#id_contact_date").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
+  $("#id_contact_date").datepicker({ dateFormat: 'yy-mm-dd' });
   contact_change();
 })
 
@@ -18,7 +16,6 @@ function contact_change() {
   var date = $('#date_div');
   var text = $('#text_div');
   var div = $('#warning');
-  //var icon = $('.ui-datepicker-trigger');
   if ( value=="NONE" ) {
     div.html( "" );
     submit.val("Save Contact Details");
