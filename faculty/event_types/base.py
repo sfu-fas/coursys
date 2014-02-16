@@ -11,6 +11,7 @@ from django.template import Context, Template
 from coredata.models import Role, Unit
 
 from faculty.event_types.constants import PERMISSION_LEVEL
+from faculty.event_types.fields import SemesterField
 
 SalaryAdjust = collections.namedtuple('SalaryAdjust', [
     'add_salary',
@@ -57,8 +58,8 @@ class CareerEventMeta(abc.ABCMeta):
 class BaseEntryForm(forms.Form):
     title = forms.CharField(max_length=80, required=True,
                             widget=forms.TextInput(attrs={'size': 60}))
-    start_date = forms.DateField(required=True)
-    end_date = forms.DateField(required=False)
+    start_date = SemesterField(required=True)
+    end_date = SemesterField(required=False)
     comments = forms.CharField(required=False,
                                widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)

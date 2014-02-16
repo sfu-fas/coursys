@@ -211,6 +211,8 @@ def change_event(request, userid, event_slug):
             handler.save(editor)
             context.update({"event": handler.event,
                             "event_form": form})
+        else:
+            context.update({"event_form": form})
 
     else:
         # Display form from db instance
