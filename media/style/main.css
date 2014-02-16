@@ -812,7 +812,7 @@ X table#common_problems p.component_info{
 X #marking_container input[type="text"]{
  	width: 120px;
 }
-X #marking_container .component input[type="button"]{
+#marking_container .component input[type="button"]{
 	background-color: #036;
 	color: #fff;
 	padding: 0.2em 1em;
@@ -823,20 +823,20 @@ X #marking_container textarea{
 	width: 600px;
 	height: 80px;
 }
-X #marking_container .component li{
+#marking_container .component li{
 	display: inline;
 	clear: right;	
 }
-X #marking_container li.component_mark{
+#marking_container li.component_mark{
 	width: auto;	
 	margin-left: 5.5em;
 } 
-X #marking_container li.common_problems{
-	background-image: url('../images/grades/bluep.png');	
+#marking_container li.common_problems{
+    font-size: smaller;
+    border: 1px #888 solid;
 	padding: 0.2em 1em;
 	float: right;
-	margin: 10px;
-	width: auto;	
+	width: auto;
 	margin: 0.2em 5em 0.2em 5em;
 }
 X #marking_container .requireindicator{

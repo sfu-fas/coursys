@@ -7,19 +7,31 @@ from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_
 import json
 
 class ActivityComponentMarkForm(ModelForm):
-    
     class Meta:
         model = ActivityComponentMark            
         fields = ['comment', 'value']
+        widgets = {
+            'value': forms.NumberInput(attrs={'size': 4}),
+            'comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
+        }
     
 
 activity_mark_fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
                   'file_attachment']
-           
+activity_mark_widgets = {
+    'late_penalty': forms.NumberInput(attrs={'size': 3}),
+    'mark_adjustment': forms.NumberInput(attrs={'size': 3}),
+    'mark_adjustment_reason': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
+    'overall_comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
+    }
+
+
 class ActivityMarkForm(ModelForm):
     class Meta:
         model = ActivityMark
         fields = activity_mark_fields
+        widgets = activity_mark_widgets
+
     
     def clean_late_penalty(self):  
         late_penalty = self.cleaned_data['late_penalty']
@@ -44,11 +56,13 @@ class StudentActivityMarkForm(ActivityMarkForm):
     class Meta:
         model = StudentActivityMark
         fields = activity_mark_fields
+        widgets = activity_mark_widgets
 
 class GroupActivityMarkForm(ActivityMarkForm):
     class Meta:
         model = GroupActivityMark
         fields = activity_mark_fields
+        widgets = activity_mark_widgets
 
     
 class BaseActivityComponentFormSet(BaseModelFormSet):
