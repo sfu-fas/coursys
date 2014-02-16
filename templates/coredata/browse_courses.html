@@ -1,4 +1,6 @@
 {% extends "base-wide.html" %}
+{% load browser_display %}
+
 {% block title %}Browse Course Offerings{% endblock %}
 {% block h1 %}Browse Course Offerings{% endblock %}
 
@@ -12,39 +14,44 @@ $(document).ready(function() {
   browser_ready('{% url "coredata.views.browse_courses" %}');
 } );
 </script>
+<style>
+#filterform li {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: top;
+  text-align: center;
+  min-height: 5em;
+  margin: 0.5em 0.25em;
+  *display: inline;
+}
+#filterform li label {
+  display: block;
+  font-weight: bold;
+  margin: 0;
+}
+#filterform li span.field label {
+  display: inline;
+  font-weight: normal;
+  margin-top: 0.5em;
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <form action="" id="filterform">
-<table>
-<tr>
-<th scope="col">Subject</th>	
-<th scope="col">Number</th>	
-<th scope="col">Section</th>	
-<th scope="col">Instructor</th>	
-<th scope="col">Campus</th>	
-<th scope="col">Semester</th>
-<th scope="col">Title</th>	
-</tr>
-<tr>
-<td>{{ form.subject }}</td>
-<td>{{ form.number }}</td>
-<td>{{ form.section }}</td>
-<td>{{ form.instructor }}</td>
-<td>{{ form.campus }}</td>
-<td>{{ form.semester }}</td>
-<td>{{ form.crstitle }}</td>
-</tr>
-</table>
-<table>
-<tr>
-<th scope="col">WQB Designation</th>	
-</tr>
-<tr>
-<td>{{ form.wqb }}</td>
-</tr>
-</table>
+<ul>
+{{ form.subject|browser_field }}
+{{ form.number|browser_field }}
+{{ form.section|browser_field }}
+{{ form.instructor|browser_field }}
+{{ form.campus|browser_field }}
+{{ form.semester|browser_field }}
+{{ form.crstitle|browser_field }}
+{{ form.wqb|browser_field }}
+</ul>
 </form>
+
+
 
 <div class="datatable_container">
 <table id="courses" class="display">
