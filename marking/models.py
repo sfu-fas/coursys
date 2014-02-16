@@ -334,7 +334,7 @@ def get_group_mark_by_id(activity, group, activity_mark_id):
      """
      Find the activity_mark with that id if it exists for the group on the activity
      return None if not found.
-     """            
+     """
      try:
          act_mark = GroupActivityMark.objects.get(id = activity_mark_id)
      except GroupActivityMark.DoesNotExist:

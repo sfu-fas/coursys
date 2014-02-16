@@ -7,19 +7,31 @@ from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_
 import json
 
 class ActivityComponentMarkForm(ModelForm):
-    
     class Meta:
         model = ActivityComponentMark            
         fields = ['comment', 'value']
+        widgets = {
+            'value': forms.NumberInput(attrs={'size': 4}),
+            'comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
+        }
     
 
 activity_mark_fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
                   'file_attachment']
-           
+activity_mark_widgets = {
+    'late_penalty': forms.NumberInput(attrs={'size': 3}),
+    'mark_adjustment': forms.NumberInput(attrs={'size': 3}),
+    'mark_adjustment_reason': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
+    'overall_comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
+    }
+
+
 class ActivityMarkForm(ModelForm):
     class Meta:
         model = ActivityMark
         fields = activity_mark_fields
+        widgets = activity_mark_widgets
+
     
     def clean_late_penalty(self):  
         late_penalty = self.cleaned_data['late_penalty']
@@ -44,11 +56,13 @@ class StudentActivityMarkForm(ActivityMarkForm):
     class Meta:
         model = StudentActivityMark
         fields = activity_mark_fields
+        widgets = activity_mark_widgets
 
 class GroupActivityMarkForm(ActivityMarkForm):
     class Meta:
         model = GroupActivityMark
         fields = activity_mark_fields
+        widgets = activity_mark_widgets
 
     
 class BaseActivityComponentFormSet(BaseModelFormSet):
@@ -191,8 +205,6 @@ class ImportMarkFileForm(forms.Form):
         return activity_marks_from_JSON(self.activity, self.userid, data)
 
 
-from django.utils.safestring import mark_safe
-from grades.forms import _required_star 
 class ActivityRenameForm(forms.Form):
     name = forms.CharField(required=False, max_length=30,
                     widget=forms.TextInput(attrs={'size':'30'}))
@@ -206,17 +218,18 @@ class GradeStatusForm(forms.ModelForm):
     def __init__(self, activity=None, *args, **kwargs):
     #    self.activity = activity
         super(GradeStatusForm, self).__init__(*args, **kwargs)
-        self.fields['value'].label=mark_safe('Grade:' + _required_star)
+        self.fields['value'].label='Grade'
         self.fields['value'].help_text="out of %s" % (self.instance.activity.max_grade)
-        self.fields['flag'].label=mark_safe('Change Status to:' + _required_star)
+        self.fields['flag'].label='Grade status'
+        self.fields['flag'].help_text="See below for descriptions of these choices"
         # exclude CALC status choice for non-calcualted activity
         isCalActivity = CalNumericActivity.objects.filter(id=self.instance.activity.id).count() != 0
         if not isCalActivity:
             self.fields['flag'].choices = [(v,l) for v,l in self.fields['flag'].choices if v!="CALC"]
         
     comment = forms.CharField(required=False, max_length=500,
-                            label=mark_safe('Comment:'),
-                            help_text='Please provide the reasons here: visible to the student.',
+                            label='Comment',
+                            help_text='Comment about this grade (visible to the student)',
                             widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
         
     class Meta:
@@ -227,12 +240,13 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
     def __init__(self, activity=None, *args, **kwargs):
     #    self.activity = activity
         super(GradeStatusForm_LetterGrade, self).__init__(*args, **kwargs)
-        self.fields['letter_grade'].label=mark_safe('Grade:' + _required_star)
-        self.fields['flag'].label=mark_safe('Change Status to:' + _required_star)
-        
+        self.fields['letter_grade'].label='Grade'
+        self.fields['flag'].label='Grade status'
+        self.fields['flag'].help_text="See below for descriptions of these choices"
+
     comment = forms.CharField(required=False, max_length=500,
-                            label=mark_safe('Comment:'),
-                            help_text='Please provide the reasons here',
+                            label='Comment',
+                            help_text='Comment about this grade (visible to the student)',
                             widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
 
     def clean_flag(self):

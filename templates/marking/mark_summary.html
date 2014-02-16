@@ -1,48 +1,57 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Mark for {% if student %}{{student.name}}{% else %}group {{group.name}}{% endif %} on {{activity.name}}{% endblock %}
-{% block h1 %}Mark for {% if student %}{{student.name}}{% else %}group {{group.name}}{% endif %} on {{activity.name}}{% endblock %}
+{% block title %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking Summary</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>{% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %} Marking</li>{% endblock %}
+
+{% block actions %}
+{% if is_staff %}
+<div id="actions">
+  <h2 class="heading">Actions</h2>
+  <ul>
+  {% if student %}
+  <li><a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a></li>
+  {% if view_history %}<li><a href="{% url "marking.views.mark_history_student" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">View History</a></li>{% endif %}
+  {% else %}
+  <li><a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a></li>
+  {% if view_history %}<li><a href="{% url "marking.views.mark_history_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">View History</a></li>{% endif %}
+  {% endif %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}
 
 {% block content %}
-<h2 id="basic">Basic Information</h2>
-<div class="table_container">
 	<table class="info">
 	<tbody> 
 		 <tr>
-	    	<th class="ui-state-default">Marked by</th>
+	    	<th scope="row">Marked by</th>
 	        <td>
 	            {{ activity_mark.created_by }}
 	        </td>
 	    </tr>
 	    {% if is_staff %}<tr>
-	    	<th  class="ui-state-default">Time</th>
+	    	<th scope="row">Time</th>
 	        <td>
 	            {{activity_mark.created_at}} 
 	        </td>
 	    </tr>{% endif %}
 	    <tr>
-	    	<th  class="ui-state-default">Total Mark</th>
+	    	<th scope="row">Total Mark</th>
 	        <td>
-	            {{ activity_mark.mark }} out of {{activity.max_grade}}
+	            {{ activity_mark.mark }} / {{activity.max_grade}}
 	        </td>
 	    </tr>   
-	    {% if student %}
+	    {% if student and group %}
 	    <tr>
-	    	<th  class="ui-state-default">Mark Approach</th>
-	        <td>
-	            {% if group %}
-	            Via group &ldquo;{{group.name}}&rdquo;
-	            {% else %}
-	            Individual mark
-	            {% endif %}
-	        </td>
+	    	<th scope="row">In group</th>
+	        <td>&ldquo;{{group.name}}&rdquo;</td>
 	    </tr>   
 	    {% endif %}  
 	</tbody>
 	</table>
-</div>
 
 <h2 id="details">Details</h2>
 
@@ -96,7 +105,7 @@
     <tr>
     <td colspan="1" class="subrow"></td>
     <td colspan="1" class="subhead">Attachment</td>
-    <td colspan="2"><a href="{% url "marking.views.download_marking_attachment" course_slug=course.slug activity_slug=activity.slug mark_id=activity_mark.id %}">{{activity_mark.attachment_filename}} <img src="{{STATIC_URL}}icons/download.png" title="Download" alt="Download" /></a></td>
+    <td colspan="2"><a href="{% url "marking.views.download_marking_attachment" course_slug=course.slug activity_slug=activity.slug mark_id=activity_mark.id %}">{{activity_mark.attachment_filename}} <i class="fa fa-download" title="Download"></i></a></td>
     </tr>
   {% endif %}
   <tr id="totalrow">
@@ -109,23 +118,5 @@
 
 
 
-
-{% if is_staff %}
-
-{% if student %}
-<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a>
-{% else %}
-<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a>
-{% endif %}
-
-{% if view_history %}
-    {% if student %}
-		<a class="button" href = "{% url "marking.views.mark_history_student" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Marking History</a>
-	{% else %}
-		<a class="button" href = "{% url "marking.views.mark_history_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Marking History</a>
-	{% endif %}
-{% endif %}	
-
-{% endif %}
 
 {% endblock %}

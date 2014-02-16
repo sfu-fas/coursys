@@ -746,7 +746,7 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
      
     act_mark_id = request.GET.get('activity_mark')
     if act_mark_id != None: 
-        act_mark = get_group_mark_by_id(activity, group_slug, act_mark_id)
+        act_mark = get_group_mark_by_id(activity, group, act_mark_id)
     else:
         act_mark = get_group_mark(activity, group)
     if act_mark == None:
