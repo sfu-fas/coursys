@@ -13,9 +13,11 @@ from coredata.models import SemesterWeek
 class SemesterDateInput(forms.widgets.MultiWidget):
    
     def __init__(self, attrs=None, mode=0):
+        semester_attrs = attrs or {}
+        semester_attrs.update({"maxlength": 4, "size": 6})
         _widgets = (
             forms.widgets.DateInput(attrs=attrs),
-            forms.widgets.TextInput(attrs=attrs),
+            forms.widgets.TextInput(attrs=semester_attrs),
         )
         super(SemesterDateInput, self).__init__(_widgets, attrs)
 
