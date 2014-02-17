@@ -191,7 +191,7 @@ class ActivityComponentMark(models.Model):
     """
     activity_mark = models.ForeignKey(ActivityMark, null = False)    
     activity_component = models.ForeignKey(ActivityComponent, null = False)
-    value = models.DecimalField(max_digits=8, decimal_places=2)
+    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark')
     comment = models.TextField(null = True, max_length=1000, blank=True)
     
     def __unicode__(self):

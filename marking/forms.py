@@ -6,15 +6,32 @@ from django.forms.models import BaseModelFormSet
 from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN
 import json
 
+
+class OutOfInput(forms.widgets.NumberInput):
+    "A NumberInput, but with an 'out of n' suffix"
+    def __init__(self, **kwargs):
+        defaults = {'attrs': {'size': 4}}
+        defaults.update(**kwargs)
+        super(OutOfInput, self).__init__(**defaults)
+
+    def render(self, *args, **kwargs):
+        return super(OutOfInput, self).render(*args, **kwargs) + ' out of ' + unicode(self.max_mark)
+
+
 class ActivityComponentMarkForm(ModelForm):
     class Meta:
-        model = ActivityComponentMark            
-        fields = ['comment', 'value']
+        model = ActivityComponentMark
+        fields = ['value', 'comment']
         widgets = {
-            'value': forms.NumberInput(attrs={'size': 4}),
+            'value': OutOfInput(),
             'comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
         }
-    
+
+    def __init__(self, component, **kwargs):
+        super(ActivityComponentMarkForm, self).__init__(**kwargs)
+        # monkey-patch the max mark in so the widget can draw it
+        self.fields['value'].widget.max_mark = component.max_mark
+
 
 activity_mark_fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
                   'file_attachment']
