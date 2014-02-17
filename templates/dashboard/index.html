@@ -24,6 +24,7 @@ $(document).ready(function() {
     <li><a href="{% url "dashboard.views.news_list" %}"><i class="fa fa-li fa-envelope"></i> All News Items</a></li>
     <li><a href="{% url "dashboard.views.config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
     <li><a href="{% url "dashboard.views.calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
+    <li><a href="{% url "coredata.views.browse_courses" %}"><i class="fa fa-li fa-eye"></i> Browse Course Offerings</a></li>
     {% if excluded %}<li><a href="{% url "dashboard.views.index_full" %}"><i class="fa fa-li fa-archive"></i> View Older Courses</a></li>{% endif %}
     {% if 'DISC' in roles %}<li><a href="{% url "discipline.views.chair_index" %}"><i class="fa fa-li fa-gavel"></i> Discipline Cases</a></li>{% endif %}
     {% if 'SYSA' in roles %}<li><a href="{% url "coredata.views.sysadmin" %}"><i class="fa fa-li fa-bolt"></i> System Administration</a></li>{% endif %}

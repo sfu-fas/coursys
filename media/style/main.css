@@ -1233,17 +1233,48 @@ div#main .artifact-note p {
 }
 
 /* View Semesters */
-div.semesters-container {
+X div.semesters-container {
   width: 30%;
 }
 
-div.text.field {
+X div.text.field {
   line-height: 1.5em;
 }
 
-fieldset hr {
+X fieldset hr {
     margin: 0;
     padding: 5px;
     border: none;
     border-bottom: 1px solid #BFBAB0;
+}
+
+
+/* course browser */
+
+#filterform ul {
+  margin: 0;
+}
+#filterform li {
+  list-style-type: none;
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: top;
+  text-align: center;
+  margin: 0.5em 0.5em;
+  *display: inline;
+}
+#filterform li label {
+  display: block;
+  font-weight: bold;
+  margin: 0;
+}
+#filterform li span.field label {
+  display: inline;
+  font-weight: normal;
+  margin-top: 0.5em;
+}
+#filterform li span.field {
+}
+#browser_container div.table {
+  overflow-x: visible;
 }

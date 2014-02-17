@@ -1,5 +1,7 @@
 {% extends "base-wide.html" %}
 {% load browser_display %}
+{% load staticfiles %}
+{% load compress %}
 
 {% block title %}Browse Course Offerings{% endblock %}
 {% block h1 %}Browse Course Offerings{% endblock %}
@@ -7,34 +9,15 @@
 {% block subbreadcrumbs %}<li>Browse Course Offerings</li>{% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-bbq.min.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/browse.js"></script>
+{% compress js %}
+<script type="text/javascript" src="{% static "js/jquery.ba-bbq.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/browse.js" %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   browser_ready('{% url "coredata.views.browse_courses" %}');
 } );
 </script>
-<style>
-#filterform li {
-  display: -moz-inline-stack;
-  display: inline-block;
-  vertical-align: top;
-  text-align: center;
-  min-height: 5em;
-  margin: 0.5em 0.25em;
-  *display: inline;
-}
-#filterform li label {
-  display: block;
-  font-weight: bold;
-  margin: 0;
-}
-#filterform li span.field label {
-  display: inline;
-  font-weight: normal;
-  margin-top: 0.5em;
-}
-</style>
+{% endcompress %}
 {% endblock %}
 
 {% block content %}
@@ -51,9 +34,7 @@ $(document).ready(function() {
 </ul>
 </form>
 
-
-
-<div class="datatable_container">
+<div id="browser_container">
 <table id="courses" class="display">
   <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Title</th><th scope="col">Instructor(s)</th><th scope="col">Campus</th></tr></thead>
   <tbody>
