@@ -87,7 +87,12 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
     def __init__(self, activity, *args, **kwargs):
         self.activity =  activity
         super(BaseActivityComponentFormSet, self).__init__(*args, **kwargs)
-        
+        for form in self.forms:
+            form.fields['title'].widget.attrs['size'] = 8
+            form.fields['description'].widget.attrs['rows'] = 3
+            form.fields['description'].widget.attrs['cols'] = 40
+            form.fields['max_mark'].widget.attrs['size'] = 4
+
     def clean(self):
         """Checks the following:
         1. no two component have the same title  
@@ -125,7 +130,10 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
     def __init__(self, activity_components, *args, **kwargs):
         super(BaseCommonProblemFormSet, self).__init__(*args, **kwargs)
         for form in self.forms:
-            form.fields['penalty'].widget.attrs['size'] = 5
+            form.fields['title'].widget.attrs['size'] = 8
+            form.fields['description'].widget.attrs['rows'] = 2
+            form.fields['description'].widget.attrs['cols'] = 30
+            form.fields['penalty'].widget.attrs['size'] = 4
             if activity_components:
                 # limit the choices of activity components
                 form.fields['activity_component'].queryset = activity_components

@@ -1,7 +1,7 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 {% load course_display %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
     function add_more() {
@@ -29,13 +29,15 @@
 {% block title %}{{activity.name}} Marking Components{% endblock %}
 {% block h1 %}{{activity.name}} Marking Components{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking Components</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking Components</li>{% endblock %}
+
 {% block content %}
 <ul id="form_nav">
     <li class="current"><a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
     <li><a href="{% url "marking.views.manage_component_positions" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
 </ul>
-<form action="" method="post">{% csrf_token %}
+<form action="" method="post" class="subtle">{% csrf_token %}
      <div class="datatable_container"> 
      {{ formset.management_form }} 
       <table class="display" id="activity_components">
