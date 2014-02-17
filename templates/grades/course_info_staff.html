@@ -116,29 +116,24 @@
 
 {% block actions %}
 <div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-	<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Edit Course Setup</a></li>
-        <li><a href="{% url "grades.views.activity_choice" course_slug=course.slug %}">Add Activity</a></li>
+    <h2>Actions</h2>
+    <ul class="fa-ul">
+	<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}"><i class="fa fa-li fa-wrench"></i> Edit Course Setup</a></li>
+        <li><a href="{% url "grades.views.activity_choice" course_slug=course.slug %}"><i class="fa fa-li fa-plus"></i>Add Activity</a></li>
         {% if course.discussion %}
-        <li>
-        	<a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}">
-        		Course Discussion
-        		{% if discussion_activity %}
-                <i class="fa fa-comments infomessage"></i>
-                {% endif %}
-        	</a>
-        </li>    
+        <li><a href="{% url "discuss.views.discussion_index" course_slug=course.slug %}"><i class="fa fa-li fa-comment-o"></i> Course Discussion
+        	{% if discussion_activity %}<i class="fa fa-comments infomessage"></i>{% endif %}
+        	</a></li>
         {% endif %}
-        <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}">Display Class List</a></li>
-        <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}">Display All Grades</a></li>
-        <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}">Student Search</a></li>
-	<li class="newsec"><a href="{% url "grades.views.new_message" course_slug=course.slug %}">Create News Item</a></li>
-	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
-        <li><a href="{% url "discipline.views.index" course_slug=course.slug %}">Dishonesty Cases</a></li>
-        <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}">Course Pages</a></li>
+        <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}"><i class="fa fa-li fa-list"></i>Display Class List</a></li>
+        <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}"><i class="fa fa-li fa-table"></i>Display All Grades</a></li>
+        <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}"><i class="fa fa-li fa-search"></i>Student Search</a></li>
+	<li class="newsec"><a href="{% url "grades.views.new_message" course_slug=course.slug %}"><i class="fa fa-li fa-bullhorn"></i>Create News Item</a></li>
+	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}"><i class="fa fa-li fa-group"></i>Manage Groups</a></li>{% endif %}
+        <li><a href="{% url "discipline.views.index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>
+        <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}"><i class="fa fa-li fa-edit"></i>Course Pages</a></li>
     {% if member.role == "TA" %}
-        <li class="newsec"><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=user.username %}">Time Use Guideline</a></li>
+        <li class="newsec"><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=user.username %}"><i class="fa fa-li fa-clock-o"></i>Time Use Guideline</a></li>
     {% endif %}
     </ul>
 </div>
