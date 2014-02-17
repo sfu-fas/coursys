@@ -2,7 +2,9 @@
 {% block title %}Merge Prospective Student {{ nonstudent.first_name}} {{ nonstudent.last_name }}{% endblock %}
 {% block h1 %}Merge Prospective Student "<i>{{ nonstudent.first_name}} {{ nonstudent.last_name }}</i>"{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li><li><a href="{% url "advisornotes.views.student_notes" nonstudent_slug=nonstudent.slug %}">Notes for {{ nonstudent.first_name }} {{ nonstudent.last_name }}</a></li><li>&gt Merge With Existing Student</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advisornotes.views.student_notes" nonstudent_slug=nonstudent.slug %}">Notes for {{ nonstudent.first_name }} {{ nonstudent.last_name }}</a></li>
+<li>Merge With Existing Student</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">

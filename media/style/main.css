@@ -701,7 +701,9 @@ dl.dlform dt{
 dl.dlform dt label{
 	clear: both;
 }
-
+form>input:first-child+fieldset { /* strip top margin for first fieldset */
+    margin-top: 0;
+}
 dl.dlform input, dl.dlform select, dl.dlform textarea {
 	margin-bottom: 0;
 }
@@ -1036,22 +1038,31 @@ div.updateinfo {
 }
 
 /* advisornotes styles */
-div.note-box{
+div.note-box {
 	border:1px solid #ccc;
 	-moz-border-radius: 5px;
     -webkit-border-radius: 5px;
-    width: 800px;
+    border-radius: 5px;
 	padding:10px;
 	padding-top:0px;
-	margin-left: 10px;
 	margin-bottom: 20px;
 }
 div.note-box p.hideshow {
   text-align: right;
-  font-size: smaller;
+  font-size: x-small;
+}
+.deletednote {
+  background-color: pink;
+}
+.deletednote h2 {
+  text-decoration: line-through;
+}
+.deletednote div.note-box {
+  margin: 0.5em;
 }
 
-.borderless, .borderless td{
+
+X .borderless, .borderless td{
   border: none;
 }
 
