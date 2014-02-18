@@ -58,8 +58,8 @@ class CareerEventMeta(abc.ABCMeta):
 class BaseEntryForm(forms.Form):
     title = forms.CharField(max_length=80, required=True,
                             widget=forms.TextInput(attrs={'size': 60}))
-    start_date = SemesterField(required=True)
-    end_date = SemesterField(required=False)
+    start_date = SemesterField(required=True, semester_start=True)
+    end_date = SemesterField(required=False, semester_start=False)
     comments = forms.CharField(required=False,
                                widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
