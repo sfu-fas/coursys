@@ -233,6 +233,9 @@ class Activity(models.Model):
         else:
             return StudentSubmission
 
+    def due_in_future(self):
+        return self.due_date and self.due_date > datetime.now()
+
     def due_in_str(self):
         """
         Produce pretty string for "in how long is this due"

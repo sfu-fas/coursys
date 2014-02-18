@@ -25,6 +25,7 @@ from faculty.event_types.career import TenureReceivedEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
+from faculty.event_types.info import ResearchMembershipHandler
 from faculty.event_types.position import AdminPositionEventHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
@@ -36,6 +37,7 @@ HANDLERS = [
     ExternalAffiliationHandler,
     FellowshipEventHandler,
     GrantApplicationEventHandler,
+    ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,
     TeachingCreditEventHandler,
@@ -99,6 +101,9 @@ class CareerEvent(models.Model):
 
     def get_attachment_url(self):
         return reverse("faculty_add_attachment", args=[self.person.userid, self.slug])
+
+    def get_status_change_url(self):
+        return reverse("faculty_change_event_status", args=[self.person.userid, self.slug])
 
     def get_change_url(self):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
@@ -241,7 +246,7 @@ class Memo(models.Model):
     subject = models.TextField(help_text='The subject of the memo (lines will be formatted separately in the memo header)')
 
     template = models.ForeignKey(MemoTemplate, null=True)
-    memo_text = models.TextField(help_text="I.e. 'Congratulations Mr. Baker on ... '")
+    memo_text = models.TextField(help_text="I.e. 'Congratulations on ... '")
     #salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
     #closing = models.CharField(max_length=100, default="Sincerely")
 

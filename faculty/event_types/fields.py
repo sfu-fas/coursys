@@ -4,6 +4,78 @@ from fractions import Fraction
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 import copy
+import datetime
+
+from coredata.models import Semester
+from coredata.models import SemesterWeek
+
+
+class SemesterDateInput(forms.widgets.MultiWidget):
+   
+    def __init__(self, attrs=None, mode=0):
+        semester_attrs = attrs or {}
+        semester_attrs.update({"maxlength": 4, "size": 6})
+        _widgets = (
+            forms.widgets.DateInput(attrs=attrs),
+            forms.widgets.TextInput(attrs=semester_attrs),
+        )
+        super(SemesterDateInput, self).__init__(_widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return [value, None]
+        return [None, None]
+
+    def format_output(self, rendered_widgets):
+        return u''.join(rendered_widgets)
+
+    def value_from_datadict(self, data, files, name):
+        datelist = [w.value_from_datadict(data, files, "%s_%s" %(name, i)) for i, w, in enumerate(self.widgets)]
+        semester = None
+        first = None
+        date = None
+        try:
+            y, m, d = datelist[0].split('-')
+            date = datetime.date(int(y), int(m), int(d))
+        except ValueError:
+            pass
+
+        # Date field is blank, try to get the semester
+        semester = datelist[1]
+        try:
+            assert len(semester) == 4
+            assert semester.isdigit()
+            s = Semester.objects.get(name=semester)
+            weeks = SemesterWeek.objects.filter(semester=s)
+            first = weeks[0].monday
+        except (AssertionError, Semester.DoesNotExist, IndexError):
+            # Semester does not exist, or is in wrong format
+            pass
+
+        # TODO: Precedence to semester if they're both filled in?
+        if date and first:
+            return first 
+        elif first:
+            return first
+        elif date:
+            return date
+        else:
+            return ""
+
+class SemesterField(forms.DateField):
+    widget = SemesterDateInput
+
+    def __init__(self, **kwargs):
+        defaults = kwargs
+        defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right, e.g.: 1141')})
+        super(SemesterField, self).__init__(**defaults)
+
+    def to_python(self, value):
+        if value in forms.fields.validators.EMPTY_VALUES:
+            return None
+        else:
+            return value
+    
 
 class DollarInput(forms.widgets.NumberInput):
     "A NumberInput, but with a prefix '$'"

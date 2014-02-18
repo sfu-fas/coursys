@@ -1,10 +1,8 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 {% load form_display %}
 
 {% block h1 %}{{course.name}} Setup{% endblock %}
 {% block title %}{{course.name}} Setup{% endblock %}
-
-{% block grades_headextra %}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Setup</li>{% endblock %}
 
@@ -23,7 +21,7 @@
 
 {% block content %}
 <div class="form_container">
-  <form action="" method="post">
+  <form action="" method="post">{% csrf_token %}
   <fieldset>
     {% if course.uses_svn %}
     {{ form|as_dl }}

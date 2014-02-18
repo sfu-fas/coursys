@@ -14,6 +14,7 @@ def get_config(event, field):
 
 @register.filter
 def can_approve(person, handler):
+    print handler
     if handler.can_approve(person):
         return True
     return False

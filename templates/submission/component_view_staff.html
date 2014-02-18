@@ -1,4 +1,4 @@
-{% extends "submission/base.html" %}
+{% extends "base.html" %}
 {% load submission_filters %}
 
 {% block title %}Configure Submission for {{activity.name}}{% endblock %}
@@ -6,34 +6,41 @@
 
 {% block subbreadcrumbs %}<li><a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Submission Components</li>{% endblock %}
 
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url "submission.views.add_component" course_slug=course.slug activity_slug=activity.slug %}">Add Submission Component</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+
 {% block content %}
-<a class="button" href="{% url "submission.views.add_component" course_slug=course.slug activity_slug=activity.slug %}" id="edit_submission_component_add_button">Add Component</a>
 <div class="form_container">
 {% ifequal component_list|length 0 %}
     <p class="empty">
         No components configured.
     </p>
 {% else %}
-    <form action="" method="post">{% csrf_token %}
+    <form action="" method="post" class="subtle">{% csrf_token %}
     {% for component in component_list %}
-    <fieldset>
-        <legend>{% if component.deleted %}<del>{% endif %}{{component.title}}{% if component.deleted %}</del> (deleted){% endif %}</legend>
+        <h2 id="comp-{{forloop.counter}}">{% if component.deleted %}<del>{% endif %}{{component.title}}{% if component.deleted %}</del> (deleted){% endif %}</h2>
 	{% if component.deleted %}<p class="empty">This submission component has been deleted: it is not visible to students, but you can still retrieve any submissions that were made.</p>{% endif %}
-        <ul>
-            <li class="position">Position: <input type="text" name="{{forloop.counter}}_position" value="{{forloop.counter}}" maxlength="3em" style="width:3em"/></li>
-            <li class="view"><label>Type:</label>{{component.Type.name}}</li>
-            <li class="view"><label>Description:</label><div class="fieldcontent">{{component.description|linebreaksbr}}</div></li>
-            {% if component.max_size %}<li class="view"><label>Maximum Size:</label>{{component.max_size}} KB</li>{% endif %}
-            {% if component.max_length %}<li class="view"><label>Maximum Length:</label>{{component.max_length}}</li>{% endif %}
-			{% if component.allowed %}<li class="view"><label>Allowed Type:</label>{{component.get_allowed_display}}</li>{% endif %}
-			{% if component.specified_filename %}<li class="view"><label>Specified filename:</label>{{component.specified_filename}}</li>{% endif %}
-            <li class="editbutton"><a class="button" href="{% url "submission.views.edit_single" course_slug=course.slug activity_slug=activity.slug %}?id={{component.id}}">Edit</a></li>
-        </ul>
-    </fieldset>
+        <dl class="inline">
+            <dt>Type</dt><dd>{{component.Type.name}}</dd>
+            <dt>Description</dt><dd>{{component.description|linebreaksbr}}</dd>
+            {% if component.max_size %}<dt>Maximum Size</dt><dd>{{component.max_size}} KB</dd>{% endif %}
+            {% if component.max_length %}<dt>Maximum Length</dt><dd>{{component.max_length}}</dd>{% endif %}
+			{% if component.allowed %}<dt>Allowed Type</dt><dd>{{component.get_allowed_display}}</dd>{% endif %}
+			{% if component.specified_filename %}<dt>Specified filename</dt><dd>{{component.specified_filename}}</dd>{% endif %}
+			<dt><label for="id_{{forloop.counter}}_position">Position</label></dt>
+			<dd><input type="text" name="{{forloop.counter}}_position" id="id_{{forloop.counter}}_position" value="{{forloop.counter}}" size="2" maxlength="3"/></dd>
+        </dl>
+        <p><a href="{% url "submission.views.edit_single" course_slug=course.slug activity_slug=activity.slug %}?id={{component.id}}">Edit {{ component.title }} details</a></p>
     {% endfor %}
-	<fieldset>
-    	<input type="submit" class="submit" value="Update Positions"/>
-	</fieldset>
+    <p><input type="submit" class="submit" value="Update Positions"/></p>
     </form>
 {% endifequal %}
     <br/>

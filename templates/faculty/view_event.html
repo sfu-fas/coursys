@@ -8,23 +8,6 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/faculty.css" %}" />
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#memo_table').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    'bFilter': false,
-    "aaSorting": [[2, "asc"]],
-    "aoColumns": [null,
-                  null,
-                  { "sType": "by-date" },
-                  { "sType": "by-date" },
-                  null,
-    ],
-    "bJQueryUI": true,
-  } );
-} );
-</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -49,8 +32,15 @@ $(document).ready(function() {
 {% block content %}
 <div class="careerevent">
 {{ handler.to_html }}
-<em>{% if person|can_approve:handler %}You can approve this event{% else %}You cannot approve this event{% endif %}</em>
-{% if approval_form %}{{ approval_form }}{% else %}No approval form{% endif %}
+{% if approval_form %}
+<form action="{{ event.get_status_change_url }}" method="post">
+	{% csrf_token %}
+	{{ approval_form }}
+	<input type="submit" value="Change">
+</form>
+{% else %}
+<em>You cannot change the status of this event (as {{ user }})</em>
+{% endif %}
 </div>
 <div class="clearfix"></div>
 
@@ -69,36 +59,16 @@ $(document).ready(function() {
 {% endwith %}
 
 {% if memos %}
-<h2>Memos</h2>
-{% if index and can_edit %}<p class="manage_link"><a href="">Manage Memos</a></p>{% endif %}
-<div class="datatable_container">
-	<table class="display" id="memo_table">
-		<thead>
-			<tr>
-				<th scope="col">Template</th>
-				<th scope="col">Send Date</th>
-                <th scope="col">Creation Date</th>
-				<th scope="col">From</th>
-				{% if not index %}<th scope="col">Actions</th>{% endif %}
-			</tr>
-		</thead>
-		<tbody>
-			{% for l in memos %}
-			<tr>
-				<td> {{ l.template.label }} </td>
-				<td> <span class="sort">{{ l.date.isoformat }}</span>{{ l.sent_date }} </td>
-				<td> <span class="sort">{{ l.created_at.isoformat }}</span>{{ l.created_at }} </td>
-				<td> {{ l.from_person }} </td>
-				{% if not index %}<td>
-					  <a href="{% url "faculty.views.get_memo_pdf" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a>
-					| <a href="{% url "faculty.views.view_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a>
-					| <a href="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a></td>{% endif %}
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
+<h4>Memos</h4>
+<ul>
+{% for l in memos %}
+<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_person }})
+	<a href="{% url "faculty.views.get_memo_pdf" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
+	<a href="{% url "faculty.views.view_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a> |
+	<a href="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a></td>
+</li>
+{% endfor %}
+</ul>
 {% endif %}
-
 {% endblock %}
 

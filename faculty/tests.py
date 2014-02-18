@@ -15,14 +15,14 @@ from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
 from faculty.models import CareerEvent
 from faculty.models import HANDLERS
+from faculty.management.commands import faculty_test_data
 
 import datetime
 
-class EventTypesTest(TestCase):
-    fixtures = ['faculty-test.json']
 
+class EventTypesTest(TestCase):
     def setUp(self):
-        pass
+        faculty_test_data.Command().handle()
 
     def test_management_permissions(self):
         """
@@ -33,7 +33,8 @@ class EventTypesTest(TestCase):
         dean_admin = Person.objects.get(userid='dzhao')
 
         fac_role = Role.objects.filter(person=fac_member)[0]
-        handler = AppointmentEventHandler.create_for(fac_member, fac_role.unit)
+        handler = AppointmentEventHandler(CareerEvent(person=fac_member,
+                                                      unit=fac_role.unit))
 
         # tests below assume these permission settings for this event type
         self.assertEquals(handler.VIEWABLE_BY, 'MEMB')
@@ -65,27 +66,33 @@ class EventTypesTest(TestCase):
                 # then instantiation will raise an Exception. This means that there is no need
                 # to explicitly check if a handler with a flag has overriden a specific base
                 # mixin method.
-                print Handler.NAME, Handler.CONFIG_FIELDS.keys()
-                handler = Handler.create_for(fac_member, fac_role.unit)
+                handler = Handler(CareerEvent(person=fac_member,
+                                              unit=fac_role.unit))
+                handler.set_handler_specific_data()
 
                 if 'affects_salary' in Handler.FLAGS:
                     self.assertTrue(issubclass(Handler, SalaryCareerEvent))
                     self.assertIsInstance(handler, SalaryCareerEvent)
                     self.assertIsInstance(handler.salary_adjust_annually(), SalaryAdjust)
+                    self.assertTrue(handler.event.flags.affects_salary)
+                else:
+                    self.assertFalse(handler.event.flags.affects_salary)
 
                 if 'affects_teaching' in Handler.FLAGS:
                     self.assertTrue(issubclass(Handler, TeachingCareerEvent))
                     self.assertIsInstance(handler, TeachingCareerEvent)
                     self.assertIsInstance(handler.teaching_adjust_per_semester(), TeachingAdjust)
+                    self.assertTrue(handler.event.flags.affects_teaching)
+                else:
+                    self.assertFalse(handler.event.flags.affects_teaching)
 
                 # test form creation
-                handler.get_entry_form(editor=editor, units=units)
+                Handler.get_entry_form(editor=editor, units=units)
 
                 # display methods that each handler must implement
                 self.assertIsInstance(handler.short_summary(), basestring)
                 html = handler.to_html()
                 self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
-
 
             except:
                 print "failure with Handler==%s" % (Handler)
@@ -93,9 +100,9 @@ class EventTypesTest(TestCase):
 
 
 class CareerEventHandlerBaseTest(TestCase):
-    fixtures = ['faculty-test.json']
-
     def setUp(self):
+        faculty_test_data.Command().handle()
+
         class FoobarHandler(CareerEventHandlerBase):
 
             EVENT_TYPE = 'FOOBAR'
@@ -110,7 +117,8 @@ class CareerEventHandlerBaseTest(TestCase):
 
     def test_is_instant(self):
         self.Handler.IS_INSTANT = True
-        handler = self.Handler.create_for(self.person, self.unit)
+        handler = self.Handler(CareerEvent(person=self.person,
+                                           unit=self.unit))
 
         # Ensure the 'end_date' field is successfully removed
         form = handler.get_entry_form(self.person, [])
@@ -126,12 +134,14 @@ class CareerEventHandlerBaseTest(TestCase):
 
     def test_is_exclusive_close_previous(self):
         self.Handler.IS_EXCLUSIVE = True
-        handler1 = self.Handler.create_for(self.person, self.unit)
+        handler1 = self.Handler(CareerEvent(person=self.person,
+                                            unit=self.unit))
         handler1.event.title = 'hello world'
         handler1.event.start_date = date.today()
         handler1.save(self.person)
 
-        handler2 = self.Handler.create_for(self.person, self.unit)
+        handler2 = self.Handler(CareerEvent(person=self.person,
+                                            unit=self.unit))
         handler2.event.title = 'Foobar'
         handler2.event.start_date = date.today() + timedelta(days=1)
         handler2.save(self.person)

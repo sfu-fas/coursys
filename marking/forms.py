@@ -1,4 +1,5 @@
-from models import *
+from marking.models import ActivityMark, ActivityComponentMark, StudentActivityMark, GroupActivityMark, activity_marks_from_JSON
+from grades.models import NumericGrade, LetterGrade, CalLetterActivity
 from django.forms import ModelForm
 from django import forms
 from django.forms.models import BaseModelFormSet
@@ -193,9 +194,9 @@ class ImportMarkFileForm(forms.Form):
 from django.utils.safestring import mark_safe
 from grades.forms import _required_star 
 class ActivityRenameForm(forms.Form):
-    name = forms.CharField(required=False, max_length=30, label=mark_safe('Name:'+_required_star),
+    name = forms.CharField(required=False, max_length=30,
                     widget=forms.TextInput(attrs={'size':'30'}))
-    short_name = forms.CharField(required=False, max_length=15, label=mark_safe('Short name:' + _required_star),
+    short_name = forms.CharField(required=False, max_length=15,
                                 widget=forms.TextInput(attrs={'size':'8'}))
     selected = forms.BooleanField(required=False, label='Rename?', initial = True, 
                     widget=forms.CheckboxInput(attrs={'class':'rename_check'}))

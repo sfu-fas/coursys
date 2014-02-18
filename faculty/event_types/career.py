@@ -112,7 +112,7 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         """
 
     class EntryForm(BaseEntryForm):
-        STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend')]
+        STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend'), ('OTHER', 'Other')]
         source = forms.ChoiceField(label='Stipend Source', choices=STIPEND_SOURCES)
         # Do we want this to be adjusted during leaves?
         amount = AddSalaryField()
@@ -126,7 +126,6 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
                                             self.event.config.get('amount', 0))
 
     def salary_adjust_annually(self):
-        # Not sure if this is what we want for this
         s = decimal.Decimal(self.event.config.get('amount', 0))
         return SalaryAdjust(s, 1, 0)
         

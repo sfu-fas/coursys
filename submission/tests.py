@@ -1,17 +1,17 @@
-from django.test import *
+from django.test import TestCase
 
-from submission.models import *
+from submission.models import URL, Archive, Code, StudentSubmission, select_all_components
 from submission.models.code import SubmittedCode
-from submission.forms import *
-from grades.models import NumericActivity
-from coredata.tests import create_offering
-from django.conf import settings
-CAS_SERVER_URL = settings.CAS_SERVER_URL
-from coredata.models import *
-from courselib.testing import *
-import gzip, tempfile, os
+from submission.forms import filetype
+from grades.models import NumericActivity, Activity
+from groups.models import Group, GroupMember
+from coredata.tests import create_offering, validate_content
+from coredata.models import Member, Person, CourseOffering
+from django.core.urlresolvers import reverse
+from courselib.testing import Client, test_views, basic_page_tests, TEST_COURSE_SLUG
+import datetime, tempfile, os
 
-import base64, StringIO, zlib
+import base64, StringIO
 TGZ_FILE = base64.b64decode('H4sIAI7Wr0sAA+3OuxHCMBAE0CtFJUjoVw8BODfQP3bgGSKIcPResjO3G9w9/i9vRmt7ltnzZx6ilNrr7PVS9vscbUTKJ/wWr8fzuqYUy3pbvu1+9QAAAAAAAAAAAHCiNyHUDpAAKAAA')
 GZ_FILE = base64.b64decode('H4sICIjWr0sAA2YAAwAAAAAAAAAAAA==')
 ZIP_FILE = base64.b64decode('UEsDBAoAAAAAAMB6fDwAAAAAAAAAAAAAAAABABwAZlVUCQADiNavSzTYr0t1eAsAAQToAwAABOgDAABQSwECHgMKAAAAAADAenw8AAAAAAAAAAAAAAAAAQAYAAAAAAAAAAAApIEAAAAAZlVUBQADiNavS3V4CwABBOgDAAAE6AMAAFBLBQYAAAAAAQABAEcAAAA7AAAAAAA=')
@@ -130,7 +130,7 @@ class SubmissionTest(TestCase):
         self.assertContains(response, "URL2")
         self.assertContains(response, "Archive2")
         # make sure type displays
-        self.assertContains(response, '<li class="view"><label>Type:</label>Archive</li>')
+        #self.assertContains(response, '<li class="view"><label>Type:</label>Archive</li>')
         # delete component
         self.assertRaises(NotImplementedError, component.delete)
 
@@ -290,6 +290,62 @@ class SubmissionTest(TestCase):
         code.code.open()
         self.assertEquals(code.code.read(), codecontents)
             
+    def test_pages(self):
+        "Test a bunch of page views"
+        offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        activity = Activity.objects.get(offering=offering, slug='rep')
+        activity.due_date = datetime.datetime.now() + datetime.timedelta(days=1) # make sure it's submittable
+        client = Client()
+
+        # instructor views
+        client.login_user("ggbaker")
+
+        component1 = URL.Component(activity=activity, title='Sample URL 1', description='Please submit some URL.',
+                                   check=False, prefix='')
+        component1.save()
+        component2 = URL.Component(activity=activity, title='Sample URL 2', description='Please submit some URL.',
+                                   check=False, prefix='')
+        component2.save()
+
+        test_views(self, client, 'submission.views.', ['show_components', 'add_component'],
+                   {'course_slug': offering.slug, 'activity_slug': activity.slug})
+
+        url = reverse('submission.views.edit_single', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
+                + '?id=' + unicode(component1.id)
+        basic_page_tests(self, client, url)
+
+        url = reverse('submission.views.add_component', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug}) \
+                + '?type=url'
+        basic_page_tests(self, client, url)
+
+        # student views: with none, some, and all submitted
+        client.login_user("0aaa0")
+
+        # test various permutations of success to make sure everything returns okay
+        name1 = '%i-url' % (component1.id)
+        name2 = '%i-url' % (component2.id)
+        submissions = [
+            ({}, False),
+            ({name1: '', name2: ''}, False),
+            ({name1: '', name2: 'do i look like a url to you?'}, False),
+            ({name1: 'http://www.sfu.ca/', name2: ''}, False),
+            ({name1: 'http://www.cs.sfu.ca/', name2: 'http://example.com/'}, True),
+            ({name1: 'http://www.sfu.ca/', name2: 'http://example.com/'}, True),
+        ]
+        for submitdata, redir in submissions:
+            test_views(self, client, 'submission.views.', ['show_components', 'show_components_submission_history'],
+                       {'course_slug': offering.slug, 'activity_slug': activity.slug})
+            url = reverse('submission.views.show_components', kwargs={'course_slug': offering.slug, 'activity_slug': activity.slug})
+            response = client.post(url, submitdata)
+            if redir:
+                # success: we expect a redirect
+                self.assertEqual(response.status_code, 302)
+            else:
+                # some problems: expect a page reporting that
+                self.assertEqual(response.status_code, 200)
+                validate_content(self, response.content, url)
+
+
 
 
 

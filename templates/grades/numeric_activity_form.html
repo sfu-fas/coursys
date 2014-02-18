@@ -1,4 +1,4 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 {% load form_display %}
 
 {% block h1 %}
@@ -10,14 +10,11 @@
 {% ifequal form_type 'edit' %}{{ course.name }} - Edit Numeric Graded Activity{% endifequal %}
 {% endblock %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
-    
+    $("#id_due_date_0").datepicker({dateFormat: 'yy-mm-dd'});
     $("input[name=group]").click(function(){
         if($("input[name=group]:checked").val() == '1'){
             $("#div_id_extend_group").parent().addClass("hidden");
@@ -38,7 +35,6 @@ $(document).ready(function() {
 <div class="form_container">
     <form action="{% ifequal form_type 'add' %}{% url "grades.views.add_numeric_activity" course_slug=course.slug %}{% endifequal %}{% ifequal form_type 'edit' %}{% url "grades.views.edit_activity" course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}" method="post">{% csrf_token %}
         <fieldset>
-            <legend>Activity Info</legend>
             {{ form|as_dl_excludefields:"showstats,showhisto" }}
             <p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>

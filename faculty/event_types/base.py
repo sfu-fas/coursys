@@ -11,6 +11,7 @@ from django.template import Context, Template
 from coredata.models import Role, Unit
 
 from faculty.event_types.constants import PERMISSION_LEVEL
+from faculty.event_types.fields import SemesterField
 
 SalaryAdjust = collections.namedtuple('SalaryAdjust', [
     'add_salary',
@@ -57,8 +58,8 @@ class CareerEventMeta(abc.ABCMeta):
 class BaseEntryForm(forms.Form):
     title = forms.CharField(max_length=80, required=True,
                             widget=forms.TextInput(attrs={'size': 60}))
-    start_date = forms.DateField(required=True)
-    end_date = forms.DateField(required=False)
+    start_date = SemesterField(required=True)
+    end_date = SemesterField(required=False)
     comments = forms.CharField(required=False,
                                widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
@@ -127,6 +128,18 @@ class CareerEventHandlerBase(object):
         # add initialization logic.
         self.initialize()
 
+    def set_handler_specific_data(self):
+        """
+        Sets store Handler specific flags and type in the CareerEvent instance.
+
+        """
+        from faculty.models import CareerEvent
+        self.event.event_type = self.EVENT_TYPE
+
+        self.event.flags = 0
+        for flag in self.FLAGS:
+            self.event.flags |= getattr(CareerEvent.flags, flag)
+
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
@@ -146,16 +159,18 @@ class CareerEventHandlerBase(object):
                 previous_event.save(editor)
 
         self.pre_save()
-
-        # TODO: store handler flags in the CareerEvent instance
-        self.event.event_type = self.EVENT_TYPE
+        self.set_handler_specific_data()
         self.event.save(editor)
-
         self.post_save()
 
     def get_config(self, name, default=None):
-        raw_value = self.event.config.get(name) or self.CONFIG_FIELDS[name].default or default
-        return self.CONFIG_FIELDS[name].to_python(raw_value)
+        # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in the
+        #      config field, then it was most likely valid when the event was created.
+        try:
+            raw_value = self.event.config.get(name) or default
+            return self.CONFIG_FIELDS[name].to_python(raw_value)
+        except forms.ValidationError:
+            return None
 
     def set_config(self, name, value):
         if isinstance(value, models.Model):

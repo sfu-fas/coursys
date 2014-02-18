@@ -1,4 +1,4 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ activity.name }} Statistics{% endblock %}
 {% block h1 %}{{ activity.name }} Statistics{% endblock %}
@@ -9,7 +9,7 @@
 <li>Statistics</li>
 {% endspaceless %}{% endblock %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
@@ -48,59 +48,55 @@
 		{% if activity_stat %}
 		<h2 id="summary">Summary Statistics</h2>
 		{% if activity.is_numeric %}
-		<div class="table_container">
     		<table class="info">
         	<tbody>
             		<tr>
-                		<th class="ui-state-default">Mean Grade</th>
+                		<th scope="row">Mean Grade</th>
                 		<td>{{ activity_stat.average }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
-           		     	<th class="ui-state-default">Median Grade</th>
+           		     	<th scope="row">Median Grade</th>
                 		<td>{{ activity_stat.median }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
-                		<th class="ui-state-default">Standard Deviation</th>
+                		<th scope="row">Standard Deviation</th>
                 		<td>{{ activity_stat.stddev }}</td>
             		</tr>
             		<tr>
-                		<th class="ui-state-default">Minimum Grade</th>
+                		<th scope="row">Minimum Grade</th>
                 		<td>{{ activity_stat.min }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
-                		<th class="ui-state-default">Maximum Grade</th>
+                		<th scope="row">Maximum Grade</th>
                 		<td>{{ activity_stat.max }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
-                		<th class="ui-state-default">Grades Received</th>
+                		<th scope="row">Grades Received</th>
                 		<td>{{ activity_stat.count }}</td>
             		</tr>
         	</tbody>
     		</table>
-		</div>
 		{% else %}
-		<div class="table_container">
     		<table class="info">
         	<tbody>
             		<tr>
-                		<th class="ui-state-default">Median Grade</th>
+                		<th scope="row">Median Grade</th>
                 		<td>{{ activity_stat.median }}</td>
             		</tr>
             		<tr>
-                		<th class="ui-state-default">Minimum Grade</th>
+                		<th scope="row">Minimum Grade</th>
                 		<td>{{ activity_stat.min }}</td>
             		</tr>
             		<tr>
-                		<th class="ui-state-default">Maximum Grade</th>
+                		<th scope="row">Maximum Grade</th>
                 		<td>{{ activity_stat.max }}</td>
             		</tr>
             		<tr>
-                		<th class="ui-state-default">Grades Received</th>
+                		<th scope="row">Grades Received</th>
                 		<td>{{ activity_stat.count }}</td>
             		</tr>
         	</tbody>
     		</table>
-		</div>
 		{% endif %}
 	{% endif %}{% endif %}
 {% else %}
@@ -108,11 +104,10 @@
 {% endif %}
 
 <h2 id="submark">Submissions and Grades</h2>
-<div class="table_container">
 <table class="info">
 <tbody>
   <tr>
-    <th class="ui-state-default">Submissions</th>
+    <th scope="row">Submissions</th>
     {% if submark_stat.submittable %}
       <td>
       {% if activity.group %}
@@ -133,7 +128,7 @@
     {% endif %}
   </tr>
   <tr>
-    <th class="ui-state-default">Detailed Marks Given</th>
+    <th scope="row">Detailed Marks Given</th>
     {% if submark_stat.markable %}
       <td>
       {% if activity.group %}
@@ -149,7 +144,6 @@
   </tr>
 </tbody>
 </table>
-</div>
 
 {% if activity_stat.count %}
 <h2 id="histo">Histogram</h2>

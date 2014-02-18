@@ -1,15 +1,16 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 {% load form_display %}
 
 {% block h1 %}{{course.name}} TAs{% endblock %}
 {% block title %}{{course.name}} TAs{% endblock %}
 
 {% block headextra %}<script type="text/javascript">
-//<![CDATA[
     $(document).ready(function() {
     $('#tas_table').dataTable({
                 "bPaginate": false,
 		"bJQueryUI": true,
+		"bFilter": false,
+		"bInfo": false,
 		"aaSorting": [[0, "asc"]],
 		"aoColumns": [
 		    null,
@@ -19,8 +20,7 @@
 	});
 
     });
-
-//]]></script>{% endblock %}
+</script>{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li>Manage TAs</li>{% endblock %}
 

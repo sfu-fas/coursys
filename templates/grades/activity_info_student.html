@@ -1,11 +1,11 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ activity.name }} Information{% endblock %}
 {% block h1 %}{{ activity.name }} Information{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>{{ activity.name }}</li>{% endblock %}
 
-{% block grades_headextra %}
+{% block headextra %}
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
 {% if activity_stat %}
@@ -54,34 +54,33 @@
 {% endblock %}
 
 {% block content %}
-<div class="table_container">
     <table class="info">
         <tbody>
             <tr>
-                <th class="ui-state-default">Status</th>
+                <th scope="row">Status</th>
                 <td>{{activity.get_status_display}}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Due date</th>
+                <th scope="row">Due date</th>
                 <td class="{{activity.due_class}}">{{activity.due_date}}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Percentage</th>
+                <th scope="row">Percentage</th>
                 <td>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}</td>
             </tr>
             {% if activity.config.url %}
             <tr>
-                <th class="ui-state-default">More Information</th>
+                <th scope="row">More Information</th>
                 <td>{{activity.config.url|urlize}}</td>
             </tr>
             {% endif %}
             
             <tr>
-                <th class="ui-state-default">Grade Status</th>
+                <th scope="row">Grade Status</th>
                 <td>{{grade.get_flag_display}}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Your Grade</th>
+                <th scope="row">Your Grade</th>
                 <td>
                <strong>{{ grade.display_with_percentage_student }}</strong>
                {% if activity.is_numeric %}
@@ -95,50 +94,47 @@
             </tr>
             {% if grade.comment %} 
             <tr>
-            	<th class="ui-state-default">Grade Comment</th>
+            	<th scope="row">Grade Comment</th>
                 <td>{{grade.comment|linebreaks}}</td>
             </tr>
             {% endif %}
 
         </tbody>
     </table>
-</div>
 
 
 {% if activity_stat %}
 {% if activity.showstats %}
 <h2 id="summary">Summary Statistics</h2>
 
-<div class="table_container">
     <table class="info">
         <tbody>
             {% if activity.is_numeric %}
             <tr>
-                <th class="ui-state-default">Mean Grade</th>
+                <th scope="row">Mean Grade</th>
                 <td>{{ activity_stat.average }}</td>
             </tr>
             {% endif %}
             <tr>
-                <th class="ui-state-default">Median Grade</th>
+                <th scope="row">Median Grade</th>
                 <td>{{ activity_stat.median }}</td>
             </tr>
             {% if activity.is_numeric %}
             <tr>
-                <th class="ui-state-default">Standard Deviation</th>
+                <th scope="row">Standard Deviation</th>
                 <td>{{ activity_stat.stddev }}</td>
             </tr>
             {% endif %}
             <tr>
-                <th class="ui-state-default">Minimum Grade</th>
+                <th scope="row">Minimum Grade</th>
                 <td>{{ activity_stat.min }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Maximum Grade</th>
+                <th scope="row">Maximum Grade</th>
                 <td>{{ activity_stat.max }}</td>
             </tr>
         </tbody>
     </table>
-</div>
 {% else %}
 <p class="empty">Summary stats disabled by instructor.</p>
 {% endif %}{% else %}

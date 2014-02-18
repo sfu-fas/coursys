@@ -4,15 +4,15 @@
 
 {% block headextra %}
 <script type="text/javascript">
+/*
 $(document).ready(function() {
   $('#event_type_table').dataTable( {
     'bPaginate': false,
     'bInfo': false,
-    "aoColumns": [null,
-    ],
     "bJQueryUI": true,
   } );
 } );
+*/
 </script>
 {% endblock %}
 {% block subbreadcrumbs %}
@@ -25,7 +25,7 @@ $(document).ready(function() {
 <div class="datatable_container">
 <table id="event_type_table" class="display">
   <thead><tr>
-    <th scope="col">Title</th>
+    <th scope="col">Event Type</th>
     <th scope="col">Instantaneous</th>
     <th scope="col">Affects Teaching</th>
     <th scope="col">Affects Salary</th>

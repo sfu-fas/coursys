@@ -8,6 +8,7 @@ from django.http import StreamingHttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.template.base import Template
@@ -111,6 +112,8 @@ def view_event(request, userid, event_slug):
     Handler = EVENT_TYPES[instance.event_type](event=instance)
 
     # TODO: can editors change the status of events to something else?
+    # TODO: For now just assuming editor who is allowed to approve event is also allowed to 
+    # delete event, in essence change the status of the event to anything they want.
     approval = None
     if Handler.can_approve(editor):
         approval = ApprovalForm(instance=instance)
@@ -208,6 +211,8 @@ def change_event(request, userid, event_slug):
             handler.save(editor)
             context.update({"event": handler.event,
                             "event_form": form})
+        else:
+            context.update({"event_form": form})
 
     else:
         # Display form from db instance
@@ -215,6 +220,26 @@ def change_event(request, userid, event_slug):
         context.update({"event_form": form})
 
     return render(request, 'faculty/career_event_form.html', context)
+
+
+@require_POST
+@requires_role('ADMN')
+def change_event_status(request, userid, event_slug):
+    """
+    Change status of event, if the editor has such privileges.
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    editor = get_object_or_404(Person, userid=request.user.username)
+   
+    Handler = EVENT_TYPES[instance.event_type](event=instance)
+    if not Handler.can_approve(editor):
+        raise PermissionDenied("You cannot change status of this event") 
+    form = ApprovalForm(request.POST, instance=instance)
+    if form.is_valid():
+        event = form.save(commit=False)
+        event.save(editor)
+        return HttpResponseRedirect(event.get_absolute_url())
 
 
 ###############################################################################

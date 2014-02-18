@@ -1,14 +1,13 @@
-{% extends "grades/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Student Search{% endblock %}
 {% block h1 %}Student Search{% endblock %}
 
-{% block grades_headextra %}<script type="text/javascript">
-//<![CDATA[
+{% block headextra %}<script type="text/javascript">
 $(document).ready(function() {
   document.getElementById("id_search").focus();
 });
-//]]></script>{% endblock %}
+</script>{% endblock %}
 {% block actions %}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>Student Search</li>{% endblock %}
