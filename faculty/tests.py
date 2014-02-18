@@ -68,16 +68,23 @@ class EventTypesTest(TestCase):
                 # mixin method.
                 handler = Handler(CareerEvent(person=fac_member,
                                               unit=fac_role.unit))
+                handler.set_handler_specific_data()
 
                 if 'affects_salary' in Handler.FLAGS:
                     self.assertTrue(issubclass(Handler, SalaryCareerEvent))
                     self.assertIsInstance(handler, SalaryCareerEvent)
                     self.assertIsInstance(handler.salary_adjust_annually(), SalaryAdjust)
+                    self.assertTrue(handler.event.flags.affects_salary)
+                else:
+                    self.assertFalse(handler.event.flags.affects_salary)
 
                 if 'affects_teaching' in Handler.FLAGS:
                     self.assertTrue(issubclass(Handler, TeachingCareerEvent))
                     self.assertIsInstance(handler, TeachingCareerEvent)
                     self.assertIsInstance(handler.teaching_adjust_per_semester(), TeachingAdjust)
+                    self.assertTrue(handler.event.flags.affects_teaching)
+                else:
+                    self.assertFalse(handler.event.flags.affects_teaching)
 
                 # test form creation
                 Handler.get_entry_form(editor=editor, units=units)

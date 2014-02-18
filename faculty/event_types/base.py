@@ -128,6 +128,18 @@ class CareerEventHandlerBase(object):
         # add initialization logic.
         self.initialize()
 
+    def set_handler_specific_data(self):
+        """
+        Sets store Handler specific flags and type in the CareerEvent instance.
+
+        """
+        from faculty.models import CareerEvent
+        self.event.event_type = self.EVENT_TYPE
+
+        self.event.flags = 0
+        for flag in self.FLAGS:
+            self.event.flags |= getattr(CareerEvent.flags, flag)
+
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
@@ -147,11 +159,8 @@ class CareerEventHandlerBase(object):
                 previous_event.save(editor)
 
         self.pre_save()
-
-        # TODO: store handler flags in the CareerEvent instance
-        self.event.event_type = self.EVENT_TYPE
+        self.set_handler_specific_data()
         self.event.save(editor)
-
         self.post_save()
 
     def get_config(self, name, default=None):
