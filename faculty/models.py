@@ -2,6 +2,7 @@ import datetime
 import os
 
 from django.db import models
+from django.db.models import Q
 from django.core.urlresolvers import reverse
 
 from autoslug import AutoSlugField
@@ -60,6 +61,12 @@ EVENT_TAGS = {
                 'event_title': 'name of event',
             }
 
+class CareerEventManager(models.Manager):
+    def active_on(date):
+        qs = self.get_query_set()
+        end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
+        qs = qs.filter(start_date__lte=date).filter(end_okay)
+        return qs
 
 class CareerEvent(models.Model):
 
@@ -87,6 +94,8 @@ class CareerEvent(models.Model):
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = CareerEventManager()
 
     def __unicode__(self):
         return self.title
