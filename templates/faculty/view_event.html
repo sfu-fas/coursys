@@ -32,17 +32,20 @@
 {% block content %}
 <div class="careerevent">
 {{ handler.to_html }}
+</div>
+<div class="clearfix"></div>
+
 {% if approval_form %}
 <form action="{{ event.get_status_change_url }}" method="post">
 	{% csrf_token %}
 	{{ approval_form }}
-	<input type="submit" value="Change">
+	<input type="submit" value="Change"/>
 </form>
 {% else %}
-<em>You cannot change the status of this event (as {{ user }})</em>
+<p class="empty">You cannot change the status of this event (as {{ user }})</p>
 {% endif %}
-</div>
-<div class="clearfix"></div>
+
+
 
 {% with attachments=event.attachments.all %}
 {% if attachments %}
