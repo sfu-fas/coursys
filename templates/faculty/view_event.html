@@ -62,7 +62,7 @@
 <h4>Memos</h4>
 <ul>
 {% for l in memos %}
-<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_person }})
+<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_lines }})
 	<a href="{% url "faculty.views.get_memo_pdf" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
 	<a href="{% url "faculty.views.view_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a> |
 	<a href="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a></td>
