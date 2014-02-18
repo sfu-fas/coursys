@@ -95,7 +95,7 @@ function more_course_info(url) {
 		url: url,
 		success: function(data){
 			if( $('table.info').length == 0 ) {
-			    $('div.table_container').html('<table class="info"><tbody></tbody></table>');				
+			    $('div.table_container').html('<table class="info"><tbody></tbody></table>');
 			}
 			if (data['error']) {
 				add_to_info('Error', data['error']);

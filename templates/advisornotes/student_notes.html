@@ -61,7 +61,7 @@
         {% if not nonstudent %}
         {% if show_transcript %}<li><a href="{% url "advisornotes.views.student_courses" userid=userid%}">View Current Courses</a></li>{% endif %}
         <li id="moreinfo">
-            <a href="javascript:get_more_info('{% url "advisornotes.views.student_more_info" userid=userid %}')">Fetch more info <img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a>
+            <a href="javascript:get_more_info('{% url "advisornotes.views.student_more_info" userid=userid %}')">Fetch more info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
         </li>
         {% endif %}
         {% if nonstudent %}
@@ -176,7 +176,7 @@
 <div class="note-box" id="form-box-{{formsub.id}}">
 <div class="note-content">
   {% if formsub.summary %}<p>Summary{% if formsub.closer %} by {{ formsub.closer.name }}{% endif %}: &ldquo;{{ formsub.summary }}&rdquo;
-  {% if formsub.emailed %}<img src="{{ STATIC_URL }}icons/email.png" alt="emailed" title="summary emailed to student" />{% endif %}
+  {% if formsub.emailed %}<i class="fa fa-envelope-o" title="Summary emailed to the student"></i>{% endif %}
   </p>{% endif %}
   <p><a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
       &ldquo;{{formsub.form.title}}&rdquo; submission.</a></p>

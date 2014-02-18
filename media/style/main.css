@@ -448,10 +448,10 @@ tr.even {
 }
 
 /* DataTables cell types */
-.datatable_container .iconcell {
+.iconcell {
   text-align: center;
 }
-.datatable_container .iconcell .fa {
+.iconcell .fa {
   margin: 0 0.25em;
 }
 .datatable_container .disabled {
@@ -470,6 +470,9 @@ table td.hidden, table tr.hidden {
 
 
 /* info tables */
+table.info {
+  border-collapse:collapse;
+}
 table.info th {
   font-weight: bold;
   width: 12em;
@@ -477,7 +480,7 @@ table.info th {
   border: 1px solid #ddd;
 }
 table.info td {
-  border: 1px solid #eee;
+  border: 1px solid #ddd;
 }
 table.info p {
   padding: 0;
@@ -1172,13 +1175,11 @@ table.artifacts th.name {
 
 .artifact-note dt {
   color: #777;
-  font-size: 92%;
-  margin-right: 2px;
-  text-transform: uppercase;
+  margin-right: 0.3em;
+  font-weight: normal;
 }
 
 .artifact-note dd {
-  font-weight: bold;
   margin-right: 20px;
 }
 
@@ -1188,6 +1189,7 @@ table.artifacts th.name {
 
 .artifact-note input {
   vertical-align: middle;
+  margin-top: 0;
 }
 
 .artifact-note div.note-content {

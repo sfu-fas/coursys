@@ -158,7 +158,6 @@ def new_note(request, userid):
             if 'file_attachment' in request.FILES:
                 upfile = request.FILES['file_attachment']
                 note.file_mediatype = upfile.content_type
-                messages.add_message(request, messages.SUCCESS, u'Created file attachment "%s".' % (upfile.name))
 
             if isinstance(student, Person) and form.cleaned_data['email_student']:
                 _email_student_note(note)
@@ -202,7 +201,6 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
             if 'file_attachment' in request.FILES:
                 upfile = request.FILES['file_attachment']
                 note.file_mediatype = upfile.content_type
-                messages.add_message(request, messages.SUCCESS, u'Created file attachment "%s".' % (upfile.name))
 
             if course:
                 note.course = course
@@ -478,7 +476,7 @@ def view_artifact_notes(request, artifact_slug):
     """
     View to view all notes for a specific artifact
     """
-    artifact = get_object_or_404(Artifact, slug=artifact_slug)
+    artifact = get_object_or_404(Artifact, slug=artifact_slug, unit__in=request.units)
     notes = ArtifactNote.objects.filter(artifact__slug=artifact_slug).order_by('category', 'created_at')
     important_notes = notes.filter(important=True)
     notes = notes.exclude(important=True)

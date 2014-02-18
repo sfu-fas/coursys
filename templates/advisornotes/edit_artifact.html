@@ -12,12 +12,8 @@
 <div class="form_container">
     <form action="{% url "advisornotes.views.edit_artifact" artifact_slug=artifact.slug %}" method="post">
         {% csrf_token %}
-        <fieldset>
-            <legend>Artifact Information</legend>
             {{ form|as_dl }}
-            <p><input type="submit" class="submit" value="Submit" /></p>
-        </fieldset>
+            <p><input type="submit" class="submit" value="Update" /></p>
     </form>
 </div>
-
 {% endblock %}
