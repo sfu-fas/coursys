@@ -502,7 +502,7 @@ table.info a.editlink { /* small "edit this thing" links in table.info */
 
 
 
-disabled .table_container p.errorindicator {
+X .table_container p.errorindicator {
     border: 2px solid red;
     padding: 0.5em;
     background-color: #fffead;

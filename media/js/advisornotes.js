@@ -28,7 +28,7 @@ function search_sims(url, emplid, formurl, csrftoken) {
 
 function add_to_info(key, value) {
     // add this key/value to the info table
-    $('table.info').append('<tr class="dynamic"><th class="ui-state-default">' + key + '</th><td>' + value + '</td></tr>')
+    $('table.info').append('<tr class="dynamic"><th scope="row">' + key + '</th><td>' + value + '</td></tr>')
 }
 
 function get_more_info(url) {
