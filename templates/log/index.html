@@ -25,8 +25,8 @@ $(document).ready(function() {
 {% block actions %}{% endblock %}
 
 {% block content %}
-<form method="post" action="">{% csrf_token %}
-<p><input type="text" name="q" value="" /> <input type="submit" value="Search" /></p>
+<form method="get" action="">
+<p><input type="text" name="q" value="{{ q }}" size="30" /> <input type="submit" value="Search" class="submit"/></p>
 </form>
 
 {% if logs %}

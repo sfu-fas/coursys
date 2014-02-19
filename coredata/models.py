@@ -755,7 +755,7 @@ class Member(models.Model):
     credits = models.PositiveSmallIntegerField(null=False, default=3,
         help_text='Number of credits this course is worth.')
     career = models.CharField(max_length=4, choices=CAREER_CHOICES)
-    added_reason = models.CharField(max_length=4, choices=REASON_CHOICES)
+    added_reason = models.CharField(max_length=4, choices=REASON_CHOICES, db_index=True)
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".')
     official_grade = models.CharField(max_length=2, null=True, blank=True)
