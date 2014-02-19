@@ -70,7 +70,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
-    'courselib.mobile_detection.MobileDetectionMiddleware'
+    #'courselib.mobile_detection.MobileDetectionMiddleware'
 )
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -100,7 +100,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    #'django.contrib.markup',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
@@ -118,7 +117,7 @@ INSTALLED_APPS = (
     'submission',
     #'planning',
     'discipline',
-    'mobile',
+    #'mobile',
     'ta',
     'pages',
     'ra',

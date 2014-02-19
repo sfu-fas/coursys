@@ -48,10 +48,6 @@ $(document).ready(function() {
 
 {% block content %}
 
-{% if request.is_mobile %}
-    <div>Browsing on a mobile device? <a href="{{ request.REQUEST.url|mobilize_url }}">Visit our mobile site.</a></div>
-{% endif %}
-
 {% if news_list%}
 <h2>Latest news</h2>
 <div id="newsitems">
