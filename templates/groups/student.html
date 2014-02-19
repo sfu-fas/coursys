@@ -7,7 +7,7 @@
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Groups</li>{% endblock %}
 {% block actions %}
 <div id="actions">
-    <h2 class="heading">Actions</h2>
+    <h2>Actions</h2>
     <ul>
     <li><a href="{% url "groups.views.create" course_slug=course.slug %}">Create New Group</a></li>
     </ul>
@@ -25,7 +25,7 @@
           {% for activity in info.activities %}
           {{ activity.name }}{% if forloop.last %}.{% else %}, {% endif %}
           {% endfor %}</p>
-          <ul>
+          <ul class="bulleted">
               {% for m in info.unique_members %}
               <li>{{ m.member.person.name }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
               {% if m.missing %}(not for 

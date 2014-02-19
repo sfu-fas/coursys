@@ -56,6 +56,9 @@ form.subtle, td.miniaction form { /* a form that we don't want to look so form-i
   border: none;
   padding: 0;
 }
+form table, form .table {
+ background: transparent;
+}
 ul.bulleted li, .wikicontents ul>li {
   list-style-type: circle;
   margin-left: 1em;
