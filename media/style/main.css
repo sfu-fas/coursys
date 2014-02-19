@@ -50,6 +50,7 @@ input[type="radio"], input[type="checkbox"] {
 input[type="email"], input[type="number"] { /* other text-like input types not covered in head.styles.css */
   height:2.25em;
   padding:0 0 0 .4em;
+  margin-top: 0.5em;
 }
 form.subtle, td.miniaction form { /* a form that we don't want to look so form-ish */
   background-color: transparent;
@@ -58,6 +59,9 @@ form.subtle, td.miniaction form { /* a form that we don't want to look so form-i
 }
 form table, form .table {
  background: transparent;
+}
+form table.info th {
+  background-color: #ddd;
 }
 ul.bulleted li, .wikicontents ul>li {
   list-style-type: circle;
