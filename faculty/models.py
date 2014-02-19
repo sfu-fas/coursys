@@ -19,10 +19,12 @@ from faculty.event_types.awards import GrantApplicationEventHandler
 from faculty.event_types.awards import AwardEventHandler
 from faculty.event_types.awards import TeachingCreditEventHandler
 from faculty.event_types.career import AppointmentEventHandler
+from faculty.event_types.career import OnLeaveEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
 from faculty.event_types.career import TenureReceivedEventHandler
+from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
@@ -38,6 +40,8 @@ HANDLERS = [
     ExternalAffiliationHandler,
     FellowshipEventHandler,
     GrantApplicationEventHandler,
+    OnLeaveEventHandler,
+    StudyLeaveEventHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,

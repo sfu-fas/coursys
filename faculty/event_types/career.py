@@ -7,7 +7,7 @@ from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import SalaryAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
-from faculty.event_types.fields import AddSalaryField, AddPayField
+from faculty.event_types.fields import AddSalaryField, AddPayField, SemesterField
 
 
 RANK_CHOICES = [
@@ -144,7 +144,7 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return '%s Applied for Tenure on %s' % (self.event.person.name(),
-                                                datetime.date.today())
+                                                self.event.start_date)
 
 class TenureReceivedEventHandler(CareerEventHandlerBase):
     """
@@ -160,5 +160,81 @@ class TenureReceivedEventHandler(CareerEventHandlerBase):
         return 'Tenure Received'
 
     def short_summary(self):
-        return '%s received for Tenure on %s' % (self.event.person.name(),
-                                                datetime.date.today())
+        return '%s received Tenure on %s' % (self.event.person.name(),
+                                                self.event.start_date)
+
+class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
+    """
+    Taking a sort of leave
+    """
+    EVENT_TYPE = 'LEAVE'
+    NAME = "On Leave"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Leave Type</dt><dd>{{ event|get_config:"reason" }}</dd>
+        <dt>Leave Fraction</dt><dd>{{ event|get_config:"leave_fraction" }}</dd>
+        <dt>Teaching Credits Accrue?</dt><dd>{{ event|get_config:"teaching_accrues"|yesno }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        REASONS =[('MEDICAL', 'Medical'), ('PARENTAL', 'Parental'), ('ADMIN', 'Admin'), ('SECONDMENT', 'Secondment')]
+        reason = forms.ChoiceField(label='Type', choices=REASONS)
+        leave_fraction = forms.DecimalField(decimal_places=2, help_text="eg. 0.7")
+        teaching_accrues = forms.BooleanField(label='Do Teaching Credits Accrue During Leave?', required=False)
+
+
+    @classmethod
+    def default_title(cls):
+        return 'On Leave'
+
+    def short_summary(self):
+        return '%s leave beginning %s' % (self.event.person.name(),
+                                                self.event.start_date)
+
+    def salary_adjust_annually(self):
+        f = Fraction(self.event.config.get('leave_fraction', 0))
+        return SalaryAdjust(0, f, 0)
+
+    # Not quite sure how this should be done, do we want a field indicating reduction in workload?
+    def teaching_adjust_per_semester(self):
+        if self.event.teaching_accrues:
+            return TeachingAdjust(Fraction(1), Fraction(0))
+
+        return TeachingAdjust(Fraction(0), Fraction(0))
+
+class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
+    """
+    Study leave event
+    """
+    EVENT_TYPE = 'STUDYLEAVE'
+    NAME = "Study Leave"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Pay Fraction</dt><dd>{{ event|get_config:"pay_fraction" }}</dd>
+        <dt>Report Received</dt><dd>{{ event|get_config:"teaching_accrues"|yesno }}</dd>
+        <dt>Report Received On</dt><dd>${{ event|get_config:"report_reveived_date" }}</dd>
+        <dt>Credits Carried Forward</dt><dd>{{ event|get_config:"credits" }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        pay_fraction = forms.DecimalField(decimal_places=2, help_text="eg. 0.7")
+        report_received = forms.BooleanField(label='Report Received?', required=False)
+        report_received_date = SemesterField(required=False, semester_start=False)
+        credits = forms.DecimalField(decimal_places=2, help_text="Number of Credits Carried Forward")
+
+
+    @classmethod
+    def default_title(cls):
+        return 'Study Leave'
+
+    def short_summary(self):
+        return 'Study leave begginging %s' % (self.event.start_date)
+
+    def salary_adjust_annually(self):
+        f = Fraction(self.event.config.get('pay_fraction', 0))
+        return SalaryAdjust(0, f, 0)
+
+    # Not quite sure how this should be done
+    def teaching_adjust_per_semester(self):
+        c = Fraction(self.event.config.get('credits', 0))
+        return TeachingAdjust(c, Fraction(0))
