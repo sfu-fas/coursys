@@ -122,7 +122,9 @@ span.sort { /* content that fixes datatables sorting but isn't user-visible */
 #ui-datepicker-div { /* shrink the datepicker to something more reasonable */
   font-size:0.75em;
 }
-
+.clearfix {
+  clear: both;
+}
 
 
 /* for the base-wide template */
