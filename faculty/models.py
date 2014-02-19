@@ -84,7 +84,7 @@ class CareerEvent(models.Model):
     unit = models.ForeignKey(Unit)
 
     title = models.CharField(max_length=255, blank=False, null=False)
-    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
+    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit', 'start_date'),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -123,7 +123,7 @@ class CareerEvent(models.Model):
 
     @property
     def full_title(self):
-        return '{} {}'.format(self.start_date.year, self.title)
+        return '{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
 
     def get_event_type_display(self):
         "Override to display nicely"
@@ -138,6 +138,7 @@ class CareerEvent(models.Model):
             '-end_date',
             'title',
         )
+        unique_together = (('person', 'unit', 'title'),)
 
     def memo_info(self):
         """

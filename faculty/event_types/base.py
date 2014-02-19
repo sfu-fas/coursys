@@ -246,6 +246,15 @@ class CareerEventHandlerBase(object):
         """
         return self.has_permission(self.APPROVAL_BY, editor)
 
+    def set_status(self, editor):
+        """
+        Set status appropriate to the editor.  Override this method
+        if the status checking becomes more complex for an event type.
+        """
+        if self.can_approve(editor):
+            self.event.status = 'A'
+            self.save(editor)
+
     # Stuff relating to forms
 
     class EntryForm(BaseEntryForm):
@@ -260,9 +269,12 @@ class CareerEventHandlerBase(object):
         self.event.start_date = form.cleaned_data['start_date']
         self.event.end_date = form.cleaned_data.get('end_date', None)
         self.event.comments = form.cleaned_data.get('comments', None)
-        self.event.status = form.cleaned_data.get('status', 'NA')
+        # XXX: Event status is set based on the editor,
+        # This is set in handler method 'set_status'
+        # The following line causes bug which resets status to 'NA'
+        # every time the form is loaded, this is not desired behavior.
+        #self.event.status = form.cleaned_data.get('status', 'NA')
 
-        # XXX: status field: choose highest possible value for the available unit(s)?
 
         for name in self.CONFIG_FIELDS:
             self.set_config(name, form.cleaned_data.get(name, None))

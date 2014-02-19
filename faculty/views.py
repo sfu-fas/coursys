@@ -174,7 +174,8 @@ def create_event(request, userid, handler):
         if form.is_valid():
             handler = Handler.create_for(person=person, form=form)
             handler.save(editor)
-            
+            handler.set_status(editor)
+
             return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
