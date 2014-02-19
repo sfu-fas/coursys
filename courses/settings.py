@@ -16,8 +16,8 @@ ADMINS = (
     ('Curtis Lassam', 'classam@sfu.ca'),
     ('sumo Kindersley', 'sumo@cs.sfu.ca'),
 )
-
 MANAGERS = ADMINS
+SERVER_EMAIL = 'ggbaker@sfu.ca'
 
 if DEPLOYED:
     DATABASES = {
@@ -50,7 +50,6 @@ SITE_ID = 1
 USE_I18N = True
 MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploads')
 MEDIA_URL = '/media/'
-#ADMIN_MEDIA_PREFIX = '/adminmedia/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'w@h_buddoh5**%79%0x&7h0ro2tol+-7vz=p*kn_g+0qcw8krr'
@@ -106,6 +105,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'compressor',
+    'djcelery',
+    'djcelery_email',
 
     'coredata',
     'dashboard',
@@ -184,15 +185,20 @@ else:
     SVN_DB_CONNECT = None
 
 # should we use the Celery job queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = DEPLOYED
-#USE_CELERY = True
+#USE_CELERY = DEPLOYED
+USE_CELERY = True
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
-    INSTALLED_APPS = INSTALLED_APPS + (
-        'djcelery',
-        'djcelery_email',
-        )
-    BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
+    if DEPLOYED:
+        # use AMPQ in production, and move email sending to Celery
+        BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
+        CELERY_EMAIL_BACKEND = EMAIL_BACKEND
+        EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+    else:
+        # use Kombo (aka the Django database) in devel
+        BROKER_URL = "django://"
+        INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
+
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
@@ -209,11 +215,9 @@ if USE_CELERY:
     CELERY_EMAIL_TASK_CONFIG = {
         'rate_limit' : '30/m',
         'queue': 'email',
-        'serializer': 'pickle',
+        'serializer': 'pickle', # email objects aren't JSON serializable
     }
-    CELERY_EMAIL_BACKEND = EMAIL_BACKEND
-    EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-    SERVER_EMAIL = 'ggbaker@sfu.ca'
+
 
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
