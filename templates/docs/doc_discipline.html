@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}CourSys: Academic Dishonesty Cases{% endblock %}
+{% block h1 %}CourSys: Academic Dishonesty Cases{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Academic Dishonesty Cases</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<p>
+The academic dishonesty features in CourSys are designed to autmate and simplify the handling and management of dishonesty cases to the greatest extent possible.
+Of course, instructors must be aware of <a href="http://www.sfu.ca/policies/gazette/student.html">the University's policies on student discipline</a>.
+The system is designed to make following the policies as easy as possible, but can't replace basic knowledge of their workings.
+</p>
+<p>Because the University policy states that instructors must deal with cases, only instructors have access to the system. It is invisible to TAs and students.</p>
+
+
+<h2 id="basics">Basic Ideas</h2>
+<p>The system organizes dishonesty cases as either individual cases or case clusters.</p>
+
+<dl class="docs">
+<dt>Individual case</dt>
+  <dd>Represents one academic dishonesty case against one student.</dd>
+<dt>Case cluster</dt>
+  <dd><p>Groups several individual cases together for convenience. The idea is that these cases would be related: a group of students that worked together inappropriately, or several students who committed a similar infraction.</p>
+  <p>As an instructor proceeds with the case, they will be given the option to take the same action for all (or some) members of the cluster. This can simplify the management of a large case.</p></dd>
+<dt>Private/public Information</dt>
+  <dd><p>Throughout the system, various fields are indicated to be &ldquo;public&rdquo; or &ldquo;private&rdquo;. Public fields are things that are included in the final letter which is sent to the student and filed by Student Services. Private fields are intended to for record-keeping by the instructor.</p>
+  <p>But please note that private fields are potentially subject to Freedom of Information requests.</p></dd>
+</dl>
+
+
+
+<h2 id="workflow">Case Workflow</h2>
+<p>The intention is that an instructor will create the case in CourSys as soon as they recognize a problem. The system will guide them through the rest of the process.</p>
+<p>Instructors start by going to <a href="{% url dashboard.views.index %}">the front page of CourSys</a>, selecting their course, and &ldquo;Dishonesty Cases&rdquo; from the menu on the left.</p>
+<p>Once an instructor creates a case, they can click through to the case's main screen. On this page, the <strong>most important feature is the &ldquo;suggested next step&rdquo;</strong> box. It gives the next action that the instructor should likely take to proceed with the case. Of course, instructors can skip ahead and back as needed to edit other information.</p>
+<p>The system will keep track of the state of the case as it is being completed and will always suggest the next step. In addition to these roughly-linear steps, there are two additional pieces of information the instructor can enter:</p>
+<dl class="docs">
+<dt>Related items</dt>
+<dd><p>If instructors are using the other features of CourSys (grade distribution, assignment submission, rubric-based marking, etc), then they will have likely set up their activities in the system (&ldquo;Assignment 1&rdquo;, &ldquo;Midterm&rdquo;, etc). Selecting the activities that are related to this case will allow a few steps to be automated later.</p>
+<p>Instructors who are not using these features are missing out, but it won't be a problem if they only want to use the dishonestly case system.</p></dd>
+<dt>Attach files</dt>
+<dd><p>Files can be attached to the case that will be delivered along with the final documentation (public files) or simply kept on file (private files).</p>
+<p>What information is attached to the case is at the discretion of the instructor: in some cases, it may be sufficient to simply retain the documents in question.</p></dd>
+</dl>
+
+<h2 id="email">Emails</h2>
+<p>The system will offer to send two emails as part of the case.</p>
+<dl class="docs">
+<dt>Initial Contact</dt>
+<dd><p>Policy asks instructors to &ldquo;outline the nature of the concern to the student in a timely manner and the student must be given the opportunity to discuss the matter&rdquo;. The initial email is intended to meet this requirement: contact the student and tell them there is a problem.</p>
+<p>Both the student and instructor will receive this email.</p>
+</dd>
+<dt>Final Letter</dt>
+<dd><p>The final letter is the formal completion of the case. The letter produced by CourSys informs the student (and department and Student Services) of the outcome of the case.</p>
+<p>This email will be sent to the student, instructor, and to Student Services. It will also be sent to the filer in the relevant department if that person has been configured in the system.</p></dd>
+</dl>
+
+<h2 id="aia">Academic Integrity Advisors</h2>
+<p>There are two roles that can be given to appropriate people in each department. First is the person who receives copies of all final letters (for filing in departmental records, often the Chair's secretary). Second people can be given a role allowing them to see all of the cases in the department (often the AIA).</p>
+<p>Please contact Greg Baker (<a href="mailto:ggbaker@sfu.ca">ggbaker@sfu.ca</a>) and copy Jo Hinchliffe to have these roles set up.</p>
+<p>Also feel free to contact Greg to have a demo for you or others in your department.</p>
+
+
+
+
+
+{% endblock %}

@@ -17,7 +17,7 @@ from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_studen
 from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
 
 from grades.models import all_activities_filter
-from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, GradeHistory
 from grades.models import NumericGrade, LetterGrade
 from grades.models import CalLetterActivity, ACTIVITY_TYPES
 from grades.models import neaten_activity_positions
@@ -538,7 +538,7 @@ def grade_change(request, course_slug, activity_slug, userid):
         grade = None
      
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s-gradechange.pdf' % (userid)
+    response['Content-Disposition'] = 'inline; filename="%s-gradechange.pdf"' % (userid)
     grade_change_form(member, member.official_grade, grade, user, response)
     return response
 
@@ -939,7 +939,7 @@ def edit_activity(request, course_slug, activity_slug):
                     if len(a2) > 0:
                         add_activity_to_group(activity, a2[0], course)
                 
-                activity.save()
+                activity.save(entered_by=request.user.username)
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("edited %s") % (activity),
@@ -1030,7 +1030,7 @@ def release_activity(request, course_slug, activity_slug):
     if request.method == 'POST':
         if activity.status == "INVI":
             activity.status = "URLS"
-            activity.save()
+            activity.save(entered_by=request.user.username)
             messages.success(request, 'Activity made visible to students (but grades are still unreleased).')
 
             #LOG EVENT#
@@ -1040,7 +1040,7 @@ def release_activity(request, course_slug, activity_slug):
             l.save()
         elif activity.status == "URLS":
             activity.status = "RLS"
-            activity.save()
+            activity.save(entered_by=request.user.username)
             messages.success(request, 'Grades released to students.')
 
             #LOG EVENT#
@@ -1174,7 +1174,7 @@ def all_grades_csv(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % (course_slug)
+    response['Content-Disposition'] = 'attachment; filename="%s.csv"' % (course_slug)
     
     _all_grades_output(response, course)        
     return response
@@ -1292,8 +1292,11 @@ def student_info(request, course_slug, userid):
                 info['marked'] = True
 
     group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
+    grade_history = GradeHistory.objects.filter(member=member, status_change=False).select_related('entered_by', 'activity', 'group', 'mark')
+    #grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity', 'group', 'mark')
 
-    context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships}
+    context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
+               'grade_history': grade_history}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 
 
@@ -1350,7 +1353,7 @@ def export_all(request, course_slug):
     zipdata = open(filename, 'rb')
     response = HttpResponse(FileWrapper(zipdata), mimetype='application/zip')
     response['Content-Length'] = os.path.getsize(filename)    
-    response['Content-Disposition'] = 'attachment; filename=' + course.slug + ".zip"
+    response['Content-Disposition'] = 'attachment; filename="' + course.slug + '.zip"'
     try:
         os.remove(filename)
     except OSError:

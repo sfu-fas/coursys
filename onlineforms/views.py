@@ -1,28 +1,31 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django import forms
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
 from django.core.exceptions import ObjectDoesNotExist
 
-from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm, AdminAssignForm_nonsfu
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FieldSubmissionFile
+from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
+    EditSheetForm, NonSFUFormFillerForm, AdminAssignFormForm, AdminAssignSheetForm, EditGroupForm, EmployeeSearchForm, \
+    AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
 
-from coredata.models import Person, Role
+from coredata.models import Person, Role, Unit
 from log.models import LogEntry
-
+import json
 import os
-from django.conf import settings
-from django.core.servers.basehttp import FileWrapper
-
-# TODO: file fields are broken
 
 #######################################################################
 # Group Management
@@ -64,6 +67,7 @@ def new_group(request):
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    groupmembers = FormGroupMember.objects.filter(formgroup=group).order_by('person__last_name')
 
     # for editting group name
     if request.method == 'POST':
@@ -77,12 +81,11 @@ def manage_group(request, formgroup_slug):
             l.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     form = EditGroupForm(instance=group)
-    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
 
     # below is for finding person thru coredata/personfield and adding to group
     search_form = EmployeeSearchForm()
 
-    context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form }
+    context = {'form': form, 'group': group, 'groupmembers': groupmembers, 'search': search_form }
     return render(request, 'onlineforms/manage_group.html', context)
 
 
@@ -90,7 +93,6 @@ def manage_group(request, formgroup_slug):
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
@@ -98,25 +100,28 @@ def add_group_member(request, formgroup_slug):
                     search_form = EmployeeSearchForm(request.POST)
                     if search_form.is_valid(): 
                         # search returns Person object
-                        member = search_form.cleaned_data['search']
-                        group.members.add(member)
+                        person = search_form.cleaned_data['search']
+                        email = search_form.cleaned_data['email']
+                        member = FormGroupMember(person=person, formgroup=group)
+                        member.set_email(email)
+                        member.save()
                         l = LogEntry(userid=request.user.username,
-                             description=("added %s to form group %s") % (member.userid_or_emplid(), group),
-                              related_object=group)
+                             description=("added %s to form group %s") % (person.userid_or_emplid(), group),
+                              related_object=member)
                         l.save()
                         return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                 else: # if accidentally don't search for anybody
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
     
-    groups = FormGroup.objects.filter(unit__in=request.units)
-    context = {'groups': groups}
-    return render(request, 'onlineforms/manage_groups.html', context)
+    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+
 
 @transaction.commit_on_success
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
-    member = Person.objects.get(emplid=userid)
+    person = get_object_or_404(Person, emplid=userid)
+    member = get_object_or_404(FormGroupMember, person=person, formgroup=group)
 
     if group.unit not in request.units:
         return ForbiddenResponse(request)
@@ -125,10 +130,10 @@ def remove_group_member(request, formgroup_slug, userid):
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'remove':
-                group.members.remove(member)
+                member.delete()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                    description=("Removed %s from form group %s") % (member.userid_or_emplid(), group),
+                    description=("Removed %s from form group %s") % (person.userid_or_emplid(), group),
                     related_object=group)
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
@@ -159,6 +164,8 @@ def admin_list_all(request):
         for done_sub in done_submissions:
             latest_sumbission = SheetSubmission.objects.filter(form_submission=done_sub).latest('completed_at')
             done_sub.completed_at = latest_sumbission.completed_at
+        
+        # forms with status=='REJE' were thrown away incomplete by the initiator, so aren't displayed
 
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
@@ -189,11 +196,11 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
                    .order_by('order')
     default_sheet = later_sheets[0] if later_sheets else None
 
+    sheets = Sheet.objects.filter(form=form_submission.form, active=True)
     assign_args = {'data': request.POST or None,
-                    'label': 'sheet',
-                    'query_set': Sheet.objects.filter(form=form_submission.form, active=True),
+                    'query_set': sheets,
                     'initial': {'sheet': default_sheet}}
-    form = AdminAssignForm(**assign_args) if assign_to_sfu_account else AdminAssignForm_nonsfu(**assign_args)
+    form = AdminAssignSheetForm(**assign_args) if assign_to_sfu_account else AdminAssignSheetForm_nonsfu(**assign_args)
 
     if request.method == 'POST' and form.is_valid():
         if assign_to_sfu_account:
@@ -205,6 +212,10 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
         sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=formFiller)
+        if 'note' in form.cleaned_data and form.cleaned_data['note']:
+            sheet_submission.set_assign_note(form.cleaned_data['note'])
+            sheet_submission.save()
+
         # create an alternate URL, if necessary
         if not assign_to_sfu_account:
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
@@ -220,7 +231,21 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
         messages.success(request, 'Sheet assigned.')
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
-    context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account}
+    # collect dictionary of frequent fillers of each form, for convenience links
+    frequent_fillers = ((s, SheetSubmission.objects.filter(sheet__original=s.original)
+                     .exclude(filler__sfuFormFiller=None)
+                     .values('filler__sfuFormFiller', 'filler__sfuFormFiller__emplid', 'filler__sfuFormFiller__first_name', 'filler__sfuFormFiller__last_name')
+                     .annotate(count=Count('filler'))
+                     .order_by('-count')[:5])
+                    for s in sheets)
+    frequent_fillers = dict(((s.id,[
+            {'emplid': d['filler__sfuFormFiller__emplid'],
+             'name': conditional_escape(d['filler__sfuFormFiller__first_name'] + ' ' + d['filler__sfuFormFiller__last_name'])}
+            for d in ssc])
+         for s, ssc in frequent_fillers))
+
+    context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account,
+               'frequent_fillers': mark_safe(json.dumps(frequent_fillers))}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
 
@@ -239,10 +264,10 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
     admin = get_object_or_404(Person, userid=request.user.username)
 
     if assign_to_sfu_account:
-        form = AdminAssignForm(data=request.POST or None, label='form',
+        form = AdminAssignFormForm(data=request.POST or None,
             query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
     else:
-        form = AdminAssignForm_nonsfu(data=request.POST or None, label='form',
+        form = AdminAssignFormForm_nonsfu(data=request.POST or None,
             query_set=Form.objects.filter(active=True, owner__in=request.formgroups))
 
     if request.method == 'POST' and form.is_valid():
@@ -281,17 +306,71 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
 
 @transaction.commit_on_success
 @requires_formgroup()
-def admin_done(request, form_slug, formsubmit_slug):
+def admin_change_owner(request, form_slug, formsubmit_slug):
+    admin = get_object_or_404(Person, userid=request.user.username)
     form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
                                         owner__in=request.formgroups)
-    form_submission.status = 'DONE'
-    form_submission.save()
-    #LOG EVENT#
-    l = LogEntry(userid=request.user.username,
-        description=("Marked form submission %s done.") % (form_submission,),
-        related_object=form_submission)
-    l.save()
-    return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    # Can assign to groups in Units where I'm in a FormGroup, or and subunits of them.
+    unit_ids = set(FormGroupMember.objects.filter(person=admin).values_list('formgroup__unit', flat=True))
+    sub_unit_ids = Unit.sub_unit_ids(unit_ids, by_id=True)
+    allowed_groups = FormGroup.objects.filter(unit__id__in=sub_unit_ids).exclude(id=form_submission.owner_id)
+
+    if request.method == 'POST':
+        form = ChangeOwnerForm(data=request.POST, queryset=allowed_groups)
+        if form.is_valid():
+            new_g = form.cleaned_data['new_group']
+            form_submission.owner = new_g
+            form_submission.email_notify_new_owner(request, admin)
+            form_submission.save()
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Gave ownership of form sub %s; %s to %s" % (form_submission.form.slug, form_submission.slug, new_g.name)),
+                related_object=form_submission)
+            l.save()
+            messages.success(request, 'Form given to %s.' % (new_g.name))
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    else:
+        form = ChangeOwnerForm(queryset=allowed_groups)
+
+    context = {'form': form, 'formsub': form_submission}
+    return render(request, "onlineforms/admin/admin_change_owner.html", context)
+
+
+@transaction.commit_on_success
+@requires_formgroup()
+def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
+    admin = get_object_or_404(Person, userid=request.user.username)
+    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=request.formgroups)
+    sheet_submission = get_object_or_404(SheetSubmission, form_submission=form_submission, slug=sheetsubmit_slug)
+
+    if request.method == 'POST':
+        form = AdminReturnForm(data=request.POST)
+        if form.is_valid():
+            reason = form.cleaned_data['reason']
+            sheet_submission.status = 'WAIT'
+            sheet_submission.set_return_reason(reason)
+            sheet_submission.save()
+
+            sheet_submission.email_returned(request, admin)
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Returned sheet submission %s to %s" % (sheet_submission, sheet_submission.filler)),
+                related_object=sheet_submission)
+            l.save()
+            messages.success(request, 'Sheet returned to %s.' % (sheet_submission.filler.name()))
+            return HttpResponseRedirect(reverse('onlineforms.views.view_submission', kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
+
+    else:
+        form = AdminReturnForm()
+
+    context = {'sheetsub': sheet_submission, 'formsub': form_submission, 'form': form}
+    return render(request, "onlineforms/admin/admin_return_sheet.html", context)
+
 
 def _userToFormFiller(user):
     try:
@@ -687,27 +766,31 @@ def index(request):
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
-        sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)).exclude(status='DONE')
+        other_forms = []
+        sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
+                .exclude(status='DONE').exclude(status='REJE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY')
+        other_forms = Form.objects.filter(active=True, initiators='LOG')
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
+    context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 
-is_displayable_sheet_sub = Q(status="DONE") | Q(sheet__is_initial=True)
+is_displayable_sheet_sub = Q(status__in=["DONE","REJE"]) | Q(sheet__is_initial=True)
 def _readonly_sheets(form_submission):
     """
     Collect sheet subs and other info to display this form submission.
     """
     sheet_submissions = SheetSubmission.objects \
             .filter(form_submission=form_submission) \
-            .filter(is_displayable_sheet_sub)
-    sheet_sub_html = {}
+            .filter(is_displayable_sheet_sub) \
+            .order_by('completed_at')
+    sheet_sub_html = []
     for sheet_sub in sheet_submissions:
         # get html from field submissions
         field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
@@ -720,15 +803,63 @@ def _readonly_sheets(form_submission):
                 field.html = field.to_html(field_sub)
 
             fields.append(field)
-        sheet_sub_html[sheet_sub] = fields
+        sheet_sub_html.append((sheet_sub, fields))
     return sheet_sub_html
 
 
+def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=None):
+    """
+    If this user is allowed to view this FormSubmission, return it, or None if not.
+    Also returns is_advisor, boolean as appropriate.
+    """
+    # can access if in owning formgroup
+    formgroups = FormGroup.objects.filter(members__userid=request.user.username)
+    form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
+                                        owner__in=formgroups)
+    is_advisor = False
+    if not form_submissions:
+        # advisors can access relevant completed forms
+        advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
+        units = set(r.unit for r in advisor_roles)
+        form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
+                                        form__unit__in=units, form__advisor_visible=True)
+        is_advisor = True
 
-@requires_formgroup()
+    if file_id:
+        # expanded permissions for files: filler of this and other sheets.
+        fsfs = FieldSubmissionFile.objects.filter(
+                                field_submission__sheet_submission__form_submission__slug=formsubmit_slug,
+                                id=file_id).select_related('field_submission__sheet_submission__form_submission',
+                                                           'field_submission__sheet_submission__sheet')
+        if fsfs:
+            fsf = fsfs[0]
+            formsub = fsf.field_submission.sheet_submission.form_submission
+            sheetsub = fsf.field_submission.sheet_submission
+            this_sub = SheetSubmission.objects.filter(form_submission=formsub,
+                    id=sheetsub.id,
+                    filler__sfuFormFiller__userid=request.user.username)
+            if this_sub:
+                # this is the filler of this sheet: they can see it.
+                form_submissions = [formsub]
+
+            later_sheets = SheetSubmission.objects.filter(form_submission=formsub,
+                    filler__sfuFormFiller__userid=request.user.username,
+                    sheet__order__gte=sheetsub.sheet.order,
+                    sheet__can_view='ALL')
+            if later_sheets:
+                # this is the filler of a later sheet who can view the other parts
+                form_submissions = [formsub]
+
+    if not form_submissions:
+        return None, None
+
+    return form_submissions[0], is_advisor
+
+@login_required
 def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                        owner__in=request.formgroups)
+    form_submission, _ = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=file_id)
+    if not form_submission:
+        raise Http404
     file_sub =  get_object_or_404(FieldSubmissionFile,
                                   field_submission__sheet_submission__form_submission=form_submission,
                                   id=file_id)
@@ -743,24 +874,112 @@ def file_field_download(request, form_slug, formsubmit_slug, file_id, action):
     else:
         disposition = 'inline'
     
-    response['Content-Disposition'] = disposition + '; filename=' + filename
+    response['Content-Disposition'] = disposition + '; filename="' + filename + '"'
     return response
 
 
-@requires_formgroup()
+@transaction.commit_on_success
+@login_required
 def view_submission(request, form_slug, formsubmit_slug):
-    form_submission = get_object_or_404(FormSubmission, form__slug=form_slug, slug=formsubmit_slug,
-                                        owner__in=request.formgroups)
-    sheet_submissions = _readonly_sheets(form_submission)
+    form_submission, is_advisor = _formsubmission_find_and_authz(request, form_slug, formsubmit_slug)
+    if not form_submission:
+        raise Http404
 
+    sheet_submissions = _readonly_sheets(form_submission)
+    can_admin = not is_advisor and form_submission.status != 'DONE'
+    waiting_sheets = SheetSubmission.objects.filter(form_submission=form_submission, status='WAIT')
+
+    if request.method == 'POST' and can_admin:
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, data=request.POST, prefix='close')
+        if close_form.is_valid():
+            admin = Person.objects.get(userid=request.user.username)
+            email = False
+            if 'summary' in close_form.cleaned_data:
+                form_submission.set_summary(close_form.cleaned_data['summary'])
+            if 'email' in close_form.cleaned_data:
+                form_submission.set_emailed(close_form.cleaned_data['email'])
+                email = close_form.cleaned_data['email']
+
+            for ss in waiting_sheets:
+                ss.status = 'REJE'
+                ss.set_reject_reason('Withdrawn when form was closed by %s.' % (admin.userid))
+                ss.save()
+            
+            form_submission.set_closer(admin.id)
+            form_submission.status = 'DONE'
+            form_submission.save()
+
+            if email:
+                form_submission.email_notify_completed(request, admin)
+                messages.success(request, 'Form submission marked as completed; initiator informed by email.')
+            else:
+                messages.success(request, 'Form submission marked as completed.')
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Marked form submission %s done.") % (form_submission,),
+                related_object=form_submission)
+            l.save()
+            return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    elif can_admin:
+        close_form = CloseFormForm(advisor_visible=form_submission.form.advisor_visible, prefix='close')
+    else:
+        close_form = None
+
+    can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
+    
     context = {
                'form': form_submission.form,
+               'form_sub': form_submission,
                'sheet_submissions': sheet_submissions,
                'form_slug': form_slug,
                'formsubmit_slug': formsubmit_slug,
+               'is_advisor': is_advisor,
+               'can_admin': can_admin,
+               'can_advise': can_advise,
+               'close_form': close_form,
+               'waiting_sheets': waiting_sheets,
                }
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
+
+@login_required
+def reject_sheet_subsequent(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
+    sheetsub = get_object_or_404(SheetSubmission, sheet__form__slug=form_slug,
+        form_submission__slug=formsubmit_slug, sheet__slug=sheet_slug, slug=sheetsubmit_slug,
+        filler__sfuFormFiller__userid=request.user.username)
+    return _reject_sheet(request, sheetsub)
+
+def reject_sheet_via_url(request, secret_url):
+    secret = get_object_or_404(SheetSubmissionSecretUrl, key=secret_url)
+    return _reject_sheet(request, secret.sheet_submission)
+
+@transaction.commit_on_success
+def _reject_sheet(request, sheetsub):
+    if request.method != 'POST':
+        return ForbiddenResponse(request)
+
+    if 'reject_reason' in request.POST:
+        sheetsub.set_reject_reason(request.POST['reject_reason'])
+    sheetsub.status = 'REJE'
+    sheetsub.save()
+    if sheetsub.sheet.is_initial:
+        fs = sheetsub.form_submission
+        fs.status = 'REJE'
+        fs.save()
+    else:
+        sheetsub.email_submitted(request, rejected=True)
+
+    l = LogEntry(userid=request.user.username,
+        description=("Rejected sheet %s") % (sheetsub),
+        related_object=sheetsub)
+    l.save()
+    if sheetsub.sheet.is_initial:
+        messages.success(request, 'Form discarded.')
+    else:
+        messages.success(request, 'Sheet rejected and returned to the admins.')
+    return HttpResponseRedirect(reverse('onlineforms.views.index'))
 
 
 def sheet_submission_via_url(request, secret_url):
@@ -776,6 +995,7 @@ def sheet_submission_via_url(request, secret_url):
     return _sheet_submission(request, form_slug=form.slug, formsubmit_slug=form_submission.slug,
                              sheet_slug=sheet.slug, sheetsubmit_slug=sheet_submission_object.slug,
                              alternate_url=alternate_url)
+
 
 def sheet_submission_initial(request, form_slug):
     """
@@ -810,7 +1030,10 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
 
     # get their info if they are logged in
     if(request.user.is_authenticated()):
-        loggedin_user = get_object_or_404(Person, userid=request.user.username)
+        try:
+            loggedin_user = Person.objects.get(userid=request.user.username)
+        except Person.DoesNotExist:
+            return ForbiddenResponse(request, "The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact helpdesk@cs.sfu.ca for assistance." % (request.user.username))
         logentry_userid = loggedin_user.userid
         nonSFUFormFillerForm = None
     else:
@@ -831,7 +1054,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                              form_submission=form_submission, slug=sheetsubmit_slug)
         sheet = sheet_submission.sheet # revert to the old version that the user was working with.
         # check if this sheet has already been filled
-        if sheet_submission.status == "DONE":
+        if sheet_submission.status in ["DONE", "REJE"]:
             # TODO: show in display-only mode instead
             return NotFoundResponse(request)
         # check that they can access this sheet
@@ -854,7 +1077,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
     else:
         # make sure we are allowed to initiate this form
         if not loggedin_user and owner_form.initiators != "ANY":
-            return ForbiddenResponse(request)
+            return redirect_to_login(request.path)
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
         form_submission = None
@@ -929,12 +1152,30 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             else:
                                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheet_submission, data=cleaned_data)
                             fieldSubmission.save()
+                            
                             # save files
                             if isinstance(field, FileField):
+                                # remove old files if asked
+                                if request.POST.get(str(name)+"-clear", False):
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
+                                    for fsf in old_fsf:
+                                        fsf.file_attachment.delete()
+                                        fsf.delete()
+                                
+                                # save the new submission
                                 if str(name) in request.FILES:
                                     new_file = request.FILES[str(name)]
-                                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
+                                    old_fsf = FieldSubmissionFile.objects.filter(field_submission=fieldSubmission)
+                                    if old_fsf:
+                                        new_file_submission = old_fsf[0]
+                                        #new_file_submission.file_attachment.delete()
+                                    else:
+                                        new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission)
+
+                                    new_file_submission.file_attachment = new_file
+                                    new_file_submission.file_mediatype = new_file.content_type
                                     new_file_submission.save()
+
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
                                 description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
@@ -994,6 +1235,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 'sheet': sheet,
                 'form': form,
                 'form_submission': form_submission,
+                'sheet_submission': sheet_submission,
                 'filled_sheets': filled_sheets,
                 'alternate_url': alternate_url,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm,

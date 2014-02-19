@@ -1,27 +1,23 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
 
+
 class Migration(SchemaMigration):
 
-    depends_on = (
-        ("groups", "0001_initial"),
-    )
-
     def forwards(self, orm):
-        
         # Adding model 'ActivityComponent'
         db.create_table('marking_activitycomponent', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('numeric_activity', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['grades.NumericActivity'])),
-            ('max_mark', self.gf('django.db.models.fields.DecimalField')(max_digits=5, decimal_places=2)),
+            ('max_mark', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('title', self.gf('django.db.models.fields.CharField')(max_length=30)),
             ('description', self.gf('django.db.models.fields.TextField')(max_length=200, null=True, blank=True)),
             ('position', self.gf('django.db.models.fields.IntegerField')(default=0, null=True, blank=True)),
             ('deleted', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None, db_index=True)),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
         ))
         db.send_create_signal('marking', ['ActivityComponent'])
 
@@ -30,7 +26,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('activity_component', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityComponent'])),
             ('title', self.gf('django.db.models.fields.CharField')(max_length=30)),
-            ('penalty', self.gf('django.db.models.fields.DecimalField')(max_digits=5, decimal_places=2)),
+            ('penalty', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('description', self.gf('django.db.models.fields.TextField')(max_length=200, null=True, blank=True)),
             ('deleted', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
         ))
@@ -41,13 +37,13 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('overall_comment', self.gf('django.db.models.fields.TextField')(max_length=1000, null=True, blank=True)),
             ('late_penalty', self.gf('django.db.models.fields.DecimalField')(default=0, null=True, max_digits=5, decimal_places=2, blank=True)),
-            ('mark_adjustment', self.gf('django.db.models.fields.DecimalField')(default=0, null=True, max_digits=5, decimal_places=2, blank=True)),
+            ('mark_adjustment', self.gf('django.db.models.fields.DecimalField')(default=0, null=True, max_digits=8, decimal_places=2, blank=True)),
             ('mark_adjustment_reason', self.gf('django.db.models.fields.TextField')(max_length=1000, null=True, blank=True)),
             ('file_attachment', self.gf('django.db.models.fields.files.FileField')(max_length=500, null=True, blank=True)),
             ('file_mediatype', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('created_by', self.gf('django.db.models.fields.CharField')(max_length=8)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('mark', self.gf('django.db.models.fields.DecimalField')(max_digits=5, decimal_places=2)),
+            ('mark', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('activity', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['grades.NumericActivity'], null=True)),
         ))
         db.send_create_signal('marking', ['ActivityMark'])
@@ -72,7 +68,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('activity_mark', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityMark'])),
             ('activity_component', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['marking.ActivityComponent'])),
-            ('value', self.gf('django.db.models.fields.DecimalField')(max_digits=5, decimal_places=2)),
+            ('value', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('comment', self.gf('django.db.models.fields.TextField')(max_length=1000, null=True, blank=True)),
         ))
         db.send_create_signal('marking', ['ActivityComponentMark'])
@@ -109,7 +105,6 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        
         # Removing unique constraint on 'ActivityComponentMark', fields ['activity_mark', 'activity_component']
         db.delete_unique('marking_activitycomponentmark', ['activity_mark_id', 'activity_component_id'])
 
@@ -142,47 +137,63 @@ class Migration(SchemaMigration):
 
 
     models = {
+        'coredata.course': {
+            'Meta': {'ordering': "('subject', 'number')", 'unique_together': "(('subject', 'number'),)", 'object_name': 'Course'},
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
+            'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '30'})
+        },
         'coredata.courseoffering': {
             'Meta': {'ordering': "['-semester', 'subject', 'number', 'section']", 'unique_together': "(('semester', 'subject', 'number', 'section'), ('semester', 'crse_id', 'section'), ('semester', 'class_nbr'))", 'object_name': 'CourseOffering'},
-            'campus': ('django.db.models.fields.CharField', [], {'max_length': '5'}),
-            'class_nbr': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
-            'component': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
-            'crse_id': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
+            'campus': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),
+            'class_nbr': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'db_index': 'True'}),
+            'component': ('django.db.models.fields.CharField', [], {'max_length': '3', 'db_index': 'True'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Course']"}),
+            'crse_id': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'db_index': 'True'}),
             'enrl_cap': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'enrl_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
+            'flags': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             'graded': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'instr_mode': ('django.db.models.fields.CharField', [], {'default': "'P'", 'max_length': '2', 'db_index': 'True'}),
             'members': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'member'", 'symmetrical': 'False', 'through': "orm['coredata.Member']", 'to': "orm['coredata.Person']"}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
-            'section': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']", 'null': 'True'}),
+            'section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']"}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '30', 'db_index': 'True'}),
+            'units': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
             'wait_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
         },
         'coredata.member': {
             'Meta': {'ordering': "['offering', 'person']", 'object_name': 'Member'},
             'added_reason': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'career': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'credits': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'labtut_section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
             'offering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
+            'official_grade': ('django.db.models.fields.CharField', [], {'max_length': '2', 'null': 'True', 'blank': 'True'}),
             'person': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'person'", 'to': "orm['coredata.Person']"}),
             'role': ('django.db.models.fields.CharField', [], {'max_length': '4'})
         },
         'coredata.person': {
             'Meta': {'ordering': "['last_name', 'first_name', 'userid']", 'object_name': 'Person'},
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'emplid': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'db_index': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'middle_name': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
-            'pref_first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
+            'pref_first_name': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
             'userid': ('django.db.models.fields.CharField', [], {'max_length': '8', 'unique': 'True', 'null': 'True', 'db_index': 'True'})
         },
         'coredata.semester': {
@@ -192,9 +203,19 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '4', 'db_index': 'True'}),
             'start': ('django.db.models.fields.DateField', [], {})
         },
+        'coredata.unit': {
+            'Meta': {'ordering': "['label']", 'object_name': 'Unit'},
+            'acad_org': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '10', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'label': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '4', 'db_index': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
+            'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']", 'null': 'True', 'blank': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'})
+        },
         'grades.activity': {
             'Meta': {'ordering': "['deleted', 'position']", 'unique_together': "(('offering', 'slug'),)", 'object_name': 'Activity'},
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'deleted': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
             'due_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
             'group': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -204,7 +225,7 @@ class Migration(SchemaMigration):
             'percent': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '5', 'decimal_places': '2', 'blank': 'True'}),
             'position': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'short_name': ('django.db.models.fields.CharField', [], {'max_length': '15', 'db_index': 'True'}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None'}),
             'status': ('django.db.models.fields.CharField', [], {'max_length': '4'})
         },
         'grades.letteractivity': {
@@ -223,7 +244,7 @@ class Migration(SchemaMigration):
         'grades.numericactivity': {
             'Meta': {'ordering': "['deleted', 'position']", 'object_name': 'NumericActivity', '_ormbases': ['grades.Activity']},
             'activity_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['grades.Activity']", 'unique': 'True', 'primary_key': 'True'}),
-            'max_grade': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'})
+            'max_grade': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'})
         },
         'grades.numericgrade': {
             'Meta': {'unique_together': "(('activity', 'member'),)", 'object_name': 'NumericGrade'},
@@ -232,7 +253,7 @@ class Migration(SchemaMigration):
             'flag': ('django.db.models.fields.CharField', [], {'default': "'NOGR'", 'max_length': '4'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
-            'value': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '5', 'decimal_places': '2'})
+            'value': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '8', 'decimal_places': '2'})
         },
         'groups.group': {
             'Meta': {'ordering': "['name']", 'unique_together': "(('name', 'courseoffering'), ('slug', 'courseoffering'), ('svn_slug', 'courseoffering'))", 'object_name': 'Group'},
@@ -241,18 +262,18 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manager': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'}),
-            'svn_slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '17', 'unique_with': '()', 'null': 'True', 'populate_from': 'None', 'db_index': 'True'})
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None'}),
+            'svn_slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '17', 'unique_with': '()', 'null': 'True', 'populate_from': 'None'})
         },
         'marking.activitycomponent': {
             'Meta': {'ordering': "['numeric_activity', 'deleted', 'position']", 'object_name': 'ActivityComponent'},
             'deleted': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'max_mark': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'}),
+            'max_mark': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             'numeric_activity': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['grades.NumericActivity']"}),
             'position': ('django.db.models.fields.IntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'})
         },
         'marking.activitycomponentmark': {
@@ -261,7 +282,7 @@ class Migration(SchemaMigration):
             'activity_mark': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['marking.ActivityMark']"}),
             'comment': ('django.db.models.fields.TextField', [], {'max_length': '1000', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'value': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'})
+            'value': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'})
         },
         'marking.activitymark': {
             'Meta': {'ordering': "['created_at']", 'object_name': 'ActivityMark'},
@@ -272,8 +293,8 @@ class Migration(SchemaMigration):
             'file_mediatype': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'late_penalty': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '5', 'decimal_places': '2', 'blank': 'True'}),
-            'mark': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'}),
-            'mark_adjustment': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '5', 'decimal_places': '2', 'blank': 'True'}),
+            'mark': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
+            'mark_adjustment': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '8', 'decimal_places': '2', 'blank': 'True'}),
             'mark_adjustment_reason': ('django.db.models.fields.TextField', [], {'max_length': '1000', 'null': 'True', 'blank': 'True'}),
             'overall_comment': ('django.db.models.fields.TextField', [], {'max_length': '1000', 'null': 'True', 'blank': 'True'})
         },
@@ -292,7 +313,7 @@ class Migration(SchemaMigration):
             'deleted': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'penalty': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'}),
+            'penalty': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'})
         },
         'marking.groupactivitymark': {

@@ -11,26 +11,17 @@ function clear_filter() {
 $(document).ready(function() {
 	oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
-		"bSort": false,
-		"bPaginate": false	/* turn off the pagination */
-	});		
-		
-	var oRows = oTable.fnGetNodes();
-	
-	/* set the tab indices of all the text boxes*/
-	var tabi = 1;
-	for(var r = 0; r < oRows.length; r++)
-	{
-		var mark_entry = oRows[r].getElementsByTagName('input');
-		if(mark_entry.length > 0)
-			mark_entry[0].tabIndex = tabi ++;
-	}	
+		"bSort": true,
+		"bPaginate": false,
+		"aoColumns": [null, { "sType": "by-letter" }, { "bSearchable": false, "bSortable": false }]
+	});
+
 });
 //]]>
 </script>
 {% endblock %}
 
-{% block title %}Mark All{% endblock %}
+{% block title %}Mark All Groups{% endblock %}
 {% block h1 %}Mark All Groups{% endblock %}
 {% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Groups</li>{% endblock %}
 {% block content %}
@@ -54,7 +45,7 @@ $(document).ready(function() {
 			<a href="#">{{ group.name }}</a>
 		    </strong>
 		</td>		
-		<td>{{ mark_row.current_mark }}</td>
+		<td>{{ mark_row.current_grade }}</td>
 		{% with mark_row.form as form %}
 		<td>
 		{{ form.value }}

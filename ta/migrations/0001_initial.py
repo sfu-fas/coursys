@@ -1,24 +1,20 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
 
+
 class Migration(SchemaMigration):
 
-    depends_on = (
-        ("ra", "0001_initial"),
-    )
-
     def forwards(self, orm):
-        
         # Adding model 'TUG'
         db.create_table('ta_tug', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('member', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Member'], unique=True)),
             ('base_units', self.gf('django.db.models.fields.DecimalField')(max_digits=4, decimal_places=2)),
             ('last_update', self.gf('django.db.models.fields.DateField')(auto_now=True, blank=True)),
-            ('config', self.gf('jsonfield.JSONField')(default={})),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('ta', ['TUG'])
 
@@ -29,8 +25,8 @@ class Migration(SchemaMigration):
             ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
             ('opens', self.gf('django.db.models.fields.DateField')()),
             ('closes', self.gf('django.db.models.fields.DateField')()),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique=True, max_length=50, populate_from=None, unique_with=(), db_index=True)),
-            ('config', self.gf('jsonfield.JSONField')(default={})),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique=True, max_length=50, populate_from=None, unique_with=())),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('ta', ['TAPosting'])
 
@@ -55,8 +51,9 @@ class Migration(SchemaMigration):
             ('posting', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ta.TAPosting'])),
             ('person', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
             ('category', self.gf('django.db.models.fields.CharField')(max_length=4)),
-            ('base_units', self.gf('django.db.models.fields.DecimalField')(default=5, max_digits=4, decimal_places=2)),
+            ('current_program', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('sin', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
+            ('base_units', self.gf('django.db.models.fields.DecimalField')(default=5, max_digits=4, decimal_places=2)),
             ('experience', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('course_load', self.gf('django.db.models.fields.TextField')(blank=True)),
             ('other_support', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
@@ -64,6 +61,7 @@ class Migration(SchemaMigration):
             ('rank', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('late', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('admin_created', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('ta', ['TAApplication'])
 
@@ -74,10 +72,13 @@ class Migration(SchemaMigration):
         db.create_table('ta_campuspreference', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('app', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ta.TAApplication'])),
-            ('campus', self.gf('django.db.models.fields.CharField')(max_length=4)),
+            ('campus', self.gf('django.db.models.fields.CharField')(max_length=5)),
             ('pref', self.gf('django.db.models.fields.CharField')(max_length=3)),
         ))
         db.send_create_signal('ta', ['CampusPreference'])
+
+        # Adding unique constraint on 'CampusPreference', fields ['app', 'campus']
+        db.create_unique('ta_campuspreference', ['app_id', 'campus'])
 
         # Adding model 'SkillLevel'
         db.create_table('ta_skilllevel', (
@@ -91,6 +92,7 @@ class Migration(SchemaMigration):
         # Adding model 'TAContract'
         db.create_table('ta_tacontract', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('status', self.gf('django.db.models.fields.CharField')(default='NEW', max_length=3)),
             ('posting', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ta.TAPosting'])),
             ('application', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ta.TAApplication'])),
             ('sin', self.gf('django.db.models.fields.CharField')(max_length=30)),
@@ -104,7 +106,6 @@ class Migration(SchemaMigration):
             ('appt_cond', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('appt_tssu', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('deadline', self.gf('django.db.models.fields.DateField')()),
-            ('status', self.gf('django.db.models.fields.CharField')(default='NEW', max_length=3)),
             ('remarks', self.gf('django.db.models.fields.TextField')(blank=True)),
             ('created_by', self.gf('django.db.models.fields.CharField')(max_length=8)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
@@ -115,12 +116,23 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'TAContract', fields ['posting', 'application']
         db.create_unique('ta_tacontract', ['posting_id', 'application_id'])
 
+        # Adding model 'CourseDescription'
+        db.create_table('ta_coursedescription', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('unit', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'])),
+            ('description', self.gf('django.db.models.fields.CharField')(max_length=60)),
+            ('labtut', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('hidden', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('config', self.gf('jsonfield.fields.JSONField')(default={})),
+        ))
+        db.send_create_signal('ta', ['CourseDescription'])
+
         # Adding model 'TACourse'
         db.create_table('ta_tacourse', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('course', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.CourseOffering'])),
             ('contract', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ta.TAContract'])),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=3)),
+            ('description', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ta.CourseDescription'])),
             ('bu', self.gf('django.db.models.fields.DecimalField')(max_digits=4, decimal_places=2)),
         ))
         db.send_create_signal('ta', ['TACourse'])
@@ -141,12 +153,14 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        
         # Removing unique constraint on 'TACourse', fields ['contract', 'course']
         db.delete_unique('ta_tacourse', ['contract_id', 'course_id'])
 
         # Removing unique constraint on 'TAContract', fields ['posting', 'application']
         db.delete_unique('ta_tacontract', ['posting_id', 'application_id'])
+
+        # Removing unique constraint on 'CampusPreference', fields ['app', 'campus']
+        db.delete_unique('ta_campuspreference', ['app_id', 'campus'])
 
         # Removing unique constraint on 'TAApplication', fields ['person', 'posting']
         db.delete_unique('ta_taapplication', ['person_id', 'posting_id'])
@@ -178,6 +192,9 @@ class Migration(SchemaMigration):
         # Deleting model 'TAContract'
         db.delete_table('ta_tacontract')
 
+        # Deleting model 'CourseDescription'
+        db.delete_table('ta_coursedescription')
+
         # Deleting model 'TACourse'
         db.delete_table('ta_tacourse')
 
@@ -188,39 +205,43 @@ class Migration(SchemaMigration):
     models = {
         'coredata.course': {
             'Meta': {'ordering': "('subject', 'number')", 'unique_together': "(('subject', 'number'),)", 'object_name': 'Course'},
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'})
         },
         'coredata.courseoffering': {
             'Meta': {'ordering': "['-semester', 'subject', 'number', 'section']", 'unique_together': "(('semester', 'subject', 'number', 'section'), ('semester', 'crse_id', 'section'), ('semester', 'class_nbr'))", 'object_name': 'CourseOffering'},
-            'campus': ('django.db.models.fields.CharField', [], {'max_length': '5'}),
-            'class_nbr': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
-            'component': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'campus': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),
+            'class_nbr': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'db_index': 'True'}),
+            'component': ('django.db.models.fields.CharField', [], {'max_length': '3', 'db_index': 'True'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Course']"}),
-            'crse_id': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
+            'crse_id': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'db_index': 'True'}),
             'enrl_cap': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'enrl_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
+            'flags': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             'graded': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'instr_mode': ('django.db.models.fields.CharField', [], {'default': "'P'", 'max_length': '2', 'db_index': 'True'}),
             'members': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'member'", 'symmetrical': 'False', 'through': "orm['coredata.Member']", 'to': "orm['coredata.Person']"}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']", 'null': 'True'}),
-            'section': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']"}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '30', 'db_index': 'True'}),
+            'units': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
             'wait_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
         },
         'coredata.member': {
             'Meta': {'ordering': "['offering', 'person']", 'object_name': 'Member'},
             'added_reason': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'career': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'credits': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'labtut_section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
@@ -231,13 +252,14 @@ class Migration(SchemaMigration):
         },
         'coredata.person': {
             'Meta': {'ordering': "['last_name', 'first_name', 'userid']", 'object_name': 'Person'},
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'emplid': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'db_index': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'middle_name': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
             'pref_first_name': ('django.db.models.fields.CharField', [], {'max_length': '32', 'null': 'True', 'blank': 'True'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
             'userid': ('django.db.models.fields.CharField', [], {'max_length': '8', 'unique': 'True', 'null': 'True', 'db_index': 'True'})
         },
         'coredata.semester': {
@@ -250,28 +272,38 @@ class Migration(SchemaMigration):
         'coredata.unit': {
             'Meta': {'ordering': "['label']", 'object_name': 'Unit'},
             'acad_org': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '10', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'label': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '4', 'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']", 'null': 'True', 'blank': 'True'}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'})
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'})
         },
         'ra.account': {
-            'Meta': {'object_name': 'Account'},
+            'Meta': {'ordering': "['account_number']", 'object_name': 'Account'},
             'account_number': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'position_number': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']"})
         },
         'ta.campuspreference': {
-            'Meta': {'object_name': 'CampusPreference'},
+            'Meta': {'unique_together': "(('app', 'campus'),)", 'object_name': 'CampusPreference'},
             'app': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ta.TAApplication']"}),
-            'campus': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'campus': ('django.db.models.fields.CharField', [], {'max_length': '5'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'pref': ('django.db.models.fields.CharField', [], {'max_length': '3'})
+        },
+        'ta.coursedescription': {
+            'Meta': {'object_name': 'CourseDescription'},
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
+            'hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'labtut': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']"})
         },
         'ta.coursepreference': {
             'Meta': {'object_name': 'CoursePreference'},
@@ -302,7 +334,9 @@ class Migration(SchemaMigration):
             'base_units': ('django.db.models.fields.DecimalField', [], {'default': '5', 'max_digits': '4', 'decimal_places': '2'}),
             'category': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'comments': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'course_load': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'current_program': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'experience': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'late': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -339,23 +373,23 @@ class Migration(SchemaMigration):
             'bu': ('django.db.models.fields.DecimalField', [], {'max_digits': '4', 'decimal_places': '2'}),
             'contract': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ta.TAContract']"}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
+            'description': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ta.CourseDescription']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         'ta.taposting': {
             'Meta': {'unique_together': "(('unit', 'semester'),)", 'object_name': 'TAPosting'},
             'closes': ('django.db.models.fields.DateField', [], {}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'opens': ('django.db.models.fields.DateField', [], {}),
             'semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']"}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']"})
         },
         'ta.tug': {
             'Meta': {'object_name': 'TUG'},
             'base_units': ('django.db.models.fields.DecimalField', [], {'max_digits': '4', 'decimal_places': '2'}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
+            'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_update': ('django.db.models.fields.DateField', [], {'auto_now': 'True', 'blank': 'True'}),
             'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']", 'unique': 'True'})

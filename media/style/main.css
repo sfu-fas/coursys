@@ -22,6 +22,10 @@ blockquote {
 dd {
 	margin: 0 2.5em;
 }
+div#main dl.docs dd>p:first-child {
+	margin-top: 0;
+	padding-top: 0;
+}
 pre {
 	font-family: monospace;
 }
@@ -813,6 +817,9 @@ fieldset .submit, form .submit {
   float: right;
   padding: 0.3em 0.5em 0.3em 0.5em;
 }
+fieldset .nofloat, form .nofloat {
+  float: none;
+}
 
 form .submit {
   margin: 0.5em;
@@ -1561,6 +1568,7 @@ div.updateinfo {
   text-align: right;
   margin-bottom: -1em;
   margin-right: 1em;
+  margin-top: 2em;
   clear: right;
 }
 

@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
 from django.test import TestCase
+from django.test.client import Client
+from django.core.urlresolvers import reverse
 from pages.models import Page, PageVersion, brushes_used
-from coredata.models import CourseOffering, Member
+from coredata.models import CourseOffering, Member, Person
 from courselib.testing import TEST_COURSE_SLUG
 import re
 
@@ -146,5 +149,68 @@ class PagesTest(TestCase):
         # ... and the head has the current contents
         self.assertEqual(v3.wikitext, contents3)
         self.assertEqual(v3.diff_from, None)
+    
+    def test_api(self):
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=crs, person__userid="ggbaker")
+        person = Person.objects.get(userid='ggbaker')
+        p = Page(offering=crs, label="PageExists")
+        p.save()
+        v = PageVersion(page=p, title="Page Exists", wikitext="Original Contents", editor=memb, comment="original page")
+        v.save()
+        
+        from dashboard.models import new_feed_token
+        token = new_feed_token()
+        
+        updata = u"""{
+            "userid": "ggbaker",
+            "token": "%s",
+            "pages": [
+                {
+                    "label": "Index",
+                    "title": "The Coursé Page",
+                    "can_read": "ALL",
+                    "can_write": "INST",
+                    "wikitext-base64": "VGhpcyBwYWdlIGlzIHNwZWNpYWwgaW4gKipzb21lKiogd2F5LiBcKHh+XjIrMSA9IFxmcmFjezF9ezJ9XCkuCgpHb29kYnllIHdvcmxkIQ==",
+                    "comment": "page creation comment",
+                    "use_math": true
+                },
+                {
+                    "label": "PageExists",
+                    "new_label": "PageChanged",
+                    "title": "Another Page",
+                    "can_read": "STUD",
+                    "wikitext": "This is some **new** page\\n\\ncontent."
+                }
+            ]
+        }""" % (token)
+        
+        # make a request with no auth token in place
+        c = Client()
+        url = reverse('pages.views.api_import', kwargs={'course_slug': crs.slug})
+        response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
+        self.assertEquals(response.status_code, 403)
+        
+        # create token and try again
+        person.config['pages-token'] = token
+        person.save()
+        response = c.post(url, data=updata.encode('utf8'), content_type="application/json")
+        self.assertEquals(response.status_code, 200)
+        
+        # make sure the data arrived
+        self.assertEquals(Page.objects.filter(offering=crs, label="PageExists").count(), 0)
+        p = Page.objects.get(offering=crs, label="PageChanged")
+        v = p.current_version()
+        self.assertEqual(v.title, "Another Page")
+        self.assertEqual(v.get_wikitext(), "This is some **new** page\n\ncontent.")
+        
+        p = Page.objects.get(offering=crs, label="Index")
+        v = p.current_version()
+        self.assertEqual(v.title, u"The Cours\u00e9 Page")
+        self.assertEqual(v.get_wikitext(), 'This page is special in **some** way. \\(x~^2+1 = \\frac{1}{2}\\).\n\nGoodbye world!')
+        self.assert_('math' in v.config)
+        self.assertEqual(v.config['math'], True)
+        
+        
         
 

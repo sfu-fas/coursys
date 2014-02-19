@@ -11,7 +11,9 @@ from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from bitfield import BitField
 import fractions
+
 
 def repo_name(offering, slug):
     """
@@ -52,6 +54,7 @@ class Person(models.Model):
     title = models.CharField(max_length=4, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
+        # 'pref_first_name': really, truly preferred first name (which can be set in DB if necessary)
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
         # 'addresses': dictionary of phone number values. Possible keys: 'home', 'mail'
         # 'gender': 'M', 'F', 'U'
@@ -65,19 +68,21 @@ class Person(models.Model):
         # 'nonstudent_hs': highschool field from NonStudent record
         # 'nonstudent_colg': college field from NonStudent record
         # 'nonstudent_notes': notes field from NonStudent record
-    
+        # 'phone_ext': local phone number (for faculty/staff) (e.g. '25555')
+
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
-                'sin': '000000000'}
+                'sin': '000000000', 'phone_ext': None}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
     gpa, _ = getter_setter('gpa')
     ccredits, _ = getter_setter('ccredits')
-    # see grad.forms.VISA_STATUSES for list of possibilites
+    # see grad.forms.VISA_STATUSES for list of possibilities
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
     sin, set_sin = getter_setter('sin')
+    phone_ext, set_phone_ext = getter_setter('phone_ext')
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
@@ -101,13 +106,14 @@ class Person(models.Model):
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
     def real_pref_first(self):
-        return self.pref_first_name or self.first_name
+        return self.config.get('pref_first_name', None) or self.pref_first_name or self.first_name
     def name_pref(self):
         return "%s %s" % (self.real_pref_first(), self.last_name)
     def first_with_pref(self):
         name = self.first_name
-        if self.pref_first_name and self.pref_first_name != self.first_name:
-            name += ' (%s)' % (self.pref_first_name)
+        pref = self.real_pref_first()
+        if pref != self.first_name:
+            name += ' (%s)' % (pref)
         return name
     def sortname_pref(self):
         return "%s, %s" % (self.last_name, self.first_with_pref())
@@ -266,7 +272,9 @@ class Semester(models.Model):
                 break
 
         if base is None:
-            raise ValueError, "Date seems to be before the start of semester."
+            ##raise ValueError, "Date seems to be before the start of semester."
+            # might as well do something with the before-semester case.
+            return 1,0
 
         diff = date - base.monday
         diff = int(round(diff.days + diff.seconds / 86400.0) + 0.5) # convert to number of days, rounding off any timezone stuff
@@ -289,9 +297,12 @@ class Semester(models.Model):
         
         date = base.monday + datetime.timedelta(days=7 * (wk - base.week) + wkday)
         # construct the datetime from date and time.
-        dt = datetime.datetime(year=date.year, month=date.month, day=date.day,
-            hour=time.hour, minute=time.minute, second=time.second,
-            microsecond=time.microsecond, tzinfo=time.tzinfo)
+        if time:
+            dt = datetime.datetime(year=date.year, month=date.month, day=date.day,
+                hour=time.hour, minute=time.minute, second=time.second,
+                microsecond=time.microsecond, tzinfo=time.tzinfo)
+        else:
+            dt = datetime.date(year=date.year, month=date.month, day=date.day)
         return dt
 
     def previous_semester(self):
@@ -363,8 +374,22 @@ class Semester(models.Model):
         
         name = "%03d%1d" % ((year - 1900), sem)
         return Semester.objects.get(name=name)
-        
 
+    @classmethod
+    def range(cls, start, end):
+        """
+        Produce a list of semesters from start to end. 
+        >>> [x for x in Semester.range( '1121', '1137' )]
+        [ '1121', '1124', '1127', '1131', '1134', '1137' ]
+
+        Will run forever or fail if the end semester is not a valid semester. 
+        """
+        current_semester = Semester.objects.get(name=start)
+        while current_semester and current_semester.name != end:
+            yield str(current_semester.name)
+            current_semester = current_semester.offset(1) 
+        if current_semester:
+            yield str(current_semester.name)
 
 class SemesterWeek(models.Model):
     """
@@ -447,6 +472,7 @@ COMPONENT_CHOICES = (
         ('FLD', 'Field School'),
         ('STD', 'Studio'),
         ('OLC', 'OLC'), # ???
+        ('RQL', 'RQL'), # ???
         ('STL', 'STL'), # ???
         ('CNV', 'CNV'), # converted from SIMON?
         ('OPL', 'Open Lab'), # ???
@@ -463,32 +489,67 @@ CAMPUS_CHOICES = (
         #('KAM', 'Kamloops Campus'),
         ('METRO', 'Other Locations in Vancouver'),
         )
+CAMPUS_CHOICES_SHORT = (
+        ('BRNBY', 'Burnaby'),
+        ('SURRY', 'Surrey'),
+        ('VANCR', 'Harbour Ctr'),
+        ('OFFST', 'Off-campus'),
+        #('SEGAL', 'Segal Ctr'),
+        ('GNWC', 'Great North. Way'),
+        #('KAM', 'Kamloops'),
+        ('METRO', 'Other Vancouver'),
+        )
 CAMPUSES = dict(CAMPUS_CHOICES)
+OFFERING_FLAGS = [
+    ('write', 'W'),
+    ('quant', 'Q'),
+    ('bhum', 'B-Hum'),
+    ('bsci', 'B-Sci'),
+    ('bsoc', 'B-Soc'),
+    ('combined', 'Combined section'), # used to flag sections that have been merged in the import
+	]
+OFFERING_FLAG_KEYS = [flag[0] for flag in OFFERING_FLAGS]
+WQB_FLAGS = [(k,v) for k,v in OFFERING_FLAGS if k != 'combined']
+WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
+WQB_DICT = dict(WQB_FLAGS)
+INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
+    ('CO', 'Co-Op'),
+    ('DE', 'Distance Education'),
+    ('GI', 'Graduate Internship'),
+    ('P', 'In Person'),
+    ('PO', 'In Person - Off Campus'),
+    ]
+INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN".')
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1".')
-    section = models.CharField(max_length=4, null=False,
+    section = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Section should be in the form "C100" or "D103".')
     semester = models.ForeignKey(Semester, null=False)
-    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES,
-        help_text='Component of the course, like "LEC" or "LAB".')
-    graded = models.BooleanField()
+    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES, db_index=True,
+        help_text='Component of the offering, like "LEC" or "LAB"')
+    instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P', db_index=True,
+        help_text='The instructional mode of the offering')
+    graded = models.BooleanField(default=True)
     owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)
     class_nbr = models.PositiveIntegerField(null=True, db_index=True)
-    
-    title = models.CharField(max_length=30, help_text='The course title.')
-    #title_long = models.CharField(max_length=80, help_text='The course title (full version).')
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
+
+    title = models.CharField(max_length=30, help_text='The course title.', db_index=True)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, db_index=True)
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
+    units = models.PositiveSmallIntegerField(null=True, help_text='The number of credits received by (most?) students in the course')
     course = models.ForeignKey(Course, null=False)
 
+    # WQB requirement flags
+    flags = BitField(flags=OFFERING_FLAG_KEYS, default=0)
+    
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'url': URL of course home page
@@ -498,24 +559,27 @@ class CourseOffering(models.Model):
         # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
-        # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
+        # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
-    
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False,
-                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
+        # 'combined_with': list of offerings this one is combined with (as CourseOffering.slug)
+
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
+                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
+                'instr_rw_svn': False, 'combined_with': ()}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
-    combined, set_combined = getter_setter('combined')
+    instr_rw_svn, set_instr_rw_svn = getter_setter('instr_rw_svn')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
-    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion'] # fields that should be copied when instructor does "copy course setup"
+    combined_with, set_combined_with = getter_setter('combined_with')
+    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
         # changed slug format for fall 2011
@@ -562,6 +626,17 @@ class CourseOffering(models.Model):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
+    def combined(self):
+        return self.flags.combined
+    def set_combined(self, val):
+        self.flags.combined = val
+    
+    def get_wqb_display(self):
+        flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v and f in WQB_KEYS]
+        if flags:
+            return ', '.join(flags)
+        else:
+            return 'none'
     
     def extra_bu(self):
         return decimal.Decimal(self.extra_bu_str())
@@ -651,7 +726,7 @@ class Member(models.Model):
     "Members" of the course.  Role indicates instructor/student/TA/etc.
 
     Includes dropped students and non-graded sections (labs/tutorials).  Often want to select with:
-        Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(...)
+        Member.objects.exclude(role="DROP").filter(...)
     """
     ROLE_CHOICES = (
         ('STUD', 'Student'),
@@ -696,7 +771,6 @@ class Member(models.Model):
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
     raw_bu, set_bu = getter_setter('bu')
-    _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
@@ -724,13 +798,52 @@ class Member(models.Model):
         return decimal.Decimal(unicode(self.raw_bu()))
 
     def teaching_credit(self):
+        """
+        Number of teaching credits this is worth, as a Fraction.
+        """
+        return self.teaching_credit_with_reason()[0]
+
+    def teaching_credit_with_reason(self):
+        """
+        Number of teaching credits this is worth, as a Fraction, along with a short explanation for the value
+        """
+        assert self.role=='INST' and self.added_reason=='AUTO' # we can only sensibly calculate this for SIMS instructors
+
         if 'teaching_credit' in self.config:
-            s = self.config['teaching_credit']
-        elif self.offering.section.startswith('C'):
-            s = 0
+            # if manually set, then honour it
+            return fractions.Fraction(self.config['teaching_credit']), 'set manually'
+        elif self.offering.enrl_tot == 0:
+            # no students => no teaching credit (probably a cancelled section we didn't catch on import)
+            return fractions.Fraction(0), 'empty section'
+        elif self.offering.instr_mode == 'DE':
+            # No credit for distance-ed supervision
+            return fractions.Fraction(0), 'distance ed'
+        elif self.offering.instr_mode in ['CO', 'GI']:
+            # No credit for co-op, grad-internship, distance-ed supervision
+            return fractions.Fraction(0), 'co-op'
+        elif MeetingTime.objects.filter(offering=self.offering, meeting_type__in=['LEC']).count() == 0:
+            # no lectures probably means directed studies or similar
+            return fractions.Fraction(0), 'no scheduled lectures'
         else:
-            s = 1
-        return fractions.Fraction(s)
+            # now probably a real offering: split the credit among the (real SIMS) instructors and across joint offerings
+            joint_with = CourseOffering.objects.filter(slug__in=self.offering.combined_with())
+            other_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').exclude(id=self.id)
+            credits = fractions.Fraction(1)
+            reasons = []
+            if other_instr:
+                other_instr = list(other_instr)
+                credits /= len(other_instr) + 1
+                reasons.append('co-taught with %s' % (', '.join(m.person.name() for m in other_instr)))
+            if joint_with:
+                joint_with = list(joint_with)
+                credits /= len(joint_with) + 1
+                reasons.append('joint with %s' % (', '.join(o.name() for o in joint_with)))
+            #if self.offering.units is not None and self.offering.units != 3:
+            #    # TODO: is this consistent with other units on campus? Do some have a different default credit count?
+            #    credits *= fractions.Fraction(self.offering.units, 3)
+            #    reasons.append('%i unit course' % (self.offering.units))
+            return credits, '; '.join(reasons)
+
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
@@ -753,7 +866,15 @@ class Member(models.Model):
         ordering = ['offering', 'person']
     def get_absolute_url(self):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})
-        
+    
+    @classmethod
+    def clear_old_official_grades(cls):
+        """
+        Clear out the official grade field on old records: no need to tempt fate.
+        """
+        cutoff = datetime.date.today() - datetime.timedelta(days=240)
+        old_grades = Member.objects.filter(offering__semester__end__lt=cutoff, official_grade__isnull=False)
+        old_grades.update(official_grade=None)
 
 
 WEEKDAY_CHOICES = (
@@ -782,7 +903,7 @@ class MeetingTime(models.Model):
     start_day = models.DateField(null=False, help_text='Starting day of the meeting')
     end_day = models.DateField(null=False, help_text='Ending day of the meeting')
     room = models.CharField(max_length=20, help_text='Room (or other location) for the meeting')
-    exam = models.BooleanField() # unused: use meeting_type instead
+    exam = models.BooleanField(default=False) # unused: use meeting_type instead
     meeting_type = models.CharField(max_length=4, choices=MEETINGTYPE_CHOICES, default="LEC")
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".  None/blank for the non lab/tutorial events.')
@@ -829,8 +950,11 @@ class Unit(models.Model):
         # 'web': URL
         # 'tel': contact phone number
         # 'fax': fax number (may be None)
+        # 'deptid': department ID for finances
         # 'informal_name': formal name of the unit (e.g. "Computing Science")
         # 'sessional_pay': default amount sessionals are paid (used in grad finances)
+        # 'card_account':  Account code for card access forms
+        # 'card_rooms': Rooms all grads have access to; separate lines with "|" and buildings/rooms with ":", e.g. "AQ:1234|AQ:5678"
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',
@@ -878,13 +1002,16 @@ class Unit(models.Model):
         return decendants
 
     @classmethod
-    def sub_unit_ids(cls, units):
+    def sub_unit_ids(cls, units, by_id=False):
         """
         Get the Unit.id values for all decendants of the given list of unit.id values.
         
         Cached so we can avoid the work when possible.
         """
-        unitids = sorted(list(set(u.id for u in units)))
+        if by_id:
+            unitids = sorted(list(set(units)))
+        else:
+            unitids = sorted(list(set(u.id for u in units)))
         key = 'subunits-' + str(unitids)
         res = cache.get(key)
         if res:
@@ -917,8 +1044,8 @@ ROLE_CHOICES = (
         )
 ROLES = dict(ROLE_CHOICES)
 # roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD','TECH',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV']
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'GRPD',
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV'] # 'PLAN', 'TADM', 'TECH'
 # help text for the departmental admin on those roles
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',

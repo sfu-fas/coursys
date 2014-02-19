@@ -173,7 +173,7 @@ class BasicTest(TestCase):
         
         MARK = 30
         group_mark = GroupActivityMark(group = group, numeric_activity = a)
-        group_mark.setMark(MARK)
+        group_mark.setMark(MARK, entered_by='ggbaker')
         group_mark.save()
         
         num_grades = NumericGrade.objects.filter(activity = a).order_by('member__person__userid')
@@ -203,24 +203,24 @@ class BasicTest(TestCase):
         member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True, activity=a)
         
         ngrade = NumericGrade(activity = a, member = stud2)                  
-        ngrade.save()
+        ngrade.save(entered_by='ggbaker')
         
                  
         #assign mark to 0aaa1 individually twice and via the group twice, make some interval between saves     
         std_mark = StudentActivityMark(numeric_grade = ngrade, created_by = 'ggbaker')           
-        std_mark.setMark(20)
+        std_mark.setMark(20, entered_by='ggbaker')
         std_mark.save()  
                
         group_mark = GroupActivityMark(group = group, numeric_activity = a, created_by = 'ggbaker')  
-        group_mark.setMark(30)
+        group_mark.setMark(30, entered_by='ggbaker')
         group_mark.save()
         
         std_mark = StudentActivityMark(numeric_grade = ngrade, created_by = 'ggbaker')
-        std_mark.setMark(40)
+        std_mark.setMark(40, entered_by='ggbaker')
         std_mark.save()   
         
         group_mark = GroupActivityMark(group = group, numeric_activity = a,  created_by = 'ggbaker')
-        group_mark.setMark(50)               
+        group_mark.setMark(50, entered_by='ggbaker')
         group_mark.save()
         
         self.client.login_user('ggbaker')

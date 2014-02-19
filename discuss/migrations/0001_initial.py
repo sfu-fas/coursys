@@ -20,6 +20,7 @@ class Migration(SchemaMigration):
             ('status', self.gf('django.db.models.fields.CharField')(default='OPN', max_length=3)),
             ('pinned', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('author', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Member'])),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
             ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('discuss', ['DiscussionTopic'])
@@ -33,17 +34,47 @@ class Migration(SchemaMigration):
             ('modified_at', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('status', self.gf('django.db.models.fields.CharField')(default='VIS', max_length=3)),
             ('author', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Member'])),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
             ('config', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
         db.send_create_signal('discuss', ['DiscussionMessage'])
 
+        # Adding model 'DiscussionSubscription'
+        db.create_table('discuss_discussionsubscription', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('member', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Member'])),
+            ('status', self.gf('django.db.models.fields.CharField')(default='NONE', max_length=4)),
+        ))
+        db.send_create_signal('discuss', ['DiscussionSubscription'])
+
+        # Adding model 'TopicSubscription'
+        db.create_table('discuss_topicsubscription', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('topic', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['discuss.DiscussionTopic'])),
+            ('member', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Member'])),
+            ('status', self.gf('django.db.models.fields.CharField')(default='MAIL', max_length=4)),
+        ))
+        db.send_create_signal('discuss', ['TopicSubscription'])
+
+        # Adding unique constraint on 'TopicSubscription', fields ['topic', 'member']
+        db.create_unique('discuss_topicsubscription', ['topic_id', 'member_id'])
+
 
     def backwards(self, orm):
+        # Removing unique constraint on 'TopicSubscription', fields ['topic', 'member']
+        db.delete_unique('discuss_topicsubscription', ['topic_id', 'member_id'])
+
         # Deleting model 'DiscussionTopic'
         db.delete_table('discuss_discussiontopic')
 
         # Deleting model 'DiscussionMessage'
         db.delete_table('discuss_discussionmessage')
+
+        # Deleting model 'DiscussionSubscription'
+        db.delete_table('discuss_discussionsubscription')
+
+        # Deleting model 'TopicSubscription'
+        db.delete_table('discuss_topicsubscription')
 
 
     models = {
@@ -52,29 +83,33 @@ class Migration(SchemaMigration):
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'})
         },
         'coredata.courseoffering': {
             'Meta': {'ordering': "['-semester', 'subject', 'number', 'section']", 'unique_together': "(('semester', 'subject', 'number', 'section'), ('semester', 'crse_id', 'section'), ('semester', 'class_nbr'))", 'object_name': 'CourseOffering'},
-            'campus': ('django.db.models.fields.CharField', [], {'max_length': '5'}),
+            'campus': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),
             'class_nbr': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'db_index': 'True'}),
-            'component': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
+            'component': ('django.db.models.fields.CharField', [], {'max_length': '3', 'db_index': 'True'}),
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Course']"}),
             'crse_id': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'db_index': 'True'}),
             'enrl_cap': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'enrl_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
+            'flags': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             'graded': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'instr_mode': ('django.db.models.fields.CharField', [], {'default': "'P'", 'max_length': '2', 'db_index': 'True'}),
             'members': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'member'", 'symmetrical': 'False', 'through': "orm['coredata.Member']", 'to': "orm['coredata.Person']"}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']", 'null': 'True'}),
-            'section': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']"}),
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '30', 'db_index': 'True'}),
+            'units': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
             'wait_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
         },
         'coredata.member': {
@@ -127,8 +162,15 @@ class Migration(SchemaMigration):
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None'}),
             'status': ('django.db.models.fields.CharField', [], {'default': "'VIS'", 'max_length': '3'}),
             'topic': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['discuss.DiscussionTopic']"})
+        },
+        'discuss.discussionsubscription': {
+            'Meta': {'object_name': 'DiscussionSubscription'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
+            'status': ('django.db.models.fields.CharField', [], {'default': "'NONE'", 'max_length': '4'})
         },
         'discuss.discussiontopic': {
             'Meta': {'object_name': 'DiscussionTopic'},
@@ -141,8 +183,16 @@ class Migration(SchemaMigration):
             'message_count': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'offering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
             'pinned': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None'}),
             'status': ('django.db.models.fields.CharField', [], {'default': "'OPN'", 'max_length': '3'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '140'})
+        },
+        'discuss.topicsubscription': {
+            'Meta': {'unique_together': "(('topic', 'member'),)", 'object_name': 'TopicSubscription'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'member': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Member']"}),
+            'status': ('django.db.models.fields.CharField', [], {'default': "'MAIL'", 'max_length': '4'}),
+            'topic': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['discuss.DiscussionTopic']"})
         }
     }
 

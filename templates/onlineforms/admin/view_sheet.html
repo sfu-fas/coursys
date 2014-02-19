@@ -1,13 +1,25 @@
 {# be sure to include this if using this fragment: <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />  #}
 
-{% for sheet_sub, fields in sheet_submissions.items %}
+{% for sheet_sub, fields in sheet_submissions %}
 	<form class="sheetsub sheetsub-{{ sheet_sub.status }}" action="">
 		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub.sheet.title }}</legend>
+			{% if sheet_sub.status == 'REJE' %}
+			<p>Returned by {{ sheet_sub.filler.name }} ({{ sheet_sub.filler.email_mailto }})
+				without being completed, {{sheet_sub.completed_at}}.
+				{% if sheet_sub.reject_reason %}
+				Given reason: &ldquo;{{ sheet_sub.reject_reason }}&rdquo;.
+				{% endif %}
+				</p>
+			{% else %}
 			{% if sheet_sub.status != 'DONE' %}<p class="incomplete-warning">This is a draft submission: it has not been completed by the person filling it out, only saved for later.</p>{% endif %}
 			<dl class="dlform formview">
                 <dt><label>Completed by:</label></dt>
-                <dd><p>{{ sheet_sub.filler }}</p></dd>
+                <dd><p>{{ sheet_sub.filler }}
+                {% if can_advise and sheet_sub.sheet.is_initial and sheet_sub.filler.isSFUPerson %}
+                [<a href="{% url advisornotes.views.student_notes userid=sheet_sub.filler.sfuFormFiller.userid_or_emplid %}">advising notes for {{ sheet_sub.filler.name }}</a>]
+                {% endif %}
+                </p></dd>
                 <dt><label>Email:</label></dt>
                 <dd><p>{{ sheet_sub.filler.email_mailto }}</p></dd>
 			{% for field in fields %}
@@ -28,6 +40,12 @@
             <dt><label>Completed at:</label></dt>
             <dd>{% if sheet_sub.status == 'DONE' %}{{sheet_sub.completed_at}}{% else %}Still incomplete.{% endif %}</dd>
 			</dl>
+            {% if sheet_sub.status == 'DONE' and can_admin %}
+            <p class="returnlink">
+            <a href="{% url onlineforms.views.admin_return_sheet form_slug=sheet_sub.sheet.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheetsubmit_slug=sheet_sub.slug %}">
+            Return to {{ sheet_sub.filler.name }}</a></p>
+            {% endif %}
+			{% endif %}
 		</fieldset>
 	</form>
 {% endfor %}

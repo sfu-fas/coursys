@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Browse Course Offerings{% endblock %}
+{% block h1 %}Browse Course Offerings{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Browse Course Offerings</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/browse.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  browser_ready('{% url coredata.views.browse_courses %}');
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+<form action="" id="filterform">
+<table>
+<tr>
+<th scope="col">Subject</th>	
+<th scope="col">Number</th>	
+<th scope="col">Section</th>	
+<th scope="col">Instructor</th>	
+<th scope="col">Campus</th>	
+<th scope="col">Semester</th>
+<th scope="col">Title</th>	
+</tr>
+<tr>
+<td>{{ form.subject }}</td>
+<td>{{ form.number }}</td>
+<td>{{ form.section }}</td>
+<td>{{ form.instructor }}</td>
+<td>{{ form.campus }}</td>
+<td>{{ form.semester }}</td>
+<td>{{ form.crstitle }}</td>
+</tr>
+</table>
+<table>
+<tr>
+<th scope="col">WQB Designation</th>	
+</tr>
+<tr>
+<td>{{ form.wqb }}</td>
+</tr>
+</table>
+</form>
+
+<div class="datatable_container">
+<table id="courses" class="display">
+  <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Title</th><th scope="col">Instructor(s)</th><th scope="col">Campus</th></tr></thead>
+  <tbody>
+  </tbody>
+</table>
+</div>
+{% endblock %}

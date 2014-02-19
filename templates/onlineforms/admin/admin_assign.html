@@ -12,6 +12,20 @@
 
 {% block headextra %}
 <script type="text/javascript">
+    var frequent_fillers = {{ frequent_fillers }}
+
+    function set_assignee(emplid) {
+        $('#id_assignee').val(emplid);
+    }
+    function update_frequent() {
+        var html = 'Frequent assignees: ';
+        var sheetid = $('#assignform input[name=sheet]:checked').val();
+        $(frequent_fillers[sheetid]).each(function(i, p) {
+            html += '<a href="javascript:set_assignee(' + p['emplid'] + ')">' + p['name'] + '</a> &nbsp; ';
+        });
+        $('li#frequent').html(html);
+    }
+
     $(document).ready(function() {
         $('#id_assignee').each(function() {
             $(this).autocomplete({
@@ -21,7 +35,11 @@
                     $(this).data("val", ui.item.value);
                 }
             });
-        }); 
+        });
+        $('#assignform').change(function() {
+          update_frequent();
+        });
+        update_frequent();
     });
 </script>
 {% endblock %}
@@ -51,13 +69,14 @@
                 {{ form.non_field_errors }}
             </p>
         {% endif %}
-        <form action="" method="post">{% csrf_token %}
+        <form action="" method="post" id="assignform">{% csrf_token %}
             <fieldset>
                 <legend>Assignee Information</legend>
                 <ul>
                     <li>
                         {{ form|as_dl }}
                     </li>
+                    {% if assign_to_sfu_account %}<li id="frequent"></li>{% endif %}
                     <li>
                         <input class="submit" type="submit" value="Submit"/>
                     </li>

@@ -10,6 +10,11 @@ dl.formview dt {
 	margin-top: 0.9em;
 }
 
+p.returnlink {
+  float: right;
+  margin-right: 1em;
+}
+
 .sheetsub-WAIT {
   color: #999;
 }
@@ -22,7 +27,17 @@ p.incomplete-warning {
 form.sheetsub div.explanation_block {
 	color: #999;
 }
+fieldset div.explanation_block ul>li {
+	list-style: disc;
+}
+.formfileinput {
+  display: inline-block;
+  margin: 0 0 0.5em 0;
+}
 fieldset label.sublabel {
+	width: auto;
+}
+fieldset label.xxxxsublabel {
 	position: static;
     display: inline;
     width: auto;

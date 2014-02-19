@@ -19,11 +19,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-if 'DEVELOPER' in os.environ:
-    ACTIVE_DEVELOPER = os.environ['DEVELOPER']
-else:
-    ACTIVE_DEVELOPER = 'ggbaker'
-
 if DEPLOYED:
     DATABASES = {
         'default': {
@@ -69,9 +64,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'courselib.middleware.ExceptionIgnorer',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
-    #'throttle.CacheThrottler',
     'courselib.impersonate.ImpersonateMiddleware',
     'courselib.mobile_detection.MobileDetectionMiddleware'
 )
@@ -113,7 +108,7 @@ INSTALLED_APPS = (
     'log',
     'groups',
     'submission',
-    'planning',
+    #'planning',
     'discipline',
     'mobile',
     'ta',
@@ -123,9 +118,10 @@ INSTALLED_APPS = (
     'alerts',
     'reports',
     'discuss',
-    'booking',
-    'techreq',
+    #'booking',
+    #'techreq',
     'onlineforms',
+    'faculty',
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
@@ -140,7 +136,7 @@ SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 if DEPLOYED:
-    MIDDLEWARE_CLASSES = ('courselib.exception_middleware.ExceptionMiddleware',) + MIDDLEWARE_CLASSES
+    MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
     SUBMISSION_PATH = '/data/submitted_files'
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -169,11 +165,10 @@ USE_CELERY = DEPLOYED
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (
-        'djkombu',
         'djcelery',
         'djcelery_email',
         )
-    BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
+    BROKER_URL = "ampq://coursys:supersecretpassword@localhost:5672//"
     DJKOMBU_POLLING_INTERVAL = 10
     CELERY_QUEUES = {
         "celery": {},
@@ -187,6 +182,10 @@ if USE_CELERY:
     EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
     SERVER_EMAIL = 'ggbaker@sfu.ca'
 
+if 'DEVELOPER' in os.environ:
+    ACTIVE_DEVELOPER = os.environ['DEVELOPER']
+else:
+    ACTIVE_DEVELOPER = 'ggbaker'
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 EMAIL_HOST = 'mailgate.sfu.ca'
@@ -208,6 +207,10 @@ LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
 DISABLE_REPORTING_DB = False
 
+# Feature flags to temporarily limit server load, aka "feature flags"
+# Possible values for the set documented in server-setup/index.html#flags
+DISABLED_FEATURES = set([])
+
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 if not DEPLOYED and DEBUG and hostname != 'courses':
@@ -220,10 +223,10 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
 
-if ACTIVE_DEVELOPER == "classam":
-    DISABLE_REPORTING_DB = False
-
+EXTRA_MIDDLEWARE_CLASSES = ()
 try:
     from local_settings import *
 except ImportError:
     pass
+
+MIDDLEWARE_CLASSES = EXTRA_MIDDLEWARE_CLASSES + MIDDLEWARE_CLASSES

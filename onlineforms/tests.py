@@ -6,7 +6,7 @@ from django.forms import Field as DjangoFormsField, Form as DjangoForm
 from coredata.models import Person, Unit
 from courselib.testing import basic_page_tests, Client
 
-from onlineforms.models import FormGroup, Form, Sheet, Field
+from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission, SheetSubmissionSecretUrl
 from onlineforms.models import FIELD_TYPE_MODELS
 
@@ -20,12 +20,12 @@ class ModelTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.unit = Unit.objects.get(label="COMP")
+        self.unit = Unit.objects.get(label="CMPT")
 
     def test_FormGroup(self):
         groupName = "admins_test"
-        u1 = Unit.objects.get(label="COMP")
-        u2 = Unit.objects.get(label="ENG")
+        u1 = Unit.objects.get(label="CMPT")
+        u2 = Unit.objects.get(label="ENSC")
         # Test saving one form group
         fg = FormGroup(name=groupName, unit=u1)
         fg.save()
@@ -42,8 +42,8 @@ class ModelTests(TestCase):
         # add some people to the fg
         p1 = Person.objects.get(userid="ggbaker")
         p2 = Person.objects.get(userid="dzhao")
-        fg.members.add(p1)
-        fg.members.add(p2)
+        FormGroupMember(person=p1, formgroup=fg).save()
+        FormGroupMember(person=p2, formgroup=fg).save()
         self.assertEqual(len(fg.members.all()), 2)
 
     def test_coherence_mixin(self):
@@ -269,7 +269,7 @@ class IntegrationTestCase(TestCase):
         # are not logged in and we try to access it it should return forbidden
         url = reverse('onlineforms.views.sheet_submission_initial', kwargs={'form_slug': "comp-multi-sheet-form"})
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
 
     
     #def test_create_fields(self):
@@ -279,7 +279,7 @@ class IntegrationTestCase(TestCase):
 
 class ViewTestCase(TestCase):
     fixtures = ['test_data', 'onlineforms/extra_test_data']
-    slug_data = {'formgroup_slug': "comp-admins",
+    slug_data = {'formgroup_slug': "cmpt-admins",
                 'formsubmit_slug': "submission-comp-simple-form-2",
                 'form_slug': "comp-simple-form",
                 'sheet_slug': "initial",
@@ -308,7 +308,7 @@ class ViewTestCase(TestCase):
         self.run_basic_page_tests(views, {})
 
     def test_formgroup_pages(self):
-        views = ['manage_group', 'add_group_member']
+        views = ['manage_group']
         args = {'formgroup_slug': self.slug_data["formgroup_slug"]}
         self.run_basic_page_tests(views, args)
 
@@ -345,6 +345,15 @@ class ViewTestCase(TestCase):
                 'sheet_slug': self.slug_data["sheet_slug"],
                 'formsubmit_slug': self.slug_data["formsubmit_slug"],
                 'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
+        self.run_basic_page_tests(views, args)
+
+    def test_admin_submission(self):
+        views = ['view_submission',]
+        args = {'form_slug': self.slug_data["form_slug"], 'formsubmit_slug': self.slug_data["formsubmit_slug"]}
+        self.run_basic_page_tests(views, args)
+        sheetsub = SheetSubmission.objects.get(form_submission__slug=self.slug_data["formsubmit_slug"], slug=self.slug_data["sheetsubmit_slug"])
+        sheetsub.status = 'DONE'
+        sheetsub.save()
         self.run_basic_page_tests(views, args)
 
     def run_basic_page_tests(self, views, arguments):
@@ -402,7 +411,7 @@ class FieldTestCase(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.unit = Unit.objects.get(label="COMP")
+        self.unit = Unit.objects.get(label="CMPT")
         # we want to be logge din for all these tests
         logged_in_person = Person.objects.get(userid="ggbaker")
         self.client.login_user(logged_in_person.userid)

@@ -12,11 +12,12 @@ from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
-    has_role, ForbiddenResponse
+    has_role, uses_feature, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
+from onlineforms.models import FormGroup
 from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
@@ -24,20 +25,36 @@ from icalendar import Calendar, Event
 import pytz, os
 
 
-def _display_membership(m, today, student_cutoff):
-    """
-    Logic to select memberships that should display
-    """
-    if m.role in ['TA', 'INST', 'APPR']:
-        # staff see the whole initial selection
-        return True
+def _get_memberships(userid):
+    today = datetime.date.today()
+    past1 = today - datetime.timedelta(days=365) # 1 year ago
+    past2 = today - datetime.timedelta(days=730) # 2 years ago
+    memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
+            .filter(offering__graded=True, person__userid=userid) \
+            .annotate(num_activities=Count('offering__activity')) \
+            .select_related('offering','offering__semester')
 
-    # only display if activities have been defined
-    active = m.num_activities>0
-    # shorter history; no future courses
-    date_okay = m.offering.semester.end >= student_cutoff and m.offering.semester.start <= today
+    memberships = list(memberships) # get out of the database and do this locally
 
-    return active and date_okay
+    # students don't see non-active courses or future courses
+    memberships = [m for m in memberships if
+                    m.role in ['TA', 'INST', 'APPR']
+                    or (m.num_activities > 0
+                        and m.offering.semester.start <= today)]
+
+    count1 = len(memberships)
+    # exclude everything from more than 2 years ago
+    memberships = [m for m in memberships if m.offering.semester.end >= past2]
+
+    # students don't see as far in the past
+    memberships = [m for m in memberships if
+                    m.role in ['TA', 'INST', 'APPR']
+                    or m.offering.semester.end >= past1]
+    count2 = len(memberships)
+
+    # have courses been excluded because of date?
+    excluded = (count1-count2) != 0
+    return memberships, excluded
 
 @login_required
 def index(request):
@@ -50,15 +67,16 @@ def index(request):
             return HttpResponseRedirect(reverse('mobile.views.index'))
         
     userid = request.user.username
-    memberships = _get_memberships(userid)
+    memberships, excluded = _get_memberships(userid)
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
     is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).count() > 0
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
+    form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
     
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad,
-               'has_grads': has_grads}
+               'has_grads': has_grads, 'excluded': excluded, 'form_groups': form_groups}
     return render(request, "dashboard/index.html", context)
 
 @login_required
@@ -68,10 +86,9 @@ def index_full(request):
             .filter(offering__graded=True, person__userid=userid) \
             .annotate(num_activities=Count('offering__activity')) \
             .select_related('offering','offering__semester')
-    #memberships = [m for m in memberships if m.role in ['TA', 'INST', 'APPR'] or m.num_activities>0]
-    staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
-    
-    context = {'memberships': memberships, 'staff_memberships': staff_memberships}
+    memberships = [m for m in memberships if m.role in ['TA', 'INST', 'APPR'] or m.num_activities>0]
+
+    context = {'memberships': memberships}
     return render(request, "dashboard/index_full.html", context)
 
 
@@ -210,17 +227,6 @@ def config(request):
              'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
     return render(request, "dashboard/config.html", context)
 
-def _get_memberships(userid):
-    today = datetime.date.today()
-    past1 = today - datetime.timedelta(days=365) # 1 year ago
-    past2 = today - datetime.timedelta(days=730) # 2 years ago
-    memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
-            .filter(offering__graded=True, person__userid=userid) \
-            .filter(offering__semester__end__gte=past2) \
-            .annotate(num_activities=Count('offering__activity')) \
-            .select_related('offering','offering__semester')
-    memberships = [m for m in memberships if _display_membership(m, today, past1)]
-    return memberships
 
 def _get_news_list(userid, count):
     past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
@@ -250,7 +256,7 @@ def new_message(request, course_slug):
         form = MessageForm()    
     return render(request, "dashboard/new_message.html", {"form" : form,'course': offering})
 
-
+@uses_feature('feeds')
 @cache_page(60 * 15)
 def atom_feed(request, token, userid, course_slug=None):
     """
@@ -317,15 +323,13 @@ def _activity_colour(a):
 def _holiday_colour(h):
     return "#060680"
 
-
-def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
-        due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=0)):
+ICAL_SEQUENCE = '2' # used to perturb the icalendar idents when the output changes
+def _offerings_calendar_data(offerings, labsecs, start, end, local_tz, dt_string=True, colour=False, browse_titles=False):
     """
-    Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
+    Get calendar data for this set of offerings and lab sections.
+    
+    Used both in _calendar_event_data and by the course browser (coredata.views.browse_courses_info)
     """
-    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
-            .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
-            # start - 30 days to make sure we catch exam/end of semester events
 
     # holidays and cancellations
     cancellations = set() # days when classes cancelled
@@ -333,7 +337,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
         if h.holiday_type in ['FULL', 'CLAS']:
             cancellations.add(h.date)
 
-        ident = "holiday-" + str(h.id) + "-" + h.date.strftime("%Y%m%d") + "@courses.cs.sfu.ca"
+        ident = "holiday-" + str(h.id) + "-" + h.date.strftime("%Y%m%d") + "-" + ICAL_SEQUENCE + "@courses.cs.sfu.ca"
         title = "%s (%s)" % (h.description, h.get_holiday_type_display())
         dt = h.date
         if dt_string:
@@ -352,17 +356,13 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             e['color'] = _holiday_colour(h)
         yield e
 
-
     # map of offering_id -> this student's lab section (so we only output the right one)
-    labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
-    classes = set((m.offering for m in memberships))
-    class_list = MeetingTime.objects.filter(offering__in=classes).select_related('offering')
+    class_list = MeetingTime.objects.filter(offering__in=offerings).select_related('offering')
     
-    used_ids = set()
     # meeting times
     for mt in class_list:
         # only output whole-course events and this student's lab section.
-        if mt.labtut_section not in [None, labsecs[mt.offering_id]]:
+        if labsecs and mt.labtut_section not in [None, labsecs[mt.offering_id]]:
             continue
 
         for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
@@ -373,10 +373,13 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if st.date() in cancellations:
                 continue
             
-            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
-            assert ident not in used_ids
-            used_ids.add(ident)
-            title = mt.offering.name() + " " + mt.get_meeting_type_display()
+            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "-" + ICAL_SEQUENCE + "@courses.cs.sfu.ca"
+            if browse_titles:
+                title = mt.get_meeting_type_display()
+                if mt.labtut_section:
+                    title += ' ' + mt.labtut_section
+            else:
+                title = mt.offering.name() + " " + mt.get_meeting_type_display()
             if dt_string:
                 st = st.isoformat()
                 en = en.isoformat()
@@ -395,7 +398,24 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if colour:
                 e['color'] = _meeting_colour(mt)
             yield e
-    
+
+
+
+def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
+        due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=0)):
+    """
+    Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
+    """
+    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
+            .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
+            # start - 30 days to make sure we catch exam/end of semester events
+    classes = set((m.offering for m in memberships))
+    labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
+
+    # get all events from _offerings_calendar_data
+    for res in _offerings_calendar_data(classes, labsecs, start, end, local_tz, dt_string, colour):
+        yield res
+
     # add every assignment with a due datetime
     for m in memberships:
         for a in m.offering.activity_set.filter(deleted=False):
@@ -406,9 +426,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if en < start or st > end:
                 continue
             
-            ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
-            assert ident not in used_ids
-            used_ids.add(ident)
+            ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "-" + ICAL_SEQUENCE + "@courses.cs.sfu.ca"
             title = '%s: %s due' % (a.offering.name(), a.name)
             if dt_string:
                 st = st.isoformat()
@@ -435,7 +453,8 @@ def _ical_datetime(utc, dt):
     else:
         return dt
 
-#@cache_page(60*60*6)
+@uses_feature('feeds')
+@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -467,9 +486,11 @@ def calendar_ical(request, token, userid):
         e.add('summary', data['title'])
         e.add('dtstart', _ical_datetime(utc, data['start']))
         e.add('dtend', _ical_datetime(utc, data['end']))
-        if isinstance(data['start'], datetime.date):
-            # holidays shouldn't be "busy" on calendars
+        if data['category'] in ('DUE', 'HOLIDAY'):
+            # these shouldn't be "busy" on calendars
             e.add('transp', 'TRANSPARENT')
+        else:
+            e.add('transp', 'OPAQUE')
 
         # spec says no TZID on UTC times
         if 'TZID' in e['dtstart'].params:
@@ -487,6 +508,7 @@ def calendar_ical(request, token, userid):
     return HttpResponse(cal.to_ical(), mimetype="text/calendar")
 
 
+@uses_feature('feeds')
 @login_required
 def calendar(request):
     """
@@ -497,6 +519,7 @@ def calendar(request):
     return render(request, "dashboard/calendar.html", context)
 
 
+@uses_feature('feeds')
 @login_required
 def calendar_data(request):
     """
@@ -684,7 +707,7 @@ def view_signature(request, userid):
     sig = get_object_or_404(Signature, user__in=people, user__userid=userid)
     
     response = HttpResponse(sig.sig, mimetype='image/png')
-    response['Content-Disposition'] = 'inline; filename=%s.png' % (userid)
+    response['Content-Disposition'] = 'inline; filename="%s.png"' % (userid)
     response['Content-Length'] = sig.sig.size
     return response
 
@@ -776,7 +799,7 @@ def view_doc(request, doc_slug):
     context = {'BASE_ABS_URL': settings.BASE_ABS_URL}
     
     # set up useful context variables for this doc
-    if doc_slug == "submission":
+    if doc_slug in ["submission", "pages-api"]:
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
         offerings = [m.offering for m in instructor]
         activities = Activity.objects.filter(offering__in=offerings).annotate(Count('submissioncomponent')).order_by('-offering__semester', '-due_date')
@@ -789,8 +812,10 @@ def view_doc(request, doc_slug):
         elif offerings:
             context['course'] = offerings[0]
         else:
-            sem = Semester.objects.all().reverse()[0]
-            context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+            sem = Semester.current()
+            context['cslug'] = sem.slugform() + '-cmpt-001-d1' # a sample contemporary course slug 
+        
+        context['userid'] = request.user.username or 'userid'
 
     elif doc_slug == "impersonate":
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
@@ -804,8 +829,8 @@ def view_doc(request, doc_slug):
             if students:
                 context['student'] = students[0]
         else:
-            sem = Semester.objects.all().reverse()[0]
-            context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+            sem = Semester.current()
+            context['cslug'] = sem.slugform() + '-cmpt-001-d1' # a sample contemporary course slug 
 
     elif doc_slug == "calc_numeric":
         instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
@@ -843,13 +868,14 @@ def view_doc(request, doc_slug):
 
 # data export views
 # public data, so no authentication done
+@uses_feature('feeds')
 @gzip_page
 @cache_page(60 * 60 * 6)
 def courses_json(request, semester):
     courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN") \
               .select_related('semester')
     resp = HttpResponse(mimetype="application/json")
-    resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
+    resp['Content-Disposition'] = 'inline; filename="' + semester + '.json"'
     crs_data = (c.export_dict() for c in courses)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
@@ -951,7 +977,7 @@ def student_photo(request, emplid):
     imgpath = os.path.join(settings.MEDIA_ROOT, 'images', 'default-photo.png')
     data = open(imgpath, 'r')
     response = HttpResponse(data, mimetype='image/png')
-    response['Content-Disposition'] = 'inline; filename=%s.png' % (emplid)
+    response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
     # TODO: be a little less heavy-handed with the caching if it can be done safely
     response['Cache-Control'] = 'no-store'
     response['Pragma'] = 'no-cache'

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -19,7 +20,6 @@ def user_passes_test(test_func, login_url=None,
     """
 
     if not login_url:
-        from django.conf import settings
         login_url = settings.LOGIN_URL
 
     def decorator(view_func):
@@ -37,8 +37,13 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
-def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None):
-    resp = render_to_response('error.html', {'title': title, 'error': error, 'errormsg': errormsg}, context_instance=RequestContext(request))
+def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None, simple=False):
+    if simple:
+        # this case is intended to produce human-readable HTML for API errors
+        template = 'simple-error.html'
+    else:
+        template = 'error.html'
+    resp = render_to_response(template, {'title': title, 'error': error, 'errormsg': errormsg}, context_instance=RequestContext(request))
     resp.status_code = status
     return resp
 
@@ -266,6 +271,9 @@ def is_discipline_user(request, course_slug, **kwargs):
         return False
 
     perms = Role.objects.filter(person__userid=request.user.username, role='DISC', unit=offering.owner).count()
+    print perms
+    perms += Role.objects.filter(person__userid=request.user.username, role='DISC', unit__label='UNIV').count()
+    print perms
     if perms>0:
         roles.add("DEPT")
 
@@ -278,7 +286,7 @@ def is_discipline_user(request, course_slug, **kwargs):
         roles.add("INSTR")
     
     # record why we have permission in the session
-    request.session['discipline-'+course_slug] = roles
+    request.session['discipline-'+course_slug] = list(roles)
     return bool(roles)
 
 
@@ -311,4 +319,20 @@ def requires_instructor(function=None, login_url=None):
         return actual_decorator(function)
     else:
         return actual_decorator
+
+
+def _return_unavailable(request, *args, **kwargs):
+    return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)
+
+def uses_feature(feature):
+    """
+    Decorator to allow disabling features temporarily with settings.DISABLED_FEATURES aka feature flags.
+    """
+    if feature in settings.DISABLED_FEATURES:
+        def real_decorator(function):
+            return _return_unavailable
+    else:
+        def real_decorator(function):
+            return function
+    return real_decorator
 

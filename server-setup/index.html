@@ -32,20 +32,25 @@ code.file {
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
-apt-get install nginx subversion mysql-client-5.1 memcached stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev python-mysqldb 
+apt-get install nginx subversion mysql-client-5.1 memcached stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev python-mysqldb git python-pip screen
 <del># apt-get install python-flup python-memcache</del> # now handled by PIP, I hope</pre></blockquote></dd>
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
 <dt>Mail Server</dt>
   <dd>Configure Postfix with smarthost mailgate.sfu.ca.  Put a useful email address in <code class="file">/root/.forward</code></dd>
+
 <dt>Celery Task Queue</dt>
-  <dd>[Likely have to do after the <code>pip install</code> set in the application setup.] Install the required Python packages:
-  <blockquote><del><pre># sudo easy_install django-celery-email django-celery django-kombu</pre></del></blockquote>
+  <dd>Celery is using RabbitMQ as its transport, which is the default. It can be set up by:
+  <blockquote><pre>sudo apt-get install rabbitmq-server
+sudo rabbitmqctl add_user coursys <var>supersecretpassword</var>
+sudo rabbitmqctl add_vhost myvhost
+sudo rabbitmqctl set_permissions -p myvhost coursys ".*" ".*" ".*"</pre></blockquote>
+  <p>To make sure RabbitMQ listens only on localhost, put <a href="etc_rabbitmq_rabbitmq.conf"><code class="file">/etc/rabbitmq/rabbitmq.conf</code></a> in place.</p>
   <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
   <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
-  <!--<p>A bug in Django-Kombu crops up on the server.  Had to un-comment the line <code>self.refresh_connection()</code> (line 30, in <code>Channel._get</code>) in <code class="file">/usr/local/lib/python2.6/dist-packages/django_kombu-0.9.4-py2.6.egg/djkombu/transport.py</code>.</p>-->
   <p>In order to get the celeryd logs rotated, install the config file as <a href="etc_logrotate.d_celeryd.txt"><code class="file">/etc/logrotate.d/celeryd</code></a>.</p>
   </dd>
+
 <dt>Stunnel config for MySQL</dt>
   <dd>In <code class="file">/etc/default/stunnel4</code>, enable stunnel.  Add this to <code class="file">/etc/stunnel/stunnel.conf</code> and remove other services and <code>cert</code> line:
   <blockquote><pre>cert = /etc/stunnel/stunnel.pem
@@ -190,6 +195,15 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <p>It doesn't really matter which user connects (or runs the SSH process), as long as the port is forwarded.</p>
 </dd>
 </dl>
+
+
+<h2 id="flags">Feature Flags</h2>
+<p>The system contains some <a href="http://stackoverflow.com/questions/7707383/what-is-a-feature-flag">feature flags</a> that allow selective disabling of some non-critical features. This may be necessary if server load is high because of some underlying hardware problems, or just insanity.</p>
+<p>They can be set by adding to the <code class="python">DISABLED_FEATURES</code> setting, likely by by editing <code class="file">local_settings.py</code>.</p>
+<p>Available flags are: <code class="python">'course_browser'</code> (the course browse/search functionality), <code class="python">'feeds'</code> (for icalendar/atom feeds/JSON dumps),
+ <code class="python">'discuss'</code> (discussion forums), <code class="python">'marking'</code> (marking--editing only), <code class="python">'sims'</code> (all SIMS queries), <code class="python">'submit-get'</code> (downloading submissions).</p>
+<p>A reasonable &ldquo;something ain't right here&rdquo; setting is:</p>
+<blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote>
 
 
 </body>

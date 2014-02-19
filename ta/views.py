@@ -89,7 +89,7 @@ def all_tugs(request, course_slug):
     
     return render(request, 'ta/all_tugs.html', context)
 
-@requires_role("ADMN")
+@requires_role("TAAD")
 def all_tugs_admin(request, semester_name=None):
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
@@ -568,6 +568,8 @@ def view_application(request, post_slug, userid):
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
     campuses = CampusPreference.objects.filter(app=application).select_related('campus')
     contracts = TAContract.objects.filter(application=application)
+    experience = TACourse.objects.filter(contract__application__person=application.person) \
+            .exclude(contract__application=application).select_related('course__semester')
     if roles and contracts:
         contract = contracts[0]
     else:
@@ -579,6 +581,7 @@ def view_application(request, post_slug, userid):
             'skills': skills,
             'campuses': campuses,
             'contract': contract,
+            'experience': experience,
             }
     return render(request, 'ta/view_application.html', context)
 
@@ -892,7 +895,7 @@ def all_contracts(request, post_slug):
 def contracts_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'inline; filename=%s.csv' % (posting.slug)
+    response['Content-Disposition'] = 'inline; filename="%s.csv"' % (posting.slug)
     writer = csv.writer(response)
     writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 'Benefits Indicator', 'EmplID', 'SIN',
                      'Last Name', 'First Name 1', 'First Name 2', 'Payroll Start Date', 'Payroll End Date',
@@ -1053,7 +1056,7 @@ def view_form(request, post_slug, userid):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s-%s.pdf' % (posting.slug, userid)
+    response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (posting.slug, userid)
     ta_form(contract, response)
     return response
 
@@ -1062,7 +1065,7 @@ def contracts_forms(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     contracts = TAContract.objects.filter(posting=posting, status='ACC')
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s.pdf' % (posting.slug)
+    response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (posting.slug)
     ta_forms(contracts, response)
     return response
 
@@ -1401,7 +1404,7 @@ def _by_start_semester(gradstudent):
 def generate_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     
-    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
     
@@ -1418,7 +1421,7 @@ def generate_csv(request, post_slug):
     # generate CSV
     filename = str(posting.slug) + '.csv'
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    response['Content-Disposition'] = 'inline; filename="%s"' % (filename)
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
@@ -1426,7 +1429,7 @@ def generate_csv(request, post_slug):
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*8 + [str(o.campus) for o in offerings]
+    off = ['']*9 + [str(o.campus) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
@@ -1487,7 +1490,7 @@ def generate_csv_by_course(request, post_slug):
     # generate CSV
     filename = str(posting.slug) + '_by_course.csv'
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'inline; filename=%s'% filename
+    response['Content-Disposition'] = 'inline; filename="%s"'% filename
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names

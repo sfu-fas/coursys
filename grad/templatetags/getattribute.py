@@ -65,7 +65,7 @@ def getattribute(value, arg, html=True):
         scholarships = [str(scholarship) for scholarship in value.scholarship_set.all()]
         return '; '.join(scholarships)
     elif arg == 'unit': 
-        return value.program.unit
+        return str(value.program.unit)
     elif '.' not in arg:
         if hasattr(value, str(arg)):
             res = getattr(value, arg)

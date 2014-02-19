@@ -6,6 +6,7 @@ from coredata.models import Person, Unit
 from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from courselib.json_fields import getter_setter
 from django.db.models import Max
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse
@@ -13,7 +14,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
-import datetime, random, sha
+import datetime, random, sha, itertools
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -85,9 +86,12 @@ FIELD_TYPE_MODELS = {
 SUBMISSION_STATUS = [
         ('WAIT', "Waiting for the owner to send it to someone else or change status to \"done\""),
         ('DONE', "No further action required"),
+        ('REJE', "Returned incomplete"),
         ]
         
-FORM_SUBMISSION_STATUS = [('PEND', "The document is still being worked on")] + SUBMISSION_STATUS
+FORM_SUBMISSION_STATUS = [
+        ('PEND', "The document is still being worked on"),
+        ] + SUBMISSION_STATUS
 
 class NonSFUFormFiller(models.Model):
     """
@@ -112,7 +116,7 @@ class NonSFUFormFiller(models.Model):
         return self.email_address
 
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
     
     def email_mailto(self):
         "A mailto: URL for this person's email address: handles the case where we don't know an email for them."
@@ -184,7 +188,7 @@ class FormGroup(models.Model):
     """
     unit = models.ForeignKey(Unit)
     name = models.CharField(max_length=60, null=False, blank=False)
-    members = models.ManyToManyField(Person)
+    members = models.ManyToManyField(Person, through='FormGroupMember') #
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
@@ -197,6 +201,28 @@ class FormGroup(models.Model):
         return "%s, %s" % (self.name, self.unit.label)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+
+class FormGroupMember(models.Model):
+    """
+    Member of a FormGroup. Upgraded for simple ManyToManyField so we have the .config
+
+    Do not use as a foreign key: is deleted when people leave the FormGroup
+    """
+    person = models.ForeignKey(Person)
+    formgroup = models.ForeignKey(FormGroup)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'email': should this member receive emails on completed sheets?
+
+    defaults = {'email': True}
+    email, set_email = getter_setter('email')
+
+    class Meta:
+        db_table = 'onlineforms_formgroup_members' # to make it Just Work with the FormGroup.members without "through=" that existed previously
+        unique_together = (("person", "formgroup"),)
+
+    def __unicode__(self):
+        return "%s in %s" % (self.person.name(), self.formgroup.name)
+
 
 class _FormCoherenceMixin(object):
     """
@@ -248,7 +274,7 @@ class Form(models.Model, _FormCoherenceMixin):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?") # not implemented
+    advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?")
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
@@ -383,7 +409,6 @@ class Field(models.Model, _FormCoherenceMixin):
     def autoslug(self):
         return make_slug(self.label)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='sheet')
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     def __unicode__(self):
         return "%s, %s" % (self.sheet, self.label)
@@ -428,10 +453,19 @@ class FormSubmission(models.Model):
     def autoslug(self):
         return self.initiator.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
-    
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'summary': summary of the form entered when closing it
+        # 'emailed': True if the initiator was emailed when the form was closed
+        # 'closer': coredata.Person.id of the person that marked the formsub as DONE
+
+    defaults = {'summary': '', 'emailed': False, 'closer': None}
+    summary, set_summary = getter_setter('summary')
+    emailed, set_emailed = getter_setter('emailed')
+    closer_id, set_closer = getter_setter('closer')
+
     def update_status(self):
         sheet_submissions = SheetSubmission.objects.filter(form_submission=self) 
-        if all(sheet_sub.status == 'DONE' for sheet_sub in sheet_submissions):
+        if all(sheet_sub.status in ['DONE', 'REJE'] for sheet_sub in sheet_submissions):
             self.status = 'PEND'
         else:
             self.status = 'WAIT'
@@ -439,6 +473,47 @@ class FormSubmission(models.Model):
 
     def __unicode__(self):
         return "%s for %s" % (self.form, self.initiator)
+
+    def closer(self):
+        try:
+            return Person.objects.get(id=self.closer_id())
+        except Person.DoesNotExist:
+            return None
+    
+    def last_sheet_completion(self):
+        return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
+
+    def email_notify_completed(self, request, admin):
+        plaintext = get_template('onlineforms/emails/notify_completed.txt')
+        html = get_template('onlineforms/emails/notify_completed.html')
+
+        email_context = Context({'formsub': self, 'admin': admin})
+        subject = '%s submission complete' % (self.form.title)
+        from_email = admin.full_email()
+        to = self.initiator.full_email()
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                     from_email=from_email, to=[to], bcc=[admin.full_email()])
+        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.send()
+
+    def email_notify_new_owner(self, request, admin):
+        plaintext = get_template('onlineforms/emails/notify_new_owner.txt')
+        html = get_template('onlineforms/emails/notify_new_owner.html')
+
+        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+                                    kwargs={'form_slug': self.form.slug,
+                                            'formsubmit_slug': self.slug}))
+        email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
+        subject = '%s submission transferred' % (self.form.title)
+        from_email = admin.full_email()
+        to = [m.person.full_email()
+              for m
+              in self.owner.formgroupmember_set.all()
+              if m.email()]
+        msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
+                                     from_email=from_email, to=to, bcc=[admin.full_email()])
+        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.send()
 
 
 class SheetSubmission(models.Model):
@@ -452,6 +527,10 @@ class SheetSubmission(models.Model):
     def autoslug(self):
         return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'assign_note': optional note provided when sheet was assigned by admin
+        # 'reject_reason': reason given for rejecting the sheet
+        # 'return_reason': reason given for returning the sheet to the filler
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -461,6 +540,11 @@ class SheetSubmission(models.Model):
 
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
+    
+    defaults = {'assign_note': None, 'reject_reason': None, 'return_reason': None}
+    assign_note, set_assign_note = getter_setter('assign_note')
+    reject_reason, set_reject_reason = getter_setter('reject_reason')
+    return_reason, set_return_reason = getter_setter('return_reason')
 
     cached_fields = None
     def get_field_submissions(self, refetch=False):
@@ -468,6 +552,12 @@ class SheetSubmission(models.Model):
             self.cached_fields = FieldSubmission.objects.filter(sheet_submission=self)
         return self.cached_fields
     field_submissions = property(get_field_submissions)
+    
+    def get_secret(self):
+        try:
+            return SheetSubmissionSecretUrl.objects.get(sheet_submission=self)
+        except SheetSubmissionSecretUrl.DoesNotExist:
+            return None
 
     def get_submission_url(self):
         """
@@ -485,21 +575,63 @@ class SheetSubmission(models.Model):
                                 'sheet_slug': self.sheet.slug,
                                 'sheetsubmit_slug': self.slug})
 
+    @classmethod
+    def waiting_sheets_by_user(cls):
+        min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
+        sheet_subs = SheetSubmission.objects.exclude(status='DONE').exclude(status='REJE') \
+                .exclude(given_at__gt=min_age) \
+                .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'form_submission__form__initiator', 'sheet')
+        return itertools.groupby(sheet_subs, lambda ss: ss.filler)
+        
+    @classmethod
+    def email_waiting_sheets(cls):
+        full_url = settings.BASE_ABS_URL + reverse('onlineforms.views.index')
+        subject = 'Waiting form reminder'
+        from_email = "nobody@courses.cs.sfu.ca"
+
+        filler_ss = cls.waiting_sheets_by_user()
+        template = get_template('onlineforms/emails/reminder.txt')
+        
+        for filler, sheets in filler_ss:
+            context = Context({'full_url': full_url,
+                    'filler': filler, 'sheets': list(sheets)})
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()])
+            msg.send()
+    
+    def _send_email(self, request, template_name, subject, mail_from, mail_to, context):
+        """
+        Send email to user as required in various places below
+
+        TODO: refactor out of the below functions
+        """
+        plaintext = get_template('onlineforms/emails/' + template_name + '.txt')
+        html = get_template('onlineforms/emails/' + template_name + '.html')
+
+        sheeturl = request.build_absolute_uri(self.get_submission_url())
+        context['sheeturl'] = sheeturl
+        email_context = Context(context)
+        from_email = mail_from.full_email()
+        to_email = mail_to.full_email()
+        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to_email])
+        msg.attach_alternative(html.render(email_context), "text/html")
+        msg.send()
+
+
     def email_assigned(self, request, admin, assignee):
         plaintext = get_template('onlineforms/emails/sheet_assigned.txt')
-        htmly = get_template('onlineforms/emails/sheet_assigned.html')
-    
+        html = get_template('onlineforms/emails/sheet_assigned.html')
+
         full_url = request.build_absolute_uri(self.get_submission_url())
-        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url})
+        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self})
         subject, from_email, to = 'CourSys: You have been assigned a sheet.', admin.full_email(), assignee.full_email()
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
-        msg.attach_alternative(htmly.render(email_context), "text/html")
+        msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
-    
+
     
     def email_started(self, request):
         plaintext = get_template('onlineforms/emails/nonsfu_sheet_started.txt')
-        htmly = get_template('onlineforms/emails/nonsfu_sheet_started.html')
+        html = get_template('onlineforms/emails/nonsfu_sheet_started.html')
     
         full_url = request.build_absolute_uri(self.get_submission_url())
         email_context = Context({'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self})
@@ -507,22 +639,35 @@ class SheetSubmission(models.Model):
         from_email = "nobody@courses.cs.sfu.ca"
         to = self.filler.full_email()
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
-        msg.attach_alternative(htmly.render(email_context), "text/html")
+        msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
-    def email_submitted(self, request):
+    def email_submitted(self, request, rejected=False):
         plaintext = get_template('onlineforms/emails/sheet_submitted.txt')
-        htmly = get_template('onlineforms/emails/sheet_submitted.html')
+        html = get_template('onlineforms/emails/sheet_submitted.html')
     
-        full_url = request.build_absolute_uri('onlineforms.views.admin_list_all')
-        email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form})
+        full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
+                                    kwargs={'form_slug': self.sheet.form.slug,
+                                            'formsubmit_slug': self.form_submission.slug}))
+        email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
+                                 'rejected': rejected})
         subject = '%s submission' % (self.sheet.form.title)
         #from_email = self.filler.full_email()
         from_email = "nobody@courses.cs.sfu.ca"
-        to = [p.full_email() for p in self.sheet.form.owner.members.all()]
+        to = [m.person.full_email()
+              for m
+              in self.sheet.form.owner.formgroupmember_set.all()
+              if m.email()]
         msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, to)
-        msg.attach_alternative(htmly.render(email_context), "text/html")
+        msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
+
+
+    def email_returned(self, request, admin):
+        context = {'admin': admin, 'sheetsub': self}
+        self._send_email(request, 'sheet_returned', '%s submission returned' % (self.sheet.title),
+                         admin, self.filler, context)
+
 
 
 class FieldSubmission(models.Model):
@@ -632,3 +777,5 @@ def reorder_sheet_fields(ordered_fields, field_slug, order):
                 ordered_fields[i+1].save()
                 ordered_fields[i].save()
             break
+
+

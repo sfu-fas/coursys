@@ -92,13 +92,9 @@ def new(request):
     if request.method == 'POST':
         data = request.POST.copy()
         if data['pay_frequency'] == 'L':
-            # force values into the non-submitted (and don't-care) fields for lump sum pay
-            try:
-                pay = float(data['lump_sum_pay'])
-            except ValueError:
-                pay = 1
-            data['biweekly_pay'] = data.get('biweekly_pay', pay)
-            data['hourly_pay'] = data.get('hourly_pay', pay)
+            # force legal values into the non-submitted (and don't-care) fields for lump sum pay
+            data['biweekly_pay'] = 1
+            data['hourly_pay'] = 1
             data['hours'] = 1
             data['pay_periods'] = 1
 
@@ -157,13 +153,9 @@ def edit(request, ra_slug):
     if request.method == 'POST':
         data = request.POST.copy()
         if data['pay_frequency'] == 'L':
-            # force values into the non-submitted (and don't-care) fields for lump sum pay
-            try:
-                pay = float(data['lump_sum_pay'])
-            except ValueError:
-                pay = 1
-            data['biweekly_pay'] = data.get('biweekly_pay', pay)
-            data['hourly_pay'] = data.get('hourly_pay', pay)
+            # force legal values into the non-submitted (and don't-care) fields for lump sum pay
+            data['biweekly_pay'] = 1
+            data['hourly_pay'] = 1
             data['hours'] = 1
             data['pay_periods'] = 1
         
@@ -185,7 +177,8 @@ def edit(request, ra_slug):
         raform.fields['unit'].choices = unit_choices
         raform.fields['project'].choices = project_choices
         raform.fields['account'].choices = account_choices
-    return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment })
+
+    return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment, 'person': appointment.person })
 
 #Quick Reappoint, The difference between this and edit is that the reappointment box is automatically checked, and date information is filled out as if a new appointment is being created.
 #Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
@@ -238,7 +231,7 @@ def view(request, ra_slug):
 def form(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s.pdf' % (appointment.slug)
+    response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
     ra_form(appointment, response)
     return response
 
@@ -246,7 +239,7 @@ def form(request, ra_slug):
 def letter(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
-    response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
+    response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
         to_addr_lines=[appointment.person.name(), 'c/o '+appointment.unit.name], 
@@ -512,7 +505,7 @@ def person_info(request):
     """
     Get more info about this person, for AJAX updates on new RA form
     """
-    result = {}
+    result = {'programs': []}
     emplid = request.GET.get('emplid', None)
     if not emplid or not emplid.isdigit() or len(emplid) != 9:
         pass

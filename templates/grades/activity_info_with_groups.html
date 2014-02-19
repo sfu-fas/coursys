@@ -54,8 +54,10 @@
 			{% ifequal group_grade_info.grade 'no grade'%} 
 				<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
 			{% else %}
-			    {{ group_grade_info.grade }}		   
+			    {{ group_grade_info.grade }}
+			    {% if activity.is_numeric %}	   
 			    <a href="{% url marking.views.mark_summary_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+			    {% endif %}
 			{% endifequal %}	
 			</td>
 			<td>

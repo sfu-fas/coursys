@@ -1,12 +1,12 @@
 from submission.models import GroupSubmission
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
-from django.shortcuts import render_to_response, get_object_or_404#, redirect
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, QueryDict
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from submission.forms import *
-from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
+from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug, uses_feature
 from submission.models import *
 from django.core.urlresolvers import reverse
 from django.contrib import messages
@@ -50,7 +50,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         late = submission.created_at - activity.due_date
     else:
         late = 0
-        
+    
     if activity.group:
         gm = GroupMember.objects.filter(student__person=student, activity=activity, confirmed=True)
         if gm:
@@ -58,8 +58,8 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             member = gm[0].student
         else:
             group = None
-            cansubmit = False
-            messages.add_message(request, messages.INFO, "This is a group submission. You cannot submit since you aren't in a group.")
+            #cansubmit = False
+            #messages.add_message(request, messages.INFO, "This is a group submission. You cannot submit since you aren't in a group.")
     else:
         group = None
 
@@ -146,7 +146,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             else:
                 group_str = ""
             l = LogEntry(userid=request.user.username,
-                  description=(u"submitted for %s %s" + group_str) % (activity, sub.component.title),
+                  description=u"submitted for %s %s%s" % (activity, sub.component.title, group_str),
                   related_object=sub)
             l.save()
 
@@ -308,8 +308,10 @@ def add_component(request, course_slug, activity_slug):
         else:
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
             form = new_form
+    type_classes = [cls for cls in ALL_TYPE_CLASSES
+                    if not hasattr(cls, 'active') or cls.active]
     return render_to_response("submission/component_add.html", 
-        {"course":course, "activity":activity, "form":form, "type":Type, "types": ALL_TYPE_CLASSES},
+        {"course":course, "activity":activity, "form":form, "type":Type, "types": type_classes},
         context_instance=RequestContext(request))
 
 def get_submission(submission_id):
@@ -324,6 +326,7 @@ def get_submission(submission_id):
 
 
 @requires_course_by_slug
+@uses_feature('submit-get')
 def download_file(request, course_slug, activity_slug, component_slug=None, submission_id=None, userid=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
@@ -374,6 +377,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
         return generate_zip_file(submission, submitted_components)
 
 @requires_course_staff_by_slug
+@uses_feature('submit-get')
 def download_activity_files(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
@@ -438,7 +442,8 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
-            if submission and submission.owner and submission.owner.person.userid != request.user.username:
+            # check disabled until such time as it can be fixed
+            if False and submission and submission.owner and submission.owner.person.userid != request.user.username:
                 return _override_ownership_confirm(request, course, activity, None, group_slug, submission.owner.person, urlencode[1:])
 
         if submission:

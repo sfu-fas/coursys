@@ -11,20 +11,10 @@ function clear_filter() {
 $(document).ready(function() {
 	oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
-		"bSort": false,
-		"bPaginate": false	/* turn off the pagination */
-	});		
-		
-	var oRows = oTable.fnGetNodes();
-	
-	/* set the tab indices of all the text boxes*/
-	var tabi = 1;
-	for(var r = 0; r < oRows.length; r++)
-	{
-		var mark_entry = oRows[r].getElementsByTagName('input');
-		if(mark_entry.length > 0)
-			mark_entry[0].tabIndex = tabi ++;
-	}	
+		"bSort": true,
+		"bPaginate": false,
+		"aoColumns": [null, { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
+	});
 });
 //]]>
 </script>

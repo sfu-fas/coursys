@@ -17,7 +17,7 @@ class AdvistorNotestest(TestCase):
         adv = Person.objects.get(userid='dzhao')
 
         # create some notes to work with
-        unit = Unit.objects.get(slug='comp')
+        unit = Unit.objects.get(slug='cmpt')
         ns = NonStudent(first_name="Non", last_name="Student", high_school="North South Burnaby-Surrey",
                         start_year=2000)
         ns.save()
@@ -465,7 +465,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         p = Problem(person=Person.objects.get(emplid=200000172), code='Deceased', status='RESO',
                     resolved_at=datetime.datetime.now(), resolution_lasts=10,
                     resolved_until=datetime.datetime.now()+datetime.timedelta(days=10),
-                    unit=Unit.objects.get(slug='comp'))
+                    unit=Unit.objects.get(slug='cmpt'))
         p.save()
         
         before_count = len(Problem.objects.filter(person__emplid=200000172))

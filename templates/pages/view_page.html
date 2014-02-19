@@ -6,6 +6,7 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
+<link rel="stylesheet" href="{{MEDIA_URL}}style/pages.css" media="all" />
 {% if version.math %}
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
@@ -13,7 +14,7 @@ MathJax.Hub.Config({
   displayIndent: "2em",
 });
 </script>
-<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 {% endif %}
 {% if version.syntax %}
 <script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/shCore.js"></script>
@@ -47,6 +48,8 @@ MathJax.Hub.Config({
 {% endblock %}
 
 {% block content %}
+{% if page.release_message %}<div class="releasemessage">{{ page.release_message }}</div>{% endif %}
+
 
 {% if version.is_filepage %}
 <p>View file <a href="{% url pages.views.view_file course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}), or <a href="{% url pages.views.download_file course_slug=offering.slug page_label=page.label %}">download</a>.</p>

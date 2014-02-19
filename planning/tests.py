@@ -26,6 +26,9 @@ class PlanningTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
+        return
+
+
         # Test update plan view
         url = reverse('planning.views.update_plan', kwargs={
             'semester': 1127,

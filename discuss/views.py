@@ -1,5 +1,5 @@
 from coredata.models import CourseOffering, Member
-from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug
+from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug, uses_feature
 from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription, TopicSubscription
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
@@ -37,6 +37,7 @@ def _get_member(username, discussion_view, course_slug):
     else:
         raise ValueError("Discussion view type must be either 'student' or 'staff'")
 
+@uses_feature('discuss')
 @login_required
 def discussion_index(request, course_slug):
     """
@@ -59,6 +60,7 @@ def discussion_index(request, course_slug):
         topics = paginator.page(paginator.num_pages)
     return render(request, 'discuss/index.html', {'course': course, 'topics': topics, 'view': view})
     
+@uses_feature('discuss')
 @login_required
 def create_topic(request, course_slug):
     """
@@ -82,6 +84,7 @@ def create_topic(request, course_slug):
         form = discussion_topic_form_factory(view, creole=None)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
 
+@uses_feature('discuss')
 @login_required()
 def edit_topic(request, course_slug, topic_slug):
     """
@@ -109,6 +112,7 @@ def edit_topic(request, course_slug, topic_slug):
     
     return render(request, 'discuss/edit_topic.html', {'course': course, 'topic': topic, 'form': form})
 
+@uses_feature('discuss')
 @login_required
 def view_topic(request, course_slug, topic_slug):
     """
@@ -150,6 +154,7 @@ def view_topic(request, course_slug, topic_slug):
                'brushes': brushes, 'need_mathjax': need_mathjax, 'any_math': any_math}
     return render(request, 'discuss/topic.html', context)
 
+@uses_feature('discuss')
 @login_required
 def change_topic_status(request, course_slug, topic_slug):
     """
@@ -173,6 +178,7 @@ def change_topic_status(request, course_slug, topic_slug):
     return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
 
 
+@uses_feature('discuss')
 @login_required()
 def edit_message(request, course_slug, topic_slug, message_slug):
     """
@@ -200,6 +206,7 @@ def edit_message(request, course_slug, topic_slug, message_slug):
         form = DiscussionMessageForm(instance=message, creole=None)
     return render(request, 'discuss/edit_reply.html', {'course':course, 'topic': topic, 'message': message, 'form': form})
 
+@uses_feature('discuss')
 @login_required
 def remove_message(request, course_slug, topic_slug, message_slug):
     """
@@ -221,6 +228,7 @@ def remove_message(request, course_slug, topic_slug, message_slug):
     else:
         return HttpResponseForbidden()
     
+@uses_feature('discuss')
 @login_required()
 def manage_discussion_subscription(request, course_slug):
     course, _ = _get_course_and_view(request, course_slug)
@@ -243,6 +251,7 @@ def manage_discussion_subscription(request, course_slug):
     context = {'course':course, 'form': form, 'topic_subs': topic_subs}
     return render(request, 'discuss/manage_discussion_subscription.html', context)
 
+@uses_feature('discuss')
 @login_required()
 def manage_topic_subscription(request, course_slug, topic_slug):
     course, _ = _get_course_and_view(request, course_slug)

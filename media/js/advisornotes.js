@@ -94,8 +94,9 @@ function more_course_info(url) {
 	$.ajax({
 		url: url,
 		success: function(data){
-			$('table.info').remove();
-			$('div.table_container').html('<table class="info"><tbody></tbody></table>');
+			if( $('table.info').length == 0 ) {
+			    $('div.table_container').html('<table class="info"><tbody></tbody></table>');				
+			}
 			if (data['error']) {
 				add_to_info('Error', data['error']);
 				$('#fetchwait').hide();
@@ -110,6 +111,9 @@ function more_course_info(url) {
 			}
 			if (data['descrlong']) {
 				add_to_info('Calendar Description', data['descrlong']);
+			}
+			if (data['rqmnt_designtn']) {
+				add_to_info('Requirement Designation', data['rqmnt_designtn']);
 			}
 
             $('#fetchwait').hide();

@@ -1,6 +1,6 @@
 from django import forms
 from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
-from coredata.queries import find_person, add_person, SIMSProblem
+from coredata.queries import find_person, add_person, SIMSProblem, cache_by_args
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.contrib.localflavor.ca.forms import CAPhoneNumberField
@@ -296,10 +296,10 @@ class UnitAddressForm(forms.Form):
     deptid = forms.CharField(required=False, label="Dept ID",
                                widget=forms.TextInput(attrs={'size': 5}),
                                help_text='Department ID (cost centre) for financial services. e.g. "12345". Used for TA/RA contracts.')
-    card_account = forms.CharField(required=False, label="Card Account", max_length=12,
-                               widget=forms.TextInput(attrs={'size': 12}),
-                               help_text='Account code for card requisitions (e.g. "1234567 1234")')
-    card_rooms = forms.CharField(required=False, label="Card Access Rooms", help_text='Rooms that all grads have access to, for card access forms. Separate lines with "|".',
+    card_account = forms.CharField(required=False, label="Card Account", max_length=13,
+                               widget=forms.TextInput(attrs={'size': 13}),
+                               help_text='Account code for card requisitions (e.g. "12-12345-1234")')
+    card_rooms = forms.CharField(required=False, label="Card Access Rooms", help_text='Rooms that all grads have access to, for card access forms. Separate lines with "|" and buildings/rooms with ":", e.g. AQ:1234|AQ:5678.',
                             widget=forms.TextInput(attrs={'size': 40}))
 
     def __init__(self, unit, *args, **kwargs):
@@ -424,5 +424,87 @@ class BaseHolidayFormset(forms.models.BaseModelFormSet):
 HolidayFormset = forms.models.modelformset_factory(Holiday, formset=BaseHolidayFormset, form=HolidayForm,
                                                    max_num=20, extra=5, can_delete=True)
 
+
+
+# form for the course browser: never submitted, only rendered and processed with JS
+from coredata.models import CAMPUS_CHOICES_SHORT, WQB_FLAGS
+from itertools import chain
+from django.utils.html import conditional_escape
+import datetime
+
+class CheckboxSelectTerse(forms.CheckboxSelectMultiple):
+    """
+    A CheckboxSelectMultiple, but with a more compact rendering
+    """
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None: value = []
+        has_id = attrs and 'id' in attrs
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = []
+        # Normalize to strings
+        str_values = set([force_unicode(v) for v in value])
+        for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
+            # If an ID attribute was given, add a numeric index as a suffix,
+            # so that the checkboxes don't all have the same ID attribute.
+            if has_id:
+                final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
+                label_for = u' for="%s"' % final_attrs['id']
+            else:
+                label_for = ''
+
+            cb = forms.CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
+            option_value = force_unicode(option_value)
+            rendered_cb = cb.render(name, option_value)
+            option_label = conditional_escape(force_unicode(option_label))
+            output.append(u'<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
+        return mark_safe(u'\n'.join(output))
+
+FLAG_DICT = dict(WQB_FLAGS)
+UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
+COLUMN_CHOICES = [ # columns that can be turned on and off by the user.
+    ('title', 'Course Title'), 
+    ('instructors', 'Instructor(s)'),
+    ('enrl_tot', 'Enrolment'),
+    ('campus', 'Campus'),
+    ]
+COLUMN_NAMES = dict(COLUMN_CHOICES)
+COLUMN_NAMES['semester'] = 'Semester'
+COLUMN_NAMES['coursecode'] = 'Course'
+DEFAULT_COLUMNS = ['title', 'instructors', 'campus']
+class OfferingFilterForm(forms.Form):
+    #columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES, initial=DEFAULT_COLUMNS)
+    subject = forms.ChoiceField()
+    number = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}), label='Course Number')
+    section = forms.CharField(widget=forms.TextInput(attrs={'size': '3'}))
+    instructor = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Instructor Userid')
+    campus = forms.ChoiceField(choices=([('', u'all')] + list(CAMPUS_CHOICES_SHORT)))
+    semester = forms.ChoiceField()
+    crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
+    wqb = forms.MultipleChoiceField(choices=WQB_FLAGS, initial=[], label='WQB',
+                                    widget=CheckboxSelectTerse())
+    
+    @classmethod
+    @cache_by_args
+    def allowed_semesters(self):
+        # semester choices: start of good data, to reasonably in the future
+        today = datetime.date.today()
+        offering_sem = CourseOffering.objects.order_by().values('semester').distinct()
+        #timely_sem = Semester.objects.filter(id__in=offering_sem, start__lte=today+datetime.timedelta(days=730), end__gte=today-datetime.timedelta(days=730)).order_by('-name')
+        timely_sem = Semester.objects.filter(id__in=offering_sem, name__gte='1101', start__lte=today+datetime.timedelta(days=730)).order_by('-name')
+        return timely_sem
+
+    @classmethod
+    @cache_by_args
+    def all_subjects(self, semesters):
+        return CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
+
+    def __init__(self, *args, **kwargs):
+        super(OfferingFilterForm, self).__init__(*args, **kwargs)
+        # semester choices
+        semesters = self.allowed_semesters()
+        self.fields['semester'].choices = [('', u'all')] + [(s.name, s.label()) for s in semesters]
+        # subject choices: all that exist in allowed semesters
+        subjects = self.all_subjects(semesters)
+        self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
 
 

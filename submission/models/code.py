@@ -42,6 +42,9 @@ CODE_TYPES = [
     (".sas", "SAS (.sas)"),
     (".r", "R (.r)"),
     (".dat", "Binary Output (.dat)"),
+    (".mdx", "SQL Server Multi-Dimensional Expression (.mdx)"),
+    (".clj", "Clojure (.clj)"),
+    (".pde", "Processing IDE file (.pde)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()
@@ -98,6 +101,7 @@ class Code:
     descr = "a source code file"
     Component = CodeComponent
     SubmittedComponent = SubmittedCode
+    #active = False # depricated in favour of Codefile
 
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:

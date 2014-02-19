@@ -2,7 +2,9 @@ from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, Co
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
+from django.utils.html import conditional_escape as e
 import re, hashlib, datetime
+
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -77,6 +79,9 @@ class SIMSConn(DBConn):
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem, "Reporting database access has been disabled in this deployment."
+        elif 'sims' in settings.DISABLED_FEATURES:
+            raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
+
         try:
             passfile = open(self.dbpass_file)
             _ = passfile.next()
@@ -143,11 +148,11 @@ def SIMS_problem_handler(func):
         # check for the types of errors we know might happen and return an error message in a SIMSProblem
         try:
             return func(*args, **kwargs)
-        except SIMSConn.DatabaseError:
+        except SIMSConn.DatabaseError as e:
             raise SIMSProblem, "could not connect to reporting database"
         except ImportError:
             raise SIMSProblem, "could not import DB2 module"
-        except SIMSConn.DB2Error:
+        except SIMSConn.DB2Error as e:
             raise SIMSProblem, "problem with reporting database connection"
 
     wrapped.__name__ = func.__name__
@@ -385,15 +390,17 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     if (needed == ALLFIELDS or 'programs' in needed) and 'programs' not in exclude:
         programs = []
         data['programs'] = programs
-        db.execute("SELECT apt.acad_plan, apt.descr, apt.trnscr_descr from "
-                   "(select max(effdt) as effdt from ps_acad_plan where emplid=%s) as last, "
-                   "(select effdt, max(effseq) as effseq from ps_acad_plan where emplid=%s GROUP BY effdt) as seq, "
-                   "ps_acad_plan as ap, "
-                   "ps_acad_plan_tbl as apt, "
-                   "(select acad_plan, max(effdt) as effdt from ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
-                   "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt AND seq.effdt=last.effdt AND seq.effseq=ap.effseq "
-                   "AND apt.effdt=lastplan.effdt AND lastplan.acad_plan=ap.acad_plan "
-                   "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid), str(emplid)))
+        db.execute("""
+            SELECT plantbl.acad_plan, plantbl.descr, plantbl.trnscr_descr
+            FROM ps_acad_prog prog, ps_acad_plan plan, ps_acad_plan_tbl AS plantbl
+            WHERE prog.emplid=plan.emplid AND prog.acad_career=plan.acad_career AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
+              AND plantbl.acad_plan=plan.acad_plan
+              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
+              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
+              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
+              AND prog.prog_status='AC' AND plantbl.eff_status='A'
+              AND prog.emplid=%s
+            ORDER BY plan.plan_sequence""", (str(emplid),))
         #  AND apt.trnscr_print_fl='Y'
         for acad_plan, descr, transcript in db:
             label = transcript or descr
@@ -418,26 +425,50 @@ def more_course_info(course):
     """
     More info about a course (for the advisor portal) 
     """
-    db = SIMSConn()
     offerings = CourseOffering.objects.filter(course=course).exclude(crse_id__isnull=True).order_by('-semester__name')
     if offerings:
         offering = offerings[0]
     else:
         return None
-    
+    return more_offering_info(offering, browse_data=False)
+
+@cache_by_args
+@SIMS_problem_handler
+def more_offering_info(offering, browse_data=False, offering_effdt=False):
+    """
+    More info about a course offering (for the course browser) 
+    """
+    db = SIMSConn()
+    req_map = get_reqmnt_designtn()
+
     data = {}
     crse_id = "%06i" % (offering.crse_id)
-    db.execute("SELECT descr, ssr_component, course_title_long, descrlong FROM ps_crse_catalog WHERE eff_status='A' AND crse_id=%s ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY", (crse_id,))
+    eff_where = ''
+    if offering_effdt:
+        effdt = offering.semester.start
+        eff_where = "AND effdt<=%s" % (db.escape_arg(effdt.isoformat()))
+
+    db.execute("""
+        SELECT descr, ssr_component, course_title_long, descrlong
+        FROM ps_crse_catalog
+        WHERE eff_status='A' AND crse_id=%s """ + eff_where + """
+        ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY""", (crse_id,))
     for shorttitle, component, longtitle, descrlong in db:
-        data['shorttitle'] = shorttitle
-        data['component'] = component
-        data['longtitle'] = longtitle
-        data['descrlong'] = descrlong
+        data['shorttitle'] = e(shorttitle)
+        data['component'] = e(component)
+        data['longtitle'] = e(longtitle)
+        data['descrlong'] = e(descrlong)
+        #data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
+
+    if browse_data:
+        del data['shorttitle']
     
     if not data:
         return None
-    
+
     return data
+
+
 
 @cache_by_args
 def crse_id_info(crse_id):
@@ -469,6 +500,28 @@ def ext_org_info(ext_org_id):
     return {'ext_org': '?'}
 
 
+REQMNT_DESIGNTN_FLAGS = { # map of ps_rqmnt_desig_tbl.descrshort to CourseOffering WQB fields
+    '': [],
+    'W': ['write'],
+    'Q': ['quant'],
+    'B-Hum': ['bhum'],
+    'B-Sci': ['bsci'],
+    'B-Soc': ['bsoc'],
+    'W/Q': ['write', 'quant'],
+    'W/B-Hum': ['write', 'bhum'],
+    'W/B-Sci': ['write', 'bsci'],
+    'W/B-Soc': ['write', 'bsoc'],
+    'Q/B-Soc': ['quant', 'bsoc'],
+    'Q/B-Sci': ['quant', 'bsci'],
+    'B-Hum/Sci': ['bhum', 'bsci'],
+    'B-H/Soc/Sc': ['bhum', 'bsoc', 'bsci'],
+    'B-Soc/Sci': ['bsoc', 'bsci'],
+    'W/Q/B-Sci': ['write', 'quant', 'bsci'],
+    'W/B-HumSci': ['bhum', 'bsci'],
+    'B-Hum/Soc': ['bhum', 'bsoc'],
+    'W/B-H/Soc': ['write', 'bhum', 'bsoc'],
+    }
+
 @cache_by_args
 def get_reqmnt_designtn():
     """
@@ -476,7 +529,10 @@ def get_reqmnt_designtn():
     """
     db = SIMSConn()
     
-    db.execute("SELECT r.rqmnt_designtn, r.descrshort FROM ps_rqmnt_desig_tbl r", ())
+    db.execute("""SELECT r.rqmnt_designtn, r.descrshort FROM ps_rqmnt_desig_tbl r
+        WHERE r.EFFDT=(SELECT MAX(effdt) FROM ps_rqmnt_desig_tbl
+                       WHERE rqmnt_designtn=r.rqmnt_designtn AND r.effdt<=current date AND eff_status='A')
+            AND r.eff_status='A'""", ())
     return dict(db)
     
 @cache_by_args
@@ -682,4 +738,385 @@ def grad_student_gpas(emplid):
     db.execute(query, (str(emplid),))
     return list(db)
 
+# helper functions
+def lazy_next_semester(semester):
+    return str(Semester.objects.get(name=semester).offset(1).name)
 
+def pairs( lst ):
+    if len(lst) > 1:
+        for i in xrange(1, len(lst)):
+            yield (lst[i-1], lst[i])
+
+#@cache_by_args
+@SIMS_problem_handler
+def get_timeline(emplid):
+    """
+        For the student with emplid, 
+        Get a list of programs, start and end semester
+        [{'program_code':'CPPHD', 'start':1111, 'end':1137, 'on leave':['1121', '1124']) ]
+        
+        * will include an 'adm_appl_nbr' if an admission record can be found with that program
+    """
+    programs = get_student_programs(emplid) 
+
+    # calculate start and end date for programs
+    prog_dict = {}
+    for program_code, strm, unt_taken in programs: 
+        if program_code not in prog_dict:
+            prog_dict[program_code] = {'start':'9999', 'end':'1111', 'not_on_leave':[]}
+        if int(strm) < int(prog_dict[program_code]['start']):
+            prog_dict[program_code]['start'] = strm
+        elif int(strm) > int(prog_dict[program_code]['end']):
+            prog_dict[program_code]['end'] = strm
+        if float(unt_taken) >= 0.1: 
+            prog_dict[program_code]['not_on_leave'].append(strm)
+
+    # calculate on-leave semesters
+    on_leave_semesters = [strm for strm, reason in get_on_leave_semesters(emplid)]
+
+    try:
+        for program_code, program_object in prog_dict.iteritems():
+            prog_dict[program_code]['on_leave'] = []
+            semesters = Semester.range( program_object['start'], program_object['end'] )
+            for semester in semesters:
+                if (int(semester) <= int(Semester.current().name) and
+                    (semester in on_leave_semesters or 
+                    semester not in program_object['not_on_leave'])):
+                    prog_dict[program_code]['on_leave'].append(semester)
+            prog_dict[program_code]['on_leave'].sort()
+    except Semester.DoesNotExist:
+        print "Semester out of range", program_object['start'], program_object['end']
+        return {}
+
+    # put the programs in a list, sorted by start date
+    programs = []
+    for program_code, program_object in prog_dict.iteritems():
+        del program_object['not_on_leave']
+        program_object['program_code'] = program_code
+        programs.append(program_object) 
+    programs = sorted( programs, key= lambda x : int(x['start']) )
+
+    # how did it end?
+    for program in programs:
+        hdie = get_end_of_degree(emplid, program['program_code']) 
+        if hdie: 
+            program['how_did_it_end'] = { 'code':hdie[0], 
+                                          'reason':hdie[1],
+                                          'date':hdie[2],
+                                          'semester': str(Semester.get_semester(hdie[2]).name) } 
+            if int(program['how_did_it_end']['semester']) < int(program['end']):
+                program['end'] = program['how_did_it_end']['semester']
+        
+    # for every previous program, create an end-date and cut off all on-leave semesters
+    # at the beginning of the next program in the list. 
+
+    for program, next_program in pairs(programs):
+        if int(program['end']) > int(next_program['start']):
+            program['end'] = next_program['start'] 
+        for on_leave in program['on_leave']:
+            if int(on_leave) > int(program['end']):
+                program['on_leave'].remove(on_leave)
+    
+    # group the on-leave semesters
+    for program in programs:
+        on_leave = []
+        if len(program['on_leave']) > 0:
+            last_group = (program['on_leave'][0], program['on_leave'][0]) 
+            last_group_pushed = False
+            for semester in program['on_leave']:
+                if semester in last_group or int(semester) > int(program['end']):
+                    continue
+                if semester == lazy_next_semester(last_group[1]):
+                    last_group = ( last_group[0], semester )
+                    last_group_pushed = False
+                else: 
+                    on_leave.append(last_group)
+                    last_group = (semester, semester) 
+                    last_group_pushed = True
+            if not last_group_pushed: 
+                on_leave.append(last_group) 
+        program['on_leave'] = on_leave 
+
+    # does this program have admission records? 
+    for program in programs:
+        adm_appl_nbrs = guess_adm_appl_nbr(emplid, program['program_code'], program['start'], program['end'] )
+        if len(adm_appl_nbrs) > 0:
+            program['adm_appl_nbr'] = str(adm_appl_nbrs[0])
+            program['admission_records'] = get_admission_records(emplid, program['adm_appl_nbr'])
+        else:
+            program['adm_appl_nbr'] = None 
+
+    return programs 
+
+def merge_leaves( programs ):
+    """
+    Given a list of programs, return a merged list of on-leaves
+    [ 
+        { 'start':'1111', 'end':'1131', 'on_leave':[ ('1131', '1134') ] ... }
+        { 'start':'1134', 'end':'1141', 'on_leave':[ ('1134', '1141') ] ... }
+    ]
+    ==> 
+    [ ('1131', '1141') ]
+    """
+
+    # create a master-list of leaves
+    all_leaves = []
+    for program in programs:
+        for on_leave in program['on_leave']:
+            all_leaves.append(on_leave)
+
+    # merge on-leaves that border semesters
+    ps = [x for x in pairs(all_leaves)]
+    for leave, next_leave in ps: 
+        if ( leave[1] == next_leave[0] or 
+            leave[1] == lazy_next_semester(next_leave[0]) ): 
+            all_leaves.remove(leave)
+            all_leaves.remove(next_leave)
+            all_leaves.append( (leave[0], next_leave[1] ) )
+
+    all_leaves = sorted( all_leaves, key= lambda x : int(x[0]) )
+    return all_leaves
+
+#@cache_by_args
+@SIMS_problem_handler
+def get_student_programs(emplid):
+    db = SIMSConn()
+    query = """SELECT DISTINCT acad_prog_primary, strm, unt_taken_prgrss FROM ps_stdnt_car_term 
+        WHERE emplid=%s
+        """
+    db.execute(query, (str(emplid),))
+    return list(db)
+
+#@cache_by_args
+@SIMS_problem_handler
+def get_on_leave_semesters(emplid):
+    db = SIMSConn()
+    query = """SELECT DISTINCT strm, withdraw_reason FROM ps_stdnt_car_term 
+        WHERE
+        emplid = %s
+        AND withdraw_code != 'NWD' 
+        AND withdraw_reason IN ('OL', 'MEDI', 'AP')
+        AND acad_career='GRAD'
+        ORDER BY strm """
+    db.execute(query, (str(emplid),))
+    return list(db)
+
+#@cache_by_args
+@SIMS_problem_handler
+def get_end_of_degree(emplid, acad_prog):
+    """ 
+        How did this end? 
+            DISC -> discontinued
+            COMP -> completed
+    """ 
+    db = SIMSConn()
+    query = """SELECT DISTINCT 
+        prog_action, 
+        prog_reason, 
+        action_dt
+        FROM ps_acad_prog prog 
+        WHERE 
+            prog_action in ('DISC', 'COMP')
+            AND emplid=%s 
+            AND acad_prog=%s
+            AND prog.effdt = ( SELECT MAX(tmp.effdt) 
+                                FROM ps_acad_prog tmp
+                                WHERE tmp.emplid = prog.emplid
+                                AND prog.prog_action = tmp.prog_action
+                                AND prog.acad_prog = tmp.acad_prog
+                                AND tmp.effdt <= (SELECT current timestamp FROM sysibm.sysdummy1) )
+            AND prog.effseq = ( SELECT MAX(tmp2.effseq)
+                                FROM ps_acad_prog tmp2
+                                WHERE tmp2.emplid = prog.emplid
+                                AND prog.prog_action = tmp2.prog_action
+                                AND prog.acad_prog = tmp2.acad_prog
+                                AND prog_action in ('DISC', 'COMP')
+                                AND tmp2.effdt = prog.effdt )
+        ORDER BY action_dt
+        FETCH FIRST 1 ROWS ONLY
+            """ 
+    db.execute(query, (str(emplid),str(acad_prog)))
+    result = [(x[0], x[1], x[2]) for x in list(db)]
+    if len(result) > 1:
+        print "\t Recoverable Error: More than one end of degree ", result
+        return result[0]
+    elif len(result) > 0:
+        return result[0]
+    else:
+        return None
+
+#@cache_by_args
+@SIMS_problem_handler
+def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
+    """
+    Given an acad_prog, find any adm_appl_nbr records between start_semester
+    and end_semester that resulted in an Offer Out. 
+    """
+    db = SIMSConn()
+    query = """
+        SELECT DISTINCT 
+            prog.adm_appl_nbr 
+        FROM ps_adm_appl_prog prog
+        LEFT JOIN ps_adm_appl_data data
+            ON prog.adm_appl_nbr = data.adm_appl_nbr
+        WHERE 
+            prog.emplid = %s
+                AND prog.prog_status NOT IN ('DC') 
+            AND ( data.appl_fee_status in ('REC', 'WVD')
+                  OR data.adm_appl_ctr in ('GRAW') )
+            AND prog.acad_prog = %s
+            AND prog.prog_action in ('ADMT', 'COND') 
+            AND prog.admit_term >= %s
+            AND prog.admit_term <= %s
+        """
+    db.execute(query, (str(emplid), str(acad_prog), str(start_semester), str(end_semester)))
+    return [x[0] for x in list(db)]
+
+@SIMS_problem_handler
+def get_adm_appl_nbrs( emplid ):
+    """
+    Given an acad_prog, find all adm_appl_nbr s
+    """
+    db = SIMSConn()
+    query = """
+        SELECT DISTINCT 
+            prog.adm_appl_nbr,
+            prog.acad_prog 
+        FROM ps_adm_appl_prog prog
+        LEFT JOIN ps_adm_appl_data data
+            ON prog.adm_appl_nbr = data.adm_appl_nbr
+        WHERE 
+            prog.emplid = %s
+                AND prog.prog_status NOT IN ('DC') 
+            AND ( data.appl_fee_status in ('REC', 'WVD')
+                  OR data.adm_appl_ctr in ('GRAW') )
+        """
+    db.execute(query, (str(emplid),))
+    return list(db)
+    return [str(x[0]) for x in list(db)]
+
+def find_or_generate_person( emplid ):
+    # return a Person object, even if you have to make it yourself
+    # throws IntegrityError, SIMSProblem
+    try:
+        p = Person.objects.get(emplid=emplid)
+        return p
+    except Person.DoesNotExist:
+        p = add_person( emplid )
+        return p
+
+#@cache_by_args
+@SIMS_problem_handler
+def get_admission_records( emplid, adm_appl_nbr ):
+    """
+    The ps_adm_appl_prog table holds records relevant to a grad student's
+    application to a program. 
+    """
+    db = SIMSConn()
+    query = """
+        SELECT DISTINCT 
+            prog.prog_action, 
+            prog.action_dt, 
+            prog.admit_term
+        FROM ps_adm_appl_prog prog
+        WHERE 
+            prog.emplid = %s
+            AND prog.adm_appl_nbr = %s
+            AND prog_action IN ('APPL', 'ADMT', 'COND', 'DENY', 'MATR', 'WAPP', 'WADM') 
+        ORDER BY action_dt, prog_action
+        """
+    db.execute(query, (str(emplid), str(adm_appl_nbr)))
+    return list(db)
+
+def get_supervisory_committee(emplid, min_date=None, max_date=None):
+    if not min_date:
+        # I refuse to believe that the world existed before I was born
+        min_date = datetime.date(1986,9,1)
+    if not max_date:
+        max_date = datetime.date.today()
+    db = SIMSConn()
+    query = """
+        SELECT DISTINCT 
+            role.descr, 
+            mem.emplid,
+            com.effdt
+        FROM 
+            ps_stdnt_advr_hist st, 
+            ps_committee com, 
+            ps_committee_membr mem, 
+            ps_committee_tbl comtbl, 
+            ps_commit_role_tbl role
+        WHERE 
+            com.institution=st.institution 
+            AND com.committee_id=st.committee_id
+            AND mem.institution=com.institution 
+            AND mem.committee_id=com.committee_id 
+            AND mem.effdt=com.effdt
+            AND com.committee_type=comtbl.committee_type 
+            AND comtbl.eff_status='A'
+            AND role.committee_role=mem.committee_role 
+            AND role.committee_type=com.committee_type
+            AND st.emplid=%s
+            AND com.effdt = ( SELECT MAX(tmp.effdt)
+                                FROM ps_committee tmp
+                                WHERE tmp.committee_id = com.committee_id
+                                AND effdt > DATE(%s)
+                                AND effdt < DATE(%s)
+                                AND tmp.committee_type = com.committee_type )
+        """
+    db.execute(query, (str(emplid), str(min_date), str(max_date) ))
+    return list(db)
+
+#@cache_by_args
+@SIMS_problem_handler
+def holds_resident_visa( emplid ):
+    db = SIMSConn()
+    db.execute("""
+        SELECT *
+        FROM ps_visa_permit_tbl tbl
+        INNER JOIN ps_visa_pmt_data data
+            ON tbl.visa_permit_type = data.visa_permit_type
+        WHERE
+            data.effdt = ( SELECT MAX(tmp.effdt) 
+                                FROM ps_visa_pmt_data tmp
+                                WHERE tmp.emplid = data.emplid
+                                    AND tmp.effdt <= (SELECT current timestamp FROM sysibm.sysdummy1) )
+            AND data.emplid = %s
+            AND visa_permit_class = 'R'
+        """, (emplid,) )
+    # If there's at least one record with Permit Class TYPE R!, they are a resident
+    for result in db:
+        return True
+    return False
+
+#@cache_by_args
+@SIMS_problem_handler
+def get_mother_tongue( emplid ):
+    db = SIMSConn()
+    db.execute("""
+        SELECT atbl.descr
+          FROM ps_accomplishments a,
+               ps_accomp_tbl     atbl
+         WHERE a.emplid=%s
+           AND a.native_language='Y'
+           AND a.accomplishment=atbl.accomplishment
+           AND atbl.accomp_category='LNG'
+        """, (emplid,) )
+    for result in db:
+        return str(result[0])
+    return "Unknown"
+
+#@cache_by_args
+@SIMS_problem_handler
+def get_passport_issued_by( emplid ):
+    db = SIMSConn()
+    db.execute("""
+        SELECT cou.descr 
+        FROM ps_country_tbl cou
+        INNER JOIN ps_citizenship cit 
+            ON cit.country = cou.country
+        WHERE cit.emplid = %s
+        """, (emplid,) )
+    for result in db:
+        return str(result[0])
+    return "Unknown"

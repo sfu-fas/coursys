@@ -3,7 +3,7 @@ from django.db import models, IntegrityError, transaction
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
-from grades.models import all_activities_filter, neaten_activity_positions
+from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester, Member
 from groups.models import Group, GroupMember
@@ -23,7 +23,7 @@ class ActivityComponent(models.Model):
     Markable Component of a numeric activity   
     """
     numeric_activity = models.ForeignKey(NumericActivity, null = False)
-    max_mark = models.DecimalField(max_digits=5, decimal_places=2, null = False)
+    max_mark = models.DecimalField(max_digits=8, decimal_places=2, null = False)
     title = models.CharField(max_length=30, null = False)
     description = models.TextField(max_length = 200, null = True, blank = True)
     position = models.IntegerField(null = True, default = 0, blank =True)    
@@ -58,7 +58,7 @@ class CommonProblem(models.Model):
     """
     activity_component = models.ForeignKey(ActivityComponent, null = False)
     title = models.CharField(max_length=30, null = False)
-    penalty = models.DecimalField(max_digits=5, decimal_places=2)
+    penalty = models.DecimalField(max_digits=8, decimal_places=2)
     description = models.TextField(max_length = 200, null = True, blank = True)
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):
@@ -82,7 +82,7 @@ class ActivityMark(models.Model):
     """
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
     late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Percentage to deduct from the total due to late submission')
-    mark_adjustment = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
+    mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null = True, default = 0, blank = True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True, verbose_name="Mark Penalty Reason")
     file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
@@ -91,7 +91,7 @@ class ActivityMark(models.Model):
     # For the purpose of keeping a history,
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
-    mark = models.DecimalField(max_digits=5, decimal_places=2)
+    mark = models.DecimalField(max_digits=8, decimal_places=2)
     activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
     
     def __unicode__(self):
@@ -115,6 +115,10 @@ class ActivityMark(models.Model):
         return -self.mark_adjustment
     def setMark(self, grade):
         self.mark = grade
+        if not self.id:
+            # ActivityMark must be saved before we can create GradeHistory objects: that is done in [subclasses].save()
+            self.save()
+        
     def attachment_filename(self):
         """
         Return the filename only (no path) for the attachment.
@@ -136,14 +140,14 @@ class StudentActivityMark(ActivityMark):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.numeric_grade.activity.offering.slug, 'activity_slug': self.numeric_grade.activity.slug, 'userid': self.numeric_grade.member.person.userid})
       
-    def setMark(self, grade):
+    def setMark(self, grade, entered_by):
         """         
         Set the mark
         """
         super(StudentActivityMark, self).setMark(grade)       
         self.numeric_grade.value = grade
         self.numeric_grade.flag = 'GRAD'
-        self.numeric_grade.save()            
+        self.numeric_grade.save(entered_by=entered_by, mark=self)            
         
         
 class GroupActivityMark(ActivityMark):
@@ -158,13 +162,14 @@ class GroupActivityMark(ActivityMark):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
     
-    def setMark(self, grade):
+    def setMark(self, grade, entered_by, details=True):
         """         
         Set the mark of the group members
         """
         super(GroupActivityMark, self).setMark(grade)
         #assign mark for each member in the group
         group_members = GroupMember.objects.filter(group=self.group, activity=self.numeric_activity, confirmed=True)
+        entered_by = get_entry_person(entered_by)
         for g_member in group_members:
             try:            
                 ngrade = NumericGrade.objects.get(activity=self.numeric_activity, member=g_member.student)
@@ -172,7 +177,11 @@ class GroupActivityMark(ActivityMark):
                 ngrade = NumericGrade(activity=self.numeric_activity, member=g_member.student)
             ngrade.value = grade
             ngrade.flag = 'GRAD'
-            ngrade.save()            
+            if details:
+                ngrade.save(entered_by=entered_by, mark=self, group=self.group)
+            else:
+                # this is just a placeholder for a number-only mark
+                ngrade.save(entered_by=entered_by, mark=None, group=self.group)
             
  
 class ActivityComponentMark(models.Model):
@@ -182,7 +191,7 @@ class ActivityComponentMark(models.Model):
     """
     activity_mark = models.ForeignKey(ActivityMark, null = False)    
     activity_component = models.ForeignKey(ActivityComponent, null = False)
-    value = models.DecimalField(max_digits=5, decimal_places=2)
+    value = models.DecimalField(max_digits=8, decimal_places=2)
     comment = models.TextField(null = True, max_length=1000, blank=True)
     
     def __unicode__(self):
@@ -246,14 +255,14 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.letter_grade.activity.offering.slug, 'activity_slug': self.letter_grade.activity.slug, 'userid': self.letter_grade.member.person.userid})
       
-    def setMark(self, grade):
-        """         
+    def setMark(self, grade, entered_by):
+        """
         Set the mark
         """
         super(StudentActivityMark, self).setMark(grade)       
         self.letter_grade.value = grade
         self.letter_grade.flag = 'GRAD'
-        self.letter_grade.save()   
+        self.letter_grade.save(entered_by=entered_by, mark=self)   
 
 class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
@@ -269,7 +278,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     def get_absolute_url(self):
         return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})
     
-    def setMark(self, grade):
+    def setMark(self, grade, entered_by):
         """         
         Set the mark of the group members
         """
@@ -283,7 +292,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
                 lgrade = LetterGrade(activity=self.letter_activity, member=g_member.student)
             lgrade.letter_grade = grade
             lgrade.flag = 'GRAD'
-            lgrade.save() 
+            lgrade.save(entered_by=entered_by, group=self.group)
 
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
@@ -339,9 +348,12 @@ def get_group_mark_by_id(activity, group, activity_mark_id):
 def get_group_mark(activity, group, include_all = False):
     
     current_mark = None
-    all_marks = GroupActivityMark.objects.filter(group = group, numeric_activity = activity)    
+    if isinstance(activity, LetterActivity):
+        all_marks = GroupActivityMark_LetterGrade.objects.filter(group=group, letter_activity=activity)
+    else:
+        all_marks = GroupActivityMark.objects.filter(group=group, numeric_activity=activity)
     
-    if all_marks.count() != 0 : 
+    if all_marks.count() != 0: 
         current_mark = all_marks.latest('created_at')
    
     if not include_all:
@@ -350,18 +362,21 @@ def get_group_mark(activity, group, include_all = False):
         return {'current_mark': current_mark, 'all_marks': all_marks}
 
 
-def get_activity_mark_for_student(activity, student_membership, include_all = False):
+def get_activity_mark_for_student(activity, student_membership, include_all=False):
     """
-    Return the mark for the student on the activity.     
-    if include_all is False, only return the current mark which was most lately created 
-    and thus is currently valid. Otherwise not only return the current mark but also 
-    all the history marks for the student on the activity        
+    Return the mark for the student on the activity.
+    if include_all is False, only return the current mark which was most lately created
+    and thus is currently valid. Otherwise not only return the current mark but also
+    all the history marks for the student on the activity
     """  
     current_mark = None
     grp_marks = None     
-     
+    
     # the mark maybe assigned directly to this student 
-    num_grade = NumericGrade.objects.get(activity = activity, member = student_membership)
+    try:
+        num_grade = NumericGrade.objects.get(activity=activity, member=student_membership)
+    except NumericGrade.DoesNotExist:
+        return None
     std_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
     if std_marks.count() != 0 :
         #get the latest one
@@ -507,7 +522,17 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             except IntegrityError:
                 count += 1
                 new_p.label = orig_label + "-" + str(count)
-            
+        
+        # if there are release dates, adapt to new semester
+        if new_p.releasedate():
+            week, wkday = course_copy_from.semester.week_weekday(new_p.releasedate())
+            new_date = course_copy_to.semester.duedate(week, wkday, None)
+            new_p.set_releasedate(new_date)
+        if new_p.editdate():
+            week, wkday = course_copy_from.semester.week_weekday(new_p.editdate())
+            new_date = course_copy_to.semester.duedate(week, wkday, None)
+            new_p.set_editdate(new_date)
+        
         v = p.current_version()
         new_v = copy.deepcopy(v)
         new_v.id = None

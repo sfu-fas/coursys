@@ -13,8 +13,18 @@ HIRING_CATEGORY_CHOICES = (
     ('E', 'Grad Employee'),
     ('N', 'Non-Student'),
     ('S', 'Grad Scholarship'),
+    ('RA', 'Research Assistant'),
+    ('RSS', 'Research Services Staff'),
+    ('PDF', 'Post Doctoral Fellow'),
+    ('ONC', 'Other Non Continuing'),
+    ('RA2', 'University Research Assistant (Min of 2 years with Benefits)'),
+    ('RAR', 'University Research Assistant (Renewal after 2 years with Benefits)'),
+    ('GRA', 'Graduate Research Assistant'),
+    ('NS', 'National Scholarship'),
     )
-    
+HIRING_CATEGORY_DISABLED = set(['U','E','N','S']) # hiring categories that cannot be selected for new contracts
+
+
 #PAY_TYPE_CHOICES = (
 #    ('H', 'Hourly'),
 #    ('B', 'Biweekly'),
@@ -98,7 +108,7 @@ class RAAppointment(models.Model):
     sin = models.PositiveIntegerField(null=True, blank=True)
     hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty')
     unit = models.ForeignKey(Unit, help_text='The unit that owns the appointment', null=False, blank=False)
-    hiring_category = models.CharField(max_length=60, choices=HIRING_CATEGORY_CHOICES, default='S')
+    hiring_category = models.CharField(max_length=4, choices=HIRING_CATEGORY_CHOICES, default='GRA')
     scholarship = models.ForeignKey(Scholarship, null=True, blank=True, help_text='Scholarship associated with this appointment. Optional.')
     project = models.ForeignKey(Project, null=False, blank=False)
     account = models.ForeignKey(Account, null=False, blank=False)
@@ -106,6 +116,7 @@ class RAAppointment(models.Model):
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     pay_frequency = models.CharField(max_length=60, choices=PAY_FREQUENCY_CHOICES, default='B')
     lump_sum_pay = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Total Pay")
+    lump_sum_hours = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Total Hours", blank=True, null=True)
     biweekly_pay = models.DecimalField(max_digits=8, decimal_places=2)
     pay_periods = models.DecimalField(max_digits=6, decimal_places=1)
     hourly_pay = models.DecimalField(max_digits=8, decimal_places=2)
@@ -113,7 +124,7 @@ class RAAppointment(models.Model):
     reappointment = models.BooleanField(default=False, help_text="Are we re-appointing to the same position?")
     medical_benefits = models.BooleanField(default=False, help_text="50% of Medical Service Plan")
     dental_benefits = models.BooleanField(default=False, help_text="50% of Dental Plan")
-    notes = models.TextField(blank=True, help_text="Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.");
+    notes = models.TextField(blank=True, help_text="Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.")
     comments = models.TextField(blank=True, help_text="For internal use")
     offer_letter_text = models.TextField(null=True, help_text="Text of the offer letter to be signed by the RA and supervisor.")
     def autoslug(self):

@@ -18,30 +18,30 @@ def _can_view_student(request, grad_slug, funding=False):
     # grad admins can view within their unit
     if has_role('GRAD', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-        return grad, 'admin'
+        return grad, 'admin', request.units
 
     # funding admins can view some pages within their unit
     if funding and has_role('FUND', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-        return grad, 'admin'
+        return grad, 'admin', request.units
 
     # grad directors can ONLY view within their unit
     if request.method=='GET' and has_role('GRPD', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-        return grad, 'graddir'
+        return grad, 'graddir', request.units
 
-    # students can see their own page
-    students = GradStudent.objects.filter(slug=grad_slug, person__userid=request.user.username)
-    if request.method=='GET' and students:
-        return students[0], 'student'
-        
     # senior supervisors can see their students
     supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type__in=['SEN','POT'], removed=False).select_related('student')
     supervisors = [sup for sup in supervisors if sup.can_view_details()]
     if request.method=='GET' and supervisors:
         grad = supervisors[0].student
-        return grad, 'supervisor'
+        return grad, 'supervisor', [grad.program.unit]
 
+    # students can see their own page
+    students = GradStudent.objects.filter(slug=grad_slug, person__userid=request.user.username)
+    if request.method=='GET' and students:
+        return students[0], 'student', [students[0].program.unit]
+        
     return None, None
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
@@ -49,9 +49,20 @@ all_sections = ['general', 'supervisors', 'status', 'requirements',
 
 @login_required
 def view(request, grad_slug, section=None):
-    grad, authtype = _can_view_student(request, grad_slug)
+    grad, authtype, units = _can_view_student(request, grad_slug)
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
+
+
+    # uses of the cortez link routed through here to see if they're actually being used
+    if 'cortez-bounce' in request.GET and 'cortezid' in grad.config:
+        from log.models import LogEntry
+        from django.shortcuts import redirect
+        l = LogEntry(userid=request.user.username,
+              description="used cortez link for %s" % (grad.slug,),
+              related_object=grad )
+        l.save()
+        return redirect("https://cortez.cs.sfu.ca/grad/scripts/grabcurrent.asp?Identifier=" + grad.config['cortezid'])
     
     context = {
         'grad': grad, 
@@ -74,7 +85,7 @@ def view(request, grad_slug, section=None):
             return NotFoundResponse(request)
         
         elif section == 'general':
-            programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units).order_by('starting')
+            programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=units).order_by('starting')
             context['programhistory'] = programhistory
             flag_values = grad.flags_and_values()
             context['extras'] = [ (title, grad.config[field]) for field, title in grad.tacked_on_fields if field in grad.config] 
@@ -139,14 +150,9 @@ def view(request, grad_slug, section=None):
             context[s+'_content'] = mark_safe(resp.content)
 
     other_grad = GradStudent.objects \
-                 .filter(program__unit__in=request.units, person=grad.person) \
+                 .filter(program__unit__in=units, person=grad.person) \
                  .exclude(id=grad.id)
     context['other_grad'] = other_grad
-    # still useful: but remove cortezlink once cortez is dead.
-    if 'cortezid' in grad.config:
-        context['cortezlink'] = "[<a href='https://cortez.cs.sfu.ca/grad/scripts/grabcurrent.asp?Identifier="+grad.config['cortezid']+"'>OLD cortez record</a>]"
-    else:
-        context['cortezlink'] = ""
 
     return render(request, 'grad/view.html', context)
 

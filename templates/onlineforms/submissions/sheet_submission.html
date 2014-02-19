@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block h1 %} {{ owner_form.title }}  [{{sheet.form.unit.label}}]{% endblock %}
-{% block title %} {{ owner_form.title }}  [{{sheet.form.unit.label}}] {% endblock %}
+{% block h1 %} {{ owner_form.title }}  [{{sheet.form.unit.informal_name}}]{% endblock %}
+{% block title %} {{ owner_form.title }}  [{{sheet.form.unit.informal_name}}] {% endblock %}
 
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
@@ -61,6 +61,20 @@ $(document).ready(function() {
                 <input type="submit" name="save" value="Save for Later" class="submit"/>
             </fieldset>
             </form>
+            {% if sheet_submission %}
+            <form action="{% if sheet_submission.filler.isSFUPerson %}{% url onlineforms.views.reject_sheet_subsequent form_slug=sheet.form.slug formsubmit_slug=form_submission.slug sheet_slug=sheet.slug sheetsubmit_slug=sheet_submission.slug %}{% else %}{% url onlineforms.views.reject_sheet_via_url secret_url=sheet_submission.get_secret.key %}{% endif %}" method="post">{% csrf_token %}
+            <p>
+           	{% if sheet.is_initial %}
+            <input type="submit" value="Throw away form" class="submit nofloat" />
+            {% else %}
+            <input type="submit" value="Reject sheet" class="submit nofloat" />
+            <span class="helptext">This will give the form back to the admins and discard your work. Please contact them with more information if necessary.</span>
+            <br/>
+            Reason for rejecting sheet: <input type="text" size="60" name="reject_reason"/>
+            {% endif %}
+            </p>
+            </form>
+            {% endif %}
             </div>
         {% else %}
             <p>This form is empty.</p>

@@ -14,7 +14,7 @@ class GradTest(TestCase):
     
     def setUp(self):
         # find a grad student who is owned by CS for testing
-        gs = GradStudent.objects.filter(program__unit__slug='comp')[0]
+        gs = GradStudent.objects.filter(program__unit__slug='cmpt')[0]
         self.gs_userid = gs.person.userid
 
     def test_grad_quicksearch(self):

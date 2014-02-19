@@ -1,0 +1,6 @@
+<p>Your sheet on the {{ sheetsub.form_submission.form.title }} initiated by {{ sheetsub.form_submission.initiator.name }} has been returned to you by {{ admin.name }}.
+{% if sheetsub.return_reason %}Reason given for returning it was: &ldquo;{{ sheetsub.return_reason }}&rdquo;.{% endif %}
+</p>
+
+<p>You can access it at <a href="{{ sheeturl }}">{{ sheeturl }}</a>.</p>
+

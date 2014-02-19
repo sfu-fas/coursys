@@ -1,0 +1,5 @@
+Hello, {{ filler.name }}.
+
+This is a friendly reminder that you have some forms waiting for your attention in CourSys. You can access these at {{ full_url }}
+{% for ss in sheets %}
+{% if ss.sheet.is_initial %}{{ ss.form_submission.form.title }} (started but not submitted, {{ ss.given_at|timesince }}){% else %}{{ ss.sheet.title }} for {{ ss.form_submission.initiator.name }} ({{ ss.given_at|timesince }}){% endif %}{% endfor %}

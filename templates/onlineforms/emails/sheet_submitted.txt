@@ -1,3 +1,3 @@
-{{ initiator }} has completed their part of the {{ form.title }} form.
+{{ initiator }} has {% if rejected %}returned their part of the {{ form.title }} form without completing it.{% else %}completed their part of the {{ form.title }} form.{% endif %}
 
 You can access it at {{ adminurl }}.

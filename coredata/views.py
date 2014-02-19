@@ -1,10 +1,11 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
-        has_formgroup
+        has_formgroup, uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
         UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
@@ -531,5 +532,230 @@ def XXX_sims_person_search(request):
     
     json.dump(data, response, indent=1)
     return response
+
+
+
+
+
+
+
+
+@uses_feature('course_browser')
+#@cache_page(60*60*6)
+def browse_courses(request):
+    """
+    Interactive CourseOffering browser
+    """
+    if 'tabledata' in request.GET:
+        # table data
+        return _offering_data(request)
+    if 'instructor_autocomplete' in request.GET:
+        # instructor autocomplete search
+        return _instructor_autocomplete(request)
+
+    # actually displaying the page at this point
+    form = OfferingFilterForm()
+    context = {
+        'form': form,
+        }
+    return render(request, 'coredata/browse_courses.html', context)
+
+
+
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.db.models import Q
+from django.conf import settings
+import operator
+import pytz
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
+from courselib.auth import NotFoundResponse
+from coredata.forms import OfferingFilterForm, UNIVERSAL_COLUMNS, DEFAULT_COLUMNS, COLUMN_NAMES, FLAG_DICT
+from coredata.queries import more_offering_info, SIMSProblem
+from dashboard.views import _offerings_calendar_data
+
+COLUMN_ORDERING = { # column -> ordering info for datatable_view
+    'semester': 'semester__name',
+    'coursecode': ['subject', 'number', 'section'],
+    'title': 'title',
+    'instructors': [],
+    'enrl_tot': 'enrl_tot',
+    'campus': 'campus',
+    }
+
+class OfferingDataJson(BaseDatatableView):
+    model = CourseOffering
+    #columns = ['semester', 'coursecode', 'title', 'instructors', 'enrl_tot']
+    #order_columns = ['semester__name', ['subject', 'number'], 'section', 'title', [], 'enrl_tot']
+    max_display_length = 500
+    
+    def set_columns(self, col_list):
+        self.columns = col_list
+        self.order_columns = [COLUMN_ORDERING[col] for col in self.columns]
+
+    def render_column(self, offering, column):
+        if column == 'coursecode':
+            txt = '%s %s %s' % (offering.subject, offering.number, offering.section)
+            url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': offering.slug})
+            col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
+        elif column == 'instructors':
+            col = offering.instructors_str()
+        elif hasattr(offering, 'get_%s_display' % column):
+            # it's a choice field
+            col = getattr(offering, 'get_%s_display' % column)()
+        else:
+            col = unicode(getattr(offering, column))
+        
+        return conditional_escape(col)
+
+    def ordering(self, qs):
+        return super(OfferingDataJson, self).ordering(qs)
+
+    def filter_queryset(self, qs):
+        # use request parameters to filter queryset
+        GET = self.request.GET
+        
+        # no cancelled courses
+        qs = qs.exclude(component='CAN')
+        # no courses outside the allowed semester range
+        qs = qs.filter(semester__in=OfferingFilterForm.allowed_semesters())
+        # no locally-merged courses
+        qs = qs.exclude(flags=CourseOffering.flags.combined)
+
+        columns = UNIVERSAL_COLUMNS + GET.get('columns', ','.join(DEFAULT_COLUMNS)).split(',')
+        self.set_columns(columns)
+        
+        srch = GET.get('sSearch', None)
+        if srch:
+            qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch)) 
+
+        subject = GET.get('subject', None)
+        if subject:
+            qs = qs.filter(subject=subject)
+
+        number = GET.get('number', None)
+        if number:
+            qs = qs.filter(number__icontains=number)
+            
+        section = GET.get('section', None)
+        if section:
+            qs = qs.filter(section__startswith=section)
+
+        instructor = GET.get('instructor', None)
+        if instructor:
+            off_ids = Member.objects.order_by().filter(person__userid=instructor, role='INST').values_list('offering', flat=True)[:500]
+            #qs = qs.filter(id__in=off_ids)
+            # above should work, but production mySQL is ancient and can't do IN + LIMIT
+            fake_in = reduce(operator.__or__, (Q(id=oid) for oid in off_ids))
+            qs = qs.filter(fake_in)
+            
+        campus = GET.get('campus', None)
+        if campus:
+            qs = qs.filter(campus=campus)
+
+        semester = GET.get('semester', None)
+        if semester:
+            qs = qs.filter(semester__name=semester)
+
+        title = GET.get('crstitle', None)
+        if title:
+            qs = qs.filter(title__icontains=title)
+
+        wqb = GET.getlist('wqb')
+        for f in wqb:
+            if f not in FLAG_DICT:
+                continue # not in our list of flags: not safe to getattr
+            qs = qs.filter(flags=getattr(CourseOffering.flags, f))
+
+        #print qs.query
+        #qs = qs[:500] # ignore requests for crazy amounts of data
+        return qs
+
+    def XXX_prepare_results(self, qs):
+        "Prepare for mData-style data handling"
+        data = []
+        for item in qs:
+            data.append(dict((column, self.render_column(item, column)) for column in self.get_columns()))
+        return data
+
+    def get_context_data(self, *args, **kwargs):
+        data = super(OfferingDataJson, self).get_context_data(*args, **kwargs)
+        data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
+        return data
+
+_offering_data = uses_feature('course_browser')(OfferingDataJson.as_view())
+
+
+
+@uses_feature('course_browser')
+def _instructor_autocomplete(request):
+    """
+    Responses for the jQuery autocomplete for instructor search: key by userid not emplid for privacy
+    """
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
+
+    response = HttpResponse(mimetype='application/json')
+    query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
+    # matching person.id values who have actually taught a course
+    person_ids = Member.objects.filter(query).filter(role='INST') \
+                 .exclude(person__userid=None).order_by() \
+                 .values_list('person', flat=True).distinct()[:500]
+    person_ids = list(person_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
+    # get the Person objects: is there no way to do this in one query?
+    people = Person.objects.filter(id__in=person_ids)
+    data = [{'value': p.userid, 'label': p.name()} for p in people]
+    json.dump(data, response, indent=1)
+    return response
+
+
+@uses_feature('course_browser')
+#@cache_page(60*60*6)
+def browse_courses_info(request, course_slug):
+    """
+    Browsing info about a single course offering.
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    if 'data' in request.GET:
+        # more_course_info data requested
+        response = HttpResponse(mimetype='application/json')
+        try:
+            data = more_offering_info(offering, browse_data=True, offering_effdt=True)
+        except SIMSProblem as e:
+            data = {'error': e.message}
+        json.dump(data, response, indent=1)
+        return response
+    if 'caldata' in request.GET:
+        # calendar data requested
+        return _offering_meeting_time_data(request, offering)
+        
+    # the page itself (with most data assembled by AJAX requests to the above)
+    context = {
+        'offering': offering,
+    }
+    return render(request, 'coredata/browse_courses_info.html', context)
+
+
+def _offering_meeting_time_data(request, offering):
+    """
+    fullcalendar.js data for this offering's events
+    """
+    try:
+        int(request.GET['start'])
+        int(request.GET['end'])
+    except (KeyError, ValueError):
+        return NotFoundResponse(request, errormsg="Bad request")
+
+    local_tz = pytz.timezone(settings.TIME_ZONE)
+    start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
+    end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
+
+    response = HttpResponse(mimetype='application/json')
+    data = list(_offerings_calendar_data([offering], None, start, end, local_tz,
+                                         dt_string=True, colour=True, browse_titles=True))
+    json.dump(data, response, indent=1)
+    return response
+
 
 

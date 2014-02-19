@@ -1,5 +1,6 @@
 from coredata.forms import PersonField
 from django import forms
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms.fields import MultipleChoiceField
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
@@ -28,7 +29,9 @@ class EditGroupForm(ModelForm):
         fields = ('name',)
 
 class EmployeeSearchForm(forms.Form):
-    search = PersonField()
+    search = PersonField(label="Person")
+    email = forms.BooleanField(required=False, initial=True,
+            help_text="Should this member be emailed when submissions come in?")
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
@@ -38,7 +41,7 @@ class EmployeeSearchForm(forms.Form):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'config', 'advisor_visible')
+        exclude = ('active', 'original', 'unit', 'config')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -57,7 +60,7 @@ class FormForm(ModelForm):
 class NewFormForm(FormForm):
     class Meta:
         model = Form
-        exclude = ('active', 'original', 'unit', 'initiators', 'config', 'advisor_visible')
+        exclude = ('active', 'original', 'unit', 'initiators', 'config')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
@@ -80,43 +83,91 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
-# Administrate forms 
-class AdminAssignForm(forms.Form):
-    class FormModelChoiceField(forms.ModelChoiceField):
-        widget = forms.RadioSelect
-        def label_from_instance(self, obj):
-            return obj.title
+# Administrate forms
 
-    assignee = PersonField(label='Assign to', required=True)
+class _FormModelChoiceField(forms.ModelChoiceField):
+    widget = forms.RadioSelect
+    def label_from_instance(self, obj):
+        return obj.title
 
-    def __init__(self, label, query_set, *args, **kwargs):
-        super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields.insert(0, label, self.FormModelChoiceField(required=True,
-            queryset=query_set,
-            empty_label=None,
-            label=label.capitalize()))
-
+class _AdminAssignForm(forms.Form):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
-        return super(AdminAssignForm, self).is_valid(*args, **kwargs)
+        return super(_AdminAssignForm, self).is_valid(*args, **kwargs)
 
+class AdminAssignFormForm(_AdminAssignForm):
+    form = _FormModelChoiceField(required=True, queryset=Form.objects.none(), empty_label=None)
+    assignee = PersonField(label='Assign to', required=True)
 
-class AdminAssignForm_nonsfu(ModelForm):
-    class FormModelChoiceField(forms.ModelChoiceField):
-        widget = forms.RadioSelect
-        def label_from_instance(self, obj):
-            return obj.title
+    def __init__(self, query_set, *args, **kwargs):
+        super(AdminAssignFormForm, self).__init__(*args, **kwargs)
+        self.fields['form'].queryset = query_set
 
+class AdminAssignSheetForm(_AdminAssignForm):
+    sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
+    assignee = PersonField(label='Assign to', required=True)
+    note = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '70'}),
+            help_text="Optional note to the assignee")
+
+    def __init__(self, query_set, *args, **kwargs):
+        super(_AdminAssignForm, self).__init__(*args, **kwargs)
+        self.fields['sheet'].queryset = query_set
+
+class _AdminAssignForm_nonsfu(ModelForm):
     class Meta:
         model = NonSFUFormFiller
         exclude = ('config',)
 
-    def __init__(self, label, query_set, *args, **kwargs):
-        super(AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
-        self.fields.insert(0, label, self.FormModelChoiceField(required=True,
-            queryset=query_set,
-            empty_label=None,
-            label=label.capitalize()))
+class AdminAssignFormForm_nonsfu(_AdminAssignForm_nonsfu):
+    form = _FormModelChoiceField(required=True, queryset=Form.objects.none(), empty_label=None)
+
+    def __init__(self, query_set, *args, **kwargs):
+        super(_AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
+        self.fields['form'].queryset = query_set
+
+class AdminAssignSheetForm_nonsfu(_AdminAssignForm_nonsfu):
+    sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
+    note = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '70'}),
+            help_text="Optional note to the assignee")
+
+    def __init__(self, query_set, *args, **kwargs):
+        super(_AdminAssignForm_nonsfu, self).__init__(*args, **kwargs)
+        self.fields['sheet'].queryset = query_set
+
+
+
+class ChangeOwnerForm(forms.Form):
+    new_group = forms.ModelChoiceField(queryset=None, required=True,
+                    help_text="Form group that should take ownership of this form submission")
+    def __init__(self, queryset, *args, **kwargs):
+        super(ChangeOwnerForm, self).__init__(*args, **kwargs)
+        self.fields['new_group'].queryset = queryset
+
+
+class AdminReturnForm(forms.Form):
+    reason = forms.CharField(required=True,
+                help_text="Reason you are giving the form back: will be emailed to the user.",
+                widget=forms.TextInput(attrs={'size': '70'}))
+
+
+class CloseFormForm(forms.Form):
+    summary = forms.CharField(required=True,
+                help_text="Summary of the form, for advisors (and emailing to student if you select below).",
+                widget=forms.TextInput(attrs={'size': '70'})
+                )
+    email = forms.BooleanField(initial=False, required=False, help_text="Would you like to email the summary to the student?")
+    
+    def __init__(self, advisor_visible, *args, **kwargs):
+        super(CloseFormForm, self).__init__(*args, **kwargs)
+        self.used = True
+        if not advisor_visible:
+            # only care about these fields for advisor-visible things
+            del self.fields['summary']
+            del self.fields['email']
+            self.used = False
+            
+
+
 
 
 class DynamicForm(forms.Form):
@@ -159,6 +210,19 @@ class DynamicForm(forms.Form):
                     relevant_data[str(name)] = u''
                     relevant_data['required'] = ignore_required
                     cleaned_data = field.compress(relevant_data)
+                elif isinstance(field, forms.FileField):
+                    if str(name) in files_data:
+                        cleaned_data = field.clean(files_data[str(name)])
+                    elif field.filesub:
+                        # we have no new file, but an old file submission: fake it into place
+                        fs = field.filesub
+                        cleaned_data = SimpleUploadedFile(name=fs.file_attachment.name,
+                                            content=fs.file_attachment.read(),
+                                            content_type=fs.file_mediatype)
+                    elif ignore_required:
+                        cleaned_data = ""
+                    else:
+                        cleaned_data = field.clean("")
                 elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
@@ -168,8 +232,6 @@ class DynamicForm(forms.Form):
                             cleaned_data = field.clean(relevant_data)
                         else:
                             cleaned_data = field.clean(post_data[str(name)])
-                elif str(name) in files_data:
-                    cleaned_data = field.clean(files_data[str(name)])
                 else:
                     if ignore_required:
                         cleaned_data = ""

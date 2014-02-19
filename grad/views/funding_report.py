@@ -74,7 +74,10 @@ def _build_funding_totals(semester, programs, units):
             prog = prog_lookup[prog_id]
         else:
             prog = non_grad
-        pay = ra.lump_sum_pay/ra.semester_length()
+	semlen = ra.semester_length()
+        if semlen == 0:
+            semlen = 1
+        pay = ra.lump_sum_pay/semlen
         prog.funding_ra += pay
         total.funding_ra += pay
 

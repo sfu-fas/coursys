@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block h1 %} View {{ form.title }} {% endblock %}
-{% block title %} View {{ form.title }}  {% endblock %}
+{% block h1 %}View {{ form.title }}{% endblock %}
+{% block title %}View {{ form.title }}{% endblock %}
 
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/onlineforms.css" media="all" />
@@ -18,15 +18,62 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
-    <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
-    <li>&gt; View {{ form.title }}</li>
+{% if is_advisor %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="{% url advisornotes.views.student_notes userid=form_sub.initiator.sfuFormFiller.userid_or_emplid %}">{{ form_sub.initiator.sfuFormFiller.name }}</a></li>
+<li>&gt; View {{ form.title }}</li>
+{% else %}
+<li>&gt; <a href="{% url onlineforms.views.index %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+<li>&gt; View {{ form.title }}</li>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
 	{% if sheet_submissions %}
-	    {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug %}
+	    {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug can_admin=can_admin can_advise=can_advise %}
     {% endif %}
-    </div>
+</div>
+<p>Current status: {{ form_sub.get_status_display }}</p>
+{% if waiting_sheets %}
+<p>Sheets currently waiting to be completed:</p>
+<ul>
+{% for ss in waiting_sheets %}
+<li>{{ ss.sheet.title }} by {{ ss.filler.name }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% if form_sub.status == 'DONE' %}
+<p>Closed by: {{ form_sub.closer.name|default_if_none:"unknown"}}.
+{% if form_sub.summary %}Summary given: &ldquo;{{ form_sub.summary }}&rdquo;.{% endif %}
+The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong>not</strong>{% endif %} emailed by the system.
+</p>
+{% endif %}
+
+{% if can_admin %}
+<div class="form_container" id="assign" style="margin-top:5em;">
+    <form action="" method="post" enctype="multipart/form-data">
+    <fieldset><legend>Assign Next Sheet</legend>
+    <p style="margin-bottom: 1em;"><a href="{% url onlineforms.views.admin_assign form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Assign the next sheet of this form</a></p>
+    </fieldset>
+    </form>
+</div>
+<div class="form_container" id="completed">
+    <form action="#completed" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <fieldset><legend>Mark Completed</legend>
+    {% if close_form.used %}{{ close_form|as_dl }}{% endif %}
+    <p><input class="submit" type="submit" value="Mark as done" /></p>
+    </fieldset>
+    </form>
+</div>
+<div class="form_container" id="give">
+    <form action="" method="post" enctype="multipart/form-data">
+    <fieldset><legend>Give to another group</legend>
+    <p style="margin-bottom: 1em;"><a href="{% url onlineforms.views.admin_change_owner form_slug=form_slug formsubmit_slug=formsubmit_slug %}">Give this form submission to another group</a></p>
+    </fieldset>
+    </form>
+</div>
+
+{% endif %}
 {% endblock %}

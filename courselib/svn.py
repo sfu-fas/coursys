@@ -1,6 +1,7 @@
 # functions to manipulate the SVN repositories
 from django.conf import settings
 from coredata.models import Member, repo_name
+import datetime
 try:
     import MySQLdb
 except ImportError:
@@ -105,6 +106,8 @@ def update_offering_repositories(offering):
     """
     if not offering.uses_svn():
         return
+    if offering.semester.end < datetime.date.today() - datetime.timedelta(days=30):
+        return
 
     repos = _all_repositories(offering)
     instr = _offering_instructors(offering)
@@ -133,7 +136,10 @@ def update_indiv_repository(offering, m, instr, repos):
     rw = set([m.person.userid])
     ro = set()
     if offering.indiv_svn():
-        ro = instr - rw
+        if offering.instr_rw_svn():
+            rw |= instr
+        else:
+            ro = instr - rw
     if m.role == "DROP" or offering.component=="CAN":
         rw = set([])
     reponame = repo_name(offering, m.person.userid)
@@ -173,6 +179,13 @@ def update_group_repository(offering, g, instr=None, repos=None):
             return
         userids.add(gm.student.person.userid)
 
-    if _repo_needs_updating(repos, reponame, userids, instr):
-        update_repository_task.delay(reponame, userids, instr)
+    if offering.instr_rw_svn():
+        rw = userids + instr
+        ro = set()
+    else:
+        rw = userids
+        ro = instr
+
+    if _repo_needs_updating(repos, reponame, rw, ro):
+        update_repository_task.delay(reponame, rw, ro)
 

@@ -1,3 +1,5 @@
+var default_hours = 80;
+
 function ra_autocomplete() {
   var regexp = /(,.*)/;
   var label;
@@ -32,6 +34,32 @@ function update_biweekly() {
   $("#id_hourly_pay").val((biweekly / num_hours).toFixed(2));
 }
 
+function update_hours() {
+  var lump_sum = parseFloat($("#id_lump_sum_pay").val());
+  var num_periods = parseFloat($("#id_pay_periods").val());
+  var num_hours = parseFloat($("#id_hours").val());
+  $("#id_hourly_pay").val((lump_sum / (num_periods * num_hours)).toFixed(2));
+  $("#id_biweekly_pay").val((lump_sum / num_periods).toFixed(2));
+  $("#id_lump_sum_hours").val((num_hours * num_periods).toFixed(1));
+}
+
+function update_pay_periods_pay() {
+  var lump_sum = parseFloat($("#id_lump_sum_pay").val());
+  var num_periods = parseFloat($("#id_pay_periods").val());
+  var num_hours = parseFloat($("#id_hours").val());
+  $("#id_hourly_pay").val((lump_sum / (num_periods * num_hours)).toFixed(2));
+  $("#id_biweekly_pay").val((lump_sum / num_periods).toFixed(2));
+  $("#id_lump_sum_hours").val((num_hours * num_periods).toFixed(1));
+}
+
+function update_lump_hours() {
+  var lump_hours = parseFloat($("#id_lump_sum_hours").val());
+  var num_periods = parseFloat($("#id_pay_periods").val());
+  var lump_sum = parseFloat($("#id_lump_sum_pay").val());
+  $("#id_hours").val((lump_hours/num_periods).toFixed(1));
+  $("#id_hourly_pay").val((lump_sum/lump_hours).toFixed(2));
+}
+
 function update_hourly() {
   var hourly = parseFloat($("#id_hourly_pay").val());
   var num_periods = parseFloat($("#id_pay_periods").val());
@@ -63,7 +91,22 @@ function update_pay_periods() {
 	$.ajax({
 		url: url,
 		success: function(data) {
-			$("#id_pay_periods").val(data);
+		    $("#id_pay_periods").val(data);
+			if ( $("#id_pay_frequency").val() == 'L' ) {
+    			var lump_hours = parseFloat($("#id_lump_sum_hours").val());
+    			var lump_sum = parseFloat($("#id_lump_sum_pay").val());
+    			var num_periods = parseFloat(data);
+                $("#id_hours").val((lump_hours/num_periods).toFixed(1));
+                $("#id_hourly_pay").val((lump_sum/lump_hours).toFixed(2));
+			} else {
+    			var hours = parseFloat($("#id_hours").val());
+    			var num_periods = parseFloat(data);
+    			if ( isNaN(hours) ) {
+    			    hours = default_hours;
+    			}
+         	    $("#id_hours").val(hours);
+    		    $("#id_lump_sum_hours").val((num_periods*hours).toFixed(1));
+			}
 		},
 	});
 }
@@ -117,21 +160,17 @@ function get_person_info(emplid) {
 $(document).ready(function() {
   name_label = document.createElement("span");
   name_label.id = "label_person_name";
-  /*
-  $.getJSON("/data/scholarships/200000193", function(json) {
-    alert(json[1].display);
-  });
-  */
   $('#id_person').parent().append(name_label);
   $("id_person").focus();
   ra_autocomplete('id_person');
   $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
   $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
   $("#id_lump_sum_pay").change(update_lump_sum);
+  $("#id_lump_sum_hours").change(update_lump_hours);
   $("#id_biweekly_pay").change(update_biweekly);
-  $("#id_pay_periods").change(update_lump_sum);
+  $("#id_pay_periods").change(update_pay_periods_pay);
   $("#id_hourly_pay").change(update_hourly);
-  $("#id_hours").change(update_lump_sum);
+  $("#id_hours").change(update_hours);
   $("#id_pay_frequency").change(update_pay_frequency);
   update_pay_frequency();
   $("#id_person").change(update_person);
