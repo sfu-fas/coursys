@@ -47,8 +47,9 @@ def fetch_photos(emplids):
         t = fetch_photos_task.delay(emplids=group)
 
         # record which task is fetching which photos
-        new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
-        task_map.update(new_map)
+        if t is not None: # returns None if no Celery available in devel environment: ignore the results then
+            new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
+            task_map.update(new_map)
 
     return task_map
 
