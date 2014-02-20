@@ -344,6 +344,8 @@ def memo_templates(request, event_type):
 def new_memo_template(request, event_type):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST)
         form.fields['unit'].choices = unit_choices 
@@ -358,11 +360,15 @@ def new_memo_template(request, event_type):
         form = MemoTemplateForm()
         form.fields['unit'].choices = unit_choices
 
-    lt = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.iteritems())
+    event_handler = event_type_object[1].CONFIG_FIELDS
+    #how do we want to handle description text? add a dictionary to each handler?
+    add_tags = [(tag, 'place holder') for tag in event_handler]
+    lt = tags + add_tags
     context = {
                'form': form,
                'event_type_slug': event_type,
-               'EVENT_TAGS': lt
+               'EVENT_TAGS': lt,
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
@@ -371,6 +377,8 @@ def manage_memo_template(request, event_type, slug):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     memo_template = get_object_or_404(MemoTemplate, slug=slug)
+    event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST, instance=memo_template)
         if form.is_valid():
@@ -384,7 +392,11 @@ def manage_memo_template(request, event_type, slug):
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices 
 
-    lt = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.iteritems())
+    event_handler = event_type_object[1].CONFIG_FIELDS
+    #how do we want to handle description text? add a dictionary to each handler?
+    add_tags = [(tag, 'place holder') for tag in event_handler]
+    lt = tags + add_tags
     context = {
                'form': form,
                'memo_template': memo_template,

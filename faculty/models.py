@@ -158,6 +158,9 @@ class CareerEvent(models.Model):
         else:
             hisher = "his/her"
             heshe = 'he/she'
+
+        # grab event type specific config data
+        config_data = self.config
         
         ls = { # if changing, also update EVENT_TAGS above!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
@@ -172,6 +175,7 @@ class CareerEvent(models.Model):
                 'end_date': self.end_date,
                 'event_title': self.title,
               }
+        ls = dict(ls.items() + config_data.items())
         return ls
 
 
