@@ -8,6 +8,8 @@ EVENT_PREFIX = USERID_OR_EMPLID + '/events/' + EVENT_SLUG
 
 urlpatterns = patterns('',
     url(r'^$', 'faculty.views.index'),
+    url(r'^search$', 'faculty.views.search_index'),
+    url(r'^search/(?P<event_type_slug>{})$'.format(SLUG_RE), 'faculty.views.search_events'),
     url(r'^event-management$', 'faculty.views.manage_event_index', name="faculty_events_manage_index"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates$', 'faculty.views.memo_templates', name="template_index"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/new$', 'faculty.views.new_memo_template', name="faculty_create_template"),

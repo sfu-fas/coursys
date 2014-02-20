@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Search Events by Type: {{ event_type }}{% endblock %}
+{% block h1 %}Search {{ event_type }} Events{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.search_index' %}">Event Search</a></li>
+<li>{{ event_type }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

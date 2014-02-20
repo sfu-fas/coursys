@@ -61,6 +61,22 @@ def index(request):
     return render(request, 'faculty/index.html', context)
 
 
+@requires_role('ADMN')
+def search_index(request):
+    context = {
+        'event_types': EVENT_TYPE_CHOICES,
+    }
+    return render(request, 'faculty/search_index.html', context)
+
+
+@requires_role('ADMN')
+def search_events(request, event_type_slug):
+    Handler = _get_Handler_or_404(event_type_slug)
+    context = {
+        'event_type': Handler.NAME,
+    }
+    return render(request, 'faculty/search_form.html', context)
+
 
 ###############################################################################
 # Display/summary views for a faculty member

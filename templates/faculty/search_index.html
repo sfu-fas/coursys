@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Search Events{% endblock %}
+{% block h1 %}Search Events{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Event Search</li>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table id="event_type_table" class="display">
+  <thead><tr>
+    <th scope="col">Event Type</th>
+    <th scope="col">Instantaneous</th>
+    <th scope="col">Affects Teaching</th>
+    <th scope="col">Affects Salary</th>
+  </tr></thead>
+  <tbody>
+  {% for slug, Handler in event_types %}
+  <tr>
+    <td><a href="{% url 'faculty.views.search_events' slug.lower %}">{{ slug }}</a></td>
+    <td>dunno</td>
+    <td>dunno</td>
+    <td>dunno</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
