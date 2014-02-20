@@ -512,27 +512,6 @@ table.info a.editlink { /* small "edit this thing" links in table.info */
 }
 
 
-
-
-X .table_container p.errorindicator {
-    border: 2px solid red;
-    padding: 0.5em;
-    background-color: #fffead;
-    color: red;
-    margin-bottom: 1em;
-}
-
-disabled .position_button {
-  float: left;
-}
-disabled .position_placeholder {
-  float: left;
-  display: block;
-  width: 16px;
-  height: 16px;
-}
-
-
 /* Collapsible style */
 div.collapsible {
   color: gray;
@@ -562,72 +541,10 @@ div.collapsible {
     margin-bottom: .2em;
 }
 
-X .form_container {
-    margin: 0 1em 0 0;
-    clear: both;
-}
-X .form_container .errorindicator, X .form_container .successindicator,
-X .form_container .warningindicator {
-    border: 1px solid;
-    padding: 0.5em;
-    background-color: #F8F8C2;
-    margin-bottom: 1em;
-    margin-top: 0;
-}
-X .form_container .successindicator {
-    border: 1px solid green;
-    color: green;
-}
-X .form_container .errorindicator {
-    border: 1px solid red;
-    color: red;
-}
-X .form_container .warningindicator {
-    border: 1px solid orange;
-    color: orange;
-}
 
-X .form_container .meeting-times .errorlist {
-  margin-left: 0;
-}
-X .form_container .requireindicator,
-X .form_container .requireindicator {
-    padding: 0 0 0 1em;
-    color: #D52E2D;
-}
-X #main .form_container h3 {
-  margin-left: 1em;
-}
-X #main .form_container p {
-  margin-left: 1em;
-}
-/*
- * field set
- */
-/* form style (grouped by list) */
-disabled fieldset {
-    width: 100%;
-    padding: 0 0 0 0;
-    border: 1px solid #BFBAB0;
-    background: #F2EFE9;
-    background-image: url('../images/grades/fieldset_gradient.jpg');
-    background-repeat: repeat-x;
-    margin: 1em 0 1em 0;
-}
-disabled fieldset .inputfield ul {
-    padding: 0;
-    margin: 0;
-}
-disabled fieldset .inputfield li {
-    padding: 0;
-    margin: 0;
-}
-disabled fieldset .inputfield label {
-  width: 30em;
-}
-disabled fieldset input {
-  margin: 2px 0;
-}
+
+/* TUG stuff */
+
 #edit-time-use-guideline tr>th {
 	vertical-align: middle;
 }
@@ -646,67 +563,22 @@ input.label-field {
   width: 12em;
 }
 
-/*
-disabled fieldset .inputfield input[type='text'] {
-    width: 30em;
-}*/
+/* form and form|as_dl styling */
 
-disabled fieldset .submit, form .submit {
+form .submit {
   min-width: 6em;
-  margin: 0 0 0 11em;
   background-color: #B5111A;
   border: 1px solid #FFF;
   color: #FFF;
   float: right;
   padding: 0.3em 0.5em 0.3em 0.5em;
-}
-disabled fieldset .nofloat, form .nofloat {
-  float: none;
-}
-
-form .submit {
   margin: 0.5em;
-}
-
-disabled fieldset .submit:hover, form .submit:hover {
-  border-color: #BCBCB4;
-  color: #eaf2fa;
-}
-disabled fieldset ul {
-    list-style: none;
-    padding: 0 1em 0 1em;
-}
-disabled fieldset ul.errorlist {
-    list-style: none;
-    padding: 0;
-}
-disabled fieldset li {
-    float: left;
-    clear: left;
-    width: 100%;
-    padding-bottom: 1em;
-}
-disabled fieldset .errorlist li {
-    float: none;
-    clear: none;
-    padding: 0;
-}
-disabled fieldset div.inputfield {
-    float: left;
-}
-disabled fieldset .datetime {
-    color: #666;
 }
 .helptext {
     color: gray;
     font-size: 0.9em;
 }
-disabled fieldset p.helptext,
-disabled dl.dlform .helptext {
-    margin-left: 10.5em;
-}
 
-/* form as_dl styling */
 dl.dlform dt{
     clear: both;
 }
@@ -719,21 +591,17 @@ form>input:first-child+fieldset { /* strip top margin for first fieldset */
 dl.dlform input, dl.dlform select, dl.dlform textarea {
 	margin-bottom: 0;
 }
-
 dl.dlform div.field.radio {
     display: inline-block;
 }
-
 dl.dlform div.field.radio label {
     text-align: left;
     width: auto;
 }
-
 dl.dlform div.field.radio ul {
     margin-top: 0;
 }
-
-dl.dlform  dd .explanation_block {
+dl.dlform dd .explanation_block {
     margin-left: 9.5em;
 }
 .reqicon {
@@ -816,76 +684,6 @@ fieldset.marking .common input[type="button"]{
 }
 
 
-
-/* navigator style for selecting different form */
-X #form_nav {
-    margin: 0 0 1em 0;
-    padding: 0;
-    list-style-type: none;
-    width: 603px;
-    height: 33px;
-}
-X #form_nav li {
-    float: left;
-    width: 200px;
-    height: 28px;
-    padding-right: 1px;
-}
-X #form_nav li a {
-    display: block;
-    color: #FFF;
-    text-align: center;
-    line-height: 2em;
-    background-color: #CB5A60;
-    text-decoration: none;
-}
-X #form_nav li a:hover {
-    border-bottom: 5px solid #d8d5d5;
-    background-color: #B5111A;
-    text-decoration: none;
-}
-X #form_nav li.current a {
-    background-color: #B5111A;
-    font-weight: bold;
-}
-
-/* display my submision */
-X #my_submission_dashboard {
-    margin: 1em 0 4em 0;
-}
-X #my_submission_dashboard h1{
-    margin: 0em;
-    padding: 0em;
-}
-X .form_container .component_description {
-    margin: 0 0 0.5em 0;
-    padding: 0 0 0 0em;
-    list-style: none;
-}
-X .form_container .component_description label {
-    font-weight: bold;
-    margin-right: 1em;
-}
-X #student_info_submission_dashboard{
-    float: right;
-    text-align: right;
-    margin-right: 10em;
-}
-X #student_info_submission_dashboard ul {
-    list-style: none;
-    margin-top: 0.2em;
-}
-X #student_info_submission_dashboard ul li {
-    float:right;
-    clear: right;
-    width: 13em;
-}
-X #student_info_submission_dashboard ul label {
-    float: left;
-    clear: left;
-    font-weight: bold;
-}
-
 /* discipline module styles */
 
 div#main div.showcase h2 {
@@ -952,10 +750,7 @@ div.letter p {
   padding: 0;
 }
 
-X #container blockquote {
-  width: auto;
-}
-/* This is for the form in edit_cutoffs.html page */
+/* grades edit_cutoffs.html page */
 table.cutoffs td {
   vertical-align: middle
 }
@@ -981,45 +776,8 @@ table.info span.letter {
   color: #777;
 }
 
-X table.inst_table thead th {
-  font-weight: bold;
-}
-X table.inst_table tbody th {
-  font-weight: bold;
-  text-align: left;
-}
 
-X table.inst_table thead th, X table.inst_table thead td, X table.inst_table tbody td{
-  border-color:#ccc;
-  text-align: left;
-  vertical-align: middle;
-}
-X table.inst_table {
-  border-color: #ccc;
-  width: 100%;
-}
-X table.inst_table th {
-  vertical-align: middle;
-}
-X table.inst_table ul {
-  list-style: none;
-  margin: 0.2em 0;
-  padding: 0;
-}
-
-X div#main table.inst_table p {
-  padding: 0;
-  margin: 0;
-}
-X div#main table.inst_table p input {
-  float: right;
-  font-size: 75%;
-  padding: 0 !important;
-}
-X table.inst_table tbody td.radiocell {
-  text-align: center;
-}
-
+/* miniaction buttons in tables */
 td.miniaction, td.miniaction p {
   margin: 2px !important;
   padding: 0 !important;
@@ -1073,10 +831,6 @@ div.note-box p.hideshow {
   margin: 0.5em;
 }
 
-
-X .borderless, .borderless td{
-  border: none;
-}
 
 /* TA contract template */
 #ta_course{
@@ -1211,22 +965,6 @@ div#main .artifact-note p {
 
 .artifact-note .attachment-icon {
   margin-bottom: -3px;
-}
-
-/* View Semesters */
-X div.semesters-container {
-  width: 30%;
-}
-
-X div.text.field {
-  line-height: 1.5em;
-}
-
-X fieldset hr {
-    margin: 0;
-    padding: 5px;
-    border: none;
-    border-bottom: 1px solid #BFBAB0;
 }
 
 
