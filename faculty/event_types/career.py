@@ -181,7 +181,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
         REASONS =[('MEDICAL', 'Medical'), ('PARENTAL', 'Parental'), ('ADMIN', 'Admin'), ('SECONDMENT', 'Secondment')]
         reason = forms.ChoiceField(label='Type', choices=REASONS)
         leave_fraction = forms.DecimalField(decimal_places=2, help_text="eg. 0.7")
-        teaching_accrues = forms.BooleanField(label='Do Teaching Credits Accrue During Leave?', required=False)
+        teaching_accrues = forms.BooleanField(label='Do Teaching Credits Accrue During Leave?', initial=False, required=False)
 
 
     @classmethod
@@ -212,14 +212,14 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Pay Fraction</dt><dd>{{ event|get_config:"pay_fraction" }}</dd>
         <dt>Report Received</dt><dd>{{ event|get_config:"teaching_accrues"|yesno }}</dd>
-        <dt>Report Received On</dt><dd>${{ event|get_config:"report_reveived_date" }}</dd>
+        <dt>Report Received On</dt><dd>{{ event|get_config:"report_reveived_date" }}</dd>
         <dt>Credits Carried Forward</dt><dd>{{ event|get_config:"credits" }}</dd>
         {% endblock %}
         """
 
     class EntryForm(BaseEntryForm):
         pay_fraction = forms.DecimalField(decimal_places=2, help_text="eg. 0.7")
-        report_received = forms.BooleanField(label='Report Received?', required=False)
+        report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = SemesterField(required=False, semester_start=False)
         credits = forms.DecimalField(decimal_places=2, help_text="Number of Credits Carried Forward")
 
