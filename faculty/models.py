@@ -66,11 +66,31 @@ EVENT_TAGS = {
             }
 
 class CareerEventManager(models.Manager):
-    def active_on(date):
+    def active(self):
+        """
+        All Career Events that have not been deleted.  Approved or Needs Approval.
+        """
+        qs = self.get_query_set()
+        return qs.exclude(status='D')
+
+    def effective_date(self, date):
         qs = self.get_query_set()
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
         qs = qs.filter(start_date__lte=date).filter(end_okay)
         return qs
+    
+    def effective_semester(self, semester):
+        raise NotImplementedError
+
+    def within_daterange(self, start, end, inclusive=True):
+        raise NotImplementedError
+
+    def by_type(self, event_type):
+        """
+        Returns QuerySet of all CareerEvents matching the given event type slug.
+        """
+        raise NotImplementedError
+
 
 class CareerEvent(models.Model):
 
