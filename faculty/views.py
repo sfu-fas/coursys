@@ -3,10 +3,11 @@ import datetime
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 
+from django.http import Http404
 from django.http import HttpResponse
-from django.http import StreamingHttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
+from django.http import StreamingHttpResponse
 
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -34,6 +35,14 @@ def _get_faculty_or_404(allowed_units, userid_or_emplid):
     roles = get_list_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
     units = set(r.unit for r in roles)
     return person, units
+
+
+def _get_Handler_or_404(handler_slug):
+    handler_slug = handler_slug.upper()
+    if handler_slug in EVENT_TYPES:
+        return EVENT_TYPES[handler_slug]
+    else:
+        raise Http404('Unknown event handler slug')
 
 
 ###############################################################################
