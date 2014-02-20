@@ -10,6 +10,8 @@ import string
 
 from table import Table
 
+from django.conf import settings
+
 no_function = lambda x: x
 
 class DefaultLog(object):
@@ -105,15 +107,19 @@ class CachedQuery(BaseQuery):
     """ 
 
     expires = datetime.datetime.now() + datetime.timedelta(1) 
+
+    @staticmethod
+    def cache_location():
+        return settings.REPORT_CACHE_LOCATION
     
     @property
     def query_filename(self):
-        force_dir( os.path.join("reports", "cache"))
-        return os.path.join( "reports", "cache",  self.filename + str(hash(self)) + ".query")
+        force_dir(CachedQuery.cache_location())
+        return os.path.join(CachedQuery.cache_location(),  self.filename + str(hash(self)) + ".query")
     @property
     def result_filename(self):
-        force_dir( os.path.join("reports", "cache"))
-        return os.path.join( "reports", "cache", self.filename + str(hash(self)) + ".result")
+        force_dir(CachedQuery.cache_location())
+        return os.path.join(CachedQuery.cache_location(), self.filename + str(hash(self)) + ".result")
 
     def is_cached_on_file(self):
         if os.path.exists( self.query_filename ):
@@ -173,11 +179,14 @@ class CachedQuery(BaseQuery):
     @staticmethod
     def clear_expired_members_from_cache():
         """ Remove any files from the cache if they've expired. """
-        CachedQuery.logger.log( "Looking for expired cache members..." )
-        if not os.path.isdir("cache"):
-            return 
-        for cache_file in os.listdir( "cache" ):
-            cache_file = os.path.join( "cache", cache_file )
+
+        cache_location = CachedQuery.cache_location() 
+        CachedQuery.logger.log( "Looking for expired cache members in " + cache_location )
+        if not os.path.isdir(cache_location):
+            CachedQuery.logger.log( "Cache directory not found.")
+            return
+        for cache_file in os.listdir(cache_location):
+            cache_file = os.path.join(cache_location, cache_file )
             if cache_file.endswith('.query') and os.path.isfile( cache_file ):
                 with open(cache_file, 'r') as f:
                     obj = json.loads( f.read() ) 

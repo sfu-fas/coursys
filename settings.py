@@ -223,6 +223,8 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
 
+REPORT_CACHE_LOCATION = "/tmp/report_cache"
+
 EXTRA_MIDDLEWARE_CLASSES = ()
 try:
     from local_settings import *
