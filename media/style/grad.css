@@ -37,4 +37,5 @@ tr.current {
 }
 .datatable_container table.display {
   width: 100%;
+  border-collapse:collapse;
 }

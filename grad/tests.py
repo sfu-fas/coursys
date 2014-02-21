@@ -119,6 +119,8 @@ class GradTest(TestCase):
         client = Client()
         test_auth(client, 'ggbaker')
         gs = self.__make_test_grad()
+        lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
+        lt.save()
 
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         content = client.get(url).content
