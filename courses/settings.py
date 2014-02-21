@@ -49,7 +49,6 @@ LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True
 MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploads')
-MEDIA_URL = '/media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'w@h_buddoh5**%79%0x&7h0ro2tol+-7vz=p*kn_g+0qcw8krr'
@@ -70,7 +69,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
-    #'courselib.mobile_detection.MobileDetectionMiddleware'
 )
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -142,8 +140,10 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
 
-STATIC_URL = '/static/'
+STATIC_URL = '/media/'
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'media')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -165,6 +165,7 @@ if DEPLOYED:
     } }
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
     DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
     SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': '????',
