@@ -71,7 +71,8 @@ $(document).ready(function() {
 <tr><th>Email</th><td>{{grad.person.email_mailto}}
 {% if grad.applic_email %}(application email: {{grad.applic_email}}){% endif %}	
 </td></tr>
-<tr><th>Current Status</th><td>{{grad.get_current_status_display}} {% if can_edit %}[<a href="{% url "grad.views.manage_status" grad_slug=grad.slug %}">Update status</a>]{% endif %}</td></tr>
+<tr><th>Current Status</th><td>{{grad.get_current_status_display}}
+    {% if can_edit %}<a class="editlink" href="{% url "grad.views.manage_status" grad_slug=grad.slug %}">Update status</a>{% endif %}</td></tr>
 <tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
 <tr><th>CGPA</th><td>{% if grad.person.gpa %}{{grad.person.gpa}} ({{grad.person.ccredits}} credits){% endif %} {% if grad.config.masters_cgpa %} {{grad.config.masters_cgpa}} {% endif %}</td></tr>
 <tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
