@@ -193,7 +193,8 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
                                                 self.event.start_date)
 
     def salary_adjust_annually(self):
-        f = fractions.Fraction(self.event.config.get('leave_fraction', 0))
+        # f = fractions.Fraction(self.event.config.get('leave_fraction', 0))
+        f = decimal.Decimal(self.event.config.get('leave_fraction', 0))
         return SalaryAdjust(0, f, 0)
 
     # Not quite sure how this should be done, do we want a field indicating reduction in workload?
@@ -232,7 +233,8 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return 'Study leave begginging %s' % (self.event.start_date)
 
     def salary_adjust_annually(self):
-        f = fractions.Fraction(self.event.config.get('pay_fraction', 0))
+        # f = fractions.Fraction(self.event.config.get('pay_fraction', 0))
+        f = decimal.Decimal(self.event.config.get('pay_fraction', 0))
         return SalaryAdjust(0, f, 0)
 
     # Not quite sure how this should be done

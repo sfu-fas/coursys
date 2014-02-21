@@ -27,6 +27,7 @@ $(document).ready(function() {
   <ul>
     <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}">Create New Event</a></li>
 	<li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}">View Other Info</a></li>
+    <li><a href="{% url 'faculty_view_salary' userid=person.userid_or_emplid %}">View Salary</a></li>
   </ul>
 </div>
 {% endblock %}
