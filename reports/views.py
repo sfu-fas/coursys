@@ -12,8 +12,10 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.template import Template, Context
 from django.forms.util import ErrorList
+from django.conf import settings
 import unicodecsv as csv
 import datetime
+import shutil
 
 
 def view_reports(request):
@@ -246,6 +248,7 @@ def run(request, report):
             else: 
                 messages.error(request, "Run Failed!")
         run = runs[0]
+        shutil.rmtree(settings.REPORT_CACHE_LOCATION)
         return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
     else:
         messages.error(request, "You haven't added any queries or reports to run, yet!")

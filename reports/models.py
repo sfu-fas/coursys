@@ -75,7 +75,21 @@ class Report(models.Model):
             rule.set_next_run()
             rule.save()
 
+        failed_runs = [run for run in runs if run.success == False]
+        if len(failed_runs) > 0:
+            self.failure_notification(failed_runs[0])
+
         return runs
+    
+    def failure_notification(self, failed_run):
+        every_sysadmin = [role.person for role in Role.objects.filter(role='SYSA')]
+        for sysadmin in every_sysadmin:
+            n = NewsItem( user=sysadmin,
+                            source_app='reports',
+                            title="Failed Report: " + self.name, 
+                            url= reverse('reports.views.view_run', kwargs={'report':self.slug, 'run':failed_run.slug}),
+                            content= "A run has failed! \n" + self.description );
+            n.save()
 
 def all_reports():
     """
@@ -302,7 +316,7 @@ def schedule_ping():
     set_of_reports_that_need_to_be_run = set(reports)
     for report in set_of_reports_that_need_to_be_run:
         report.run()
-    shutil.rmdir(settings.REPORT_CACHE_LOCATION)
+    shutil.rmtree(settings.REPORT_CACHE_LOCATION)
 
 
 class Run(models.Model): 
