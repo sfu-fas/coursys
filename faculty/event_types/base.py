@@ -6,6 +6,7 @@ import itertools
 
 from django import forms
 from django.db import models
+from django.forms.forms import pretty_name
 from django.template import Context, Template
 
 from coredata.models import Role, Unit
@@ -118,6 +119,8 @@ class CareerEventHandlerBase(object):
     VIEWABLE_BY = 'MEMB'
     EDITABLE_BY = 'DEPT'
     APPROVAL_BY = 'FAC'
+
+    SEARCH_ROW_FIELDS = []
 
     # Internal mumbo jumbo
 
@@ -311,6 +314,20 @@ class CareerEventHandlerBase(object):
         }
         context.update(self.to_html_context())
         return template.render(Context(context))
+
+    # Stuff relating to searching
+
+    @classmethod
+    def filter(cls, queryset, rules):
+        for event in queryset:
+            yield cls(event)
+
+    @classmethod
+    def get_search_columns(cls):
+        return [cls.CONFIG_FIELDS[name].label or pretty_name(name) for name in cls.SEARCH_ROW_FIELDS]
+
+    def to_search_row(self):
+        return [self.get_config(name) for name in self.SEARCH_ROW_FIELDS]
 
     # Optionally override these
 

@@ -22,6 +22,7 @@ from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm
+from faculty.forms import SearchForm
 
 import itertools
 
@@ -72,8 +73,33 @@ def search_index(request):
 @requires_role('ADMN')
 def search_events(request, event_type_slug):
     Handler = _get_Handler_or_404(event_type_slug)
+
+    is_search = False
+    form = SearchForm()
+    results = []
+
+    if request.GET:
+        form = SearchForm(request.GET)
+
+        if form.is_valid():
+            is_search = True
+            events = CareerEvent.objects.by_type(Handler)
+
+            # XXX: Might want to move this logic somewhere else.
+            if form.cleaned_data['start_date']:
+                events = events.filter(start_date__gte=form.cleaned_data['start_date'])
+            if form.cleaned_data['end_date']:
+                events = events.filter(end_date__lte=form.cleaned_data['end_date'])
+
+            # TODO: Still need to figure out how to define Handler-specific search rules.
+            results = Handler.filter(events, rules=[])
+
     context = {
         'event_type': Handler.NAME,
+        'form': form,
+        'is_search': is_search,
+        'results_columns': Handler.get_search_columns(),
+        'results': results,
     }
     return render(request, 'faculty/search_form.html', context)
 

@@ -2,6 +2,19 @@
 {% block title %}Search Events{% endblock %}
 {% block h1 %}Search Events{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#event_type_table').dataTable({
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  });
+});
+</script>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li>Event Search</li>

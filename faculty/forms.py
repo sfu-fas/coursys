@@ -83,3 +83,8 @@ class MemoForm(forms.ModelForm):
     #    self.instance.config['use_sig'] = use_sig
     #    return use_sig
 
+
+class SearchForm(forms.Form):
+
+    start_date = forms.DateField(label='Start Date', required=False)
+    end_date = forms.DateField(label='End Date (inclusive)', required=False)
