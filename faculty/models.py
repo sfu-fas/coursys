@@ -66,6 +66,7 @@ EVENT_TAGS = {
             }
 
 class CareerEventManager(models.Manager):
+    # TODO: Should these filters only grab events that are not deleted?
     def active(self):
         """
         All Career Events that have not been deleted.  Approved or Needs Approval.
@@ -80,16 +81,28 @@ class CareerEventManager(models.Manager):
         return qs
     
     def effective_semester(self, semester):
-        raise NotImplementedError
+        """
+        Returns CareerEvents starting and ending within this semester.
+        """
+        start, end = semester.start_end_dates(semester)
+        qs = self.get_query_set()
+        end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
+        return qs.filter(Q(start_date__gte=start).filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
-        raise NotImplementedError
+        qs = self.get_query_set()
+        if not inclusive:
+            filters = {"start_date__gt": start, "end_date__lt": end}
+        else:
+            filters = {"start_date__gte": start, "end_date__lte": end}
+        return qs.filter(**filters)
 
     def by_type(self, event_type):
         """
         Returns QuerySet of all CareerEvents matching the given event type slug.
         """
-        raise NotImplementedError
+        qs = self.get_query_set()
+        return qs.filter(event_type__exact=event_type)
 
 
 class CareerEvent(models.Model):
