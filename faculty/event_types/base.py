@@ -44,10 +44,13 @@ class CareerEventMeta(abc.ABCMeta):
                         cls.FLAGS.append(flag)
 
         # Figure out what fields are required by the Handler subclass
+        cls.BASE_FIELDS = collections.OrderedDict()
         cls.CONFIG_FIELDS = collections.OrderedDict()
 
         for name, field in cls.EntryForm.base_fields.iteritems():
-            if name not in BaseEntryForm.base_fields:
+            if name in BaseEntryForm.base_fields:
+                cls.BASE_FIELDS[name] = field
+            else:
                 cls.CONFIG_FIELDS[name] = field
 
         # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
