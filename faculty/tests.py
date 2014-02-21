@@ -10,7 +10,7 @@ from coredata.models import Unit
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
-from faculty.event_types.career import AppointmentEventHandler
+from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
 from faculty.models import CareerEvent
@@ -33,7 +33,7 @@ class EventTypesTest(TestCase):
         dean_admin = Person.objects.get(userid='dzhao')
 
         fac_role = Role.objects.filter(person=fac_member)[0]
-        handler = AppointmentEventHandler(CareerEvent(person=fac_member,
+        handler = SalaryModificationEventHandler(CareerEvent(person=fac_member,
                                                       unit=fac_role.unit))
 
         # tests below assume these permission settings for this event type
