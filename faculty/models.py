@@ -97,12 +97,12 @@ class CareerEventManager(models.Manager):
             filters = {"start_date__gte": start, "end_date__lte": end}
         return qs.filter(**filters)
 
-    def by_type(self, event_type):
+    def by_type(self, Handler):
         """
-        Returns QuerySet of all CareerEvents matching the given event type slug.
+        Returns QuerySet of all CareerEvents matching the given CareerEventHandler class.
         """
         qs = self.get_query_set()
-        return qs.filter(event_type__exact=event_type)
+        return qs.filter(event_type__exact=Handler.EVENT_TYPE)
 
 
 class CareerEvent(models.Model):
