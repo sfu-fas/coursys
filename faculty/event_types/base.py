@@ -120,7 +120,7 @@ class CareerEventHandlerBase(object):
     EDITABLE_BY = 'DEPT'
     APPROVAL_BY = 'FAC'
 
-    SEARCH_ROW_FIELDS = []
+    SEARCH_RESULT_FIELDS = []
 
     # Internal mumbo jumbo
 
@@ -324,10 +324,10 @@ class CareerEventHandlerBase(object):
 
     @classmethod
     def get_search_columns(cls):
-        return [cls.CONFIG_FIELDS[name].label or pretty_name(name) for name in cls.SEARCH_ROW_FIELDS]
+        return [cls.CONFIG_FIELDS[name].label or pretty_name(name) for name in cls.SEARCH_RESULT_FIELDS]
 
     def to_search_row(self):
-        return [self.get_config(name) for name in self.SEARCH_ROW_FIELDS]
+        return [self.get_config(name) for name in self.SEARCH_RESULT_FIELDS]
 
     # Optionally override these
 
