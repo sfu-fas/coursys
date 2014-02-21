@@ -1,12 +1,14 @@
 import datetime
+import decimal
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 
+from django.http import Http404
 from django.http import HttpResponse
-from django.http import StreamingHttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
+from django.http import StreamingHttpResponse
 
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -19,8 +21,9 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm
+from faculty.forms import SearchForm
 
 import itertools
 
@@ -34,6 +37,14 @@ def _get_faculty_or_404(allowed_units, userid_or_emplid):
     roles = get_list_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
     units = set(r.unit for r in roles)
     return person, units
+
+
+def _get_Handler_or_404(handler_slug):
+    handler_slug = handler_slug.upper()
+    if handler_slug in EVENT_TYPES:
+        return EVENT_TYPES[handler_slug]
+    else:
+        raise Http404('Unknown event handler slug')
 
 
 ###############################################################################
@@ -51,6 +62,51 @@ def index(request):
     }
     return render(request, 'faculty/index.html', context)
 
+
+@requires_role('ADMN')
+def search_index(request):
+    event_types = ({
+        'slug': key.lower(),
+        'name': Handler.NAME,
+        'is_instant': Handler.IS_INSTANT,
+        'affects_teaching': 'affects_teaching' in Handler.FLAGS,
+        'affects_salary': 'affects_salary' in Handler.FLAGS,
+    } for key, Handler in EVENT_TYPE_CHOICES)
+    return render(request, 'faculty/search_index.html', { 'event_types': event_types })
+
+
+@requires_role('ADMN')
+def search_events(request, event_type_slug):
+    Handler = _get_Handler_or_404(event_type_slug)
+
+    is_search = False
+    form = SearchForm()
+    results = []
+
+    if request.GET:
+        form = SearchForm(request.GET)
+
+        if form.is_valid():
+            is_search = True
+            events = CareerEvent.objects.by_type(Handler)
+
+            # XXX: Might want to move this logic somewhere else.
+            if form.cleaned_data['start_date']:
+                events = events.filter(start_date__gte=form.cleaned_data['start_date'])
+            if form.cleaned_data['end_date']:
+                events = events.filter(end_date__lte=form.cleaned_data['end_date'])
+
+            # TODO: Still need to figure out how to define Handler-specific search rules.
+            results = Handler.filter(events, rules=[])
+
+    context = {
+        'event_type': Handler.NAME,
+        'form': form,
+        'is_search': is_search,
+        'results_columns': Handler.get_search_columns(),
+        'results': results,
+    }
+    return render(request, 'faculty/search_form.html', context)
 
 
 ###############################################################################
@@ -130,6 +186,37 @@ def view_event(request, userid, event_slug):
     return render(request, 'faculty/view_event.html', context)
 
 
+@requires_role('ADMN')
+def view_salary(request, userid):
+    """
+    Find the salary for a person at a certain time
+    """
+    pay = decimal.Decimal(0)
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    form = GetSalaryForm(request.GET)
+    date = request.GET.get('date', None)
+
+    if date:
+        if form.is_valid():
+            career_events = CareerEvent.objects.effective_date(date).filter(person=person).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+
+            for event in career_events:
+                instance = get_object_or_404(CareerEvent, slug=event.slug, person=person)
+                Handler = EVENT_TYPES[instance.event_type]
+                handler = Handler(instance)
+
+                add_salary, salary_fraction, add_bonus = handler.salary_adjust_annually()
+                pay = (pay + add_salary) * salary_fraction + add_bonus
+
+    context = {
+        'form': form,
+        'person': person,
+        'salary': pay
+    }
+
+    return render(request, 'faculty/view_salary.html', context)
+
+
 ###############################################################################
 # Creation and editing of CareerEvents
 
@@ -174,7 +261,8 @@ def create_event(request, userid, handler):
         if form.is_valid():
             handler = Handler.create_for(person=person, form=form)
             handler.save(editor)
-            
+            handler.set_status(editor)
+
             return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
@@ -343,6 +431,8 @@ def memo_templates(request, event_type):
 def new_memo_template(request, event_type):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST)
         form.fields['unit'].choices = unit_choices 
@@ -357,11 +447,15 @@ def new_memo_template(request, event_type):
         form = MemoTemplateForm()
         form.fields['unit'].choices = unit_choices
 
-    lt = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.iteritems())
+    event_handler = event_type_object[1].CONFIG_FIELDS
+    #how do we want to handle description text? add a dictionary to each handler?
+    add_tags = [(tag, 'place holder') for tag in event_handler]
+    lt = tags + add_tags
     context = {
                'form': form,
                'event_type_slug': event_type,
-               'EVENT_TAGS': lt
+               'EVENT_TAGS': lt,
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
@@ -370,6 +464,8 @@ def manage_memo_template(request, event_type, slug):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     memo_template = get_object_or_404(MemoTemplate, slug=slug)
+    event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST, instance=memo_template)
         if form.is_valid():
@@ -383,7 +479,11 @@ def manage_memo_template(request, event_type, slug):
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices 
 
-    lt = sorted(EVENT_TAGS.iteritems())
+    tags = sorted(EVENT_TAGS.iteritems())
+    event_handler = event_type_object[1].CONFIG_FIELDS
+    #how do we want to handle description text? add a dictionary to each handler?
+    add_tags = [(tag, 'place holder') for tag in event_handler]
+    lt = tags + add_tags
     context = {
                'form': form,
                'memo_template': memo_template,

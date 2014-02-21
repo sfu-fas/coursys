@@ -11,12 +11,18 @@ from coredata.models import SemesterWeek
 
 
 class SemesterDateInput(forms.widgets.MultiWidget):
-   
-    def __init__(self, attrs=None, mode=0):
+    class Media:
+        js = ('js/semesters.js',)
+
+    def __init__(self, attrs=None, mode=0, semester_start=True):
+        self.semester_start = semester_start
         semester_attrs = attrs or {}
-        semester_attrs.update({"maxlength": 4, "size": 6})
+        semester_attrs.update({"maxlength": 4, "size": 6, "class": "semester-input"})
+        if self.semester_start:
+            semester_attrs.update({"class": "semester-input semester-start"})
+        date_attrs = {"class": "date-input"}
         _widgets = (
-            forms.widgets.DateInput(attrs=attrs),
+            forms.widgets.DateInput(attrs=date_attrs),
             forms.widgets.TextInput(attrs=semester_attrs),
         )
         super(SemesterDateInput, self).__init__(_widgets, attrs)
@@ -29,36 +35,47 @@ class SemesterDateInput(forms.widgets.MultiWidget):
     def format_output(self, rendered_widgets):
         return u''.join(rendered_widgets)
 
+    def get_semester(self, code):
+        try:
+            assert len(code) == 4
+            assert code.isdigit()
+            s = Semester.objects.get(name=code)
+            return s
+        except (AssertionError, Semester.DoesNotExist):
+            # Semester does not exist, or its in the wrong format
+            return 
+
+    def get_semester_date(self, semester):
+        if not semester:
+            return 
+        start, end = semester.start_end_dates(semester)
+        if self.semester_start:
+            return start
+        return end
+
     def value_from_datadict(self, data, files, name):
         datelist = [w.value_from_datadict(data, files, "%s_%s" %(name, i)) for i, w, in enumerate(self.widgets)]
-        semester = None
-        first = None
-        date = None
+        semester_date = None
+        regular_date = None
         try:
             y, m, d = datelist[0].split('-')
-            date = datetime.date(int(y), int(m), int(d))
+            regular_date = datetime.date(int(y), int(m), int(d))
         except ValueError:
             pass
 
         # Date field is blank, try to get the semester
-        semester = datelist[1]
-        try:
-            assert len(semester) == 4
-            assert semester.isdigit()
-            s = Semester.objects.get(name=semester)
-            weeks = SemesterWeek.objects.filter(semester=s)
-            first = weeks[0].monday
-        except (AssertionError, Semester.DoesNotExist, IndexError):
-            # Semester does not exist, or is in wrong format
-            pass
+        code = datelist[1]
+        if code:
+            semester = self.get_semester(code)
+            semester_date = self.get_semester_date(semester)
 
         # TODO: Precedence to semester if they're both filled in?
-        if date and first:
-            return first 
-        elif first:
-            return first
-        elif date:
-            return date
+        if regular_date and semester_date:
+            return semester_date
+        elif semester_date:
+            return semester_date
+        elif regular_date:
+            return regular_date
         else:
             return ""
 
@@ -66,6 +83,12 @@ class SemesterField(forms.DateField):
     widget = SemesterDateInput
 
     def __init__(self, **kwargs):
+        start = kwargs.get("semester_start", True)
+        kwargs.update({"semester_start": start})
+        del kwargs["semester_start"]
+        self.semester_start = start
+        self.widget = SemesterDateInput(semester_start=start)
+
         defaults = kwargs
         defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right, e.g.: 1141')})
         super(SemesterField, self).__init__(**defaults)

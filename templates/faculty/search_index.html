@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Search Events{% endblock %}
+{% block h1 %}Search Events{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#event_type_table').dataTable({
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Event Search</li>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table id="event_type_table" class="display">
+  <thead><tr>
+    <th scope="col">Event Type</th>
+    <th scope="col">Instantaneous</th>
+    <th scope="col">Affects Teaching</th>
+    <th scope="col">Affects Salary</th>
+  </tr></thead>
+  <tbody>
+  {% for event_type in event_types %}
+  <tr>
+    <td><a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a></td>
+    <td>{{ event_type.is_instant }}</td>
+    <td>{{ event_type.affects_teaching }}</td>
+    <td>{{ event_type.affects_salary }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

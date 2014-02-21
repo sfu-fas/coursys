@@ -32,17 +32,20 @@
 {% block content %}
 <div class="careerevent">
 {{ handler.to_html }}
+</div>
+<div class="clearfix"></div>
+
 {% if approval_form %}
 <form action="{{ event.get_status_change_url }}" method="post">
 	{% csrf_token %}
 	{{ approval_form }}
-	<input type="submit" value="Change">
+	<input type="submit" value="Change"/>
 </form>
 {% else %}
-<em>You cannot change the status of this event (as {{ user }})</em>
+<p class="empty">You cannot change the status of this event (as {{ user }})</p>
 {% endif %}
-</div>
-<div class="clearfix"></div>
+
+
 
 {% with attachments=event.attachments.all %}
 {% if attachments %}
@@ -62,7 +65,7 @@
 <h4>Memos</h4>
 <ul>
 {% for l in memos %}
-<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_person }})
+<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_lines }})
 	<a href="{% url "faculty.views.get_memo_pdf" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
 	<a href="{% url "faculty.views.view_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a> |
 	<a href="{% url "faculty.views.manage_memo" userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a></td>

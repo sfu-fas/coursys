@@ -7,6 +7,7 @@ from models import DocumentAttachment
 from models import MemoTemplate
 from models import Memo
 from models import EVENT_TYPE_CHOICES
+from faculty.event_types.fields import SemesterField
 
 
 def career_event_factory(person, post_data=None, post_files=None):
@@ -25,6 +26,11 @@ class ApprovalForm(forms.ModelForm):
     class Meta:
         model = CareerEvent
         fields = ("status",)
+
+class GetSalaryForm(forms.Form):
+    # date = SemesterField(required=True, semester_start=False)
+    date = forms.DateField(help_text='Select a date for the salary');
+
 
 def attachment_formset_factory():
     return modelformset_factory(DocumentAttachment, form=AttachmentForm, extra=1)
@@ -83,3 +89,8 @@ class MemoForm(forms.ModelForm):
     #    self.instance.config['use_sig'] = use_sig
     #    return use_sig
 
+
+class SearchForm(forms.Form):
+
+    start_date = forms.DateField(label='Start Date', required=False)
+    end_date = forms.DateField(label='End Date (inclusive)', required=False)

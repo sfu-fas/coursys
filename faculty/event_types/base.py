@@ -6,6 +6,7 @@ import itertools
 
 from django import forms
 from django.db import models
+from django.forms.forms import pretty_name
 from django.template import Context, Template
 
 from coredata.models import Role, Unit
@@ -44,10 +45,13 @@ class CareerEventMeta(abc.ABCMeta):
                         cls.FLAGS.append(flag)
 
         # Figure out what fields are required by the Handler subclass
+        cls.BASE_FIELDS = collections.OrderedDict()
         cls.CONFIG_FIELDS = collections.OrderedDict()
 
         for name, field in cls.EntryForm.base_fields.iteritems():
-            if name not in BaseEntryForm.base_fields:
+            if name in BaseEntryForm.base_fields:
+                cls.BASE_FIELDS[name] = field
+            else:
                 cls.CONFIG_FIELDS[name] = field
 
         # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
@@ -58,8 +62,8 @@ class CareerEventMeta(abc.ABCMeta):
 class BaseEntryForm(forms.Form):
     title = forms.CharField(max_length=80, required=True,
                             widget=forms.TextInput(attrs={'size': 60}))
-    start_date = SemesterField(required=True)
-    end_date = SemesterField(required=False)
+    start_date = SemesterField(required=True, semester_start=True)
+    end_date = SemesterField(required=False, semester_start=False)
     comments = forms.CharField(required=False,
                                widget=forms.Textarea(attrs={'cols': 60, 'rows': 3}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), required=True)
@@ -115,6 +119,8 @@ class CareerEventHandlerBase(object):
     VIEWABLE_BY = 'MEMB'
     EDITABLE_BY = 'DEPT'
     APPROVAL_BY = 'FAC'
+
+    SEARCH_RESULT_FIELDS = []
 
     # Internal mumbo jumbo
 
@@ -246,6 +252,15 @@ class CareerEventHandlerBase(object):
         """
         return self.has_permission(self.APPROVAL_BY, editor)
 
+    def set_status(self, editor):
+        """
+        Set status appropriate to the editor.  Override this method
+        if the status checking becomes more complex for an event type.
+        """
+        if self.can_approve(editor):
+            self.event.status = 'A'
+            self.save(editor)
+
     # Stuff relating to forms
 
     class EntryForm(BaseEntryForm):
@@ -260,9 +275,12 @@ class CareerEventHandlerBase(object):
         self.event.start_date = form.cleaned_data['start_date']
         self.event.end_date = form.cleaned_data.get('end_date', None)
         self.event.comments = form.cleaned_data.get('comments', None)
-        self.event.status = form.cleaned_data.get('status', 'NA')
+        # XXX: Event status is set based on the editor,
+        # This is set in handler method 'set_status'
+        # The following line causes bug which resets status to 'NA'
+        # every time the form is loaded, this is not desired behavior.
+        #self.event.status = form.cleaned_data.get('status', 'NA')
 
-        # XXX: status field: choose highest possible value for the available unit(s)?
 
         for name in self.CONFIG_FIELDS:
             self.set_config(name, form.cleaned_data.get(name, None))
@@ -296,6 +314,20 @@ class CareerEventHandlerBase(object):
         }
         context.update(self.to_html_context())
         return template.render(Context(context))
+
+    # Stuff relating to searching
+
+    @classmethod
+    def filter(cls, queryset, rules):
+        for event in queryset:
+            yield cls(event)
+
+    @classmethod
+    def get_search_columns(cls):
+        return [cls.CONFIG_FIELDS[name].label or pretty_name(name) for name in cls.SEARCH_RESULT_FIELDS]
+
+    def to_search_row(self):
+        return [self.get_config(name) for name in self.SEARCH_RESULT_FIELDS]
 
     # Optionally override these
 

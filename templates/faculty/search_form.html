@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Search Events by Type: {{ event_type }}{% endblock %}
+{% block h1 %}Search {{ event_type }} Events{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#results_table').dataTable({
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [
+      [3, 'desc'],
+      [4, 'desc']
+    ],
+    "bJQueryUI": true,
+  });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.search_index' %}">Event Search</a></li>
+<li>{{ event_type }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <form action="" method="GET">
+    <fieldset>
+      {{ form|as_dl }}
+      <p><input type="submit" class="submit" value="Search" /></p>
+    </fieldset>
+  </form>
+</div>
+
+{% if is_search %}
+<div class="datatable_container">
+  <h3>Results</h3>
+  <table id="results_table" class="display">
+    <thead><tr>
+      <th scope="col">Title</th>
+      <th scope="col">Person</th>
+      <th scope="col">Unit</th>
+      <th scope="col">Start Date</th>
+      <th scope="col">End Date</th>
+      {% for column in results_columns %}
+      <th scope="col">{{ column }}</th>
+      {% endfor %}
+      <th scope="col">Status</th>
+    </tr></thead>
+    <tbody>
+    {% for handler in results %}
+    <tr>
+      <td><a href="{{ handler.event.get_absolute_url }}">{{ handler.event.title }}</a></td>
+      <td>{{ handler.event.person }}</td>
+      <td>{{ handler.event.unit.label }}</td>
+      <td><span class="sort">{{ hander.event.start_date.isoformat }}</span>{{ handler.event.start_date }}</td>
+      <td><span class="sort">{{ hander.event.end_date.isoformat }}</span>{{ handler.event.end_date }}</td>
+      {% for value in handler.to_search_row %}
+      <td>{{ value }}</td>
+      {% endfor %}
+      <td>{{ handler.event.get_status_display }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

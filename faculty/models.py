@@ -2,6 +2,7 @@ import datetime
 import os
 
 from django.db import models
+from django.db.models import Q
 from django.core.urlresolvers import reverse
 
 from autoslug import AutoSlugField
@@ -18,10 +19,12 @@ from faculty.event_types.awards import GrantApplicationEventHandler
 from faculty.event_types.awards import AwardEventHandler
 from faculty.event_types.awards import TeachingCreditEventHandler
 from faculty.event_types.career import AppointmentEventHandler
+from faculty.event_types.career import OnLeaveEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
 from faculty.event_types.career import TenureReceivedEventHandler
+from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
@@ -37,6 +40,8 @@ HANDLERS = [
     ExternalAffiliationHandler,
     FellowshipEventHandler,
     GrantApplicationEventHandler,
+    OnLeaveEventHandler,
+    StudyLeaveEventHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,
@@ -60,6 +65,45 @@ EVENT_TAGS = {
                 'event_title': 'name of event',
             }
 
+class CareerEventManager(models.Manager):
+    # TODO: Should these filters only grab events that are not deleted?
+    def active(self):
+        """
+        All Career Events that have not been deleted.  Approved or Needs Approval.
+        """
+        qs = self.get_query_set()
+        return qs.exclude(status='D')
+
+    def effective_date(self, date):
+        qs = self.get_query_set()
+        end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
+        qs = qs.filter(start_date__lte=date).filter(end_okay)
+        return qs
+    
+    def effective_semester(self, semester):
+        """
+        Returns CareerEvents starting and ending within this semester.
+        """
+        start, end = semester.start_end_dates(semester)
+        qs = self.get_query_set()
+        end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
+        return qs.filter(Q(start_date__gte=start).filter(end_okay))
+
+    def within_daterange(self, start, end, inclusive=True):
+        qs = self.get_query_set()
+        if not inclusive:
+            filters = {"start_date__gt": start, "end_date__lt": end}
+        else:
+            filters = {"start_date__gte": start, "end_date__lte": end}
+        return qs.filter(**filters)
+
+    def by_type(self, Handler):
+        """
+        Returns QuerySet of all CareerEvents matching the given CareerEventHandler class.
+        """
+        qs = self.get_query_set()
+        return qs.filter(event_type__exact=Handler.EVENT_TYPE)
+
 
 class CareerEvent(models.Model):
 
@@ -73,7 +117,7 @@ class CareerEvent(models.Model):
     unit = models.ForeignKey(Unit)
 
     title = models.CharField(max_length=255, blank=False, null=False)
-    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
+    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit', 'start_date'),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -87,6 +131,8 @@ class CareerEvent(models.Model):
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = CareerEventManager()
 
     def __unicode__(self):
         return self.title
@@ -110,7 +156,7 @@ class CareerEvent(models.Model):
 
     @property
     def full_title(self):
-        return '{} {}'.format(self.start_date.year, self.title)
+        return '{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
 
     def get_event_type_display(self):
         "Override to display nicely"
@@ -125,6 +171,7 @@ class CareerEvent(models.Model):
             '-end_date',
             'title',
         )
+        unique_together = (('person', 'unit', 'title'),)
 
     def memo_info(self):
         """
@@ -144,6 +191,9 @@ class CareerEvent(models.Model):
         else:
             hisher = "his/her"
             heshe = 'he/she'
+
+        # grab event type specific config data
+        config_data = self.config
         
         ls = { # if changing, also update EVENT_TAGS above!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
@@ -158,6 +208,7 @@ class CareerEvent(models.Model):
                 'end_date': self.end_date,
                 'event_title': self.title,
               }
+        ls = dict(ls.items() + config_data.items())
         return ls
 
 
@@ -298,3 +349,14 @@ class EventConfig(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
     config = JSONField(default={})
+
+
+
+
+
+
+
+
+
+
+

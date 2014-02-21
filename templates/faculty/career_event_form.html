@@ -40,6 +40,7 @@ var event_type = "{{ event_type|escapejs }}";
         {% csrf_token %}
         <fieldset>
             {{ event_form|as_dl }}
+            {{ event_form.media }}
             <p><input type="submit" class="submit" value="Submit" /></p>
         </fieldset>
     </form>
