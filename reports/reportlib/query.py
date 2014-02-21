@@ -5,7 +5,6 @@ import datetime
 import iso8601
 import pytz
 import os
-import shutil
 import string
 
 from table import Table

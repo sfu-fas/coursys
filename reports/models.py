@@ -6,6 +6,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
+from django.conf import settings
 
 import datetime
 import os
@@ -295,11 +296,13 @@ class ScheduleRule(models.Model):
 
 
 def schedule_ping():
+    import shutil
     rules = ScheduleRule.objects.filter(next_run__lte=datetime.datetime.now())
     reports = [rule.report for rule in rules]
     set_of_reports_that_need_to_be_run = set(reports)
     for report in set_of_reports_that_need_to_be_run:
         report.run()
+    shutil.rmdir(settings.REPORT_CACHE_LOCATION)
 
 
 class Run(models.Model): 
