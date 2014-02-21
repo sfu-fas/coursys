@@ -349,3 +349,14 @@ class EventConfig(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
     config = JSONField(default={})
+
+
+
+
+
+
+
+
+
+
+
