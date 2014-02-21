@@ -30,12 +30,12 @@ $(document).ready(function() {
     <th scope="col">Affects Salary</th>
   </tr></thead>
   <tbody>
-  {% for slug, Handler in event_types %}
+  {% for event_type in event_types %}
   <tr>
-    <td><a href="{% url 'faculty.views.search_events' slug.lower %}">{{ slug }}</a></td>
-    <td>dunno</td>
-    <td>dunno</td>
-    <td>dunno</td>
+    <td><a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a></td>
+    <td>{{ event_type.is_instant }}</td>
+    <td>{{ event_type.affects_teaching }}</td>
+    <td>{{ event_type.affects_salary }}</td>
   </tr>
   {% endfor %}
   </tbody>

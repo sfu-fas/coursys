@@ -65,10 +65,14 @@ def index(request):
 
 @requires_role('ADMN')
 def search_index(request):
-    context = {
-        'event_types': EVENT_TYPE_CHOICES,
-    }
-    return render(request, 'faculty/search_index.html', context)
+    event_types = ({
+        'slug': key.lower(),
+        'name': Handler.NAME,
+        'is_instant': Handler.IS_INSTANT,
+        'affects_teaching': 'affects_teaching' in Handler.FLAGS,
+        'affects_salary': 'affects_salary' in Handler.FLAGS,
+    } for key, Handler in EVENT_TYPE_CHOICES)
+    return render(request, 'faculty/search_index.html', { 'event_types': event_types })
 
 
 @requires_role('ADMN')
