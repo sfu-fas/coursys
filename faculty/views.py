@@ -1,4 +1,5 @@
 import datetime
+import decimal
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -20,8 +21,8 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm
 
 import itertools
 
@@ -153,6 +154,37 @@ def view_event(request, userid, event_slug):
         'approval_form': approval,
     }
     return render(request, 'faculty/view_event.html', context)
+
+
+@requires_role('ADMN')
+def view_salary(request, userid):
+    """
+    Find the salary for a person at a certain time
+    """
+    pay = decimal.Decimal(0)
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    form = GetSalaryForm(request.GET)
+    date = request.GET.get('date', None)
+
+    if date:
+        if form.is_valid():
+            career_events = CareerEvent.objects.effective_date(date).filter(person=person).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+
+            for event in career_events:
+                instance = get_object_or_404(CareerEvent, slug=event.slug, person=person)
+                Handler = EVENT_TYPES[instance.event_type]
+                handler = Handler(instance)
+
+                add_salary, salary_fraction, add_bonus = handler.salary_adjust_annually()
+                pay = (pay + add_salary) * salary_fraction + add_bonus
+
+    context = {
+        'form': form,
+        'person': person,
+        'salary': pay
+    }
+
+    return render(request, 'faculty/view_salary.html', context)
 
 
 ###############################################################################
