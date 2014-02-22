@@ -421,19 +421,21 @@ class Table():
             first_appearance_of_key = self.find(key_column, key)
             if first_appearance_of_key != i:
                 this_row = self.rows[i]
-                target_row = self.rows[first_appearance_of_key] 
+                target_row = self.rows[first_appearance_of_key]
                 # merge this row with the first row.
                 for j in range( 0, len(self.rows[i])):
-                    if this_row[j] == target_row[j]:
+                    this = str(this_row[j])
+                    target = str(target_row[j])
+                    if this_row[j] == target:
                         pass
                     elif this_row[j] == Table.EMPTY:
                         pass
-                    elif target_row[j] == Table.EMPTY:
-                        target_row[j] = this_row[j]
-                    elif this_row[j] + "," in target_row[j] or ", " + this_row[j] in target_row[j]:
+                    elif target == Table.EMPTY:
+                        target_row[j] = this
+                    elif this + "," in target or ", " + this in target:
                         pass
                     else: 
-                        target_row[j] = str(target_row[j]) + ", " + str(this_row[j])
+                        target_row[j] = str(target) + ", " + str(this)
                 delete_rows.append(i)
 
         delete_rows.reverse()
