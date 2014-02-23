@@ -1,76 +1,92 @@
 from reports.reportlib.report import Report
-from ..db2_query import DB2_Query, Unescaped
-import string, datetime
+from reports.reportlib.table import Table
+from reports.reportlib.semester import current_semester
+from ..db2_query import DB2_Query
+import string, itertools, collections
 
-class PlansAsOfQuery(DB2_Query):
-    title = "Students' program plans"
-    description = "Students' program plans as of a particular date"
+
+class PlansInCoursesQuery(DB2_Query):
+    title = "All academic plans for students in CMPT courses"
+    description = "All academic plans for students in courses, as of the start of the semester"
 
     query = string.Template("""
-    SELECT emplid, stdnt_car_nbr, acad_plan
-    FROM CS.PS_ACAD_PLAN A
+    SELECT cls.subject, cls.catalog_nbr, cls.class_section, cls.campus, std.emplid, plan.acad_plan
+    FROM ps_class_tbl cls
+      INNER JOIN ps_stdnt_enrl std
+        ON std.class_nbr=cls.class_nbr
+          AND std.strm=cls.strm
+          AND std.enrl_status_reason IN ('ENRL','EWAT')
+      INNER JOIN ps_term_tbl trm
+        ON cls.strm=trm.strm AND trm.acad_career='UGRD'
+      INNER JOIN ps_acad_plan plan
+        ON plan.emplid=std.emplid
+          AND effdt=(SELECT MAX(effdt) FROM ps_acad_plan WHERE emplid=plan.emplid AND effdt<=trm.term_begin_dt)
+          AND effseq=(SELECT MAX(effseq) FROM ps_acad_plan WHERE emplid=plan.emplid AND effdt=plan.effdt)
     WHERE
-       effdt=(SELECT MAX(effdt) FROM CS.PS_ACAD_PLAN WHERE emplid=A.emplid AND effdt<=$date)
-       AND effseq=(SELECT MAX(effseq) FROM CS.PS_ACAD_PLAN WHERE emplid=A.emplid AND effdt=A.effdt)
-       AND emplid IN $emplids
-       ORDER BY emplid, plan_sequence""")
-
-    def __init__(self, query_args):
-        query_args['date'] = unicode(query_args['date'])
-        super(PlansAsOfQuery, self).__init__(query_args)
-
-    def result(self):
-        return super(PlansAsOfQuery, self).result().flatten("EMPLID")
+      cls.class_section LIKE '%00'
+      AND cls.cancel_dt IS NULL
+      AND cls.acad_org='COMP SCI'
+      AND cls.strm=$strm
+    ORDER BY cls.subject ASC, cls.catalog_nbr ASC, cls.class_section ASC, std.emplid ASC, plan.acad_plan ASC""")
 
 
+class PlansDescriptionQuery(DB2_Query):
+    title = "Descriptions of academic plans"
+    description = "Descriptions of academic plans we care about here"
 
-class CourseMembersQuery(DB2_Query):
-    title = "Students in a course"
-    description = "Get list of students in a course offering (emplids only)"
-
-    query = string.Template("""
-    SELECT s.emplid FROM ps_stdnt_enrl s
-        WHERE s.class_nbr=$class_nbr and s.strm=$strm and s.enrl_status_reason IN ('ENRL','EWAT')""")
-
-class CoursesInSemesterQuery(DB2_Query):
-    title = "All course offerings in a semester"
-    description = "Get list of all courses offered in a semester"
-
-    query = string.Template("""
-    SELECT subject, catalog_nbr, class_section, class_nbr, campus, trm.term_begin_dt
-    FROM ps_class_tbl cls, ps_term_tbl trm
-    WHERE
-               cls.strm=trm.strm AND class_section LIKE '%%00' AND trm.acad_career='UGRD'
-               AND cls.cancel_dt IS NULL AND cls.acad_org='COMP SCI'
-               AND cls.strm=$strm
-               ORDER BY subject ASC, catalog_nbr ASC, class_section ASC""")
+    query = string.Template("""SELECT acad_plan, trnscr_descr
+               FROM PS_ACAD_PLAN_TBL apt
+               WHERE eff_status='A' AND acad_plan IN $plans
+               AND effdt=(SELECT MAX(effdt) FROM PS_ACAD_PLAN_TBL WHERE acad_plan=apt.acad_plan)
+               ORDER BY acad_plan""")
 
 
+def _rowkey(row):
+    "key for counting programs in each offering"
+    return (row['SUBJECT'], row['CATALOG_NBR'], row['CLASS_SECTION'], row['CAMPUS'])
 
 class MajorsInCoursesReport(Report):
     title = "Majors in courses"
-    description = "This report summarizes the academic programs of students in each FAS course."
+    description = "This report summarizes the academic programs of students in each CMPT course."
 
     def run(self):
-        strm = '1141'
-        offerings = CoursesInSemesterQuery({'strm': strm}).result()
-        self.artifacts.append(offerings)
-        term_begin = offerings.column_as_list('TERM_BEGIN_DT')[0]
-        for row in offerings.row_maps():
-            class_nbr = row['CLASS_NBR']
-            students_query = CourseMembersQuery({'class_nbr': unicode(class_nbr), 'strm': '1141'})
-            students = students_query.result()
-            emplids = students.column_as_list('EMPLID')
-            emplids.sort()
-            if not emplids:
-                continue
+        semester = current_semester()
 
-            plans_query = PlansAsOfQuery({'date': term_begin, 'emplids': emplids})
-            plans = plans_query.result()
+        # Get the full list of plans in each offering
+        plans_query = PlansInCoursesQuery({'strm': semester})
+        plans = plans_query.result()
 
-            students.inner_join(plans, 'EMPLID')
-            self.artifacts.append(students)
+        # create a table with the counts of plans, not individual student info
+        programs = Table()
+        programs.append_column('SUBJECT')
+        programs.append_column('CATALOG_NBR')
+        programs.append_column('CLASS_SECTION')
+        programs.append_column('CAMPUS')
+        programs.append_column('PLANS')
 
+        # group plans by offering
+        offering_plans = (
+            (offering, (r['ACAD_PLAN'] for r in rows))
+            for offering, rows
+            in itertools.groupby(plans.row_maps(), _rowkey))
 
+        # count for each offering
+        found_plans = set()
+        for (subj, nbr, sect, campus), plans in offering_plans:
+            found_plans |= set(plans)
+            count = collections.Counter(plans)
+            count = [(n,plan) for plan,n in count.iteritems()]
+            count.sort()
+            count.reverse()
+            count_str = ','.join("%i*%s" % (n,plan) for n,plan in count)
+            programs.append_row((subj, nbr, sect, campus, count_str))
+
+        self.artifacts.append(programs)
+
+        # get a cheat-sheet of the plan codes
+        found_plans = list(found_plans)
+        found_plans.sort()
+        descr = PlansDescriptionQuery({'plans': found_plans}).result()
+        self.artifacts.append(descr)
 
 

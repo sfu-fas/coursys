@@ -424,18 +424,16 @@ class Table():
                 target_row = self.rows[first_appearance_of_key]
                 # merge this row with the first row.
                 for j in range( 0, len(self.rows[i])):
-                    this = str(this_row[j])
-                    target = str(target_row[j])
-                    if this_row[j] == target:
+                    if this_row[j] == target_row[j]:
                         pass
                     elif this_row[j] == Table.EMPTY:
                         pass
-                    elif target == Table.EMPTY:
-                        target_row[j] = this
-                    elif this + "," in target or ", " + this in target:
+                    elif target_row[j] == Table.EMPTY:
+                        target_row[j] = this_row[j]
+                    elif this_row[j] + "," in target_row[j] or ", " + this_row[j] in target_row[j]:
                         pass
-                    else: 
-                        target_row[j] = str(target) + ", " + str(this)
+                    else:
+                        target_row[j] = str(target_row[j]) + ", " + str(this_row[j])
                 delete_rows.append(i)
 
         delete_rows.reverse()
