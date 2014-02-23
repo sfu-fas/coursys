@@ -45,6 +45,17 @@ def _rowkey(row):
     "key for counting programs in each offering"
     return (row['SUBJECT'], row['CATALOG_NBR'], row['CLASS_SECTION'], row['CAMPUS'])
 
+def counter(iter):
+    """
+    Fake collections.Counts, since we don't have that in Python 2.6 on production
+    """
+    counts = {}
+    for o in iter:
+        counts[o] = counts.get(o, 0) + 1
+    return counts
+
+#counter = collections.Counter
+
 class MajorsInCoursesReport(Report):
     title = "Majors in courses"
     description = "This report summarizes the academic programs of students in each CMPT course."
@@ -73,8 +84,9 @@ class MajorsInCoursesReport(Report):
         # count for each offering
         found_plans = set()
         for (subj, nbr, sect, campus), plans in offering_plans:
+            plans = list(plans)
             found_plans |= set(plans)
-            count = collections.Counter(plans)
+            count = counter(plans)
             count = [(n,plan) for plan,n in count.iteritems()]
             count.sort()
             count.reverse()
