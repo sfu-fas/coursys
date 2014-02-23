@@ -114,6 +114,7 @@ class CareerEventHandlerBase(object):
     # There can only be one (with same person, unit, event_type without an end_date)
     IS_EXCLUSIVE = False
     # Show a semester selection widget for start/end date instead of a raw date picker
+    # TODO: remove SEMESTER_BIAS? It's been replaced by the either-or semester fields.
     SEMESTER_BIAS = False
 
     VIEWABLE_BY = 'MEMB'

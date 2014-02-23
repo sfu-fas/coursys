@@ -167,6 +167,9 @@ def view_event(request, userid, event_slug):
     
     Handler = EVENT_TYPES[instance.event_type](event=instance)
 
+    if not Handler.can_view(editor):
+        return HttpResponseForbidden(request, "'%s' not allowed to view this event" % editor)
+
     # TODO: can editors change the status of events to something else?
     # TODO: For now just assuming editor who is allowed to approve event is also allowed to 
     # delete event, in essence change the status of the event to anything they want.
@@ -263,7 +266,7 @@ def create_event(request, userid, handler):
             handler.save(editor)
             handler.set_status(editor)
 
-            return HttpResponseRedirect(handler.event.get_absolute_url())
+        
         else:
             context.update({"event_form": form})
     else:
@@ -292,6 +295,8 @@ def change_event(request, userid, event_slug):
         'event_type': Handler.EVENT_TYPE
     }
     handler = Handler(instance)
+    if not handler.can_edit(editor):
+        return HttpResponseForbidden(request, "'%s' not allowed to edit this event" % editor)
     if request.method == "POST":
         form = Handler.get_entry_form(editor, member_units, handler=handler, data=request.POST)
         if form.is_valid():
@@ -322,7 +327,7 @@ def change_event_status(request, userid, event_slug):
    
     Handler = EVENT_TYPES[instance.event_type](event=instance)
     if not Handler.can_approve(editor):
-        raise PermissionDenied("You cannot change status of this event") 
+        return HttpResponseForbidden(request, "You cannot change status of this event") 
     form = ApprovalForm(request.POST, instance=instance)
     if form.is_valid():
         event = form.save(commit=False)

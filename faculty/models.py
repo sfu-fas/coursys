@@ -69,7 +69,7 @@ class CareerEventManager(models.Manager):
     # TODO: Should these filters only grab events that are not deleted?
     def active(self):
         """
-        All Career Events that have not been deleted.  Approved or Needs Approval.
+        All Career Events that have not been deleted.
         """
         qs = self.get_query_set()
         return qs.exclude(status='D')
@@ -99,7 +99,7 @@ class CareerEventManager(models.Manager):
 
     def by_type(self, Handler):
         """
-        Returns QuerySet of all CareerEvents matching the given CareerEventHandler class.
+        Returns all CareerEvents matching the given CareerEventHandler class.
         """
         qs = self.get_query_set()
         return qs.filter(event_type__exact=Handler.EVENT_TYPE)
@@ -163,7 +163,7 @@ class CareerEvent(models.Model):
         return EVENT_TYPES[self.event_type].NAME
 
     def get_handler(self):
-        return EVENT_TYPE_CHOICES[self.event_type](self)
+        return EVENT_TYPES[self.event_type](self)
 
     class Meta:
         ordering = (
