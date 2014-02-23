@@ -17,6 +17,7 @@ from django.core.cache import cache
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
+from reports.models import schedule_ping
 import itertools, random
 
 today = datetime.date.today()
@@ -967,7 +968,10 @@ def main():
         #djkombu.models.Message.objects.cleanup() # no longer needed with AMPQ
         from djcelery.models import TaskMeta
         TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
-    
+
+    # run any Report reports
+    schedule_ping()
+
     print "People:", len(imported_people)
     print "Course Offerings:", len(offerings)
 

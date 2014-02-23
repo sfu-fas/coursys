@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %} Email Alert {% endblock %}
+{% block h1 %} Email Alert {% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+
+$(document).ready(function() {
+  $("#id_resolved_until").datepicker({'dateFormat': 'yy-mm-dd'});
+});
+
+//]]>
+</script>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.id %}">{{alert.person}}</a></li>
+<li>&gt; {{resolve_reopen_or_comment_on}} Alert </li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container">
+<form action="{%url alerts.views.email_alert alert_type=alert.alerttype.slug alert_id=alert.id %}"
+    enctype="multipart/form-data" method="post">{% csrf_token %}
+<fieldset>
+<p>From: {{from_email}}</p>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

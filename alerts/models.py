@@ -3,6 +3,7 @@ from coredata.models import Role, Person, Unit
 from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+import coredata
 import hashlib
 import datetime
 
@@ -21,9 +22,9 @@ class AlertType(models.Model):
 
     "GPA < 2.4"
     """
-    code = models.CharField(help_text="The alert's code", max_length=30)
-    description = models.TextField(help_text="Description of the alert.", null=True, blank=True)
-    unit = models.ForeignKey(Unit, null=False)
+    code = models.CharField(help_text="A short (<30 characters) title for the report.", max_length=30)
+    description = models.TextField(help_text="A longer, more in-depth explanation of what this alert is for.", null=True, blank=True)
+    unit = models.ForeignKey(Unit, help_text="Only people in this unit can manage this Alert", null=False)
     hidden = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={})
 
@@ -40,9 +41,22 @@ class Alert(models.Model):
     description = models.TextField(help_text="Specific details of alert", null=True, blank=True)
     details = JSONField(null=False, blank=False, default={})
     hidden = models.BooleanField(null=False, default=False)
-    
-    # generated fields
+
+    # Uniqueness of an alert is complicated. In some cases, the 
+    #  alert is unique to the user - for alerts on GPA < 2.4, there
+    #  can only be one alert per student.
+    #  In other cases, the alert
+    #  is unique to the user and other fields in the output - for example
+    #  an alert for students illegally retaking a course before legitimately
+    #  failing it in the same semester - in this case, there can be multiple
+    #  active alerts for a student.
+    # 
+    # Create Alerts with .safe_create, setting the unique_hash to some value
+    # that must be unique to the whole Alert.
+    # For GPA<2.4, this would just be emplid. For ImmediateRetake, emplid+course
+
     unique_hash = models.CharField(max_length=100, null=False, blank=False)
+    
     resolved = models.BooleanField(null=False, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -106,6 +120,43 @@ class Alert(models.Model):
 
         update = AlertUpdate( alert=collidee, update_type=update_status, comments=update_comments ) 
         update.save()
+   
+    @staticmethod
+    def create(dict_object, alertType, unique_fields):
+        """
+            Creates an Alert instance. 
+            Can throw AttributeError, KeyError, SIMSProblem, IOError
+        """
+        if not 'EMPLID' in dict_object:
+            raise AttributeError("Include an EMPLID when passing a dict to create")
+        emplid = int(dict_object['EMPLID'])
+        
+        # this can throw a KeyError if a field is listed in unique_fields
+        #   that is not also a field of dict_object
+        unique_id = ":".join([dict_object[field] for field in unique_fields])
+
+        # this can throw an IOError or SIMSProblem attempting to find the 
+        #   user in SIMS, if the Person does not exist in DB
+        try:
+            student = Person.objects.get(emplid=emplid)
+        except Person.DoesNotExist:
+            student = coredata.queries.add_person( emplid )
+        
+        alert = Alert()
+        alert.person = student
+        alert.alerttype = alertType
+
+        if 'DESCRIPTION' in dict_object:
+            alert.description = dict_object['DESCRIPTION']
+            del dict_object['DESCRIPTION']
+        
+        # The details are just 'any remaining field'
+        del dict_object['EMPLID']
+        alert.details = dict_object
+
+        alert.safe_create(unique_id)
+        return alert
+        
 
     def safe_create(self, unique_id):
         """
@@ -142,7 +193,7 @@ class AlertUpdate(models.Model):
     hidden = models.BooleanField(default=False) # not used
 
     # Only meaningful if update_type is "RESO"/"Resolved" 
-    resolved_until = models.DateField(null=True)
+    resolved_until = models.DateField(null=True, help_text="This will prevent this alert from being reopened until this date.")
     
     def save(self, *args, **kwargs):
         # Update the actual Alert object.
@@ -162,7 +213,7 @@ class AlertEmailTemplate(models.Model):
     An automatic e-mail to send. 
     """
     alerttype = models.ForeignKey(AlertType, null=False)
-    threshold = models.IntegerField(default=0, null=False)
+    threshold = models.IntegerField(default=0, null=False, help_text="This email will only be sent to students who have less than this many emails on file already")
     subject = models.CharField(max_length=50, null=False) 
     content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
     created_at = models.DateTimeField(auto_now_add=True)

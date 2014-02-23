@@ -3,7 +3,6 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
     EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from alerts.models import Alert
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, \
     SIMSProblem
