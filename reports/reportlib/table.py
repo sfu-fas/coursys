@@ -421,7 +421,7 @@ class Table():
             first_appearance_of_key = self.find(key_column, key)
             if first_appearance_of_key != i:
                 this_row = self.rows[i]
-                target_row = self.rows[first_appearance_of_key] 
+                target_row = self.rows[first_appearance_of_key]
                 # merge this row with the first row.
                 for j in range( 0, len(self.rows[i])):
                     if this_row[j] == target_row[j]:
@@ -432,7 +432,7 @@ class Table():
                         target_row[j] = this_row[j]
                     elif this_row[j] + "," in target_row[j] or ", " + this_row[j] in target_row[j]:
                         pass
-                    else: 
+                    else:
                         target_row[j] = str(target_row[j]) + ", " + str(this_row[j])
                 delete_rows.append(i)
 
