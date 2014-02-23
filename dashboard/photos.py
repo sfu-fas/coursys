@@ -18,7 +18,6 @@ CHUNK_SIZE = 10 # max number of photos to fetch in one request
 PHOTO_TIMEOUT = 10 # number of seconds the views will wait for the photo service
 
 
-
 # from http://docs.python.org/2/library/itertools.html
 def _grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"

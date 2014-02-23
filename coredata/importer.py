@@ -36,6 +36,20 @@ def get_combined():
     #            section has 'owner': Unit(~CMPT~) 
     combined_sections = [
         {
+            'subject': 'CMPT', 'number': '413', 'section': 'X100',
+            'semester': Semester.objects.get(name="1141"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32760, 'class_nbr': 32760,
+            'title': 'Computational Linguistics (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2014sp-cmpt-413-d1'),
+                CourseOffering.objects.get(slug='2014sp-cmpt-825-g1')
+            ]
+        },
+        {
             'subject': 'CMPT', 'number': '419', 'section': 'X100',
             'semester': Semester.objects.get(name="1137"),
             'component': 'LEC', 'graded': True, 
@@ -268,12 +282,13 @@ def get_unit(acad_org, create=False):
             label = 'ENSC'
         else:
             label = acad_org[:4].strip()
+
         if create:
             unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
             unit.save()
         else:
             raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
-    
+
     return unit
         
 REQ_DES = None
