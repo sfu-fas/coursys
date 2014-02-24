@@ -25,6 +25,28 @@ def field_display(field, safe=False):
             out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
     return mark_safe('\n'.join(out))
 
+
+@register.filter
+def label_display(field, prefix=''):
+    out = []
+
+    labelid = str(field.name)
+    if prefix:
+        labelid = prefix + '-' + labelid
+    if isinstance(field.field.widget, (RadioSelect, SupervisorWidget)):
+        labelid += '_0'
+
+    out.append('<label for="id_%s">' % (labelid,))
+    out.append(escape(field.label))
+    out.append(':')
+    if field.field.required:
+        out.append('&nbsp;' + required_icon)
+
+    out.append('</label>')
+
+    return mark_safe(''.join(out))
+
+
 @register.filter
 def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform', reqmessage=True):
     """
@@ -48,20 +70,13 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
                 includefields is not None and field.name not in includefields) :
             continue
 
-        reqtext = ''
         if field.field.required:
-            #reqtext = ' <span class="required">*</span>'
-            reqtext = '&nbsp;' + required_icon
             reqcount += 1
         
         if field.label:
-            labelid = str(field.name)
-            if form.prefix:
-                labelid = form.prefix + '-' + labelid
-            if isinstance(field.field.widget, (RadioSelect, SupervisorWidget)):
-                labelid += '_0'
-            out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
+            out.append('<dt>%s</dt>' % (label_display(field, form.prefix)))
 
+        out.append('<dd>')
         out.append(field_display(field, safe=safe))
         out.append('</dd>')
     

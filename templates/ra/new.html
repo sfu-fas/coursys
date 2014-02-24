@@ -42,45 +42,41 @@ var emplid = null;
 {% block content %}
   <div class="form_container">
     <form action="{% url "ra.views.new" %}" method="POST">{% csrf_token %}
-      <fieldset style="list-style: none;">
-        <legend>Contract Information</legend>
+      <fieldset>
         {{ raform|as_dl_excludefields:"lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,pay_frequency,reappointment,medical_benefits,dental_benefits,notes,comments,use_hourly" }}
 
         <p><legend>Salary Information</legend></p>
         <table id="salary_info">
           <tr>
-            <td class="salary_first">{{ raform.pay_frequency.label }}:*</td>
-            <td>{{ raform.pay_frequency }}{{ raform.pay_frequency.errors }}</td>
+            <td class="salary_first">{{ raform.pay_frequency|label_display }}</td>
+            <td>{{ raform.pay_frequency|field_display }}</td>
           </tr>
           <tr>
-            <td class="salary_first">{{ raform.lump_sum_pay.label }}:*</td>
-            <td>{{ raform.lump_sum_pay }}{{ raform.lump_sum_pay.errors }}</td>
-            <td class="salary_label">{{ raform.lump_sum_hours.label }}:</td>
-            <td>{{ raform.lump_sum_hours }}{{ raform.lump_sum_hours.errors }}</td>
-          </tr>
-                
-          <tr>
-            <td class="salary_first">{{ raform.biweekly_pay.label }}:*</td>
-            <td>{{ raform.biweekly_pay }}{{ raform.biweekly_pay.errors }}</td>
-            <td class="salary_label">{{ raform.pay_periods.label }}:*</td>
-            <td>{{ raform.pay_periods }}{{ raform.pay_periods.errors }}</td>
+            <td class="salary_first">{{ raform.lump_sum_pay|label_display }}</td>
+            <td>{{ raform.lump_sum_pay|field_display }}</td>
+            <td class="salary_label">{{ raform.lump_sum_hours|label_display }}</td>
+            <td>{{ raform.lump_sum_hours|field_display }}</td>
           </tr>
                 
           <tr>
-            <td class="salary_first">{{ raform.hourly_pay.label }}:*</td> 
-            <td>{{ raform.hourly_pay }}{{ raform.hourly_pay.errors }}</td>
-            <td class="salary_label">{{ raform.hours.label }}:*</td>
-            <td>{{ raform.hours }}{{ raform.hours.errors }}</td>
+            <td class="salary_first">{{ raform.biweekly_pay|label_display }}</td>
+            <td>{{ raform.biweekly_pay|field_display }}</td>
+            <td class="salary_label">{{ raform.pay_periods|label_display }}</td>
+            <td>{{ raform.pay_periods|field_display }}</td>
+          </tr>
+                
+          <tr>
+            <td class="salary_first">{{ raform.hourly_pay|label_display }}</td>
+            <td>{{ raform.hourly_pay|field_display }}</td>
+            <td class="salary_label">{{ raform.hours|label_display }}</td>
+            <td>{{ raform.hours|field_display }}</td>
           </tr>
           <tr>
-            <td class="salary_first">{{ raform.use_hourly.label }}:*</td>
-            <td colspan="3">{{ raform.use_hourly }}{{ raform.use_hourly.errors }}
-            	<span class="helptext">{{ raform.use_hourly.help_text }}</span></td>
+            <td class="salary_first">{{ raform.use_hourly|label_display }}</td>
+            <td colspan="3">{{ raform.use_hourly|field_display }}</td>
           </tr>
         </table>
-
-        <p class="helptext">* This field is required.</p>
-        
+        {{ form|required_message }}
         <p><legend>Other Information</legend></p>
         {{ raform|as_dl_excludefields:"person,sin,hiring_faculty,unit,hiring_category,scholarship,project,account,start_date,end_date,pay_frequency,lump_sum_pay,lump_sum_hours,biweekly_pay,pay_periods,hourly_pay,hours,use_hourly" }}
         <p><input type="submit" class="submit" value="Submit" /></p>
