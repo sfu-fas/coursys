@@ -69,6 +69,7 @@ class MajorsInCoursesReport(Report):
 
         # create a table with the counts of plans, not individual student info
         programs = Table()
+        programs.append_column('SEMESTER')
         programs.append_column('SUBJECT')
         programs.append_column('CATALOG_NBR')
         programs.append_column('CLASS_SECTION')
@@ -90,8 +91,8 @@ class MajorsInCoursesReport(Report):
             count = [(n,plan) for plan,n in count.iteritems()]
             count.sort()
             count.reverse()
-            count_str = ','.join("%i*%s" % (n,plan) for n,plan in count)
-            programs.append_row((subj, nbr, sect, campus, count_str))
+            count_str = ', '.join("%i*%s" % (n,plan) for n,plan in count)
+            programs.append_row(("%04i"%(semester), subj, nbr, sect, campus, count_str))
 
         self.artifacts.append(programs)
 
