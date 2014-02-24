@@ -68,26 +68,7 @@ def _tryget(member):
         return TUG.objects.get(member=member)
     except TUG.DoesNotExist:
         return None
-    
-@requires_course_staff_by_slug
-def all_tugs(request, course_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    current_user = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course)
-    is_ta = current_user.role == 'TA'
-    if is_ta:
-        tas = [current_user]
-    else:
-        tas = Member.objects.filter(offering=course, role="TA")
 
-    tas_with_tugs = [(ta, _tryget(ta)) for ta in tas]
-    
-    context = {
-           'tas_with_tugs': tas_with_tugs,
-           'course': course,
-           'not_ta': not is_ta
-           }
-    
-    return render(request, 'ta/all_tugs.html', context)
 
 @requires_role("TAAD")
 def all_tugs_admin(request, semester_name=None):

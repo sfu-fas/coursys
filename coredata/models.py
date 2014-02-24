@@ -846,6 +846,18 @@ class Member(models.Model):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
 
+    def get_tug(self):
+        assert self.role == 'TA'
+        from ta.models import TUG
+
+        tugs = TUG.objects.filter(member=self)
+        if tugs:
+            tug = tugs[0]
+        else:
+            tug = None
+        return tug
+
+
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
         return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.offering, self.person.userid))
