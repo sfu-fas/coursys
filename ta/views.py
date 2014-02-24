@@ -389,11 +389,6 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 val = 'NONE'
             skill_values.append((s.position, s.name, val))
 
-    elif request.is_ajax():
-        # TO DO: Update formset to correct number of forms displayed
-        raise NotImplemented, "This is dead code, right?"
-        return HttpResponse("AJAX Completed") #return updated form.
-    
     elif editing:
         # editing: build initial form from existing values
         

@@ -139,3 +139,7 @@ def as_dl_onlineforms(form):
 @register.filter
 def as_dl_noreq(form):
     return as_dl(form, reqmessage=False)
+
+@register.filter
+def as_dl_inline(form):
+    return as_dl(form, formclass='dlform inline', reqmessage=False)
