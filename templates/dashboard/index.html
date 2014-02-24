@@ -39,8 +39,9 @@ $(document).ready(function() {
     {% if 'ADMN' in roles %}<li><a href="{% url "ta.views.all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
     {% if 'TAAD' in roles %}<li  class='newsec'><a href="{% url "ta.views.view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
     <!--{% if is_grad %}<li class='newsec'><a href="{% url "grad.views.student_financials" %}">Financial Summary</a></li>{% endif %}-->
-    {% if has_grads %}<li ><a href="{% url "grad.views.supervisor_index" %}"><i class="fa fa-li fa-group"></i> My Grad Students</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li><a href="{% url "coredata.views.unit_admin" %}"><i class="fa fa-li fa-gears"></i> Department Management</a></li>{% endif %}
+    {% if has_grads %}<li ><a href="{% url "grad.views.supervisor_index" %}"><i class="fa fa-fw fa-group"></i> My Grad Students</a></li>{% endif %}
+    {% if 'ADMN' in roles %}<li><a href="{% url "coredata.views.unit_admin" %}"><i class="fa fa-fw fa-gears"></i> Department Management</a></li>{% endif %}
+    {% if 'SYSA' in roles %}<li><a href="{% url "reports.views.view_reports" %}">Reporting Database</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}

@@ -121,6 +121,7 @@ INSTALLED_APPS = (
     'ra',
     'advisornotes',
     'alerts',
+    'reports',
     'discuss',
     #'booking',
     #'techreq',
@@ -219,13 +220,19 @@ if USE_CELERY:
     }
 
 
+if 'DEVELOPER' in os.environ:
+    ACTIVE_DEVELOPER = os.environ['DEVELOPER']
+else:
+    ACTIVE_DEVELOPER = 'ggbaker'
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
-SIMS_USER = "ggbaker"
+SIMS_USER = ACTIVE_DEVELOPER
+SIMS_DB_NAME = "csrpt"
+SIMS_DB_SCHEMA = "dbcsown"
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"
@@ -253,6 +260,8 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
+
+REPORT_CACHE_LOCATION = "/tmp/report_cache"
 
 #EXTRA_MIDDLEWARE_CLASSES = ()
 try:

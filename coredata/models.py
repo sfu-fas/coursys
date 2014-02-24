@@ -1055,6 +1055,7 @@ ROLE_DESCR = {
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',
         'INST': 'Instructors outside of the department or others who teach courses',
+        'REPR': 'Has Reporting Database access.',
         'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
               }
 INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors

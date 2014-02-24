@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}New Component{% endblock %}
+{% block h1 %}New Component{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a></li>
+<li>New Component</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url "reports.views.new_component" report=report.slug %}" method="post">{% csrf_token %}
+<fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+{% endblock %}
