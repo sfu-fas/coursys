@@ -199,7 +199,7 @@
 {% if report.alert %}
 <h3>Alert : {{report.alert.code}}</h3>
     <p><em>{{report.alert.description}}</em></p>
-    <a href="{% url alerts.views.view_alerts alert_type=report.alert.slug %}">View Alerts</a>
+    <a href="{% url "alerts.views.view_alerts" alert_type=report.alert.slug %}">View Alerts</a>
 
 {% endif %}
 
