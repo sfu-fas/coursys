@@ -417,7 +417,7 @@ class TAApplication(models.Model):
         help_text='Describe the intended course load of the semester being applied for.')
     other_support = models.TextField(blank=True, null=True,
         verbose_name="Other financial support",
-        help_text='Describe any other funding you expect to receive this semester (grad students only).')
+        help_text='Do you have a merit based scholarship or fellowship (e.g. FAS Graduate Fellowship) in the semester that you are applying for? ')
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
