@@ -61,7 +61,8 @@
         $('#schedule_table').dataTable({
                     "bPaginate": false,
                     "bJQueryUI": true,
-                    "bFilter": false
+                    "bFilter": false,
+                    "bInfo": false,
         });
         $('.run').click(show_console);
     });
@@ -106,7 +107,7 @@
 
 <h2>Access Rules</h2>
 <p>These people can see the output of this report:</p>
-<ul>
+<ul class="bulleted">
 {% if not access_rules %}
     <li>Only Report Administrators can view this report. </li>
 {% endif %}
@@ -166,7 +167,7 @@
 <h2>Report Components</h2>
 
 <h3>Hardcoded Reports</h3>
-<ul>
+<ul class="bulleted">
 {% if not components %}
     <li>There are no hardcoded components to this report.</li>
 {% endif %}
@@ -180,7 +181,7 @@
 </ul>
 
 <h3>Queries</h3>
-<ul>
+<ul class="bulleted">
 {% if not queries %}
     <li>There are no SIMS queries in this report.</li> 
 {% endif %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% block title %}Report: {{report.name}}, Run: {{ run.created_at }}{% endblock %}
 {% block h1 %}Run: {{ run.created_at }} {% endblock %}
 
@@ -6,9 +6,9 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url reports.views.view_reports %}">Reports</a></li> 
-<li>&gt; <a href="{% url reports.views.view_report report=report.slug %}">{{report.name}}</a> </li>
-<li>&gt; Run: {{ run.created_at }} </li> 
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a> </li>
+<li>Run: {{ run.created_at }} </li>
 {% endblock %}
 
 {% block actions %}
@@ -56,9 +56,9 @@
         </tbody>
         </table>
     </div>
-    <a href="{% url reports.views.view_result report=report.slug run=run.slug result=result.slug %}">View all {{result.table_rendered.rows|length}} rows</a> 
+    <a href="{% url "reports.views.view_result" report=report.slug run=run.slug result=result.slug %}">View all {{result.table_rendered.rows|length}} rows</a>
     -
-    <a href="{% url reports.views.csv_result report=report.slug run=run.slug result=result.slug %}">CSV</a> 
+    <a href="{% url "reports.views.csv_result" report=report.slug run=run.slug result=result.slug %}">CSV</a>
 
 {% endfor %}
 

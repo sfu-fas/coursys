@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% block title %}Report: {{report.name}}, Result: {{result.name}} {{ result.created_at }}{% endblock %}
 {% block h1 %}Result: {{result.name}} {{ result.created_at }} {% endblock %}
 
@@ -17,10 +17,10 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url reports.views.view_reports %}">Reports</a></li> 
-<li>&gt; <a href="{% url reports.views.view_report report=report.slug %}">{{report.name}}</a> </li>
-<li>&gt; <a href="{% url reports.views.view_run report=report.slug run=run.slug %}">Run: {{ run.created_at }}</a> </li>
-<li>&gt; Result: {{result.name}} {{result.created_at}} </li> 
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a> </li>
+<li><a href="{% url "reports.views.view_run" report=report.slug run=run.slug %}">Run: {{ run.created_at }}</a> </li>
+<li>Result: {{result.name}} {{result.created_at}} </li>
 {% endblock %}
 
 {% block actions %}
