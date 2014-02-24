@@ -29,7 +29,7 @@
   <div id="actions">
     <h2>Actions</h2>
     <ul>
-      <li><a href="{% url "ra.views.new_student" userid=student.emplid %}">New RA appointment</a></li>
+      <li><a href="{% url "ra.views.new_student" userid=student.userid_or_emplid %}">New RA appointment</a></li>
     </ul>
   </div>
 {% endblock %}
