@@ -213,8 +213,8 @@ class CareerEventHandlerBase(object):
             ret.load(form)
         return ret
 
+    
     # Stuff involving permissions
-
     def permission(self, editor):
         """
         This editor's permission level with respect to this faculty member.
@@ -275,6 +275,9 @@ class CareerEventHandlerBase(object):
         """
         if self.can_approve(editor):
             self.event.status = 'A'
+            self.save(editor)
+        else:
+            self.event.status = 'NA'
             self.save(editor)
 
     # Stuff relating to forms

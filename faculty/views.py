@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import StreamingHttpResponse
+from django.core.exceptions import PermissionDenied
 
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -239,7 +240,7 @@ def view_event(request, userid, event_slug):
     Handler = EVENT_TYPES[instance.event_type](event=instance)
 
     if not Handler.can_view(editor):
-        return HttpResponseForbidden(request, "'%s' not allowed to view this event" % editor)
+        raise PermissionDenied("'%s' not allowed to view this event" % editor)
 
     # TODO: can editors change the status of events to something else?
     # TODO: For now just assuming editor who is allowed to approve event is also allowed to 
@@ -271,9 +272,11 @@ def event_type_list(request, userid):
          'affects_salary': 'affects_salary' in Handler.FLAGS}
         for key, Handler in EVENT_TYPE_CHOICES]
     person, _ = _get_faculty_or_404(request.units, userid)
+    editor = get_object_or_404(Person, userid=request.user.username)
     context = {
         'event_types': types,
-        'person': person
+        'person': person,
+        'editor': editor,
     }
     return render(request, 'faculty/event_type_list.html', context)
 
@@ -368,7 +371,7 @@ def change_event_status(request, userid, event_slug):
    
     Handler = EVENT_TYPES[instance.event_type](event=instance)
     if not Handler.can_approve(editor):
-        return HttpResponseForbidden(request, "You cannot change status of this event") 
+        raise PermissionDenied("You cannot change status of this event") 
     form = ApprovalForm(request.POST, instance=instance)
     if form.is_valid():
         event = form.save(commit=False)
@@ -419,7 +422,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
     Handler = EVENT_TYPES[event.event_type]
     handler = Handler(event)
     if not handler.can_view(viewer):
-        return HttpResponseForbidden(request, "Not allowed to view this attachment")
+       raise PermissionDenied(" Not allowed to view this attachment")
 
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -438,7 +441,7 @@ def download_attachment(request, userid, event_slug, attach_slug):
     Handler = EVENT_TYPES[event.event_type]
     handler = Handler(event)
     if not handler.can_view(viewer):
-        return HttpResponseForbidden(request, "Not allowed to download this attachment")
+        raise PermissionDenied("aNot allowed to download this attachment")
 
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -636,7 +639,7 @@ def get_memo_pdf(request, userid, event_slug, memo_slug):
     Handler = EVENT_TYPES[instance.event_type]
     handler = Handler(instance)
     if not handler.can_view(person):
-        return HttpResponseForbidden(request, "Not allowed to view this memo")
+        raise PermissionDenied("Not allowed to view this memo")
 
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (memo_slug)
@@ -653,7 +656,7 @@ def view_memo(request, userid, event_slug, memo_slug):
     Handler = EVENT_TYPES[instance.event_type]
     handler = Handler(instance)
     if not handler.can_view(person):
-        return HttpResponseForbidden(request, "Not allowed to view this memo")
+        raise PermissionDenied("Not allowed to view this memo")
 
     context = {
                'memo': memo,
