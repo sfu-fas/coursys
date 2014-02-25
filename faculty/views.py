@@ -68,7 +68,7 @@ def index(request):
 
 @requires_role('ADMN')
 def search_index(request):
-    person = get_object_or_404(Person, userid=request.user.username)
+    editor = get_object_or_404(Person, userid=request.user.username)
     event_types = ({
         'slug': key.lower(),
         'name': Handler.NAME,
@@ -76,7 +76,7 @@ def search_index(request):
         'affects_teaching': 'affects_teaching' in Handler.FLAGS,
         'affects_salary': 'affects_salary' in Handler.FLAGS,
     } for key, Handler in EVENT_TYPE_CHOICES)
-    return render(request, 'faculty/search_index.html', { 'event_types': event_types, 'person': person })
+    return render(request, 'faculty/search_index.html', { 'event_types': event_types, 'editor': editor, 'person': editor })
 
 
 @requires_role('ADMN')
@@ -144,6 +144,20 @@ def salary_index(request):
         'pay_tot': pay_tot,
     }
     return render(request, 'faculty/salary_index.html', context)
+
+
+@requires_role('ADMN')
+def status_index(request):
+    """
+    Status list of for all yet-to-be approved events.
+    """
+    events = CareerEvent.objects.filter(status='NA')
+    editor = get_object_or_404(Person, userid=request.user.username)
+    context = {
+        'events': events,
+        'editor': editor,
+    }
+    return render(request, 'faculty/status_index.html', context)
 
 
 @requires_role('ADMN')

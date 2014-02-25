@@ -23,6 +23,10 @@ def can_approve(person, event):
 def can_edit(person, event):
     return event.get_handler().can_edit(person)
 
+@register.filter
+def can_view(person, event):
+    return event.get_handler().can_view(person)
+
 
 class HandlerPermNode(template.Node):
     def __init__(self, handler, action, editor, person, varname):
@@ -61,15 +65,13 @@ def can_edit_handler(parser, token):
         raise template.TemplateSyntaxError("%s argument 4 must be 'as'" %bits[0])
     return HandlerPermNode(bits[1], "edit", bits[2], bits[3], bits[5])
 
-#@register.filter
-#def can_view_handler(person, key):
-#    Handler = EVENT_TYPES.get(key.upper())
-#    tmp = Handler.create_for(person)
-#    return tmp.can_view(person)
 
+@register.tag
+def can_approve_handler(parser, token): 
+    bits = token.contents.split()
+    if len(bits) != 6:
+        raise template.TemplateSyntaxError("%s takes exactly 5 arguments" %bits[0])
+    if bits[4] != "as":
+        raise template.TemplateSyntaxError("%s argument 4 must be 'as'" %bits[0])
+    return HandlerPermNode(bits[1], "approve", bits[2], bits[3], bits[5])
 
-#@register.filter
-#def can_edit_handler(person, key):
-#    Handler = EVENT_TYPES.get(key.upper())
-#    tmp = Handler.create_for(person)
-#    return tmp.can_edit(person)
