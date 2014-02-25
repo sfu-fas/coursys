@@ -55,7 +55,7 @@ class ComparableSearchRule(SearchRule):
     }
 
     def make_operator_field(self):
-        return forms.ChoiceField(choices=self.OPERATOR_CHOICES, label='')
+        return forms.ChoiceField(choices=self.OPERATOR_CHOICES, label='', required=False)
 
     def make_fields(self):
         return (

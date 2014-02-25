@@ -8,6 +8,8 @@ from faculty.event_types.base import Choices
 from faculty.event_types.base import TeachingAdjust
 from faculty.event_types.fields import TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent
+from faculty.event_types.search import ChoiceSearchRule
+from faculty.event_types.search import ComparableSearchRule
 
 
 class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
@@ -27,6 +29,10 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         position = forms.ChoiceField(required=True, choices=POSITIONS)
         teaching_credit = TeachingCreditField(required=False)
 
+    SEARCH_RULES = {
+        'position': ChoiceSearchRule,
+        'teaching_credit': ComparableSearchRule,
+    }
     SEARCH_RESULT_FIELDS = [
         'position',
         'teaching_credit',
@@ -34,7 +40,7 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def to_search_row(self):
         return [
-            self.EntryForm.POSITIONS.get(self.get_config('position'), 'N/A'),
+            self.EntryForm.POSITIONS.get(self.get_config('position')),
             self.get_config('teaching_credit'),
         ]
 
