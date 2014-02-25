@@ -8,7 +8,7 @@ from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
-from faculty.event_types.fields import AddSalaryField, AddPayField, SemesterField
+from faculty.event_types.fields import AddSalaryField, AddPayField, SemesterField, FractionField, TeachingCreditField, TeachingReductionField
 
 
 RANK_CHOICES = [
@@ -182,8 +182,9 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
     class EntryForm(BaseEntryForm):
         REASONS =[('MEDICAL', 'Medical'), ('PARENTAL', 'Parental'), ('ADMIN', 'Admin'), ('SECONDMENT', 'Secondment')]
         reason = forms.ChoiceField(label='Type', choices=REASONS)
-        leave_fraction = forms.DecimalField(decimal_places=2, help_text="eg. 0.7")
-        teaching_accrues = forms.BooleanField(label='Do Teaching Credits Accrue During Leave?', initial=False, required=False)
+        leave_fraction = FractionField(help_text="Fraction of salary recieved during leave eg. '2/3'")
+        teaching_credits = TeachingCreditField()
+        teaching_load_decrease = TeachingReductionField()
 
 
     @classmethod
@@ -195,16 +196,14 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
                                                 self.event.start_date)
 
     def salary_adjust_annually(self):
-        # f = fractions.Fraction(self.event.config.get('leave_fraction', 0))
-        f = decimal.Decimal(self.event.config.get('leave_fraction', 0))
+        f = fractions.Fraction(self.event.config.get('leave_fraction', 0))
         return SalaryAdjust(0, f, 0)
 
-    # Not quite sure how this should be done, do we want a field indicating reduction in workload?
     def teaching_adjust_per_semester(self):
-        # if self.event.teaching_accrues:
-        #     return TeachingAdjust(Fraction(1), Fraction(0))
+        c = fractions.Fraction(self.event.config.get('teaching_credits', 0))
+        d = fractions.Fraction(self.event.config.get('load_decrease', 0))
 
-        return TeachingAdjust(fractions.Fraction(0), fractions.Fraction(0))
+        return TeachingAdjust(c, d)
 
 class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
@@ -221,10 +220,10 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         """
 
     class EntryForm(BaseEntryForm):
-        pay_fraction = forms.DecimalField(decimal_places=2, help_text="eg. 0.7")
+        pay_fraction = FractionField(help_text="eg. 2/3")
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = SemesterField(required=False, semester_start=False)
-        credits = forms.DecimalField(decimal_places=2, help_text="Number of Credits Carried Forward")
+        credits = TeachingCreditField()
 
 
     @classmethod
@@ -235,11 +234,9 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return 'Study leave begginging %s' % (self.event.start_date)
 
     def salary_adjust_annually(self):
-        # f = fractions.Fraction(self.event.config.get('pay_fraction', 0))
-        f = decimal.Decimal(self.event.config.get('pay_fraction', 0))
+        f = fractions.Fraction(self.event.config.get('pay_fraction', 0))
         return SalaryAdjust(0, f, 0)
 
-    # Not quite sure how this should be done
     def teaching_adjust_per_semester(self):
         c = fractions.Fraction(self.event.config.get('credits', 0))
         return TeachingAdjust(c, fractions.Fraction(0))
