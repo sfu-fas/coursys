@@ -127,7 +127,7 @@ class CareerEvent(models.Model):
     unit = models.ForeignKey(Unit)
 
     title = models.CharField(max_length=255, blank=False, null=False)
-    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit', 'start_date'),
+    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -173,7 +173,9 @@ class CareerEvent(models.Model):
         return EVENT_TYPES[self.event_type].NAME
 
     def get_handler(self):
-        return EVENT_TYPES[self.event_type](self)
+        if not hasattr(self, 'handler_cache'):
+            self.handler_cache = EVENT_TYPES[self.event_type](self)
+        return self.handler_cache
 
     class Meta:
         ordering = (
@@ -181,7 +183,6 @@ class CareerEvent(models.Model):
             '-end_date',
             'title',
         )
-        #unique_together = (('person', 'unit', 'title'),)
 
     def memo_info(self):
         """
