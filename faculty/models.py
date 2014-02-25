@@ -87,7 +87,7 @@ class CareerEventManager(models.Manager):
         start, end = semester.start_end_dates(semester)
         qs = self.get_query_set()
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
-        return qs.filter(Q(start_date__gte=start).filter(end_okay))
+        return qs.filter(start_date__gte=start).filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
         qs = self.get_query_set()
