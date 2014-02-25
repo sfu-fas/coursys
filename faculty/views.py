@@ -465,7 +465,7 @@ def manage_event_index(request):
 
 @requires_role('ADMN')
 def memo_templates(request, event_type):
-    templates = MemoTemplate.objects.filter(unit__in=request.units, event_type=event_type.upper(), hidden=False)
+    templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=event_type.upper(), hidden=False)
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
 
     context = {
