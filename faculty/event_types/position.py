@@ -55,3 +55,8 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     def teaching_adjust_per_semester(self):
         adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0) or 0)
         return TeachingAdjust(adjust, adjust)
+    
+    def get_position_display(self):
+        return self.EntryForm.POSITIONS[self.get_config('position')]
+
+        
