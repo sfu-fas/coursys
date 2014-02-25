@@ -171,7 +171,7 @@ class CareerEvent(models.Model):
             '-end_date',
             'title',
         )
-        unique_together = (('person', 'unit', 'title'),)
+        #unique_together = (('person', 'unit', 'title'),)
 
     def memo_info(self):
         """

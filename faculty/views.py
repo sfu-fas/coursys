@@ -3,6 +3,7 @@ import copy
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
+from django.db import transaction
 
 from django.http import Http404
 from django.http import HttpResponse
@@ -280,6 +281,7 @@ def event_type_list(request, userid):
 
 
 @requires_role('ADMN')
+@transaction.atomic
 def create_event(request, userid, handler):
     """
     Create new career event for a faculty member.
@@ -318,6 +320,7 @@ def create_event(request, userid, handler):
 
 
 @requires_role('ADMN')
+@transaction.atomic
 def change_event(request, userid, event_slug):
     """
     Change existing career event for a faculty member.
