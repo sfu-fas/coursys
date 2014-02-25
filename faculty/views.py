@@ -65,6 +65,7 @@ def index(request):
 
 @requires_role('ADMN')
 def search_index(request):
+    person = get_object_or_404(Person, userid=request.user.username)
     event_types = ({
         'slug': key.lower(),
         'name': Handler.NAME,
@@ -72,7 +73,7 @@ def search_index(request):
         'affects_teaching': 'affects_teaching' in Handler.FLAGS,
         'affects_salary': 'affects_salary' in Handler.FLAGS,
     } for key, Handler in EVENT_TYPE_CHOICES)
-    return render(request, 'faculty/search_index.html', { 'event_types': event_types })
+    return render(request, 'faculty/search_index.html', { 'event_types': event_types, 'person': person })
 
 
 @requires_role('ADMN')

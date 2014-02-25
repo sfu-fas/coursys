@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load event_display %}
 {% block title %}Search Events{% endblock %}
 {% block h1 %}Search Events{% endblock %}
 
@@ -31,12 +32,14 @@ $(document).ready(function() {
   </tr></thead>
   <tbody>
   {% for event_type in event_types %}
+  {% if person|can_view_handler:event_type.slug %}
   <tr>
     <td><a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a></td>
     <td>{{ event_type.is_instant }}</td>
     <td>{{ event_type.affects_teaching }}</td>
     <td>{{ event_type.affects_salary }}</td>
   </tr>
+  {% endif %}
   {% endfor %}
   </tbody>
 </table>
