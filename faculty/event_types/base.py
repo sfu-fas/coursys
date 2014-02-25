@@ -189,7 +189,7 @@ class CareerEventHandlerBase(object):
     # Other ways to create a new handler instance
 
     @classmethod
-    def create_for(cls, person, form):
+    def create_for(cls, person, form=None):
         """
         Given a person, create a new instance of the handler for them.
         """
@@ -197,7 +197,8 @@ class CareerEventHandlerBase(object):
         event = CareerEvent(person=person,
                             event_type=cls.EVENT_TYPE)
         ret = cls(event)
-        ret.load(form)
+        if form:
+            ret.load(form)
         return ret
 
     # Stuff involving permissions
@@ -207,10 +208,12 @@ class CareerEventHandlerBase(object):
         This editor's permission level with respect to this faculty member.
         """
         edit_units = set(r.unit for r in Role.objects.filter(person=editor, role='ADMN'))
-        fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))
+        fac_units = set()
+        if self.event:
+            fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))
         super_units = set(itertools.chain(*(u.super_units() for u in fac_units)))
 
-        if editor == self.event.person:
+        if self.event and (editor == self.event.person):
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
         elif edit_units & super_units:
