@@ -194,6 +194,12 @@ class CareerEvent(models.Model):
 
         # grab event type specific config data
         config_data = self.config
+        for key in config_data:
+            try:
+                raw_value = config_data.get(key) or default
+                config_data[key] = config_data[key].lower().replace("_"," ")
+            except AttributeError:
+                pass
         
         ls = { # if changing, also update EVENT_TAGS above!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)

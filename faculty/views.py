@@ -468,10 +468,12 @@ def manage_event_index(request):
 @requires_role('ADMN')
 def memo_templates(request, event_type):
     templates = MemoTemplate.objects.filter(unit__in=request.units, event_type=event_type.upper(), hidden=False)
+    event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
 
     context = {
                'templates': templates,
-               'event_type_slug':event_type,          
+               'event_type_slug':event_type, 
+               'event_name': event_type_object[1].NAME        
                }
     return render(request, 'faculty/memo_templates.html', context)
 
@@ -497,13 +499,13 @@ def new_memo_template(request, event_type):
 
     tags = sorted(EVENT_TAGS.iteritems())
     event_handler = event_type_object[1].CONFIG_FIELDS
-    #how do we want to handle description text? add a dictionary to each handler?
-    add_tags = [(tag, 'place holder') for tag in event_handler]
+    add_tags = [(tag, '%s' % tag.replace("_", " ")) for tag in event_handler]
     lt = tags + add_tags
     context = {
                'form': form,
                'event_type_slug': event_type,
                'EVENT_TAGS': lt,
+               'event_name': event_type_object[1].NAME
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
@@ -529,14 +531,14 @@ def manage_memo_template(request, event_type, slug):
 
     tags = sorted(EVENT_TAGS.iteritems())
     event_handler = event_type_object[1].CONFIG_FIELDS
-    #how do we want to handle description text? add a dictionary to each handler?
-    add_tags = [(tag, 'place holder') for tag in event_handler]
+    add_tags = [(tag, '%s' % tag.replace("_", " ")) for tag in event_handler]
     lt = tags + add_tags
     context = {
                'form': form,
                'memo_template': memo_template,
                'event_type_slug':event_type,
                'EVENT_TAGS': lt,
+               'event_name': event_type_object[1].NAME
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
@@ -549,16 +551,10 @@ def new_memo(request, userid, event_slug, memo_template_slug):
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
 
-    #from_choices = [('', u'\u2014')] \
-    #                + [(r.person.id, "%s. %s, %s" %
-    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-    #                    for r in Role.objects.filter(unit=instance.unit)]
-
     ls = instance.memo_info()
 
     if request.method == 'POST':
         form = MemoForm(request.POST)
-        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -579,7 +575,6 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             'to_lines': person.letter_name()
         }
         form = MemoForm(initial=initial)
-        #form.fields['from_person'].choices = from_choices
 
     context = {
                'form': form,
@@ -595,14 +590,8 @@ def manage_memo(request, userid, event_slug, memo_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    #from_choices = [('', u'\u2014')] \
-    #                + [(r.person.id, "%s. %s, %s" %
-    #                        (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
-    #                    for r in Role.objects.filter(unit=instance.unit)]
-
     if request.method == 'POST':
         form = MemoForm(request.POST, instance=memo)
-        #form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
@@ -614,7 +603,6 @@ def manage_memo(request, userid, event_slug, memo_slug):
             messages.success(request, "error!")   
     else:
         form = MemoForm(instance=memo)
-        #form.fields['from_person'].choices = from_choices
         
     context = {
                'form': form,

@@ -38,7 +38,7 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
-<li>{{ event_type_slug }} Memo Templates</li>
+<li>{{ event_name }} Templates</li>
 {% endblock %}
 
 {% block content %}
