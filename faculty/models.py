@@ -76,7 +76,7 @@ class CareerQuerySet(models.query.QuerySet):
 
     def effective_date(self, date):
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
-        return qs.filter(start_date__lte=date).filter(end_okay)
+        return self.filter(start_date__lte=date).filter(end_okay)
     
     def effective_semester(self, semester):
         """
