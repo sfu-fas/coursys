@@ -65,44 +65,54 @@ EVENT_TAGS = {
                 'event_title': 'name of event',
             }
 
-class CareerEventManager(models.Manager):
+# adapted from https://djangosnippets.org/snippets/562/
+class CareerQuerySet(models.query.QuerySet):
     # TODO: Should these filters only grab events that are not deleted?
     def active(self):
         """
         All Career Events that have not been deleted.
         """
-        qs = self.get_query_set()
-        return qs.exclude(status='D')
+        return self.exclude(status='D')
 
     def effective_date(self, date):
-        qs = self.get_query_set()
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
-        qs = qs.filter(start_date__lte=date).filter(end_okay)
-        return qs
+        return qs.filter(start_date__lte=date).filter(end_okay)
     
     def effective_semester(self, semester):
         """
         Returns CareerEvents starting and ending within this semester.
         """
         start, end = semester.start_end_dates(semester)
-        qs = self.get_query_set()
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
-        return qs.filter(start_date__gte=start).filter(end_okay)
+        return self.filter(start_date__gte=start).filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
-        qs = self.get_query_set()
         if not inclusive:
             filters = {"start_date__gt": start, "end_date__lt": end}
         else:
             filters = {"start_date__gte": start, "end_date__lte": end}
-        return qs.filter(**filters)
+        return self.filter(**filters)
 
     def by_type(self, Handler):
         """
         Returns all CareerEvents matching the given CareerEventHandler class.
         """
-        qs = self.get_query_set()
-        return qs.filter(event_type__exact=Handler.EVENT_TYPE)
+        return self.filter(event_type__exact=Handler.EVENT_TYPE)
+
+
+class CareerEventManager(models.Manager):
+    def get_query_set(self): 
+        model = models.get_model('faculty', 'CareerEvent')
+        return CareerQuerySet(model)
+
+    def __getattr__(self, attr, *args):
+        try:
+            return getattr(self.__class__, attr, *args)
+        except AttributeError:
+            return getattr(self.get_query_set(), attr, *args)
+
+
+
 
 
 class CareerEvent(models.Model):
