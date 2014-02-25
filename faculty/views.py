@@ -590,6 +590,11 @@ def manage_memo(request, userid, event_slug, memo_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
+    Handler = EVENT_TYPES[instance.event_type]
+    handler = Handler(instance)
+    if not handler.can_view(person):
+        return HttpResponseForbidden(request, "Not allowed to view this memo")
+
     if request.method == 'POST':
         form = MemoForm(request.POST, instance=memo)
         if form.is_valid():
@@ -630,6 +635,11 @@ def get_memo_pdf(request, userid, event_slug, memo_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
+    Handler = EVENT_TYPES[instance.event_type]
+    handler = Handler(instance)
+    if not handler.can_view(person):
+        return HttpResponseForbidden(request, "Not allowed to view this memo")
+
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (memo_slug)
 
@@ -641,6 +651,11 @@ def view_memo(request, userid, event_slug, memo_slug):
     person,  member_units = _get_faculty_or_404(request.units, userid)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
+
+    Handler = EVENT_TYPES[instance.event_type]
+    handler = Handler(instance)
+    if not handler.can_view(person):
+        return HttpResponseForbidden(request, "Not allowed to view this memo")
 
     context = {
                'memo': memo,
