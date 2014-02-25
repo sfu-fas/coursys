@@ -15,31 +15,25 @@ def get_config(event, field):
 
 @register.filter
 def can_approve(person, event):
-    if event.get_handler().can_approve(person):
-        return True
-    return False
+    return event.get_handler().can_approve(person)
 
 
 @register.filter
 def can_edit(person, event):
-    if event.get_handler().can_edit(person):
-        return True
-    return False
+    return event.get_handler().can_edit(person)
 
 
 @register.filter
 def can_view_handler(person, key):
     Handler = EVENT_TYPES.get(key.upper())
     tmp = Handler.create_for(person)
-    if tmp.can_view(person):
-        return True
-    return False
+    return tmp.can_view(person)
 
 
 @register.filter
 def can_edit_handler(person, key):
     Handler = EVENT_TYPES.get(key.upper())
     tmp = Handler.create_for(person)
-    if tmp.can_edit(person):
-        return True
-    return False
+    return tmp.can_edit(person)
+
+
