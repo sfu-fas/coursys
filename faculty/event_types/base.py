@@ -54,6 +54,14 @@ class CareerEventMeta(abc.ABCMeta):
             else:
                 cls.CONFIG_FIELDS[name] = field
 
+        # Instantiate each of the SearchRules
+        cls.SEARCH_RULE_INSTANCES = collections.OrderedDict()
+
+        for name in cls.CONFIG_FIELDS:
+            if name in cls.SEARCH_RULES:
+                field = cls.CONFIG_FIELDS[name]
+                cls.SEARCH_RULE_INSTANCES[name] = cls.SEARCH_RULES[name](name, field, cls)
+
         # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
         if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
             del cls.EntryForm.base_fields['end_date']
@@ -121,11 +129,14 @@ class CareerEventHandlerBase(object):
     EDITABLE_BY = 'DEPT'
     APPROVAL_BY = 'FAC'
 
+    SEARCH_RULES = {}
     SEARCH_RESULT_FIELDS = []
 
     # Internal mumbo jumbo
 
+    BASE_FIELDS = {}
     CONFIG_FIELDS = {}
+    SEARCH_RULE_INSTANCES = []
     FLAGS = []
 
     def __init__(self, event):
@@ -322,9 +333,32 @@ class CareerEventHandlerBase(object):
     # Stuff relating to searching
 
     @classmethod
-    def filter(cls, queryset, rules):
-        for event in queryset:
-            yield cls(event)
+    def get_search_rules(cls, data=None):
+        return [(rule, rule.make_form(data)) for rule in cls.SEARCH_RULE_INSTANCES.itervalues()]
+
+    @classmethod
+    def validate_all_search(cls, rules):
+        return not bool([False for _, form in rules if not form.is_valid()])
+
+    @classmethod
+    def filter(cls, start_date=None, end_date=None, rules=None):
+        from faculty.models import CareerEvent
+        events = CareerEvent.objects.by_type(cls)
+        if not rules:
+            rules = []
+
+        if start_date:
+            events = events.filter(start_date__gte=start_date)
+        if end_date:
+            events = events.filter(end_date__lte=end_date)
+
+        for event in events:
+            handler = cls(event)
+            for rule, form in rules:
+                if not rule.matches(handler, form):
+                    break
+            else:
+                yield handler
 
     @classmethod
     def get_search_columns(cls):

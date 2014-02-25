@@ -33,8 +33,12 @@ $(document).ready(function() {
   <form action="" method="GET">
     <fieldset>
       {{ form|as_dl }}
-      <p><input type="submit" class="submit" value="Search" /></p>
+      {% for rule, rule_form in search_rules %}
+        <dt><label>{{ rule.pretty_field_name }}</label></dt>
+        <dd>{{ rule_form }}</dd>
+      {% endfor %}
     </fieldset>
+    <p><input type="submit" class="submit" value="Search" /></p>
   </form>
 </div>
 
