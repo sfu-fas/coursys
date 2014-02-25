@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}View Salary: {{ person.name }}{% endblock %}
+{% block h1 %}View Salary: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#faculty_salary_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[2, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.salary_index" %}">Salaries</a></li>
+<li>{{ person.name }}</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+  <div>Total: ${{ pay_tot }}</div>
+</form>
+
+<div class="datatable_container">
+<table id="faculty_salary_table" class="display">
+  <thead><tr>
+  	<th scope="col">Title</th>
+  	<th scope="col">Type</th>
+  	<th scope="col">Start Date</th>
+  	<th scope="col">End Date</th>
+  	<th scope="col">Salary Pay</th>
+  	<th scope="col">Salary Multiplier</th>
+  	<th scope="col">Add Pay</th>
+  </tr></thead>
+  <tbody>
+  {% for e in salary_events %}
+  <tr>
+  <td>{{ e.title }}</td>
+  <td>{{ e.get_event_type_display }}</td>
+  <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
+  <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
+  <td>{{ e.add_salary }}</td>
+  <td>{{ e.salary_fraction }}</td>
+  <td>{{ e.add_bonus }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 import datetime
-import decimal
+import copy
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -24,6 +24,7 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm
 from faculty.forms import SearchForm
+from faculty.processing import FacultySummary
 
 import itertools
 
@@ -109,6 +110,76 @@ def search_events(request, event_type_slug):
     return render(request, 'faculty/search_form.html', context)
 
 
+@requires_role('ADMN')
+def salary_index(request):
+    """
+    Salaries of all faculty members
+    """
+    form = GetSalaryForm()
+
+    if request.GET:
+        form = GetSalaryForm(request.GET)
+
+        if form.is_valid():
+            date = request.GET.get('date', None)
+
+    else:
+        date = datetime.date.today()
+        initial = { 'date': date }
+        form = GetSalaryForm(initial=initial)
+
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
+    fac_roles_pay = [(p, ', '.join(r.unit.informal_name() for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
+
+    pay_tot = 0
+    for p, r, pay in fac_roles_pay:
+        pay_tot += pay
+
+    context = {
+        'form': form,
+        'fac_roles_pay': fac_roles_pay,
+        'pay_tot': pay_tot,
+    }
+    return render(request, 'faculty/salary_index.html', context)
+
+
+@requires_role('ADMN')
+def salary_summary(request, userid):
+    """
+    Shows all salary career events at a date
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    form = GetSalaryForm()
+
+    if request.GET:
+        form = GetSalaryForm(request.GET)
+
+        if form.is_valid():
+            date = request.GET.get('date', None)
+
+    else:
+        date = datetime.date.today()
+        initial = { 'date': date }
+        form = GetSalaryForm(initial=initial)
+
+    pay_tot = FacultySummary(person).salary(date)
+
+    salary_events = copy.copy(FacultySummary(person).salary_events(date))
+    for event in salary_events:
+        event.add_salary, event.salary_fraction, event.add_bonus = FacultySummary(person).salary_event_info(event)
+
+    context = {
+        'form': form,
+        'person': person,
+        'pay_tot': pay_tot,
+        'salary_events': salary_events,
+    }
+
+    return render(request, 'faculty/salary_summary.html', context)
+
+
 ###############################################################################
 # Display/summary views for a faculty member
 
@@ -187,37 +258,6 @@ def view_event(request, userid, event_slug):
         'approval_form': approval,
     }
     return render(request, 'faculty/view_event.html', context)
-
-
-@requires_role('ADMN')
-def view_salary(request, userid):
-    """
-    Find the salary for a person at a certain time
-    """
-    pay = decimal.Decimal(0)
-    person, member_units = _get_faculty_or_404(request.units, userid)
-    form = GetSalaryForm(request.GET)
-    date = request.GET.get('date', None)
-
-    if date:
-        if form.is_valid():
-            career_events = CareerEvent.objects.effective_date(date).filter(person=person).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
-
-            for event in career_events:
-                instance = get_object_or_404(CareerEvent, slug=event.slug, person=person)
-                Handler = EVENT_TYPES[instance.event_type]
-                handler = Handler(instance)
-
-                add_salary, salary_fraction, add_bonus = handler.salary_adjust_annually()
-                pay = (pay + add_salary) * salary_fraction + add_bonus
-
-    context = {
-        'form': form,
-        'person': person,
-        'salary': pay
-    }
-
-    return render(request, 'faculty/view_salary.html', context)
 
 
 ###############################################################################

@@ -28,8 +28,7 @@ class ApprovalForm(forms.ModelForm):
         fields = ("status",)
 
 class GetSalaryForm(forms.Form):
-    # date = SemesterField(required=True, semester_start=False)
-    date = forms.DateField(help_text='Select a date for the salary');
+    date = forms.DateField();
 
 
 def attachment_formset_factory():
