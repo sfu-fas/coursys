@@ -1301,7 +1301,7 @@ class GradStatus(models.Model):
         statuses_to_remove = []
         for existing_status in existing_statuses:
             if (existing_status.status, str(existing_status.start.name)) not in statuses_to_save_tuple:
-                print "Removing Status:", existing_status, existing_status.start
+                #print "Removing Status:", existing_status, existing_status.start
                 existing_status.hidden = True
                 existing_status.save()
         for status in statuses_to_save:

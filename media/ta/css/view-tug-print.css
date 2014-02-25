@@ -1,8 +1,9 @@
 @CHARSET "UTF-8";
 /* print style for tug form */
 
-@import url("/media/style/print.css");
-
+div.breadcrumb {
+  display: none;
+}
 #container {
     padding-left:  0.5in;
     padding-right: 0.5in;
@@ -60,8 +61,8 @@ table td.numeral {
 
 table td {
 /*    border-top: 1em solid white;*/
-    padding-bottom: 1em;
-    padding-left: 0.5em;
+    padding-bottom: 0;
+    padding-left: 0;
     vertical-align: bottom;
 }
 
@@ -79,5 +80,9 @@ table th {
     vertical-align: bottom;
     text-align: left;
     border-bottom: 1px solid black;
+}
+.smallprint {
+  font-size: smaller;
+  line-height: 1.25em;
 }
 
