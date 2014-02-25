@@ -20,7 +20,7 @@
 <div id="actions">
   <h2>Actions</h2>
   <ul>
-    <li><a href="{{ event.get_change_url }}">Edit event</a></li>
+    {% if editor|can_edit:event %}<li><a href="{{ event.get_change_url }}">Edit event</a></li>{% endif %}
     <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
     {% for t in templates %}
 	<li><a href="{% url "faculty.views.new_memo" userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{t.label|title}} Memo</a></li>
@@ -35,7 +35,7 @@
 </div>
 <div class="clearfix"></div>
 
-{% if approval_form %}
+{% if editor|can_approve:event %}
 <form action="{{ event.get_status_change_url }}" method="post">
 	{% csrf_token %}
 	{{ approval_form }}

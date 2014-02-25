@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Salaries{% endblock %}
+{% block h1 %}Faculty Salaries{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#faculty_salary_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Salaries</li>
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'faculty.views.salary_index' %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+  <div>Total: ${{ pay_tot }}</td></tr>
+</form>
+
+<div class="datatable_container">
+<table id="faculty_salary_table" class="display">
+  <thead><tr><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">Pay</th></tr></thead>
+  <tbody>
+  {% for person,units,pay in fac_roles_pay %}
+  <tr>
+  <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  <td>{{ units }}</td>
+  <td>{{ pay }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

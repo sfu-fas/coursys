@@ -69,7 +69,7 @@ class CareerEventManager(models.Manager):
     # TODO: Should these filters only grab events that are not deleted?
     def active(self):
         """
-        All Career Events that have not been deleted.  Approved or Needs Approval.
+        All Career Events that have not been deleted.
         """
         qs = self.get_query_set()
         return qs.exclude(status='D')
@@ -87,7 +87,7 @@ class CareerEventManager(models.Manager):
         start, end = semester.start_end_dates(semester)
         qs = self.get_query_set()
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
-        return qs.filter(Q(start_date__gte=start).filter(end_okay))
+        return qs.filter(start_date__gte=start).filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
         qs = self.get_query_set()
@@ -99,7 +99,7 @@ class CareerEventManager(models.Manager):
 
     def by_type(self, Handler):
         """
-        Returns QuerySet of all CareerEvents matching the given CareerEventHandler class.
+        Returns all CareerEvents matching the given CareerEventHandler class.
         """
         qs = self.get_query_set()
         return qs.filter(event_type__exact=Handler.EVENT_TYPE)
@@ -163,7 +163,7 @@ class CareerEvent(models.Model):
         return EVENT_TYPES[self.event_type].NAME
 
     def get_handler(self):
-        return EVENT_TYPE_CHOICES[self.event_type](self)
+        return EVENT_TYPES[self.event_type](self)
 
     class Meta:
         ordering = (
@@ -171,7 +171,7 @@ class CareerEvent(models.Model):
             '-end_date',
             'title',
         )
-        unique_together = (('person', 'unit', 'title'),)
+        #unique_together = (('person', 'unit', 'title'),)
 
     def memo_info(self):
         """
@@ -194,6 +194,12 @@ class CareerEvent(models.Model):
 
         # grab event type specific config data
         config_data = self.config
+        for key in config_data:
+            try:
+                raw_value = config_data.get(key) or default
+                config_data[key] = config_data[key].lower().replace("_"," ")
+            except AttributeError:
+                pass
         
         ls = { # if changing, also update EVENT_TAGS above!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)

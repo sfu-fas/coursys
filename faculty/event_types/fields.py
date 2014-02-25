@@ -71,7 +71,7 @@ class SemesterDateInput(forms.widgets.MultiWidget):
 
         # TODO: Precedence to semester if they're both filled in?
         if regular_date and semester_date:
-            return semester_date
+            return regular_date
         elif semester_date:
             return semester_date
         elif regular_date:

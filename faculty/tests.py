@@ -4,13 +4,14 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import safestring
 
+from coredata.models import Semester
 from coredata.models import Person
 from coredata.models import Role
 from coredata.models import Unit
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
-from faculty.event_types.career import AppointmentEventHandler
+from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
 from faculty.models import CareerEvent
@@ -33,7 +34,7 @@ class EventTypesTest(TestCase):
         dean_admin = Person.objects.get(userid='dzhao')
 
         fac_role = Role.objects.filter(person=fac_member)[0]
-        handler = AppointmentEventHandler(CareerEvent(person=fac_member,
+        handler = SalaryModificationEventHandler(CareerEvent(person=fac_member,
                                                       unit=fac_role.unit))
 
         # tests below assume these permission settings for this event type
@@ -151,3 +152,28 @@ class CareerEventHandlerBaseTest(TestCase):
         handler1_modified_event = CareerEvent.objects.get(id=handler1.event.id)
 
         self.assertEqual(handler1_modified_event.end_date, handler2.event.start_date - datetime.timedelta(days=1))
+
+
+class CareerEventTest(TestCase):
+    def setUp(self):
+        faculty_test_data.Command().handle()
+        self.p = Person.objects.get(userid='ggbaker')
+        self.u = Unit.objects.get(id=1)
+        self.date = datetime.date(2014, 1, 1)
+        self.e = CareerEvent(title="Appointed to Test", person=self.p, unit=self.u, event_type="APPOINT", start_date=self.date)
+        self.e.save(self.p)
+
+    def test_get_effective_date(self):
+        events = CareerEvent.objects.effective_date(self.date)
+        for e in events:
+            assert e.start_date <= self.date
+            assert e.end_date == None or e.end_date >= self.date
+            
+    def test_get_effective_semester(self):
+        Semester.objects.create(name='1141', start=datetime.date(2014,1,6), end=datetime.date(2014,4,28))
+        semester = Semester.objects.get(name='1141')
+        events = CareerEvent.objects.effective_semester(semester)
+        start, end = semester.start_end_dates(semester)
+        for e in events:
+            assert e.start_date >= start
+            assert e.end_date == None or (e.end_date <= end and e.end_date >= start)

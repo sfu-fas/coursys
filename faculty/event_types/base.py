@@ -54,6 +54,14 @@ class CareerEventMeta(abc.ABCMeta):
             else:
                 cls.CONFIG_FIELDS[name] = field
 
+        # Instantiate each of the SearchRules
+        cls.SEARCH_RULE_INSTANCES = collections.OrderedDict()
+
+        for name in cls.CONFIG_FIELDS:
+            if name in cls.SEARCH_RULES:
+                field = cls.CONFIG_FIELDS[name]
+                cls.SEARCH_RULE_INSTANCES[name] = cls.SEARCH_RULES[name](name, field, cls)
+
         # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
         if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
             del cls.EntryForm.base_fields['end_date']
@@ -114,17 +122,21 @@ class CareerEventHandlerBase(object):
     # There can only be one (with same person, unit, event_type without an end_date)
     IS_EXCLUSIVE = False
     # Show a semester selection widget for start/end date instead of a raw date picker
+    # TODO: remove SEMESTER_BIAS? It's been replaced by the either-or semester fields.
     SEMESTER_BIAS = False
 
     VIEWABLE_BY = 'MEMB'
     EDITABLE_BY = 'DEPT'
     APPROVAL_BY = 'FAC'
 
+    SEARCH_RULES = {}
     SEARCH_RESULT_FIELDS = []
 
     # Internal mumbo jumbo
 
+    BASE_FIELDS = {}
     CONFIG_FIELDS = {}
+    SEARCH_RULE_INSTANCES = []
     FLAGS = []
 
     def __init__(self, event):
@@ -188,7 +200,7 @@ class CareerEventHandlerBase(object):
     # Other ways to create a new handler instance
 
     @classmethod
-    def create_for(cls, person, form):
+    def create_for(cls, person, form=None):
         """
         Given a person, create a new instance of the handler for them.
         """
@@ -196,7 +208,8 @@ class CareerEventHandlerBase(object):
         event = CareerEvent(person=person,
                             event_type=cls.EVENT_TYPE)
         ret = cls(event)
-        ret.load(form)
+        if form:
+            ret.load(form)
         return ret
 
     # Stuff involving permissions
@@ -206,10 +219,12 @@ class CareerEventHandlerBase(object):
         This editor's permission level with respect to this faculty member.
         """
         edit_units = set(r.unit for r in Role.objects.filter(person=editor, role='ADMN'))
-        fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))
+        fac_units = set()
+        if self.event:
+            fac_units = set(r.unit for r in Role.objects.filter(person=self.event.person, role='FAC'))
         super_units = set(itertools.chain(*(u.super_units() for u in fac_units)))
 
-        if editor == self.event.person:
+        if self.event and (editor == self.event.person):
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
         elif edit_units & super_units:
@@ -318,9 +333,32 @@ class CareerEventHandlerBase(object):
     # Stuff relating to searching
 
     @classmethod
-    def filter(cls, queryset, rules):
-        for event in queryset:
-            yield cls(event)
+    def get_search_rules(cls, data=None):
+        return [(rule, rule.make_form(data)) for rule in cls.SEARCH_RULE_INSTANCES.itervalues()]
+
+    @classmethod
+    def validate_all_search(cls, rules):
+        return not bool([False for _, form in rules if not form.is_valid()])
+
+    @classmethod
+    def filter(cls, start_date=None, end_date=None, rules=None):
+        from faculty.models import CareerEvent
+        events = CareerEvent.objects.by_type(cls)
+        if not rules:
+            rules = []
+
+        if start_date:
+            events = events.filter(start_date__gte=start_date)
+        if end_date:
+            events = events.filter(end_date__lte=end_date)
+
+        for event in events:
+            handler = cls(event)
+            for rule, form in rules:
+                if not rule.matches(handler, form):
+                    break
+            else:
+                yield handler
 
     @classmethod
     def get_search_columns(cls):
