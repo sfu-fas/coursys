@@ -206,7 +206,7 @@ class CareerEvent(models.Model):
         config_data = self.config
         for key in config_data:
             try:
-                raw_value = config_data.get(key) or default
+                raw_value = config_data.get(key)
                 config_data[key] = config_data[key].lower().replace("_"," ")
             except AttributeError:
                 pass
