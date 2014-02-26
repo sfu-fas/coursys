@@ -468,6 +468,8 @@ def course_search(request):
     return response
 
 # AJAX/JSON for student search autocomplete
+EXCLUDE_EMPLIDS = set(['953022983']) # exclude these from autocomplete
+  # 953022983 is an inactive staff account and should not be assigned things
 @login_required
 def student_search(request):
     # check permissions
@@ -492,7 +494,7 @@ def student_search(request):
     else:
         nonStudents = []
 
-    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
+    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
     data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
 
     data.sort(key = lambda x: x['label'])
