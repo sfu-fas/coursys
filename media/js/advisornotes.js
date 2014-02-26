@@ -28,7 +28,7 @@ function search_sims(url, emplid, formurl, csrftoken) {
 
 function add_to_info(key, value) {
     // add this key/value to the info table
-    $('table.info').append('<tr class="dynamic"><th class="ui-state-default">' + key + '</th><td>' + value + '</td></tr>')
+    $('table.info').append('<tr class="dynamic"><th scope="row">' + key + '</th><td>' + value + '</td></tr>')
 }
 
 function get_more_info(url) {
@@ -95,7 +95,7 @@ function more_course_info(url) {
 		url: url,
 		success: function(data){
 			if( $('table.info').length == 0 ) {
-			    $('div.table_container').html('<table class="info"><tbody></tbody></table>');				
+			    $('div.table_container').html('<table class="info"><tbody></tbody></table>');
 			}
 			if (data['error']) {
 				add_to_info('Error', data['error']);

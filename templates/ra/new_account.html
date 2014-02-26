@@ -13,7 +13,6 @@
   <div class="form_container">
     <form action="{% url "ra.views.new_account" %}" method="post">{% csrf_token %}
       <fieldset>
-        <legend>Account Information</legend>
         {{ accountform|as_dl }}
         <p><input type="submit" value="Submit" class="submit" /></p>
       </fieldset>

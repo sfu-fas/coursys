@@ -34,7 +34,7 @@ $(function() {
         });
     });
 
-	$('div.table_container').html('<img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
+	$('div.table_container').html('<i class="fa fa-spinner fa-spin" id="fetchwait"></i>');
     more_course_info('{% url "advisornotes.views.course_more_info" unit_course_slug=course.slug %}');
 } );
 
@@ -121,7 +121,7 @@ $(function() {
                 {% endfor %}
             </td>
             {{ endspaceless }}
-            <td>{% if offering.id in with_note_ids %}<span class="sort">yes</span><img src="{{ STATIC_URL }}icons/tick.png" alt="yes" />{% endif %}</td>
+            <td>{% if offering.id in with_note_ids %}<span class="sort">yes</span><i class="fa fa-check infomessage"></i>{% endif %}</td>
         </tr>
         {% endfor %}
     </tbody>

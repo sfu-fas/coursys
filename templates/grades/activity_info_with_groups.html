@@ -1,8 +1,7 @@
 {% extends "grades/activity_info.html" %}
 {% load course_display %}
 
-{% block grades_headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
+{% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
 		// activate dataTable ui
@@ -29,8 +28,8 @@
         <thead>
            <tr>
            <th>Group</th>
-           <th>Marking</th>
-           <th>Submission</th>
+           <th{% if not mark_comps %} class="disabled"{% endif %}>Marking</th>
+           <th{% if not sub_comps %} class="disabled"{% endif %}>Submission</th>
            </tr>
 	</thead>
         <tbody>
@@ -41,7 +40,7 @@
 				<a href="{{group.get_absolute_url}}">{{ group.name }}</a>
 		    	<div class="collapsible"></div>
 		    	<div>
-		    	    <ul class="group_member_list">
+		    	    <ul class="bulleted">
 			    		{% for group_member in group_grade_info.members %}
 			    		<li>
 			    		<a href="{{ group_member.get_absolute_url }}">{{group_member.person.name}}</a>			    		
@@ -50,20 +49,29 @@
 		    		</ul>		    				    		
 		    	</div>	    	   	   
 			</td>
-			<td>
-			{% ifequal group_grade_info.grade 'no grade'%} 
-				<a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><img src="{{STATIC_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
+  		  {% if mark_comps %}
+			<td class="iconcell">
+			{% ifequal group_grade_info.grade 'no grade'%}
+				<a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><i class="fa fa-edit" title="Mark"></i></a>
 			{% else %}
 			    {{ group_grade_info.grade }}
-			    {% if activity.is_numeric %}	   
-			    <a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+			    {% if activity.is_numeric %}
+			    <a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><i class="fa fa-search" title="View detail"></i></a>
 			    {% endif %}
 			{% endifequal %}
 			</td>
-			<td>
-			{% if submitted|hash:group.slug %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-                <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{STATIC_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>{% endif %}
+		  {% else %}
+		  <td class="iconcell disabled"></td>
+		  {% endif %}
+		    {% if sub_comps %}
+			<td class="iconcell">
+			{% if submitted|hash:group.slug %}<a href="{% url "submission.views.show_student_submission_staff" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><i class="fa fa-search" title="View detail"></i></a>
+                <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><i class="fa fa-download" title="Download"></i></a>{% endif %}
 			</td>
+		    {% else %}
+		    <td class="iconcell disabled"></td>
+		    {% endif %}
+
 			{% endwith %}
 		    </tr>
 	    {% empty %}

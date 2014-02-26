@@ -1,72 +1,22 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 {% load course_display %}
-
-{% block marking_header_extra %}
-<script type="text/javascript">
-//<![CDATA[
-	var component_ids = new Array();
-	var component_max_marks = new Array();	
-	function find_component_index(id){
-		for(var i = 1; i< component_ids.length; i++)
-			if(component_ids[i] == id)
-				return i;
-		return 0;
-	}
-	
-    $(document).ready(function() {
-		var oTable = $('#common_problems').dataTable({
-			"bJQueryUI": true,
-			"bSort": false,			
-			"bFilter": false,
-			"bPaginate": false /* turn off the pagination */	
-		});		
-		
-		{%for component in components%}
-			component_ids[{{forloop.counter}}] = {{component.id}};
-			component_max_marks[{{forloop.counter}}] = {{component.max_mark}};
-		{%endfor%}
-		
-		$('select').after("<p class=\"component_info\"></p>");
-		
-		$('select').each(function(index){
-		    var selected = $(this).val();
-			if(selected > 0){
-				var index = find_component_index(selected);
-				$(this).parent().children('p').html("out of " + component_max_marks[index]);
-			}
-		});
-				
-		$('select').change(function(){			
-		    var selected = $(this).val();
-		    var info = $(this).parent().children('p');	 
-		    info.hide();
-		    if(selected > 0){ /*some component selected*/
-		    	var index = find_component_index(selected);		    	
-				info.html("out of " + component_max_marks[index]);				
-				info.show();				
-			}
-		});
-    });
-//]]>
-</script>
-{% endblock %}
 
 {% block title %}{{activity.name}} Common Problems{% endblock %}
 {% block h1 %}{{activity.name}} Common Problems{% endblock %}
 
-{% block marking_subbreadcrumbs %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Common Problems</li>
 {% endblock %}
 
 {% block content %}
 
-<form action="" method="post">{% csrf_token %}
-     <div class = "datatable_container">
-       {{ formset.management_form }} 
+<form action="" class="subtle" method="post">{% csrf_token %}
+       {{ formset.management_form }}
        <table class="display" id="common_problems">
         <thead class="form_head">
           <tr>             
-             <th>Associated Component</th>
+             <th>Component</th>
              <th>Button Label</th>
              <th>Comment for Student</th>
              <th>Mark Penalty</th>
@@ -82,11 +32,9 @@
           {% endfor %}
          </tbody>
       </table>
-   </div>
    <div>
    <input class="submit" type="submit" value="Submit" />
    </div>
 </form>  
-<div><a class="redbutton reset_button" href="{% url "marking.views.manage_common_problems" course_slug=course.slug activity_slug=activity.slug %}">Reset</a></div>
 
 {% endblock %}

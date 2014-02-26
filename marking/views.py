@@ -581,7 +581,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                 old_c = am.activitycomponentmark_set.filter(activity_component=c)[0]
             except IndexError: # just in case: leave old_c==None if old one can't be found in database
                 pass
-        f = ActivityComponentMarkForm(instance=old_c, data=postdata, prefix="cmp-%s" % (i+1))
+        f = ActivityComponentMarkForm(component=c, instance=old_c, data=postdata, prefix="cmp-%s" % (i+1))
         common = CommonProblem.objects.filter(activity_component=c, deleted=False)
         component_data.append( {'component': c, 'form': f, 'common_problems': common } )
     
@@ -746,7 +746,7 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
      
     act_mark_id = request.GET.get('activity_mark')
     if act_mark_id != None: 
-        act_mark = get_group_mark_by_id(activity, group_slug, act_mark_id)
+        act_mark = get_group_mark_by_id(activity, group, act_mark_id)
     else:
         act_mark = get_group_mark(activity, group)
     if act_mark == None:

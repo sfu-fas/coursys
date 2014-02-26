@@ -1,8 +1,6 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
@@ -14,19 +12,24 @@ $(document).ready(function() {
 {% block title %}Create Time Use Guideline{% endblock %}
 {% block h1 %}Create Time Use Guideline{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li><a href="{% url "ta.views.all_tugs" course_slug=course.slug %}">TUGs</a></li><li><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=userid %}">{{ta.name}}</a></li><li>{% block verb %}Create{% endblock %}</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li>
+<li><a href="{% url "coredata.views.manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
+<li>{% block verb %}Create{% endblock %} TUG for {{ta.name}}</li>{% endblock %}
 
 {% block content %}
 <div class="form_container">
 <form action="{% block formaction %}{% url "ta.views.new_tug" course_slug=course.slug userid=userid %}{% endblock %}" method="post">{% csrf_token %}
 <fieldset id="edit-time-use-guideline">
 
-<p><label>TA Name:</label>{{ta.name}}</p>
-<p><label>Course:</label>{{course}}</p>
+<p>TA Name: {{ta.name}}</p>
+<p>Course: {{course}}</p>
 
 {{ form.as_p }}
 <table>
+<tr>
 <th>Duties and Responsibilities</th><th>Average hrs/week</th><th>Total hrs/semester</th><th>Comment</th>
+</tr>
 
 {% for form in form.subforms.itervalues %}
 <tr>

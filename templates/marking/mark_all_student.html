@@ -1,8 +1,8 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
+{% load form_display %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">
-//<![CDATA[
 var oTable;
 function clear_filter() {
   oTable.fnFilter("");
@@ -16,26 +16,20 @@ $(document).ready(function() {
 		"aoColumns": [null, null, null, {% if course.labtut %}null,{% endif %} { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
 	});
 });
-//]]>
 </script>
 {% endblock %}
 
-{% block title %}Mark All{% endblock %}
-{% block h1 %} Mark All Students {% endblock %}
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Students</li>{% endblock %}
+{% block title %}Mark All Students{% endblock %}
+{% block h1 %}Mark All Students{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Mark All Students</li>{% endblock %}
 
 {% block content %}
-<form id="import_file_form" action="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}?import=true" method="post" enctype="multipart/form-data">{% csrf_token %}
-{% if fileform.file.errors %}
-<div class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
-{% endif %} 
-<div>
-{{fileform.file}}
-<input type="submit" value="Import"/>
-</div>
+<form action="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}?import=true" method="post" enctype="multipart/form-data">{% csrf_token %}
+<p><input type="submit" class="submit" value="Import"/></p>
+{{fileform.file|field_display}}
 </form>
 <p class="helptext">Imported file must be CSV (comma-separated values). File can be in one of two formats:</p>
-<ul class="helptext">
+<ul class="helptext bulleted">
 <li> With header: The file should be a grade file exported by this system or
 one with the same format.  There must be a column labelled
 <code>{{ userid_header }}</code> containing the student's userid and a column labelled
@@ -48,11 +42,10 @@ column is the grade.  Other columns will be ignored.</li>
 {% if too_many %}
 <a class="redbutton reset_button" href="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endif %}
-<form id = "grades_form" action="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
+<form id="grades_form" class="subtle" action="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
 {%if too_many %}
 <input class="submit" type="submit" value="Submit" />
 {% endif %}
-<div class="datatable_container">
      <table class="display" id="all_marks">
         <thead class="form_head">
             <tr>
@@ -96,7 +89,6 @@ column is the grade.  Other columns will be ignored.</li>
 	    {% endfor %}
         </tbody>
     </table>
-</div>
 <div><input class="submit" type="submit" value="Submit" /></div>
 </form>
 {% endblock %}

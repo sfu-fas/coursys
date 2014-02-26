@@ -70,7 +70,7 @@ class Word:
         def __init__(self, *args, **kwargs):
             super(Word.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
+            self.fields['max_size'].label=mark_safe("Max size")
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:

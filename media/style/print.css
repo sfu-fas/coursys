@@ -1,6 +1,8 @@
 @CHARSET "UTF-8";
+@media print {
+
 /* hide the SFU/site style */
-div.branding, div.site-title, div#actions {
+div.branding, div.site-title, div#actions, div.header-divider, header {
   display: none;
 }
 
@@ -29,4 +31,7 @@ div#main {
 }
 .datatable_container .ui-widget-header, .DataTables_sort_icon {
 	display: none;
+}
+
+
 }

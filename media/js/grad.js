@@ -111,8 +111,8 @@ function show_section(id) {
 	}
 	elt.removeClass('collapsed');
 	elt.addClass('displayed');
-	$('#'+id+'_content').html('<p><img src="' + loader_url + '" alt="..." /></p>');
-	
+	$('#'+id+'_content').html('<p><i class="fa fa-spinner fa-spin"></i></p>');
+
 	set_visible_section_cookie()
 	$.ajax({
 		url: "?section="+id,
@@ -242,7 +242,7 @@ function prep_content() {
 		var prev = $('#id_date').parent().parent();
 		var element = '<dt><label for="id_address">Addresses:</label></dt><dd><div class="field">';
 		element += '<select id="id_address"><option value="none">&mdash;</option></select>';
-		element += '<img src="/media/icons/ajax-loader.gif" alt="..." id="fetchwait" /></div>';
+		element += '<i class="fa fa-spinner fa-spin" id="fetchwait"></i></div>';
 		element += '<div class="helptext">Known addresses for the student</div></dd>';
 		prev.after(element)
 		var id = $('#id_student').val();

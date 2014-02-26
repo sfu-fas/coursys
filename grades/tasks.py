@@ -3,9 +3,9 @@ from dashboard.models import NewsItem
 from grades.models import Activity, NumericGrade, LetterGrade, GradeHistory
 import itertools
 
-try:
+if settings.USE_CELERY:
     from celery.task import task
-except ImportError:
+else:
     def task(*args, **kwargs):
         def decorator(*args, **kwargs):
             return None

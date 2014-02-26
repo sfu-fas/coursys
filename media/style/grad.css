@@ -35,3 +35,11 @@ p.hiddencomment {
 tr.current {
 	font-weight: bold;
 }
+.datatable_container table.display {
+  width: 100%;
+  border-collapse:collapse;
+}
+p.manage_link {
+  text-align: right;
+  margin-top: -1.75em;
+}

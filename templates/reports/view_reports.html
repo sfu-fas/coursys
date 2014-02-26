@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Reports{% endblock %}
+{% block h1 %}Reports{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Reports</li>
+{% endblock %}
+
+{% block actions %}
+{% if not readonly %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "reports.views.new_report" %}">New Report</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<ul>
+{% for report in reports %}
+    <li><a href="{% url "reports.views.view_report" report=report.slug%}">{{report.name}}</a></li>
+{% endfor %}
+</ul>
+
+{% if not reports %}
+    <p>There are no reports available for you. Maybe you need to speak to a system administrator?</p>
+{% endif %}
+
+{% endblock %}

@@ -18,7 +18,6 @@ CHUNK_SIZE = 10 # max number of photos to fetch in one request
 PHOTO_TIMEOUT = 10 # number of seconds the views will wait for the photo service
 
 
-
 # from http://docs.python.org/2/library/itertools.html
 def _grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
@@ -47,8 +46,9 @@ def fetch_photos(emplids):
         t = fetch_photos_task.delay(emplids=group)
 
         # record which task is fetching which photos
-        new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
-        task_map.update(new_map)
+        if t is not None: # returns None if no Celery available in devel environment: ignore the results then
+            new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
+            task_map.update(new_map)
 
     return task_map
 

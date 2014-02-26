@@ -10,7 +10,45 @@ from grad.forms import SupervisorWidget
 required_icon = '<i class="reqicon fa fa-star-o"></i>'
 
 @register.filter
-def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform'):
+def field_display(field, safe=False):
+    out = []
+    if isinstance(field.field.widget, (forms.widgets.RadioSelect, forms.widgets.CheckboxSelectMultiple)):
+        out.append('<div class="field radio">%s</div>' % (unicode(field)))
+    else:
+        out.append('<div class="field">%s</div>' % (unicode(field)))
+    out.append(unicode(field.errors))
+
+    if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default
+        if safe:
+            out.append('<div class="helptext">%s</div>' % (field.help_text))
+        else:
+            out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
+    return mark_safe('\n'.join(out))
+
+
+@register.filter
+def label_display(field, prefix=''):
+    out = []
+
+    labelid = str(field.name)
+    if prefix:
+        labelid = prefix + '-' + labelid
+    if isinstance(field.field.widget, (RadioSelect, SupervisorWidget)):
+        labelid += '_0'
+
+    out.append('<label for="id_%s">' % (labelid,))
+    out.append(escape(field.label))
+    out.append(':')
+    if field.field.required:
+        out.append('&nbsp;' + required_icon)
+
+    out.append('</label>')
+
+    return mark_safe(''.join(out))
+
+
+@register.filter
+def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlform', reqmessage=True):
     """
     Output a Form as a nice <dl>
     """
@@ -32,77 +70,38 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
                 includefields is not None and field.name not in includefields) :
             continue
 
-        reqtext = ''
         if field.field.required:
-            #reqtext = ' <span class="required">*</span>'
-            reqtext = '&nbsp;' + required_icon
             reqcount += 1
         
         if field.label:
-            labelid = str(field.name)
-            if form.prefix:
-                labelid = form.prefix + '-' + labelid
-            if isinstance(field.field.widget, (RadioSelect, SupervisorWidget)):
-                labelid += '_0'
-            out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
-        
-        if isinstance(field.field.widget, (forms.widgets.RadioSelect, forms.widgets.CheckboxSelectMultiple)):
-            out.append('<div class="field radio">%s</div>' % (unicode(field)))
-        else:
-            out.append('<div class="field">%s</div>' % (unicode(field)))
-        out.append(unicode(field.errors))
+            out.append('<dt>%s</dt>' % (label_display(field, form.prefix)))
 
-        if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default
-            if safe:
-                out.append('<div class="helptext">%s</div>' % (field.help_text))
-            else:
-                out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
+        out.append('<dd>')
+        out.append(field_display(field, safe=safe))
         out.append('</dd>')
     
     out.append('</dl>')
-    if reqcount > 0:
-        out.append('<p class="helptext">' + required_icon + ' This field is required.</p>')
+    if reqmessage and reqcount > 0:
+        out.append(required_message(None))
     return mark_safe('\n'.join(out))
 
 
 @register.filter
-def as_dl_2(form, safe=False):
+def required_label(label):
     """
-    Output a Form as a nice <dl>
+    Style label as it should be if on a required field.
     """
-    out = []
-    out.append(unicode(form.non_field_errors()))
-    if form.hidden_fields():
-        out.append('<div style="display:none">')
-        for field in form.hidden_fields():
-            out.append(unicode(field))
-        out.append('</div>')
-        
-    out.append('<dl class="dlform">')
-    reqcount = 0
-    for field in form.visible_fields():
-        reqtext = ''
-        if field.field.required:
-            reqtext = ' <span class="required">*</span>'
-            reqcount += 1
-        labelid = field.name
-        if form.prefix:
-            labelid = form.prefix + '-' + labelid
-        out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
-        out.append('<div class="field">%s</div>' % (unicode(field)))
-        if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default:
-            if safe:
-                out.append('<div class="helptext">%s</div>' % (field.help_text))
-            else:
-                out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
-        if field.errors:
-            out.append(unicode(field.errors))
-        out.append('</dd>')
-    
-    out.append('</dl>')
-    if reqcount > 0:
-        out.append('<p class="helptext"><span class="required">*</span> This field is required.</p>')
-    return mark_safe('\n'.join(out))
+    return mark_safe(escape(label) + '&nbsp;' + required_icon)
+
+@register.filter
+def required_message(_):
+    return mark_safe('<p class="helptext">' + required_icon + ' This field is required.</p>')
+
+
+
+
+
+# various permutations of the as_dl arguments that are needed around the system...
 
 @register.filter
 def as_dl_safe(form):
@@ -138,8 +137,9 @@ def as_dl_onlineforms(form):
 
 
 @register.filter
-def required_label(label):
-    """
-    Style label as it should be if on a required field.
-    """
-    return mark_safe(escape(label) + '&nbsp;' + required_icon)
+def as_dl_noreq(form):
+    return as_dl(form, reqmessage=False)
+
+@register.filter
+def as_dl_inline(form):
+    return as_dl(form, formclass='dlform inline', reqmessage=False)

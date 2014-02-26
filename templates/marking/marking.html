@@ -1,7 +1,7 @@
-{% extends "marking/base.html" %}
-{% load course_display %}
+{% extends "base.html" %}
+{% load form_display %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">//<![CDATA[
 function append_problem(n, penalty, content, outof) {
   // handle comment
@@ -29,68 +29,49 @@ function append_problem(n, penalty, content, outof) {
 //]]></script>
 {% endblock%}
 
-{% block title %}{{activity.name}} Marking {% endblock %}
-{% block h1 %}{{activity.name}} Marking {% endblock %}
+{% block title %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
+<li>Mark {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}</li>{% endblock %}
 
 {% block content %}
      
-<div class="form_container">
-<div id="marking_container">
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-     {% if group %}
-        <h2>Mark for Group: <a href="{{ group.get_absolute_url }}">{{group}}</a></h2>
-     {% else %}
-       {% if student %}           
-        	<h2> Mark for Student: {{student.name}} ({{student.userid}}) </h2>       
-       {% endif %}
-     {% endif %}
-	 {% for entry in component_data %}  	     
-	     <fieldset>
+	 {% for entry in component_data %}
+	     <fieldset class="marking">
 	     <legend>{{entry.component.title}}</legend> 
-		     <ul class="component">
-		        <li>{{entry.component.description|linebreaks}}</li>
-		        <li class="component_mark"> 
-		        	Mark {{entry.form.value}} Out of {{entry.component.max_mark}}
-		        	{% if entry.form.value.errors %}		        	
-		        	<div class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/>&nbsp;{{entry.form.value.errors.0}}</div>	        	
-		        	{% endif %}
-		        </li>
-		        <li class="common_problems">
+		     <div class="common">
 			    {% with forloop.counter as pos %}
-			    Common problems:    
+			    Common problems:
 			    <div>
-			    {% for problem in entry.common_problems %}			    	
-			        <input class="common_problem" type="button" value="{{problem.title}}" title="{{problem.description}}{%if problem.penalty%} [penalty: {{problem.penalty}}]{%endif%}" 
+			    {% for problem in entry.common_problems %}
+			        <input type="button" value="{{problem.title}}" title="{{problem.description}}{%if problem.penalty%} [penalty: {{problem.penalty}}]{%endif%}"
 			        onclick="append_problem({{pos}}, {{problem.penalty}}, '{{problem.description|escapejs}}', {{entry.component.max_mark}});"/>
 			    {% endfor %}
 			    <a href="{% url "marking.views.manage_common_problems" course_slug=course.slug activity_slug=activity.slug%}" title="Manage common problems">Manage&hellip;</a>
-			    </div>			    
-			    {% endwith %}			    
-			    </li>
-		        <li class="component_comment">		    		      		 
-		        	{{entry.form.comment.label_tag}} {{ entry.form.comment }}
-		      		{% if entry.form.comment.errors %}		      		
-		      		<div class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/>&nbsp;{{entry.form.comment.errors.0}}</div>	        			      		
-		      		{% endif %}		      				      	  	
-				</li>			
-		 	</ul>   	 
+			    </div>
+			    {% endwith %}
+		 	 </div>
+             <div class="description">{{ entry.component.description|linebreaks }}</div>
+             {{ entry.form|as_dl_noreq }}
 	  </fieldset>
      {% empty %}
 	   	<p class="empty">Marking is not <a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}" title="Edit components">configured</a>.
 	    </p>
-	 {% endfor %}	 
+	 {% endfor %}
 	 <fieldset>
 	 <legend>Additional Information</legend>
-	 {% if group %}
-	   {{form|display_form}}
-	 {% else %}
-	   {{form|display_form_marknext}}
+     {{form|as_dl}}
+     {{ 0|required_message }}
+     <p>
+     <input class="submit" type="submit" name="mark" value="Submit" />
+	 {% if not group %}
+	   <input class="submit" type="submit" name="marknext" title="submit this form and mark next student (by userid)" value="Submit and mark next userid" />
 	 {% endif %}
-	 </fieldset>     
+     </p>
+	 </fieldset>
 </form>
-</div>
-</div>
 
 {% endblock %}

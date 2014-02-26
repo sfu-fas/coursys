@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}CourSys Members{% endblock %}
-{% block h1 %}CourSys Members{% endblock %}
+{% block title %}Edit Member{% endblock %}
+{% block h1 %}Edit Member{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>Edit Member</li>{% endblock %}
-
 
 {% block headextra %}
 <script type="text/javascript">
@@ -28,8 +27,7 @@
 <div class="form_container">
 <form action="{% if member %}{% url "coredata.views.edit_member" member_id=member.id %}{% else %}{% url "coredata.views.edit_member" %}{% endif %}" method="post">{% csrf_token %}
 <fieldset>
-<legend>Membership</legend>
-{{ form.as_p }}
+{{ form|as_dl }}
 <p><input type="submit" class="submit" value="Submit" /></p>
 </fieldset>
 </form>

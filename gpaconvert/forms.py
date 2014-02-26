@@ -108,3 +108,4 @@ class ContinuousGradeForm(BaseGradeForm):
             MinValueValidator(grade_source.lower_bound),
             MaxValueValidator(grade_source.upper_bound),
         ])
+        self.fields['grade'].widget.attrs['size'] = 5

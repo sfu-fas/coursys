@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}New Report{% endblock %}
+{% block h1 %}New Report{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li>New Report</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url "reports.views.new_report" %}" method="post">{% csrf_token %}
+<fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+{% endblock %}

@@ -69,7 +69,7 @@ def test_auth(client, userid):
     """
     client.get(reverse('dashboard.views.fake_login') + '?userid=' + 'ggbaker')
 
-def test_views(testcase, client, view_prefix, views, url_args):
+def test_views(testcase, client, view_prefix, views, url_args, qs=None):
     """
     Test a collection of views, just to make sure they render
     """
@@ -77,6 +77,8 @@ def test_views(testcase, client, view_prefix, views, url_args):
         view = view_prefix + v
         try:
             url = reverse(view, kwargs=url_args)
+            if qs:
+                url += '?' + qs
             response = basic_page_tests(testcase, client, url)
         except Exception as e:
             print "failing with view=" + view

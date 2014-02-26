@@ -126,16 +126,16 @@
   <h2>Other Information</h2>
   <table class="info">
     <tr><th>Notes:</th>
-      <td>{{ appointment.notes }}</td></tr>
+      <td>{{ appointment.notes|linebreaksbr }}</td></tr>
     <tr><th>Comments:</th>
-      <td>{{ appointment.comments }}</td></tr>
+      <td>{{ appointment.comments|linebreaksbr }}</td></tr>
   </table>
 </div>
 
                         <form action="{% url "ra.views.delete_ra" ra_slug=appointment.slug %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="Delete Appointment" onclick="return confirmSubmit('delete this appointment')" />
+                                    <input type="submit" class="submit" value="Delete Appointment" onclick="return confirmSubmit('delete this appointment')" />
                                 </p>
                         </form>
 

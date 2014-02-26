@@ -18,14 +18,14 @@
 <p><em>** Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; after <b>accepting</b> the contract.</em> </p>
 {%else%}
 <div class="table_container">
-<h3>You have been chosen to be a TA for {{contract.posting.semester}}!</h3>
+<h3>You have been chosen to be a TA for {{contract.posting.semester}}.</h3>
  <table class="info">
 	<tr><th>Acceptance Deadline</th><td>{{acc_deadline}}</td></tr>
 </table>
 
 </div> 
 
-<h2>Courses Assigned:</h2> 
+<h2>Courses Assigned</h2>
 <div class="table_container">
 <table class="info">
 		<thead class="form_head">
@@ -33,7 +33,7 @@
          	<th scope="col">Course Name</th>
          	<th scope="col">Description</th>
             <th scope="col">Prep Units</th>
-            <th scope="col">Base Units</td>
+            <th scope="col">Base Units</th>
          	<th scope="col">Total Units</th>
           </tr>         
         </thead>  
@@ -47,7 +47,7 @@
                 <td>{{course.prep_bu}}</td>
                 <td>{{course.bu}}</td>
 				<td>{{course.total_bu}}</td>
-			<tr/>
+			</tr>
 			{% endfor %}		
 			<tr id="cal_tr">
 	      	<td></td>
@@ -60,7 +60,7 @@
   </table>
 </div>
 
-<h2>Payment Information:</h2> 
+<h2>Payment Information</h2>
 <div class="table_container"> 
       <table class="info">
       	<thead class="form_head">

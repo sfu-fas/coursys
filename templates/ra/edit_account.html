@@ -12,8 +12,7 @@
 {% block content %}
   <div class="form_container">
     <form action="{% url "ra.views.edit_account" account_slug=account.slug %}" method="post">{% csrf_token %}
-      <fieldset style="list-style: none;">
-        <legend>Account Information</legend>
+      <fieldset>
         {{ accountform|as_dl }}
         <p><input type="submit" value="Submit" class="submit" /></p>
       </fieldset>

@@ -4,9 +4,7 @@
 $(document).ready(function() {
   setup_templates("chair_meeting_summary");
   setup_templates("chair_meeting_notes");
-  $("#id_chair_meeting_date").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
+  $("#id_chair_meeting_date").datepicker({ dateFormat: 'yy-mm-dd' });
 });
 {% endblock %}
 

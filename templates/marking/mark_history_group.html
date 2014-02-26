@@ -1,11 +1,12 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
 	oTable = $('.display').dataTable({
 		"bJQueryUI": true,
 		"bFilter": false,
+		"bInfo": false,
 		"bPaginate": false,
 		"aaSorting": [[ 0, "desc" ]] /*as default sorted by created time: from latest to earliest*/	
 	});
@@ -13,49 +14,45 @@
 </script>
 {% endblock %}
 
-{% block title %}Marking History {% endblock %}
 
-{% block h1 %} Marking History {% endblock %}
+{% block title %}Marking History: {{group.name}}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking History: {{group.name}}, {{activity.name}}{% endblock %}
 
-{% block marking_subbreadcrumbs %}
-<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking History</li>
+{% block subbreadcrumbs %}
+<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>
+<li><a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">{{ group.name }} Marking</a></li>
+<li>History</li>
 {% endblock %}
 
 {% block content %}
-<h2> For Student {{student.userid}} on {{activity.name}} of {{course.name}} </h2>
-<div>
-</br>
-<img src = "{{STATIC_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
-: Currently Valid
-</br>
-</div>
-<div class = "datatable_container">
   <table class="display">
 	<thead>
 		<tr>
-			<th>Time</th>
-			<th>Marker</th>
-			<th>Mark Given</th>		
+			<th scope="col">Time</th>
+			<th scope="col">Marker</th>
+			<th scope="col">Mark Given</th>
 		</tr>
 	</thead>
 	<tbody>
 	    {% for act_mark in all_marks %}
 	     	<tr>
 		      <td>
-		       {{act_mark.created_at|date:'r'}} 
+               <span class="sort">{{act_mark.created_at.isoformat}}</span>
+		       {{act_mark.created_at}}
 		       {% ifequal act_mark current_mark %}
-		       <img src = "{{STATIC_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
+		       <i class="fa fa-check-circle infomessage"></i>
 		       {% endifequal %}		       
 		      </td>
 	          <td>{{ act_mark.created_by }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?activity_mark={{act_mark.id}}"><img src="{{STATIC_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          	<a href="{% url "marking.views.mark_summary_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?activity_mark={{act_mark.id}}"><i class="fa fa-search" title="View detail"></i></a>
 	          </td>
 	        </tr>	
 	     {% empty %}
 	        No records found.
 	    {% endfor %}
     </tbody>
-  </table>  
-</div> 
+  </table>
+<p><i class="fa fa-check-circle infomessage"></i> indicates the currently-valid marks.</p>
 {% endblock %}

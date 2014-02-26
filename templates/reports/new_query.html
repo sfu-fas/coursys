@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}New Query{% endblock %}
+{% block h1 %}New Query{% endblock %}
+
+{% block headextra %}
+    <link type="text/css" href="{{STATIC_URL}}codemirror/lib/codemirror.css" rel="stylesheet" />
+    <script type="text/javascript" src="{{STATIC_URL}}codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}codemirror/mode/sql/sql.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            var editor = CodeMirror.fromTextArea( $("#id_query").get()[0], {'mode':'text/x-sql'});
+        });
+    </script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li> 
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a></li>
+<li>New Query</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url "reports.views.new_query" report=report.slug %}" method="post">{% csrf_token %}
+<fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+{% endblock %}
