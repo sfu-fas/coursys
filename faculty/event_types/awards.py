@@ -7,6 +7,7 @@ from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.fields import DollarInput, AddSalaryField, AddPayField, TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
+from faculty.event_types.search import ComparableSearchRule, StringSearchRule
 
 
 class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
@@ -153,6 +154,17 @@ class AwardEventHandler(CareerEventHandlerBase):
         awarded_by = forms.CharField(label='Awarded By', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
         externally_funded = forms.BooleanField(required=False)
+
+    SEARCH_RULES = {
+        'award': StringSearchRule,
+        'awarded_by': StringSearchRule,
+        'amount': ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'award',
+        'awarded_by',
+        'amount',
+    ]
 
     @classmethod
     def default_title(cls):
