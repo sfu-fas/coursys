@@ -29,6 +29,7 @@ class ApprovalForm(forms.ModelForm):
         model = CareerEvent
         fields = ("status",)
 
+
 class GetSalaryForm(forms.Form):
     date = forms.DateField();
 

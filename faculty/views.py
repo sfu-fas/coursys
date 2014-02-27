@@ -4,6 +4,7 @@ import copy
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.db import transaction
+from django.db.models import Q
 
 from django.http import Http404
 from django.http import HttpResponse
@@ -216,9 +217,16 @@ def summary(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     career_events = CareerEvent.objects.not_deleted().filter(person=person)
     handlers = {k: h.NAME for k, h in EVENT_TYPES.items() if career_events.filter(event_type=k).exists()}
-    etype = str(request.GET.get("etype")).upper()
-    if etype in [k.upper() for k, h in EVENT_TYPE_CHOICES]:
-        career_events = career_events.filter(event_type=etype)
+    etypes = str(request.GET.get("etype")).upper().split(',')
+    choices = []
+    for etype in etypes:
+        if etype in [k.upper() for k, h in EVENT_TYPE_CHOICES]:
+            choices.append(etype)
+    if choices:
+        event_types = Q()
+        for c in choices:
+            event_types |= Q(event_type=c)
+        career_events = career_events.filter(event_types)
     context = {
         'person': person,
         'career_events': career_events,
