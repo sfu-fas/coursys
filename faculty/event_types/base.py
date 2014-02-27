@@ -182,14 +182,21 @@ class CareerEventHandlerBase(object):
         self.post_save()
 
     def get_config(self, name, default=None):
-        # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in the
-        #      config field, then it was most likely valid when the event was created.
-        try:
-            raw_value = self.event.config.get(name)
-            python_value = self.CONFIG_FIELDS[name].to_python(raw_value)
-            return python_value or default or self.CONFIG_FIELDS[name].initial
-        except forms.ValidationError:
-            return self.CONFIG_FIELDS[name].initial or default
+        raw_value = self.event.config.get(name)
+        field = self.CONFIG_FIELDS[name]
+
+        if raw_value is None:
+            if default is not None:
+                return default
+            else:
+                return field.to_python(field.initial)
+        else:
+            # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
+            #      the config field, then it was most likely valid when the event was created.
+            try:
+                return field.to_python(raw_value)
+            except forms.ValidationError:
+                return raw_value
 
     def set_config(self, name, value):
         if isinstance(value, models.Model):
