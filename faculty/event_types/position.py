@@ -22,8 +22,14 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     class EntryForm(BaseEntryForm):
 
         POSITIONS = Choices(
+            ('UGRAD_DIRECTOR', 'Undergrad Program Director'),
+            ('GRAD_DIRECTOR', 'Graduate Program Director'),
+            ('DDP_DIRECTOR', 'Dual-Degree Program Director'),
+            ('ASSOC_DIRECTOR', 'Associate Director'),
+            ('DIRECTOR', 'School Director'),
+            ('ASSOC_DEAN', 'Associate Dean'),
             ('DEAN', 'Dean'),
-            ('UGRAD_DIRECTOR', 'Undergrad Director'),
+            ('OTHER', 'Other Admin Position'),
         )
 
         position = forms.ChoiceField(required=True, choices=POSITIONS)
