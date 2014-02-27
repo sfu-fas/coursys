@@ -31,6 +31,7 @@ from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ResearchMembershipHandler
 from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
+from faculty.event_types.teaching import OneInNineHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -43,6 +44,7 @@ HANDLERS = [
     GrantApplicationEventHandler,
     NormalTeachingLoadHandler,
     OnLeaveEventHandler,
+    OneInNineHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,
