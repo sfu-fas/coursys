@@ -15,6 +15,11 @@ def get_config(event, field):
 
 
 @register.filter
+def get_display(handler, field):
+    return handler.get_display(field)
+
+
+@register.filter
 def can_approve(person, event):
     return event.get_handler().can_approve(person)
 

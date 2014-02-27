@@ -329,6 +329,17 @@ class CareerEventHandlerBase(object):
 
     # Stuff relating to HTML display
 
+    def get_display(self, field, default='unknown'):
+        """
+        Returns the display value for a field.
+
+        """
+        display_func_name = 'get_{}_display'.format(field)
+        if hasattr(self, display_func_name):
+            return getattr(self, display_func_name)()
+        else:
+            return self.get_config(field, default)
+
     def to_html_context(self):
         """
         Additional context for the TO_HTML_TEMPLATE
