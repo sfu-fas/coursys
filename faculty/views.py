@@ -204,10 +204,15 @@ def summary(request, userid):
     Summary page for a faculty member.
     """
     person, _ = _get_faculty_or_404(request.units, userid)
-    career_events = CareerEvent.objects.filter(person=person).exclude(status='D')
+    career_events = CareerEvent.objects.not_deleted().filter(person=person)
+    handlers = {k: h.NAME for k, h in EVENT_TYPES.items() if career_events.filter(event_type=k).exists()}
+    etype = str(request.GET.get("etype")).upper()
+    if etype in [k.upper() for k, h in EVENT_TYPE_CHOICES]:
+        career_events = career_events.filter(event_type=etype)
     context = {
         'person': person,
         'career_events': career_events,
+        'handlers': handlers,
     }
     return render(request, 'faculty/summary.html', context)
 
