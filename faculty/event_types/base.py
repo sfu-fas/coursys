@@ -329,6 +329,12 @@ class CareerEventHandlerBase(object):
 
     # Stuff relating to HTML display
 
+    def to_html_context(self):
+        """
+        Additional context for the TO_HTML_TEMPLATE
+        """
+        return {}
+
     def to_html(self):
         """
         A detailed HTML presentation of this event
@@ -337,6 +343,8 @@ class CareerEventHandlerBase(object):
         context = {
             'event': self.event,
             'handler': self,
+            'start': self.event.start_date,
+            'end': self.event.end_date,
         }
         context.update(self.to_html_context())
         return template.render(Context(context))
@@ -410,12 +418,6 @@ class CareerEventHandlerBase(object):
 
         """
         pass
-
-    def to_html_context(self):
-        """
-        Additional context for the TO_HTML_TEMPLATE
-        """
-        return {}
 
 
 class Choices(collections.OrderedDict):
