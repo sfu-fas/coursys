@@ -397,7 +397,7 @@ class CareerEventHandlerBase(object):
         return [cls.CONFIG_FIELDS[name].label or pretty_name(name) for name in cls.SEARCH_RESULT_FIELDS]
 
     def to_search_row(self):
-        return [self.get_config(name) for name in self.SEARCH_RESULT_FIELDS]
+        return [self.get_display(name) for name in self.SEARCH_RESULT_FIELDS]
 
     # Optionally override these
 
