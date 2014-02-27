@@ -360,7 +360,7 @@ class CareerEventHandlerBase(object):
         return not bool([False for _, form in rules if not form.is_valid()])
 
     @classmethod
-    def filter(cls, start_date=None, end_date=None, rules=None):
+    def filter(cls, start_date=None, end_date=None, unit=None, rules=None):
         from faculty.models import CareerEvent
         events = CareerEvent.objects.by_type(cls)
         if not rules:
@@ -370,6 +370,8 @@ class CareerEventHandlerBase(object):
             events = events.filter(start_date__gte=start_date)
         if end_date:
             events = events.filter(end_date__lte=end_date)
+        if unit:
+            events = events.filter(unit=unit)
 
         for event in events:
             handler = cls(event)

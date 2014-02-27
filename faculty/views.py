@@ -92,9 +92,9 @@ def search_events(request, event_type_slug):
 
         if form.is_valid() and Handler.validate_all_search(rules):
             is_search = True
-            events = CareerEvent.objects.by_type(Handler)
             results = Handler.filter(start_date=form.cleaned_data['start_date'],
                                      end_date=form.cleaned_data['end_date'],
+                                     unit=form.cleaned_data['unit'],
                                      rules=rules)
     else:
         form = SearchForm()
