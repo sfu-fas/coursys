@@ -182,14 +182,24 @@ def salary_summary(request, userid):
     pay_tot = FacultySummary(person).salary(date)
 
     salary_events = copy.copy(FacultySummary(person).salary_events(date))
+    add_salary_total = add_bonus_total = 0
+    salary_fraction_total = 1
+
     for event in salary_events:
         event.add_salary, event.salary_fraction, event.add_bonus = FacultySummary(person).salary_event_info(event)
+        add_salary_total += event.add_salary
+        salary_fraction_total = salary_fraction_total*event.salary_fraction
+        add_bonus_total += event.add_bonus
 
     context = {
         'form': form,
+        'date': date,
         'person': person,
         'pay_tot': pay_tot,
         'salary_events': salary_events,
+        'add_salary_total': add_salary_total,
+        'salary_fraction_total': salary_fraction_total,
+        'add_bonus_total': add_bonus_total,
     }
 
     return render(request, 'faculty/salary_summary.html', context)

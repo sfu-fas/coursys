@@ -1,16 +1,28 @@
 {% extends "base.html" %}
-{% block title %}View Salary: {{ person.name }}{% endblock %}
-{% block h1 %}View Salary: {{ person.name }}{% endblock %}
+
+
+{% block title %}{{ person.name }}: Salary {{ date.isoformat }}{% endblock %}
+{% block h1 %} {{ person.name }}: Salary {{ date.isoformat }}{% endblock %}
 
 {% block headextra %}
+<style type="text/css">
+    .total-row {
+      font-weight: bold;
+      border-top: 1px solid #999;
+    }
+    #total-text {
+      text-align: right;
+    }
+    input[type="submit"] {
+      margin-left: 325px;
+      margin-top: -53px;
+    }
+</style>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#faculty_salary_table').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[2, "asc"]],
-    "bJQueryUI": true,
-  } );
+  $("#id_date").datepicker({
+      'dateFormat' : 'yy-mm-dd'
+    });
 } );
 </script>
 {% endblock %}
@@ -28,30 +40,86 @@ $(document).ready(function() {
   <div>Total: ${{ pay_tot }}</div>
 </form>
 
-<div class="datatable_container">
-<table id="faculty_salary_table" class="display">
+{% if add_salary_total %}
+<h3>Salary Events</h3>
+<table class="display">
   <thead><tr>
-  	<th scope="col">Title</th>
-  	<th scope="col">Type</th>
-  	<th scope="col">Start Date</th>
-  	<th scope="col">End Date</th>
-  	<th scope="col">Salary Pay</th>
-  	<th scope="col">Salary Multiplier</th>
-  	<th scope="col">Add Pay</th>
+    <th scope="col">Title</th>
+    <th scope="col">Type</th>
+    <th scope="col">Amount</th>
   </tr></thead>
   <tbody>
   {% for e in salary_events %}
+  {% if e.add_salary %}
   <tr>
-  <td>{{ e.title }}</td>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
   <td>{{ e.get_event_type_display }}</td>
-  <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
-  <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
-  <td>{{ e.add_salary }}</td>
-  <td>{{ e.salary_fraction }}</td>
-  <td>{{ e.add_bonus }}</td>
+  <td>${{ e.add_salary }}</td>
   </tr>
+  {% endif %}
   {% endfor %}
+  <tr>
+  <td class="total-row"></td>
+  <td class="total-row" id="total-text">Total:</td>
+  <td class="total-row">${{ add_salary_total }}</td>
+  </tr>
   </tbody>
 </table>
-</div>
+{% endif %}
+
+{% if salary_fraction_total != 1 %}
+<h3>Salary Multipliers</h3>
+<table class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Type</th>
+    <th scope="col">Multiplier</th>
+  </tr></thead>
+  <tbody>
+  {% for e in salary_events %}
+  {% if e.salary_fraction != 1 %}
+  <tr>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
+  <td>{{ e.get_event_type_display }}</td>
+  <td>{{ e.salary_fraction }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  <tr>
+  <td class="total-row"></td>
+  <td class="total-row" id="total-text">Total:</td>
+  <td class="total-row">{{ salary_fraction_total }}</td>
+  </tr>
+  </tbody>
+</table>
+{% endif %}
+
+{% if add_bonus_total %}
+<h3>Add Pay</h3>
+<table class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Type</th>
+    <th scope="col">Amount</th>
+  </tr></thead>
+  <tbody>
+  {% for e in salary_events %}
+  {% if e.add_bonus %}
+  <tr>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
+  <td>{{ e.get_event_type_display }}</td>
+  <td>${{ e.add_bonus }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  <tr>
+  <td class="total-row"></td>
+  <td class="total-row" id="total-text">Total:</td>
+  <td class="total-row">${{ add_bonus_total }}</td>
+  </tr>
+  </tbody>
+</table>
+{% endif %}
+
+<h3> Total = ${{ add_salary_total }} * {{ salary_fraction_total }} + ${{ add_bonus_total }} = ${{ pay_tot }}</h3>
 {% endblock %}
