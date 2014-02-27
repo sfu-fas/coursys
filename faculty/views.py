@@ -217,11 +217,15 @@ def summary(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     career_events = CareerEvent.objects.not_deleted().filter(person=person)
     handlers = {k: h.NAME for k, h in EVENT_TYPES.items() if career_events.filter(event_type=k).exists()}
+    
+    # Look for comma-separated event type names such as 'APPOINT', 'ADMINPOS'
     etypes = str(request.GET.get("etype")).upper().split(',')
     choices = []
+    # Only pick ones which actually exist with Handler classes
     for etype in etypes:
         if etype in [k.upper() for k, h in EVENT_TYPE_CHOICES]:
             choices.append(etype)
+    # Filter event types on summary page with a big OR query on event types.
     if choices:
         event_types = Q()
         for c in choices:
