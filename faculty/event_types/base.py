@@ -161,8 +161,12 @@ class CareerEventHandlerBase(object):
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
+        self.set_handler_specific_data()
+
         if self.IS_INSTANT:
             self.event.end_date = self.event.start_date
+
+        self.pre_save()
 
         if self.IS_EXCLUSIVE:
             from faculty.models import CareerEvent
@@ -176,8 +180,6 @@ class CareerEventHandlerBase(object):
                 previous_event.end_date = self.event.start_date - datetime.timedelta(days=1)
                 previous_event.save(editor)
 
-        self.pre_save()
-        self.set_handler_specific_data()
         self.event.save(editor)
         self.post_save()
 
@@ -220,7 +222,6 @@ class CareerEventHandlerBase(object):
             ret.load(form)
         return ret
 
-    
     # Stuff involving permissions
     def permission(self, editor):
         """
@@ -306,7 +307,6 @@ class CareerEventHandlerBase(object):
         # The following line causes bug which resets status to 'NA'
         # every time the form is loaded, this is not desired behavior.
         #self.event.status = form.cleaned_data.get('status', 'NA')
-
 
         for name in self.CONFIG_FIELDS:
             self.set_config(name, form.cleaned_data.get(name, None))
