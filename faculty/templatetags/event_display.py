@@ -1,7 +1,6 @@
 from django import template
 register = template.Library()
 
-from coredata.models import Role
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.models import EVENT_TYPES
 
@@ -28,6 +27,7 @@ def can_approve(person, event):
 def can_edit(person, event):
     return event.get_handler().can_edit(person)
 
+
 @register.filter
 def can_view(person, event):
     return event.get_handler().can_view(person)
@@ -52,31 +52,32 @@ class HandlerPermNode(template.Node):
         context[self.varname] = self.get_permission(context)
         return ''
 
+
 @register.tag
 def can_view_handler(parser, token):
     bits = token.contents.split()
     if len(bits) != 6:
-        raise template.TemplateSyntaxError("%s takes exactly 5 arguments" %bits[0])
+        raise template.TemplateSyntaxError("%s takes exactly 5 arguments" % bits[0])
     if bits[4] != "as":
-        raise template.TemplateSyntaxError("%s argument 4 must be 'as'" %bits[0])
+        raise template.TemplateSyntaxError("%s argument 4 must be 'as'" % bits[0])
     return HandlerPermNode(bits[1], "view", bits[2], bits[3], bits[5])
+
 
 @register.tag
 def can_edit_handler(parser, token):
     bits = token.contents.split()
     if len(bits) != 6:
-        raise template.TemplateSyntaxError("%s takes exactly 5 arguments" %bits[0])
+        raise template.TemplateSyntaxError("%s takes exactly 5 arguments" % bits[0])
     if bits[4] != "as":
-        raise template.TemplateSyntaxError("%s argument 4 must be 'as'" %bits[0])
+        raise template.TemplateSyntaxError("%s argument 4 must be 'as'" % bits[0])
     return HandlerPermNode(bits[1], "edit", bits[2], bits[3], bits[5])
 
 
 @register.tag
-def can_approve_handler(parser, token): 
+def can_approve_handler(parser, token):
     bits = token.contents.split()
     if len(bits) != 6:
-        raise template.TemplateSyntaxError("%s takes exactly 5 arguments" %bits[0])
+        raise template.TemplateSyntaxError("%s takes exactly 5 arguments" % bits[0])
     if bits[4] != "as":
-        raise template.TemplateSyntaxError("%s argument 4 must be 'as'" %bits[0])
+        raise template.TemplateSyntaxError("%s argument 4 must be 'as'" % bits[0])
     return HandlerPermNode(bits[1], "approve", bits[2], bits[3], bits[5])
-
