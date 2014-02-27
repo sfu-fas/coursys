@@ -128,24 +128,28 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         adjust = fractions.Fraction(self.event.config.get('teaching_credits', 0))
         return TeachingAdjust(adjust, adjust)
 
+
 class AwardEventHandler(CareerEventHandlerBase):
     """
     Award Career event
     """
+
     EVENT_TYPE = 'AWARD'
     NAME = "Award Received"
+
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Award</dt><dd>{{ event|get_config:"award"}}</dd>
-        <dt>Awarded By</dt><dd>{{ event|get_config:"awarded_by" }}</dd>
-        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
-        <dt>Externally Funded?</dt><dd>{{ event|get_config:"externally_funded"|yesno }}</dd>
-        <dt>In Payroll?</dt><dd>{{ event|get_config:"in_payroll"|yesno }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Award</dt><dd>{{ handler|get_display:"award"}}</dd>
+        <dt>Awarded By</dt><dd>{{ handler|get_display:"awarded_by" }}</dd>
+        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
+        <dt>Externally Funded?</dt><dd>{{ handler|get_display:"externally_funded"|yesno }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
-        award = forms.CharField(label='Award Name', max_length=255) 
+        award = forms.CharField(label='Award Name', max_length=255)
         awarded_by = forms.CharField(label='Awarded By', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
         externally_funded = forms.BooleanField(required=False)
@@ -155,8 +159,10 @@ class AwardEventHandler(CareerEventHandlerBase):
         return 'Award Received'
 
     def short_summary(self):
-        return 'Award: %s reveieved from %s' % (self.event.config.get('award', 0),
-                                                self.event.config.get('awarded_by', 0))
+        award = self.get_display('award')
+        awarded_by = self.get_display('awarded_by')
+        return 'Award: %s reveieved from %s'.format(award, awarded_by)
+
 
 class GrantApplicationEventHandler(CareerEventHandlerBase):
     """
