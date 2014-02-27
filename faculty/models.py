@@ -70,7 +70,7 @@ EVENT_TAGS = {
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerQuerySet(models.query.QuerySet):
     # TODO: Should these filters only grab events that are not deleted?
-    def active(self):
+    def not_deleted(self):
         """
         All Career Events that have not been deleted.
         """
