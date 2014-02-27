@@ -149,8 +149,6 @@ class AwardEventHandler(CareerEventHandlerBase):
         awarded_by = forms.CharField(label='Awarded By', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
         externally_funded = forms.BooleanField(required=False)
-        in_payroll = forms.BooleanField(required=False)
-
 
     @classmethod
     def default_title(cls):
