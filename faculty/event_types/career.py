@@ -1,14 +1,15 @@
-import datetime
 import decimal
 import fractions
 
 from django import forms
 
+from faculty.event_types import fields
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
+from faculty.event_types.base import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
-from faculty.event_types.fields import AddSalaryField, AddPayField, SemesterField, FractionField, TeachingCreditField, TeachingReductionField
+from faculty.event_types.search import BooleanSearchRule, ChoiceSearchRule
 
 
 RANK_CHOICES = [
@@ -23,36 +24,54 @@ RANK_CHOICES = [
     #('UNIR', 'University Research Professor'),
 ]
 
-LEAVING_CHOICES = [
-    ('HERE', u'\u2014'),  # hasn't left yet
-    ('RETI', 'Retired'),
-    ('END', 'Limited-term contract ended'),
-    ('UNIV', 'Left: job at another University'),
-    ('PRIV', 'Left: private-sector job'),
-    ('GONE', 'Left: employment status unknown'),
-    ('FIRE', 'Dismissal'),
-    ('DIED', 'Deceased'),
-    ('OTHR', 'Other/Unknown'),
-]
-
 
 class AppointmentEventHandler(CareerEventHandlerBase):
     """
     The big career event: from hiring to leaving the position.
     """
-    IS_EXCLUSIVE = True
+
     EVENT_TYPE = 'APPOINT'
-    EDITABLE_BY = 'FAC'
     NAME = 'Appointment to Position'
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Leaving Reason</dt><dd>{{ event|get_config:"leaving_reason" }}</dd>
-        <dt>Spousal hire</dt><dd>{{ event|get_config:"spousal_hire"|yesno }}</dd>
+
+    IS_EXCLUSIVE = True
+
+    EDITABLE_BY = 'FAC'
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Leaving Reason</dt><dd>{{ handler|get_display:"leaving_reason" }}</dd>
+        <dt>Spousal hire</dt><dd>{{ handler|get_display:"spousal_hire"|yesno }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
+
+        LEAVING_CHOICES = Choices(
+            ('HERE', u'\u2014'),  # hasn't left yet
+            ('RETI', 'Retired'),
+            ('END', 'Limited-term contract ended'),
+            ('UNIV', 'Left: job at another University'),
+            ('PRIV', 'Left: private-sector job'),
+            ('GONE', 'Left: employment status unknown'),
+            ('FIRE', 'Dismissal'),
+            ('DIED', 'Deceased'),
+            ('OTHR', 'Other/Unknown'),
+        )
+
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
+
+    SEARCH_RULES = {
+        'spousal_hire': BooleanSearchRule,
+        'leaving_reason': ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'spousal_hire',
+        'leaving_reason',
+    ]
+
+    def get_leaving_reason_display(self):
+        return self.EntryForm.LEAVING_CHOICES.get(self.get_config('leaving_reason'), 'N/A')
 
     def short_summary(self):
         return "Appointment to position as of %s" % (self.event.start_date)
@@ -77,9 +96,9 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
 
     class EntryForm(BaseEntryForm):
         step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
-        base_salary = AddSalaryField(help_text="Base annual salary for this rank + step.")
-        add_salary = AddSalaryField()
-        add_pay = AddPayField()
+        base_salary = fields.AddSalaryField(help_text="Base annual salary for this rank + step.")
+        add_salary = fields.AddSalaryField()
+        add_pay = fields.AddPayField()
 
     @classmethod
     def default_title(cls):
@@ -104,6 +123,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         add_p = decimal.Decimal(self.event.config.get('add_pay', 0))
         return SalaryAdjust(s+add_s, 1, add_p)
 
+
 class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
     Salary modification/stipend event
@@ -120,7 +140,7 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend'), ('OTHER', 'Other')]
         source = forms.ChoiceField(label='Stipend Source', choices=STIPEND_SOURCES)
         # Do we want this to be adjusted during leaves?
-        amount = AddSalaryField()
+        amount = fields.AddSalaryField()
 
     @classmethod
     def default_title(cls):
@@ -184,9 +204,9 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
     class EntryForm(BaseEntryForm):
         REASONS =[('MEDICAL', 'Medical'), ('PARENTAL', 'Parental'), ('ADMIN', 'Admin'), ('SECONDMENT', 'Secondment')]
         reason = forms.ChoiceField(label='Type', choices=REASONS)
-        leave_fraction = FractionField(help_text="Fraction of salary recieved during leave eg. '2/3'")
-        teaching_credits = TeachingCreditField()
-        teaching_load_decrease = TeachingReductionField()
+        leave_fraction = fields.FractionField(help_text="Fraction of salary recieved during leave eg. '2/3'")
+        teaching_credits = fields.TeachingCreditField()
+        teaching_load_decrease = fields.TeachingReductionField()
 
 
     @classmethod
@@ -222,10 +242,10 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         """
 
     class EntryForm(BaseEntryForm):
-        pay_fraction = FractionField(help_text="eg. 2/3")
+        pay_fraction = fields.FractionField(help_text="eg. 2/3")
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
-        report_received_date = SemesterField(required=False, semester_start=False)
-        credits = TeachingCreditField()
+        report_received_date = fields.SemesterField(required=False, semester_start=False)
+        credits = fields.TeachingCreditField()
 
 
     @classmethod
