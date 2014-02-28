@@ -9,7 +9,7 @@ from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
-from faculty.event_types.search import BooleanSearchRule, ChoiceSearchRule
+from faculty.event_types.search import BooleanSearchRule, ChoiceSearchRule, ComparableSearchRule
 
 
 RANK_CHOICES = [
@@ -81,47 +81,62 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
     An annual salary update
     """
+
     EVENT_TYPE = 'SALARY'
     NAME = "Base Salary Update"
+
     IS_EXCLUSIVE = True
+
     APPROVAL_BY = 'DEPT'
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Base salary</dt><dd>${{ event|get_config:"base_salary"|floatformat:2 }}</dd>
-        <dt>Add salary</dt><dd>${{ event|get_config:"add_salary"|floatformat:2 }}</dd>
-        <dt>Add pay</dt><dd>${{ event|get_config:"add_pay"|floatformat:2 }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Base salary</dt><dd>${{ handler|get_display:"base_salary"|floatformat:2 }}</dd>
+        <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2 }}</dd>
+        <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2 }}</dd>
         <dt>Total</dt><dd>${{ total|floatformat:2 }}</dd>
         <!--<dt>Biweekly</dt><dd>${{ biweekly|floatformat:2 }}</dd>-->
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
-        step = forms.DecimalField(max_digits=4, decimal_places=2, help_text="Current salary step")
+        step = forms.DecimalField(max_digits=4, decimal_places=2,
+                                  help_text="Current salary step")
         base_salary = fields.AddSalaryField(help_text="Base annual salary for this rank + step.")
         add_salary = fields.AddSalaryField()
         add_pay = fields.AddPayField()
+
+    SEARCH_RULES = {
+        'base_salary': ComparableSearchRule,
+        'step': ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'base_salary',
+        'step',
+    ]
+
+    def to_html_context(self):
+        total = self.get_config('base_salary')
+        total += self.get_config('add_salary')
+        total += self.get_config('add_pay')
+        return {
+            'total': total,
+            'biweekly': total/365*14,
+        }
 
     @classmethod
     def default_title(cls):
         return 'Base Salary'
 
     def short_summary(self):
-        return "Base salary of %s at step %s" % (self.event.config.get('base_salary', 0),
-                                                 self.event.config.get('step', 0))
-
-    def to_html_context(self):
-        total = decimal.Decimal(self.event.config.get('base_salary', 0))
-        total += decimal.Decimal(self.event.config.get('add_salary', 0))
-        total += decimal.Decimal(self.event.config.get('add_pay', 0))
-        return {
-            'total': total,
-            'biweekly': total/365*14,
-        }
+        return "Base salary of %s at step %s".format(self.get_config('base_salary'),
+                                                     self.get_config('step'))
 
     def salary_adjust_annually(self):
-        s = decimal.Decimal(self.event.config.get('base_salary', 0))
-        add_s = decimal.Decimal(self.event.config.get('add_salary', 0))
-        add_p = decimal.Decimal(self.event.config.get('add_pay', 0))
-        return SalaryAdjust(s+add_s, 1, add_p)
+        salary = self.get_config('base_salary')
+        add_salary = self.get_config('add_salary')
+        add_pay = self.get_config('add_pay')
+        return SalaryAdjust(salary + add_salary, 1, add_pay)
 
 
 class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
