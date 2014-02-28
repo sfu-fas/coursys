@@ -22,6 +22,7 @@ class SearchRule(object):
         field = copy.deepcopy(self.field)
         field.label = ''
         field.required = False
+        field.initial = ''
         return field
 
     def make_fields(self):
