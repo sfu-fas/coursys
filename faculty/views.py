@@ -610,6 +610,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    author = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
 
     ls = instance.memo_info()
 
@@ -617,7 +618,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
         form = MemoForm(request.POST)
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = person
+            f.created_by = author
             f.career_event = instance
             f.unit = template.unit
             f.config.update(ls)
@@ -659,7 +660,6 @@ def manage_memo(request, userid, event_slug, memo_slug):
         form = MemoForm(request.POST, instance=memo)
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = person
             f.career_event = instance
             f.save()
             messages.success(request, "Updated memo for %s" % (form.instance.career_event.title))            
