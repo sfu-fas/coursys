@@ -195,10 +195,13 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     Tenure Application Career event
     """
+
     EVENT_TYPE = 'TENUREAPP'
     NAME = "Tenure Application"
+
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
+
+    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
 
     @classmethod
     def default_title(cls):
@@ -208,14 +211,18 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
         return '%s Applied for Tenure on %s' % (self.event.person.name(),
                                                 self.event.start_date)
 
+
 class TenureReceivedEventHandler(CareerEventHandlerBase):
     """
     Received Tenure Career event
     """
+
     EVENT_TYPE = 'TENUREREC'
     NAME = "Tenure Received"
+
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
+
+    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
 
     @classmethod
     def default_title(cls):
@@ -223,7 +230,8 @@ class TenureReceivedEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return '%s received Tenure on %s' % (self.event.person.name(),
-                                                self.event.start_date)
+                                             self.event.start_date)
+
 
 class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
