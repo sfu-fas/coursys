@@ -241,7 +241,7 @@ class CareerEvent(models.Model):
         config_data = self.config
         for key in config_data:
             try:
-                config_data[key] = handler.get_display(key)
+                config_data[key] = str(handler.get_display(key))
             except AttributeError:
                 pass
         
