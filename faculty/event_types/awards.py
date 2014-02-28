@@ -1,4 +1,3 @@
-import fractions
 import itertools
 
 from django import forms
@@ -6,9 +5,10 @@ from django import forms
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
+from faculty.event_types.base import Choices
 from faculty.event_types.fields import DollarInput, AddSalaryField, AddPayField, TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
-from faculty.event_types.search import ComparableSearchRule, StringSearchRule
+from faculty.event_types.search import ChoiceSearchRule, ComparableSearchRule, StringSearchRule
 
 
 class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
@@ -106,35 +106,61 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
     Received Teaching credit event
     """
+
     EVENT_TYPE = 'TEACHING'
     NAME = "Teaching Credit Received"
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
-        <dt>Type</dt><dd>{{ event|get_config:"category" }}</dd>
-        <dt>Reason</dt><dd>{{ event|get_config:"amount" }}</dd>
-        <dt>Approved By</dt><dd>{{ event|get_config:"approved_by" }}</dd>
-        <dt>Funded By</dt><dd>{{ event|get_config:"funded_by" }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
+        <dt>Type</dt><dd>{{ handler|get_display:"category" }}</dd>
+        <dt>Reason</dt><dd>{{ handler|get_display:"reason" }}</dd>
+        <dt>Approved By</dt><dd>{{ handler|get_display:"approved_by" }}</dd>
+        <dt>Funded By</dt><dd>{{ handler|get_display:"funded_by" }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
-        CATEGORIES =[('BUYOUT', 'Buyout'), ('RELEASE', 'Teaching Release'), ('OTHER', 'Other')]
+
+        CATEGORIES = Choices(
+            ('BUYOUT', 'Buyout'),
+            ('RELEASE', 'Teaching Release'),
+            ('OTHER', 'Other'),
+        )
+
         category = forms.ChoiceField(label='Type', choices=CATEGORIES)
         teaching_credits = TeachingCreditField()
         reason = forms.CharField(max_length=255, required=False)
         funded_by = forms.CharField(label='Funded By', max_length=255, required=False)
         approved_by = forms.CharField(label='Approved By', max_length=255, required=False)
 
+    SEARCH_RULES = {
+        'category': ChoiceSearchRule,
+        'teaching_credits': ComparableSearchRule,
+        'funded_by': StringSearchRule,
+        'approved_by': StringSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'category',
+        'teaching_credits',
+        'funded_by',
+        'approved_by',
+    ]
+
+    def get_category_display(self):
+        return self.EntryForm.CATEGORIES.get(self.get_config('category'), 'N/A')
+
     @classmethod
     def default_title(cls):
         return 'Recevied Teaching Credit'
 
     def short_summary(self):
-        return 'Received %s teaching credits due to %s' % (self.event.config.get('teaching_credits', 0),
-                                                            self.event.config.get('category', 0))
+        credit = self.get_config('teaching_credits')
+        category = self.get_category_display()
+        return 'Received %s teaching credits due to %s'.format(credit, category)
 
     def teaching_adjust_per_semester(self):
-        adjust = fractions.Fraction(self.event.config.get('teaching_credits', 0))
+        adjust = self.get_config('teaching_credits')
         return TeachingAdjust(adjust, adjust)
 
 
