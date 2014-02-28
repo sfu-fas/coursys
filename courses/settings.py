@@ -19,22 +19,7 @@ ADMINS = (
 MANAGERS = ADMINS
 SERVER_EMAIL = 'ggbaker@sfu.ca'
 
-if DEPLOYED:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'course_management',
-            'USER': 'courseuser',
-            'PASSWORD': '?????',
-            'HOST': '127.0.0.1',
-            'PORT': '4000',
-            'CONN_MAX_AGE': 3600,
-            #'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # needed only for initial table creation
-            'OPTIONS': {"init_command": "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;"}, # Celeryd misbehaves if not set
-        }
-    }
-else:
-    DATABASES = {
+DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': 'db.sqlite',
@@ -49,16 +34,14 @@ LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True
 MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploads')
+SECRET_KEY = 'w@h_buddoh5**%79%0x&7h0ro2tol+-7vz=p*kn_g+0qcw8krr' # must be changed in local_settings.py on production
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'w@h_buddoh5**%79%0x&7h0ro2tol+-7vz=p*kn_g+0qcw8krr'
-
-# List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
 )
-
+TEMPLATE_DIRS = (
+    os.path.join(PROJECT_DIR, 'templates'),
+)
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -71,7 +54,7 @@ MIDDLEWARE_CLASSES = (
     'courselib.impersonate.ImpersonateMiddleware',
 )
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
+#    'django.contrib.auth.backends.ModelBackend',
     'django_cas.backends.CASBackend',
 )
 TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
@@ -82,17 +65,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
     'django.core.context_processors.request',
     'django.core.context_processors.static',
     'dashboard.context.media',
-    )
-
-ROOT_URLCONF = 'courses.urls'
-INTERNAL_IPS = ('127.0.0.1',)
-TEST_RUNNER="courselib.testrunner.AdvancedTestSuiteRunner"
-TEST_EXCLUDE = ('django',)
-
-TEMPLATE_DIRS = (
-    os.path.join(PROJECT_DIR, 'templates'),
 )
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -129,14 +102,9 @@ INSTALLED_APPS = (
     'faculty',
     'gpaconvert',
 )
-if DEBUG:
-    #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-    #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
-    DEBUG_TOOLBAR_CONFIG = {
-        'INTERCEPT_REDIRECTS': False,
-    }
 
+ROOT_URLCONF = 'courses.urls'
+INTERNAL_IPS = ('127.0.0.1',)
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -174,7 +142,6 @@ if DEPLOYED:
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
-    #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     CACHES = { 'default': {
         #'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         #'LOCATION': '127.0.0.1:11211',
@@ -263,10 +230,14 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
 
 REPORT_CACHE_LOCATION = "/tmp/report_cache"
 
-#EXTRA_MIDDLEWARE_CLASSES = ()
+#INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
+#MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+#DEBUG_TOOLBAR_CONFIG = {
+#    'INTERCEPT_REDIRECTS': False,
+#}
+
 try:
     from local_settings import *
 except ImportError:
     pass
 
-#MIDDLEWARE_CLASSES = EXTRA_MIDDLEWARE_CLASSES + MIDDLEWARE_CLASSES
