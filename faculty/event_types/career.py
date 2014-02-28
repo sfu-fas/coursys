@@ -197,7 +197,8 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
     TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Leave Type</dt><dd>{{ event|get_config:"reason" }}</dd>
         <dt>Leave Fraction</dt><dd>{{ event|get_config:"leave_fraction" }}</dd>
-        <dt>Teaching Credits Accrue?</dt><dd>{{ event|get_config:"teaching_accrues"|yesno }}</dd>
+        <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
+        <dt>Teaching Load Decrease</dt><dd>{{ event|get_config:"teaching_load_decrease" }}</dd>
         {% endblock %}
         """
 
@@ -235,8 +236,8 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     NAME = "Study Leave"
     TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Pay Fraction</dt><dd>{{ event|get_config:"pay_fraction" }}</dd>
-        <dt>Report Received</dt><dd>{{ event|get_config:"teaching_accrues"|yesno }}</dd>
-        <dt>Report Received On</dt><dd>{{ event|get_config:"report_reveived_date" }}</dd>
+        <dt>Report Received</dt><dd>{{ event|get_config:"report_received"|yesno }}</dd>
+        <dt>Report Received On</dt><dd>{{ event|get_config:"report_received_date" }}</dd>
         <dt>Credits Carried Forward</dt><dd>{{ event|get_config:"credits" }}</dd>
         {% endblock %}
         """
