@@ -2,6 +2,7 @@ import datetime
 
 from coredata.models import Semester
 
+from faculty.event_types import search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import TeachingAdjust
@@ -47,13 +48,20 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Teaching Credit Given</dt><dd>{{ handler|get_config:'credit' }}</dd>
+        <dt>Teaching Credit Given</dt><dd>{{ handler|get_display:'credit' }}</dd>
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
 
         credit = TeachingCreditField(label='Teaching Credit')
+
+    SEARCH_RULES = {
+        'credit': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'credit',
+    ]
 
     @staticmethod
     def get_semester(date):
