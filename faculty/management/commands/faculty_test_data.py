@@ -34,8 +34,14 @@ class Command(BaseCommand):
     def global_data(self):
         univ, _ = Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University', parent=None)
         fas, _ = Unit.objects.get_or_create(label='FAS', name='Faculty of Applied Sciences', parent=univ)
-        cmpt, _ = Unit.objects.get_or_create(label='CMPT', name='School of Computing Science', parent=fas)
-        ensc, _ = Unit.objects.get_or_create(label='ENSC', name='School of Engineering Science', parent=fas)
+        cmpt, _ = Unit.objects.get_or_create(label='CMPT')
+        cmpt.name = 'School of Computing Science'
+        cmpt.parent = fas
+        cmpt.save()
+        ensc, _ = Unit.objects.get_or_create(label='ENSC')
+        ensc.name = 'School of Engineering Science'
+        ensc.parent = fas
+        ensc.save()
 
         danyu = get_or_create_nosave(Person, userid='dzhao', first_name='Danyu', last_name='Zhao')
         danyu.emplid = 220000123

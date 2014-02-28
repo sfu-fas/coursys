@@ -29,8 +29,10 @@ from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ResearchMembershipHandler
+from faculty.event_types.info import ExternalServiceHandler
 from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
+from faculty.event_types.teaching import OneInNineHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -39,10 +41,12 @@ HANDLERS = [
     AwardEventHandler,
     CommitteeMemberHandler,
     ExternalAffiliationHandler,
+    ExternalServiceHandler,
     FellowshipEventHandler,
     GrantApplicationEventHandler,
     NormalTeachingLoadHandler,
     OnLeaveEventHandler,
+    OneInNineHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,
@@ -96,7 +100,7 @@ ADD_TAGS = {
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerQuerySet(models.query.QuerySet):
     # TODO: Should these filters only grab events that are not deleted?
-    def active(self):
+    def not_deleted(self):
         """
         All Career Events that have not been deleted.
         """

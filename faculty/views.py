@@ -4,6 +4,7 @@ import copy
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.db import transaction
+from django.db.models import Q
 
 from django.http import Http404
 from django.http import HttpResponse
@@ -92,9 +93,9 @@ def search_events(request, event_type_slug):
 
         if form.is_valid() and Handler.validate_all_search(rules):
             is_search = True
-            events = CareerEvent.objects.by_type(Handler)
             results = Handler.filter(start_date=form.cleaned_data['start_date'],
                                      end_date=form.cleaned_data['end_date'],
+                                     unit=form.cleaned_data['unit'],
                                      rules=rules)
     else:
         form = SearchForm()
@@ -182,14 +183,24 @@ def salary_summary(request, userid):
     pay_tot = FacultySummary(person).salary(date)
 
     salary_events = copy.copy(FacultySummary(person).salary_events(date))
+    add_salary_total = add_bonus_total = 0
+    salary_fraction_total = 1
+
     for event in salary_events:
         event.add_salary, event.salary_fraction, event.add_bonus = FacultySummary(person).salary_event_info(event)
+        add_salary_total += event.add_salary
+        salary_fraction_total = salary_fraction_total*event.salary_fraction
+        add_bonus_total += event.add_bonus
 
     context = {
         'form': form,
+        'date': date,
         'person': person,
         'pay_tot': pay_tot,
         'salary_events': salary_events,
+        'add_salary_total': add_salary_total,
+        'salary_fraction_total': salary_fraction_total,
+        'add_bonus_total': add_bonus_total,
     }
 
     return render(request, 'faculty/salary_summary.html', context)
@@ -204,10 +215,26 @@ def summary(request, userid):
     Summary page for a faculty member.
     """
     person, _ = _get_faculty_or_404(request.units, userid)
-    career_events = CareerEvent.objects.filter(person=person).exclude(status='D')
+    career_events = CareerEvent.objects.not_deleted().filter(person=person)
+    handlers = {k: h.NAME for k, h in EVENT_TYPES.items() if career_events.filter(event_type=k).exists()}
+    
+    # Look for comma-separated event type names such as 'APPOINT', 'ADMINPOS'
+    etypes = str(request.GET.get("etype")).upper().split(',')
+    choices = []
+    # Only pick ones which actually exist with Handler classes
+    for etype in etypes:
+        if etype in [k.upper() for k, h in EVENT_TYPE_CHOICES]:
+            choices.append(etype)
+    # Filter event types on summary page with a big OR query on event types.
+    if choices:
+        event_types = Q()
+        for c in choices:
+            event_types |= Q(event_type=c)
+        career_events = career_events.filter(event_types)
     context = {
         'person': person,
         'career_events': career_events,
+        'handlers': handlers,
     }
     return render(request, 'faculty/summary.html', context)
 

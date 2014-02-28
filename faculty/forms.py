@@ -2,6 +2,8 @@ from django import forms
 from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 
+from coredata.models import Unit
+
 from models import CareerEvent
 from models import DocumentAttachment
 from models import MemoTemplate
@@ -26,6 +28,7 @@ class ApprovalForm(forms.ModelForm):
     class Meta:
         model = CareerEvent
         fields = ("status",)
+
 
 class GetSalaryForm(forms.Form):
     date = forms.DateField();
@@ -93,3 +96,4 @@ class SearchForm(forms.Form):
 
     start_date = forms.DateField(label='Start Date', required=False)
     end_date = forms.DateField(label='End Date (inclusive)', required=False)
+    unit = forms.ModelChoiceField(queryset=Unit.objects.all(), required=False)

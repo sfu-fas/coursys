@@ -161,8 +161,12 @@ class CareerEventHandlerBase(object):
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
+        self.set_handler_specific_data()
+
         if self.IS_INSTANT:
             self.event.end_date = self.event.start_date
+
+        self.pre_save()
 
         if self.IS_EXCLUSIVE:
             from faculty.models import CareerEvent
@@ -176,20 +180,25 @@ class CareerEventHandlerBase(object):
                 previous_event.end_date = self.event.start_date - datetime.timedelta(days=1)
                 previous_event.save(editor)
 
-        self.pre_save()
-        self.set_handler_specific_data()
         self.event.save(editor)
         self.post_save()
 
     def get_config(self, name, default=None):
-        # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in the
-        #      config field, then it was most likely valid when the event was created.
-        try:
-            raw_value = self.event.config.get(name)
-            python_value = self.CONFIG_FIELDS[name].to_python(raw_value)
-            return python_value or default or self.CONFIG_FIELDS[name].initial
-        except forms.ValidationError:
-            return self.CONFIG_FIELDS[name].initial or default
+        raw_value = self.event.config.get(name)
+        field = self.CONFIG_FIELDS[name]
+
+        if raw_value is None:
+            if default is not None:
+                return default
+            else:
+                return field.to_python(field.initial)
+        else:
+            # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
+            #      the config field, then it was most likely valid when the event was created.
+            try:
+                return field.to_python(raw_value)
+            except forms.ValidationError:
+                return raw_value
 
     def set_config(self, name, value):
         if isinstance(value, models.Model):
@@ -213,7 +222,6 @@ class CareerEventHandlerBase(object):
             ret.load(form)
         return ret
 
-    
     # Stuff involving permissions
     def permission(self, editor):
         """
@@ -300,7 +308,6 @@ class CareerEventHandlerBase(object):
         # every time the form is loaded, this is not desired behavior.
         #self.event.status = form.cleaned_data.get('status', 'NA')
 
-
         for name in self.CONFIG_FIELDS:
             self.set_config(name, form.cleaned_data.get(name, None))
 
@@ -322,6 +329,23 @@ class CareerEventHandlerBase(object):
 
     # Stuff relating to HTML display
 
+    def get_display(self, field, default='unknown'):
+        """
+        Returns the display value for a field.
+
+        """
+        display_func_name = 'get_{}_display'.format(field)
+        if hasattr(self, display_func_name):
+            return getattr(self, display_func_name)()
+        else:
+            return self.get_config(field, default)
+
+    def to_html_context(self):
+        """
+        Additional context for the TO_HTML_TEMPLATE
+        """
+        return {}
+
     def to_html(self):
         """
         A detailed HTML presentation of this event
@@ -330,6 +354,8 @@ class CareerEventHandlerBase(object):
         context = {
             'event': self.event,
             'handler': self,
+            'start': self.event.start_date,
+            'end': self.event.end_date,
         }
         context.update(self.to_html_context())
         return template.render(Context(context))
@@ -345,7 +371,7 @@ class CareerEventHandlerBase(object):
         return not bool([False for _, form in rules if not form.is_valid()])
 
     @classmethod
-    def filter(cls, start_date=None, end_date=None, rules=None):
+    def filter(cls, start_date=None, end_date=None, unit=None, rules=None):
         from faculty.models import CareerEvent
         events = CareerEvent.objects.by_type(cls)
         if not rules:
@@ -355,6 +381,8 @@ class CareerEventHandlerBase(object):
             events = events.filter(start_date__gte=start_date)
         if end_date:
             events = events.filter(end_date__lte=end_date)
+        if unit:
+            events = events.filter(unit=unit)
 
         for event in events:
             handler = cls(event)
@@ -369,7 +397,7 @@ class CareerEventHandlerBase(object):
         return [cls.CONFIG_FIELDS[name].label or pretty_name(name) for name in cls.SEARCH_RESULT_FIELDS]
 
     def to_search_row(self):
-        return [self.get_config(name) for name in self.SEARCH_RESULT_FIELDS]
+        return [self.get_display(name) for name in self.SEARCH_RESULT_FIELDS]
 
     # Optionally override these
 
@@ -403,12 +431,6 @@ class CareerEventHandlerBase(object):
 
         """
         pass
-
-    def to_html_context(self):
-        """
-        Additional context for the TO_HTML_TEMPLATE
-        """
-        return {}
 
 
 class Choices(collections.OrderedDict):

@@ -1,9 +1,9 @@
 {% load event_display %}
 <dl>
 <dt>Effective date</dt>
-<dd>{{ event.start_date }}
+<dd>{{ start }}
   {% if not handler.IS_INSTANT %}
-  &ndash; {{ event.end_date|default:'<span class="empty">present</span>' }}
+  &ndash; {{ end|default:'<span class="empty">present</span>' }}
   {% endif %}
 </dd>
 

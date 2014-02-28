@@ -40,7 +40,7 @@ $(document).ready(function() {
     {% if 'TAAD' in roles %}<li  class='newsec'><a href="{% url "ta.views.view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
     <!--{% if is_grad %}<li class='newsec'><a href="{% url "grad.views.student_financials" %}">Financial Summary</a></li>{% endif %}-->
     {% if has_grads %}<li ><a href="{% url "grad.views.supervisor_index" %}">My Grad Students</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li><a href="{% url "faculty.views.index" %}">Faculty Management</a></li>
+    {% if 'ADMN' in roles %}<li><a href="{% url "faculty.views.index" %}"><i class="fa fa-li fa-files-o"></i> Faculty Management</a></li>
     <li><a href="{% url "coredata.views.unit_admin" %}"><i class="fa fa-li fa-gears"></i> Department Management</a></li>{% endif %}
     {% if 'SYSA' in roles %}<li><a href="{% url "reports.views.view_reports" %}"><i class="fa fa-li fa-book"></i> Reporting Database</a></li>{% endif %}
     </ul>

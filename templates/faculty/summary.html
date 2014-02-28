@@ -28,6 +28,11 @@ $(document).ready(function() {
     <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}">Create New Event</a></li>
 	<li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}">View Other Info</a></li>
   </ul>
+  <ul>
+  	{% for k, h in handlers.items %}
+  	<li><a href="?etype={{ k }}">{{ h }}</a></li>
+  	{% endfor %}
+  </ul>
 </div>
 {% endblock %}
 
