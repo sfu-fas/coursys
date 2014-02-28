@@ -54,8 +54,6 @@ HANDLERS = [
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
 
-#basic list to get templating working
-#TODO: event_type specific tags
 EVENT_TAGS = {
                 'title': '"Mr", "Miss", etc.',
                 'first_name': 'recipient\'s first name',
@@ -65,6 +63,34 @@ EVENT_TAGS = {
                 'start_date': 'start date of the event, if applicable',
                 'end_date': 'end date of the event, if applicable',
                 'event_title': 'name of event',
+            }
+
+#event specific tags
+ADD_TAGS = {
+                'position': 'type of position',
+                'teaching_credit': 'teaching credit adjustment per semester for this event',
+                'spousal_hire': 'yes/no',
+                'leaving_reason': 'reason for leaving',
+                'award': 'recipient\'s reward',
+                'awarded_by': 'entity that has issued the award',
+                'amount': 'dollar amount',
+                'externally_funded': 'yes/no - external to SFU?',
+                'in_payroll': 'yes/no - internal to SFU?',
+                'committee_unit': 'committee faculty',
+                'org_name': 'name of the organization',
+                'org_type': 'type of organization sfu/academic/private',
+                'org_class': 'classification external/not-for-profit',
+                'is_research': 'yes/no - research institute?',
+                'is_adjunct': 'yes/no - adjunct?',
+                'grant_name': 'name of the grant',
+                'load': 'teaching load',
+                'leave_fraction': 'Fraction of salary received during leave eg. "2/3"',
+                'teaching_load_decrease': 'per semester descrease in teaching load eg. "1/3"',
+                'step': 'current salary step',
+                'report_received': 'yes/no - report received?',
+                'credits': 'teaching credit adjustment per semester',
+                'teaching_credits': 'teaching credit per semester associated with this event',
+                'category': 'eg. buyout/release/other',
             }
 
 # adapted from https://djangosnippets.org/snippets/562/
