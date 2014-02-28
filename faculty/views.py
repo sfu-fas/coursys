@@ -24,7 +24,7 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm
 from faculty.forms import SearchForm
 from faculty.processing import FacultySummary
@@ -541,8 +541,17 @@ def new_memo_template(request, event_type):
 
     tags = sorted(EVENT_TAGS.iteritems())
     event_handler = event_type_object[1].CONFIG_FIELDS
-    add_tags = [(tag, '%s' % tag.replace("_", " ")) for tag in event_handler]
-    lt = tags + add_tags
+    #get additional tags for specific event
+    add_tags = {}
+    for tag in event_handler:
+        try:
+            add_tags[tag] = ADD_TAGS[tag]
+        except KeyError:
+            add_tags[tag] = tag.replace("_", " ")
+
+    add = sorted(add_tags.iteritems())
+    lt = tags + add
+
     context = {
                'form': form,
                'event_type_slug': event_type,
@@ -573,8 +582,17 @@ def manage_memo_template(request, event_type, slug):
 
     tags = sorted(EVENT_TAGS.iteritems())
     event_handler = event_type_object[1].CONFIG_FIELDS
-    add_tags = [(tag, '%s' % tag.replace("_", " ")) for tag in event_handler]
-    lt = tags + add_tags
+    #get additional tags for specific event
+    add_tags = {}
+    for tag in event_handler:
+        try:
+            add_tags[tag] = ADD_TAGS[tag]
+        except KeyError:
+            add_tags[tag] = tag.replace("_", " ")
+
+    add = sorted(add_tags.iteritems())
+    lt = tags + add
+    
     context = {
                'form': form,
                'memo_template': memo_template,
