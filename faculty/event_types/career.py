@@ -237,23 +237,40 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
     """
     Taking a sort of leave
     """
+
     EVENT_TYPE = 'LEAVE'
     NAME = "On Leave"
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Leave Type</dt><dd>{{ event|get_config:"reason" }}</dd>
-        <dt>Leave Fraction</dt><dd>{{ event|get_config:"leave_fraction" }}</dd>
-        <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
-        <dt>Teaching Load Decrease</dt><dd>{{ event|get_config:"teaching_load_decrease" }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Leave Type</dt><dd>{{ handler|get_display:"reason" }}</dd>
+        <dt>Leave Fraction</dt><dd>{{ handler|get_display:"leave_fraction" }}</dd>
+        <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
+        <dt>Teaching Load Decrease</dt><dd>{{ handler|get_display:"teaching_load_decrease" }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
-        REASONS =[('MEDICAL', 'Medical'), ('PARENTAL', 'Parental'), ('ADMIN', 'Admin'), ('SECONDMENT', 'Secondment')]
+        REASONS = Choices(
+            ('MEDICAL', 'Medical'),
+            ('PARENTAL', 'Parental'),
+            ('ADMIN', 'Admin'),
+            ('SECONDMENT', 'Secondment'),
+        )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
         leave_fraction = fields.FractionField(help_text="Fraction of salary recieved during leave eg. '2/3'")
         teaching_credits = fields.TeachingCreditField()
         teaching_load_decrease = fields.TeachingReductionField()
 
+    SEARCH_RULES = {
+        'reason': ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'reason',
+    ]
+
+    def get_reason_display(self):
+        return self.EntryForm.REASONS.get(self.get_config('reason'), 'N/A')
 
     @classmethod
     def default_title(cls):
@@ -261,17 +278,17 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
 
     def short_summary(self):
         return '%s leave beginning %s' % (self.event.person.name(),
-                                                self.event.start_date)
+                                          self.event.start_date)
 
     def salary_adjust_annually(self):
-        f = fractions.Fraction(self.event.config.get('leave_fraction', 0))
-        return SalaryAdjust(0, f, 0)
+        leave_fraction = self.get_config('leave_fraction')
+        return SalaryAdjust(0, leave_fraction, 0)
 
     def teaching_adjust_per_semester(self):
-        c = fractions.Fraction(self.event.config.get('teaching_credits', 0))
-        d = fractions.Fraction(self.event.config.get('load_decrease', 0))
+        credits = self.get_config('teaching_credits')
+        load_decrease = self.get_config('teaching_load_decrease')
+        return TeachingAdjust(credits, load_decrease)
 
-        return TeachingAdjust(c, d)
 
 class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
