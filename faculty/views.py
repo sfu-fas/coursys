@@ -276,7 +276,7 @@ def view_event(request, userid, event_slug):
     instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
     memos = Memo.objects.filter(career_event = instance)
-    templates = MemoTemplate.objects.filter(unit__in=request.units, event_type=instance.event_type, hidden=False)
+    templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=instance.event_type, hidden=False)
     
     Handler = EVENT_TYPES[instance.event_type](event=instance)
 
