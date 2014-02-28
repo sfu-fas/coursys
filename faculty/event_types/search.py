@@ -98,6 +98,9 @@ class StringSearchRule(SearchRule):
         ('equals', 'EQUALS'),
     )
 
+    def make_value_field(self):
+        return forms.CharField(label='', required=False)
+
     def matches(self, handler, form):
         op = form.cleaned_data['operator']
         value = form.cleaned_data['value']
