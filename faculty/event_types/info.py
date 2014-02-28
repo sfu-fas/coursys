@@ -2,6 +2,7 @@ from django import forms
 
 from coredata.models import Unit
 
+from faculty.event_types import search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import Choices
@@ -13,16 +14,14 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
     NAME = 'External Affiliation'
 
     TO_HTML_TEMPLATE = '''
-{% extends 'faculty/event_base.html' %}
-{% load event_display %}
-{% block dl %}
-<dt>Organization Name</dt><dd>{{ handler|get_config:'org_name' }}</dd>
-<dt>Organization Type</dt><dd>{{ handler.get_org_type_display }}</dd>
-<dt>Organization Class</dt><dd>{{ handler.get_org_class_display }}</dd>
-<dt>Is Research Institute / Centre?</dt><dd>{{ handler|get_config:'is_research' }}</dd>
-<dt>Is Adjunct?</dt><dd>{{ handler|get_config:'is_adjunct' }}</dd>
-{% endblock %}
-'''
+        {% extends 'faculty/event_base.html' %}{% load event_display %}{% block dl %}
+        <dt>Organization Name</dt><dd>{{ handler|get_display:'org_name' }}</dd>
+        <dt>Organization Type</dt><dd>{{ handler|get_display:'org_type'}}</dd>
+        <dt>Organization Class</dt><dd>{{ handler|get_display:'org_class'}}</dd>
+        <dt>Is Research Institute / Centre?</dt><dd>{{ handler|get_display:'is_research'|yesno }}</dd>
+        <dt>Is Adjunct?</dt><dd>{{ handler|get_display:'is_adjunct'|yesno }}</dd>
+        {% endblock %}
+    '''
 
     class EntryForm(BaseEntryForm):
 
@@ -42,9 +41,18 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         is_research = forms.BooleanField(label='Research Institute/Centre?', required=False)
         is_adjunct = forms.BooleanField(label='Adjunct?', required=False)
 
-    @classmethod
-    def default_title(cls):
-        return 'Affiliated with '
+    SEARCH_RULES = {
+        'org_name': search.StringSearchRule,
+        'org_type': search.ChoiceSearchRule,
+        'org_class': search.ChoiceSearchRule,
+        'is_adjunct': search.BooleanSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'org_name',
+        'org_type',
+        'org_class',
+        'is_adjunct',
+    ]
 
     def get_org_type_display(self):
         return self.EntryForm.ORG_TYPES.get(self.get_config('org_type'))
@@ -52,8 +60,11 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
     def get_org_class_display(self):
         return self.EntryForm.ORG_CLASSES.get(self.get_config('org_class'))
 
+    @classmethod
+    def default_title(cls):
+        return 'Affiliated with '
+
     def short_summary(self):
-        # TODO: Figure out a nicer format that includes all relevant information.
         org_name = self.get_config('org_name')
         org_type = self.get_org_type_display()
         org_class = self.get_org_class_display()
