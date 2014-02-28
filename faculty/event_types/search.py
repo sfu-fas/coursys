@@ -115,3 +115,30 @@ class StringSearchRule(SearchRule):
                 return value == real_value
         else:
             return True
+
+
+class BooleanSearchRule(SearchRule):
+
+    CHOICES = (
+        ('', '----'),
+        ('yes', 'YES'),
+        ('no', 'NO'),
+    )
+
+    def make_value_field(self):
+        return forms.ChoiceField(choices=self.CHOICES, initial='', label='', required=False)
+
+    def make_fields(self):
+        return (
+            ('value', self.make_value_field()),
+        )
+
+    def matches(self, handler, form):
+        op = form.cleaned_data['value']
+
+        if op == 'yes':
+            return bool(handler.get_config(self.field_name))
+        elif op == 'no':
+            return not handler.get_config(self.field_name)
+        else:
+            return True
