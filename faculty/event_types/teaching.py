@@ -20,13 +20,20 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Required Load</dt><dd>{{ handler|get_config:'load' }}</dd>
+        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }}</dd>
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
 
         load = TeachingCreditField(label='Teaching Load')
+
+    SEARCH_RULES = {
+        'load': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'load',
+    ]
 
     def short_summary(self):
         load = self.get_config('load')
