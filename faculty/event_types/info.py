@@ -77,19 +77,26 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
     NAME = 'Committee Member'
 
     TO_HTML_TEMPLATE = '''
-{% extends 'faculty/event_base.html' %}
-{% load event_display %}
-{% block dl %}
-<dt>Committee Name</dt><dd>{{ handler|get_config:'committee_name' }}</dd>
-<dt>Committee Unit</dt><dd>{{ handler|get_config:'committee_unit' }}</dd>
-{% endblock %}
-'''
+        {% extends 'faculty/event_base.html' %}{% load event_display %}{% block dl %}
+        <dt>Committee Name</dt><dd>{{ handler|get_display:'committee_name' }}</dd>
+        <dt>Committee Unit</dt><dd>{{ handler|get_display:'committee_unit' }}</dd>
+        {% endblock %}
+    '''
 
     class EntryForm(BaseEntryForm):
 
         committee_name = forms.CharField(label='Committee Name', max_length=255)
         committee_unit = forms.ModelChoiceField(label='Committee Unit',
                                                 queryset=Unit.objects.all())
+
+    SEARCH_RULES = {
+        'committee_name': search.StringSearchRule,
+        'committee_unit': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'committee_name',
+        'committee_unit',
+    ]
 
     @classmethod
     def default_title(cls):

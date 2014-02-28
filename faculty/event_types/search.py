@@ -75,7 +75,7 @@ class ChoiceSearchRule(SearchRule):
     def make_value_field(self):
         field = super(ChoiceSearchRule, self).make_value_field()
 
-        if self.field.required:
+        if self.field.required and not isinstance(self.field, forms.ModelChoiceField):
             field.choices = (('', '----'),) + tuple(field.choices)
         field.initial = ''
 
