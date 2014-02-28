@@ -1,4 +1,5 @@
-import itertools, decimal, fractions
+import fractions
+import itertools
 
 from django import forms
 
@@ -14,15 +15,18 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     """
     Appointment to a fellowship/chair
     """
+
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Position</dt><dd>{{ position_display }}</dd>
-        <dt>Add salary</dt><dd>${{ event|get_config:"add_salary"|floatformat:2 }}</dd>
-        <dt>Add pay</dt><dd>${{ event|get_config:"add_pay"|floatformat:2 }}</dd>
-        <dt>Teaching credit</dt><dd>{{ event|get_config:"teaching_credit" }} (per semester)</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Position</dt><dd>{{ handler|get_display:"position" }}</dd>
+        <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2 }}</dd>
+        <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2 }}</dd>
+        <dt>Teaching credit</dt><dd>{{ handler|get_display:"teaching_credit" }} (per semester)</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
         position = forms.ChoiceField(required=True, choices=[])
@@ -42,7 +46,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             from faculty.models import EventConfig
             data = self.cleaned_data
             if 'unit' not in data:
-                raise forms.ValidationError, "Couldn't check unit for fellowship ownership."
+                raise forms.ValidationError("Couldn't check unit for fellowship ownership.")
 
             found = False
             try:
@@ -55,17 +59,21 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
                 pass
 
             if not found:
-                raise forms.ValidationError, "That fellowship is not owned by the selected unit."
+                raise forms.ValidationError("That fellowship is not owned by the selected unit.")
 
             return data
 
-    @classmethod
-    def default_title(cls):
-        return 'Fellowship / Chair'
+    SEARCH_RULES = {
+        'position': StringSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'position',
+    ]
 
     def get_position_display(self):
         """
         Get the name of this fellowship/chair, for display to the user
+
         """
         from faculty.models import EventConfig
         try:
@@ -77,20 +85,20 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         pos = self.event.config.get('position', '???')
         return fellowships.get(pos, pos)
 
-    def short_summary(self):
-        pos = self.get_position_display()
-        return "Appointment to %s" % (pos,)
+    @classmethod
+    def default_title(cls):
+        return 'Fellowship / Chair'
 
-    def to_html_context(self):
-        return {'position_display': self.get_position_display()}
+    def short_summary(self):
+        return "Appointment to %s".format(self.get_position_display())
 
     def salary_adjust_annually(self):
-        add_salary = decimal.Decimal(self.event.config.get('add_salary', 0))
-        add_pay  = decimal.Decimal(self.event.config.get('add_pay', 0))
+        add_salary = self.get_config('add_salary')
+        add_pay = self.get_config('add_pay')
         return SalaryAdjust(add_salary, 1, add_pay)
 
     def teaching_adjust_per_semester(self):
-        adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0))
+        adjust = self.get_config('teaching_credit')
         return TeachingAdjust(adjust, adjust)
 
 
