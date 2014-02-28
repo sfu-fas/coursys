@@ -1,15 +1,13 @@
-import decimal
 import fractions
 
 from django import forms
 
-from faculty.event_types import fields
+from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
-from faculty.event_types.search import BooleanSearchRule, ChoiceSearchRule, ComparableSearchRule
 
 
 RANK_CHOICES = [
@@ -62,8 +60,8 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
     SEARCH_RULES = {
-        'spousal_hire': BooleanSearchRule,
-        'leaving_reason': ChoiceSearchRule,
+        'spousal_hire': search.BooleanSearchRule,
+        'leaving_reason': search.ChoiceSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'spousal_hire',
@@ -107,8 +105,8 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         add_pay = fields.AddPayField()
 
     SEARCH_RULES = {
-        'base_salary': ComparableSearchRule,
-        'step': ComparableSearchRule,
+        'base_salary': search.ComparableSearchRule,
+        'step': search.ComparableSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'base_salary',
@@ -143,40 +141,65 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
     Salary modification/stipend event
     """
+
     EVENT_TYPE = 'STIPEND'
     NAME = "Salary Modification/Stipend"
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Source</dt><dd>{{ event|get_config:"source" }}</dd>
-        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Source</dt><dd>{{ handler|get_display:"source" }}</dd>
+        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
-        STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend'), ('OTHER', 'Other')]
+
+        STIPEND_SOURCES = Choices(
+            ('RETENTION', 'Retention/Market Differential'),
+            ('RESEARCH', 'Research Chair Stipend'),
+            ('OTHER', 'Other'),
+        )
+
         source = forms.ChoiceField(label='Stipend Source', choices=STIPEND_SOURCES)
         # Do we want this to be adjusted during leaves?
         amount = fields.AddSalaryField()
 
+    SEARCH_RULES = {
+        'source': search.ChoiceSearchRule,
+        'amount': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'source',
+        'amount',
+    ]
+
+    def get_source_display(self):
+        return self.EntryForm.STIPEND_SOURCES.get(self.get_config('source'), 'N/A')
+
     @classmethod
     def default_title(cls):
-        return 'Salary Modification/Stipend'
+        return 'Salary Modification / Stipend'
 
     def short_summary(self):
-        return "%s for $%s" % (self.event.config.get('source', 0),
-                                            self.event.config.get('amount', 0))
+        return "%s for $%s".format(self.get_config('source'),
+                                   self.get_config('amount'))
 
     def salary_adjust_annually(self):
-        s = decimal.Decimal(self.event.config.get('amount', 0))
-        return SalaryAdjust(s, 1, 0)
-        
+        amount = self.get_config('amount')
+        return SalaryAdjust(amount, 1, 0)
+
+
 class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     Tenure Application Career event
     """
+
     EVENT_TYPE = 'TENUREAPP'
     NAME = "Tenure Application"
+
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
+
+    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
 
     @classmethod
     def default_title(cls):
@@ -186,14 +209,18 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
         return '%s Applied for Tenure on %s' % (self.event.person.name(),
                                                 self.event.start_date)
 
+
 class TenureReceivedEventHandler(CareerEventHandlerBase):
     """
     Received Tenure Career event
     """
+
     EVENT_TYPE = 'TENUREREC'
     NAME = "Tenure Received"
+
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}"""
+
+    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
 
     @classmethod
     def default_title(cls):
@@ -201,61 +228,82 @@ class TenureReceivedEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return '%s received Tenure on %s' % (self.event.person.name(),
-                                                self.event.start_date)
+                                             self.event.start_date)
+
 
 class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
     Taking a sort of leave
     """
+
     EVENT_TYPE = 'LEAVE'
     NAME = "On Leave"
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Leave Type</dt><dd>{{ event|get_config:"reason" }}</dd>
-        <dt>Leave Fraction</dt><dd>{{ event|get_config:"leave_fraction" }}</dd>
-        <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
-        <dt>Teaching Load Decrease</dt><dd>{{ event|get_config:"teaching_load_decrease" }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Leave Type</dt><dd>{{ handler|get_display:"reason" }}</dd>
+        <dt>Leave Fraction</dt><dd>{{ handler|get_display:"leave_fraction" }}</dd>
+        <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
+        <dt>Teaching Load Decrease</dt><dd>{{ handler|get_display:"teaching_load_decrease" }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
-        REASONS =[('MEDICAL', 'Medical'), ('PARENTAL', 'Parental'), ('ADMIN', 'Admin'), ('SECONDMENT', 'Secondment')]
+        REASONS = Choices(
+            ('MEDICAL', 'Medical'),
+            ('PARENTAL', 'Parental'),
+            ('ADMIN', 'Admin'),
+            ('SECONDMENT', 'Secondment'),
+        )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
         leave_fraction = fields.FractionField(help_text="Fraction of salary recieved during leave eg. '2/3'")
         teaching_credits = fields.TeachingCreditField()
         teaching_load_decrease = fields.TeachingReductionField()
 
+    SEARCH_RULES = {
+        'reason': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'reason',
+    ]
+
+    def get_reason_display(self):
+        return self.EntryForm.REASONS.get(self.get_config('reason'), 'N/A')
 
     @classmethod
     def default_title(cls):
         return 'On Leave'
 
     def short_summary(self):
-        return '%s leave beginning %s' % (self.event.person.name(),
-                                                self.event.start_date)
+        return '%s leave beginning %s'.format(self.event.person.name(),
+                                              self.event.start_date)
 
     def salary_adjust_annually(self):
-        f = fractions.Fraction(self.event.config.get('leave_fraction', 0))
-        return SalaryAdjust(0, f, 0)
+        leave_fraction = self.get_config('leave_fraction')
+        return SalaryAdjust(0, leave_fraction, 0)
 
     def teaching_adjust_per_semester(self):
-        c = fractions.Fraction(self.event.config.get('teaching_credits', 0))
-        d = fractions.Fraction(self.event.config.get('load_decrease', 0))
+        credits = self.get_config('teaching_credits')
+        load_decrease = self.get_config('teaching_load_decrease')
+        return TeachingAdjust(credits, load_decrease)
 
-        return TeachingAdjust(c, d)
 
 class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
     Study leave event
     """
+
     EVENT_TYPE = 'STUDYLEAVE'
     NAME = "Study Leave"
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Pay Fraction</dt><dd>{{ event|get_config:"pay_fraction" }}</dd>
-        <dt>Report Received</dt><dd>{{ event|get_config:"report_received"|yesno }}</dd>
-        <dt>Report Received On</dt><dd>{{ event|get_config:"report_received_date" }}</dd>
-        <dt>Credits Carried Forward</dt><dd>{{ event|get_config:"credits" }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Pay Fraction</dt><dd>{{ handler|get_display:"pay_fraction" }}</dd>
+        <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
+        <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
+        <dt>Credits Carried Forward</dt><dd>{{ handler|get_display:"credits" }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
         pay_fraction = fields.FractionField(help_text="eg. 2/3")
@@ -263,18 +311,29 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         report_received_date = fields.SemesterField(required=False, semester_start=False)
         credits = fields.TeachingCreditField()
 
+    SEARCH_RULES = {
+        'pay_fraction': search.ComparableSearchRule,
+        'report_received': search.BooleanSearchRule,
+        'credits': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'pay_fraction',
+        'report_received',
+        'report_received_date',
+        'credits',
+    ]
 
     @classmethod
     def default_title(cls):
         return 'Study Leave'
 
     def short_summary(self):
-        return 'Study leave begginging %s' % (self.event.start_date)
+        return 'Study leave begginging %s'.format(self.event.start_date)
 
     def salary_adjust_annually(self):
-        f = fractions.Fraction(self.event.config.get('pay_fraction', 0))
-        return SalaryAdjust(0, f, 0)
+        pay_fraction = self.get_config('pay_fraction')
+        return SalaryAdjust(0, pay_fraction, 0)
 
     def teaching_adjust_per_semester(self):
-        c = fractions.Fraction(self.event.config.get('credits', 0))
-        return TeachingAdjust(c, fractions.Fraction(0))
+        credits = self.get_config('credits')
+        return TeachingAdjust(credits, fractions.Fraction(0))
