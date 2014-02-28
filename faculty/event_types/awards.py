@@ -214,29 +214,44 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
     """
     Grant Application Career event
     """
+
     EVENT_TYPE = 'GRANTAPP'
     NAME = "Grant Application"
+
     IS_INSTANT = True
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Funding Agency</dt><dd>{{ event|get_config:"funding_agency"}}</dd>
-        <dt>Grant Name</dt><dd>{{ event|get_config:"grant_name" }}</dd>
-        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Funding Agency</dt><dd>{{ handler|get_display:"funding_agency"}}</dd>
+        <dt>Grant Name</dt><dd>{{ handler|get_display:"grant_name" }}</dd>
+        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
         funding_agency = forms.CharField(label='Funding Agency', max_length=255)
         grant_name = forms.CharField(label='Grant Name', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
 
+    SEARCH_RULES = {
+        'funding_agency': StringSearchRule,
+        'grand_name': StringSearchRule,
+        'amount': ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'funding_agency',
+        'grant_name',
+        'amount',
+    ]
+
     @classmethod
     def default_title(cls):
         return 'Applied for Grant'
 
     def short_summary(self):
-        return 'Applied to %s for Grant: %s  for the amount of %s' % (self.event.config.get('funding_agency', 0),
-                                                                    self.event.config.get('grant_name', 0),
-                                                                    self.event.config.get('amount', 0))
-
-
-
+        funding_agency = self.get_config('funding_agency')
+        grant_name = self.get_config('grant_name')
+        amount = self.get_config('amount')
+        return 'Applied to %s for Grant: %s  for the amount of %s'.format(funding_agency,
+                                                                          grant_name,
+                                                                          amount)
