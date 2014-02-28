@@ -5,6 +5,15 @@
 {% block headextra %}
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 <script type="text/javascript">//<![CDATA[
+    function getData(url) {
+      $.ajax({
+        type : "GET",
+        url : url,
+        success : function(data) {
+          $("#id_memo_text").html(data);
+        }
+      })
+    }
 
 	$(document).ready(function() {
 		$("#id_sent_date").datepicker({
