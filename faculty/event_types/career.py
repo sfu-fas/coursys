@@ -143,32 +143,54 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
     Salary modification/stipend event
     """
+
     EVENT_TYPE = 'STIPEND'
     NAME = "Salary Modification/Stipend"
-    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Source</dt><dd>{{ event|get_config:"source" }}</dd>
-        <dt>Amount</dt><dd>${{ event|get_config:"amount" }}</dd>
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Source</dt><dd>{{ handler|get_display:"source" }}</dd>
+        <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
         {% endblock %}
-        """
+    """
 
     class EntryForm(BaseEntryForm):
-        STIPEND_SOURCES =[('RETENTION', 'Retention/Market Differential'), ('RESEARCH', 'Research Chair Stipend'), ('OTHER', 'Other')]
+
+        STIPEND_SOURCES = Choices(
+            ('RETENTION', 'Retention/Market Differential'),
+            ('RESEARCH', 'Research Chair Stipend'),
+            ('OTHER', 'Other'),
+        )
+
         source = forms.ChoiceField(label='Stipend Source', choices=STIPEND_SOURCES)
         # Do we want this to be adjusted during leaves?
         amount = fields.AddSalaryField()
 
+    SEARCH_RULES = {
+        'source': ChoiceSearchRule,
+        'amount': ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'source',
+        'amount',
+    ]
+
+    def get_source_display(self):
+        return self.EntryForm.STIPEND_SOURCES.get(self.get_config('source'), 'N/A')
+
     @classmethod
     def default_title(cls):
-        return 'Salary Modification/Stipend'
+        return 'Salary Modification / Stipend'
 
     def short_summary(self):
-        return "%s for $%s" % (self.event.config.get('source', 0),
-                                            self.event.config.get('amount', 0))
+        return "%s for $%s".format(self.get_config('source'),
+                                   self.get_config('amount'))
 
     def salary_adjust_annually(self):
-        s = decimal.Decimal(self.event.config.get('amount', 0))
-        return SalaryAdjust(s, 1, 0)
-        
+        amount = self.get_config('amount')
+        return SalaryAdjust(amount, 1, 0)
+
+
 class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     Tenure Application Career event
