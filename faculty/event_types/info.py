@@ -1,10 +1,15 @@
+import decimal
+import fractions
 from django import forms
 
 from coredata.models import Unit
 
+from faculty.event_types import fields
+from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import Choices
+from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 
 class ExternalAffiliationHandler(CareerEventHandlerBase):
@@ -121,3 +126,36 @@ class ResearchMembershipHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return 'Member of %s' % (self.event.config.get('lab_name', 0))
+
+
+class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
+    """
+    External Service
+    """
+    EVENT_TYPE = 'EXTSERVICE'
+    NAME = "External Service"
+    TO_HTML_TEMPLATE = """{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Add Pay</dt><dd>${{ event|get_config:"add_pay" }}</dd>
+        <dt>Teaching Credits</dt><dd>{{ event|get_config:"teaching_credits" }}</dd>
+        {% endblock %}
+        """
+
+    class EntryForm(BaseEntryForm):
+        add_pay = fields.AddPayField()
+        teaching_credits = fields.TeachingCreditField()
+
+
+    @classmethod
+    def default_title(cls):
+        return 'External Service'
+
+    def short_summary(self):
+        return 'External Service: %s' % (self.event.title)
+
+    def salary_adjust_annually(self):
+        p = decimal.Decimal(self.event.config.get('add_pay', 0))
+        return SalaryAdjust(0, 1, p)
+
+    def teaching_adjust_per_semester(self):
+        c = fractions.Fraction(self.event.config.get('teaching_credits', 0))
+        return TeachingAdjust(c, fractions.Fraction(0))
