@@ -76,6 +76,7 @@ class ChoiceSearchRule(SearchRule):
 
         if self.field.required:
             field.choices = (('', '----'),) + tuple(field.choices)
+        field.initial = ''
 
         return field
 
