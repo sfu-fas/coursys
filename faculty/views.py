@@ -682,7 +682,7 @@ def get_memo_text(request, userid, event_slug, memo_template_id):
     """ Get the text from memo template """
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
-    lt = get_object_or_404(MemoTemplate, id=memo_template_id, unit__in=request.units)
+    lt = get_object_or_404(MemoTemplate, id=memo_template_id, unit__in=Unit.sub_units(request.units))
     temp = Template(lt.template_text)
     ls = event.memo_info()
     text = temp.render(Context(ls))

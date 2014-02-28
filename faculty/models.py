@@ -236,11 +236,12 @@ class CareerEvent(models.Model):
             heshe = 'he/she'
 
         # grab event type specific config data
+        Handler = EVENT_TYPES[self.event_type]
+        handler = Handler(self)
         config_data = self.config
         for key in config_data:
             try:
-                raw_value = config_data.get(key)
-                config_data[key] = config_data[key].lower().replace("_"," ")
+                config_data[key] = handler.get_display(key)
             except AttributeError:
                 pass
         
