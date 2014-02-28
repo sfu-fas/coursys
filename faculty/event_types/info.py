@@ -114,7 +114,8 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
 class ResearchMembershipHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'LABMEMB'
-    NAME = 'Research Group/Lab Membership'
+    NAME = 'Research Group / Lab Membership'
+
     TO_HTML_TEMPLATE = '''
         {% extends 'faculty/event_base.html' %}{% load event_display %}{% block dl %}
         <dt>Lab Name</dt><dd>{{ handler|get_config:'lab_name' }}</dd>
@@ -124,31 +125,40 @@ class ResearchMembershipHandler(CareerEventHandlerBase):
 
     class EntryForm(BaseEntryForm):
 
-        CONFIG_FIELDS = [
-            'lab_name',
-            'location',
-        ]
-        LOCATION_TYPES = (
+        LOCATION_TYPES = Choices(
             ('SFU', 'Internal SFU'),
             ('ACADEMIC', 'Other Academic'),
             ('EXTERNAL', 'External'),
         )
 
-        lab_name = forms.CharField(label='Research Group/Lab Name', max_length=255)
+        lab_name = forms.CharField(label='Research Group / Lab Name', max_length=255)
         location = forms.ChoiceField(choices=LOCATION_TYPES)
+
+    SEARCH_RULES = {
+        'lab_name': search.StringSearchRule,
+        'location': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'lab_name',
+        'location',
+    ]
+
+    def get_location_display(self):
+        return self.EntryForm.LOCATION_TYPES.get(self.get_config('location'), 'N/A')
 
     @classmethod
     def default_title(cls):
         return 'Member of Reseach Group/Lab'
 
     def short_summary(self):
-        return 'Member of %s' % (self.event.config.get('lab_name', 0))
+        return 'Member of %s'.format(self.get_config('lab_name'))
 
 
 class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
     External Service
     """
+
     EVENT_TYPE = 'EXTSERVICE'
     NAME = "External Service"
 
