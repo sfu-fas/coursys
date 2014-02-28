@@ -625,11 +625,8 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             f.template = template;
             f.save()
             messages.success(request, "Created new %s memo for %s." % (form.instance.template.label, form.instance.career_event.title))            
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
-        else:
-            messages.success(request, "error!")   
+            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))  
     else:
-
         initial = {
             'date': datetime.date.today(),
             'subject': '%s %s\n%s ' % (person.get_title(), person.name(), 'Default subject'),
@@ -663,9 +660,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
             f.career_event = instance
             f.save()
             messages.success(request, "Updated memo for %s" % (form.instance.career_event.title))            
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
-        else:
-            messages.success(request, "error!")   
+            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))  
     else:
         form = MemoForm(instance=memo)
         
