@@ -33,8 +33,6 @@ class AppointmentEventHandler(CareerEventHandlerBase):
 
     IS_EXCLUSIVE = True
 
-    EDITABLE_BY = 'FAC'
-
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Leaving Reason</dt><dd>{{ handler|get_display:"leaving_reason" }}</dd>

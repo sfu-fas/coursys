@@ -2,6 +2,7 @@ from django import template
 register = template.Library()
 
 from faculty.event_types.base import CareerEventHandlerBase
+from faculty.event_types.constants import PERMISSION_CHOICES
 from faculty.models import EVENT_TYPES
 
 
@@ -16,6 +17,11 @@ def get_config(event, field):
 @register.filter
 def get_display(handler, field):
     return handler.get_display(field)
+
+
+@register.filter
+def get_editor_role(event, editor):
+    return PERMISSION_CHOICES[event.get_handler().permission(editor)]
 
 
 @register.filter

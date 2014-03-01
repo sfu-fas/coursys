@@ -11,8 +11,10 @@ from django.template import Context, Template
 
 from coredata.models import Role, Unit
 
-from faculty.event_types.constants import PERMISSION_LEVEL
+from faculty.event_types.constants import PERMISSION_LEVEL, PERMISSION_CHOICES
 from faculty.event_types.fields import SemesterField
+
+ROLES = PERMISSION_CHOICES
 
 SalaryAdjust = collections.namedtuple('SalaryAdjust', [
     'add_salary',
@@ -236,11 +238,11 @@ class CareerEventHandlerBase(object):
         if self.event and (editor == self.event.person):
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
-        elif edit_units & super_units:
+        elif edit_units & super_units is not None:
             # give dean's office level permission to anybody above in the hierarchy:
             # not technically correct, but correct in practice.
             return 'FAC'
-        elif edit_units & fac_units:
+        elif edit_units & fac_units is not None:
             return 'DEPT'
         else:
             return 'NONE'
@@ -255,6 +257,9 @@ class CareerEventHandlerBase(object):
         permission = self.permission(editor)
         return PERMISSION_LEVEL[permission] >= PERMISSION_LEVEL[perm]
 
+    def get_view_role(self):
+        return ROLES[self.VIEWABLE_BY]
+
     def can_view(self, editor):
         """
         Can the given user (a coredata.Person) can view the
@@ -262,12 +267,18 @@ class CareerEventHandlerBase(object):
         """
         return self.has_permission(self.VIEWABLE_BY, editor)
 
+    def get_edit_role(self):
+        return ROLES[self.EDITABLE_BY]
+
     def can_edit(self, editor):
         """
         Can the given editor (a coredata.Person) can create/edit this
         CareerEventType for this faculty member?
         """
         return self.has_permission(self.EDITABLE_BY, editor)
+
+    def get_approve_role(self):
+        return ROLES[self.APPROVAL_BY]
 
     def can_approve(self, editor):
         """
