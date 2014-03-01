@@ -389,6 +389,7 @@ def change_event(request, userid, event_slug):
             handler.save(editor)
             context.update({"event": handler.event,
                             "event_form": form})
+            return HttpResponseRedirect(handler.event.get_absolute_url())
         else:
             context.update({"event_form": form})
 
