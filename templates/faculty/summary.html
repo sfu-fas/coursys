@@ -12,6 +12,17 @@ $(document).ready(function() {
     "bJQueryUI": true,
   } );
 } );
+
+$(document).ready(function() {
+  $("form#filter-form").submit(function(e) {
+    e.preventDefault();
+    var values = [];
+    $("form#filter-form input:checked").each(function() {
+      values.push(this.value);
+    });
+    location.search = "etype=" + values;
+  });
+});
 </script>
 {% endblock %}
 {% block subbreadcrumbs %}
@@ -28,16 +39,25 @@ $(document).ready(function() {
     <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}">Create New Event</a></li>
 	<li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}">View Other Info</a></li>
   </ul>
-  <ul>
-  	{% for k, h in handlers.items %}
-  	<li><a href="?etype={{ k }}">{{ h }}</a></li>
-  	{% endfor %}
-  </ul>
 </div>
 {% endblock %}
 
 {% block content %}
 
+<form id="filter-form" method="get" action="?">
+  <h2>Filters</h2>
+  <dt>
+  {% for k, h in handlers.items %}
+  <dd>
+  <label for="id_checkbox_{{ k|lower }}">
+    <input id="id_checkbox_{{ k|lower }}" type="checkbox" value="{{ k }}" />
+    {{ h }}
+  </label>
+  </dd>
+  {% endfor %}
+  <input type="submit" value="Filter" />
+  </dt>
+</form>
 <div class="datatable_container">
 <table id="career_event_table" class="display">
   <thead><tr>

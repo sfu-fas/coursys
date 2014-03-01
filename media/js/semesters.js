@@ -33,7 +33,7 @@ $(document).ready(function() {
 				}
 			}
 		});
-		datebox.keyup(function(e) {
+		datebox.on('click', function(e) {
 			semesterbox.val('');
 		});		
 	});
