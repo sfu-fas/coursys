@@ -927,4 +927,3 @@ def photo_agreement(request):
         
     context = {"form": form}
     return render(request, "dashboard/photo_agreement.html", context)
-
