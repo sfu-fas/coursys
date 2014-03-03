@@ -630,7 +630,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
     else:
         initial = {
             'date': datetime.date.today(),
-            'subject': '%s %s\n%s ' % (person.get_title(), person.name(), 'Default subject'),
+            'subject': '%s %s\n%s ' % (person.get_title(), person.name(), template.subject),
             'to_lines': person.letter_name()
         }
         form = MemoForm(initial=initial)
