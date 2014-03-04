@@ -85,7 +85,6 @@ def search_events(request, event_type_slug):
     Handler = _get_Handler_or_404(event_type_slug)
     viewer = get_object_or_404(Person, userid=request.user.username)
 
-    is_search = False
     results = []
 
     if request.GET:
@@ -93,7 +92,6 @@ def search_events(request, event_type_slug):
         rules = Handler.get_search_rules(request.GET)
 
         if form.is_valid() and Handler.validate_all_search(rules):
-            is_search = True
             events = CareerEvent.objects.by_type(Handler)
 
             # TODO: Find a better place for this initial filtering logic
@@ -113,7 +111,6 @@ def search_events(request, event_type_slug):
         'event_type': Handler.NAME,
         'form': form,
         'search_rules': rules,
-        'is_search': is_search,
         'results_columns': Handler.get_search_columns(),
         'results': results,
     }

@@ -37,7 +37,7 @@ $(document).ready(function() {
     $('#form_bottom_bar').toggle();
   });
 
-  {% if is_search %}
+  {% if results %}
   $('#form_collapse').click();
   {% endif %}
 });
@@ -59,7 +59,7 @@ $(document).ready(function() {
 {% block content %}
 <div class="form_container">
   <form action="" method="GET">
-    {% if is_search %}
+    {% if results %}
     <p id="form_top_bar">
       <strong id="form_message">Your search results are below!</strong>
       <a id="form_collapse" href="#">collapse [-]</a>
@@ -82,7 +82,7 @@ $(document).ready(function() {
   </form>
 </div>
 
-{% if is_search %}
+{% if results %}
 <div class="datatable_container">
   <h3>Results</h3>
   <table id="results_table" class="display">
