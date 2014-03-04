@@ -202,3 +202,17 @@ class SpecialDealHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return 'Special Deal'
+
+class OtherEventHandler(CareerEventHandlerBase):
+
+    EVENT_TYPE = 'OTHER_NOTE'
+    NAME = 'Other Event / Note'
+
+    class EntryForm(BaseEntryForm):
+
+        def post_init(self):
+            self.fields['comments'].help_text = 'Enter details about the event or note here.'
+            self.fields['comments'].required = True
+
+    def short_summary(self):
+        return 'Other Event / Note'

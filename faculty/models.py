@@ -29,6 +29,7 @@ from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
 from faculty.event_types.info import ExternalServiceHandler
+from faculty.event_types.info import OtherEventHandler
 from faculty.event_types.info import ResearchMembershipHandler
 from faculty.event_types.info import SpecialDealHandler
 from faculty.event_types.position import AdminPositionEventHandler
@@ -48,6 +49,7 @@ HANDLERS = [
     NormalTeachingLoadHandler,
     OnLeaveEventHandler,
     OneInNineHandler,
+    OtherEventHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,
