@@ -18,18 +18,18 @@ $(document).ready(function() {
 {% block actions %}
 <div id="actions">
   <h2>Actions</h2>
-  <ul>
-    <li >
-      <a href="{% url 'faculty.views.manage_event_index' %}">Event Management</a>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.manage_event_index' %}"><i class="fa fa-li fa-wrench"></i> Event Management</a>
     </li>
     <li>
-      <a href="{% url 'faculty.views.search_index' %}">Event Search</a>
+      <a href="{% url 'faculty.views.search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
     </li>
     <li>
-      <a href="{% url 'faculty.views.status_index' %}">Event Queue</a>
+      <a href="{% url 'faculty.views.status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue</a>
     </li>    
     <li>
-      <a href="{% url 'faculty.views.salary_index' %}">Salaries</a>
+      <a href="{% url 'faculty.views.salary_index' %}"><i class="fa fa-li fa-money"></i> Salaries</a>
     </li>
   </ul>
 </div>
