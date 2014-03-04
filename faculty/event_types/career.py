@@ -32,6 +32,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     NAME = 'Appointment to Position'
 
     IS_EXCLUSIVE = True
+    VIEWABLE_BY = 'FAC'
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -254,7 +255,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
             ('SECONDMENT', 'Secondment'),
         )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
-        leave_fraction = fields.FractionField(help_text="Fraction of salary recieved during leave eg. '2/3'")
+        leave_fraction = fields.FractionField(help_text="Fraction of salary received during leave eg. '3/4' indicates 75% pay", label='Work fraction')
         teaching_credits = fields.TeachingCreditField()
         teaching_load_decrease = fields.TeachingReductionField()
 

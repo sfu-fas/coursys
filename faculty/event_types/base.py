@@ -238,11 +238,11 @@ class CareerEventHandlerBase(object):
         if self.event and (editor == self.event.person):
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
-        elif edit_units & super_units is not None:
+        elif edit_units & super_units:
             # give dean's office level permission to anybody above in the hierarchy:
             # not technically correct, but correct in practice.
             return 'FAC'
-        elif edit_units & fac_units is not None:
+        elif edit_units & fac_units:
             return 'DEPT'
         else:
             return 'NONE'
