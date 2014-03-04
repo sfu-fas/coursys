@@ -110,6 +110,9 @@ class CareerQuerySet(models.query.QuerySet):
         """
         return self.exclude(status='D')
 
+    def effective_now(self):
+        return self.effective_date(datetime.date.today())
+
     def effective_date(self, date):
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
         return self.filter(start_date__lte=date).filter(end_okay)

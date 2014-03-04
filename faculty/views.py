@@ -93,7 +93,7 @@ def search_events(request, event_type_slug):
         rules = Handler.get_search_rules(request.GET)
 
         if form.is_valid() and Handler.validate_all_search(rules):
-            events = CareerEvent.objects.by_type(Handler)
+            events = CareerEvent.objects.by_type(Handler).not_deleted()
 
             # TODO: Find a better place for this initial filtering logic
             if form.cleaned_data['start_date']:
@@ -102,6 +102,8 @@ def search_events(request, event_type_slug):
                 events = events.filter(end_date__lte=form.cleaned_data['end_date'])
             if form.cleaned_data['unit']:
                 events = events.filter(unit=form.cleaned_data['unit'])
+            if form.cleaned_data['only_current']:
+                events = events.effective_now()
 
             results = Handler.filter(events, rules=rules, viewer=viewer)
     else:
