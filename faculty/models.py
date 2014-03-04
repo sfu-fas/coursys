@@ -9,7 +9,7 @@ from autoslug import AutoSlugField
 from bitfield import BitField
 from jsonfield import JSONField
 
-from coredata.models import Unit, Person
+from coredata.models import Unit, Person, Semester
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
@@ -28,8 +28,13 @@ from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
+from faculty.event_types.info import ExternalServiceHandler
+from faculty.event_types.info import OtherEventHandler
 from faculty.event_types.info import ResearchMembershipHandler
+from faculty.event_types.info import SpecialDealHandler
 from faculty.event_types.position import AdminPositionEventHandler
+from faculty.event_types.teaching import NormalTeachingLoadHandler
+from faculty.event_types.teaching import OneInNineHandler
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -38,13 +43,18 @@ HANDLERS = [
     AwardEventHandler,
     CommitteeMemberHandler,
     ExternalAffiliationHandler,
+    ExternalServiceHandler,
     FellowshipEventHandler,
     GrantApplicationEventHandler,
+    NormalTeachingLoadHandler,
     OnLeaveEventHandler,
-    StudyLeaveEventHandler,
+    OneInNineHandler,
+    OtherEventHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,
+    SpecialDealHandler,
+    StudyLeaveEventHandler,
     TeachingCreditEventHandler,
     TenureApplicationEventHandler,
     TenureReceivedEventHandler,
@@ -52,8 +62,6 @@ HANDLERS = [
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
 
-#basic list to get templating working
-#TODO: event_type specific tags
 EVENT_TAGS = {
                 'title': '"Mr", "Miss", etc.',
                 'first_name': 'recipient\'s first name',
@@ -65,44 +73,90 @@ EVENT_TAGS = {
                 'event_title': 'name of event',
             }
 
-class CareerEventManager(models.Manager):
+#event specific tags
+ADD_TAGS = {
+                'position': 'type of position',
+                'teaching_credit': 'teaching credit adjustment per semester for this event',
+                'spousal_hire': 'yes/no',
+                'leaving_reason': 'reason for leaving',
+                'award': 'recipient\'s reward',
+                'awarded_by': 'entity that has issued the award',
+                'amount': 'dollar amount',
+                'externally_funded': 'yes/no - external to SFU?',
+                'in_payroll': 'yes/no - internal to SFU?',
+                'committee_unit': 'committee faculty',
+                'org_name': 'name of the organization',
+                'org_type': 'type of organization sfu/academic/private',
+                'org_class': 'classification external/not-for-profit',
+                'is_research': 'yes/no - research institute?',
+                'is_adjunct': 'yes/no - adjunct?',
+                'grant_name': 'name of the grant',
+                'load': 'teaching load',
+                'leave_fraction': 'Fraction of salary received during leave eg. "2/3"',
+                'teaching_load_decrease': 'per semester descrease in teaching load eg. "1/3"',
+                'step': 'current salary step',
+                'report_received': 'yes/no - report received?',
+                'credits': 'teaching credit adjustment per semester',
+                'teaching_credits': 'teaching credit per semester associated with this event',
+                'category': 'eg. buyout/release/other',
+            }
+
+# adapted from https://djangosnippets.org/snippets/562/
+class CareerQuerySet(models.query.QuerySet):
     # TODO: Should these filters only grab events that are not deleted?
-    def active(self):
+    def not_deleted(self):
         """
         All Career Events that have not been deleted.
         """
-        qs = self.get_query_set()
-        return qs.exclude(status='D')
+        return self.exclude(status='D')
 
     def effective_date(self, date):
-        qs = self.get_query_set()
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
-        qs = qs.filter(start_date__lte=date).filter(end_okay)
-        return qs
+        return self.filter(start_date__lte=date).filter(end_okay)
     
     def effective_semester(self, semester):
         """
         Returns CareerEvents starting and ending within this semester.
         """
-        start, end = semester.start_end_dates(semester)
-        qs = self.get_query_set()
+        start, end = Semester.start_end_dates(semester)
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
-        return qs.filter(start_date__gte=start).filter(end_okay)
+        return self.filter(start_date__gte=start).filter(end_okay)
+
+    def overlaps_semester(self, semester):
+        """
+        Returns CareerEvents occurring during the semester.
+        """
+        start, end = Semester.start_end_dates(semester)
+        end_okay = Q(start_date__lte=end) | Q(end_date__gte=start)
+        return self.filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
-        qs = self.get_query_set()
         if not inclusive:
             filters = {"start_date__gt": start, "end_date__lt": end}
         else:
             filters = {"start_date__gte": start, "end_date__lte": end}
-        return qs.filter(**filters)
+        return self.filter(**filters)
 
     def by_type(self, Handler):
         """
         Returns all CareerEvents matching the given CareerEventHandler class.
         """
-        qs = self.get_query_set()
-        return qs.filter(event_type__exact=Handler.EVENT_TYPE)
+        return self.filter(event_type__exact=Handler.EVENT_TYPE)
+
+
+class CareerEventManager(models.Manager):
+    def get_query_set(self): 
+        model = models.get_model('faculty', 'CareerEvent')
+        return CareerQuerySet(model)
+
+    def __getattr__(self, attr, *args):
+        try:
+            return getattr(self.__class__, attr, *args)
+        except AttributeError:
+            return getattr(self.get_query_set(), attr, *args)
+
+
+
 
 
 class CareerEvent(models.Model):
@@ -117,7 +171,7 @@ class CareerEvent(models.Model):
     unit = models.ForeignKey(Unit)
 
     title = models.CharField(max_length=255, blank=False, null=False)
-    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit', 'start_date'),
+    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -128,7 +182,7 @@ class CareerEvent(models.Model):
 
     flags = BitField(flags=EVENT_FLAGS, default=0)
 
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, blank=False, default='')
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -156,14 +210,16 @@ class CareerEvent(models.Model):
 
     @property
     def full_title(self):
-        return '{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
+        return u'{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
 
     def get_event_type_display(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
 
     def get_handler(self):
-        return EVENT_TYPES[self.event_type](self)
+        if not hasattr(self, 'handler_cache'):
+            self.handler_cache = EVENT_TYPES[self.event_type](self)
+        return self.handler_cache
 
     class Meta:
         ordering = (
@@ -171,7 +227,6 @@ class CareerEvent(models.Model):
             '-end_date',
             'title',
         )
-        #unique_together = (('person', 'unit', 'title'),)
 
     def memo_info(self):
         """
@@ -193,11 +248,12 @@ class CareerEvent(models.Model):
             heshe = 'he/she'
 
         # grab event type specific config data
+        Handler = EVENT_TYPES[self.event_type]
+        handler = Handler(self)
         config_data = self.config
         for key in config_data:
             try:
-                raw_value = config_data.get(key) or default
-                config_data[key] = config_data[key].lower().replace("_"," ")
+                config_data[key] = unicode(handler.get_display(key))
             except AttributeError:
                 pass
         

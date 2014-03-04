@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
-
 
 {% block headextra %}
 <link rel="stylesheet" href="{{STATIC_URL}}ta/css/view-tug-noprint.css" media="all" />
@@ -14,7 +12,10 @@
     {% if user_role == "ADMN" %}
     <li><a href="{% url "ta.views.all_tugs_admin" %}">All TUGs</a> {{tug.member.person}}</li>
     {% else %}
-    <li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li><li><a href="{% url "ta.views.all_tugs" course_slug=course.slug %}">TUGs</a></li><li>{{ta.person.name}}</li>
+    <li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+    <li><a href="{% url "grades.views.course_config" course_slug=course.slug %}">Setup</a></li>
+    <li><a href="{% url "coredata.views.manage_tas" course_slug=course.slug %}">Manage TAs</a></li>
+    <li>{{ta.person.name}}</li>
     {% endif %}
 {% endblock %}
 
@@ -148,7 +149,7 @@
 			</tr>
 			<tr class="subsectionHeader">
 				<td class="numeral">9.</td>
-				<td>Other – specify*** </td><td/><td/>
+				<td>Other – specify*** </td><td></td><td></td>
 			</tr>
 			{% for other in tug.others %} 
 			<tr>
@@ -167,12 +168,12 @@
 			</tr>
 		</tbody>
 	</table> 
-	<p>
+	<p class="smallprint">
 		Teaching Assistants and course instructors should familiarize themselves with the general 
 		working conditions set out in Article XIII C, assignment and compensation in Article XIII D, 
 		and workload review mechanisms in Article XIII E.
 	</p>
-	<p>
+	<p class="smallprint">
 		*There are no hours of work associated with the additional {{LAB_BONUS}} base unit for preparation, 
 		Article XIII D. 2 b.  See Appendix B for calculation of hours.
 		<br/>

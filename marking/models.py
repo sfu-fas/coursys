@@ -191,7 +191,7 @@ class ActivityComponentMark(models.Model):
     """
     activity_mark = models.ForeignKey(ActivityMark, null = False)    
     activity_component = models.ForeignKey(ActivityComponent, null = False)
-    value = models.DecimalField(max_digits=8, decimal_places=2)
+    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark')
     comment = models.TextField(null = True, max_length=1000, blank=True)
     
     def __unicode__(self):
@@ -334,7 +334,7 @@ def get_group_mark_by_id(activity, group, activity_mark_id):
      """
      Find the activity_mark with that id if it exists for the group on the activity
      return None if not found.
-     """            
+     """
      try:
          act_mark = GroupActivityMark.objects.get(id = activity_mark_id)
      except GroupActivityMark.DoesNotExist:

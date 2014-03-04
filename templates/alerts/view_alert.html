@@ -18,6 +18,7 @@
             <li><a href='{% url "alerts.views.resolve_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Resolve Alert</a></li>
         {% endif %}
         <li><a href='{% url "alerts.views.comment_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Comment</a></li>
+        <li><a href='{% url "alerts.views.email_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Email Student</a></li>
     </ul>
 </div>
 {% endblock %}

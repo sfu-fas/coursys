@@ -774,7 +774,7 @@ class Member(models.Model):
     credits = models.PositiveSmallIntegerField(null=False, default=3,
         help_text='Number of credits this course is worth.')
     career = models.CharField(max_length=4, choices=CAREER_CHOICES)
-    added_reason = models.CharField(max_length=4, choices=REASON_CHOICES)
+    added_reason = models.CharField(max_length=4, choices=REASON_CHOICES, db_index=True)
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".')
     official_grade = models.CharField(max_length=2, null=True, blank=True)
@@ -864,6 +864,18 @@ class Member(models.Model):
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
+
+    def get_tug(self):
+        assert self.role == 'TA'
+        from ta.models import TUG
+
+        tugs = TUG.objects.filter(member=self)
+        if tugs:
+            tug = tugs[0]
+        else:
+            tug = None
+        return tug
+
 
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
@@ -1100,6 +1112,7 @@ ROLE_DESCR = {
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',
         'INST': 'Instructors outside of the department or others who teach courses',
+        'REPR': 'Has Reporting Database access.',
         'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
               }
 INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors

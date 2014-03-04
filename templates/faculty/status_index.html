@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load event_display %}
+
+{% block title %}Faculty Event Queue{% endblock %}
+{% block h1 %}Faculty Event Queue{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#faculty_salary_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Event Queue</li>
+{% endblock %}
+
+{% block content %}
+<h4>Yet-to-be approved events</h4>
+<div class="datatable_container">
+<table id="faculty_salary_table" class="display">
+  <thead><tr><th scope="col">Event</th><th scope="col">Created</th><th scope="col">Person</th><th scope="col">Approvable by</th><th>Your role</th></tr></thead>
+  <tbody>
+  {% for event in events %}
+  {% if editor|can_view:event %}
+  <tr>
+  <td><a href="{{ event.get_absolute_url }}">{{ event }}</a></td>
+  <td>{{ event.created_at.date }}</td>
+  <td>{{ event.person.sortname }}</td>
+  <td>{{ event.get_handler.get_approve_role }}</td>
+  <td>{{ event|get_editor_role:editor }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

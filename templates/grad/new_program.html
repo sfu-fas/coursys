@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 {% load form_display %}
 
 {% block title %}{{page_title}}{% endblock %}
@@ -10,7 +9,6 @@
 <div class="form_container">
     <form action="{% url "grad.views.new_program" %}" method="post">{% csrf_token %}
     	<fieldset>
-			<legend>Program Info</legend>
               {{ form|as_dl }}
         <p><input  class="submit"  type="submit" value="Submit" /></p>
         </fieldset>

@@ -18,7 +18,6 @@ Numeric scale from {{ grade_source.lower_bound }} to {{ grade_source.upper_bound
 Fixed grades chosen from {{ grade_source.all_discrete_grades_str }}.
 {% endif %}
 </p>
-<div class="table_container">
   <form action="{% url 'gpaconvert.views.convert_grades' grade_source.slug %}" method="POST">
     {% csrf_token %}
     {{ formset.management_form }}
@@ -50,26 +49,22 @@ Fixed grades chosen from {{ grade_source.all_discrete_grades_str }}.
         {% endfor %}
       </tbody>
     </table>
-    <input type="submit" value="Convert" />
+    <input type="submit" value="Convert" class="submit" />
+      <div class="clearfix"></div>
 {% if transfer_gpa >= 0 %}
-<div class="table_container">
   <table class="info">
-    <thead>
-      <th>SFU GPA</th>
-      {% if secondary_gpa >= 0 %}
+    <tr>
+      <th scope="row">SFU GPA</th>
+      <td>{{ transfer_gpa|floatformat:2 }}</td>
+    </tr>
+    {% if secondary_gpa >= 0 %}
+    <tr>
       <th>Secondary GPA</th>
-      {% endif %}
-    </thead>
-    <tbody>
-      <tr>
-        <td>{{ transfer_gpa|floatformat:2 }}</td>
-        {% if secondary_gpa >= 0 %}
-        <td>{{ secondary_gpa|floatformat:2 }}</td>
-        {% endif %}
-      </tr>
-    </tbody>
+      <td>{{ secondary_gpa|floatformat:2 }}</td>
+    </tr>
+    {% endif %}
   </table>
-  <input type="submit" name="save_grades" value="Save for later" />
+  <input type="submit" name="save_grades" value="Save for later" class="submit"/>
 {% endif %}
   </form>
 </div>

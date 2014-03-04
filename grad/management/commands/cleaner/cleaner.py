@@ -33,26 +33,16 @@ NEWLINE = "_x000B_"
 #        row[i] = row[i].replace(NEWLINE, "\n")
 
 groups = { 
-    'people': [ "Supervisor 1", 
-        "Supervisory Committee 2", 
-        "Supervisory Committee 3", 
-        "Supervisory Committee 4", 
-        "Internal Examiner", 
-        "Senior Supervisor", 
-        "Senior Supervisor 2", 
-        "Chair", 
-        "External Examiner" ] , 
-    'sin': [ "Social Insurance Number", "Student Number" ], 
+    'sin': [ "SIN", "SFU ID" ], 
     'semesters': [ "Semester of Approval of Supervisory Committee", 
                 "Convocation Semester", 
                 "Semester of Approval of Examining Committee", 
                 "First Semester", 
                 "Semester Left" ],
-    'dates': [ "Date",
-            "Date of Birth", 
-            "M.Eng Progress", 
-            "PhD Progress", 
-            "MASc Progress"],
+    'dates': ["Date of Birth", 
+            "M.Eng. Progress", 
+            "Ph.D. Progress", 
+            "M.A.Sc. Progress"],
     'datetime_and_location': [ "PhD Qualifying Exam", "Thesis Date" ],
 }
 
@@ -164,6 +154,7 @@ for group_name, group in groups.iteritems():
     translation_table = {}
     
     for column in group:
+        column = column.upper()
         for row in table.row_maps():
             clean_attempt = ""
             if group_name == 'sin':

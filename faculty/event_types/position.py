@@ -1,5 +1,3 @@
-import fractions
-
 from django import forms
 
 from faculty.event_types.base import BaseEntryForm
@@ -16,14 +14,28 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
     Given admin position
     """
+
     EVENT_TYPE = 'ADMINPOS'
     NAME = 'Admin Position'
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Position</dt><dd>{{ handler|get_display:'position' }}</dd>
+        <dt>Teaching Credit</dt><dd>{{ handler|get_display:'teaching_credit' }}</dd>
+        {% endblock %}
+    """
 
     class EntryForm(BaseEntryForm):
 
         POSITIONS = Choices(
+            ('UGRAD_DIRECTOR', 'Undergrad Program Director'),
+            ('GRAD_DIRECTOR', 'Graduate Program Director'),
+            ('DDP_DIRECTOR', 'Dual-Degree Program Director'),
+            ('ASSOC_DIRECTOR', 'Associate Director'),
+            ('DIRECTOR', 'School Director'),
+            ('ASSOC_DEAN', 'Associate Dean'),
             ('DEAN', 'Dean'),
-            ('UGRAD_DIRECTOR', 'Undergrad Director'),
+            ('OTHER', 'Other Admin Position'),
         )
 
         position = forms.ChoiceField(required=True, choices=POSITIONS)
@@ -38,20 +50,17 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
         'teaching_credit',
     ]
 
-    def to_search_row(self):
-        return [
-            self.EntryForm.POSITIONS.get(self.get_config('position')),
-            self.get_config('teaching_credit'),
-        ]
+    def get_position_display(self):
+        return self.EntryForm.POSITIONS.get(self.get_config('position'), 'N/A')
 
     @classmethod
     def default_title(cls):
         return 'Admin Position'
 
     def short_summary(self):
-        position = self.EntryForm.POSITIONS.get(self.get_config('position'), 'N/A')
+        position = self.get_position_display()
         return 'Given position: {}'.format(position)
 
     def teaching_adjust_per_semester(self):
-        adjust = fractions.Fraction(self.event.config.get('teaching_credit', 0) or 0)
-        return TeachingAdjust(adjust, adjust)
+        credit = self.get_config('teaching_credit')
+        return TeachingAdjust(credit, 1)

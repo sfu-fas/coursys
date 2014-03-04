@@ -3,7 +3,7 @@
 <div class="artifact-note{% if note.hidden or note.is_expired %} collapsed{% endif %}{% if note.is_expired %} expired{% endif %}" id="note-box-{{note.id}}">
     <div class="artifact-note-header">
         <dl class="note-info">
-            <dt>Created at</dt>
+            <dt>Created</dt>
             <dd>{{note.created_at}}</dd>
 
             <dt>By<dt>
@@ -39,8 +39,9 @@
         <p>{{note.text|linebreaks}}</p>
         
         {% if note.file_attachment %}
-            <p><img class="attachment-icon" src="{{STATIC_URL}}icons/attach.png" alt="download" />
-                <a href="{% url "advisornotes.views.download_artifact_file" note_id=note.id%}">{{ note.attachment_filename }}</a>
+            <p><a href="{% url "advisornotes.views.download_artifact_file" note_id=note.id%}">
+                <i class="fa fa-download" title="Download"></i>
+                {{ note.attachment_filename }}</a>
                 ({{ note.file_attachment.size|filesizeformat }})
             </p> 
         {% endif %}

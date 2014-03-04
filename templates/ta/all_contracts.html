@@ -25,7 +25,7 @@
 		
     	//setting post_slug
     	$('#submit').click(function(){
-    		var url "=" application_urls[$('#app').val()]
+    		var url = application_urls[$('#app').val()]
     		$('#create').attr("href", url)
     	})
 
@@ -57,7 +57,7 @@
 
 {%block content%}
 {%if contracts %}
-<form action="" method="post">{% csrf_token %}
+<form action="" class="subtle" method="post">{% csrf_token %}
 <div class="datatable_container">
 <table class="display" id="contracts">
   <thead>
@@ -105,14 +105,12 @@
 	<p>No contracts yet</p>
 {%endif%}
 
-<div id="ta_con">
-<h2>New Contract:</h2>
+<h2 id="new">New Contract</h2>
 <form action="{% url "ta.views.new_contract" post_slug=posting.slug %}" method="post">{% csrf_token %}
 	{{ form.application }}
 	<input type="submit" class="submit" id="submit" value="Create">
 	<div class="helptext">Select the associated applicant</div>
 	
 </form>
-</div>
 
 {%endblock content%}

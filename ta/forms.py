@@ -198,7 +198,6 @@ class TAApplicationForm(forms.ModelForm):
                     self.fields[question.encode('ascii', 'ignore')] = forms.CharField(label="Question", help_text=question, widget=forms.Textarea, initial=self.instance.config['extra_questions'][question])
                 else:
                     self.fields[question.encode('ascii', 'ignore')] = forms.CharField(label="Question", help_text=question, widget=forms.Textarea)
-        print self.fields
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
@@ -225,20 +224,9 @@ class CoursePreferenceForm(forms.ModelForm):
 class TAAcceptanceForm(forms.ModelForm):
     sin = forms.CharField(label="SIN", help_text="Social insurance number")
        
-    class eta:
+    class Meta:
         model = TAContract
-        exclude = [
-                   'pay_start','pay_end','appt_category', 'position_number', 
-                  'appt',
-                  'pay_per_bu', 
-                  'scholarship_per_bu',
-                  'appt_cond ',
-                  'appt_tssu',
-                  'deadline',
-                  'remarks',
-                  'created_by',
-                  'created_at'
-                  ]
+        fields = ['sin']
     
 class NewTAContractForm(forms.Form):
     application = forms.ModelChoiceField(queryset=TAApplication.objects.none())
@@ -609,8 +597,10 @@ class TAPostingBUForm(forms.Form):
 
 class AssignBUForm(forms.Form):
     rank = forms.IntegerField(min_value=0, label="rank")
+    rank.widget.attrs['size'] = '2'
     bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False)
     bu.widget.attrs['class'] = u'bu_inp'
+    bu.widget.attrs['size'] = '3'
 
 # fake contract statuses to allow selecting applicants in the form
 APPLICANT_STATUSES = (('_APPLIC', 'Applicants (not late)'), ('_LATEAPP', 'Late Applicants'))

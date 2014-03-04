@@ -1,9 +1,15 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 
 {% block title %}Faculty Salaries{% endblock %}
 {% block h1 %}Faculty Salaries{% endblock %}
 
 {% block headextra %}
+<style type="text/css">
+    input[type="submit"] {
+      margin-left: 325px;
+      margin-top: -53px;
+    }
+</style>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#faculty_salary_table').dataTable( {
@@ -12,6 +18,9 @@ $(document).ready(function() {
     "aaSorting": [[0, "asc"]],
     "bJQueryUI": true,
   } );
+  $("#id_date").datepicker({
+      'dateFormat' : 'yy-mm-dd'
+    });
 } );
 </script>
 {% endblock %}
@@ -37,7 +46,7 @@ $(document).ready(function() {
   <tr>
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
   <td>{{ units }}</td>
-  <td>{{ pay }}</td>
+  <td>${{ pay }}</td>
   </tr>
   {% endfor %}
   </tbody>

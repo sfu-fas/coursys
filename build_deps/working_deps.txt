@@ -30,3 +30,5 @@ django-cache-utils==0.7.2
 celery==3.1.8
 django-celery==3.1.1
 django-celery-email==1.0.4
+#kombu==3.0.10
+iso8601==0.1.8

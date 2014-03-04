@@ -10,7 +10,6 @@
 <div class="form_container">
 <form action="{% url "advisornotes.views.new_note" userid=userid %}" enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
-<legend>Note</legend>
 {{ form|as_dl }}
 <p><input type="submit" class="submit" value="Submit" /></p>
 </fieldset>

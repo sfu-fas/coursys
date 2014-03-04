@@ -13,7 +13,6 @@
 <div class="form_container">
   <form action="{% url "ra.views.edit_project" project_slug=project.slug %}" method="post">{% csrf_token %}
     <fieldset>
-      <legend>Project Information</legend>
       {{ projectform|as_dl }}
       <p><input type="submit" value="Submit" class="submit" /></p>
     </fieldset>

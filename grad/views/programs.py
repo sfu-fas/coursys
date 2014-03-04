@@ -7,7 +7,7 @@ def programs(request):
     programs = GradProgram.objects.filter(unit__in=request.units)
     
     # set frontend defaults
-    page_title = 'Graduate Programs Records'
+    page_title = 'Graduate Programs'
     crumb = 'Grad Programs' 
     context = {
                'page_title' : page_title,

@@ -26,9 +26,6 @@ textarea {
   width: 70%;
   height: 30px;
 }
-dd{
-  margin-bottom: 30px;
-}
 </style>
 <script type="text/javascript">
 //<![CDATA[
@@ -68,13 +65,10 @@ $(document).ready(function() {
 <div class="form_container">
 <form action="" method="post">{% csrf_token %}
 <fieldset>
-    <legend>{{ posting.unit.name }} TA Application</legend>
-   
-    {% if manual %} 
+    {% if manual %}
         {{search_form.as_p}}
-        
         <div id="simsresult">
-        <img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
+        <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i>
         </div>
     {% endif %}
 
@@ -84,14 +78,13 @@ $(document).ready(function() {
 
 {% csrf_token %}
 <fieldset>
-    <legend>Course Preferences</legend>
-    <h3>Select courses in order of most preferred to least preferred</h3>
+    <legend>Course Preferences: most to least preferred</legend>
     <div id="course-forms">
     	{{ courses_formset.management_form }}
         {% for form in courses_formset %}
             <div id="course-form-{{ forloop.counter0 }}">
-            <p id="course-form-{{ forloop.counter0 }}-label">Course {{ forloop.counter }}:</p>
-            {{ form.as_p }}
+            <h3>Course {{ forloop.counter }}:</h3>
+            {{ form|as_dl_inline }}
             </div>
         {% endfor %}
     </div>
@@ -104,7 +97,7 @@ $(document).ready(function() {
 //<![CDATA[
 	// dynamically append button for no-script compatibility
 	$(function() {
-		$("#form_btns").html('<input id="add_btn" type="button" value="Add Another" onclick="add()"/>')
+		$("#form_btns").html('<input id="add_btn" type="button" value="Add Another" onclick="add_course()"/>')
 	});
 //]]></script>
 

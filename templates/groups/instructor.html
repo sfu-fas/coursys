@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 
@@ -32,12 +31,12 @@ $(document).ready(function() {
   {% for info in groupList %}
   <h3 id="{{info.group.slug}}">{{ info.group.name }}</h3>
   {% if not activity %}<p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>{% endif %}
-          <ul>
+          <ul class="bulleted">
               {% for m in info.unique_members %}
               <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
               {% if m.missing %}(not for 
               {% for a in m.missing %}
-              {{ a.name_with_pref }}{% if forloop.last %}){% else %}, {% endif %}
+              {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
               {% endfor %}
               {% endif %}
               </li>

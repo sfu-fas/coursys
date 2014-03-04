@@ -1,11 +1,9 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 {% load form_display %}
 
 {% block headextra %}
 <link type="text/css" href="{{STATIC_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{STATIC_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
   $(function() {
     $("#id_student_status").css("min-height", "180px").multiselect();
@@ -57,7 +55,7 @@
 <input id="deleteinvalidsearchbutton" class="submit" type="submit" value="Delete this saved search">
 </form>
 {% endif %}
-<p>If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
+<p class="helptext">If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
 <div class="form_container">
     <form id="searchform" action="{% url "grad.views.search" %}" method="get">
         <fieldset>
@@ -79,13 +77,10 @@
             <h2 class="formheader">Financial</h2>
             <div class="formsection">{{ form|as_dl_includefields:form.financial_fields }}</div>
 
-        </fieldset>
-        <fieldset>
-        	<legend>Column Selection</legend>
-            {{ form|as_dl_includefields:form.col_fields }}
+            <h2 class="formheaderopen">Column Selection</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.col_fields }}</div>
         </fieldset>
         <p><input id="submitbutton" class="submit"  type="submit" value="Search" /></p>
     </form>
-    <a class="button" href="{% url "grad.views.index" %}" style="clear:both">Back</a>
 </div>
 {% endblock %}

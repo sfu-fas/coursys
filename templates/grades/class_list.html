@@ -49,12 +49,12 @@
     <table class="display" id="students">
         <thead>
             <tr>
-                <th scope="col">Last Name</th>
-                <th scope="col">First Name</th>
+                <th scope="col">Last<span class="wideonly"> Name</span></th>
+                <th scope="col">First<span class="wideonly"> Name</span></th>
 		<th scope="col">User ID</th>
-		<th scope="col">Student #</th>
+		<th scope="col"><span class="wideonly">Student #</span><span class="narrowonly">Stu#</span></th>
 		{% if course.combined %}<th scope="col">Section</th>{% endif %}
-		{% if course.labtut %}<th scope="col">Lab/Tutorial</th>{% endif %}
+		{% if course.labtut %}<th scope="col"><span class="wideonly">Lab/Tutorial</span><span class="narrowonly">Lab/Tut</span></th>{% endif %}
 		<th scope="col">Group(s)</th>
             </tr>
 	</thead>

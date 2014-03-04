@@ -71,7 +71,7 @@ class StudentSelect(forms.Select):
 
 class StudentField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
-        super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 30}), help_text="Type to search for a student.", **kwargs)
+        super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 25}), help_text="Type to search for a student.", **kwargs)
 
     def to_python(self, value):
         try:

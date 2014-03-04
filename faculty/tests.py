@@ -47,7 +47,7 @@ class EventTypesTest(TestCase):
         self.assertTrue(handler.can_edit(dean_admin))
 
         self.assertFalse(handler.can_approve(fac_member))
-        self.assertFalse(handler.can_approve(dept_admin))
+        self.assertTrue(handler.can_approve(dept_admin))
         self.assertTrue(handler.can_approve(dean_admin))
 
     def test_event_types(self):
@@ -59,6 +59,12 @@ class EventTypesTest(TestCase):
         editor = Person.objects.get(userid='dixon')
         units = Unit.objects.all()
 
+        # Make a fake Semester so that some Handlers will function properly
+        start_date = datetime.date(2014, 1, 1)
+        Semester.objects.create(name='1141',
+                                start=datetime.date(2014, 1, 5),
+                                end=datetime.date(2014, 1, 31))
+
         for Handler in HANDLERS:
             # Make sure all required abstract methods at least overrided
             # XXX: should output the missing method on fail
@@ -68,7 +74,8 @@ class EventTypesTest(TestCase):
                 # to explicitly check if a handler with a flag has overriden a specific base
                 # mixin method.
                 handler = Handler(CareerEvent(person=fac_member,
-                                              unit=fac_role.unit))
+                                              unit=fac_role.unit,
+                                              start_date=start_date))
                 handler.set_handler_specific_data()
 
                 if 'affects_salary' in Handler.FLAGS:

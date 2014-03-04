@@ -1,73 +1,57 @@
-{% extends "marking/base.html" %}
-{% load course_display %}
+{% extends "base.html" %}
+{% load form_display %}
 
-{% block title %}Change Grade Status{% endblock %}
-{% block h1 %}Change Grade Status{% endblock %}
-
-{% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
-<script type="text/javascript">
-//<![CDATA[
-
-$(document).ready(function() {
-  $("p#statushandle").collapsible();
-});
-//]]></script>
-{% endblock %}
+{% block title %}Change Grade: {{student.name}}, {{activity.name}}{% endblock %}
+{% block h1 %}Change Grade: {{student.name}}, {{activity.name}}{% endblock %}
 
 
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Change Grade Status</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Change Grade Status</li>{% endblock %}
 
 {% block content %}
 
-<div class="table_container">
 	<table class="info">
 	<tbody> 
 	     <tr>
-	     	<th class="ui-state-default">Activity</th>
+	     	<th scope="row">Activity</th>
 	        <td>
 	            {{activity.name}}  
 	        </td>
 	     </tr> 
 		 <tr>
-	    	<th class="ui-state-default">Student Name</th>
+	    	<th scope="row">Student Name</th>
 	        <td>
 	            {{student.name}}  
 	        </td>
 	    </tr>
 	    <tr>
-	    	<th  class="ui-state-default">User ID</th>
+	    	<th scope="row">User ID</th>
 	        <td>
 	            {{student.userid}}
 	        </td>
 	    </tr>
 	    <tr>
-	    	<th  class="ui-state-default">Stu #</th>
+	    	<th scope="row">Stu #</th>
 	        <td>
 	            {{student.emplid}}
 	        </td>
 	    </tr>  
 	    <tr>
-	    	<th  class="ui-state-default">Current Grade Status</th>
+	    	<th scope="row">Current Grade Status</th>
 	        <td>
 	            {{current_status}}
 	        </td>
 	    </tr> 
 	</tbody>
 	</table>
-</div>
-<div class="form_container">
     <form action="" method="post">{% csrf_token %}
 	    <fieldset>
-		 <legend>Change Grade Status</legend>
-		 {{status_form|display_form}}
-		</fieldset> 
+		 {{status_form|as_dl}}
+         <p><input class="submit" type="submit" value="Save" /></p>
+		</fieldset>
     </form>
-</div>
 
 <h2 id="status">Status Descriptions</h2>
-<p id="statushandle">status descriptions.</p>
-<div>
 {% if activity.is_calculated %}
 <p>For a calculated numeric activity like this, the status values have the following semantics:</p>
 <dl>
@@ -100,7 +84,6 @@ $(document).ready(function() {
 <dd>Grade is affected by academic dishonesty on this piece of work.  Status does not affect calculations: used for your own record keeping.</dd>
 </dl>
 {% endif %}
-</div>
 
 
 {% endblock %}

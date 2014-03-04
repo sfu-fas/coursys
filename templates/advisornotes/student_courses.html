@@ -19,7 +19,6 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">//<![CDATA[
 	function show_titles() {
@@ -110,7 +109,7 @@ table.courses td {
 {% block content %}
 <div id="messages"><ul><li class="warning">Many things are wrong here. Do not rely on any of this data until this page is complete.</li></ul></div>
 
-<div id="coursecontent"><img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" /></div>
+<div id="coursecontent"><i class="fa fa-spinner fa-spin" id="fetchwait"></i></div>
 
 
 {% endblock content %}

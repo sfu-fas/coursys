@@ -32,7 +32,8 @@ $(document).ready(function() {
   </tr></thead>
   <tbody>
   {% for event_type in event_types %}
-  {% if person|can_view_handler:event_type.slug %}
+  {% can_view_handler event_type.slug editor person as viewable %}
+  {% if viewable %}
   <tr>
     <td><a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a></td>
     <td>{{ event_type.is_instant }}</td>

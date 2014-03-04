@@ -16,8 +16,8 @@ ADMINS = (
     ('Curtis Lassam', 'classam@sfu.ca'),
     ('sumo Kindersley', 'sumo@cs.sfu.ca'),
 )
-
 MANAGERS = ADMINS
+SERVER_EMAIL = 'ggbaker@sfu.ca'
 
 if DEPLOYED:
     DATABASES = {
@@ -49,8 +49,6 @@ LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True
 MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploads')
-MEDIA_URL = '/media/'
-#ADMIN_MEDIA_PREFIX = '/adminmedia/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'w@h_buddoh5**%79%0x&7h0ro2tol+-7vz=p*kn_g+0qcw8krr'
@@ -71,7 +69,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
-    'courselib.mobile_detection.MobileDetectionMiddleware'
 )
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -101,11 +98,12 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    #'django.contrib.markup',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
     'compressor',
+    'djcelery',
+    'djcelery_email',
 
     'coredata',
     'dashboard',
@@ -117,12 +115,13 @@ INSTALLED_APPS = (
     'submission',
     #'planning',
     'discipline',
-    'mobile',
+    #'mobile',
     'ta',
     'pages',
     'ra',
     'advisornotes',
     'alerts',
+    'reports',
     'discuss',
     #'booking',
     #'techreq',
@@ -142,8 +141,10 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
 
-STATIC_URL = '/static/'
+STATIC_URL = '/media/'
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'media')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -165,6 +166,7 @@ if DEPLOYED:
     } }
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
     DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
     SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': '????',
@@ -188,11 +190,16 @@ USE_CELERY = DEPLOYED
 #USE_CELERY = True
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
-    INSTALLED_APPS = INSTALLED_APPS + (
-        'djcelery',
-        'djcelery_email',
-        )
-    BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
+    if DEPLOYED:
+        # use AMPQ in production, and move email sending to Celery
+        BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
+        CELERY_EMAIL_BACKEND = EMAIL_BACKEND
+        EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+    else:
+        # use Kombo (aka the Django database) in devel
+        BROKER_URL = "django://"
+        INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
+
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
@@ -209,19 +216,23 @@ if USE_CELERY:
     CELERY_EMAIL_TASK_CONFIG = {
         'rate_limit' : '30/m',
         'queue': 'email',
-        'serializer': 'pickle',
+        'serializer': 'pickle', # email objects aren't JSON serializable
     }
-    CELERY_EMAIL_BACKEND = EMAIL_BACKEND
-    EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-    SERVER_EMAIL = 'ggbaker@sfu.ca'
 
+
+if 'DEVELOPER' in os.environ:
+    ACTIVE_DEVELOPER = os.environ['DEVELOPER']
+else:
+    ACTIVE_DEVELOPER = 'ggbaker'
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
-SIMS_USER = "ggbaker"
+SIMS_USER = ACTIVE_DEVELOPER
+SIMS_DB_NAME = "csrpt"
+SIMS_DB_SCHEMA = "dbcsown"
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"
@@ -249,6 +260,8 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
     LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
+
+REPORT_CACHE_LOCATION = "/tmp/report_cache"
 
 #EXTRA_MIDDLEWARE_CLASSES = ()
 try:

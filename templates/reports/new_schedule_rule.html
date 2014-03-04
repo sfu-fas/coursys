@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}New Schedule Rule{% endblock %}
+{% block h1 %}New Schedule Rule{% endblock %}
+
+{% block headextra %}
+<script>
+$(function(){
+    $("#id_next_run").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd" });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li> 
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a></li>
+<li>New Schedule Rule</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url "reports.views.new_schedule_rule" report=report.slug %}" method="post">{% csrf_token %}
+<fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+{% endblock %}

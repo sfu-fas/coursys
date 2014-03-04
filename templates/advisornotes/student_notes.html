@@ -8,15 +8,6 @@
 {% endblock %}
 
 {% block headextra %}
-<style type="text/css">
-    .hideshow input{
-        font-size: x-small;
-    }
-    .deleted{
-        background-color: pink;
-    }
-</style>
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 //<![CDATA[
@@ -24,7 +15,7 @@
     $(document).ready(function() {
         $('.delete').click(function(){
 		    var id = $(this).data('id');
-            $("#note-whole-"+id ).addClass('deleted');
+            $("#note-whole-"+id ).addClass('deletednote');
             $("#note-box-"+id+" .delete").hide();
             $("#note-box-"+id+" .restore").show();
             if( !show_deleted ){
@@ -36,7 +27,7 @@
         });
         $('.restore').click(function(){
 		    var id = $(this).data('id');
-            $("#note-whole-"+id ).removeClass('deleted');
+            $("#note-whole-"+id ).removeClass('deletednote');
             $("#note-box-"+id+" .delete").show();
             $("#note-box-"+id+" .restore").hide();
 	
@@ -45,14 +36,14 @@
         });
         $('.show_deleted').click(function(){
             show_deleted = true;
-            $('.deleted').show();
+            $('.deletednote').show();
             $('.show_deleted').hide();
             $('.hide_deleted').show();
             return false;
         });
         $('.hide_deleted').click(function(){
             show_deleted = false;
-            $('.deleted').hide();
+            $('.deletednote').hide();
             $('.show_deleted').show();
             $('.hide_deleted').hide();
             return false;
@@ -70,7 +61,7 @@
         {% if not nonstudent %}
         {% if show_transcript %}<li><a href="{% url "advisornotes.views.student_courses" userid=userid%}">View Current Courses</a></li>{% endif %}
         <li id="moreinfo">
-            <a href="javascript:get_more_info('{% url "advisornotes.views.student_more_info" userid=userid %}')">Fetch more info <img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a>
+            <a href="javascript:get_more_info('{% url "advisornotes.views.student_more_info" userid=userid %}')">Fetch more info <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></a>
         </li>
         {% endif %}
         {% if nonstudent %}
@@ -118,11 +109,11 @@
             {% if nonstudent %}
             <tr>
                 <th>High School</th>
-                <td>{{ student.high_school|default:"--" }}</td>
+                <td>{{ student.high_school|default:"&mdash;" }}</td>
             </tr>
             <tr>
                 <th>College</th>
-                <td>{{ student.college|default:"--" }}</td>
+                <td>{{ student.college|default:"&mdash;" }}</td>
             </tr>
             <tr>
                 <th>Start Year:</th>
@@ -150,13 +141,11 @@
 
 {% if item.entry_type == 'NOTE' %}
 {% with item as note %}
-<div id='note-whole-{{note.id}}' class="{% if note.hidden %}deleted{% endif %}" {% if note.hidden %}style="display:none;"{% endif %} >
+<div id='note-whole-{{note.id}}' class="{% if note.hidden %}deletednote{% endif %}" {% if note.hidden %}style="display:none;"{% endif %} >
 <h2 class="note" id="note-{{note.id}}">
     {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}
     {% with "Student was emailed the contents of this note" as email_note %}
-    {% if note.emailed %}
-        <img src="{{ STATIC_URL }}icons/email.png" alt="{{ email_note }}" title="{{ email_note }}" />
-    {% endif %}
+    {% if note.emailed %}<i class="fa fa-envelope-o" title="This note was emailed to the student"></i>{% endif %}
     {% endwith %}
     </h2>
 <div class="note-box" id="note-box-{{note.id}}">
@@ -165,8 +154,8 @@
         {{note.text|linebreaks}}
     </div>
     {% if note.file_attachment %}
-    <p><img src="{{STATIC_URL}}icons/attach.png" alt="download" />
-        <a href="{% url "advisornotes.views.download_file" userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
+    <p><a href="{% url "advisornotes.views.download_file" userid=userid note_id=note.id%}">
+        <i class="fa fa-download"></i> {{ note.attachment_filename }}</a>
         ({{ note.file_attachment.size|filesizeformat }})
     </p>
     {% endif %}
@@ -187,7 +176,7 @@
 <div class="note-box" id="form-box-{{formsub.id}}">
 <div class="note-content">
   {% if formsub.summary %}<p>Summary{% if formsub.closer %} by {{ formsub.closer.name }}{% endif %}: &ldquo;{{ formsub.summary }}&rdquo;
-  {% if formsub.emailed %}<img src="{{ STATIC_URL }}icons/email.png" alt="emailed" title="summary emailed to student" />{% endif %}
+  {% if formsub.emailed %}<i class="fa fa-envelope-o" title="Summary emailed to the student"></i>{% endif %}
   </p>{% endif %}
   <p><a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
       &ldquo;{{formsub.form.title}}&rdquo; submission.</a></p>

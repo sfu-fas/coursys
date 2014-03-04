@@ -40,14 +40,14 @@ $(function() {
 <h2>Student Search</h2>
 <div class="form_container" style="clear: left;">
     <form action="" method="post">{% csrf_token %}
-        <fieldset style="width: 65%">
+        <fieldset>
             {{form.as_p}}
             <p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>
     </form>
 
     <div id="simsresult">
-        <img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
+        <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i>
     </div>
 
     {% if simserror %}
@@ -69,7 +69,7 @@ $(function() {
 <h2 id="notesearch">Search Content of Student Notes</h2>
 <div style="margin-right: 1em;">
     <form action="{% url "advisornotes.views.note_search" %}" method="get">
-        <fieldset style="width: 65%; margin-right: 1em;">
+        <fieldset>
             {{note_form.as_p}}
             <p><input class="submit" type="submit" value="Submit" /></p>
         </fieldset>

@@ -32,6 +32,9 @@ $(document).ready(function() {
 					datebox.val(end);
 				}
 			}
-		}
-	)});
+		});
+		datebox.on('click', function(e) {
+			semesterbox.val('');
+		});		
+	});
 });

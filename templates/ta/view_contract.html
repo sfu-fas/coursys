@@ -24,7 +24,7 @@
 
 {% block content %}
 <div class="table_container">
-  <h2>General Information:</h2> 
+  <h2 id="general">General Information</h2>
   
   <table class="info">
     <tr><th>ID</th><td>{{ contract.application.person.emplid }} ({{contract.application.person.userid}})</td></tr>
@@ -41,7 +41,7 @@
     <tr><th>Remarks</th><td>{{ contract.remarks }}</td></tr>
   </table>
   
-  <h2>Courses Assigned:</h2> 
+  <h2 id="courses">Courses Assigned</h2>
   <table class="info">
 		<thead class="form_head">
           <tr>
@@ -61,7 +61,7 @@
 				<td>{{course.description.description}}</td>
                 <td>{{course.prep_bu}} </td> 
 				<td>{{course.bu}}</td>
-                <td>{{course.total_bu}} </td>
+                <td>{{course.total_bu}}</td>
 			</tr>
 			{% endfor %}		
 			<tr id="cal_tr">
@@ -77,8 +77,7 @@
 		
   </table>
   
-   <h2>Payment Details:</h2> 
-  <div class="table_container"> 
+  <h2 id="payment">Payment Details:</h2>
       <table class="info" id="ta_pay">
       	<thead class="form_head">
           <tr>
@@ -90,19 +89,18 @@
         </thead>  
         <tbody>
         	<tr> 
-        		<th class="ui-state-default">Salary</th>
+        		<th scope="row">Salary</th>
 				<td>{{pay}}</td>	
         		<td>{{salary_bi}}</td>
         		<td>{{salary_sem}}</td>
         	</tr>
         	<tr>
-        		<th class="ui-state-default">Scholarship</th>
+        		<th scope="row">Scholarship</th>
 				<td>{{scholarship}}</td>
         		<td>{{schol_bi}}</td>
         		<td>{{schol_sem}}</td>
         	</tr>
         </tbody>
       </table>
-   </div>   
 </div>
 {% endblock %}

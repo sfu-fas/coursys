@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 {% load getattribute %}
 {% block headextra %}
 <script type="text/javascript">
@@ -47,7 +46,7 @@
 				<td>{{g.program.label}}</td>
 				<td>{{g.start_semester.name}}</td>
 				<td><span class="sort">{{g.status_order}}</span>{{g.get_current_status_display}}</td>
-                                <td>{{g.supervisor_names|join:"; "}}</td>
+                <td>{{g.supervisor_names|join:"; "}}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

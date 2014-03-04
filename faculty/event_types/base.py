@@ -11,8 +11,10 @@ from django.template import Context, Template
 
 from coredata.models import Role, Unit
 
-from faculty.event_types.constants import PERMISSION_LEVEL
+from faculty.event_types.constants import PERMISSION_LEVEL, PERMISSION_CHOICES
 from faculty.event_types.fields import SemesterField
+
+ROLES = PERMISSION_CHOICES
 
 SalaryAdjust = collections.namedtuple('SalaryAdjust', [
     'add_salary',
@@ -161,8 +163,12 @@ class CareerEventHandlerBase(object):
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
 
+        self.set_handler_specific_data()
+
         if self.IS_INSTANT:
             self.event.end_date = self.event.start_date
+
+        self.pre_save()
 
         if self.IS_EXCLUSIVE:
             from faculty.models import CareerEvent
@@ -176,19 +182,25 @@ class CareerEventHandlerBase(object):
                 previous_event.end_date = self.event.start_date - datetime.timedelta(days=1)
                 previous_event.save(editor)
 
-        self.pre_save()
-        self.set_handler_specific_data()
         self.event.save(editor)
         self.post_save()
 
     def get_config(self, name, default=None):
-        # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in the
-        #      config field, then it was most likely valid when the event was created.
-        try:
-            raw_value = self.event.config.get(name) or default
-            return self.CONFIG_FIELDS[name].to_python(raw_value)
-        except forms.ValidationError:
-            return None
+        raw_value = self.event.config.get(name)
+        field = self.CONFIG_FIELDS[name]
+
+        if raw_value is None:
+            if default is not None:
+                return default
+            else:
+                return field.to_python(field.initial)
+        else:
+            # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
+            #      the config field, then it was most likely valid when the event was created.
+            try:
+                return field.to_python(raw_value)
+            except forms.ValidationError:
+                return raw_value
 
     def set_config(self, name, value):
         if isinstance(value, models.Model):
@@ -213,7 +225,6 @@ class CareerEventHandlerBase(object):
         return ret
 
     # Stuff involving permissions
-
     def permission(self, editor):
         """
         This editor's permission level with respect to this faculty member.
@@ -227,11 +238,11 @@ class CareerEventHandlerBase(object):
         if self.event and (editor == self.event.person):
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
-        elif edit_units & super_units:
+        elif edit_units & super_units is not None:
             # give dean's office level permission to anybody above in the hierarchy:
             # not technically correct, but correct in practice.
             return 'FAC'
-        elif edit_units & fac_units:
+        elif edit_units & fac_units is not None:
             return 'DEPT'
         else:
             return 'NONE'
@@ -246,6 +257,9 @@ class CareerEventHandlerBase(object):
         permission = self.permission(editor)
         return PERMISSION_LEVEL[permission] >= PERMISSION_LEVEL[perm]
 
+    def get_view_role(self):
+        return ROLES[self.VIEWABLE_BY]
+
     def can_view(self, editor):
         """
         Can the given user (a coredata.Person) can view the
@@ -253,12 +267,18 @@ class CareerEventHandlerBase(object):
         """
         return self.has_permission(self.VIEWABLE_BY, editor)
 
+    def get_edit_role(self):
+        return ROLES[self.EDITABLE_BY]
+
     def can_edit(self, editor):
         """
         Can the given editor (a coredata.Person) can create/edit this
         CareerEventType for this faculty member?
         """
         return self.has_permission(self.EDITABLE_BY, editor)
+
+    def get_approve_role(self):
+        return ROLES[self.APPROVAL_BY]
 
     def can_approve(self, editor):
         """
@@ -274,6 +294,9 @@ class CareerEventHandlerBase(object):
         """
         if self.can_approve(editor):
             self.event.status = 'A'
+            self.save(editor)
+        else:
+            self.event.status = 'NA'
             self.save(editor)
 
     # Stuff relating to forms
@@ -296,7 +319,6 @@ class CareerEventHandlerBase(object):
         # every time the form is loaded, this is not desired behavior.
         #self.event.status = form.cleaned_data.get('status', 'NA')
 
-
         for name in self.CONFIG_FIELDS:
             self.set_config(name, form.cleaned_data.get(name, None))
 
@@ -318,6 +340,23 @@ class CareerEventHandlerBase(object):
 
     # Stuff relating to HTML display
 
+    def get_display(self, field, default='unknown'):
+        """
+        Returns the display value for a field.
+
+        """
+        display_func_name = 'get_{}_display'.format(field)
+        if hasattr(self, display_func_name):
+            return getattr(self, display_func_name)()
+        else:
+            return self.get_config(field, default)
+
+    def to_html_context(self):
+        """
+        Additional context for the TO_HTML_TEMPLATE
+        """
+        return {}
+
     def to_html(self):
         """
         A detailed HTML presentation of this event
@@ -326,6 +365,8 @@ class CareerEventHandlerBase(object):
         context = {
             'event': self.event,
             'handler': self,
+            'start': self.event.start_date,
+            'end': self.event.end_date,
         }
         context.update(self.to_html_context())
         return template.render(Context(context))
@@ -341,19 +382,16 @@ class CareerEventHandlerBase(object):
         return not bool([False for _, form in rules if not form.is_valid()])
 
     @classmethod
-    def filter(cls, start_date=None, end_date=None, rules=None):
-        from faculty.models import CareerEvent
-        events = CareerEvent.objects.by_type(cls)
+    def filter(cls, events, rules=None, viewer=None):
         if not rules:
             rules = []
 
-        if start_date:
-            events = events.filter(start_date__gte=start_date)
-        if end_date:
-            events = events.filter(end_date__lte=end_date)
-
         for event in events:
             handler = cls(event)
+
+            if viewer and not handler.can_view(viewer):
+                continue
+
             for rule, form in rules:
                 if not rule.matches(handler, form):
                     break
@@ -365,7 +403,7 @@ class CareerEventHandlerBase(object):
         return [cls.CONFIG_FIELDS[name].label or pretty_name(name) for name in cls.SEARCH_RESULT_FIELDS]
 
     def to_search_row(self):
-        return [self.get_config(name) for name in self.SEARCH_RESULT_FIELDS]
+        return [self.get_display(name) for name in self.SEARCH_RESULT_FIELDS]
 
     # Optionally override these
 
@@ -399,12 +437,6 @@ class CareerEventHandlerBase(object):
 
         """
         pass
-
-    def to_html_context(self):
-        """
-        Additional context for the TO_HTML_TEMPLATE
-        """
-        return {}
 
 
 class Choices(collections.OrderedDict):

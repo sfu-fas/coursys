@@ -202,8 +202,9 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
 </p>
 </div>
 
-<form action="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=offering.slug%}" method="post">{% csrf_token %}
+<form class="subtle" action="{% url "ta.views.assign_bus" post_slug=posting.slug course_slug=offering.slug%}" method="post">{% csrf_token %}
 <div><input id="submit_button1" class="submit submit_button" style='margin-right:18px' type="submit" value="Submit"/></div>
+<div class="clearfix"></div>
 <div class="form_container">
 {{ formset.management_form }}
 <table class="display" id="ta_app">

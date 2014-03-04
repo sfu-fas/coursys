@@ -1,16 +1,20 @@
 {% extends "base.html" %}
+{% load staticfiles %}
+{% load compress %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/grad.css" type="text/css" />
-<script type="text/javascript" src="{{STATIC_URL}}collapsible/js/jQuery.collapsible.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/grad.js"></script>
-{% block gradheadextra %}
+{% compress css %}
+<link rel="stylesheet" href="{% static "style/grad.css" %}" type="text/css" />
+{% endcompress %}
+{% compress js %}
+<script type="text/javascript" src="{% static "js/grad.js" %}"></script>
 <script type="text/javascript">
-//<![CDATA[
 $(document).ready(function() {
 	prep_content();
 });
-//]]></script>
-{% endblock %}
+</script>
+{% endcompress %}
+
+{% block gradheadextra %}{% endblock %}
 {% endblock %}
 

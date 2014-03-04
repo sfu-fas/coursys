@@ -125,7 +125,7 @@ def new(request):
 #New RA Appointment with student pre-filled.
 @requires_role("FUND")
 def new_student(request, userid):
-    person = get_object_or_404(Person, emplid=userid)
+    person = get_object_or_404(Person, find_userid_or_emplid(userid))
     semester = Semester.next_starting()
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))

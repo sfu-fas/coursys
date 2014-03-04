@@ -3,6 +3,11 @@ from django.forms.models import ModelForm
 from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
 from django.template import Template, TemplateSyntaxError
 
+class AlertTypeForm(ModelForm):
+    class Meta:
+        model = AlertType
+        exclude = ('hidden', 'config') 
+
 class EmailForm(ModelForm):
     class Meta:
         model = AlertEmailTemplate
@@ -20,6 +25,14 @@ class ResolutionForm(ModelForm):
     class Meta:
         model = AlertUpdate 
         exclude = ('alert', 'update_type', 'created_at', 'hidden')
+
+class EmailResolutionForm(ModelForm):
+    from_email = forms.CharField( label="From", required=True )
+    to_email = forms.CharField( label="To", required=True )
+    subject = forms.CharField( label="Subject", required=True )
+    class Meta:
+        model = AlertUpdate
+        fields = ('to_email', 'from_email', 'subject', 'comments', 'resolved_until')
 
 class AlertUpdateForm(ModelForm):
     class Meta:

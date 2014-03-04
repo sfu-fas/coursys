@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}Alerts: {{alert_type.code}} Automation{% endblock %}
-{% block h1 %}Alerts: {{alert_type.code}} Automation{% endblock %}
+{% block title %}Alerts: {{alert_type.code}} Bulk Emails{% endblock %}
+{% block h1 %}Alerts: {{alert_type.code}} Bulk Emails{% endblock %}
 
 {% block headextra %}
 <link type="text/css" href="{{STATIC_URL}}style/alerts.css" rel="stylesheet" />
@@ -21,7 +21,7 @@ $(function() {
 {% block subbreadcrumbs %}
 <li><a href="{% url "alerts.views.view_alert_types" %}">Alerts</a></li>
 <li><a href="{% url "alerts.views.view_alerts" alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>
-<li>Automation </li> 
+<li>Bulk Emails </li>
 {% endblock %}
 
 {% block actions %}
@@ -35,17 +35,20 @@ $(function() {
 
 {% block content %}
 
+<h3 class="warning">I'm ready. We should <a href="{% url "alerts.views.send_emails" alert_type=alert_type.slug%}">Send These Emails Now</a>!</h3>
+
 {% if alert_automations %}
     {% for title, email, alerts in alert_automations %}
         <div class='automation'>
         <h2> {{title}} </h2>
         <p>{{email.content|linebreaksbr}}</p>
-        <h3>The following students will receive this e-mail at <a href='#'>8:00 PM</a></h3>
+        <a class='button' href="{% url "alerts.views.delete_automation" alert_type=alert_type.slug automation_id=email.id %}">Delete</a>
         <table class="display">
             <thead>
                 <tr>
                     <th>Student</th>
                     <th>Preview Email</th>
+                    <th>Actions</th>
                     <th>Emails</th>
                     <th>Comments</th>
                     <th>Last Update</th>
@@ -59,12 +62,21 @@ $(function() {
             {% for alert in alerts %}
                 <tr>
                     <td>
-                        <a href='{% url "advisornotes.views.student_notes" userid=alert.person.userid %}'>{{alert.person}}</a> 
+                        <a href='{% url "alerts.views.view_alert" alert_type=alert_type.slug alert_id=alert.id %}'>{{alert.person}}</a>
                     </td>
                     <td><a href='{% url "alerts.views.view_email_preview" alert_type=alert_type.slug automation_id=email.id alert_id=alert.id %}'>Preview</a></td>
+                    <td style='white-space:nowrap'>
+                        {% if alert.resolved %}
+                            <a href='{% url "alerts.views.reopen_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Reopen</a> |
+                        {% else %}
+                            <a href='{% url "alerts.views.resolve_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Resolve</a> |
+                        {% endif %}
+                        <a href='{% url "alerts.views.comment_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Comment</a> |
+                        <a href='{% url "alerts.views.email_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Email</a>
+                    </td>
                     <td>{{alert.n_emails}}</td>
                     <td>{{alert.n_comments}}</td>
-                    <td><a href='{% url "alerts.views.view_alert" alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
+                    <td>{{ alert.last_updated|date:"Y/m/d" }}</td>
                     <td>{{ alert.description }}</td>
                     {% for key, value in alert.details.items %}
                         <td>{{value}}</td>
@@ -73,7 +85,6 @@ $(function() {
             {% endfor %}
             </tbody>
         </table>
-        <a class='button' href="{% url "alerts.views.delete_automation" alert_type=alert_type.slug automation_id=email.id %}">Delete</a>  
         </div>
     {% endfor %} 
 {% else %}

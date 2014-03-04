@@ -1,30 +1,29 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Marking Summary{% endblock %}
+{% block title %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
 
-{% block h1 %} Marking Summary {% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking Summary</li>{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>Marking Summary</li>{% endblock %}
+{% block actions %}
+{% if is_staff %}
+<div id="actions">
+  <h2 class="heading">Actions</h2>
+  <ul>
+  {% if student %}
+  <li><a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Mark this student</a></li>
+  {% else %}
+  <li><a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Mark this group</a></li>
+  {% endif %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}
+
 
 {% block content %}
-<h2>
-{% if student %}
-Student {{student.userid}} marking details for {{activity.name}} 
-{% else %}
-Group {{group.name}} marking details for {{activity.name}} 
-{% endif %}
-</h2>
 
 <p class="empty">No marking details available for this grade.</p>
-
-{% if is_staff %}
-
-{% if student %}
-<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Mark</a>
-{% else %}
-<a class="button" href= "{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Mark</a>
-{% endif %}
-
-{% endif %}
 
 {% endblock %}

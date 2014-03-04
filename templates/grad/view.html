@@ -13,7 +13,7 @@
 	<h2>Actions</h2>
 	<ul>
 	{% if authtype != 'supervisor' %}
-	<li id="moreinfo"><a href="javascript:get_more_info('{% url "grad.views.grad_more_info" grad_slug=grad.slug %}')">Fetch more info <img src="{{STATIC_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a></li>
+	<li id="moreinfo"><a href="javascript:get_more_info('{% url "grad.views.grad_more_info" grad_slug=grad.slug %}')">Fetch more info</a> <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></li>
 	{% endif %}
 	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">View Financial Summary</a></li>
 	{% if can_edit %}
@@ -32,7 +32,6 @@
 <script type="text/javascript" src="{{STATIC_URL}}js/jquery.cookie.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-var loader_url = '{{STATIC_URL}}icons/ajax-loader.gif';
 $(window).bind( 'hashchange', display_sections);
 $(document).ready(function() {
 	if (window.location.search.indexOf('_escaped_fragment_') != -1) {
@@ -71,7 +70,8 @@ $(document).ready(function() {
 <tr><th>Email</th><td>{{grad.person.email_mailto}}
 {% if grad.applic_email %}(application email: {{grad.applic_email}}){% endif %}	
 </td></tr>
-<tr><th>Current Status</th><td>{{grad.get_current_status_display}} {% if can_edit %}[<a href="{% url "grad.views.manage_status" grad_slug=grad.slug %}">Update status</a>]{% endif %}</td></tr>
+<tr><th>Current Status</th><td>{{grad.get_current_status_display}}
+    {% if can_edit %}<a class="editlink" href="{% url "grad.views.manage_status" grad_slug=grad.slug %}">Update status</a>{% endif %}</td></tr>
 <tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
 <tr><th>CGPA</th><td>{% if grad.person.gpa %}{{grad.person.gpa}} ({{grad.person.ccredits}} credits){% endif %} {% if grad.config.masters_cgpa %} {{grad.config.masters_cgpa}} {% endif %}</td></tr>
 <tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>

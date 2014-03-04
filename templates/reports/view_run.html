@@ -1,0 +1,72 @@
+{% extends "base-wide.html" %}
+{% block title %}Report: {{report.name}}, Run: {{ run.created_at }}{% endblock %}
+{% block h1 %}Run: {{ run.created_at }} {% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a> </li>
+<li>Run: {{ run.created_at }} </li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<h2> Run Details </h2>
+
+<style>
+.code{
+  padding: 5px; 
+  background-color: #222;
+  color: white;
+
+  word-wrap: break-word; /* IE */
+  white-space: pre-wrap; /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+}
+
+.tablewrap{
+  max-width: 100%;
+  overflow-x: scroll;
+}
+</style>
+
+<h2> Output </h2>
+{% for result in results %}
+    <h3>{{result.name}} {{result.created_at}}</h3>
+    <div class='tablewrap'>
+        <table>
+        <thead>
+        {% for column in result.table_summary.headers %}
+            <th>{{column}}</th>
+        {% endfor %}
+        </thead>
+        <tbody>
+        {% for row in result.table_summary.rows %}
+            <tr>
+            {% for column in row %}
+                <td>{{column}}</td> 
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    </div>
+    <a href="{% url "reports.views.view_result" report=report.slug run=run.slug result=result.slug %}">View all {{result.table_rendered.rows|length}} rows</a>
+    -
+    <a href="{% url "reports.views.csv_result" report=report.slug run=run.slug result=result.slug %}">CSV</a>
+
+{% endfor %}
+
+<h2> Console </h2>
+<pre class='code'>
+{% for line in runlines %}
+{{line.0.hour}}:{{line.0.minute}}- {{line.1|linebreaksbr}} 
+{% endfor %}
+</pre>
+
+{% endblock %}

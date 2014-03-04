@@ -27,7 +27,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<form action="" method="post" width="100">{% csrf_token %}
+<form action="" method="post">{% csrf_token %}
 {{form.as_p}}
 <p><input class="submit" type="submit" value="Submit" /></p>
 </form>
