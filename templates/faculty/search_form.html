@@ -18,8 +18,36 @@ $(document).ready(function() {
     ],
     "bJQueryUI": true,
   });
+
+  $('#form_collapse').click(function () {
+    var $form_collapse = $('#form_collapse');
+    var $form_fields = $('#form_fields');
+    var $form_message = $('#form_message');
+
+    if ($form_fields.is(':visible')) {
+      $form_collapse.html('show [+]');
+      $form_message.show();
+    }
+    else {
+      $form_collapse.html('collapse [-]');
+      $form_message.hide();
+    }
+
+    $form_fields.toggle();
+    $('#form_bottom_bar').toggle();
+  });
+
+  {% if is_search %}
+  $('#form_collapse').click();
+  {% endif %}
 });
 </script>
+
+<style type="text/css">
+#form_collapse {
+  float: right;
+}
+</style>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -31,14 +59,26 @@ $(document).ready(function() {
 {% block content %}
 <div class="form_container">
   <form action="" method="GET">
-    <fieldset>
+    {% if is_search %}
+    <p id="form_top_bar">
+      <strong id="form_message">Your search results are below!</strong>
+      <a id="form_collapse" href="#">collapse [-]</a>
+    </p>
+    {% endif %}
+
+    <fieldset id="form_fields">
       {{ form|as_dl }}
       {% for rule, rule_form in search_rules %}
         <dt><label>{{ rule.pretty_field_name }}</label></dt>
         <dd>{{ rule_form }}</dd>
       {% endfor %}
     </fieldset>
-    <p><input type="submit" class="submit" value="Search" /></p>
+
+    <p id="form_bottom_bar">
+      <!-- XXX: Re-using the 'submit' class for the reset button so it's right-floated -->
+      <input type="submit" class="submit" value="Search" />
+      <input type="reset" class="submit" value="Reset" />
+    </p>
   </form>
 </div>
 
