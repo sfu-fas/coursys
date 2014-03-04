@@ -9,7 +9,7 @@ from autoslug import AutoSlugField
 from bitfield import BitField
 from jsonfield import JSONField
 
-from coredata.models import Unit, Person
+from coredata.models import Unit, Person, Semester
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
@@ -114,9 +114,17 @@ class CareerQuerySet(models.query.QuerySet):
         """
         Returns CareerEvents starting and ending within this semester.
         """
-        start, end = semester.start_end_dates(semester)
+        start, end = Semester.start_end_dates(semester)
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
         return self.filter(start_date__gte=start).filter(end_okay)
+
+    def overlaps_semester(self, semester):
+        """
+        Returns CareerEvents occurring during the semester.
+        """
+        start, end = Semester.start_end_dates(semester)
+        end_okay = Q(start_date__lte=end) | Q(end_date__gte=start)
+        return self.filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
         if not inclusive:

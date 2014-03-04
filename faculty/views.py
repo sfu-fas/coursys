@@ -20,12 +20,13 @@ from django.template.base import Template
 from django.template.context import Context
 from courselib.search import find_userid_or_emplid
 
-from coredata.models import Person, Unit, Role, Member, CourseOffering
+from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
 from grad.models import Supervisor
 from ra.models import RAAppointment
+from reports.reportlib.semester import date2semester, current_semester
 
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
 from faculty.forms import SearchForm
 from faculty.processing import FacultySummary
 
@@ -237,6 +238,60 @@ def summary(request, userid):
         'handlers': handlers,
     }
     return render(request, 'faculty/summary.html', context)
+
+
+@requires_role('ADMN')
+def teaching_summary(request, userid):
+    person, _ = _get_faculty_or_404(request.units, userid)
+    form = TeachingSummaryForm()
+
+    if request.GET:
+        form = TeachingSummaryForm(request.GET)
+
+        if form.is_valid():
+            semester_code = request.GET.get('semester', None)
+
+    else:
+        semester_code = current_semester()
+        initial = { 'semester': semester_code }
+        form = TeachingSummaryForm(initial=initial)
+        
+    sem = Semester.objects.get(name=semester_code)
+
+    tot_course_credits = 0
+    courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester_code) \
+            .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
+            .select_related('offering', 'offering__semester')
+            
+    for offering in courses:
+        tot_course_credits += offering.teaching_credit()
+
+
+    teaching_events = copy.copy(FacultySummary(person).teaching_events(sem))
+    tot_teaching_credits = tot_load = 0
+
+    for event in teaching_events:
+        credits, load_decrease = FacultySummary(person).teaching_event_info(event)
+        event.teaching_credits = credits
+        event.load_decrease = -load_decrease
+        tot_teaching_credits += credits
+        tot_load += -load_decrease
+
+    tot_credits = tot_course_credits + tot_teaching_credits
+    credit_balance = tot_load - tot_course_credits - tot_teaching_credits
+
+    context = {
+        'form': form,
+        'person': person,
+        'courses': courses,
+        'teaching_events': teaching_events,
+        'tot_course_credits': tot_course_credits,
+        'tot_teaching_credits': tot_teaching_credits,
+        'tot_load': tot_load,
+        'tot_credits': tot_credits,
+        'credit_balance': credit_balance,
+    }
+    return render(request, 'faculty/teaching_summary.html', context)
 
 
 @requires_role('ADMN')

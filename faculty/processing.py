@@ -1,5 +1,5 @@
 import datetime
-# import decimal
+import fractions
 from decimal import Decimal, ROUND_DOWN
 
 from django.shortcuts import get_object_or_404
@@ -13,6 +13,10 @@ class FacultySummary(object):
    
 	def salary_events(self, date):
 		career_events = CareerEvent.objects.effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+		return career_events
+
+	def teaching_events(self, semester):
+		career_events = CareerEvent.objects.overlaps_semester(semester).filter(person=self.person).filter(flags=CareerEvent.flags.affects_teaching).exclude(status='D')
 		return career_events
        
 	def salary(self, date):
@@ -39,5 +43,27 @@ class FacultySummary(object):
 
 		return Decimal(add_salary).quantize(Decimal('.01'), rounding=ROUND_DOWN), salary_fraction, Decimal(add_bonus).quantize(Decimal('.01'), rounding=ROUND_DOWN)
    
+
+	def teaching_event_info(self, event):
+		instance = get_object_or_404(CareerEvent, slug=event.slug, person=self.person)
+		Handler = EVENT_TYPES[instance.event_type]
+		handler = Handler(instance)
+		credits, load_decrease =  handler.teaching_adjust_per_semester()
+
+		return credits, load_decrease
+   
+
 	def teaching_credits(self, semester):
-		pass
+		events  = self.teaching_events(semester)
+		tot_credits = 0
+		tot_decrease = 0
+
+		for event in events:
+			credits, load_decrease = self.teaching_event_info(event)
+            
+			tot_credits += credits
+			tot_decrease += load_decrease
+
+		return tot_credits, tot_decrease
+
+
