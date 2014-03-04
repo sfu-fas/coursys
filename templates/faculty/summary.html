@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load event_display %}
 {% block title %}Faculty Summary: {{ person.name }}{% endblock %}
 {% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
 
@@ -71,6 +72,7 @@ $(document).ready(function() {
   </tr></thead>
   <tbody>
   {% for e in career_events %}
+  {% if editor|can_view:e %}
   <tr>
     <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
     <td>{{ e.get_event_type_display }}</td>
@@ -78,6 +80,7 @@ $(document).ready(function() {
     <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
     <td>{{ e.get_status_display }}</td>
   </tr>
+  {% endif %}
   {% endfor %}
 </tbody>
 </table>

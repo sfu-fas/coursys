@@ -232,6 +232,7 @@ def summary(request, userid):
     Summary page for a faculty member.
     """
     person, _ = _get_faculty_or_404(request.units, userid)
+    editor = get_object_or_404(Person, userid=request.user.username)
     career_events = CareerEvent.objects.not_deleted().filter(person=person)
     handlers = {k: h.NAME for k, h in EVENT_TYPES.items() if career_events.filter(event_type=k).exists()}
     
@@ -250,6 +251,7 @@ def summary(request, userid):
         career_events = career_events.filter(event_types)
     context = {
         'person': person,
+        'editor': editor,
         'career_events': career_events,
         'handlers': handlers,
     }
@@ -402,6 +404,10 @@ def create_event(request, userid, handler):
         Handler = EVENT_TYPES[handler.upper()]
     except KeyError:
         return NotFoundResponse(request)
+
+    tmp = Handler.create_for(person)
+    if not tmp.can_edit(editor):
+        raise PermissionDenied("'%s' not allowed to create this event" %handler)
 
     context = {
         'person': person,
