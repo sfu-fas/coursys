@@ -263,7 +263,7 @@ def teaching_summary(request, userid):
         initial = { 'semester': semester_code }
         form = TeachingSummaryForm(initial=initial)
         
-    sem = Semester.objects.get(name=semester_code)
+    sem = get_object_or_404(Semester, name=semester_code)
 
     tot_course_credits = 0
     courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester_code) \
