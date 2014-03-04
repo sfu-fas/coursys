@@ -200,7 +200,7 @@ class CareerEvent(models.Model):
 
     @property
     def full_title(self):
-        return '{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
+        return u'{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
 
     def get_event_type_display(self):
         "Override to display nicely"
