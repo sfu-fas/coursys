@@ -332,6 +332,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
         # new record: create.
         c = CourseOffering(subject=subject, number=number, section=section, semester=semester)
 
+    c.section = section
     c.crse_id = crse_id
     c.class_nbr = class_nbr
     c.component = component
