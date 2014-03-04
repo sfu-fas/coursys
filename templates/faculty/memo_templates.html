@@ -1,25 +1,5 @@
 {% extends "base.html" %}
 
-{% block headextra %}
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#memo_templates').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    'bFilter': false,
-    "aaSorting": [[2, "asc"]],
-    "aoColumns": [null,
-                  null,
-                  { "sType": "by-date" },
-                  { "sType": "by-date" },
-                  null,
-    ],
-    "bJQueryUI": true,
-  } );
-} );
-</script>
-{% endblock %}
-
 {% block actions %}
 <div id="actions">
 	<h2>Actions</h2>
@@ -41,7 +21,8 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<div class="datatable_container">
+{% if templates %}
+<div class="table_container">
 	<table class="display" id="memo_templates">
 		<thead>
 			<tr>
@@ -65,4 +46,7 @@ $(document).ready(function() {
 		</tbody>
 	</table>
 </div>
+{% else %}
+<p>There are no templates for this event type. <a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">Create one now.</a></p>
+{% endif %}
 {% endblock %} 

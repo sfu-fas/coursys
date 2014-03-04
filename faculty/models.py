@@ -28,8 +28,10 @@ from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
-from faculty.event_types.info import ResearchMembershipHandler
 from faculty.event_types.info import ExternalServiceHandler
+from faculty.event_types.info import OtherEventHandler
+from faculty.event_types.info import ResearchMembershipHandler
+from faculty.event_types.info import SpecialDealHandler
 from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
 from faculty.event_types.teaching import OneInNineHandler
@@ -47,9 +49,11 @@ HANDLERS = [
     NormalTeachingLoadHandler,
     OnLeaveEventHandler,
     OneInNineHandler,
+    OtherEventHandler,
     ResearchMembershipHandler,
     SalaryBaseEventHandler,
     SalaryModificationEventHandler,
+    SpecialDealHandler,
     StudyLeaveEventHandler,
     TeachingCreditEventHandler,
     TenureApplicationEventHandler,
@@ -178,7 +182,7 @@ class CareerEvent(models.Model):
 
     flags = BitField(flags=EVENT_FLAGS, default=0)
 
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, blank=False, default='')
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -206,7 +210,7 @@ class CareerEvent(models.Model):
 
     @property
     def full_title(self):
-        return '{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
+        return u'{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
 
     def get_event_type_display(self):
         "Override to display nicely"
