@@ -187,3 +187,18 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def teaching_adjust_per_semester(self):
         credits = self.get_config('teaching_credits')
         return TeachingAdjust(credits, fractions.Fraction(0))
+
+
+class SpecialDealHandler(CareerEventHandlerBase):
+
+    EVENT_TYPE = 'SPCL_DEAL'
+    NAME = 'Special Deal'
+
+    class EntryForm(BaseEntryForm):
+
+        def post_init(self):
+            self.fields['comments'].help_text = 'Enter details about the special deal here.'
+            self.fields['comments'].required = True
+
+    def short_summary(self):
+        return 'Special Deal'
