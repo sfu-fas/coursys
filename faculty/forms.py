@@ -101,3 +101,4 @@ class SearchForm(forms.Form):
     start_date = forms.DateField(label='Start Date', required=False)
     end_date = forms.DateField(label='End Date (inclusive)', required=False)
     unit = forms.ModelChoiceField(queryset=Unit.objects.all(), required=False)
+    only_current = forms.BooleanField(required=False)

@@ -99,7 +99,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     def teaching_adjust_per_semester(self):
         adjust = self.get_config('teaching_credit')
-        return TeachingAdjust(adjust, adjust)
+        return TeachingAdjust(adjust, 0)
 
 
 class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
@@ -161,7 +161,7 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def teaching_adjust_per_semester(self):
         adjust = self.get_config('teaching_credits')
-        return TeachingAdjust(adjust, adjust)
+        return TeachingAdjust(adjust, 0)
 
 
 class AwardEventHandler(CareerEventHandlerBase):

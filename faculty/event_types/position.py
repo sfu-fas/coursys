@@ -63,4 +63,4 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def teaching_adjust_per_semester(self):
         credit = self.get_config('teaching_credit')
-        return TeachingAdjust(credit, 1)
+        return TeachingAdjust(credit, 0)

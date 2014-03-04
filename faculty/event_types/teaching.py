@@ -1,4 +1,5 @@
 import datetime
+from django.utils.safestring import mark_safe
 
 from coredata.models import Semester
 
@@ -26,7 +27,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     class EntryForm(BaseEntryForm):
 
-        load = TeachingCreditField(label='Teaching Load')
+        load = TeachingCreditField(label='Teaching Load', help_text=mark_safe('Expected teaching load <strong>per semester</strong>. May be a fraction like 3/2.'))
 
     SEARCH_RULES = {
         'load': search.ComparableSearchRule,

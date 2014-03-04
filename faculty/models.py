@@ -103,16 +103,18 @@ ADD_TAGS = {
 
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerQuerySet(models.query.QuerySet):
-    # TODO: Should these filters only grab events that are not deleted?
     def not_deleted(self):
         """
         All Career Events that have not been deleted.
         """
         return self.exclude(status='D')
 
+    def effective_now(self):
+        return self.effective_date(datetime.date.today())
+
     def effective_date(self, date):
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
-        return self.filter(start_date__lte=date).filter(end_okay)
+        return self.exclude(status='D').filter(start_date__lte=date).filter(end_okay)
     
     def effective_semester(self, semester):
         """
@@ -120,7 +122,7 @@ class CareerQuerySet(models.query.QuerySet):
         """
         start, end = Semester.start_end_dates(semester)
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
-        return self.filter(start_date__gte=start).filter(end_okay)
+        return self.exclude(status='D').filter(start_date__gte=start).filter(end_okay)
 
     def overlaps_semester(self, semester):
         """
@@ -128,14 +130,14 @@ class CareerQuerySet(models.query.QuerySet):
         """
         start, end = Semester.start_end_dates(semester)
         end_okay = Q(start_date__lte=end) | Q(end_date__gte=start)
-        return self.filter(end_okay)
+        return self.exclude(status='D').filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
         if not inclusive:
             filters = {"start_date__gt": start, "end_date__lt": end}
         else:
             filters = {"start_date__gte": start, "end_date__lte": end}
-        return self.filter(**filters)
+        return self.exclude(status='D').filter(**filters)
 
     def by_type(self, Handler):
         """
