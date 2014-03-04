@@ -174,7 +174,7 @@ class CareerEvent(models.Model):
 
     flags = BitField(flags=EVENT_FLAGS, default=0)
 
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, blank=False, default='')
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
