@@ -83,6 +83,7 @@ def search_index(request):
 @requires_role('ADMN')
 def search_events(request, event_type_slug):
     Handler = _get_Handler_or_404(event_type_slug)
+    viewer = get_object_or_404(Person, userid=request.user.username)
 
     is_search = False
     results = []
@@ -93,10 +94,17 @@ def search_events(request, event_type_slug):
 
         if form.is_valid() and Handler.validate_all_search(rules):
             is_search = True
-            results = Handler.filter(start_date=form.cleaned_data['start_date'],
-                                     end_date=form.cleaned_data['end_date'],
-                                     unit=form.cleaned_data['unit'],
-                                     rules=rules)
+            events = CareerEvent.objects.by_type(Handler)
+
+            # TODO: Find a better place for this initial filtering logic
+            if form.cleaned_data['start_date']:
+                events = events.filter(start_date__gte=form.cleaned_data['start_date'])
+            if form.cleaned_data['end_date']:
+                events = events.filter(end_date__lte=form.cleaned_data['end_date'])
+            if form.cleaned_data['unit']:
+                events = events.filter(unit=form.cleaned_data['unit'])
+
+            results = Handler.filter(events, rules=rules, viewer=viewer)
     else:
         form = SearchForm()
         rules = Handler.get_search_rules()

@@ -382,21 +382,16 @@ class CareerEventHandlerBase(object):
         return not bool([False for _, form in rules if not form.is_valid()])
 
     @classmethod
-    def filter(cls, start_date=None, end_date=None, unit=None, rules=None):
-        from faculty.models import CareerEvent
-        events = CareerEvent.objects.by_type(cls)
+    def filter(cls, events, rules=None, viewer=None):
         if not rules:
             rules = []
 
-        if start_date:
-            events = events.filter(start_date__gte=start_date)
-        if end_date:
-            events = events.filter(end_date__lte=end_date)
-        if unit:
-            events = events.filter(unit=unit)
-
         for event in events:
             handler = cls(event)
+
+            if viewer and not handler.can_view(viewer):
+                continue
+
             for rule, form in rules:
                 if not rule.matches(handler, form):
                     break
