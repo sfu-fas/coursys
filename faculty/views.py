@@ -1,5 +1,7 @@
-import datetime
 import copy
+import datetime
+import itertools
+import operator
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -30,8 +32,6 @@ from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, Attachmen
 from faculty.forms import SearchForm
 from faculty.processing import FacultySummary
 
-import itertools
-
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
     """
@@ -50,6 +50,17 @@ def _get_Handler_or_404(handler_slug):
         return EVENT_TYPES[handler_slug]
     else:
         raise Http404('Unknown event handler slug')
+
+
+def _get_event_types():
+    types = [{
+        'slug': key.lower(),
+        'name': Handler.NAME,
+        'is_instant': Handler.IS_INSTANT,
+        'affects_teaching': 'affects_teaching' in Handler.FLAGS,
+        'affects_salary': 'affects_salary' in Handler.FLAGS
+    } for key, Handler in EVENT_TYPE_CHOICES]
+    return sorted(types, key=operator.itemgetter('name'))
 
 
 ###############################################################################
@@ -71,14 +82,12 @@ def index(request):
 @requires_role('ADMN')
 def search_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
-    event_types = ({
-        'slug': key.lower(),
-        'name': Handler.NAME,
-        'is_instant': Handler.IS_INSTANT,
-        'affects_teaching': 'affects_teaching' in Handler.FLAGS,
-        'affects_salary': 'affects_salary' in Handler.FLAGS,
-    } for key, Handler in EVENT_TYPE_CHOICES)
-    return render(request, 'faculty/search_index.html', { 'event_types': event_types, 'editor': editor, 'person': editor })
+    event_types = _get_event_types()
+    return render(request, 'faculty/search_index.html', {
+        'event_types': event_types,
+        'editor': editor,
+        'person': editor,
+    })
 
 
 @requires_role('ADMN')
@@ -369,11 +378,7 @@ def view_event(request, userid, event_slug):
 
 @requires_role('ADMN')
 def event_type_list(request, userid):
-    types = [ # TODO: how do we check is_instant now?
-        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': Handler.IS_INSTANT,
-         'affects_teaching': 'affects_teaching' in Handler.FLAGS,
-         'affects_salary': 'affects_salary' in Handler.FLAGS}
-        for key, Handler in EVENT_TYPE_CHOICES]
+    types = _get_event_types()
     person, _ = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
     context = {
