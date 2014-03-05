@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
@@ -46,6 +48,20 @@ def _check_allowed(request, offering, acl_value, date=None):
         return m
 
     return None    
+
+def _forbidden_response(request, visible_to):
+    """
+    A nicer forbidden message that says why, and gently suggests that anonymous users log in.
+    """
+    error = 'Not allowed to view this page. It is visible only to %s in this course.' % (visible_to,)
+    errormsg_template = '<strong>You are not currently logged in</strong>. You may be able to view this page if you <a href="%s">log in</a>'
+    errormsg = None
+    if not request.user.is_authenticated():
+        url = conditional_escape(settings.LOGIN_URL + '?next=' + request.get_full_path())
+        errormsg = mark_safe(errormsg_template % (url))
+
+    return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)
+
 
 def index_page(request, course_slug):
     """ 
@@ -92,8 +108,9 @@ def view_page(request, course_slug, page_label):
             context = {'offering': offering, 'page_label': page_label, 'releasedate': page.releasedate(),
                        'page_label': page.label}
             return render(request, 'pages/unreleased_page.html', context, status=403)
-        return ForbiddenResponse(request, 'Not allowed to view this page')
-    
+
+        return _forbidden_response(request, page.get_can_read_display())
+
     if request.user.is_authenticated():
         editor = _check_allowed(request, offering, page.can_write, page.editdate())
         can_edit = bool(editor)
@@ -129,7 +146,7 @@ def _get_file(request, course_slug, page_label, disposition):
     member = _check_allowed(request, offering, page.can_read, page.releasedate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
-        return ForbiddenResponse(request, 'Not allowed to view this page')
+        return _forbidden_response(request, page.get_can_read_display())
     
     resp = HttpResponse(version.file_attachment.chunks(), content_type=version.file_mediatype)
     resp['Content-Disposition'] = disposition+'; filename="' + version.file_name + '"'
@@ -144,7 +161,7 @@ def page_history(request, course_slug, page_label):
     member = _check_allowed(request, offering, page.can_write, page.editdate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
-        return ForbiddenResponse(request, "Not allowed to view this page's history")
+        return _forbidden_response(request, page.get_can_write_display())
     
     versions = PageVersion.objects.filter(page=page).order_by('-created_at')
     
@@ -158,7 +175,7 @@ def page_version(request, course_slug, page_label, version_id):
     member = _check_allowed(request, offering, page.can_write, page.editdate())
     # check that we have an allowed member of the course (and can continue)
     if not member:
-        return ForbiddenResponse(request, "Not allowed to view this page's history")
+        return _forbidden_response(request, page.get_can_write_display())
     
     version = get_object_or_404(PageVersion, page=page, id=version_id)
     
