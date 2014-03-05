@@ -16,7 +16,7 @@ WRITE_ACL_CHOICES = [
     ('NONE', 'nobody'),
     ('INST', 'instructor'),
     ('STAF', 'instructor and TAs'),
-    ('STUD', 'students, instructor, TAs') ]
+    ('STUD', 'students, instructor and TAs') ]
 READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('ALL', 'anybody')]
 ACL_DESC = dict(READ_ACL_CHOICES)
 WRITE_ACL_DESC = dict(WRITE_ACL_CHOICES)
