@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% load event_display %}
+{% load staticfiles %}
 {% block title %}Faculty Summary: {{ person.name }}{% endblock %}
 {% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#career_event_table').dataTable( {
@@ -12,17 +14,12 @@ $(document).ready(function() {
     "aaSorting": [[2, "asc"]],
     "bJQueryUI": true,
   } );
-} );
 
-$(document).ready(function() {
-  $("form#filter-form").submit(function(e) {
-    e.preventDefault();
-    var values = [];
-    $("form#filter-form input:checked").each(function() {
-      values.push(this.value);
-    });
-    location.search = "etype=" + values;
+  $('#filter-form').change( function() {
+    event_filter_update();
   });
+  event_filter_update();
+
 });
 </script>
 {% endblock %}
@@ -47,23 +44,14 @@ $(document).ready(function() {
 
 {% block content %}
 
-<form id="filter-form" method="get" action="?">
-  <h2>Filters</h2>
-  <dt>
-  {% for k, h in handlers.items %}
-  <dd>
-  <label for="id_checkbox_{{ k|lower }}">
-    <input id="id_checkbox_{{ k|lower }}" type="checkbox" value="{{ k }}" />
-    {{ h }}
-  </label>
-  </dd>
+<form id="filter-form" action="">
+  {% for radio in filterform.category %}
+  {{ radio }}
   {% endfor %}
-  <input type="submit" value="Filter" />
-  </dt>
 </form>
-<div class="datatable_container">
-<table id="career_event_table" class="display">
-  <thead><tr>
+
+<table id="career_event_table">
+  <thead><tr class="th">
     <th scope="col">Title</th>
     <th scope="col">Event Type</th>
     <th scope="col">Start Date</th>
@@ -73,7 +61,7 @@ $(document).ready(function() {
   <tbody>
   {% for e in career_events %}
   {% if editor|can_view:e %}
-  <tr>
+  <tr class="{{ e.filter_classes }}">
     <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
     <td>{{ e.get_event_type_display }}</td>
     <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
@@ -84,6 +72,5 @@ $(document).ready(function() {
   {% endfor %}
 </tbody>
 </table>
-</div>
 
 {% endblock %}

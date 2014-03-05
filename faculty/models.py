@@ -190,6 +190,13 @@ class CareerEvent(models.Model):
     
     objects = CareerEventManager()
 
+    class Meta:
+        ordering = (
+            '-start_date',
+            '-end_date',
+            'title',
+        )
+
     def __unicode__(self):
         return self.title
 
@@ -223,12 +230,20 @@ class CareerEvent(models.Model):
             self.handler_cache = EVENT_TYPES[self.event_type](self)
         return self.handler_cache
 
-    class Meta:
-        ordering = (
-            '-start_date',
-            '-end_date',
-            'title',
-        )
+    def filter_classes(self):
+        """
+        return the class="..." value for this event on the summary page (for filtering)
+        """
+        today = datetime.date.today()
+        classes = []
+        if self.start_date <= today and (self.end_date == None or self.end_date >= today):
+            classes.append('current')
+        if self.flags.affects_teaching:
+            classes.append('teach')
+        if self.flags.affects_salary:
+            classes.append('salary')
+
+        return ' '.join(classes)
 
     def memo_info(self):
         """

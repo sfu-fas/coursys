@@ -29,7 +29,7 @@ from reports.reportlib.semester import date2semester, current_semester
 
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
-from faculty.forms import SearchForm
+from faculty.forms import SearchForm, EventFilterForm
 from faculty.processing import FacultySummary
 
 
@@ -234,26 +234,13 @@ def summary(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
     career_events = CareerEvent.objects.not_deleted().filter(person=person)
-    handlers = {k: h.NAME for k, h in EVENT_TYPES.items() if career_events.filter(event_type=k).exists()}
-    
-    # Look for comma-separated event type names such as 'APPOINT', 'ADMINPOS'
-    etypes = str(request.GET.get("etype")).upper().split(',')
-    choices = []
-    # Only pick ones which actually exist with Handler classes
-    for etype in etypes:
-        if etype in [k.upper() for k, h in EVENT_TYPE_CHOICES]:
-            choices.append(etype)
-    # Filter event types on summary page with a big OR query on event types.
-    if choices:
-        event_types = Q()
-        for c in choices:
-            event_types |= Q(event_type=c)
-        career_events = career_events.filter(event_types)
+    filterform = EventFilterForm()
+
     context = {
         'person': person,
         'editor': editor,
         'career_events': career_events,
-        'handlers': handlers,
+        'filterform': filterform,
     }
     return render(request, 'faculty/summary.html', context)
 

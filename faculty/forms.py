@@ -102,3 +102,13 @@ class SearchForm(forms.Form):
     end_date = forms.DateField(label='End Date (inclusive)', required=False)
     unit = forms.ModelChoiceField(queryset=Unit.objects.all(), required=False)
     only_current = forms.BooleanField(required=False)
+
+
+class EventFilterForm(forms.Form):
+    CATEGORIES = [
+        ('all', 'All Events'),
+        ('current', 'Current Events'),
+        ('teach', 'Teaching-related'),
+        ('salary', 'Salary-related'),
+    ]
+    category = forms.ChoiceField(choices=CATEGORIES, initial='current', widget=forms.RadioSelect())
