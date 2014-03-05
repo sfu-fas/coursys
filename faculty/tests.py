@@ -47,7 +47,7 @@ class EventTypesTest(TestCase):
         self.assertTrue(handler.can_edit(dean_admin))
 
         self.assertFalse(handler.can_approve(fac_member))
-        self.assertTrue(handler.can_approve(dept_admin))
+        self.assertFalse(handler.can_approve(dept_admin))
         self.assertTrue(handler.can_approve(dean_admin))
 
     def test_event_types(self):
