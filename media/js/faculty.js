@@ -16,54 +16,27 @@ $(document).ready(function(){
 
 });
 
-function Xevent_filter_update(table) {
-  console.log('filter');
-
-$.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
-    return false;
-});
-
-}
-
-
 function event_filter_update() {
-  /* show/hide rows as appropriate on the faculty summary page */
-  var cat = $('input[name=category]:checked').val();
-  if ( typeof cat === "undefined" || cat == 'all' ) {
-    $('#career_event_table tbody tr').show();
-    //$('#scraps tr').detach().appendTo('#career_event_table tbody');
-  } else {
-    $('#career_event_table tbody tr').hide();
-    $('#career_event_table tbody tr.' + cat).show();
-
-    //$('#career_event_table tbody tr').detach().appendTo('#scraps');
-    //$('#scraps tr.' + cat).detach().appendTo('#career_event_table tbody');
-
-  }
-
-
-/*
-  $('#career_event_table').dataTable( {
+  var cat = $('input:radio[name=category]:checked').val();
+  var table = $('#career_event_table').dataTable( {
     "bRetrieve": true,
-  } ).fnDestroy();
-  $('#career_event_table').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[2, "asc"]],
-    "bJQueryUI": true,
   } );
-*/
-  // no zebra stripes is better than broken, for now
-  $('#career_event_table tr.odd').removeClass('odd');
-  $('#career_event_table tr.even').removeClass('even');
 
-  $('#career_event_table tbody tr:visible').each( function(i, e) {
-    if ( i%2 == 0 ) {
-      $(e).addClass('even');
+  $.fn.dataTableExt.afnFiltering.pop();
+  $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
+    if ( oSettings.nTable.id != 'career_event_table' ) {
+      return true;
+    }
+
+    var row = $(table.fnGetNodes(iDataIndex));
+    if ( cat === 'all' ) {
+      return true;
+    } else if ( row.hasClass(cat) ) {
+      return true;
     } else {
-      $(e).addClass('odd');
+      return false;
     }
   });
 
+  table.fnDraw();
 }
-
