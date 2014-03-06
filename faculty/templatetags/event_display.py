@@ -97,5 +97,8 @@ def fraction_display(val):
     res = unicode(whole)
     remainder = val - whole
     if remainder != 0:
-        res += ' ' + unicode(remainder)
+        if whole == 0:
+            res = unicode(remainder)
+        else:
+            res += ' ' + unicode(remainder)
     return res

@@ -70,7 +70,7 @@ class Command(BaseCommand):
         mt.save()
         ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='FELLOW')
         ec.config = {'fellowships': [
-            ('LIEF', 'Lief Chair'),
+            ('LEEF', 'Leef Chair'),
             ('BBYM', 'Burnaby Mountain Chair'),
             ('UNIR', 'University Research Chair')
         ]}
@@ -80,6 +80,7 @@ class Command(BaseCommand):
         # get the objects that should already be there
         greg = Person.objects.get(userid='ggbaker')
         diana = Person.objects.get(userid='diana')
+        brad = Person.objects.get(userid='bbart')
         tony = Person.objects.get(userid='dixon')
         danyu = Person.objects.get(userid='dzhao')
         editor = tony
@@ -91,6 +92,7 @@ class Command(BaseCommand):
         # create basic roles
         Role.objects.get_or_create(person=greg, unit=ensc, role='FAC')
         Role.objects.get_or_create(person=greg, unit=cmpt, role='FAC')
+        Role.objects.get_or_create(person=brad, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=diana, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='ADMN')
@@ -98,15 +100,21 @@ class Command(BaseCommand):
 
         # create some events
 
-        # appointment
-        e, h = event_get_or_create(person=greg, unit=cmpt, event_type='APPOINT', start_date=date(2000,9,1),
-                                status='A', title=EVENT_TYPES['APPOINT'].default_title())
-        e.config = {'spousal_hire': False, 'leaving_reason': 'HERE'}
-        h.save(editor=editor)
-        appt = e
-
-        # annual salary updates
         for person in [greg, diana, tony]:
+            # appointment
+            e, h = event_get_or_create(person=person, unit=cmpt, event_type='APPOINT', start_date=date(2000,9,1),
+                                    status='A', title=EVENT_TYPES['APPOINT'].default_title())
+            e.config = {'spousal_hire': False, 'leaving_reason': 'HERE'}
+            h.save(editor=editor)
+            appt = e
+
+            # teaching load
+            e, h = event_get_or_create(person=person, unit=cmpt, event_type='NORM_TEACH', start_date=date(2000,9,1),
+                                    status='A', title=EVENT_TYPES['NORM_TEACH'].default_title())
+            e.config = {'load': 2}
+            h.save(editor=editor)
+
+            # annual salary updates
             for year in range(2000, 2014):
                 e, h = event_get_or_create(person=person, unit=cmpt, event_type='SALARY', start_date=date(year,9,1),
                                         status='A', title=EVENT_TYPES['SALARY'].default_title())

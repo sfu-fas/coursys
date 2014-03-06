@@ -129,8 +129,8 @@ class CareerQuerySet(models.query.QuerySet):
         Returns CareerEvents occurring during the semester.
         """
         start, end = Semester.start_end_dates(semester)
-        end_okay = Q(start_date__lte=end) | Q(end_date__gte=start)
-        return self.exclude(status='D').filter(end_okay)
+        end_okay = Q(end_date__isnull=True) | Q(end_date__gte=start)
+        return self.exclude(status='D').filter(start_date__lte=end).filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
         if not inclusive:

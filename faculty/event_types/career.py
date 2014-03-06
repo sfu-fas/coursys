@@ -32,7 +32,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     NAME = 'Appointment to Position'
 
     IS_EXCLUSIVE = True
-    VIEWABLE_BY = 'FAC'
+    #VIEWABLE_BY = 'FAC'
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}

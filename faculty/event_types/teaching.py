@@ -21,7 +21,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }}</dd>
+        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }} courses per semester</dd>
         {% endblock %}
     """
 
