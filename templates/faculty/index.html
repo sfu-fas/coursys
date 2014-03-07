@@ -23,11 +23,11 @@ $(document).ready(function() {
       <a href="{% url 'faculty.views.manage_event_index' %}"><i class="fa fa-li fa-wrench"></i> Event Management</a>
     </li>
     <li>
-      <a href="{% url 'faculty.views.search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
-    </li>
-    <li>
       <a href="{% url 'faculty.views.status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue</a>
     </li>    
+    <li class="newsec">
+      <a href="{% url 'faculty.views.search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
+    </li>
     <li>
       <a href="{% url 'faculty.views.salary_index' %}"><i class="fa fa-li fa-money"></i> Salaries</a>
     </li>
