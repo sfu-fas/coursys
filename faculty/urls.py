@@ -1,15 +1,13 @@
 from django.conf.urls import patterns, url
 from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
 
-#FACULTY_SLUG = UNIT_SLUG + '/' + USERID_OR_EMPLID
 EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 EVENT_PREFIX = USERID_OR_EMPLID + '/events/' + EVENT_SLUG
-
 
 urlpatterns = patterns('',
     url(r'^$', 'faculty.views.index'),
     url(r'^search$', 'faculty.views.search_index'),
-    url(r'^search/(?P<event_type_slug>{})$'.format(SLUG_RE), 'faculty.views.search_events'),
+    url(r'^search/(?P<event_type>{})$'.format(SLUG_RE), 'faculty.views.search_events'),
     url(r'^salaries$', 'faculty.views.salary_index'),
     url(r'^salaries/' + USERID_OR_EMPLID + '$', 'faculty.views.salary_summary'),
     url(r'^queue/$', 'faculty.views.status_index', name="status_index"),
@@ -21,8 +19,7 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/teaching_summary$', 'faculty.views.teaching_summary', name="faculty_teaching_summary"),
     url(r'^' + USERID_OR_EMPLID + '/otherinfo$', 'faculty.views.otherinfo', name="faculty_otherinfo"),
     url(r'^' + USERID_OR_EMPLID + '/new-event$', 'faculty.views.event_type_list', name="faculty_event_types"),
-    url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<handler>[a-z_]+)$', 'faculty.views.create_event', name="faculty_create_event"),
-    url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<handler>[a-z]+)$', 'faculty.views.create_event', name="faculty_create_event"),
+    url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<event_type>' + SLUG_RE + ')$', 'faculty.views.create_event', name="faculty_create_event"),
     url(r'^' + EVENT_PREFIX + '/$', 'faculty.views.view_event', name="faculty_event_view"),
     url(r'^' + EVENT_PREFIX + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
     url(r'^' + EVENT_PREFIX + '/change-status$', 'faculty.views.change_event_status', name="faculty_change_event_status"),

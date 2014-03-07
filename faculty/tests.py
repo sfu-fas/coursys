@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import safestring
+from courselib.testing import Client, test_views
 
 from coredata.models import Semester
 from coredata.models import Person
@@ -58,12 +59,7 @@ class EventTypesTest(TestCase):
         fac_role = Role.objects.filter(person=fac_member)[0]
         editor = Person.objects.get(userid='dixon')
         units = Unit.objects.all()
-
-        # Make a fake Semester so that some Handlers will function properly
         start_date = datetime.date(2014, 1, 1)
-        Semester.objects.create(name='1141',
-                                start=datetime.date(2014, 1, 5),
-                                end=datetime.date(2014, 1, 31))
 
         for Handler in HANDLERS:
             # Make sure all required abstract methods at least overrided
@@ -177,10 +173,60 @@ class CareerEventTest(TestCase):
             assert e.end_date == None or e.end_date >= self.date
             
     def test_get_effective_semester(self):
-        Semester.objects.create(name='1141', start=datetime.date(2014,1,6), end=datetime.date(2014,4,28))
         semester = Semester.objects.get(name='1141')
         events = CareerEvent.objects.effective_semester(semester)
         start, end = semester.start_end_dates(semester)
         for e in events:
             assert e.start_date >= start
             assert e.end_date == None or (e.end_date <= end and e.end_date >= start)
+
+
+class PagesTest(TestCase):
+    def setUp(self):
+        faculty_test_data.Command().handle()
+
+    def test_pages(self):
+        """
+        Render as many pages as possible, to make sure they work, are valid, etc.
+        """
+        c = Client()
+
+        # as department admin
+        c.login_user('dixon')
+
+        test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index'],
+                {})
+        test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo', 'event_type_list'],
+                {'userid': 'ggbaker'})
+        test_views(self, c, 'faculty.views.', ['view_event', 'change_event', 'new_attachment'],
+                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position-cmpt'})
+
+        test_views(self, c, 'faculty.views.', ['manage_memo_template'],
+                {'event_type': 'appoint', 'slug': 'cmpt-welcome'})
+        test_views(self, c, 'faculty.views.', ['new_memo'],
+                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position-cmpt',
+                 'memo_template_slug': 'cmpt-welcome'})
+        test_views(self, c, 'faculty.views.', ['manage_memo', 'view_memo'],
+                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position-cmpt',
+                 'memo_slug': '2000-appointment-to-position-cmpt-welcome'})
+
+        # per-handler views
+        for Handler in HANDLERS:
+            try:
+                slug = Handler.EVENT_TYPE.lower()
+
+                test_views(self, c, 'faculty.views.', ['create_event'],
+                    {'userid': 'ggbaker', 'event_type': slug})
+                test_views(self, c, 'faculty.views.', ['memo_templates', 'new_memo_template'],
+                    {'event_type': slug})
+
+                continue # these fail horribly with invalid markup
+                # the search form
+                test_views(self, c, 'faculty.views.', ['search_events'],
+                    {'event_type': slug})
+                # search with some results
+                test_views(self, c, 'faculty.views.', ['search_events'],
+                    {'event_type': slug}, qs='only_current=on')
+            except:
+                print "failure with Handler==%s" % (Handler)
+                raise

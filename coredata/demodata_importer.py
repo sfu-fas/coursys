@@ -685,6 +685,8 @@ def create_fake_semester(strm):
     Create a close-enough Semester object for testing
     """
     strm = str(strm)
+    if Semester.objects.filter(name=strm):
+        return
     s = Semester(name=strm)
     yr = int(strm[0:3]) + 1900
     if strm[3] == '1':

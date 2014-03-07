@@ -36,7 +36,7 @@ $(document).ready(function() {
   {% can_edit_handler type.slug editor person as editable %}
   {% if editable %}
   <tr>
-    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid handler=type.slug %}">{{ type.name }}</a></td>
+    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid event_type=type.slug %}">{{ type.name }}</a></td>
     <td>{{ type.is_instant }}</td>
     <td>{{ type.affects_teaching }}</td>
     <td>{{ type.affects_salary }}</td>

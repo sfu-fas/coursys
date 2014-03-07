@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from coredata.models import Unit, Role, Person
+from coredata.demodata_importer import create_fake_semester
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, EVENT_TYPES
 from datetime import date
 
@@ -42,6 +43,12 @@ class Command(BaseCommand):
         ensc.name = 'School of Engineering Science'
         ensc.parent = fas
         ensc.save()
+
+        create_fake_semester('1134')
+        create_fake_semester('1137')
+        create_fake_semester('1141')
+        create_fake_semester('1144')
+        create_fake_semester('1144')
 
         danyu = get_or_create_nosave(Person, userid='dzhao', first_name='Danyu', last_name='Zhao')
         danyu.emplid = 220000123
@@ -104,7 +111,7 @@ class Command(BaseCommand):
 
         # create some events
 
-        for person in [greg, diana, tony]:
+        for person in [tony, diana, greg]:
             # appointment
             e, h = event_get_or_create(person=person, unit=cmpt, event_type='APPOINT', start_date=date(2000,9,1),
                                     status='A', title=EVENT_TYPES['APPOINT'].default_title())
@@ -136,7 +143,7 @@ class Command(BaseCommand):
         h.save(editor=editor)
 
         e, h = event_get_or_create(person=greg, unit=cmpt, event_type='TEACHING', start_date=date(2013,9,1),
-                                end_date=date(2014,4,30), status='A', title='Teaching buyout',
+                                end_date=date(2014,4,30), status='NA', title='Teaching buyout',
                                 comments='Note that this is one teaching credit spread across two semesters.')
         e.config = {'category': 'BUYOUT', 'teaching_credits': '1/2', 'reason': "Somebody gave money."}
         h.save(editor=editor)

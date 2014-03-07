@@ -20,9 +20,7 @@
 <div class="form_container">
 	<form action="" method="post">
 		{% csrf_token %}
-        <fieldset>
             {{ form|as_dl }}
-        </fieldset>
 				<div id="template-help">
 						<h3>Available tags:</h3>
 							<dl>
@@ -36,11 +34,10 @@
 								{%endfor%}
 							</dl>
 				</div>
+			<div class="clearfix"></div>
 			<p>
 				<input  class="submit"  type="submit" value="Save" />
 			</p>
-			</div>
-		</fieldset>
 	</form>
 </div>
 {% endblock %} 

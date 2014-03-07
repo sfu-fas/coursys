@@ -96,8 +96,8 @@ def search_index(request):
 
 
 @requires_role('ADMN')
-def search_events(request, event_type_slug):
-    Handler = _get_Handler_or_404(event_type_slug)
+def search_events(request, event_type):
+    Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
 
     results = []
@@ -390,7 +390,7 @@ def event_type_list(request, userid):
 
 @requires_role('ADMN')
 @transaction.atomic
-def create_event(request, userid, handler):
+def create_event(request, userid, event_type):
     """
     Create new career event for a faculty member.
     """
@@ -398,13 +398,13 @@ def create_event(request, userid, handler):
     editor = get_object_or_404(Person, userid=request.user.username)
     
     try:
-        Handler = EVENT_TYPES[handler.upper()]
+        Handler = EVENT_TYPES[event_type.upper()]
     except KeyError:
         return NotFoundResponse(request)
 
     tmp = Handler.create_for(person)
     if not tmp.can_edit(editor):
-        raise PermissionDenied("'%s' not allowed to create this event" %handler)
+        raise PermissionDenied("'%s' not allowed to create this event" %(event_type))
 
     context = {
         'person': person,
@@ -585,7 +585,7 @@ def memo_templates(request, event_type):
 
     context = {
                'templates': templates,
-               'event_type_slug':event_type, 
+               'event_type_slug':event_type,
                'event_name': event_type_object[1].NAME        
                }
     return render(request, 'faculty/memo_templates.html', context)
