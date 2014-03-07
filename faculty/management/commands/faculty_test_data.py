@@ -58,6 +58,9 @@ class Command(BaseCommand):
         tony = get_or_create_nosave(Person, userid='dixon', first_name='Anthony', last_name='Dixon')
         tony.emplid = 220000126
         tony.save()
+        tony = get_or_create_nosave(Person, userid='bbart', first_name='Bradley', last_name='Bart')
+        tony.emplid = 220000127
+        tony.save()
 
     def department_data(self):
         danyu = Person.objects.get(userid='dzhao')
