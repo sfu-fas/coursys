@@ -220,7 +220,6 @@ class PagesTest(TestCase):
                 test_views(self, c, 'faculty.views.', ['memo_templates', 'new_memo_template'],
                     {'event_type': slug})
 
-                continue # these fail horribly with invalid markup
                 # the search form
                 test_views(self, c, 'faculty.views.', ['search_events'],
                     {'event_type': slug})
