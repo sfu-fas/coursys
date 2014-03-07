@@ -44,12 +44,9 @@
 	<form action="{% url "faculty.views.new_memo" userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=template.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
-			<legend>
-				Memo Info
-			</legend>
             {{form|as_dl}}
 			<p>
-				<input  class="submit"  type="submit" value="Submit" />
+				<input class="submit"  type="submit" value="Submit" />
 			</p>
 		</fieldset>
 	</form>

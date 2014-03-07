@@ -594,6 +594,7 @@ def memo_templates(request, event_type):
 def new_memo_template(request, event_type):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
 
     if request.method == 'POST':
@@ -607,7 +608,7 @@ def new_memo_template(request, event_type):
             messages.success(request, "Created memo template %s for %s." % (form.instance.label, form.instance.unit))
             return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
     else:
-        form = MemoTemplateForm()
+        form = MemoTemplateForm(initial={'unit': in_unit})
         form.fields['unit'].choices = unit_choices
 
     tags = sorted(EVENT_TAGS.iteritems())

@@ -69,9 +69,7 @@ class MemoTemplateForm(forms.ModelForm):
         return template_text
 
 class MemoForm(forms.ModelForm):
-    #use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
-    #                             help_text='Use the "From" person\'s signature, if on file?')
-    class Meta: 
+    class Meta:
         model = Memo
         exclude = ('unit', 'from_person', 'created_by', 'config', 'template', 'career_event', 'hidden')
 
@@ -91,14 +89,8 @@ class MemoForm(forms.ModelForm):
         keys.extend([k for k in self.fields.keyOrder if k not in keys])
         self.fields.keyOrder = keys
 
-    #def clean_use_sig(self):
-    #    use_sig = self.cleaned_data['use_sig']
-    #    self.instance.config['use_sig'] = use_sig
-    #    return use_sig
-
 
 class SearchForm(forms.Form):
-
     start_date = forms.DateField(label='Start Date', required=False)
     end_date = forms.DateField(label='End Date (inclusive)', required=False)
     unit = forms.ModelChoiceField(queryset=Unit.objects.all(), required=False)
