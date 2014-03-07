@@ -316,7 +316,10 @@ def schedule_ping():
     set_of_reports_that_need_to_be_run = set(reports)
     for report in set_of_reports_that_need_to_be_run:
         report.run()
-    shutil.rmtree(settings.REPORT_CACHE_LOCATION)
+    try:
+        shutil.rmtree(settings.REPORT_CACHE_LOCATION)
+    except OSError as e:
+        print e
 
 
 class Run(models.Model): 

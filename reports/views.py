@@ -248,7 +248,10 @@ def run(request, report):
             else: 
                 messages.error(request, "Run Failed!")
         run = runs[0]
-        shutil.rmtree(settings.REPORT_CACHE_LOCATION)
+        try:
+            shutil.rmtree(settings.REPORT_CACHE_LOCATION)
+        except OSError as e:
+            print e
         return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
     else:
         messages.error(request, "You haven't added any queries or reports to run, yet!")
