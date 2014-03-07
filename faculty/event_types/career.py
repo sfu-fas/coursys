@@ -36,6 +36,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Position Number</dt><dd>{{ handler|get_display:"position_number" }}</dd>
         <dt>Leaving Reason</dt><dd>{{ handler|get_display:"leaving_reason" }}</dd>
         <dt>Spousal hire</dt><dd>{{ handler|get_display:"spousal_hire"|yesno }}</dd>
         {% endblock %}
@@ -55,10 +56,12 @@ class AppointmentEventHandler(CareerEventHandlerBase):
             ('OTHR', 'Other/Unknown'),
         )
 
+        position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}))
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
 
     SEARCH_RULES = {
+        'position_number': search.StringSearchRule,
         'spousal_hire': search.BooleanSearchRule,
         'leaving_reason': search.ChoiceSearchRule,
     }
