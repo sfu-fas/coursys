@@ -145,6 +145,13 @@ class CareerQuerySet(models.query.QuerySet):
         """
         return self.filter(event_type__exact=Handler.EVENT_TYPE)
 
+    def only_units(self, units):
+        return self.filter(unit__in=units)
+
+    def only_subunits(self, units):
+        subunit_ids = Unit.sub_unit_ids(units)
+        return self.filter(unit__id__in=subunit_ids)
+
 
 class CareerEventManager(models.Manager):
     def get_query_set(self): 

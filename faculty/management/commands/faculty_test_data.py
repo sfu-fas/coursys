@@ -58,9 +58,10 @@ class Command(BaseCommand):
         tony = get_or_create_nosave(Person, userid='dixon', first_name='Anthony', last_name='Dixon')
         tony.emplid = 220000126
         tony.save()
-        tony = get_or_create_nosave(Person, userid='bbart', first_name='Bradley', last_name='Bart')
-        tony.emplid = 220000127
-        tony.save()
+
+        brad = get_or_create_nosave(Person, userid='bbart', first_name='Bradley', last_name='Bart')
+        brad.emplid = 220000127
+        brad.save()
 
     def department_data(self):
         danyu = Person.objects.get(userid='dzhao')
@@ -144,6 +145,12 @@ class Command(BaseCommand):
         e, h = event_get_or_create(person=greg, unit=cmpt, event_type='ADMINPOS', start_date=date(2008,9,1),
                                 end_date=date(2010,8,31), status='A', title='Undergraduate Director')
         e.config = {'position': 'UGRAD_DIRECTOR', 'teaching_credit': '1/2'}
+        h.save(editor=editor)
+
+        # admin position in other unit
+        e, h = event_get_or_create(person=greg, unit=ensc, event_type='ADMINPOS', start_date=date(2010,9,1),
+                                end_date=date(2011,8,31), status='A', title='ENSC Undergraduate Director')
+        e.config = {'position': 'UGRAD_DIRECTOR', 'teaching_credit': '0'}
         h.save(editor=editor)
 
         # a memo

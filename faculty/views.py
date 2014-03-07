@@ -43,6 +43,11 @@ def _get_faculty_or_404(allowed_units, userid_or_emplid):
     units = set(r.unit for r in roles)
     return person, units
 
+def _get_event_or_404(units, **kwargs):
+    subunit_ids = Unit.sub_unit_ids(units)
+    instance = get_object_or_404(CareerEvent, unit__id__in=subunit_ids, **kwargs)
+    return instance
+
 
 def _get_Handler_or_404(handler_slug):
     handler_slug = handler_slug.upper()
@@ -102,7 +107,7 @@ def search_events(request, event_type_slug):
         rules = Handler.get_search_rules(request.GET)
 
         if form.is_valid() and Handler.validate_all_search(rules):
-            events = CareerEvent.objects.by_type(Handler).not_deleted()
+            events = CareerEvent.objects.only_subunits(request.units).by_type(Handler).not_deleted()
 
             # TODO: Find a better place for this initial filtering logic
             if form.cleaned_data['start_date']:
@@ -140,7 +145,9 @@ def salary_index(request):
         form = GetSalaryForm(request.GET)
 
         if form.is_valid():
-            date = request.GET.get('date', None)
+            date = form.cleaned_data['date']
+        else:
+            date = datetime.date.today()
 
     else:
         date = datetime.date.today()
@@ -150,6 +157,7 @@ def salary_index(request):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
     fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
+    # TODO: below line should only select pay from units the user can see
     fac_roles_pay = [(p, ', '.join(r.unit.informal_name() for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
 
     pay_tot = 0
@@ -169,8 +177,9 @@ def status_index(request):
     """
     Status list of for all yet-to-be approved events.
     """
-    events = CareerEvent.objects.filter(status='NA')
     editor = get_object_or_404(Person, userid=request.user.username)
+    events = CareerEvent.objects.filter(status='NA').only_subunits(request.units)
+    events = [e for e in events if e.get_handler().can_view(editor)]
     context = {
         'events': events,
         'editor': editor,
@@ -197,6 +206,7 @@ def salary_summary(request, userid):
         initial = { 'date': date }
         form = GetSalaryForm(initial=initial)
 
+    # TODO: below code should return only salary in units user is allowed to see
     pay_tot = FacultySummary(person).salary(date)
 
     salary_events = copy.copy(FacultySummary(person).salary_events(date))
@@ -233,7 +243,7 @@ def summary(request, userid):
     """
     person, _ = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
-    career_events = CareerEvent.objects.not_deleted().filter(person=person)
+    career_events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
     filterform = EventFilterForm()
 
     context = {
@@ -260,7 +270,7 @@ def teaching_summary(request, userid):
             end_semester = Semester(name=end)
 
     else:
-        start_semester = end_semester = Semester(name=str(current_semester()))
+        start_semester = end_semester = Semester.current()
         start = end = start_semester.name
         initial = { 'start_semester': start,
                     'end_semester': end }
@@ -277,7 +287,8 @@ def teaching_summary(request, userid):
         for course in courses:
             events += [(curr_semester.name, course.offering.name(), course.offering.title, course.teaching_credit())]
             credit_balance += course.teaching_credit()
-        
+
+        # TODO: should filter only user-visible events
         teaching_events = FacultySummary(person).teaching_events(curr_semester)
         for event in teaching_events:
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
@@ -332,9 +343,9 @@ def view_event(request, userid, event_slug):
     Change existing career event for a faculty member.
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
-    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
-    memos = Memo.objects.filter(career_event = instance)
+    memos = Memo.objects.filter(career_event=instance)
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=instance.event_type, hidden=False)
     
     Handler = EVENT_TYPES[instance.event_type](event=instance)
@@ -427,7 +438,7 @@ def change_event(request, userid, event_slug):
     Change existing career event for a faculty member.
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
-    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
 
     Handler = EVENT_TYPES[instance.event_type]
@@ -467,7 +478,7 @@ def change_event_status(request, userid, event_slug):
     Change status of event, if the editor has such privileges.
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
-    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
    
     Handler = EVENT_TYPES[instance.event_type](event=instance)
@@ -485,7 +496,7 @@ def change_event_status(request, userid, event_slug):
 @requires_role('ADMN')
 def new_attachment(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
-    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
 
     form = AttachmentForm()
@@ -515,7 +526,7 @@ def new_attachment(request, userid, event_slug):
 @requires_role('ADMN')
 def view_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
-    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     viewer = get_object_or_404(Person, userid=request.user.username)
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
@@ -534,7 +545,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
 @requires_role('ADMN')
 def download_attachment(request, userid, event_slug, attach_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
-    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     viewer = get_object_or_404(Person, userid=request.user.username)
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
@@ -669,7 +680,7 @@ def manage_memo_template(request, event_type, slug):
 def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
-    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     author = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
 
     ls = instance.memo_info()
@@ -705,7 +716,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
 @requires_role('ADMN')
 def manage_memo(request, userid, event_slug, memo_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
-    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
     Handler = EVENT_TYPES[instance.event_type]
@@ -736,7 +747,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
 def get_memo_text(request, userid, event_slug, memo_template_id):
     """ Get the text from memo template """
     person, member_units = _get_faculty_or_404(request.units, userid)
-    event = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     lt = get_object_or_404(MemoTemplate, id=memo_template_id, unit__in=Unit.sub_units(request.units))
     temp = Template(lt.template_text)
     ls = event.memo_info()
@@ -746,8 +757,8 @@ def get_memo_text(request, userid, event_slug, memo_template_id):
 
 @requires_role('ADMN')
 def get_memo_pdf(request, userid, event_slug, memo_slug):
-    person,  member_units = _get_faculty_or_404(request.units, userid)
-    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
     Handler = EVENT_TYPES[instance.event_type]
@@ -763,8 +774,8 @@ def get_memo_pdf(request, userid, event_slug, memo_slug):
 
 @requires_role('ADMN')
 def view_memo(request, userid, event_slug, memo_slug):
-    person,  member_units = _get_faculty_or_404(request.units, userid)
-    instance = get_object_or_404(CareerEvent, slug=event_slug, person=person)
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
     Handler = EVENT_TYPES[instance.event_type]
