@@ -43,12 +43,20 @@ class Command(BaseCommand):
         ensc.name = 'School of Engineering Science'
         ensc.parent = fas
         ensc.save()
+        mse, _ = Unit.objects.get_or_create(label='MSE')
+        mse.name = 'Mechatronic Systems Engineering'
+        mse.parent = fas
+        mse.save()
+        phil, _ = Unit.objects.get_or_create(label='PHIL')
+        phil.name = 'Department of Philosophy'
+        phil.parent = None
+        phil.save()
 
         create_fake_semester('1134')
         create_fake_semester('1137')
         create_fake_semester('1141')
         create_fake_semester('1144')
-        create_fake_semester('1144')
+        create_fake_semester('1147')
 
         danyu = get_or_create_nosave(Person, userid='dzhao', first_name='Danyu', last_name='Zhao')
         danyu.emplid = 220000123
@@ -69,6 +77,14 @@ class Command(BaseCommand):
         brad = get_or_create_nosave(Person, userid='bbart', first_name='Bradley', last_name='Bart')
         brad.emplid = 220000127
         brad.save()
+
+        farid = get_or_create_nosave(Person, userid='mfgolnar', first_name='Farid', last_name='Golnaraghi')
+        farid.emplid = 220000128
+        farid.save()
+
+        phillip = get_or_create_nosave(Person, userid='phillip', first_name='Phillip', last_name='Philosophy')
+        phillip.emplid = 220000129
+        phillip.save()
 
     def department_data(self):
         danyu = Person.objects.get(userid='dzhao')
@@ -94,10 +110,14 @@ class Command(BaseCommand):
         brad = Person.objects.get(userid='bbart')
         tony = Person.objects.get(userid='dixon')
         danyu = Person.objects.get(userid='dzhao')
+        farid = Person.objects.get(userid='mfgolnar')
+        phillip = Person.objects.get(userid='phillip')
         editor = tony
 
         cmpt = Unit.objects.get(slug='cmpt')
         ensc = Unit.objects.get(slug='ensc')
+        mse = Unit.objects.get(slug='mse')
+        phil = Unit.objects.get(slug='phil')
         fas = Unit.objects.get(slug='fas')
 
         # create basic roles
@@ -106,6 +126,8 @@ class Command(BaseCommand):
         Role.objects.get_or_create(person=brad, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=diana, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='FAC')
+        Role.objects.get_or_create(person=farid, unit=mse, role='FAC')
+        Role.objects.get_or_create(person=phillip, unit=phil, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='ADMN')
         Role.objects.get_or_create(person=danyu, unit=fas, role='ADMN')
 
@@ -168,6 +190,37 @@ class Command(BaseCommand):
         m.memo_text = ("We are pleased to appoint Gregory Baker to a new job.\n\n" +
                 "Because we are so excited to hire him, we will be throwing a party. Date to be announced.")
         m.save()
+
+        # out-of-unit events: Dean's office staff should see MSE stuff
+        e, h = event_get_or_create(person=farid, unit=mse, event_type='SALARY', start_date=date(2000,9,1),
+                                status='A', title=EVENT_TYPES['SALARY'].default_title())
+        e.config = {'step': 7,
+                    'base_salary': 100000,
+                    'add_salary': 17,
+                    'add_pay': '6.50',
+                    }
+        h.save(editor=editor)
+
+        e, h = event_get_or_create(person=farid, unit=mse, event_type='NORM_TEACH', start_date=date(2000,9,1),
+                                status='A', title=EVENT_TYPES['NORM_TEACH'].default_title())
+        e.config = {'load': 1}
+        h.save(editor=editor)
+
+        # out-of-unit events: nobody should be seeing PHIL events
+        e, h = event_get_or_create(person=phillip, unit=phil, event_type='SALARY', start_date=date(2000,9,1),
+                                status='A', title=EVENT_TYPES['SALARY'].default_title())
+        e.config = {'step': 7,
+                    'base_salary': 1000000,
+                    'add_salary': 17,
+                    'add_pay': '6.50',
+                    }
+        h.save(editor=editor)
+
+        e, h = event_get_or_create(person=phillip, unit=phil, event_type='NORM_TEACH', start_date=date(2000,9,1),
+                                status='A', title=EVENT_TYPES['NORM_TEACH'].default_title())
+        e.config = {'load': 2}
+        h.save(editor=editor)
+
 
 
 
