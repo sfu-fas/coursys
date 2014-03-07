@@ -35,8 +35,9 @@ class GetSalaryForm(forms.Form):
 
 
 class TeachingSummaryForm(forms.Form):
-    semester = forms.DecimalField(label='Semester', max_digits=4)
-
+    start_semester = forms.DecimalField(label='Start Semester', max_digits=4)
+    end_semester = forms.DecimalField(label='End Semester', max_digits=4)
+      
 
 def attachment_formset_factory():
     return modelformset_factory(DocumentAttachment, form=AttachmentForm, extra=1)

@@ -5,21 +5,23 @@
 
 {% block headextra %}
 <style type="text/css">
-    .total-row {
-      font-weight: bold;
-      border-top: 1px solid #999;
+    input[type="number"] {
+      width:70px;
     }
-    #total-text {
-      text-align: right;
-    }
-    #id_semester {
-    	width: 54px;
-    }
-    input[type="submit"] {
-      margin-left: 135px;
-      margin-top: -53px;
+    #balance {
+      float: right;
     }
 </style>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#teaching_event_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
 {% endblock %}
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
@@ -33,90 +35,27 @@
   <input type="submit" value="Select" />
 </form>
 
-<h3>Expected Teaching Load</h3>
-<table class="display">
-  <thead><tr>
-    <th scope="col">Title</th>
-    <th scope="col">Type</th>
-    <th scope="col">Load Increase</th>
-  </tr></thead>
-  <tbody>
-  {% for e in teaching_events %}
-  {% if e.load_decrease %}
-  <tr>
-  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
-  <td>{{ e.get_event_type_display }}</td>
-  <td>{{ e.load_decrease }}</td>
-  </tr>
-  {% endif %}
-  {% endfor %}
-  <tr>
-  <td class="total-row"></td>
-  <td class="total-row" id="total-text">Total:</td>
-  <td class="total-row">{{ tot_load|fraction_display }}</td>
-  </tr>
+<div class="datatable_container">
+  <table id="teaching_event_table" class="display">
+    <thead><tr class="th">
+      <th scope="col">Semester</th>
+      <th scope="col">Course/Event Type</th>
+      <th scope="col">Title</th>
+      <th scope="col">Credits</th>
+    </tr></thead>
+    <tbody>
+    {% for semester, course, title, credits in events %}
+    <tr>
+      <td>{{ semester }}<td>
+      <!-- <td>{{ course }}</td> -->
+      <td>{{ title }}</td>
+      <td>{{ credits }}</td>
+    </tr>
+    {% endfor %}
   </tbody>
-</table>
+  </table>
+</div>
 
-{% if tot_course_credits %}
-<h3 id="teaching">Courses Taught</h3>
-<table id="coursestable" class="display">
-  <thead><tr>
-  	<th scope="col">Course</th><th scope="col">Title</th>
-	  <th scope="col">Enrollment</th>
-	  <th scope="col">Teaching Credit</th>
-	</tr></thead>
-  <tbody>
-  {% for m in courses %}
-  <tr>
-  <td scope="row">{{ m.offering.name }}</td>
-  <td>{{ m.offering.title }}</td>
-  <td>{{ m.offering.enrl_tot }}</td>
-  <td>{% with m.teaching_credit_with_reason as tcr %}
-      <span class="sort">{{ tcr.0|floatformat:'3' }}</span>
-      {{ tcr.0 }}
-      {% if tcr.1 %}({{ tcr.1 }}){% endif %}
-      {% endwith %}
-  </td>
-  </tr>
-  {% endfor %}
-  <tr>
-  <td class="total-row"></td>
-  <td class="total-row"></td>
-  <td class="total-row" id="total-text">Total:</td>
-  <td class="total-row">{{ tot_course_credits|fraction_display }}</td>
-  </tr>
-  </tbody>
-</table>
-{% endif %}
-
-{% if tot_teaching_credits %}
-<h3>Teaching Credit Events</h3>
-<table class="display">
-  <thead><tr>
-    <th scope="col">Title</th>
-    <th scope="col">Type</th>
-    <th scope="col">Credits</th>
-  </tr></thead>
-  <tbody>
-  {% for e in teaching_events %}
-  {% if e.teaching_credits %}
-  <tr>
-  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
-  <td>{{ e.get_event_type_display }}</td>
-  <td>{{ e.teaching_credits }}</td>
-  </tr>
-  {% endif %}
-  {% endfor %}
-  <tr>
-  <td class="total-row"></td>
-  <td class="total-row" id="total-text">Total:</td>
-  <td class="total-row">{{ tot_teaching_credits|fraction_display }}</td>
-  </tr>
-  </tbody>
-</table>
-{% endif %}
-
-<h3> Teaching Credit Balance = {{ tot_load }} - {{ tot_credits }} = {{ credit_balance }}</h3>
+<h3 id="balance"> Teaching Credit Balance = {{ credit_balance }}</h3>
 
 {% endblock %}

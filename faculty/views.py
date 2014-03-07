@@ -254,47 +254,46 @@ def teaching_summary(request, userid):
         form = TeachingSummaryForm(request.GET)
 
         if form.is_valid():
-            semester_code = request.GET.get('semester', None)
+            start = request.GET.get('start_semester', None)
+            end = request.GET.get('end_semester', None)
+            start_semester = Semester(name=start)
+            end_semester = Semester(name=end)
 
     else:
-        semester_code = current_semester()
-        initial = { 'semester': semester_code }
+        start_semester = end_semester = Semester(name=str(current_semester()))
+        start = end = start_semester.name
+        initial = { 'start_semester': start,
+                    'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
-        
-    sem = get_object_or_404(Semester, name=semester_code)
 
-    tot_course_credits = 0
-    courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester_code) \
+    curr_semester = start_semester
+    credit_balance = 0
+    events = []
+
+    while curr_semester != end_semester.next_semester():
+        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=curr_semester.name) \
             .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
-            
-    for offering in courses:
-        tot_course_credits += offering.teaching_credit()
+        for course in courses:
+            events += [(curr_semester.name, course.offering.name(), course.offering.title, course.teaching_credit())]
+            credit_balance += course.teaching_credit()
+        
+        teaching_events = FacultySummary(person).teaching_events(curr_semester)
+        for event in teaching_events:
+            credits, load_decrease = FacultySummary(person).teaching_event_info(event)
+            if load_decrease:
+                events += [(curr_semester.name, event.get_event_type_display(), event.title, load_decrease)]
+            if credits:
+                events += [(curr_semester.name, event.get_event_type_display(), event.title, credits)]
+            credit_balance += credits + load_decrease
 
-
-    teaching_events = copy.copy(FacultySummary(person).teaching_events(sem))
-    tot_teaching_credits = tot_load = 0
-
-    for event in teaching_events:
-        credits, load_decrease = FacultySummary(person).teaching_event_info(event)
-        event.teaching_credits = credits
-        event.load_decrease = -load_decrease
-        tot_teaching_credits += credits
-        tot_load += -load_decrease
-
-    tot_credits = tot_course_credits + tot_teaching_credits
-    credit_balance = tot_load - tot_course_credits - tot_teaching_credits
+        curr_semester = curr_semester.next_semester()
 
     context = {
         'form': form,
         'person': person,
-        'courses': courses,
-        'teaching_events': teaching_events,
-        'tot_course_credits': tot_course_credits,
-        'tot_teaching_credits': tot_teaching_credits,
-        'tot_load': tot_load,
-        'tot_credits': tot_credits,
         'credit_balance': credit_balance,
+        'events': events,
     }
     return render(request, 'faculty/teaching_summary.html', context)
 
