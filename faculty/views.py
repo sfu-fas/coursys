@@ -99,11 +99,13 @@ def search_index(request):
 def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
+    unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
 
     results = []
 
     if request.GET:
         form = SearchForm(request.GET)
+        form.fields['unit'].choices = unit_choices
         rules = Handler.get_search_rules(request.GET)
 
         if form.is_valid() and Handler.validate_all_search(rules):
@@ -122,6 +124,7 @@ def search_events(request, event_type):
             results = Handler.filter(events, rules=rules, viewer=viewer)
     else:
         form = SearchForm()
+        form.fields['unit'].choices = unit_choices
         rules = Handler.get_search_rules()
 
     context = {
