@@ -37,14 +37,17 @@ class Command(BaseCommand):
         fas, _ = Unit.objects.get_or_create(label='FAS', name='Faculty of Applied Sciences', parent=univ)
         cmpt, _ = Unit.objects.get_or_create(label='CMPT')
         cmpt.name = 'School of Computing Science'
+        cmpt.config['informal_name'] = 'Computing Science'
         cmpt.parent = fas
         cmpt.save()
         ensc, _ = Unit.objects.get_or_create(label='ENSC')
         ensc.name = 'School of Engineering Science'
+        ensc.config['informal_name'] = 'Engineering Science'
         ensc.parent = fas
         ensc.save()
         mse, _ = Unit.objects.get_or_create(label='MSE')
         mse.name = 'Mechatronic Systems Engineering'
+        mse.config['informal_name'] = 'Mechatronics'
         mse.parent = fas
         mse.save()
         phil, _ = Unit.objects.get_or_create(label='PHIL')
