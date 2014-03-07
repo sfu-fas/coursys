@@ -1,4 +1,4 @@
-import fractions
+import fractions, itertools
 
 from django import forms
 
@@ -74,7 +74,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         return self.EntryForm.LEAVING_CHOICES.get(self.get_config('leaving_reason'), 'N/A')
 
     def short_summary(self):
-        return "Appointment to position as of %s" % (self.event.start_date)
+        return "Appointment to position"
 
 
 class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
@@ -129,7 +129,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         return 'Base Salary'
 
     def short_summary(self):
-        return "Base salary of %s at step %s".format(self.get_config('base_salary'),
+        return "Base salary of ${0} at step {1}".format(self.get_config('base_salary'),
                                                      self.get_config('step'))
 
     def salary_adjust_annually(self):
@@ -157,7 +157,8 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     class EntryForm(BaseEntryForm):
 
         STIPEND_SOURCES = Choices(
-            ('RETENTION', 'Retention/Market Differential'),
+            ('RETENTION', 'Retention Award'),
+            ('MARKETDIFF', 'Market Differential'),
             ('RESEARCH', 'Research Chair Stipend'),
             ('OTHER', 'Other'),
         )
@@ -183,7 +184,7 @@ class SalaryModificationEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         return 'Salary Modification / Stipend'
 
     def short_summary(self):
-        return "%s for $%s".format(self.get_config('source'),
+        return "{0}: ${1}".format(self.get_source_display(),
                                    self.get_config('amount'))
 
     def salary_adjust_annually(self):
@@ -208,8 +209,7 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
         return 'Applied for Tenure'
 
     def short_summary(self):
-        return '%s Applied for Tenure on %s' % (self.event.person.name(),
-                                                self.event.start_date)
+        return 'Applied for Tenure'
 
 
 class TenureReceivedEventHandler(CareerEventHandlerBase):
@@ -229,8 +229,7 @@ class TenureReceivedEventHandler(CareerEventHandlerBase):
         return 'Tenure Received'
 
     def short_summary(self):
-        return '%s received Tenure on %s' % (self.event.person.name(),
-                                             self.event.start_date)
+        return 'Tenure Received'
 
 
 class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
@@ -258,7 +257,8 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
             ('SECONDMENT', 'Secondment'),
         )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
-        leave_fraction = fields.FractionField(help_text="Fraction of salary received during leave eg. '3/4' indicates 75% pay", label='Work fraction')
+        leave_fraction = fields.FractionField(help_text="Fraction of salary received during leave eg. '3/4' indicates 75% pay",
+                                              label='Work fraction', initial=1)
         teaching_credits = fields.TeachingCreditField()
         teaching_load_decrease = fields.TeachingReductionField()
 
@@ -277,8 +277,12 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
         return 'On Leave'
 
     def short_summary(self):
-        return '%s leave beginning %s'.format(self.event.person.name(),
-                                              self.event.start_date)
+        try:
+            frac = fractions.Fraction(self.get_config('leave_fraction'))
+        except TypeError:
+            frac = 0
+
+        return '%s Leave @ %.0f%%' % (self.get_reason_display(), frac*100)
 
     def salary_adjust_annually(self):
         leave_fraction = self.get_config('leave_fraction')
@@ -330,7 +334,11 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return 'Study Leave'
 
     def short_summary(self):
-        return 'Study leave begginging %s'.format(self.event.start_date)
+        try:
+            frac = fractions.Fraction(self.get_config('pay_fraction'))
+        except TypeError:
+            frac = 0
+        return 'Study Leave @ %.0f%%' % (frac*100)
 
     def salary_adjust_annually(self):
         pay_fraction = self.get_config('pay_fraction')
@@ -339,3 +347,80 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def teaching_adjust_per_semester(self):
         credits = self.get_config('credits')
         return TeachingAdjust(credits, fractions.Fraction(0))
+
+
+
+
+class AccreditationFlagEventHandler(CareerEventHandlerBase):
+    """
+    Aquisition of a accreditation-related property
+    """
+
+    EVENT_TYPE = 'ACCRED'
+    NAME = 'Accreditation Attribute'
+
+    TO_HTML_TEMPLATE = """
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Attribute</dt><dd>{{ handler|get_display:"flag" }}</dd>
+        {% endblock %}
+    """
+
+    class EntryForm(BaseEntryForm):
+        flag = forms.ChoiceField(required=True, choices=[], label='Attribute')
+
+        def post_init(self):
+            # set the allowed position choices from the config from allowed units
+            from faculty.models import EventConfig
+            ecs = EventConfig.objects.filter(unit__in=self.units,
+                                             event_type=AccreditationFlagEventHandler.EVENT_TYPE)
+            choices = itertools.chain(*[ec.config.get('flags', []) for ec in ecs])
+            self.fields['flag'].choices = choices
+
+        def clean(self):
+            from faculty.models import EventConfig
+            data = self.cleaned_data
+            if 'unit' not in data:
+                raise forms.ValidationError("Couldn't check unit for fellowship ownership.")
+
+            found = False
+            try:
+                ec = EventConfig.objects.get(unit=data['unit'],
+                                             event_type=AccreditationFlagEventHandler.EVENT_TYPE)
+                flags = dict(ec.config.get('flags', []))
+                if data['flag'] in flags:
+                    found = True
+            except EventConfig.DoesNotExist:
+                pass
+
+            if not found:
+                raise forms.ValidationError("That fellowship is not owned by the selected unit.")
+
+            return data
+
+    SEARCH_RULES = {
+        'flag': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'flag',
+    ]
+
+    def get_flag_display(self):
+        """
+        Get the name of this flag, for display to the user
+        """
+        from faculty.models import EventConfig
+        try:
+            ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.EVENT_TYPE)
+            fellowships = dict(ec.config.get('flags', {}))
+        except EventConfig.DoesNotExist:
+            fellowships = {}
+
+        flag = self.event.config.get('flag', '???')
+        return fellowships.get(flag, flag)
+
+    @classmethod
+    def default_title(cls):
+        return 'Accreditation Flag'
+
+    def short_summary(self):
+        return "Has {0}".format(self.get_flag_display())

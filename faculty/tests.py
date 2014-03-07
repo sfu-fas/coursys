@@ -94,7 +94,9 @@ class EventTypesTest(TestCase):
                 Handler.get_entry_form(editor=editor, units=units)
 
                 # display methods that each handler must implement
-                self.assertIsInstance(handler.short_summary(), basestring)
+                shortsummary = handler.short_summary()
+                self.assertIsInstance(shortsummary, basestring)
+                self.assertNotIn('%s', shortsummary) # find these cases that shouldn't exist
                 html = handler.to_html()
                 self.assertIsInstance(html, (safestring.SafeString, safestring.SafeText, safestring.SafeUnicode))
 

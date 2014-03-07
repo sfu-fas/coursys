@@ -59,7 +59,7 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def short_summary(self):
         position = self.get_position_display()
-        return 'Given position: {}'.format(position)
+        return 'Admin Position {0}'.format(position)
 
     def teaching_adjust_per_semester(self):
         credit = self.get_config('teaching_credit')

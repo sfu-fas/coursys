@@ -70,9 +70,7 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         org_name = self.get_config('org_name')
-        org_type = self.get_org_type_display()
-        org_class = self.get_org_class_display()
-        return 'Affiliated with {} - a {} {}'.format(org_name, org_type, org_class)
+        return 'Affiliated with {}'.format(org_name)
 
 
 class CommitteeMemberHandler(CareerEventHandlerBase):
@@ -102,13 +100,28 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
         'committee_unit',
     ]
 
+    def get_committee_unit_display(self):
+        unit = self.get_config('committee_unit', '')
+        if unit:
+            return unit.informal_name()
+        else:
+            return '???'
+
+    def get_committee_unit_display_short(self):
+        unit = self.get_config('committee_unit', None)
+        if unit:
+            return unit.label
+        else:
+            return '???'
+
     @classmethod
     def default_title(cls):
         return 'Joined a committee'
 
     def short_summary(self):
-        return 'On the {} committee for the {}'.format(self.get_config('committee_name', ''),
-                                                       self.get_config('committee_unit'))
+        name = self.get_config('committee_name', '')
+        unit = self.get_committee_unit_display_short()
+        return 'Committee member: {} ({})'.format(name, unit)
 
 
 class ResearchMembershipHandler(CareerEventHandlerBase):
@@ -151,7 +164,7 @@ class ResearchMembershipHandler(CareerEventHandlerBase):
         return 'Member of Reseach Group/Lab'
 
     def short_summary(self):
-        return 'Member of %s'.format(self.get_config('lab_name'))
+        return 'Member of {}'.format(self.get_config('lab_name'))
 
 
 class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
@@ -164,12 +177,14 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Description</dt><dd>{{ handler|get_display:"description" }}</dd>
         <dt>Add Pay</dt><dd>${{ handler|get_display:"add_pay" }}</dd>
         <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
+        description = forms.CharField(help_text='A brief description of the service', max_length=30)
         add_pay = fields.AddPayField()
         teaching_credits = fields.TeachingCreditField()
 
@@ -178,7 +193,7 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return 'External Service'
 
     def short_summary(self):
-        return 'External Service: %s' % (self.event.title)
+        return 'External Service: %s' % (self.get_config('description'))
 
     def salary_adjust_annually(self):
         add_pay = self.get_config('add_pay')
@@ -195,13 +210,13 @@ class SpecialDealHandler(CareerEventHandlerBase):
     NAME = 'Special Deal'
 
     class EntryForm(BaseEntryForm):
-
+        description = forms.CharField(help_text='A brief description of the deal', max_length=30)
         def post_init(self):
-            self.fields['comments'].help_text = 'Enter details about the special deal here.'
+            self.fields['comments'].help_text = 'Enter details about the special deal.'
             self.fields['comments'].required = True
 
     def short_summary(self):
-        return 'Special Deal'
+        return 'Special Deal: {}'.format(self.get_config('description'))
 
 class OtherEventHandler(CareerEventHandlerBase):
 

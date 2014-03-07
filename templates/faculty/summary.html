@@ -52,7 +52,7 @@ $(document).ready(function() {
 
 <table id="career_event_table">
   <thead><tr class="th">
-    <th scope="col">Title</th>
+    <th scope="col">Event</th>
     <th scope="col">Event Type</th>
     <th scope="col">Start Date</th>
     <th scope="col">End Date</th>
@@ -62,7 +62,7 @@ $(document).ready(function() {
   {% for e in career_events %}
   {% if editor|can_view:e %}
   <tr class="{{ e.filter_classes }}">
-    <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
+    <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
     <td>{{ e.get_event_type_display }}</td>
     <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
     <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>

@@ -105,6 +105,13 @@ class Command(BaseCommand):
             ('UNIR', 'University Research Chair')
         ]}
         ec.save()
+        ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='ACCRED')
+        ec.config = {'flags': [
+            ('PENG', 'P.Eng.'),
+            ('PHD', 'PhD (or equivalent)'),
+            ('TALL', 'Is Extremely Tall')
+        ]}
+        ec.save()
 
     def personal_data(self):
         # get the objects that should already be there

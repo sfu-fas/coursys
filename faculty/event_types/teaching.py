@@ -38,7 +38,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def short_summary(self):
         load = self.get_config('load')
-        return "I'm required to have a teaching load of {}".format(load)
+        return "Teaching load: {}/semester".format(load)
 
     def teaching_adjust_per_semester(self):
         load = self.get_config('load')
@@ -62,8 +62,7 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
 
     class EntryForm(BaseEntryForm):
-
-        credit = TeachingCreditField(label='Teaching Credit')
+        credit = TeachingCreditField(label='Teaching Credit', initial=2)
         
 
     SEARCH_RULES = {
@@ -88,8 +87,7 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def short_summary(self):
         semester = self.get_semester(self.event.start_date)
-        credit = self.get_config('credit')
-        return 'One-in-Nine: {} for {} teaching credit'.format(semester, credit)
+        return 'One-in-Nine Semester ({})'.format(semester.name)
 
     def teaching_adjust_per_semester(self):
         credit = self.get_config('credit')
