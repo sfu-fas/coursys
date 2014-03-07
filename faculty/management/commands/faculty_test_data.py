@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from coredata.models import Unit, Role, Person
-from coredata.demodata_importer import create_fake_semester
+from courselib.testing import create_fake_semester
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, EVENT_TYPES
 from datetime import date
 

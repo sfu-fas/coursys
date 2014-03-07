@@ -137,3 +137,32 @@ class Client(OriginalClient):
 
         # Save the session values.
         request.session.save()
+
+from coredata.models import Semester, SemesterWeek
+import datetime
+def create_fake_semester(strm):
+    """
+    Create a close-enough Semester object for testing
+    """
+    strm = str(strm)
+    if Semester.objects.filter(name=strm):
+        return
+    s = Semester(name=strm)
+    yr = int(strm[0:3]) + 1900
+    if strm[3] == '1':
+        mo = 1
+    elif strm[3] == '4':
+        mo = 5
+    elif strm[3] == '7':
+        mo = 9
+
+    s.start = datetime.date(yr,mo,5)
+    s.end = datetime.date(yr,mo+3,1)
+    s.save()
+
+    sw = SemesterWeek(semester=s, week=1)
+    mon = s.start
+    while mon.weekday() != 0:
+        mon -= datetime.timedelta(days=1)
+    sw.monday = mon
+    sw.save()
