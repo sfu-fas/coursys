@@ -436,6 +436,10 @@ class EventConfig(models.Model):
     config = JSONField(default={})
 
 
+class GrantManager(models.Manager):
+    def create_from_csv(self, row):
+        raise NotImplementedError
+
 class Grant(models.Model):
     title = models.CharField(max_length=64)
     label = models.CharField(max_length=255, help_text="for identification from FAST import")
@@ -448,8 +452,19 @@ class Grant(models.Model):
     import_key = models.CharField(max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
     unit = models.ForeignKey(Unit, null=False, blank=False, help_text="unit who owns the grant")
 
+    objects = GrantManager()
+
     def __unicode__(self):
         return u"%s" % self.title
+
+    def update_balance(self, date, balance, spent_this_month):
+        gb = GrantBalance.objects.create(
+                date=date,
+                grant=self,
+                balance=balance,
+                actual=self.initial - balance,
+                month=spent_this_month
+        )
 
 
 class GrantBalance(models.Model):
