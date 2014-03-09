@@ -167,9 +167,6 @@ class CareerEventManager(models.Manager):
             return getattr(self.get_query_set(), attr, *args)
 
 
-
-
-
 class CareerEvent(models.Model):
 
     STATUS_CHOICES = (
@@ -207,7 +204,7 @@ class CareerEvent(models.Model):
         )
 
     def __unicode__(self):
-        return self.title
+        return u"%s" % self.title
 
     def save(self, editor, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -439,12 +436,28 @@ class EventConfig(models.Model):
     config = JSONField(default={})
 
 
+class Grant(models.Model):
+    title = models.CharField(max_length=64)
+    label = models.CharField(max_length=255, help_text="for identification from FAST import")
+    # TODO: owners, ManyToMany or Foreign key via a separate GrantOwner model?
+    project_code = models.CharField(max_length=32, db_index=True)
+    start_date = models.DateField()
+    expiry_date = models.DateField(null=True, blank=True)
+    initial = models.DecimalField(verbose_name="initial balance", max_digits=10, decimal_places=2)
+    overhead = models.DecimalField(verbose_name="annual overhead", max_digits=10, decimal_places=2)
+    import_key = models.CharField(max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
+    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="unit who owns the grant")
+
+    def __unicode__(self):
+        return u"%s" % self.title
 
 
+class GrantBalance(models.Model):
+    date = models.DateField(auto_now_add=True)
+    grant = models.ForeignKey(Grant, null=False, blank=False)
+    balance = models.DecimalField(verbose_name="grant balance", max_digits=10, decimal_places=2)
+    actual = models.DecimalField(verbose_name="YTD actual", max_digits=10, decimal_places=2)
+    month = models.DecimalField(verbose_name="current month", max_digits=10, decimal_places=2)
 
-
-
-
-
-
-
+    def __unicode__(self):
+        return u"%s balance as of %s" % (self.grant, self.date)
