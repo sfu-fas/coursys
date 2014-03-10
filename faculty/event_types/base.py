@@ -189,24 +189,27 @@ class CareerEventHandlerBase(object):
         raw_value = self.event.config.get(name)
         field = self.CONFIG_FIELDS[name]
 
-        if raw_value is None:
-            if default is not None:
-                return default
+        try:
+            if raw_value is None:
+                if default is not None:
+                    return default
+                else:
+                    return field.to_python(field.initial)
             else:
-                return field.to_python(field.initial)
-        else:
+                    return field.to_python(raw_value)
+        except forms.ValidationError:
             # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
             #      the config field, then it was most likely valid when the event was created.
-            try:
-                return field.to_python(raw_value)
-            except forms.ValidationError:
-                return raw_value
+            return raw_value
 
     def set_config(self, name, value):
+        field = self.CONFIG_FIELDS[name]
+
         if isinstance(value, models.Model):
             raw_value = unicode(value.pk)
         else:
-            raw_value = unicode(value)
+            raw_value = unicode(field.prepare_value(value))
+
         self.event.config[name] = raw_value
 
     # Other ways to create a new handler instance
