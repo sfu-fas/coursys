@@ -37,9 +37,9 @@ $(document).ready(function() {
   {% if editable %}
   <tr>
     <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid event_type=type.slug %}">{{ type.name }}</a></td>
-    <td>{{ type.is_instant }}</td>
-    <td>{{ type.affects_teaching }}</td>
-    <td>{{ type.affects_salary }}</td>
+    <td>{{ type.is_instant|yesno }}</td>
+    <td>{{ type.affects_teaching|yesno }}</td>
+    <td>{{ type.affects_salary|yesno }}</td>
   </tr>
   {% endif %}
   {% endfor %}

@@ -36,9 +36,9 @@ $(document).ready(function() {
   {% if viewable %}
   <tr>
     <td><a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a></td>
-    <td>{{ event_type.is_instant }}</td>
-    <td>{{ event_type.affects_teaching }}</td>
-    <td>{{ event_type.affects_salary }}</td>
+    <td>{{ event_type.is_instant|yesno }}</td>
+    <td>{{ event_type.affects_teaching|yesno }}</td>
+    <td>{{ event_type.affects_salary|yesno }}</td>
   </tr>
   {% endif %}
   {% endfor %}
