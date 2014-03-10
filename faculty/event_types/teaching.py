@@ -7,6 +7,7 @@ from faculty.event_types import search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import TeachingAdjust
+from faculty.event_types.fields import SemesterToDateField
 from faculty.event_types.fields import TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent
 
@@ -52,7 +53,6 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
     EVENT_TYPE = 'ONE_NINE'
     NAME = 'One-in-Nine Semester'
 
-    IS_INSTANT = False
     SEMESTER_PINNED = True
 
     TO_HTML_TEMPLATE = """
@@ -62,8 +62,8 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
 
     class EntryForm(BaseEntryForm):
+
         credit = TeachingCreditField(label='Teaching Credit', initial=2)
-        
 
     SEARCH_RULES = {
         'credit': search.ComparableSearchRule,
@@ -76,14 +76,6 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
     def get_semester(date):
         semester_date = max(date, datetime.date(date.year, date.month, 5))
         return Semester.get_semester(semester_date)
-
-    #def pre_save(self):
-        # This event lasts for an entire semester, so we should set the start and end times
-        # appropriately.
-        # XXX: The Semester objects start on the 5th day of the first month so we must do
-        #      this hack to make sure we look up the correct semester.
-        #semester = self.get_semester(self.event.start_date)
-        #self.event.start_date, self.event.end_date = Semester.start_end_dates(semester)
 
     def short_summary(self):
         semester = self.get_semester(self.event.start_date)
