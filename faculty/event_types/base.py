@@ -13,6 +13,7 @@ from coredata.models import Role, Unit
 
 from faculty.event_types.constants import PERMISSION_LEVEL, PERMISSION_CHOICES
 from faculty.event_types.fields import SemesterField
+from faculty.event_types.fields import SemesterToDateField
 
 ROLES = PERMISSION_CHOICES
 
@@ -46,6 +47,17 @@ class CareerEventMeta(abc.ABCMeta):
                     if flag not in cls.FLAGS:
                         cls.FLAGS.append(flag)
 
+        # Modify the form accoding to our flags
+        if cls.SEMESTER_PINNED:
+            cls.EntryForm.base_fields['start_date'] = SemesterToDateField(start=True)
+            cls.EntryForm.base_fields['end_date'] = SemesterToDateField(start=False,
+                                                                        required=False)
+        else:
+            # NOTE: We don't allow IS_INSTANT to work with SEMESTER_PINNED
+            # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
+            if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
+                del cls.EntryForm.base_fields['end_date']
+
         # Figure out what fields are required by the Handler subclass
         cls.BASE_FIELDS = collections.OrderedDict()
         cls.CONFIG_FIELDS = collections.OrderedDict()
@@ -63,10 +75,6 @@ class CareerEventMeta(abc.ABCMeta):
             if name in cls.SEARCH_RULES:
                 field = cls.CONFIG_FIELDS[name]
                 cls.SEARCH_RULE_INSTANCES[name] = cls.SEARCH_RULES[name](name, field, cls)
-
-        # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
-        if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
-            del cls.EntryForm.base_fields['end_date']
 
 
 class BaseEntryForm(forms.Form):
@@ -124,8 +132,7 @@ class CareerEventHandlerBase(object):
     # There can only be one (with same person, unit, event_type without an end_date)
     IS_EXCLUSIVE = False
     # Show a semester selection widget for start/end date instead of a raw date picker
-    # TODO: remove SEMESTER_BIAS? It's been replaced by the either-or semester fields.
-    SEMESTER_BIAS = False
+    SEMESTER_PINNED = False
 
     VIEWABLE_BY = 'MEMB'
     EDITABLE_BY = 'DEPT'
