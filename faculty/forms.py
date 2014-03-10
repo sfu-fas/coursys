@@ -91,8 +91,10 @@ class MemoForm(forms.ModelForm):
 
 
 class SearchForm(forms.Form):
-    start_date = forms.DateField(label='Start Date', required=False)
-    end_date = forms.DateField(label='End Date (inclusive)', required=False)
+    start_date = forms.DateField(label='Start Date', required=False,
+                                 widget=forms.DateInput(attrs={'class': 'date-input'}))
+    end_date = forms.DateField(label='End Date (inclusive)', required=False,
+                               widget=forms.DateInput(attrs={'class': 'date-input'}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.all(), required=False)
     only_current = forms.BooleanField(required=False)
 
