@@ -9,7 +9,7 @@ from models import DocumentAttachment
 from models import MemoTemplate
 from models import Memo
 from models import EVENT_TYPE_CHOICES
-from faculty.event_types.fields import SemesterField
+from faculty.event_types.fields import SemesterField, SemesterCodeField
 
 
 def career_event_factory(person, post_data=None, post_files=None):
@@ -35,9 +35,9 @@ class GetSalaryForm(forms.Form):
 
 
 class TeachingSummaryForm(forms.Form):
-    start_semester = forms.DecimalField(label='Start Semester', max_digits=4)
-    end_semester = forms.DecimalField(label='End Semester', max_digits=4)
-      
+    start_semester = SemesterCodeField()
+    end_semester = SemesterCodeField()
+
 
 def attachment_formset_factory():
     return modelformset_factory(DocumentAttachment, form=AttachmentForm, extra=1)

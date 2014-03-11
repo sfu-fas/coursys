@@ -40,22 +40,29 @@ $(document).ready(function() {
     <thead><tr class="th">
       <th scope="col">Semester</th>
       <th scope="col">Course/Event Type</th>
-      <th scope="col">Title</th>
+      <th scope="col">Summary</th>
       <th scope="col">Credits</th>
     </tr></thead>
     <tbody>
-    {% for semester, course, title, credits in events %}
+    {% for semester, course, summary, credits in events %}
     <tr>
-      <td>{{ semester }}<td>
-      <!-- <td>{{ course }}</td> -->
-      <td>{{ title }}</td>
+      <td>{{ semester }}</td>
+      <td>{{ course }}</td>
+      <td>{{ summary }}</td>
       <td>{{ credits }}</td>
     </tr>
     {% endfor %}
   </tbody>
   </table>
 </div>
-
-<h3 id="balance"> Teaching Credit Balance = {{ credit_balance }}</h3>
-
+{% if events %}
+<h3 id="balance"> Teaching Credit Balance = 
+  {% if cb_whole %}
+  {{ cb_whole }} 
+  {% endif %}
+  {% if cb_frac %}
+  {{ cb_frac }}
+  {%endif %}
+</h3>
+{% endif %}
 {% endblock %}
