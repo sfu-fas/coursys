@@ -27,9 +27,9 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 from reports.reportlib.semester import date2semester, current_semester
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
-from faculty.forms import SearchForm, EventFilterForm
+from faculty.forms import SearchForm, EventFilterForm, GrantForm
 from faculty.processing import FacultySummary
 
 
@@ -42,6 +42,7 @@ def _get_faculty_or_404(allowed_units, userid_or_emplid):
     roles = get_list_or_404(Role, role='FAC', unit__id__in=sub_unit_ids, person=person)
     units = set(r.unit for r in roles)
     return person, units
+
 
 def _get_event_or_404(units, **kwargs):
     subunit_ids = Unit.sub_unit_ids(units)
@@ -793,3 +794,43 @@ def view_memo(request, userid, event_slug, memo_slug):
                'person': person,
                }
     return render(request, 'faculty/view_memo.html', context)
+
+
+###############################################################################
+# Creating and editing Grants
+
+@requires_role('ADMN')
+def grant_index(request):
+    grants = Grant.objects.active()
+    editor = get_object_or_404(Person, userid=request.user.username)
+    context = {
+        "grants": grants,
+        "editor": editor,
+    }
+    return render(request, "faculty/grant_index.html", context)
+
+@requires_role('ADMN')
+def new_grant(request):
+    # The following call does not work as expected for dzhao...
+    editor, member_units = _get_faculty_or_404(request.units, request.user.username)
+    form = GrantForm(member_units)
+    context = {
+        "grant_form": form,
+        "editor": editor,
+    }
+    if request.method == "POST":
+        form = GrantForm(member_units, request.POST)
+        if form.is_valid():
+            grant = form.save(commit=False)
+            grant.save()
+        else:
+            context.update({"grant_form": form})
+    return render(request, "faculty/new_grant.html", context)
+    
+@requires_role('ADMN')
+def view_grant(request, slug):
+    grant = get_object_or_404(Grant, slug=slug)
+    context = {
+        "grant": grant,
+    }
+    return render(request, "faculty/view_grant.html", context)

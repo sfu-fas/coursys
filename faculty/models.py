@@ -439,14 +439,26 @@ class EventConfig(models.Model):
 class GrantManager(models.Manager):
     def create_from_csv(self, row):
         raise NotImplementedError
+    
+    def active(self):
+        qs = self.get_query_set()
+        return qs.filter(status='A')
+
 
 class Grant(models.Model):
+    STATUS_CHOICES = (
+        ("NA", "Not Active"),
+        ("A", "Active"),
+        ("D", "Deleted"),
+    )
     title = models.CharField(max_length=64)
+    slug = AutoSlugField(populate_from='title', unique_with=("start_date", "project_code"), null=False, editable=False)
     label = models.CharField(max_length=255, help_text="for identification from FAST import")
     # TODO: owners, ManyToMany or Foreign key via a separate GrantOwner model?
     project_code = models.CharField(max_length=32, db_index=True)
     start_date = models.DateField()
     expiry_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
     initial = models.DecimalField(verbose_name="initial balance", max_digits=10, decimal_places=2)
     overhead = models.DecimalField(verbose_name="annual overhead", max_digits=10, decimal_places=2)
     import_key = models.CharField(max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
@@ -456,6 +468,9 @@ class Grant(models.Model):
 
     def __unicode__(self):
         return u"%s" % self.title
+
+    def get_absolute_url(self):
+        return reverse("view_grant", args=[self.slug])
 
     def update_balance(self, date, balance, spent_this_month):
         gb = GrantBalance.objects.create(

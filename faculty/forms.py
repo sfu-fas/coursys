@@ -9,6 +9,8 @@ from models import DocumentAttachment
 from models import MemoTemplate
 from models import Memo
 from models import EVENT_TYPE_CHOICES
+from models import Grant
+from models import GrantBalance
 from faculty.event_types.fields import SemesterField
 
 
@@ -107,3 +109,14 @@ class EventFilterForm(forms.Form):
         ('salary', 'Salary-related'),
     ]
     category = forms.ChoiceField(choices=CATEGORIES, initial='current', widget=forms.RadioSelect())
+
+
+class GrantForm(forms.ModelForm):
+    def __init__(self, units, *args, **kwargs):
+        self.units = units
+        super(GrantForm, self).__init__(*args, **kwargs)
+        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+
+    class Meta:
+        model = Grant
