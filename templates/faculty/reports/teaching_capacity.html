@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Teaching Capacity by Unit{% endblock %}
+{% block h1 %}Teaching Capacity by Unit{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#facultytable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+
+  $('.capacity-unit i.fa-toggle-down').click(function () {
+    var icon = $(this);
+    var inner = icon.parent().parent().find('.capacity-unit-inner');
+
+    if (inner.hasClass('hidden')) {
+      icon.removeClass('fa-toggle-down');
+      icon.addClass('fa-toggle-right');
+    }
+    else {
+      icon.removeClass('fa-toggle-right');
+      icon.addClass('fa-toggle-down');
+    }
+    inner.toggleClass('hidden');
+  });
+} );
+</script>
+
+<style>
+.capacity-unit {
+  border: 2px solid;
+  padding: 5px 10px 5px 10px;
+  margin-bottom: 10px;
+}
+.capacity-unit h3 {
+  margin: 0px;
+}
+.capacity-unit h3 small {
+  float: right;
+}
+.capacity-unit .hidden {
+  display: none;
+}
+</style>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href=""><i class="fa fa-li fa-download"></i> Download PDF</a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Teaching Capacity by Unit</li>
+{% endblock %}
+
+{% block content %}
+{% for unit_name, summaries in units.iteritems %}
+<div class="capacity-unit">
+  <h3>
+    <i class="fa {{ summaries|yesno:'fa-toggle-down,fa-times' }}"></i>
+    {{ unit_name }}
+    <small>Available Capacity: 0</small>
+  </h3>
+  {% if summaries %}
+  <div class="capacity-unit-inner hidden">
+  <table>
+    <thead><tr>
+      <th scope="col">Name</th>
+      <th scope="col">Required</th>
+      <th scope="col">Providing</th>
+    </tr></thead>
+    <tbody>
+    {% for person, credits, load in summaries %}
+      <tr>
+        <td>{{ person }}</td>
+        <td>{{ credits }}</td>
+        <td>{{ load }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

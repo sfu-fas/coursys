@@ -237,6 +237,22 @@ def salary_summary(request, userid):
     return render(request, 'faculty/salary_summary.html', context)
 
 
+@requires_role('ADMN')
+def teaching_capacity(request):
+    units = {}
+    semester = Semester.current()
+
+    for unit in Unit.objects.all():
+        people = set(role.person for role in Role.objects.filter(unit=unit))
+        units[unit.name] = []
+        for person in people:
+            summary = FacultySummary(person)
+            credits, load = summary.teaching_credits(semester)
+            units[unit.name].append((person, credits, load))
+
+    return render(request, 'faculty/reports/teaching_capacity.html', {'units': units})
+
+
 ###############################################################################
 # Display/summary views for a faculty member
 

@@ -24,7 +24,7 @@ $(document).ready(function() {
     </li>
     <li>
       <a href="{% url 'faculty.views.status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue</a>
-    </li>    
+    </li>
     <li class="newsec">
       <a href="{% url 'faculty.views.search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
     </li>
@@ -33,6 +33,9 @@ $(document).ready(function() {
     </li>
     <li class="newsec">
       <a href="{% url 'grants_index' %}"><i class="fa fa-li fa-trophy"></i> Grants</a>
+    </li>
+    <li>
+      <a href="{% url 'faculty.views.teaching_capacity' %}"><i class="fa fa-li fa-beer"></i> Teaching Capacity by Unit</a>
     </li>
   </ul>
 </div>
