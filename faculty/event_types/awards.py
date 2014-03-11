@@ -90,7 +90,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return 'Fellowship / Chair'
 
     def short_summary(self):
-        return "Appointment to %s".format(self.get_position_display())
+        return "Appointment to {0}".format(self.get_position_display())
 
     def salary_adjust_annually(self):
         add_salary = self.get_config('add_salary')
@@ -99,7 +99,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     def teaching_adjust_per_semester(self):
         adjust = self.get_config('teaching_credit')
-        return TeachingAdjust(adjust, adjust)
+        return TeachingAdjust(adjust, 0)
 
 
 class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
@@ -123,7 +123,7 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     class EntryForm(BaseEntryForm):
 
         CATEGORIES = Choices(
-            ('BUYOUT', 'Buyout'),
+            ('BUYOUT', 'Course Buyout'),
             ('RELEASE', 'Teaching Release'),
             ('OTHER', 'Other'),
         )
@@ -157,11 +157,11 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
     def short_summary(self):
         credit = self.get_config('teaching_credits')
         category = self.get_category_display()
-        return 'Received %s teaching credits due to %s'.format(credit, category)
+        return 'Received {0} {1}'.format(credit, category)
 
     def teaching_adjust_per_semester(self):
         adjust = self.get_config('teaching_credits')
-        return TeachingAdjust(adjust, adjust)
+        return TeachingAdjust(adjust, 0)
 
 
 class AwardEventHandler(CareerEventHandlerBase):
@@ -207,7 +207,7 @@ class AwardEventHandler(CareerEventHandlerBase):
     def short_summary(self):
         award = self.get_display('award')
         awarded_by = self.get_display('awarded_by')
-        return 'Award: %s reveieved from %s'.format(award, awarded_by)
+        return u'Received award \u201c{0}\u201d'.format(award)
 
 
 class GrantApplicationEventHandler(CareerEventHandlerBase):
@@ -249,9 +249,5 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         return 'Applied for Grant'
 
     def short_summary(self):
-        funding_agency = self.get_config('funding_agency')
         grant_name = self.get_config('grant_name')
-        amount = self.get_config('amount')
-        return 'Applied to %s for Grant: %s  for the amount of %s'.format(funding_agency,
-                                                                          grant_name,
-                                                                          amount)
+        return 'Applied for grant {0}'.format(grant_name)

@@ -25,6 +25,7 @@ from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
 from faculty.event_types.career import TenureReceivedEventHandler
 from faculty.event_types.career import StudyLeaveEventHandler
+from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
@@ -58,6 +59,7 @@ HANDLERS = [
     TeachingCreditEventHandler,
     TenureApplicationEventHandler,
     TenureReceivedEventHandler,
+    AccreditationFlagEventHandler,
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
@@ -103,16 +105,18 @@ ADD_TAGS = {
 
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerQuerySet(models.query.QuerySet):
-    # TODO: Should these filters only grab events that are not deleted?
     def not_deleted(self):
         """
         All Career Events that have not been deleted.
         """
         return self.exclude(status='D')
 
+    def effective_now(self):
+        return self.effective_date(datetime.date.today())
+
     def effective_date(self, date):
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
-        return self.filter(start_date__lte=date).filter(end_okay)
+        return self.exclude(status='D').filter(start_date__lte=date).filter(end_okay)
     
     def effective_semester(self, semester):
         """
@@ -120,28 +124,35 @@ class CareerQuerySet(models.query.QuerySet):
         """
         start, end = Semester.start_end_dates(semester)
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
-        return self.filter(start_date__gte=start).filter(end_okay)
+        return self.exclude(status='D').filter(start_date__gte=start).filter(end_okay)
 
     def overlaps_semester(self, semester):
         """
         Returns CareerEvents occurring during the semester.
         """
         start, end = Semester.start_end_dates(semester)
-        end_okay = Q(start_date__lte=end) | Q(end_date__gte=start)
-        return self.filter(end_okay)
+        end_okay = Q(end_date__isnull=True) | Q(end_date__gte=start)
+        return self.exclude(status='D').filter(start_date__lte=end).filter(end_okay)
 
     def within_daterange(self, start, end, inclusive=True):
         if not inclusive:
             filters = {"start_date__gt": start, "end_date__lt": end}
         else:
             filters = {"start_date__gte": start, "end_date__lte": end}
-        return self.filter(**filters)
+        return self.exclude(status='D').filter(**filters)
 
     def by_type(self, Handler):
         """
         Returns all CareerEvents matching the given CareerEventHandler class.
         """
         return self.filter(event_type__exact=Handler.EVENT_TYPE)
+
+    def only_units(self, units):
+        return self.filter(unit__in=units)
+
+    def only_subunits(self, units):
+        subunit_ids = Unit.sub_unit_ids(units)
+        return self.filter(unit__id__in=subunit_ids)
 
 
 class CareerEventManager(models.Manager):
@@ -154,9 +165,6 @@ class CareerEventManager(models.Manager):
             return getattr(self.__class__, attr, *args)
         except AttributeError:
             return getattr(self.get_query_set(), attr, *args)
-
-
-
 
 
 class CareerEvent(models.Model):
@@ -188,8 +196,15 @@ class CareerEvent(models.Model):
     
     objects = CareerEventManager()
 
+    class Meta:
+        ordering = (
+            '-start_date',
+            '-end_date',
+            'title',
+        )
+
     def __unicode__(self):
-        return self.title
+        return u"%s" % self.title
 
     def save(self, editor, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -221,12 +236,20 @@ class CareerEvent(models.Model):
             self.handler_cache = EVENT_TYPES[self.event_type](self)
         return self.handler_cache
 
-    class Meta:
-        ordering = (
-            '-start_date',
-            '-end_date',
-            'title',
-        )
+    def filter_classes(self):
+        """
+        return the class="..." value for this event on the summary page (for filtering)
+        """
+        today = datetime.date.today()
+        classes = []
+        if self.start_date <= today and (self.end_date == None or self.end_date >= today):
+            classes.append('current')
+        if self.flags.affects_teaching:
+            classes.append('teach')
+        if self.flags.affects_salary:
+            classes.append('salary')
+
+        return ' '.join(classes)
 
     def memo_info(self):
         """
@@ -413,12 +436,58 @@ class EventConfig(models.Model):
     config = JSONField(default={})
 
 
+class GrantManager(models.Manager):
+    def create_from_csv(self, row):
+        raise NotImplementedError
+    
+    def active(self):
+        qs = self.get_query_set()
+        return qs.filter(status='A')
 
 
+class Grant(models.Model):
+    STATUS_CHOICES = (
+        ("NA", "Not Active"),
+        ("A", "Active"),
+        ("D", "Deleted"),
+    )
+    title = models.CharField(max_length=64)
+    slug = AutoSlugField(populate_from='title', unique_with=("start_date", "project_code"), null=False, editable=False)
+    label = models.CharField(max_length=255, help_text="for identification from FAST import")
+    # TODO: owners, ManyToMany or Foreign key via a separate GrantOwner model?
+    project_code = models.CharField(max_length=32, db_index=True)
+    start_date = models.DateField()
+    expiry_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    initial = models.DecimalField(verbose_name="initial balance", max_digits=10, decimal_places=2)
+    overhead = models.DecimalField(verbose_name="annual overhead", max_digits=10, decimal_places=2)
+    import_key = models.CharField(max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
+    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="unit who owns the grant")
+
+    objects = GrantManager()
+
+    def __unicode__(self):
+        return u"%s" % self.title
+
+    def get_absolute_url(self):
+        return reverse("view_grant", args=[self.slug])
+
+    def update_balance(self, date, balance, spent_this_month):
+        gb = GrantBalance.objects.create(
+                date=date,
+                grant=self,
+                balance=balance,
+                actual=self.initial - balance,
+                month=spent_this_month
+        )
 
 
+class GrantBalance(models.Model):
+    date = models.DateField(auto_now_add=True)
+    grant = models.ForeignKey(Grant, null=False, blank=False)
+    balance = models.DecimalField(verbose_name="grant balance", max_digits=10, decimal_places=2)
+    actual = models.DecimalField(verbose_name="YTD actual", max_digits=10, decimal_places=2)
+    month = models.DecimalField(verbose_name="current month", max_digits=10, decimal_places=2)
 
-
-
-
-
+    def __unicode__(self):
+        return u"%s balance as of %s" % (self.grant, self.date)

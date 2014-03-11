@@ -3,6 +3,7 @@ from django.utils.encoding import smart_str
 from fractions import Fraction
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.core.exceptions import ValidationError
 import copy
 import datetime
 
@@ -98,7 +99,83 @@ class SemesterField(forms.DateField):
             return None
         else:
             return value
-    
+
+
+class SemesterToDateField(forms.CharField):
+    """
+    A field that represents itself as a semester code input but returns a date.
+    """
+
+    def __init__(self, start=True, **kwargs):
+        defaults = {
+            'help_text': mark_safe('Enter semester code, e.g.: 1141'),
+            'label': '{} Semester'.format(start and 'Starting' or 'Ending'),
+            'widget': forms.TextInput(attrs={'size': 4}),
+        }
+        defaults.update(kwargs)
+        super(SemesterToDateField, self).__init__(min_length=4, max_length=4, **defaults)
+        self.start = start
+
+    def to_python(self, value):
+        if value in forms.fields.validators.EMPTY_VALUES:
+            return None
+
+        if not (len(value) == 4 and value.isdigit()):
+            # XXX: Technically this check isn't needed as the db query would also fail
+            #      but maybe we gain something by not making that call?
+            raise ValidationError(_('Invalid semester code'))
+
+        try:
+            semester = Semester.objects.get(name=value)
+        except (AssertionError, Semester.DoesNotExist):
+            raise ValidationError(_('Invalid semester code'))
+
+        start_date, end_date = Semester.start_end_dates(semester)
+        return self.start and start_date or end_date
+
+    def run_validators(self, value):
+        # XXX: Validation is already done inside `to_python`.
+        pass
+
+    def prepare_value(self, value):
+        if isinstance(value, (unicode, str)):
+            return value
+        elif value is None:
+            return ''
+        else:
+            date = datetime.date(value.year, value.month, 10)
+            semester = Semester.get_semester(date)
+            return semester.name
+
+class SemesterCodeField(forms.CharField):
+    """
+    A field that represents itself as a semester code.
+    """
+
+    def __init__(self, **kwargs):
+        defaults = {
+            'help_text': mark_safe('Enter semester code, e.g.: 1141'),
+            'widget': forms.TextInput(attrs={'size': 4}),
+        }
+        defaults.update(kwargs)
+        super(SemesterCodeField, self).__init__(min_length=4, max_length=4, **defaults)
+
+    def to_python(self, value):
+        if value in forms.fields.validators.EMPTY_VALUES:
+            return None
+
+        if not (len(value) == 4 and value.isdigit()):
+            # XXX: Technically this check isn't needed as the db query would also fail
+            #      but maybe we gain something by not making that call?
+            raise ValidationError(_('Invalid semester code'))
+
+        try:
+            semester = Semester.objects.get(name=value)
+        except (AssertionError, Semester.DoesNotExist):
+            raise ValidationError(_('Invalid semester code'))
+
+        return value
+
 
 class DollarInput(forms.widgets.NumberInput):
     "A NumberInput, but with a prefix '$'"

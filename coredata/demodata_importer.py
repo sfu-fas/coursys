@@ -6,6 +6,7 @@
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
 from coredata.models import Member, Person, CourseOffering, ComputingAccount, Semester, SemesterWeek, Unit, Role, CAMPUSES
+from courselib.testing import create_fake_semester
 import datetime, itertools
 
 NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157]
@@ -679,31 +680,6 @@ def create_form_data():
     fld6.save()
 
 
-
-def create_fake_semester(strm):
-    """
-    Create a close-enough Semester object for testing
-    """
-    strm = str(strm)
-    s = Semester(name=strm)
-    yr = int(strm[0:3]) + 1900
-    if strm[3] == '1':
-        mo = 1
-    elif strm[3] == '4':
-        mo = 5
-    elif strm[3] == '7':
-        mo = 9
-
-    s.start = datetime.date(yr,mo,5)
-    s.end = datetime.date(yr,mo+3,1)
-    s.save()
-
-    sw = SemesterWeek(semester=s, week=1)
-    mon = s.start
-    while mon.weekday() != 0:
-        mon -= datetime.timedelta(days=1)
-    sw.monday = mon
-    sw.save()
 
 def import_semesters():
     return IMPORT_SEMESTERS

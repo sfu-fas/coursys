@@ -13,6 +13,7 @@ from coredata.models import Role, Unit
 
 from faculty.event_types.constants import PERMISSION_LEVEL, PERMISSION_CHOICES
 from faculty.event_types.fields import SemesterField
+from faculty.event_types.fields import SemesterToDateField
 
 ROLES = PERMISSION_CHOICES
 
@@ -46,6 +47,17 @@ class CareerEventMeta(abc.ABCMeta):
                     if flag not in cls.FLAGS:
                         cls.FLAGS.append(flag)
 
+        # Modify the form accoding to our flags
+        if cls.SEMESTER_PINNED:
+            cls.EntryForm.base_fields['start_date'] = SemesterToDateField(start=True)
+            cls.EntryForm.base_fields['end_date'] = SemesterToDateField(start=False,
+                                                                        required=False)
+        else:
+            # NOTE: We don't allow IS_INSTANT to work with SEMESTER_PINNED
+            # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
+            if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
+                del cls.EntryForm.base_fields['end_date']
+
         # Figure out what fields are required by the Handler subclass
         cls.BASE_FIELDS = collections.OrderedDict()
         cls.CONFIG_FIELDS = collections.OrderedDict()
@@ -63,10 +75,6 @@ class CareerEventMeta(abc.ABCMeta):
             if name in cls.SEARCH_RULES:
                 field = cls.CONFIG_FIELDS[name]
                 cls.SEARCH_RULE_INSTANCES[name] = cls.SEARCH_RULES[name](name, field, cls)
-
-        # If IS_INSTANT, get rid of the 'end_date' field from EntryForm
-        if cls.IS_INSTANT and 'end_date' in cls.EntryForm.base_fields:
-            del cls.EntryForm.base_fields['end_date']
 
 
 class BaseEntryForm(forms.Form):
@@ -124,8 +132,7 @@ class CareerEventHandlerBase(object):
     # There can only be one (with same person, unit, event_type without an end_date)
     IS_EXCLUSIVE = False
     # Show a semester selection widget for start/end date instead of a raw date picker
-    # TODO: remove SEMESTER_BIAS? It's been replaced by the either-or semester fields.
-    SEMESTER_BIAS = False
+    SEMESTER_PINNED = False
 
     VIEWABLE_BY = 'MEMB'
     EDITABLE_BY = 'DEPT'
@@ -189,24 +196,27 @@ class CareerEventHandlerBase(object):
         raw_value = self.event.config.get(name)
         field = self.CONFIG_FIELDS[name]
 
-        if raw_value is None:
-            if default is not None:
-                return default
+        try:
+            if raw_value is None:
+                if default is not None:
+                    return default
+                else:
+                    return field.to_python(field.initial)
             else:
-                return field.to_python(field.initial)
-        else:
+                    return field.to_python(raw_value)
+        except forms.ValidationError:
             # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
             #      the config field, then it was most likely valid when the event was created.
-            try:
-                return field.to_python(raw_value)
-            except forms.ValidationError:
-                return raw_value
+            return raw_value
 
     def set_config(self, name, value):
+        field = self.CONFIG_FIELDS[name]
+
         if isinstance(value, models.Model):
             raw_value = unicode(value.pk)
         else:
-            raw_value = unicode(value)
+            raw_value = unicode(field.prepare_value(value))
+
         self.event.config[name] = raw_value
 
     # Other ways to create a new handler instance
@@ -238,11 +248,11 @@ class CareerEventHandlerBase(object):
         if self.event and (editor == self.event.person):
             # first on purpose: don't let dept chairs approve/edit their own stuff
             return 'MEMB'
-        elif edit_units & super_units is not None:
+        elif edit_units & super_units:
             # give dean's office level permission to anybody above in the hierarchy:
             # not technically correct, but correct in practice.
             return 'FAC'
-        elif edit_units & fac_units is not None:
+        elif edit_units & fac_units:
             return 'DEPT'
         else:
             return 'NONE'

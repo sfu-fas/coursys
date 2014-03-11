@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load event_display %}
+
+{% block title %}Grants{% endblock %}
+{% block h1 %}Grants{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#faculty_salary_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Grants</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    <li><a href="{% url 'new_grant' %}">New Grant</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<h4>All active grants</h4>
+<div class="datatable_container">
+<table id="faculty_salary_table" class="display">
+  <thead><tr><th scope="col">Grant</th><th scope="col">Start date</th><th scope="col">End date</th><th scope="col">Initial balance</th><th scope="col">Unit</th></tr></thead>
+  <tbody>
+  {% for grant in grants %}
+  <tr>
+  <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
+  <td>{{ grant.start_date }}</td>
+  <td>{{ grant.expiry_date }}</td>
+  <td>{{ grant.initial }}</td>
+  <td>{{ grant.unit }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

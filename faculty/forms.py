@@ -9,7 +9,10 @@ from models import DocumentAttachment
 from models import MemoTemplate
 from models import Memo
 from models import EVENT_TYPE_CHOICES
-from faculty.event_types.fields import SemesterField
+from faculty.event_types.fields import SemesterField, SemesterCodeField
+from models import Grant
+from models import GrantBalance
+
 
 
 def career_event_factory(person, post_data=None, post_files=None):
@@ -35,7 +38,8 @@ class GetSalaryForm(forms.Form):
 
 
 class TeachingSummaryForm(forms.Form):
-    semester = forms.DecimalField(label='Semester', max_digits=4)
+    start_semester = SemesterCodeField()
+    end_semester = SemesterCodeField()
 
 
 def attachment_formset_factory():
@@ -68,9 +72,7 @@ class MemoTemplateForm(forms.ModelForm):
         return template_text
 
 class MemoForm(forms.ModelForm):
-    #use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
-    #                             help_text='Use the "From" person\'s signature, if on file?')
-    class Meta: 
+    class Meta:
         model = Memo
         exclude = ('unit', 'from_person', 'created_by', 'config', 'template', 'career_event', 'hidden')
 
@@ -90,14 +92,33 @@ class MemoForm(forms.ModelForm):
         keys.extend([k for k in self.fields.keyOrder if k not in keys])
         self.fields.keyOrder = keys
 
-    #def clean_use_sig(self):
-    #    use_sig = self.cleaned_data['use_sig']
-    #    self.instance.config['use_sig'] = use_sig
-    #    return use_sig
-
 
 class SearchForm(forms.Form):
-
-    start_date = forms.DateField(label='Start Date', required=False)
-    end_date = forms.DateField(label='End Date (inclusive)', required=False)
+    start_date = forms.DateField(label='Start Date', required=False,
+                                 widget=forms.DateInput(attrs={'class': 'date-input'}))
+    end_date = forms.DateField(label='End Date (inclusive)', required=False,
+                               widget=forms.DateInput(attrs={'class': 'date-input'}))
     unit = forms.ModelChoiceField(queryset=Unit.objects.all(), required=False)
+    only_current = forms.BooleanField(required=False)
+
+
+class EventFilterForm(forms.Form):
+    CATEGORIES = [
+        ('all', 'All Events'),
+        ('current', 'Current Events'),
+        ('teach', 'Teaching-related'),
+        ('salary', 'Salary-related'),
+    ]
+    category = forms.ChoiceField(choices=CATEGORIES, initial='current', widget=forms.RadioSelect())
+
+
+class GrantForm(forms.ModelForm):
+    def __init__(self, units, *args, **kwargs):
+        self.units = units
+        super(GrantForm, self).__init__(*args, **kwargs)
+        if units:
+            self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+            self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+
+    class Meta:
+        model = Grant

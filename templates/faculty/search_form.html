@@ -70,14 +70,29 @@ $(document).ready(function() {
       {{ form|as_dl }}
       {% for rule, rule_form in search_rules %}
         <dt><label>{{ rule.pretty_field_name }}</label></dt>
-        <dd>{{ rule_form }}</dd>
+        <dd>
+          <div>
+          {% for field in rule_form %}
+            {{ field.errors }}
+          {% endfor %}
+          </div>
+          <div>
+          {% for field in rule_form %}
+            {{ field }}
+          {% endfor %}
+          </div>
+          <div>
+          {% for field in rule_form %}
+            <span class="helptext">{{ field.help_text }}</span>
+          {% endfor %}
+          </div>
+        </dd>
       {% endfor %}
     </fieldset>
 
     <p id="form_bottom_bar">
       <!-- XXX: Re-using the 'submit' class for the reset button so it's right-floated -->
       <input type="submit" class="submit" value="Search" />
-      <input type="reset" class="submit" value="Reset" />
     </p>
   </form>
 </div>

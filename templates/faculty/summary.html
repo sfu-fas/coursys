@@ -1,27 +1,25 @@
 {% extends "base.html" %}
+{% load event_display %}
+{% load staticfiles %}
 {% block title %}Faculty Summary: {{ person.name }}{% endblock %}
 {% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#career_event_table').dataTable( {
     'bPaginate': false,
     'bInfo': false,
-    "aaSorting": [[2, "asc"]],
+    "aaSorting": [[2, "desc"]],
     "bJQueryUI": true,
   } );
-} );
 
-$(document).ready(function() {
-  $("form#filter-form").submit(function(e) {
-    e.preventDefault();
-    var values = [];
-    $("form#filter-form input:checked").each(function() {
-      values.push(this.value);
-    });
-    location.search = "etype=" + values;
+  $('#filter-form').change( function() {
+    event_filter_update();
   });
+  event_filter_update();
+
 });
 </script>
 {% endblock %}
@@ -35,35 +33,26 @@ $(document).ready(function() {
 {% block actions %}
 <div id="actions">
   <h2>Actions</h2>
-  <ul>
-    <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}">Create New Event</a></li>
-    <li><a href="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}">Teaching Summary</a></li>
-    <li><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">Salary Info</a></li>
-	<li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}">View Other Info</a></li>
+  <ul class="fa-ul">
+    <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-plus"></i> Create New Event</a></li>
+    <li class="newsec"><a href="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-book"></i> Teaching Summary</a></li>
+    <li><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-money"></i> Salary Info</a></li>
+	<li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-list"></i> View Other Info</a></li>
   </ul>
 </div>
 {% endblock %}
 
 {% block content %}
 
-<form id="filter-form" method="get" action="?">
-  <h2>Filters</h2>
-  <dt>
-  {% for k, h in handlers.items %}
-  <dd>
-  <label for="id_checkbox_{{ k|lower }}">
-    <input id="id_checkbox_{{ k|lower }}" type="checkbox" value="{{ k }}" />
-    {{ h }}
-  </label>
-  </dd>
+<form id="filter-form" action="">
+  {% for radio in filterform.category %}
+  {{ radio }}
   {% endfor %}
-  <input type="submit" value="Filter" />
-  </dt>
 </form>
-<div class="datatable_container">
-<table id="career_event_table" class="display">
-  <thead><tr>
-    <th scope="col">Title</th>
+
+<table id="career_event_table">
+  <thead><tr class="th">
+    <th scope="col">Event</th>
     <th scope="col">Event Type</th>
     <th scope="col">Start Date</th>
     <th scope="col">End Date</th>
@@ -71,16 +60,17 @@ $(document).ready(function() {
   </tr></thead>
   <tbody>
   {% for e in career_events %}
-  <tr>
-    <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
+  {% if editor|can_view:e %}
+  <tr class="{{ e.filter_classes }}">
+    <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
     <td>{{ e.get_event_type_display }}</td>
     <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
     <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
     <td>{{ e.get_status_display }}</td>
   </tr>
+  {% endif %}
   {% endfor %}
 </tbody>
 </table>
-</div>
 
 {% endblock %}

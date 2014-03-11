@@ -29,7 +29,6 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Event</th><th scope="col">Created</th><th scope="col">Person</th><th scope="col">Approvable by</th><th>Your role</th></tr></thead>
   <tbody>
   {% for event in events %}
-  {% if editor|can_view:event %}
   <tr>
   <td><a href="{{ event.get_absolute_url }}">{{ event }}</a></td>
   <td>{{ event.created_at.date }}</td>
@@ -37,7 +36,6 @@ $(document).ready(function() {
   <td>{{ event.get_handler.get_approve_role }}</td>
   <td>{{ event|get_editor_role:editor }}</td>
   </tr>
-  {% endif %}
   {% endfor %}
   </tbody>
 </table>

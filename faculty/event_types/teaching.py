@@ -1,4 +1,5 @@
 import datetime
+from django.utils.safestring import mark_safe
 
 from coredata.models import Semester
 
@@ -6,6 +7,7 @@ from faculty.event_types import search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import TeachingAdjust
+from faculty.event_types.fields import SemesterToDateField
 from faculty.event_types.fields import TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent
 
@@ -20,13 +22,13 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }}</dd>
+        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }} courses per semester</dd>
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
 
-        load = TeachingCreditField(label='Teaching Load')
+        load = TeachingCreditField(label='Teaching Load', help_text=mark_safe('Expected teaching load <strong>per semester</strong>. May be a fraction like 3/2.'))
 
     SEARCH_RULES = {
         'load': search.ComparableSearchRule,
@@ -37,7 +39,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def short_summary(self):
         load = self.get_config('load')
-        return "I'm required to have a teaching load of {}".format(load)
+        return "Teaching load: {}/semester".format(load)
 
     def teaching_adjust_per_semester(self):
         load = self.get_config('load')
@@ -51,7 +53,7 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
     EVENT_TYPE = 'ONE_NINE'
     NAME = 'One-in-Nine Semester'
 
-    IS_INSTANT = True
+    SEMESTER_PINNED = True
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -61,7 +63,7 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     class EntryForm(BaseEntryForm):
 
-        credit = TeachingCreditField(label='Teaching Credit')
+        credit = TeachingCreditField(label='Teaching Credit', initial=2)
 
     SEARCH_RULES = {
         'credit': search.ComparableSearchRule,
@@ -75,21 +77,9 @@ class OneInNineHandler(CareerEventHandlerBase, TeachingCareerEvent):
         semester_date = max(date, datetime.date(date.year, date.month, 5))
         return Semester.get_semester(semester_date)
 
-    def pre_save(self):
-        # This event lasts for an entire semester, so we should set the start and end times
-        # appropriately.
-        # XXX: The Semester objects start on the 5th day of the first month so we must do
-        #      this hack to make sure we look up the correct semester.
-        semester = self.get_semester(self.event.start_date)
-        self.event.start_date, self.event.end_date = Semester.start_end_dates(semester)
-
-    def to_html_context(self):
-        return {'start': self.get_semester(self.event.start_date)}
-
     def short_summary(self):
         semester = self.get_semester(self.event.start_date)
-        credit = self.get_config('credit')
-        return 'One-in-Nine: {} for {} teaching credit'.format(semester, credit)
+        return 'One-in-Nine Semester ({})'.format(semester.name)
 
     def teaching_adjust_per_semester(self):
         credit = self.get_config('credit')

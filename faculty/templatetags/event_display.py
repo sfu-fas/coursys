@@ -4,7 +4,7 @@ register = template.Library()
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.constants import PERMISSION_CHOICES
 from faculty.models import EVENT_TYPES
-
+import fractions
 
 @register.filter
 def get_config(event, field):
@@ -87,3 +87,18 @@ def can_approve_handler(parser, token):
     if bits[4] != "as":
         raise template.TemplateSyntaxError("%s argument 4 must be 'as'" % bits[0])
     return HandlerPermNode(bits[1], "approve", bits[2], bits[3], bits[5])
+
+@register.filter
+def fraction_display(val):
+    val = fractions.Fraction(val)
+    n = val.numerator
+    d = val.denominator
+    whole = n//d
+    res = unicode(whole)
+    remainder = val - whole
+    if remainder != 0:
+        if whole == 0:
+            res = unicode(remainder)
+        else:
+            res += ' ' + unicode(remainder)
+    return res
