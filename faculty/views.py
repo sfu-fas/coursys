@@ -848,8 +848,8 @@ def new_grant(request):
     return render(request, "faculty/new_grant.html", context)
     
 @requires_role('ADMN')
-def view_grant(request, slug):
-    grant = get_object_or_404(Grant, slug=slug)
+def view_grant(request, unit_slug, grant_slug):
+    grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
     context = {
         "grant": grant,
     }

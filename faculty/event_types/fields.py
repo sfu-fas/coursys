@@ -4,12 +4,13 @@ from fractions import Fraction
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
+
 import copy
 import datetime
 
 from coredata.models import Semester
-from coredata.models import SemesterWeek
-
 
 class SemesterDateInput(forms.widgets.MultiWidget):
     class Media:
@@ -185,7 +186,7 @@ class DollarInput(forms.widgets.NumberInput):
         super(DollarInput, self).__init__(**defaults)
 
     def render(self, *args, **kwargs):
-        return '$ ' + super(DollarInput, self).render(*args, **kwargs)
+        return mark_safe('$ ' + conditional_escape(super(DollarInput, self).render(*args, **kwargs)))
 
 
 PAY_FIELD_DEFAULTS = {

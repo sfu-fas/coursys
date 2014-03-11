@@ -1,8 +1,10 @@
 from django.conf.urls import patterns, url
-from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
+from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE, UNIT_SLUG
 
 EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 EVENT_PREFIX = USERID_OR_EMPLID + '/events/' + EVENT_SLUG
+GRANT_SLUG = '(?P<grant_slug>' + SLUG_RE + ')'
+
 
 urlpatterns = patterns('',
     url(r'^$', 'faculty.views.index'),
@@ -33,5 +35,5 @@ urlpatterns = patterns('',
     url(r'^' + EVENT_PREFIX + '/(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name="faculty_event_view_memo"),
     url(r'^grants$', 'faculty.views.grant_index', name="grants_index"),
     url(r'^grants/new$', 'faculty.views.new_grant', name="new_grant"),
-    url(r'^grants/(?P<slug>' + SLUG_RE + ')$', 'faculty.views.view_grant', name="view_grant"),
+    url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '$', 'faculty.views.view_grant', name="view_grant"),
 )
