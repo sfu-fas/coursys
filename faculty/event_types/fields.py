@@ -147,6 +147,35 @@ class SemesterToDateField(forms.CharField):
             semester = Semester.get_semester(date)
             return semester.name
 
+class SemesterCodeField(forms.CharField):
+    """
+    A field that represents itself as a semester code.
+    """
+
+    def __init__(self, **kwargs):
+        defaults = {
+            'help_text': mark_safe('Enter semester code, e.g.: 1141'),
+            'widget': forms.TextInput(attrs={'size': 4}),
+        }
+        defaults.update(kwargs)
+        super(SemesterCodeField, self).__init__(min_length=4, max_length=4, **defaults)
+
+    def to_python(self, value):
+        if value in forms.fields.validators.EMPTY_VALUES:
+            return None
+
+        if not (len(value) == 4 and value.isdigit()):
+            # XXX: Technically this check isn't needed as the db query would also fail
+            #      but maybe we gain something by not making that call?
+            raise ValidationError(_('Invalid semester code'))
+
+        try:
+            semester = Semester.objects.get(name=value)
+        except (AssertionError, Semester.DoesNotExist):
+            raise ValidationError(_('Invalid semester code'))
+
+        return value
+
 
 class DollarInput(forms.widgets.NumberInput):
     "A NumberInput, but with a prefix '$'"
