@@ -811,9 +811,10 @@ def grant_index(request):
 
 @requires_role('ADMN')
 def new_grant(request):
-    # The following call does not work as expected for dzhao...
-    editor, member_units = _get_faculty_or_404(request.units, request.user.username)
-    form = GrantForm(member_units)
+    editor = get_object_or_404(Person, userid=request.user.username)
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    units = Unit.objects.filter(id__in=sub_unit_ids)
+    form = GrantForm(units)
     context = {
         "grant_form": form,
         "editor": editor,

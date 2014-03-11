@@ -115,8 +115,9 @@ class GrantForm(forms.ModelForm):
     def __init__(self, units, *args, **kwargs):
         self.units = units
         super(GrantForm, self).__init__(*args, **kwargs)
-        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
-        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+        if units:
+            self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+            self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
 
     class Meta:
         model = Grant
