@@ -203,22 +203,6 @@ class AMAINTConn(MySQLConn):
              passwd=pw, db=self.db_name, port=self.db_port)
         return conn, conn.cursor()
 
-class TAConn(MySQLConn):
-    """
-    Singleton object representing TA DB connection
-    """
-    db_user = "ta_data_import"
-    db_name = "ta_data_drop"
-
-    def get_connection(self):
-        passfile = open(self.dbpass_file)
-        _ = passfile.next()
-        pw = passfile.next().strip()
-
-        conn = MySQLdb.connect(host=self.db_host, user=self.db_user,
-             passwd=pw, db=self.db_name, port=self.db_port)
-        return conn, conn.cursor()
-
 
 @transaction.atomic
 def create_semesters():
@@ -680,27 +664,6 @@ def import_instructors(offering):
         p = get_person(emplid)
         ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
 
-@transaction.atomic
-def import_tas(offering):
-    "Import TAs from cortez for this offering: no longer used since cortez is gone"
-    if offering.subject not in ['CMPT', 'MACM']:
-        return
-
-    nbr = offering.number
-    if nbr[-1] == "W":
-        nbr = nbr[:-1]
-
-    Member.objects.filter(added_reason="AUTO", offering=offering, role="TA").update(role='DROP')
-    tadb = TAConn()
-    tadb.execute("SELECT emplid, userid FROM ta_data WHERE strm=%s and subject=%s and " \
-                 "catalog_nbr REGEXP %s and class_section=%s", \
-                 (offering.semester.name, offering.subject, nbr+"W?", offering.section[0:2]))
-    for emplid, userid in tadb:
-        p = get_person(emplid)
-        if p is None:
-            print "    Unknown TA:", emplid, userid
-            return
-        ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
 
 @transaction.atomic
 def import_students(offering):
@@ -744,7 +707,6 @@ def import_offering_members(offering, students=True):
     """
     import_instructors(offering)
     if students:
-        #import_tas(offering)
         import_students(offering)
     import_meeting_times(offering)
     if settings.SVN_DB_CONNECT:
