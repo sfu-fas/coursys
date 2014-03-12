@@ -9,10 +9,8 @@
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPython.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPlain.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
-
-<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPhp.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushSass.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
 <script type="text/javascript">
     SyntaxHighlighter.defaults['light'] = true;
     SyntaxHighlighter.all()
@@ -30,11 +28,12 @@
 
 {% block content %}
 
-<p>This style guide is a reference for common styles and standards unique to the Coursys website. Please refer to the SFU web and graphics standards for detailed information on the SFU theme including: colours, typography, grid layouts and any additional styling not included in this style guide.</p>
+<p>This style guide is a reference for common styles and standards unique to the Coursys website. 
+</br>Please refer to the <a href="http://www.sfu.ca/clf/downloads.html">SFU Common Look and Feel</a> section for detailed information on the SFU theme including: colours, typography, grid layouts and any additional styling not included in this style guide.</p>
 
 <h2 id="overview">Overview</h2>
 <h3 id="templates">Templates</h3>
-<p>All pages should extend from either "base.html" or "base-wide.html" found in the "Code/courses/templates" directory. "base.html" has a left-hand column for the actions menu while "base-wide.html" allows the body to span the full width of the page content division as can be seen in the figures below. The wide format is typically used for pages with large tables. For all other pages, "base.html" is the recommended default template to extend from.</p> 
+<p>All pages should extend from either "base.html" or "base-wide.html" found in the "courses/templates" directory. "base.html" has a left-hand column for the actions menu while "base-wide.html" allows the body to span the full width of the page content division as can be seen in the figures below. The wide format is typically used for pages with large tables. For all other pages, "base.html" is the recommended default template to extend from.</p> 
 <figure class="double-image">
 	<img src="/media/images/styleguide/base-sample.jpg" id="img_base" alt="Page extending from base.html">
 	<img src="/media/images/styleguide/base-wide-sample.jpg" id="img_base-wide" alt="Page extending from base-wide.html"> 
@@ -43,26 +42,26 @@
 
 <p>There are many built-in Django template tags used but here is a sample setup for a basic page:</p>
 <pre class="brush: django">
-	{ % extends "base.html" % }
+	{% templatetag openblock %} extends "base.html" {% templatetag closeblock %}
 
-	{ % block title % } Title { % endblock % }
-	{ % block h1 % } Header { % endblock % }
+	{% templatetag openblock %} block title {% templatetag closeblock %} Title {% templatetag openblock %} endblock {% templatetag closeblock %}
+	{% templatetag openblock %} block h1 {% templatetag closeblock %} Title {% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block headextra % }
+	{% templatetag openblock %} block headextra {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block subbreadcrumbs % }
+	{% templatetag openblock %} block subbreadcrumbs {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block actions % }
+	{% templatetag openblock %} block actions {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block content % }
+	{% templatetag openblock %} block content {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 </pre>
 
 <h3 id="Naviation">Navigation</h3>
@@ -71,21 +70,16 @@
 	<figcaption>Highlights: Breadcrumbs (pink), Coursys header (green), Course dropdown menu (purple), Actions menu (blue)</figcaption>
 </figure>
 
-<p>The main source of navigation within Coursys is breadcrumbs. All pages should have breadcrumbs for navigation near the top of the page. The base templates start off the breadcrumbs with the Coursys home page. Subsequent links are inserted within the subbreadcrumb block in individual templates. For example,</p>
-<pre class="brush: html">
-	{ % block subbreadcrumbs % }
-		<li><a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>Style Guide</li>
-	{ % endblock % }
-</pre>
-
-<p>Breadcrumb links are usually determined using a django url tag like the following:</p>
+<p>The main source of navigation within Coursys is breadcrumbs. All pages should have breadcrumbs for navigation near the top of the page. The base templates start off the breadcrumbs with the Coursys home page. Subsequent links are inserted within the subbreadcrumb block in individual templates. Links also tend to be generated using url tags whenever possible. For example,</p>
 <pre class="brush: django">
-	{ % url "dashboard.views.list_docs" % }
+	{% templatetag openblock %} block subbreadcrumbs {% templatetag closeblock %}
+		<li><a href="{% templatetag openblock %} url &quot;dashboard.views.list_docs&quot; {% templatetag closeblock %}">Docs</a></li><li>Style Guide</li>
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 </pre>
 
 <p>Secondary sources of navigation can be found within the header. Clicking on "Coursys" will return the user to the Coursys home page. Hovering over "Courses" will reveal a dropdown of related courses in recent semesters. Clicking on a course from this menu will direct the user to the course page.</p>
 
-<h2 id="forms">Forms</h2>
+<h3 id="forms">Forms</h3>
 <p>All forms are outputted using <code>as_dl</code> found in "courses/dashboard/templatetags/form_display.py". There are a few variations which include the following:</p>
 <table>
 	<tr>
@@ -100,14 +94,10 @@
 		<td><code>as_dl_includefields</code></td>
 		<td>Like <code>as_dl</code>, but allows including some fields with filter argument
 		    <code>Hide helptext</code></td>
-	</tr>
-	<tr>
-		<td><code>as_dl_onlineforms</code></td>
-		<td>Returns <code>as_dl</code></td>
-	</tr>
+	</tr>	
 	<tr>
 		<td><code>as_dl_noreq</code></td>
-		<td>Like <code>as_dl</code>, but no message required</td>
+		<td>Like <code>as_dl</code>, but no footer message is required</td>
 	</tr>
 	<tr>
 		<td><code>as_dl_inline</code></td>
@@ -116,46 +106,91 @@
 </table>
 
 <p>A Django form object only outputs its own fields so additional html tags are needed in the template. Here is an example:</p>
-<pre class="brush: html">
-	<form action="/2014sp-cmpt-165-c1/new_message" method="post" enctype="multipart/form-data">
-		{ % csrf_token % }
+<pre class="brush: django">
+	<form action="{% templatetag openblock %} url &quot;grades.views.new_message&quot; course_slug=course.slug {% templatetag closeblock %}" method="post" enctype="multipart/form-data">
+		{% templatetag openblock %} csrf_token {% templatetag closeblock %}
 		<fieldset>
-			{ { form|as_dl } }
+			{% templatetag openvariable %} form|as_dl {% templatetag closevariable %} 
 		</fieldset>
 		<p><input class="submit" type="submit" value="Send" /></p>
 	</form>
 </pre>
 
-<p>The form action is generated in the same manner as breadcrumb links. For this particular example, an additional slug is needed (see example below). Slugs provide a way to generate a valid url. It replaces all spaces with hyphens and capital letters with small letters given a title or other piece of data.</p>
+<p>The form action is generated in the same manner as breadcrumb links. For this particular example, an additional slug is needed. Slugs provide a way to generate a valid url. It replaces all spaces with hyphens and capital letters with small letters given a title or other piece of data.</p>
+
+<p>If the form includes uploaded files, include <code>enctype="multipart/form-data"</code> in the form element. For security, <code>{% templatetag openblock %} csrf_token {% templatetag closeblock %}</code> sends a random key in both cookie and form data to prevent third party websites from getting the site's cookies. Please include the csrf token for protection. 
+
+<h3 id="tables">Tables</h3>
+<p>Tables can be classified into two categories: data tables and display tables. Data tables tend to be larger and have their key values listed in the first row. These are commonly used for displaying grades, class lists and course activities. Data tables also have features such as sorting, filtering and searching. Display tables tend to be smaller and have their key values listed in the first column. Each course page will have a display table showing course information. </p>
+
+<p> To enable different features, javascript needs to be added to the <code>headextra</code> block. It is preferable to keep all javascript in a separate file especially if the script can be reused. Below is an example of a script for datatables:</p>
+<pre class="brush: django">
+{% templatetag openblock %} block headextra {% templatetag closeblock %} 
+<script type="text/javascript">
+	$(document).ready(function() {
+	  $('#members').dataTable( {
+	    'bPaginate': false,
+	    'bInfo': false,
+	    'bLengthChange': false,
+	    "bJQueryUI": true,
+	  } );
+	} );
+</script>
+{% templatetag openblock %}  endblock {% templatetag closeblock %} 
+</pre>
+<p>For a list of different features and initialisation options, please see: <a href="http://datatables.net/ref">http://datatables.net/ref</a></br>For additional information on the plug-in used for datatables, please see: <a href="https://datatables.net/">https://datatables.net/</a></p>
+
+<h3 id="buttons">Buttons & Icons</h3>
+<p>Most icons are vector icons used to emphasize important action items on pages like the main dashboard. These vector icons are obtained from Font Awesome, a free collection of scalable vector icons that can be customized with CSS. Here's an example of how to incorporate Font Awesome icons:</p>
 <pre class="brush: html">
-	{ % url "grades.views.new_message" course_slug=course.slug % }
+	<i class="fa fa-li fa-calendar"></i>
+</pre>
+<p>The above example outputs an icon that looks like a calendar. To change the icon, simply modify the class and replace <code>fa-calendar</code> with any other Font Awesome icon reference. For additional icon references, please see: <a href="http://fortawesome.github.io/Font-Awesome/icons/"/>http://fortawesome.github.io/Font-Awesome/icons/</a></p>
+<p>Aside from the Font Awesome vector icons, there are also submit buttons which are automatically styled through <code>main.css</code>. These buttons are used to submit forms or release grades from course pages. Submit buttons should be wrapped in a paragraph tag within a form. Here is an example:</p>
+<pre class="brush: django">
+	<form action="{% templatetag openblock %} url &quot;dashboard.views.news_config&quot; {% templatetag closeblock %}" method="post">
+		{% templatetag openblock %} csrf_token {% templatetag closeblock %}
+	    {% templatetag openblock %} for field in form.visible_fields {% templatetag closeblock %}
+	        <div class="field">
+	            {% templatetag openvariable %} field {% templatetag closevariable %}
+	            {% templatetag openvariable %} field.help_text {% templatetag closevariable %}
+	            {% templatetag openvariable %} field.errors {% templatetag closevariable %}
+	        </div>
+	    {% templatetag openblock %} endfor {% templatetag closeblock %}
+	    <p><input type="submit" value="Update Settings" /></p>
+	</form>
 </pre>
 
-<p>If the form includes uploaded files, include <code>enctype="multipart/form-data"</code> in the form element. <code>{ % csrf_token % }</code> sends a random key in both cookie and form data to prevent third party websites from getting the site's cookies. Please include the csrf token for protection. The result of <code>{ { form|as_dl } }</code> will be a description list like the following:</p>
+<h3 id="code">Code</h3>
+<p>When adding to this style guide, use syntaxhighlighter to highlight any examples of code. Syntaxhighlighter has a variety of brushes for different types of syntax. To use syntaxhighlighter, insert your code within preformatted tags and set the class to a brush matching the syntax of your code.</p>
 <pre class="brush: html">
-	<dl class="dlform">
-		<dt><label for="id_title">Title:&nbsp;<i class="reqicon fa fa-star-o"></i></label></dt>
-		<dd>
-			<div class="field"><input id="id_title" maxlength="100" name="title" type="text"></div>
-			<div class="helptext">Story title (plain text)</div>
-		</dd>
-		<dt><label for="id_content">Content:&nbsp;<i class="reqicon fa fa-star-o"></i></label></dt>
-		<dd>
-			<div class="field"><textarea cols="40" id="id_content" name="content" rows="10"></textarea></div>
-			<div class="helptext">
-				Main story content 
-				(<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a>)
-			</div>
-		</dd>
-		<dt><label for="id_url">URL:</label></dt>
-		<dd>
-			<div class="field"><input id="id_url" maxlength="200" name="url" type="url"></div>
-			<div class="helptext">absolute URL for the item: starts with "http://" or "/"</div>
-		</dd>
-	</dl>
+	<pre class="brush: python">
+		
+		... Insert python code
+	</pre>
 </pre>
+<p>Also, don't forget to include the following stylesheets and corresponding brush scripts in the head:</p>
+<pre class="brush: html">
+	{% templatetag openblock %} block headextra {% templatetag closeblock %}
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPython.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPlain.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
+		<script type="text/javascript">
+		    SyntaxHighlighter.defaults['light'] = true;
+		    SyntaxHighlighter.all()
+		</script>
+		<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCoreSFU.css" rel="stylesheet" type="text/css" />
+		<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeSFU.css" rel="stylesheet" type="text/css" />
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
+</pre>
+<p>Note: You may need to include additional brushes for different types of syntax.<p>
 
-<h2 id="containeres">Containers</h2>
+<h2 id="legacy">Legacy Code</h2>
+The following sections describe legacy code that should be either removed or modified follow the current iteration. 
+<h3 id="containers">Containers</h3>
 <p>Containers are divisions of the page content for specific purposes. They can be identified as a <code>div</code> with one of the following classes:</p>
 <table>
 	<tr>
@@ -183,93 +218,4 @@
 		<td></td>
 	</tr>
 </table>
-
-<h2 id="tables">Tables</h2>
-<p>All course pages have a table showing course details.</p>
-<pre class="brush: html">
-<div class="table_container">
-    <div class="table"><table class="info">
-        <tbody>
-            <tr>
-                <th scope="row">Course Number</th>
-                <td>CMPT 165 C100, Spring 2014 (1141)</td>
-            </tr>
-            <tr>
-                <th scope="row">Title</th>
-                <td>Intro Internet  World Wide Web</td>
-            </tr>
-            <tr>
-                <th scope="row">Instructor(s)</th>
-                <td>
-                    Gregory Baker &lt;<a href="mailto:ggbaker@sfu.ca">ggbaker@sfu.ca</a>&gt;
-                    </td>
-            </tr>
-            <tr>
-                <th scope="row">TA(s)</th>
-                <td>
-                
-                <a href="mailto:cmpt-165-contact@sfu.ca">cmpt-165-contact@sfu.ca</a>
-                (Fqpvmoea (Fqpv) Grad &lt;<a href="mailto:0hhhgrad@sfu.ca">0hhhgrad@sfu.ca</a>&gt;, Douglas (Doug) Gradstudent &lt;<a href="mailto:0grad1@sfu.ca">0grad1@sfu.ca</a>&gt;)
-                
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">Number of Students</th>
-                <td>40</td>
-            </tr>
-            <tr>
-                <th scope="row">Course home page</th>
-                <td><a href="http://www.cs.sfu.ca/CC/165/common/" rel="nofollow">http://www.cs.sfu.ca/CC/165/common/</a></td>
-            </tr>
-        </tbody>
-    </table></div>
-</div>
-</pre>
-<p>Tables may also be used to display large amounts of data such as a list of students.</p>
-<pre class="brush:html">
-	<div class="datatable_container">
-    <table class="display" id="students">
-        <thead>
-            <tr>
-                <th scope="col">Column 1</th>
-                <th scope="col">Column 2</th>
-				<th scope="col">Column 3</th>
-            </tr>
-		</thead>
-        <tbody>
-        <tr>
-            <td>(1,1)</td>
-            <td>(1,2)</td>
-            <td>(1,3)</td>
-        </tr>
-        </tbody>
-    </table>
-	</div>
-</pre>
-
-<h2 id="buttons">Buttons</h2>
-<p></p>
-
-<h2 id="code">Code</h2>
-<p>When adding to this style guide, use syntaxhighlighter to highlight any examples of code. Syntaxhighlighter has a variety of brushes for different types of syntax. To use syntaxhighlighter, insert your code within preformatted tags and set the class to a brush matching the syntax of your code.</p>
-<pre class="brush: html">
-	<pre class="brush: python">
-		
-		... Insert python code
-	</pre>
-</pre>
-<p>Also, don't forget to include the following stylesheets and corresponding brush scripts in the head:</p>
-<pre class="brush: html">
-	{ % block headextra % }
-		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
-		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPython.js"></script>
-		<script type="text/javascript">
-		    SyntaxHighlighter.defaults['light'] = true;
-		    SyntaxHighlighter.all()
-		</script>
-		<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCoreSFU.css" rel="stylesheet" type="text/css" />
-		<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeSFU.css" rel="stylesheet" type="text/css" />
-	{ % endblock % }
-</pre>
-
 {% endblock %}

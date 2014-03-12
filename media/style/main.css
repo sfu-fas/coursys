@@ -489,10 +489,14 @@ table.info th {
   font-weight: bold;
   width: 12em;
   background-color: #eee;
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
+  padding: .15em .5em;
+  line-height: 1.25em;
 }
 table.info td {
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
+  padding: .15em .5em;
+  line-height: 1.25em;
 }
 table.info p {
   padding: 0;
