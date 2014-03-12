@@ -30,7 +30,8 @@ from reports.reportlib.semester import date2semester, current_semester
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm
-from faculty.processing import FacultySummary, fraction_to_mixed
+from faculty.processing import FacultySummary
+from templatetags.event_display import fraction_display
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -283,6 +284,28 @@ def teaching_summary(request, userid):
     credit_balance = 0
     events = []
 
+    def teaching_events_table(semester):
+        cb = 0
+        e = []
+        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
+            .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
+            .select_related('offering', 'offering__semester')
+        for course in courses:
+            e += [(semester.name, course.offering.name(), course.offering.title, course.teaching_credit())]
+            cb += course.teaching_credit()
+
+        # TODO: should filter only user-visible events
+        teaching_events = FacultySummary(person).teaching_events(semester)
+        for event in teaching_events:
+            credits, load_decrease = FacultySummary(person).teaching_event_info(event)
+            if load_decrease:
+                e += [(semester.name, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease)]
+            if credits:
+                e += [(semester.name, event.get_event_type_display(), event.get_handler().short_summary(), credits)]
+            cb += credits + load_decrease
+
+        return cb, e
+
     if request.GET:
         form = TeachingSummaryForm(request.GET)
 
@@ -294,22 +317,9 @@ def teaching_summary(request, userid):
 
             curr_semester = start_semester
             while curr_semester <= end_semester:
-                courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=curr_semester.name) \
-                    .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
-                    .select_related('offering', 'offering__semester')
-                for course in courses:
-                    events += [(curr_semester.name, course.offering.name(), course.offering.title, course.teaching_credit())]
-                    credit_balance += course.teaching_credit()
-
-                # TODO: should filter only user-visible events
-                teaching_events = FacultySummary(person).teaching_events(curr_semester)
-                for event in teaching_events:
-                    credits, load_decrease = FacultySummary(person).teaching_event_info(event)
-                    if load_decrease:
-                        events += [(curr_semester.name, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease)]
-                    if credits:
-                        events += [(curr_semester.name, event.get_event_type_display(), event.get_handler().short_summary(), credits)]
-                    credit_balance += credits + load_decrease
+                cb, event = teaching_events_table(curr_semester)
+                credit_balance += cb
+                events += event
 
                 curr_semester = curr_semester.next_semester()
 
@@ -319,30 +329,13 @@ def teaching_summary(request, userid):
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
-        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=start_semester.name) \
-            .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
-            .select_related('offering', 'offering__semester')
-        for course in courses:
-            events += [(start_semester.name, course.offering.name(), course.offering.title, course.teaching_credit())]
-            credit_balance += course.teaching_credit()
+        credit_balance, events = teaching_events_table(start_semester)
 
-        # TODO: should filter only user-visible events
-        teaching_events = FacultySummary(person).teaching_events(start_semester)
-        for event in teaching_events:
-            credits, load_decrease = FacultySummary(person).teaching_event_info(event)
-            if load_decrease:
-                events += [(start_semester.name, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease)]
-            if credits:
-                events += [(start_semester.name, event.get_event_type_display(), event.get_handler().short_summary(), credits)]
-            credit_balance += credits + load_decrease
-
-
-    cb_whole, cb_frac = fraction_to_mixed(credit_balance)
+    cb_mmixed = fraction_display(credit_balance)
     context = {
         'form': form,
         'person': person,
-        'cb_whole': cb_whole,
-        'cb_frac': cb_frac,
+        'credit_balance': cb_mmixed,
         'events': events,
     }
     return render(request, 'faculty/teaching_summary.html', context)
