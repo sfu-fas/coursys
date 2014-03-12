@@ -31,7 +31,7 @@
 <p>This style guide is a reference for common styles and standards unique to the Coursys website. 
 </br>Please refer to the <a href="http://www.sfu.ca/clf/downloads.html">SFU Common Look and Feel</a> section for detailed information on the SFU theme including: colours, typography, grid layouts and any additional styling not included in this style guide.</p>
 
-<h2 id="overview">Overview</h2>
+<h2 id="overview">Styling Overview</h2>
 <h3 id="templates">Templates</h3>
 <p>All pages should extend from either "base.html" or "base-wide.html" found in the "courses/templates" directory. "base.html" has a left-hand column for the actions menu while "base-wide.html" allows the body to span the full width of the page content division as can be seen in the figures below. The wide format is typically used for pages with large tables. For all other pages, "base.html" is the recommended default template to extend from.</p> 
 <figure class="double-image">
@@ -161,7 +161,7 @@
 	</form>
 </pre>
 
-<h3 id="code">Code</h3>
+<h3 id="code">Syntax Highlighting</h3>
 <p>When adding to this style guide, use syntaxhighlighter to highlight any examples of code. Syntaxhighlighter has a variety of brushes for different types of syntax. To use syntaxhighlighter, insert your code within preformatted tags and set the class to a brush matching the syntax of your code.</p>
 <pre class="brush: html">
 	<pre class="brush: python">
@@ -188,10 +188,126 @@
 </pre>
 <p>Note: You may need to include additional brushes for different types of syntax.<p>
 
+<h2 id="codepatterns">Code Patterns</h2>
+<h3 id="statusfields">Status Fields</h3>
+<p>Often, a model can be in one of several states.
+A form from our forms system, for example, can be Active, Inactive, Waiting, Stalled, Happy, Sad, Grumpy, or Sleepy.
+Generally, statuses start as a list of tuples, like so:</p>
+<pre class="brush: python">
+	NOTE_CATEGORIES = 	(
+	   ("EXC", "Exceptions"),
+	   ("WAI", "Waivers"),
+	   ("REQ", "Requirements"),
+	   ("TRA", "Transfers"),
+	   ("MIS", "Miscellaneous")
+   	)
+</pre>
+<p>This list can be fed directly to a CharField in a Model, like so:</p>
+<pre class="brush: python">
+	category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
+</pre>
+<p>When accessing the model's 'category' field, it will return the three-letter-code, but you can - for example, in a template - return the 'pretty wording' using the <code>.get_foo_display</code> property.</p>
+<pre class="brush: python">
+	note.get_category_display
+</pre>
+
+<h3 id="persons">Persons & Roles</h3>
+<p>For every person in the system, there is a <code>coredata.models</code> Person object.
+FK'd to Person is the Role object, an object describing "one job" that is held by that person. A person can have many roles - in the live system, for example, I am one of just about every damn thing, for the purposes of debugging and also occasional larceny.
+It is possible to restrict access to a view to for just people who have a specific role, using the <code>@requires_role decorator</code>.</p>
+<pre class="brush: python">
+	@requires_role("ADVS")
+   	def view_student_notes(...):
+       ...
+</pre>
+<p>Anybody who attempts to trigger this view without having a Role object of the type "ADVS" foreign-keyed to their account will just get an Access Denied message.</p>
+
+<h3 id="unit">Unit</h3>
+<p>Many things have a <code>coredata.models</code> "Unit" associated with them. This is a way of subdividing parts of the system by school in the university - Units include groups like "CMPT", "ENGI", "MSE", corresponding to different logical groups within SFU.
+Roles must be created with a Unit. You can't just be an "Advisor", you have to be an "Advisor - CMPT" or an "Advisor - MSE".
+The <code>requires_role</code> decorator automatically appends to the request object a <code>request.units</code> list of units that the current user has a role for. So, for example, if I'm a CMPT Advisor and MSE Advisor, and I'm logged in:</p>
+<pre class="brush: python">
+ @requires_role("ADVS")
+   def view_student_notes(self, request):
+       print request.units
+</pre>
+<p>This <code>request.units</code> should contain the "CMPT" and "MSE" Unit model objects.
+The units where the use has the role should me used to show them only the data they should be allowed to view. Assuming each note has a unit field, which points to the unit that owns that note:</p>
+<pre class="brush: python">
+	@requires_role("ADVS")
+	def view_student_notes(self, request):
+       notes = Notes.objects.filter(unit__in=request.units)
+       ...
+</pre>
+
+<h3 id="autoslugs">Autoslugs & URLs</h3>
+<p>We want to keep our URLs as tidy and human-readable as possible.</p>
+<p>Bad:</p>
+<pre class="brush: html">
+	coursys.cs.sfu.ca/forms/923
+</pre>
+<p>Good:</p>
+<pre class="brush: html">
+	coursys.cs.sfu.ca/forms/course_appeal_form
+</pre>
+<p>The <a href="https://pypi.python.org/pypi/django-autoslug">django-autoslug package</a> has got us covered - when creating a model, we can create an 'autoslug' field, point it at another field in the model, and from that point on the model has a 'slug' field that we can search on. For more complicated slug logic, we can create an 'autoslug' function. See "courses/advisornotes/models.py" for an example:</p>
+<pre class="brush: python">
+	class Artifact(models.Model):
+       name = models.CharField(max_length=140, help_text='The name of the artifact', null=False, blank=False)
+       category = models.CharField(max_length=3, choices=ARTIFACT_CATEGORIES, null=False, blank=False)
+       
+       def autoslug(self):
+           return make_slug(self.unit.label + '-' + self.name)
+       
+       slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+       unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
+       config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+</pre>
+<p>Here we're automatically making a slug out of the Artifact's unit (CMPT) and name - "cmpt-thingamajigger".</p>
+
+<h3 id="config">Configuration Fields</h3>
+<p>When building models that may change in the future (pro-tip: this is most models) we often include an empty JSON field in the model.</p>
+<pre class="brush: python">
+	config = JSONField(null=False, blank=False, default={})
+</pre>
+<p>When working with the config field, it's considered polite to include any fields that we might be storing in the config field as a comment.</p>
+<pre class="brush: python">
+	# phonenumber - the user's phone number
+   	# words - words words words
+</pre>
+<p>The config field can be treated as an object:</p>
+<pre class="brush: python">
+	model_object.config["data"] = "harblar"
+</pre>
+<p>But before accessing config data, always protect against a KeyError or check if the data exists:</p>
+<pre class="brush: python">
+	if "data" in model_object.config:
+       data = model_object.config["data"]
+   	else:
+       data = "STEVE"
+</pre>
+
+<h3 id="hiddenfield">Hidden Fields</h3>
+<p>We try our very best to never delete anything. Instead, we set a 'hidden' flag, and filter out all 'hidden' variables every time that we pull data from the database.
+Here's an example from the Grad subsystem:</p>
+<pre class="brush: python">
+	hidden = models.BooleanField(null=False, default=False)
+	req = GradRequirement.objects.filter(program=grad.program, hidden=False)
+</pre>
+
+<h3 id="urls">URLs</h3>
+<p>Never hardcode URLs.</p>
+
+<h3 id="modelforms">ModelForms</h3>
+<p>They're magic.</p>
+
+<h3 id="modelforms">Fat Models, Thin Views, Skinny Templates</h3>
+<p>Logic belongs in models before views, and views before templates.</p>
+
 <h2 id="legacy">Legacy Code</h2>
-The following sections describe legacy code that should be either removed or modified follow the current iteration. 
+The following sections describe legacy code that should be either removed or modified to follow the current iteration. 
 <h3 id="containers">Containers</h3>
-<p>Containers are divisions of the page content for specific purposes. They can be identified as a <code>div</code> with one of the following classes:</p>
+<p>Containers were used for styling purposes. However, with the new SFU styling standard, these are no longer needed and can be removed if found. They can be identified as a <code>div</code> with one of the following classes:</p>
 <table>
 	<tr>
 		<td>form_container</td>
