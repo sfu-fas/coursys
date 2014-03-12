@@ -13,7 +13,7 @@ FILENAME_TYPES = [ # type of filename checking: checked by Codefile.SubmissionFo
         ('INS', 'Filename must match, but uppercase and lowercase don\'t matter'),
         ('MAT', 'Filename must match exactly'),
         ('EXT', 'File Extension: the filename must end as specified'),
-        ('REX', 'Regular Expression: the "filename" above must be a Python regex to match'),
+        ('REX', 'Regular Expression: the "filename" above must be a regular expression to match'),
         ]
 
 class CodefileComponent(SubmissionComponent):

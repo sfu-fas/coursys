@@ -7,6 +7,18 @@
 <script type="text/javascript">
   $(document).ready(function() {
     $("#id_allowed").multiselect();
+    var ftype_help = $('#id_filename_type').parent().nextAll().filter('.helptext').first();
+    var ftype_help_orig = ftype_help.html();
+    $('#id_filename_type').change(function(){
+      if ( $('#id_filename_type').val() === 'REX' ) {
+        $('#regex-help').show();
+        ftype_help.html(ftype_help_orig);
+        $('<strong>See regular expression help below.</strong>').hide().appendTo(ftype_help).show('slow');
+      } else {
+        $('#regex-help').hide();
+        ftype_help.html(ftype_help_orig);
+      }
+    }).change();
   });
 </script>
 {% endblock %}
@@ -22,7 +34,6 @@
 
 {% block content %}
 {% if component %}
-    <div class="form_container">
     <div id="edit_single_submission_component_form_container">
 
     <form action="" method="post">{% csrf_token %}
@@ -32,8 +43,8 @@
 	<p><input class="submit" type="submit" value="Update" /></p>
     </fieldset>
     </form>
+    {% include "submission/regex_help.html" %}
     </div>
-	
-    </div>
+
 {% endif %}
 {% endblock %}

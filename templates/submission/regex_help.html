@@ -1,0 +1,16 @@
+<div id="regex-help">
+    <h2>Regular Expression Help</h2>
+    <p>Regular expressions must use the
+        <a href="http://docs.python.org/2/library/re.html#regular-expression-syntax">Python regular expression syntax</a> and are applied
+        to the filename using the <a href="http://docs.python.org/2/library/re.html#search-vs-match"><code>.match()</code>
+            (as opposed to <code>.search()</code>) method.</a></p>
+    <p>For example, the regular expression you want to match C or C++ code might be one of these (depending whether you care about case or not):</p>
+    <blockquote><code>
+        ^.*\.(c|cpp)$<br/>
+        ^.*\.(c|C|cpp|CPP)$
+    </code></blockquote>
+    <p>Or if you have several options for filename (possibly because of options in the assignment) you might have a regular expression like this:</p>
+    <blockquote><code>
+        ^(Chess|Checkers|Go)\.java$
+    </code></blockquote>
+</div>
