@@ -19,11 +19,48 @@ FILENAME_TYPES = [ # type of filename checking: checked by Codefile.SubmissionFo
 class CodefileComponent(SubmissionComponent):
     "A Source Code submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the file, in kB.", null=False, default=200)
-    filename = models.CharField(max_length=500, null=False, help_text='Required filename for submitted files. Interpreted according as specified in the filename type')
+    filename = models.CharField(max_length=500, null=False, help_text='Required filename for submitted files. Interpreted as specified in the filename type')
     filename_type = models.CharField(choices=FILENAME_TYPES, max_length=3, blank=False, null=False, default='INS', help_text='How should your filename be interpreted?')
 
     class Meta:
         app_label = 'submission'
+
+    @classmethod
+    def build_from_codecomponent(cls, codecomp):
+        """
+        Build a CodefileComponent from a CodeComponent, for upgrading during semester migration.
+        """
+        newcomp = cls()
+        # copy fields that are the same
+        newcomp.activity = codecomp.activity
+        newcomp.title = codecomp.title
+        newcomp.description = codecomp.description
+        newcomp.position = codecomp.position
+        newcomp.slug = codecomp.slug
+        newcomp.deleted = codecomp.deleted
+        newcomp.max_size = codecomp.max_size
+
+        # handle filename restrictions
+        newcomp.specified_filename = ''
+        extensions = codecomp.allowed.split(',')
+        if codecomp.specified_filename:
+            newcomp.filename = codecomp.specified_filename
+            newcomp.filename_type = 'MAT'
+        elif len(extensions) == 0:
+            # shouldn't happen
+            newcomp.filename = '^.*$'
+            newcomp.filename_type = 'REX'
+        elif len(extensions) == 1:
+            ext = extensions[0]
+            newcomp.filename = ext
+            newcomp.filename_type = 'EXT'
+        else:
+            extensions_re = [re.escape(e) for e in extensions]
+            newcomp.filename = '^.*(' + '|'.join(extensions_re) + ')$'
+            newcomp.filename_type = 'REX'
+
+        return newcomp
+
 
 class SubmittedCodefile(SubmittedComponent):
     component = models.ForeignKey(CodefileComponent, null=False)
