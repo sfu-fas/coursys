@@ -297,15 +297,18 @@ class CareerEvent(models.Model):
         return ls
 
 
-# TODO separate storage system for faculty attachments?
-#NoteSystemStorage = FileSystemStorage(location=settings.FACULTY_PATH, base_url=None)
+
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
     fullpath = os.path.join(
         'faculty',
-        instance.created_by.userid,
+        instance.career_event.person.userid_or_emplid(),
+        instance.career_event.slug,
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
@@ -320,7 +323,7 @@ class DocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(upload_to=attachment_upload_to)
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
 
     def __unicode__(self):
