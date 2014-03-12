@@ -93,12 +93,29 @@ def fraction_display(val):
     val = fractions.Fraction(val)
     n = val.numerator
     d = val.denominator
-    whole = n//d
+    # whole = n//d
+    # res = unicode(whole)
+    # remainder = val - whole
+    # if remainder != 0:
+    #     if whole == 0:
+    #         res = unicode(remainder)
+    #     else:
+    #         res += ' ' + unicode(remainder)
+
+    if n != 0:
+        whole = abs(n)/d*(n/abs(n)) # in case val is negative
+    else:
+        whole = 0
     res = unicode(whole)
-    remainder = val - whole
+    # only have a negative fraction if whole is 0
+    if val<0 and whole==0:
+        remainder = val + whole
+    else:
+        remainder = abs(val - whole)
     if remainder != 0:
         if whole == 0:
             res = unicode(remainder)
         else:
             res += ' ' + unicode(remainder)
+
     return res

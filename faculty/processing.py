@@ -36,7 +36,7 @@ class FacultySummary(object):
         return Decimal(pay).quantize(Decimal('.01'), rounding=ROUND_DOWN)
 
     def salary_event_info(self, event):
-        instance = get_object_or_404(CareerEvent, slug=event.slug, person=self.person)
+        instance = event
         Handler = EVENT_TYPES[instance.event_type]
         handler = Handler(instance)
         add_salary, salary_fraction, add_bonus =  handler.salary_adjust_annually()
@@ -45,7 +45,7 @@ class FacultySummary(object):
    
 
     def teaching_event_info(self, event):
-        instance = get_object_or_404(CareerEvent, slug=event.slug, person=self.person)
+        instance = event
         Handler = EVENT_TYPES[instance.event_type]
         handler = Handler(instance)
         credits, load_decrease =  handler.teaching_adjust_per_semester()
@@ -65,23 +65,3 @@ class FacultySummary(object):
             tot_decrease += load_decrease
 
         return tot_credits, tot_decrease
-
-
-def fraction_to_mixed(toconvert):
-	"""
-	Takes fractions.Fraction as input and gives a mixed number as an int and fraction.
-	"""
-	num = toconvert.numerator
-	denom = toconvert.denominator
-	if num != 0:
-		whole = abs(num)/denom*(num/abs(num)) # in case toconvert is negative
-	else:
-		whole = 0
-	# only have a negative fraction if the whole number is 0
-	if toconvert<0 and whole==0:
-		remainder = -1*(abs(num)%denom)
-	else:
-		remainder = abs(num)%denom
-			
-
-	return whole, fractions.Fraction(remainder, denom)
