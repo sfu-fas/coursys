@@ -1,6 +1,7 @@
 import copy
 import datetime
 import itertools
+import json
 import operator
 
 from courselib.auth import requires_role, NotFoundResponse
@@ -402,6 +403,33 @@ def view_event(request, userid, event_slug):
         'approval_form': approval,
     }
     return render(request, 'faculty/view_event.html', context)
+
+
+@requires_role('ADMN')
+def timeline(request, userid):
+    person, _ = _get_faculty_or_404(request.units, userid)
+    return render(request, 'faculty/timeline.html', {'person': person})
+
+
+@requires_role('ADMN')
+def timeline_json(request, userid):
+    person, _ = _get_faculty_or_404(request.units, userid)
+    payload = {
+        'timeline': {
+            'type': 'default',
+            'startDate': '{:%Y,%m,%d}'.format(datetime.date.today()),
+            'date': [],
+        },
+    }
+
+    for event in CareerEvent.objects.filter(person=person).not_deleted():
+        handler = event.get_handler()
+        if handler.can_view(person):
+            blurb = handler.to_timeline()
+            if blurb:
+                payload['timeline']['date'].append(blurb)
+
+    return HttpResponse(json.dumps(payload), mimetype='application/json')
 
 
 ###############################################################################

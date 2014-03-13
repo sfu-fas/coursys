@@ -23,6 +23,11 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/otherinfo$', 'faculty.views.otherinfo', name="faculty_otherinfo"),
     url(r'^' + USERID_OR_EMPLID + '/new-event$', 'faculty.views.event_type_list', name="faculty_event_types"),
     url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<event_type>' + SLUG_RE + ')$', 'faculty.views.create_event', name="faculty_create_event"),
+
+    # Faculty Person Timeline
+    url(r'^' + USERID_OR_EMPLID + '/timeline$', 'faculty.views.timeline'),
+    url(r'^' + USERID_OR_EMPLID + '/timeline.json$', 'faculty.views.timeline_json'),
+
     url(r'^' + EVENT_PREFIX + '/$', 'faculty.views.view_event', name="faculty_event_view"),
     url(r'^' + EVENT_PREFIX + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
     url(r'^' + EVENT_PREFIX + '/change-status$', 'faculty.views.change_event_status', name="faculty_change_event_status"),

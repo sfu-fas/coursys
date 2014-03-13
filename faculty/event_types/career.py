@@ -124,6 +124,9 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
             'biweekly': total/365*14,
         }
 
+    def to_timeline(self):
+        pass
+
     @classmethod
     def default_title(cls):
         return 'Base Salary'
