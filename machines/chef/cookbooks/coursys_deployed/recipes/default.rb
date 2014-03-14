@@ -21,7 +21,8 @@ package "stunnel4"
 # Keep the time in sync
 package "ntp"
 
-# To update the code
+# Dev tools
+package "vim"
 package "git"
 
 # pip install any listed requirements
