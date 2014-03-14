@@ -206,7 +206,6 @@ class AwardEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         award = self.get_display('award')
-        awarded_by = self.get_display('awarded_by')
         return u'Received award \u201c{0}\u201d'.format(award)
 
 

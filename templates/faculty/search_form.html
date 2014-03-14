@@ -40,6 +40,12 @@ $(document).ready(function() {
   {% if results %}
   $('#form_collapse').click();
   {% endif %}
+
+  $('#filter-form').change( function() {
+    event_filter_update('results_table');
+  });
+  event_filter_update('results_table');
+
 });
 </script>
 
@@ -57,6 +63,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+
 <div class="form_container">
   <form action="" method="GET">
     {% if results %}
@@ -98,6 +105,7 @@ $(document).ready(function() {
 </div>
 
 {% if results %}
+{% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">
   <h3>Results</h3>
   <table id="results_table" class="display">
@@ -114,7 +122,7 @@ $(document).ready(function() {
     </tr></thead>
     <tbody>
     {% for handler in results %}
-    <tr>
+    <tr class="{{ handler.event.unit.label }}">
       <td><a href="{{ handler.event.get_absolute_url }}">{{ handler.event.title }}</a></td>
       <td>{{ handler.event.person }}</td>
       <td>{{ handler.event.unit.label }}</td>

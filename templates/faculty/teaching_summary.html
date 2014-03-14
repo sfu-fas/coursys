@@ -56,13 +56,6 @@ $(document).ready(function() {
   </table>
 </div>
 {% if events %}
-<h3 id="balance"> Teaching Credit Balance = 
-  {% if cb_whole %}
-  {{ cb_whole }} 
-  {% endif %}
-  {% if cb_frac %}
-  {{ cb_frac }}
-  {%endif %}
-</h3>
+<h3 id="balance"> Teaching Credit Balance = {{ credit_balance }}</h3>
 {% endif %}
 {% endblock %}

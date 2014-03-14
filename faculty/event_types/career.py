@@ -124,6 +124,9 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
             'biweekly': total/365*14,
         }
 
+    def to_timeline(self):
+        pass
+
     @classmethod
     def default_title(cls):
         return 'Base Salary'
@@ -307,7 +310,8 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         <dt>Pay Fraction</dt><dd>{{ handler|get_display:"pay_fraction" }}</dd>
         <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
         <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
-        <dt>Credits Carried Forward</dt><dd>{{ handler|get_display:"credits" }}</dd>
+        <dt>Credits Carried Forward</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
+        <dt>Study Leave Credits Spent</dt><dd>{{ handler|get_display:"study_leave_credits" }}</dd>
         {% endblock %}
     """
 
@@ -315,18 +319,21 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         pay_fraction = fields.FractionField(help_text="eg. 2/3")
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
-        credits = fields.TeachingCreditField()
+        teaching_credits = fields.TeachingCreditField()
+        study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99, help_text='Total number of Study Leave Credits spent for entire leave')
 
     SEARCH_RULES = {
         'pay_fraction': search.ComparableSearchRule,
         'report_received': search.BooleanSearchRule,
-        'credits': search.ComparableSearchRule,
+        'teaching_credits': search.ComparableSearchRule,
+        'study_leave_credits': search.ComparableSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'pay_fraction',
         'report_received',
         'report_received_date',
-        'credits',
+        'teaching_credits',
+        'study_leave_credits'
     ]
 
     @classmethod
@@ -345,10 +352,11 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return SalaryAdjust(0, pay_fraction, 0)
 
     def teaching_adjust_per_semester(self):
-        credits = self.get_config('credits')
+        credits = self.get_config('teaching_credits')
         return TeachingAdjust(credits, fractions.Fraction(0))
 
-
+    def get_study_leave_credits(self):
+        return self.get_config('study_leave_credits')
 
 
 class AccreditationFlagEventHandler(CareerEventHandlerBase):

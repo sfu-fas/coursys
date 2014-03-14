@@ -16,15 +16,15 @@ $(document).ready(function(){
 
 });
 
-function event_filter_update() {
+function event_filter_update(datatable) {
   var cat = $('input:radio[name=category]:checked').val();
-  var table = $('#career_event_table').dataTable( {
+  var table = $('#' + datatable).dataTable( {
     "bRetrieve": true,
   } );
 
   $.fn.dataTableExt.afnFiltering.pop();
   $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
-    if ( oSettings.nTable.id != 'career_event_table' ) {
+    if ( oSettings.nTable.id != datatable ) {
       return true;
     }
 

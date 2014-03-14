@@ -123,6 +123,9 @@ table th[scope=row] {
 span.sort { /* content that fixes datatables sorting but isn't user-visible */
   display: none;
 }
+span.rowdata { /* content used for calculating totals on data tables */
+  display: none;
+}
 .hidden {
     display: none;
 }

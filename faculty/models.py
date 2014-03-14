@@ -1,4 +1,5 @@
 import datetime
+import csv
 import os
 
 from django.db import models
@@ -297,15 +298,18 @@ class CareerEvent(models.Model):
         return ls
 
 
-# TODO separate storage system for faculty attachments?
-#NoteSystemStorage = FileSystemStorage(location=settings.FACULTY_PATH, base_url=None)
+
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
     fullpath = os.path.join(
         'faculty',
-        instance.created_by.userid,
+        instance.career_event.person.userid_or_emplid(),
+        instance.career_event.slug,
         datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
         filename.encode('ascii', 'ignore'))
     return fullpath
@@ -320,7 +324,7 @@ class DocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(upload_to=attachment_upload_to)
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
 
     def __unicode__(self):
@@ -436,10 +440,43 @@ class EventConfig(models.Model):
     config = JSONField(default={})
 
 
+class TempGrantManager(models.Manager): 
+    def create_from_csv(self, fh):
+        reader = csv.reader(fh.read().splitlines())
+        # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
+        for row in reader:
+            # ----------------------------
+            # DO SOME SERIOUS PARSING HERE
+            # ----------------------------
+            print row
+            # create TempGrant from row
+
+
+class TempGrant(models.Model):
+    label = models.CharField(max_length=255, help_text="for identification from FAST import")
+    project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
+    initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
+    overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
+    import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
+    config = JSONField(default={}) # addition configuration for within the temp grant
+
+    objects = TempGrantManager()
+
+    def convert_to_grant(self, **kwargs):
+        data = {
+            "label": self.label,
+            "project_code": self.project_code,
+            "initial": self.initial,
+            "overhead": self.overhead,
+            "import_key": self.import_key,
+            "config": self.config,
+        }
+        data.update(**kwargs)
+        grant = Grant(**data)
+        return grant
+
+
 class GrantManager(models.Manager):
-    def create_from_csv(self, row):
-        raise NotImplementedError
-    
     def active(self):
         qs = self.get_query_set()
         return qs.filter(status='A')
@@ -447,22 +484,22 @@ class GrantManager(models.Manager):
 
 class Grant(models.Model):
     STATUS_CHOICES = (
-        ("NA", "Not Active"),
         ("A", "Active"),
         ("D", "Deleted"),
     )
     title = models.CharField(max_length=64)
-    slug = AutoSlugField(populate_from='title', unique_with=("start_date", "project_code"), null=False, editable=False)
-    label = models.CharField(max_length=255, help_text="for identification from FAST import")
-    # TODO: owners, ManyToMany or Foreign key via a separate GrantOwner model?
-    project_code = models.CharField(max_length=32, db_index=True)
-    start_date = models.DateField()
+    slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
+    label = models.CharField(max_length=255, help_text="for identification from FAST import", db_index=True)
+    owners = models.ManyToManyField(Person, blank=True, null=True)
+    project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
+    start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
-    initial = models.DecimalField(verbose_name="initial balance", max_digits=10, decimal_places=2)
-    overhead = models.DecimalField(verbose_name="annual overhead", max_digits=10, decimal_places=2)
-    import_key = models.CharField(max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
+    initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
+    overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
+    import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
     unit = models.ForeignKey(Unit, null=False, blank=False, help_text="unit who owns the grant")
+    config = JSONField(default={})  # addition configuration for within the grant
 
     objects = GrantManager()
 
@@ -470,24 +507,26 @@ class Grant(models.Model):
         return u"%s" % self.title
 
     def get_absolute_url(self):
-        return reverse("view_grant", args=[self.slug])
+        return reverse("view_grant", kwargs={'unit_slug': self.unit.slug, 'grant_slug': self.slug})
 
-    def update_balance(self, date, balance, spent_this_month):
+    def update_balance(self, balance, spent_this_month, date=datetime.datetime.today()):
         gb = GrantBalance.objects.create(
-                date=date,
-                grant=self,
-                balance=balance,
-                actual=self.initial - balance,
-                month=spent_this_month
+            date=date,
+            grant=self,
+            balance=balance,
+            actual=self.initial - balance,
+            month=spent_this_month
         )
+        return gb
 
 
 class GrantBalance(models.Model):
     date = models.DateField(auto_now_add=True)
     grant = models.ForeignKey(Grant, null=False, blank=False)
-    balance = models.DecimalField(verbose_name="grant balance", max_digits=10, decimal_places=2)
-    actual = models.DecimalField(verbose_name="YTD actual", max_digits=10, decimal_places=2)
-    month = models.DecimalField(verbose_name="current month", max_digits=10, decimal_places=2)
+    balance = models.DecimalField(verbose_name="grant balance", max_digits=12, decimal_places=2)
+    actual = models.DecimalField(verbose_name="YTD actual", max_digits=12, decimal_places=2)
+    month = models.DecimalField(verbose_name="current month", max_digits=12, decimal_places=2)
+    config = JSONField(default={})  # addition configuration for within the memo
 
     def __unicode__(self):
         return u"%s balance as of %s" % (self.grant, self.date)
