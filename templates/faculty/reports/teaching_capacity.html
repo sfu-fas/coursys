@@ -64,12 +64,13 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-{% for unit_name, summaries in units.iteritems %}
+{% for unit_name, info in units %}
+{% with capacity=info.0 summaries=info.1 %}
 <div class="capacity-unit">
   <h3>
     <i class="fa {{ summaries|yesno:'fa-toggle-down,fa-times' }}"></i>
     {{ unit_name }}
-    <small>Available Capacity: 0</small>
+    <small>Available Capacity: {{ capacity }}</small>
   </h3>
   {% if summaries %}
   <div class="capacity-unit-inner hidden">
@@ -84,7 +85,7 @@ $(document).ready(function() {
       <tr>
         <td>{{ person }}</td>
         <td>{{ credits }}</td>
-        <td>{{ load }}</td>
+        <td>&#x2014;</td>
       </tr>
     {% endfor %}
     </tbody>
@@ -92,5 +93,6 @@ $(document).ready(function() {
   </div>
   {% endif %}
 </div>
+{% endwith %}
 {% endfor %}
 {% endblock %}

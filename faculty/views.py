@@ -243,16 +243,21 @@ def salary_summary(request, userid):
 
 @requires_role('ADMN')
 def teaching_capacity(request):
-    units = {}
     semester = Semester.current()
+    units = []
 
-    for unit in Unit.objects.all():
+    for unit in Unit.objects.order_by('label'):
         people = set(role.person for role in Role.objects.filter(unit=unit))
-        units[unit.name] = []
+        entries = []
+        total_credits = 0
+
         for person in people:
             summary = FacultySummary(person)
             credits, load = summary.teaching_credits(semester)
-            units[unit.name].append((person, credits, load))
+            total_credits += credits
+            entries.append((person, credits, load))
+
+        units.append((unit.name, (total_credits, entries)))
 
     return render(request, 'faculty/reports/teaching_capacity.html', {'units': units})
 
