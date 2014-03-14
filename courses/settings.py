@@ -19,6 +19,14 @@ else:
 DEBUG = DEPLOY_MODE != 'production'
 TEMPLATE_DEBUG = DEBUG
 
+def environ_flag(variable, default):
+    """
+    Return boolean value from environment if set, or the given default
+    """
+    if variable in os.environ:
+        return bool(eval(os.environ[variable]))
+    else:
+        return default
 
 
 
@@ -121,9 +129,9 @@ elif DEPLOY_MODE =='proddev':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ['DB_NAME'],
-            'USER': os.environ['DB_USER'],
-            'PASSWORD': os.environ['DB_PASS'],
+            'NAME': 'coursys',
+            'USER': 'coursysuser',
+            'PASSWORD': 'coursyspassword',
             'HOST': 'localhost',
             'PORT': 3306,
             'CONN_MAX_AGE': 3600,
@@ -155,7 +163,7 @@ STATICFILES_FINDERS = (
     #'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 )
-COMPRESS_ENABLED = os.environ.get('COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
+COMPRESS_ENABLED = environ_flag('COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
@@ -195,49 +203,8 @@ if DEPLOY_MODE == 'proddev':
 
 
 
-
-
-
-
-
-#DEPLOYED = DEPLOY_MODE != 'devel'
-
-#PROJECT_DIR = os.path.normpath(os.path.dirname(os.path.dirname(__file__)))
-
-# add ./external directory to search path so we find modules there
-
-#MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploads')
-
-
-
-
-#if DEPLOYED:
-#    MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
-    #SUBMISSION_PATH = '/data/submitted_files'
-    #CACHES = { 'default': {
-    #    'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-    #    'LOCATION': '127.0.0.1:22122',
-    #} }
-    #BASE_ABS_URL = "https://courses.cs.sfu.ca"
-    #DB_PASS_FILE = "/home/ggbaker/dbpass"
-    #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    #SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': '????',
-    #        'db': 'coursesvn', 'port': 4000}
-#else:
-    #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
-    #SUBMISSION_PATH = "submitted_files"
-    #CACHES = { 'default': {
-    #    #'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-    #    #'LOCATION': '127.0.0.1:11211',
-    #    'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    #} }
-    #BASE_ABS_URL = "http://localhost:8000"
-    #DB_PASS_FILE = "./dbpass"
-    #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # changed below if using Celery
-    #SVN_DB_CONNECT = None
-
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = os.environ.get('USE_CELERY', DEPLOY_MODE != 'devel')
+USE_CELERY = environ_flag('USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
@@ -289,7 +256,7 @@ GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
-DISABLE_REPORTING_DB = False
+DISABLE_REPORTING_DB = environ_flag('DISABLE_REPORTING_DB', False)
 
 # Feature flags to temporarily limit server load, aka "feature flags"
 # Possible values for the set documented in server-setup/index.html#flags
@@ -298,14 +265,13 @@ DISABLED_FEATURES = set([])
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
 if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
-    #CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
     AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
     MIDDLEWARE_CLASSES = list(MIDDLEWARE_CLASSES)
     MIDDLEWARE_CLASSES.remove('django_cas.middleware.CASMiddleware')
     MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
     LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
-    DISABLE_REPORTING_DB = True # never do reporting DB access if users aren't really authenticated
+    DISABLE_REPORTING_DB = environ_flag('DISABLE_REPORTING_DB', True)
 
 REPORT_CACHE_LOCATION = "/tmp/report_cache"
 
@@ -315,8 +281,8 @@ REPORT_CACHE_LOCATION = "/tmp/report_cache"
 #    'INTERCEPT_REDIRECTS': False,
 #}
 
-try:
-    from local_settings import *
-except ImportError:
-    pass
+#try:
+#    from local_settings import *
+#except ImportError:
+#    pass
 
