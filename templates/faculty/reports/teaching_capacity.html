@@ -35,6 +35,12 @@ $(document).ready(function() {
   padding: 5px 10px 5px 10px;
   margin-bottom: 10px;
 }
+.capacity-unit:hover .fa {
+  color: #a6192e;
+}
+.capacity-unit .fa {
+  margin-right: 5px;
+}
 .capacity-unit h3 {
   margin: 0px;
 }
@@ -43,6 +49,9 @@ $(document).ready(function() {
 }
 .capacity-unit .hidden {
   display: none;
+}
+.capacity-unit th.name {
+  width: 50%;
 }
 </style>
 {% endblock %}
@@ -76,7 +85,7 @@ $(document).ready(function() {
   <div class="capacity-unit-inner hidden">
   <table>
     <thead><tr>
-      <th scope="col">Name</th>
+      <th class="name" scope="col">Name</th>
       <th scope="col">Required</th>
       <th scope="col">Providing</th>
     </tr></thead>
