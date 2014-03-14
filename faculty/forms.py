@@ -122,3 +122,8 @@ class GrantForm(forms.ModelForm):
 
     class Meta:
         model = Grant
+
+
+class GrantImportForm(forms.Form):
+    file = forms.FileField()
+

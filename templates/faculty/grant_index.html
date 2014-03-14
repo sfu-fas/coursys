@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load event_display %}
+{% load form_display %}
 
 {% block title %}Grants{% endblock %}
 {% block h1 %}Grants{% endblock %}
@@ -48,5 +49,11 @@ $(document).ready(function() {
   {% endfor %}
   </tbody>
 </table>
+
+<form action="{% url 'import_grants' %}" method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	{{ import_form|as_dl }}
+	<input type="submit" value="Import Grants CSV" />
+</form>
 </div>
 {% endblock %}

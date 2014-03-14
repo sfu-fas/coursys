@@ -1,4 +1,5 @@
 import datetime
+import csv
 import os
 
 from django.db import models
@@ -440,16 +441,15 @@ class EventConfig(models.Model):
 
 
 class TempGrantManager(models.Manager): 
-    def create_from_csv(self, file):
-        with file.open(mode='rb') as csvfile:
-            # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
-            reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-            for row in rows:
-                # ----------------------------
-                # DO SOME SERIOUS PARSING HERE
-                # ----------------------------
-                print row
-                # create TempGrant from row
+    def create_from_csv(self, fh):
+        reader = csv.reader(fh.read().splitlines())
+        # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
+        for row in reader:
+            # ----------------------------
+            # DO SOME SERIOUS PARSING HERE
+            # ----------------------------
+            print row
+            # create TempGrant from row
 
 
 class TempGrant(models.Model):
@@ -459,6 +459,8 @@ class TempGrant(models.Model):
     overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
     config = JSONField(default={}) # addition configuration for within the temp grant
+
+    objects = TempGrantManager()
 
     def convert_to_grant(self, **kwargs):
         data = {
