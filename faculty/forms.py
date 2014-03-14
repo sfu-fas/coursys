@@ -101,6 +101,15 @@ class SearchForm(forms.Form):
     unit = forms.ModelChoiceField(queryset=Unit.objects.all(), required=False)
     only_current = forms.BooleanField(required=False)
 
+class UnitFilterForm(forms.Form):
+    CATEGORIES = [
+        ('all', 'All Units'),
+        ('CMPT', 'Computing Science'),
+        ('ENSC', 'Engineering Science'),
+        ('FAS', 'Faculty of Applied Science'),
+    ]
+    category = forms.ChoiceField(choices=CATEGORIES, initial='all', widget=forms.RadioSelect())
+
 
 class EventFilterForm(forms.Form):
     CATEGORIES = [

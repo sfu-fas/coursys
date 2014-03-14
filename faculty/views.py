@@ -30,7 +30,7 @@ from reports.reportlib.semester import date2semester, current_semester
 
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
-from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm
+from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 
@@ -103,6 +103,7 @@ def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
     unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    filterform = UnitFilterForm()
 
     results = []
 
@@ -136,6 +137,7 @@ def search_events(request, event_type):
         'search_rules': rules,
         'results_columns': Handler.get_search_columns(),
         'results': results,
+        'filterform': filterform,
     }
     return render(request, 'faculty/search_form.html', context)
 
