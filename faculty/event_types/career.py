@@ -125,7 +125,8 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         }
 
     def to_timeline(self):
-        pass
+        # exclude base salary events from timeline
+        return None
 
     @classmethod
     def default_title(cls):
@@ -353,7 +354,7 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     def teaching_adjust_per_semester(self):
         credits = self.get_config('teaching_credits')
-        return TeachingAdjust(credits, fractions.Fraction(0))
+        return TeachingAdjust(fractions.Fraction(0), credits)
 
     def get_study_leave_credits(self):
         return self.get_config('study_leave_credits')
