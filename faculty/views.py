@@ -343,6 +343,103 @@ def teaching_summary(request, userid):
 
 
 @requires_role('ADMN')
+def study_leave_credits(request, userid):
+    person, _ = _get_faculty_or_404(request.units, userid)
+    form = TeachingSummaryForm()
+
+    def study_credit_events_table(semester, show_in_table, running_total):
+        cb = 0
+        slc = 0
+        e = []
+        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
+            .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
+            .select_related('offering', 'offering__semester')
+        for course in courses:
+            if show_in_table:
+                e += [(semester.name, course.offering.name(), course.teaching_credit(), '-', running_total)]
+            cb += course.teaching_credit()
+
+        # TODO: should filter only user-visible events
+        teaching_events = FacultySummary(person).teaching_events(semester)
+        for event in teaching_events:
+            # only want to account for the study leave event once
+            if event.event_type == 'STUDYLEAVE' and semester == Semester.get_semester(event.start_date):
+                Handler = EVENT_TYPES[event.event_type]
+                handler = Handler(event)
+                slc = handler.get_study_leave_credits()
+                running_total -= slc
+                if show_in_table:
+                    e += [(semester.name, event.get_event_type_display(), '-', -slc , running_total)]
+            else:
+                credits, load_decrease = FacultySummary(person).teaching_event_info(event)
+                if show_in_table:
+                    if load_decrease:
+                        e += [(semester.name, event.get_event_type_display(), load_decrease, '-', running_total)]
+                    if credits:
+                        e += [(semester.name, event.get_event_type_display(), credits, '-', running_total)]
+                cb += credits + load_decrease
+
+        if cb >= 0 and (courses or teaching_events):
+            slc = 2
+            running_total += slc
+            if show_in_table:
+                e += [(semester.name, 'Study Leave Credits for '+semester.name, '-', slc , running_total)]
+
+        return e, running_total
+
+    def all_study_events(start_semester, end_semester):
+        slc_total = 0
+        events = []
+        finish_semester = max(end_semester, Semester.current()) # in case we want to look into future semesters
+        curr_semester = Semester(name='0651')
+        while curr_semester <= finish_semester:
+            if curr_semester >= start_semester and curr_semester <= end_semester:
+                event, slc_total = study_credit_events_table(curr_semester, True, slc_total)
+            else:
+                event, slc_total = study_credit_events_table(curr_semester, False, slc_total)
+
+            if curr_semester == start_semester.previous_semester():
+                events += [('-', 'Study Leave Credits prior to '+start_semester.name, '-', slc_total , slc_total)]
+
+            events += event
+            curr_semester = curr_semester.next_semester()
+
+        return slc_total, events, finish_semester
+
+    if request.GET:
+        form = TeachingSummaryForm(request.GET)
+
+        if form.is_valid():
+            start = form.cleaned_data['start_semester']
+            end = form.cleaned_data['end_semester']
+            start_semester = Semester(name=start)
+            end_semester = Semester(name=end)
+
+            slc_total, events, finish_semester = all_study_events(start_semester, end_semester)
+
+    else:
+        end_semester = Semester.current()
+        start_semester = end_semester.previous_semester()
+        start = start_semester.name
+        end = end_semester.name
+        initial = { 'start_semester': start,
+                    'end_semester': end }
+        form = TeachingSummaryForm(initial=initial)
+
+        slc_total, events, finish_semester = all_study_events(start_semester, end_semester)
+
+    slc_mmixed = fraction_display(slc_total)
+    context = {
+        'form': form,
+        'person': person,
+        'study_credits': slc_mmixed,
+        'events': events,
+        'finish_semester': finish_semester
+    }
+    return render(request, 'faculty/study_leave_credits.html', context)
+
+
+@requires_role('ADMN')
 def otherinfo(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     # TODO: should some or all of these be limited by request.units?
