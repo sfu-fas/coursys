@@ -102,7 +102,7 @@ def fake_login(request, next_page=None):
         next_page = '/'
 
     hostname = socket.gethostname()
-    if settings.DEPLOYED or hostname.startswith('courses'):
+    if settings.DEPLOY_MODE == 'production' or hostname.startswith('courses'):
         # make damn sure we're not in production
         raise NotImplementedError
     
@@ -126,7 +126,7 @@ def fake_logout(request):
     """
     import socket
     hostname = socket.gethostname()
-    if settings.DEPLOYED or hostname.startswith('courses'):
+    if settings.DEPLOY_MODE == 'production' or hostname.startswith('courses'):
         # make sure we're not in production
         raise NotImplementedError
     
