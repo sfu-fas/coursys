@@ -28,9 +28,9 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 from reports.reportlib.semester import date2semester, current_semester
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
-from faculty.forms import SearchForm, EventFilterForm, GrantForm
+from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 
@@ -859,11 +859,22 @@ def view_memo(request, userid, event_slug, memo_slug):
 def grant_index(request):
     grants = Grant.objects.active()
     editor = get_object_or_404(Person, userid=request.user.username)
+    import_form = GrantImportForm()
     context = {
         "grants": grants,
         "editor": editor,
+        "import_form": import_form,
     }
     return render(request, "faculty/grant_index.html", context)
+
+@require_POST
+@requires_role('ADMN')
+def import_grants(request):
+    form = GrantImportForm(request.POST, request.FILES)
+    if form.is_valid():
+        csvfile = form.cleaned_data["file"]
+        TempGrant.objects.create_from_csv(csvfile)
+    return HttpResponseRedirect(reverse("grants_index"))
 
 @requires_role('ADMN')
 def new_grant(request):
