@@ -444,7 +444,7 @@ urlpatterns += patterns('',
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),
 )
 
-if not settings.DEPLOYED:
+if settings.DEPLOY_MODE != 'production':
     # URLs for development only:
     from django.conf.urls.static import static
     urlpatterns += patterns('',
