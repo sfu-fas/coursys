@@ -136,3 +136,6 @@ class GrantForm(forms.ModelForm):
 class GrantImportForm(forms.Form):
     file = forms.FileField()
 
+
+class AvailableCapacityForm(forms.Form):
+    semester = SemesterCodeField()
