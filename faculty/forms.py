@@ -2,7 +2,7 @@ from django import forms
 from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 
-from coredata.models import Semester, Unit
+from coredata.models import Semester, Unit, Person
 
 from models import CareerEvent
 from models import DocumentAttachment
@@ -128,6 +128,9 @@ class GrantForm(forms.ModelForm):
         if units:
             self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
             self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+
+        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"]).distinct()
+        self.fields['owners'].queryset = owners
 
     class Meta:
         model = Grant

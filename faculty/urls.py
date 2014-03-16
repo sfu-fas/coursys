@@ -46,6 +46,8 @@ urlpatterns = patterns('',
     url(r'^' + EVENT_PREFIX + '/(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name="faculty_event_view_memo"),
     url(r'^grants$', 'faculty.views.grant_index', name="grants_index"),
     url(r'^grants/new$', 'faculty.views.new_grant', name="new_grant"),
+    url(r'^grants/convert/(?P<gid>\d+)$', 'faculty.views.convert_grant', name="convert_grant"),
+    url(r'^grants/delete/(?P<gid>\d+)$', 'faculty.views.delete_grant', name="delete_grant"),
     url(r'^grants/import$', 'faculty.views.import_grants', name="import_grants"),
     url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '$', 'faculty.views.view_grant', name="view_grant"),
     

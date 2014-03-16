@@ -8,7 +8,7 @@
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#faculty_salary_table').dataTable( {
+  $('#grants_table').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     "aaSorting": [[0, "asc"]],
@@ -35,25 +35,43 @@ $(document).ready(function() {
 {% block content %}
 <h4>All active grants</h4>
 <div class="datatable_container">
-<table id="faculty_salary_table" class="display">
+<table id="grants_table" class="display">
   <thead><tr><th scope="col">Grant</th><th scope="col">Start date</th><th scope="col">End date</th><th scope="col">Initial balance</th><th scope="col">Unit</th></tr></thead>
   <tbody>
   {% for grant in grants %}
   <tr>
-  <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
-  <td>{{ grant.start_date }}</td>
-  <td>{{ grant.expiry_date }}</td>
-  <td>{{ grant.initial }}</td>
-  <td>{{ grant.unit }}</td>
+    <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
+    <td>{{ grant.start_date }}</td>
+    <td>{{ grant.expiry_date }}</td>
+    <td>{{ grant.initial }}</td>
+    <td>{{ grant.unit }}</td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
 
 <form action="{% url 'import_grants' %}" method="post" enctype="multipart/form-data">
 	{% csrf_token %}
 	{{ import_form|as_dl }}
 	<input type="submit" value="Import Grants CSV" />
 </form>
+
+<h4>Imported but not converted grants</h4>
+<div class="datatable_container">
+<table id="temp_grants_table" class="display">
+  <thead><tr><th scope="col">Grant</th><th scope="col">Project Code</th><th scope="col">Initial</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for grant in temp_grants %}
+  <tr>
+    <td><a href="{{ grant.get_convert_url }}">{{ grant.label }}</a></td>
+    <td>{{ grant.project_code }}</td>
+    <td>${{ grant.initial }}</td>
+    <td><a href="{{ grant.get_convert_url }}">Convert</a> | <a href="{{ grant.get_delete_url }}">Delete</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
 </div>
+
 {% endblock %}

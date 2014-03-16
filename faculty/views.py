@@ -3,6 +3,7 @@ import datetime
 import itertools
 import json
 import operator
+from decimal import Decimal, InvalidOperation
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -1014,11 +1015,13 @@ def view_memo(request, userid, event_slug, memo_slug):
 @requires_role('ADMN')
 def grant_index(request):
     grants = Grant.objects.active()
+    temp_grants = TempGrant.objects.all()
     editor = get_object_or_404(Person, userid=request.user.username)
     import_form = GrantImportForm()
     context = {
         "grants": grants,
         "editor": editor,
+        "temp_grants": temp_grants,
         "import_form": import_form,
     }
     return render(request, "faculty/grant_index.html", context)
@@ -1029,8 +1032,47 @@ def import_grants(request):
     form = GrantImportForm(request.POST, request.FILES)
     if form.is_valid():
         csvfile = form.cleaned_data["file"]
-        TempGrant.objects.create_from_csv(csvfile)
+        created, failed = TempGrant.objects.create_from_csv(csvfile)
     return HttpResponseRedirect(reverse("grants_index"))
+
+
+@requires_role('ADMN')
+def convert_grant(request, gid):
+    tmp = get_object_or_404(TempGrant, id=gid)
+    editor = get_object_or_404(Person, userid=request.user.username)
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    units = Unit.objects.filter(id__in=sub_unit_ids)
+    form = GrantForm(units, initial=tmp.grant_dict())
+    context = {
+        "temp_grant": tmp,
+        "grant_form": form,
+        "editor": editor,
+    }
+    if request.method == "POST":
+        form = GrantForm(units, request.POST)
+        if form.is_valid():
+            grant = form.save(commit=False)
+            grant.save()
+            try:
+                balance = Decimal(tmp.config["cur_balance"])
+                this_month = Decimal(tmp.config["cur_month"])
+                gb = grant.update_balance(balance, this_month)
+            except (KeyError, InvalidOperation):
+                pass
+            else:
+                tmp.delete()
+                return HttpResponseRedirect(reverse("grants_index"))
+        else:
+            context.update({"grant_form": form})
+    return render(request, "faculty/convert_grant.html", context)
+
+
+@requires_role('ADMN')
+def delete_grant(request, gid):
+    tmp = get_object_or_404(TempGrant, id=gid)
+    tmp.delete()
+    return HttpResponseRedirect(reverse("grants_index"))
+
 
 @requires_role('ADMN')
 def new_grant(request):
@@ -1043,14 +1085,15 @@ def new_grant(request):
         "editor": editor,
     }
     if request.method == "POST":
-        form = GrantForm(member_units, request.POST)
+        form = GrantForm(units, request.POST)
         if form.is_valid():
             grant = form.save(commit=False)
             grant.save()
         else:
             context.update({"grant_form": form})
     return render(request, "faculty/new_grant.html", context)
-    
+
+
 @requires_role('ADMN')
 def view_grant(request, unit_slug, grant_slug):
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
