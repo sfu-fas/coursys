@@ -407,22 +407,22 @@ def study_leave_credits(request, userid):
     form = TeachingSummaryForm()
 
     def study_credit_events_table(semester, show_in_table, running_total):
-        cb = 0
         slc = 0
         e = []
         courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
             .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
         for course in courses:
-            if show_in_table:
-                e += [(semester.name, course.offering.name(), course.teaching_credit(), '-', running_total)]
-            cb += course.teaching_credit()
+            tc = course.teaching_credit()
+            if show_in_table and tc:
+                running_total += tc
+                e += [(semester.name, course.offering.name(), tc, tc, running_total)]
 
         # TODO: should filter only user-visible events
         teaching_events = FacultySummary(person).teaching_events(semester)
         for event in teaching_events:
             # only want to account for the study leave event once
-            if event.event_type == 'STUDYLEAVE' and semester == Semester.get_semester(event.start_date):
+            if event.event_type == 'STUDYLEAVE' and Semester.start_end_dates(semester)[0] <= event.start_date:
                 Handler = EVENT_TYPES[event.event_type]
                 handler = Handler(event)
                 slc = handler.get_study_leave_credits()
@@ -431,18 +431,10 @@ def study_leave_credits(request, userid):
                     e += [(semester.name, event.get_event_type_display(), '-', -slc , running_total)]
             else:
                 credits, load_decrease = FacultySummary(person).teaching_event_info(event)
-                if show_in_table:
-                    if load_decrease:
-                        e += [(semester.name, event.get_event_type_display(), load_decrease, '-', running_total)]
-                    if credits:
-                        e += [(semester.name, event.get_event_type_display(), credits, '-', running_total)]
-                cb += credits + load_decrease
+                if show_in_table and credits:
+                        running_total += credits
+                        e += [(semester.name, event.get_event_type_display(), credits, credits, running_total)]
 
-        if cb >= 0 and (courses or teaching_events):
-            slc = 2
-            running_total += slc
-            if show_in_table:
-                e += [(semester.name, 'Study Leave Credits for '+semester.name, '-', slc , running_total)]
 
         return e, running_total
 
