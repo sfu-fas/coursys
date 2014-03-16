@@ -2,7 +2,7 @@ from django import forms
 from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 
-from coredata.models import Unit
+from coredata.models import Semester, Unit
 
 from models import CareerEvent
 from models import DocumentAttachment
@@ -139,3 +139,8 @@ class GrantImportForm(forms.Form):
 
 class AvailableCapacityForm(forms.Form):
     semester = SemesterCodeField()
+
+    def __init__(self, *args, **kwargs):
+        super(AvailableCapacityForm, self).__init__(*args, **kwargs)
+        if 'semester' not in self.data:
+            self.data['semester'] = Semester.current().name

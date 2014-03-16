@@ -14,6 +14,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import StreamingHttpResponse
+from django.http import HttpResponseBadRequest
 from django.core.exceptions import PermissionDenied
 
 from django.views.decorators.http import require_POST
@@ -33,6 +34,7 @@ from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, Attachmen
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, AvailableCapacityForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
+from faculty.util import UnicodeWriter
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -241,6 +243,15 @@ def salary_summary(request, userid):
     return render(request, 'faculty/salary_summary.html', context)
 
 
+def _teaching_capacity_data(unit, semester):
+    people = set(role.person for role in Role.objects.filter(unit=unit))
+
+    for person in people:
+        summary = FacultySummary(person)
+        credits, load = summary.teaching_credits(semester)
+        yield person, credits, load, -(credits + load)
+
+
 @requires_role('ADMN')
 def teaching_capacity(request):
     form = AvailableCapacityForm(request.GET or {'semester': Semester.current().name})
@@ -255,21 +266,52 @@ def teaching_capacity(request):
         semester = Semester.objects.get(name=form.cleaned_data['semester'])
 
         for unit in Unit.objects.order_by('label'):
-            people = set(role.person for role in Role.objects.filter(unit=unit))
             entries = []
             total = 0
 
-            for person in people:
-                summary = FacultySummary(person)
-                credits, load = summary.teaching_credits(semester)
+            for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
                 total += credits + load
-                entries.append((person, credits, load, -(credits + load)))
+                entries.append((person, credits, load, capacity))
 
             units.append((unit.name, (-total, entries)))
 
         context['semester'] = semester
 
     return render(request, 'faculty/reports/teaching_capacity.html', context)
+
+
+@requires_role('ADMN')
+def teaching_capacity_csv(request):
+    form = AvailableCapacityForm(request.GET)
+
+    if form.is_valid():
+        semester = Semester.objects.get(name=form.cleaned_data['semester'])
+        filename = 'teaching_capacity_{}.csv'.format(semester.name)
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+        csv = UnicodeWriter(response)
+        csv.writerow([
+            'unit',
+            'person',
+            'teaching credits',
+            'load decrease',
+            'available capacity',
+        ])
+
+        for unit in Unit.objects.order_by('label'):
+            for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
+                csv.writerow([
+                    unit.name,
+                    person.name(),
+                    str(credits),
+                    str(load),
+                    str(capacity),
+                ])
+
+        return response
+
+    return HttpResponseBadRequest(form.errors)
 
 
 ###############################################################################

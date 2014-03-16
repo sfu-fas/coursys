@@ -13,7 +13,11 @@ urlpatterns = patterns('',
     url(r'^salaries$', 'faculty.views.salary_index'),
     url(r'^salaries/' + USERID_OR_EMPLID + '$', 'faculty.views.salary_summary'),
     url(r'^queue/$', 'faculty.views.status_index', name="status_index"),
+
+    # Available Teaching Capacity
     url(r'^report/teaching_capacity$', 'faculty.views.teaching_capacity'),
+    url(r'^report/teaching_capacity.csv$', 'faculty.views.teaching_capacity_csv'),
+
     url(r'^event-management$', 'faculty.views.manage_event_index', name="faculty_events_manage_index"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates$', 'faculty.views.memo_templates', name="template_index"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/new$', 'faculty.views.new_memo_template', name="faculty_create_template"),
