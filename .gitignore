@@ -45,6 +45,7 @@ dbpass
 submitted_files
 celerybeat-schedule
 local_settings.py
+courses/secrets.py
 media/CACHE
 .project
 .pydevproject

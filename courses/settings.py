@@ -2,10 +2,16 @@ from django.conf import global_settings # Django defaults so we can modify them
 import socket, sys, os
 hostname = socket.gethostname()
 
+try:
+    from . import secrets
+except ImportError:
+    # not there? Hope we're not in production and continue
+    secrets = None
+
 # set overall deployment personality
 
-if 'DEPLOY_MODE' in os.environ:
-    DEPLOY_MODE = os.environ['DEPLOY_MODE']
+if getattr(secrets, 'DEPLOY_MODE', None):
+    DEPLOY_MODE = secrets.DEPLOY_MODE
 elif hostname == 'courses':
     # full production mode
     DEPLOY_MODE = 'production'
@@ -18,16 +24,6 @@ else:
 
 DEBUG = DEPLOY_MODE != 'production'
 TEMPLATE_DEBUG = DEBUG
-
-def environ_flag(variable, default):
-    """
-    Return boolean value from environment if set, or the given default
-    """
-    if variable in os.environ:
-        return bool(eval(os.environ[variable]))
-    else:
-        return default
-
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -103,7 +99,7 @@ USE_L10N = False
 USE_TZ = False
 
 # security-related settings
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = getattr(secrets, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca'])
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'
@@ -111,33 +107,26 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 
 # database config
-if DEPLOY_MODE == 'production':
+if DEPLOY_MODE in ['production', 'proddev']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ['DB_NAME'],
-            'USER': os.environ['DB_USER'],
-            'PASSWORD': os.environ['DB_PASS'],
-            'HOST': os.environ['DB_HOST'],
-            'PORT': os.environ['DB_PORT'],
             'CONN_MAX_AGE': 3600,
             'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # actually needed only for initial table creation
         }
     }
 
-elif DEPLOY_MODE =='proddev':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
+    if DEPLOY_MODE == 'proddev':
+        #
+        DATABASES['default'].update({
             'NAME': 'coursys',
             'USER': 'coursysuser',
             'PASSWORD': 'coursyspassword',
             'HOST': 'localhost',
             'PORT': 3306,
-            'CONN_MAX_AGE': 3600,
-            'OPTIONS': {"init_command": "SET storage_engine=INNODB;"}
-        }
-    }
+        })
+
+    DATABASES['default'].update(secrets.DB_CONNECTION)
 
 else:
     DATABASES = {
@@ -147,9 +136,8 @@ else:
         }
     }
 
-
 if DEPLOY_MODE == 'production':
-    SECRET_KEY = os.environ['SECRET_KEY']
+    SECRET_KEY = secrets.SECRET_KEY
 else:
     SECRET_KEY = 'a'*50
 
@@ -163,7 +151,7 @@ STATICFILES_FINDERS = (
     #'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 )
-COMPRESS_ENABLED = environ_flag('COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
+COMPRESS_ENABLED = getattr(secrets, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
@@ -181,7 +169,7 @@ if DEPLOY_MODE != 'devel':
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': os.environ['SVN_DB_PASS'],
+    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
             'db': 'coursesvn', 'port': 4000}
 
 else:
@@ -204,7 +192,7 @@ if DEPLOY_MODE == 'proddev':
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = environ_flag('USE_CELERY', DEPLOY_MODE != 'devel')
+USE_CELERY = getattr(secrets, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
@@ -243,7 +231,7 @@ EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
-SIMS_USER = os.environ.get('SIMS_USER', 'ggbaker')
+SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 DATE_FORMAT = "D N d Y"
@@ -256,7 +244,7 @@ GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
-DISABLE_REPORTING_DB = environ_flag('DISABLE_REPORTING_DB', False)
+DISABLE_REPORTING_DB = getattr(secrets, 'DISABLE_REPORTING_DB', False)
 
 # Feature flags to temporarily limit server load, aka "feature flags"
 # Possible values for the set documented in server-setup/index.html#flags
@@ -271,7 +259,7 @@ if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
     MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
     LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
-    DISABLE_REPORTING_DB = environ_flag('DISABLE_REPORTING_DB', True)
+    DISABLE_REPORTING_DB = getattr(secrets, 'DISABLE_REPORTING_DB', True)
 
 REPORT_CACHE_LOCATION = "/tmp/report_cache"
 
