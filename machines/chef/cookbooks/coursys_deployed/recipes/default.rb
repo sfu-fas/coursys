@@ -35,3 +35,9 @@ end
 #  - move nginx to port 8000
 #  - create startup script to run gunicorn on port 80
 #     gunicorn wsgi --bind 0.0.0.0:80
+
+
+# TODO for proddev environment:
+# - create mysql database 'coursys' on localhost
+# - GRANT ALL PRIVILEGES ON coursys.* to coursysuser@localhost IDENTIFIED BY 'coursyspassword';
+# - syncdb, migrate

@@ -126,7 +126,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'PORT': 3306,
         })
 
-    DATABASES['default'].update(secrets.DB_CONNECTION)
+    DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
 
 else:
     DATABASES = {
@@ -157,7 +157,8 @@ COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-if DEPLOY_MODE != 'devel':
+if DEPLOY_MODE == 'production':
+    # things only relevant to the true production environment
     MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
