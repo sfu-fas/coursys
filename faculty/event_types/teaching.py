@@ -44,7 +44,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
     def teaching_adjust_per_semester(self):
         load = self.get_config('load')
         # XXX: Normally it's (credits, load_decrease) so if I want a load increase then
-        #      load_decrease should be negated?
+        #      load_decrease should be negated!
         return TeachingAdjust(0, -load)
 
 

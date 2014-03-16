@@ -1,17 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Teaching Capacity by Unit{% endblock %}
-{% block h1 %}Teaching Capacity by Unit{% endblock %}
+{% load event_display %}
+
+{% block title %}Teaching Capacity by Unit{% if semester %}: {{ semester }}{% endif %}{% endblock %}
+{% block h1 %}Teaching Capacity by Unit{% if semester %}: {{ semester }}{% endif %}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#facultytable').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[0, "asc"]],
-    "bJQueryUI": true,
-  } );
-
   $('.capacity-unit i.fa-toggle-down').click(function () {
     var icon = $(this);
     var inner = icon.parent().parent().find('.capacity-unit-inner');
@@ -25,6 +20,13 @@ $(document).ready(function() {
       icon.addClass('fa-toggle-down');
     }
     inner.toggleClass('hidden');
+  });
+
+  $('.capacity-unit table').dataTable({
+      bPaginate: false,
+      bInfo: false,
+      aaSorting: [[0, 'asc']],
+      bJQueryUI: true
   });
 } );
 </script>
@@ -50,9 +52,6 @@ $(document).ready(function() {
 .capacity-unit .hidden {
   display: none;
 }
-.capacity-unit th.name {
-  width: 50%;
-}
 </style>
 {% endblock %}
 
@@ -61,7 +60,9 @@ $(document).ready(function() {
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
-      <a href=""><i class="fa fa-li fa-download"></i> Download PDF</a>
+      <a href="{% url 'faculty.views.teaching_capacity_csv' %}?{{ request.GET.urlencode }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
     </li>
   </ul>
 </div>
@@ -73,28 +74,39 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+<form action="" method="GET" class="noprint">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form>
+
 {% for unit_name, info in units %}
-{% with capacity=info.0 summaries=info.1 %}
+{% with unit_capacity=info.0 summaries=info.1 %}
 <div class="capacity-unit">
   <h3>
     <i class="fa {{ summaries|yesno:'fa-toggle-down,fa-times' }}"></i>
     {{ unit_name }}
-    <small>Available Capacity: {{ capacity }}</small>
+    <small>Available Capacity: {{ unit_capacity|fraction_display }}</small>
   </h3>
   {% if summaries %}
   <div class="capacity-unit-inner hidden">
   <table>
     <thead><tr>
       <th class="name" scope="col">Name</th>
-      <th scope="col">Required</th>
-      <th scope="col">Providing</th>
+      <th scope="col">Teaching Credits</th>
+      <th scope="col">Load Decrease</th>
+      <th scope="col">Available Capacity</th>
     </tr></thead>
     <tbody>
-    {% for person, credits, load in summaries %}
+    {% for person, credits, load_decrease, capacity in summaries %}
       <tr>
-        <td>{{ person }}</td>
-        <td>{{ credits }}</td>
-        <td>&#x2014;</td>
+        <td>
+          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.name }}&end_semester={{ semester.name }}">
+            {{ person }}
+          </a>
+        </td>
+        <td>{{ credits|fraction_display }}</td>
+        <td>{{ load_decrease|fraction_display }}</td>
+        <td>{{ capacity|fraction_display }}</td>
       </tr>
     {% endfor %}
     </tbody>
