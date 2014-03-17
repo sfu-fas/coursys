@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
+from featureflags.flags import feature_disabled
 import re, hashlib, datetime
 
 
@@ -79,7 +80,7 @@ class SIMSConn(DBConn):
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem, "Reporting database access has been disabled in this deployment."
-        elif 'sims' in settings.DISABLED_FEATURES:
+        elif feature_disabled('sims'):
             raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
 
         try:
