@@ -768,8 +768,3 @@ def _offering_meeting_time_data(request, offering):
                                          dt_string=True, colour=True, browse_titles=True))
     json.dump(data, response, indent=1)
     return response
-
-
-from courselib.auth import HttpError
-def service_unavailable(request, *args, **kwargs):
-    return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)

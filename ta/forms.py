@@ -68,7 +68,7 @@ class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
     def as_table_row(self):
         label = self.fields.pop('label')
         html = TUGDutyForm.as_table_row(self)
-        self.fields.insert(0, 'label', label)
+        #self.fields.insert(0, 'label', label)
         return html
     
     def clean(self):

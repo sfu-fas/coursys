@@ -17,10 +17,6 @@ def disabled_features():
     loader = get_loader()
     return loader.get_disabled_features()
 
-#def _return_unavailable(request, *args, **kwargs):
-#    return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)
-
-
 def feature_disabled(feature):
     return feature in disabled_features()
 
