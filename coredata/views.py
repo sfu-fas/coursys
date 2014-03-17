@@ -5,7 +5,8 @@ from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
-        has_formgroup, uses_feature
+        has_formgroup
+from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
         UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
@@ -769,4 +770,6 @@ def _offering_meeting_time_data(request, offering):
     return response
 
 
-
+from courselib.auth import HttpError
+def service_unavailable(request, *args, **kwargs):
+    return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)

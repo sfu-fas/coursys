@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'compressor',
     'djcelery',
     'djcelery_email',
+    'featureflags',
 
     'coredata',
     'dashboard',
@@ -249,6 +250,8 @@ DISABLE_REPORTING_DB = getattr(secrets, 'DISABLE_REPORTING_DB', False)
 
 # Feature flags to temporarily limit server load, aka "feature flags"
 # Possible values for the set documented in server-setup/index.html#flags
+FEATUREFLAGS_LOADER = 'featureflags.loaders.settings_loader'
+FEATUREFLAGS_DISABLED_VIEW = 'courselib.auth.service_unavailable'
 DISABLED_FEATURES = set([])
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'

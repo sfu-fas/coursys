@@ -11,7 +11,7 @@ from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
-    has_role, uses_feature
+    has_role
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
@@ -21,6 +21,7 @@ from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
+from featureflags.flags import uses_feature
 import pytz
 
 

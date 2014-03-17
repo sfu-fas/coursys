@@ -24,7 +24,9 @@ from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN, 
 from log.models import LogEntry
 from groups.models import Group, GroupMember, all_activities_filter
 
-from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug, ForbiddenResponse, NotFoundResponse, uses_feature
+from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug,\
+    ForbiddenResponse, NotFoundResponse
+from featureflags.flags import uses_feature
 
 from marking.forms import BaseCommonProblemFormSet, BaseActivityComponentFormSet
 from marking.forms import ActivityRenameForm
@@ -33,7 +35,7 @@ from marking.forms import GradeStatusForm, GradeStatusForm_LetterGrade
 from marking.forms import ActivityMarkForm, GroupActivityMarkForm, StudentActivityMarkForm, ActivityComponentMarkForm
 from marking.forms import MarkEntryForm, MarkEntryForm_LetterGrade
 from marking.forms import UploadGradeFileForm, UploadGradeFileForm_LetterGrade
-   
+
 # request to views in the marking may comes from different pages, for POST request, we need to redirect to the right page
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 def _redirct_response(request, course_slug, activity_slug):   
