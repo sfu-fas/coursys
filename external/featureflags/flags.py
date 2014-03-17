@@ -2,6 +2,7 @@ from django.conf import settings
 from django.utils import importlib
 DEFAULT_LOADER = 'featureflags.loaders.settings_loader'
 DEFAULT_VIEW = 'featureflags.views.service_unavailable'
+DEFAULT_TEMPLATE = 'featureflags/service_unavailable.html'
 
 def get_loader():
     module = getattr(settings, 'FEATUREFLAGS_LOADER', DEFAULT_LOADER)

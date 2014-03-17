@@ -1,7 +1,14 @@
-from django.http import HttpResponse
+from django.shortcuts import render
+from django.conf import settings
+from django.template.base import TemplateDoesNotExist
 
 def service_unavailable(request, *args, **kwargs):
-    response = HttpResponse()
-    response.status_code = 503
-    return response
-    return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)
+    if hasattr(settings, 'FEATUREFLAGS_DISABLED_TEMPLATE'):
+        template = getattr(settings, 'FEATUREFLAGS_DISABLED_TEMPLATE')
+    else:
+        template = '503.html'
+
+    try:
+        return render(request, template, status=503)
+    except TemplateDoesNotExist:
+        return render(request, 'featureflags/service_unavailable.html', status=503)
