@@ -22,7 +22,7 @@ $(document).ready(function() {
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
-      <a href="">
+      <a href="{% url 'faculty.views.course_accreditation_csv' %}?{{ request.GET.urlencode }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     </li>
