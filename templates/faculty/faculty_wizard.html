@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Faculty Setup Wizard: {{ person.name }}{% endblock %}
+{% block h1 %}Faculty Setup Wizard: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Setup Wizard</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %} 
+        {% for form in event_form %}
+        <fieldset>
+            <h2> {{ form.title.value }} </h2>
+            {{ form|as_dl }}
+            {{ form.media }}
+            </br>
+        </fieldset>
+        {% endfor %}
+        <p><input type="submit" class="submit" value="Submit" /></p>
+    </form>
+</div>
+{% endblock %}

@@ -827,6 +827,65 @@ def change_event_status(request, userid, event_slug):
         event.save(editor)
         return HttpResponseRedirect(event.get_absolute_url())
 
+@requires_role('ADMN')
+def faculty_wizard(request, userid):
+    """
+    Initial wizard for a user, set up basic events (appointment, base salary, normal teaching load).
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    editor = get_object_or_404(Person, userid=request.user.username)
+    
+    try:
+        Handler_appoint = EVENT_TYPES["APPOINT"]
+        Handler_salary = EVENT_TYPES["SALARY"]
+        Handler_load = EVENT_TYPES["NORM_TEACH"]
+    except KeyError:
+        return NotFoundResponse(request)
+
+    tmp1 = Handler_appoint.create_for(person)
+    tmp2 = Handler_salary.create_for(person)
+    tmp3 = Handler_load.create_for(person)
+
+    if not tmp1.can_edit(editor):
+        raise PermissionDenied("'%s' not allowed to create this event" %(event_type))
+
+    context = {
+        'person': person,
+        'editor': editor,
+        'handler': Handler_appoint,
+        'name': Handler_appoint.NAME,
+    }
+
+    if request.method == "POST":
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        if form_appoint.is_valid() and form_salary.is_valid() and form_load.is_valid():
+            handler_appoint = Handler_appoint.create_for(person=person, form=form_appoint)
+            handler_appoint.save(editor)
+            handler_appoint.set_status(editor)
+
+            handler_salary = Handler_salary.create_for(person=person, form=form_salary)
+            handler_salary.save(editor)
+            handler_salary.set_status(editor)
+
+            handler_load = Handler_load.create_for(person=person, form=form_load)
+            handler_load.save(editor)
+            handler_load.set_status(editor)
+            return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
+        else:
+            forms = [form_appoint, form_salary, form_load]
+            context.update({"event_form": forms})
+    else:
+        # Display new blank form
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units)
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units)
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units)
+        forms = [form_appoint, form_salary, form_load]
+        context.update({"event_form": forms})
+
+    return render(request, 'faculty/faculty_wizard.html', context)
+
 
 ###############################################################################
 # Management of DocumentAttachments and Memos
