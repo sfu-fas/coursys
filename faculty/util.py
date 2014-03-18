@@ -2,6 +2,8 @@ import cStringIO
 import codecs
 import csv
 
+from django.http import HttpResponse
+
 
 # Taken from: http://docs.python.org/2/library/csv.html#csv-examples with minor changes
 # NOTE: Could also use https://github.com/jdunck/python-unicodecsv
@@ -32,3 +34,9 @@ class UnicodeWriter(object):
     def writerows(self, rows):
         for row in rows:
             self.writerow(row)
+
+
+def make_csv_writer_response(filename, *args, **kwargs):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    return UnicodeWriter(response), response

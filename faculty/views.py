@@ -37,7 +37,7 @@ from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportFor
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
-from faculty.util import UnicodeWriter
+from faculty.util import UnicodeWriter, make_csv_writer_response
 from faculty.event_types.base import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 
@@ -291,11 +291,9 @@ def teaching_capacity_csv(request):
 
     if form.is_valid():
         semester = Semester.objects.get(name=form.cleaned_data['semester'])
-        filename = 'teaching_capacity_{}.csv'.format(semester.name)
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-        csv = UnicodeWriter(response)
+        filename = 'teaching_capacity_{}.csv'.format(semester.name)
+        csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
             'person',
@@ -430,10 +428,7 @@ def course_accreditation_csv(request):
 
         # Set up for CSV shenanigans
         filename = 'course_accreditation_{}-{}.csv'.format(start_semester, end_semester)
-
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-        csv = UnicodeWriter(response)
+        csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
             'semester',
