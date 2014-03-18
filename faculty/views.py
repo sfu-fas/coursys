@@ -249,36 +249,40 @@ def salary_summary(request, userid):
 
 
 def _teaching_capacity_data(unit, semester):
-    people = set(role.person for role in Role.objects.filter(unit=unit))
+    people = set(role.person for role in Role.objects.filter(role='FAC', unit=unit))
 
     for person in people:
         summary = FacultySummary(person)
         credits, load = summary.teaching_credits(semester)
-        yield person, credits, load, -(credits + load)
+
+        # -load: we're showing "expected teaching load"
+        # -capacity: if this is negative, then we have available capacity
+        yield person, credits, -load, -(credits + load)
 
 
 @requires_role('ADMN')
 def teaching_capacity(request):
+    _, units = _get_faculty_or_404(request.units, request.user.username)
+    sub_units = Unit.sub_units(units)
+
     form = AvailableCapacityForm(request.GET or {'semester': Semester.current().name})
-    units = []
+    collected_units = []
 
     context = {
         'form': form,
-        'units': units,
+        'units': collected_units,
     }
 
     if form.is_valid():
         semester = Semester.objects.get(name=form.cleaned_data['semester'])
 
-        for unit in Unit.objects.order_by('label'):
+        for unit in sub_units:
             entries = []
-            total = 0
 
             for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
-                total += credits + load
                 entries.append((person, credits, load, capacity))
 
-            units.append((unit.name, (-total, entries)))
+            collected_units.append((unit, entries))
 
         context['semester'] = semester
 
@@ -287,6 +291,9 @@ def teaching_capacity(request):
 
 @requires_role('ADMN')
 def teaching_capacity_csv(request):
+    _, units = _get_faculty_or_404(request.units, request.user.username)
+    sub_units = Unit.sub_units(units)
+
     form = AvailableCapacityForm(request.GET)
 
     if form.is_valid():
@@ -298,11 +305,11 @@ def teaching_capacity_csv(request):
             'unit',
             'person',
             'teaching credits',
-            'load decrease',
+            'expected teaching load',
             'available capacity',
         ])
 
-        for unit in Unit.objects.order_by('label'):
+        for unit in sub_units:
             for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
                 csv.writerow([
                     unit.name,
