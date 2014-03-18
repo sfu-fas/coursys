@@ -2,7 +2,7 @@ from django import forms
 from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 
-from coredata.models import Semester, Unit
+from coredata.models import Semester, Unit, Person
 
 from models import CareerEvent
 from models import DocumentAttachment
@@ -129,6 +129,9 @@ class GrantForm(forms.ModelForm):
             self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
             self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
 
+        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"]).distinct()
+        self.fields['owners'].queryset = owners
+
     class Meta:
         model = Grant
 
@@ -144,3 +147,29 @@ class AvailableCapacityForm(forms.Form):
         super(AvailableCapacityForm, self).__init__(*args, **kwargs)
         if 'semester' not in self.data:
             self.data['semester'] = Semester.current().name
+
+
+class CourseAccreditationForm(forms.Form):
+
+    OPERATOR_CHOICES = (
+        ('', '----'),
+        ('AND', 'HAS ALL'),
+        ('OR', 'HAS ANY'),
+        ('NONE_OF', 'HAS NONE OF'),
+    )
+
+    start_semester = SemesterCodeField()
+    end_semester = SemesterCodeField()
+    operator = forms.ChoiceField(choices=OPERATOR_CHOICES, required=False)
+    flag = forms.MultipleChoiceField(choices=[], required=False,
+                                      widget=forms.CheckboxSelectMultiple())
+
+    def __init__(self, *args, **kwargs):
+        flags = kwargs.pop('flags', [])
+        super(CourseAccreditationForm, self).__init__(*args, **kwargs)
+
+        if 'start_semester' not in self.data:
+            self.data['start_semester'] = Semester.current().name
+        if 'end_semester' not in self.data:
+            self.data['end_semester'] = Semester.current().name
+        self.fields['flag'].choices = flags

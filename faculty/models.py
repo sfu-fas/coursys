@@ -1,6 +1,8 @@
+from decimal import Decimal, InvalidOperation
 import datetime
 import csv
 import os
+import re
 
 from django.db import models
 from django.db.models import Q
@@ -444,36 +446,68 @@ class TempGrantManager(models.Manager):
     def create_from_csv(self, fh):
         reader = csv.reader(fh.read().splitlines())
         # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
+        failed = []
+        created = []
         for row in reader:
-            # ----------------------------
-            # DO SOME SERIOUS PARSING HERE
-            # ----------------------------
-            print row
-            # create TempGrant from row
+            try:
+                fund = unicode(row[0].strip(), errors='ignore')
+            except IndexError:
+                continue
+            if re.match('[0-9]{2} ?-? ?[0-9]{6}$', fund):
+                try:
+                    label = unicode(row[1].strip(), errors='ignore')
+                except IndexError:
+                    failed.append(row)
+                    continue
+                try:
+                    # Grab things from the CSV
+                    balance = Decimal(unicode(row[4].strip(), errors='ignore'))
+                    cur_month = Decimal(unicode(row[5].strip(), errors='ignore'))
+                    ytd_actual = Decimal(unicode(row[6].strip(), errors='ignore'))
+                    cur_balance = Decimal(unicode(row[8].strip(), errors='ignore'))
+                except (IndexError, InvalidOperation):
+                    failed.append(row)
+                    continue
+                
+                # Make sure its not a duplicate label
+                if not TempGrant.objects.filter(label__exact=label).exists():
+                    t = TempGrant(
+                        label=label,
+                        initial=balance,
+                        project_code=fund,
+                        config={"cur_month": cur_month,
+                                "ytd_actual": ytd_actual,
+                                "cur_balance": cur_balance}
+                    )
+                    t.save()
+                    created.append(t)
+        return created, failed
 
 
 class TempGrant(models.Model):
-    label = models.CharField(max_length=255, help_text="for identification from FAST import")
-    project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
+    label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True)
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
-    overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
+    project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
     config = JSONField(default={}) # addition configuration for within the temp grant
 
     objects = TempGrantManager()
 
-    def convert_to_grant(self, **kwargs):
+    def get_convert_url(self):
+        return reverse("convert_grant", args=[self.id])
+
+    def get_delete_url(self):
+        return reverse("delete_grant", args=[self.id])
+
+    def grant_dict(self, **kwargs):
         data = {
             "label": self.label,
             "project_code": self.project_code,
             "initial": self.initial,
-            "overhead": self.overhead,
             "import_key": self.import_key,
-            "config": self.config,
         }
         data.update(**kwargs)
-        grant = Grant(**data)
-        return grant
+        return data
 
 
 class GrantManager(models.Manager):
@@ -489,7 +523,7 @@ class Grant(models.Model):
     )
     title = models.CharField(max_length=64)
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
-    label = models.CharField(max_length=255, help_text="for identification from FAST import", db_index=True)
+    label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True, db_index=True)
     owners = models.ManyToManyField(Person, blank=True, null=True)
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
@@ -499,7 +533,7 @@ class Grant(models.Model):
     overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
     unit = models.ForeignKey(Unit, null=False, blank=False, help_text="unit who owns the grant")
-    config = JSONField(default={})  # addition configuration for within the grant
+    config = JSONField(blank=True, null=True, default={})  # addition configuration for within the grant
 
     objects = GrantManager()
 
@@ -526,7 +560,7 @@ class GrantBalance(models.Model):
     balance = models.DecimalField(verbose_name="grant balance", max_digits=12, decimal_places=2)
     actual = models.DecimalField(verbose_name="YTD actual", max_digits=12, decimal_places=2)
     month = models.DecimalField(verbose_name="current month", max_digits=12, decimal_places=2)
-    config = JSONField(default={})  # addition configuration for within the memo
+    config = JSONField(blank=True, null=True, default={})  # addition configuration for within the memo
 
     def __unicode__(self):
         return u"%s balance as of %s" % (self.grant, self.date)

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load event_display %}
+{% load form_display %}
 
 {% block title %}Teaching Capacity by Unit{% if semester %}: {{ semester }}{% endif %}{% endblock %}
 {% block h1 %}Teaching Capacity by Unit{% if semester %}: {{ semester }}{% endif %}{% endblock %}
@@ -75,8 +76,9 @@ $(document).ready(function() {
 
 {% block content %}
 <form action="" method="GET" class="noprint">
-  {{ form.as_p }}
-  <input type="submit" value="Select" />
+  {{ form|as_dl }}
+  <input class="submit" type="submit" value="Select" />
+  <input class="submit" type="reset" value="Clear" />
 </form>
 
 {% for unit_name, info in units %}

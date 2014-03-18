@@ -3,6 +3,8 @@ import datetime
 import itertools
 import json
 import operator
+from collections import defaultdict
+from decimal import Decimal, InvalidOperation
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -29,12 +31,15 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 from reports.reportlib.semester import date2semester, current_semester
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
-from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, AvailableCapacityForm
+from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
+from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
-from faculty.util import UnicodeWriter
+from faculty.util import UnicodeWriter, make_csv_writer_response
+from faculty.event_types.base import Choices
+from faculty.event_types.career import AccreditationFlagEventHandler
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -286,11 +291,9 @@ def teaching_capacity_csv(request):
 
     if form.is_valid():
         semester = Semester.objects.get(name=form.cleaned_data['semester'])
-        filename = 'teaching_capacity_{}.csv'.format(semester.name)
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-        csv = UnicodeWriter(response)
+        filename = 'teaching_capacity_{}.csv'.format(semester.name)
+        csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
             'person',
@@ -308,6 +311,139 @@ def teaching_capacity_csv(request):
                     str(load),
                     str(capacity),
                 ])
+
+        return response
+
+    return HttpResponseBadRequest(form.errors)
+
+
+def _matched_flags(operator, selected_flags, instructor_flags):
+    if operator == 'AND':
+        # Instructor must have all flags
+        if selected_flags <= instructor_flags:
+            return selected_flags
+        else:
+            return None
+    elif operator == 'OR':
+        # Instructor must have at least one of the flags
+        common = selected_flags & instructor_flags
+        if common:
+            return common
+        else:
+            return None
+    elif operator == 'NONE_OF':
+        # Instructor must have none of the flags
+        if not selected_flags & instructor_flags:
+            return instructor_flags - selected_flags
+        else:
+            return None
+    else:
+        # No filtering
+        return instructor_flags
+
+
+def _get_visible_flags(viewer, offering, instructor):
+    return set(event.config['flag']
+               for event in CareerEvent.objects.by_type(AccreditationFlagEventHandler)
+                                               .filter(unit=offering.owner)
+                                               .filter(person=instructor)
+                                               .overlaps_semester(offering.semester)
+               if event.get_handler().can_view(viewer))
+
+
+def _course_accreditation_data(viewer, units, semesters, operator, selected_flags):
+    # Get all offerings that fall within the selected semesters.
+    offerings = CourseOffering.objects.filter(semester__in=semesters, owner__in=units)
+
+    for offering in offerings:
+        for instructor in offering.instructors():
+            # Get flags for instructor that were active during this offering's semester
+            flags = _get_visible_flags(viewer, offering, instructor)
+
+            # Only show offering if there's a flag match
+            matched_flags = _matched_flags(operator, selected_flags, flags)
+            if matched_flags is not None:
+                yield offering, instructor, matched_flags
+
+
+@requires_role('ADMN')
+def course_accreditation(request):
+    viewer, units = _get_faculty_or_404(request.units, request.user.username)
+    courses = defaultdict(list)
+
+    # Gather all visible accreditation flags for viewer from all units
+    ecs = EventConfig.objects.filter(unit__in=units,
+                                     event_type=AccreditationFlagEventHandler.EVENT_TYPE)
+    flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
+
+    form = CourseAccreditationForm(request.GET, flags=flag_choices)
+
+    if form.is_valid():
+        start_semester = form.cleaned_data.get('start_semester')
+        end_semester = form.cleaned_data.get('end_semester')
+        operator = form.cleaned_data.get('operator')
+        selected_flags = set(form.cleaned_data.get('flag'))
+
+        semesters = [Semester.objects.get(name=name)
+                     for name in Semester.range(start_semester, end_semester)]
+
+        # Group offerings by course
+        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
+        for offering, instructor, matched_flags in found:
+            presentation_flags = ((flag, flag_choices[flag]) for flag in matched_flags)
+            courses[offering.course.full_name()].append((offering,
+                                                         instructor,
+                                                         presentation_flags))
+
+    context = {
+        'courses': dict(courses),
+        'form': form,
+    }
+    return render(request, 'faculty/reports/course_accreditation.html', context)
+
+
+@requires_role('ADMN')
+def course_accreditation_csv(request):
+    viewer, units = _get_faculty_or_404(request.units, request.user.username)
+
+    # Gather all visible accreditation flags for viewer from all units
+    ecs = EventConfig.objects.filter(unit__in=units,
+                                     event_type=AccreditationFlagEventHandler.EVENT_TYPE)
+    flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
+
+    form = CourseAccreditationForm(request.GET, flags=flag_choices)
+
+    if form.is_valid():
+        start_semester = form.cleaned_data.get('start_semester')
+        end_semester = form.cleaned_data.get('end_semester')
+        operator = form.cleaned_data.get('operator')
+        selected_flags = set(form.cleaned_data.get('flag'))
+
+        semesters = [Semester.objects.get(name=name)
+                     for name in Semester.range(start_semester, end_semester)]
+
+        # Set up for CSV shenanigans
+        filename = 'course_accreditation_{}-{}.csv'.format(start_semester, end_semester)
+        csv, response = make_csv_writer_response(filename)
+        csv.writerow([
+            'unit',
+            'semester',
+            'course',
+            'course title',
+            'instructor',
+            'flags',
+        ])
+
+        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
+        for offering, instructor, matched_flags in found:
+            csv.writerow([
+                offering.owner.label,
+                offering.semester.label(),
+                offering.name(),
+                offering.title,
+                instructor.name(),
+                ','.join(matched_flags),
+            ])
 
         return response
 
@@ -407,22 +543,22 @@ def study_leave_credits(request, userid):
     form = TeachingSummaryForm()
 
     def study_credit_events_table(semester, show_in_table, running_total):
-        cb = 0
         slc = 0
         e = []
         courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
             .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
         for course in courses:
-            if show_in_table:
-                e += [(semester.name, course.offering.name(), course.teaching_credit(), '-', running_total)]
-            cb += course.teaching_credit()
+            tc = course.teaching_credit()
+            if show_in_table and tc:
+                running_total += tc
+                e += [(semester.name, course.offering.name(), tc, tc, running_total)]
 
         # TODO: should filter only user-visible events
         teaching_events = FacultySummary(person).teaching_events(semester)
         for event in teaching_events:
             # only want to account for the study leave event once
-            if event.event_type == 'STUDYLEAVE' and semester == Semester.get_semester(event.start_date):
+            if event.event_type == 'STUDYLEAVE' and Semester.start_end_dates(semester)[0] <= event.start_date:
                 Handler = EVENT_TYPES[event.event_type]
                 handler = Handler(event)
                 slc = handler.get_study_leave_credits()
@@ -431,18 +567,10 @@ def study_leave_credits(request, userid):
                     e += [(semester.name, event.get_event_type_display(), '-', -slc , running_total)]
             else:
                 credits, load_decrease = FacultySummary(person).teaching_event_info(event)
-                if show_in_table:
-                    if load_decrease:
-                        e += [(semester.name, event.get_event_type_display(), load_decrease, '-', running_total)]
-                    if credits:
-                        e += [(semester.name, event.get_event_type_display(), credits, '-', running_total)]
-                cb += credits + load_decrease
+                if show_in_table and credits:
+                        running_total += credits
+                        e += [(semester.name, event.get_event_type_display(), credits, credits, running_total)]
 
-        if cb >= 0 and (courses or teaching_events):
-            slc = 2
-            running_total += slc
-            if show_in_table:
-                e += [(semester.name, 'Study Leave Credits for '+semester.name, '-', slc , running_total)]
 
         return e, running_total
 
@@ -567,6 +695,38 @@ def timeline(request, userid):
     return render(request, 'faculty/timeline.html', {'person': person})
 
 
+def _get_semester_code(date):
+    prefix = str(date.year - 1900)
+
+    if date.month >= 9:
+        return prefix + '7'
+    elif date.month >= 5:
+        return prefix + '4'
+    else:
+        return prefix + '1'
+
+
+def _get_semester_era(code):
+    year = int(code[:3]) + 1900
+    season = code[3]
+
+    if season == '1':
+        start = datetime.date(year, 1, 1)
+        end = datetime.date(year, 4, 30)
+    elif season == '4':
+        start = datetime.date(year, 5, 1)
+        end = datetime.date(year, 8, 31)
+    elif season == '7':
+        start = datetime.date(year, 9, 1)
+        end = datetime.date(year, 12, 31)
+
+    return {
+        'startDate': '{:%Y,%m,%d}'.format(start),
+        'endDate': '{:%Y,%m,%d}'.format(end),
+        'headline': '{} {}'.format(Semester.label_lookup[season], year),
+    }
+
+
 @requires_role('ADMN')
 def timeline_json(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -575,15 +735,26 @@ def timeline_json(request, userid):
             'type': 'default',
             'startDate': '{:%Y,%m,%d}'.format(datetime.date.today()),
             'date': [],
+            'era': [],
         },
     }
 
+    semester_names = set()
+
+    # Populate events
     for event in CareerEvent.objects.filter(person=person).not_deleted():
         handler = event.get_handler()
+
         if handler.can_view(person):
             blurb = handler.to_timeline()
+
             if blurb:
                 payload['timeline']['date'].append(blurb)
+                semester_names.add(_get_semester_code(handler.event.start_date))
+
+    # Populate semesters
+    for name in semester_names:
+        payload['timeline']['era'].append(_get_semester_era(name))
 
     return HttpResponse(json.dumps(payload), mimetype='application/json')
 
@@ -705,6 +876,65 @@ def change_event_status(request, userid, event_slug):
         event = form.save(commit=False)
         event.save(editor)
         return HttpResponseRedirect(event.get_absolute_url())
+
+@requires_role('ADMN')
+def faculty_wizard(request, userid):
+    """
+    Initial wizard for a user, set up basic events (appointment, base salary, normal teaching load).
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    editor = get_object_or_404(Person, userid=request.user.username)
+    
+    try:
+        Handler_appoint = EVENT_TYPES["APPOINT"]
+        Handler_salary = EVENT_TYPES["SALARY"]
+        Handler_load = EVENT_TYPES["NORM_TEACH"]
+    except KeyError:
+        return NotFoundResponse(request)
+
+    tmp1 = Handler_appoint.create_for(person)
+    tmp2 = Handler_salary.create_for(person)
+    tmp3 = Handler_load.create_for(person)
+
+    if not tmp1.can_edit(editor):
+        raise PermissionDenied("'%s' not allowed to create this event" %(event_type))
+
+    context = {
+        'person': person,
+        'editor': editor,
+        'handler': Handler_appoint,
+        'name': Handler_appoint.NAME,
+    }
+
+    if request.method == "POST":
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        if form_appoint.is_valid() and form_salary.is_valid() and form_load.is_valid():
+            handler_appoint = Handler_appoint.create_for(person=person, form=form_appoint)
+            handler_appoint.save(editor)
+            handler_appoint.set_status(editor)
+
+            handler_salary = Handler_salary.create_for(person=person, form=form_salary)
+            handler_salary.save(editor)
+            handler_salary.set_status(editor)
+
+            handler_load = Handler_load.create_for(person=person, form=form_load)
+            handler_load.save(editor)
+            handler_load.set_status(editor)
+            return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
+        else:
+            forms = [form_appoint, form_salary, form_load]
+            context.update({"event_form": forms})
+    else:
+        # Display new blank form
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units)
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units)
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units)
+        forms = [form_appoint, form_salary, form_load]
+        context.update({"event_form": forms})
+
+    return render(request, 'faculty/faculty_wizard.html', context)
 
 
 ###############################################################################
@@ -1014,11 +1244,13 @@ def view_memo(request, userid, event_slug, memo_slug):
 @requires_role('ADMN')
 def grant_index(request):
     grants = Grant.objects.active()
+    temp_grants = TempGrant.objects.all()
     editor = get_object_or_404(Person, userid=request.user.username)
     import_form = GrantImportForm()
     context = {
         "grants": grants,
         "editor": editor,
+        "temp_grants": temp_grants,
         "import_form": import_form,
     }
     return render(request, "faculty/grant_index.html", context)
@@ -1029,8 +1261,49 @@ def import_grants(request):
     form = GrantImportForm(request.POST, request.FILES)
     if form.is_valid():
         csvfile = form.cleaned_data["file"]
-        TempGrant.objects.create_from_csv(csvfile)
+        created, failed = TempGrant.objects.create_from_csv(csvfile)
     return HttpResponseRedirect(reverse("grants_index"))
+
+
+@requires_role('ADMN')
+def convert_grant(request, gid):
+    tmp = get_object_or_404(TempGrant, id=gid)
+    editor = get_object_or_404(Person, userid=request.user.username)
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    units = Unit.objects.filter(id__in=sub_unit_ids)
+    form = GrantForm(units, initial=tmp.grant_dict())
+    context = {
+        "temp_grant": tmp,
+        "grant_form": form,
+        "editor": editor,
+    }
+    if request.method == "POST":
+        form = GrantForm(units, request.POST)
+        if form.is_valid():
+            grant = form.save(commit=False)
+            grant.save()
+            try:
+                # TODO: anything else to add to grant balance? can YTD actual be calculated?
+                balance = Decimal(tmp.config["cur_balance"])
+                this_month = Decimal(tmp.config["cur_month"])
+                gb = grant.update_balance(balance, this_month)
+            except (KeyError, InvalidOperation):
+                pass
+            else:
+                # Delete the temporary grant
+                tmp.delete()
+                return HttpResponseRedirect(reverse("grants_index"))
+        else:
+            context.update({"grant_form": form})
+    return render(request, "faculty/convert_grant.html", context)
+
+
+@requires_role('ADMN')
+def delete_grant(request, gid):
+    tmp = get_object_or_404(TempGrant, id=gid)
+    tmp.delete()
+    return HttpResponseRedirect(reverse("grants_index"))
+
 
 @requires_role('ADMN')
 def new_grant(request):
@@ -1043,14 +1316,15 @@ def new_grant(request):
         "editor": editor,
     }
     if request.method == "POST":
-        form = GrantForm(member_units, request.POST)
+        form = GrantForm(units, request.POST)
         if form.is_valid():
             grant = form.save(commit=False)
             grant.save()
         else:
             context.update({"grant_form": form})
     return render(request, "faculty/new_grant.html", context)
-    
+
+
 @requires_role('ADMN')
 def view_grant(request, unit_slug, grant_slug):
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
