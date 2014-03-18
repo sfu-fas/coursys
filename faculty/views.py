@@ -369,10 +369,11 @@ def _course_accreditation_data(viewer, units, semesters, operator, selected_flag
 @requires_role('ADMN')
 def course_accreditation(request):
     viewer, units = _get_faculty_or_404(request.units, request.user.username)
+    sub_units = Unit.sub_units(units)
     courses = defaultdict(list)
 
     # Gather all visible accreditation flags for viewer from all units
-    ecs = EventConfig.objects.filter(unit__in=units,
+    ecs = EventConfig.objects.filter(unit__in=sub_units,
                                      event_type=AccreditationFlagEventHandler.EVENT_TYPE)
     flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
 
@@ -388,7 +389,7 @@ def course_accreditation(request):
                      for name in Semester.range(start_semester, end_semester)]
 
         # Group offerings by course
-        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
+        found = _course_accreditation_data(viewer, sub_units, semesters, operator, selected_flags)
         for offering, instructor, matched_flags in found:
             presentation_flags = ((flag, flag_choices[flag]) for flag in matched_flags)
             courses[offering.course.full_name()].append((offering,
@@ -405,9 +406,10 @@ def course_accreditation(request):
 @requires_role('ADMN')
 def course_accreditation_csv(request):
     viewer, units = _get_faculty_or_404(request.units, request.user.username)
+    sub_units = Unit.sub_units(units)
 
     # Gather all visible accreditation flags for viewer from all units
-    ecs = EventConfig.objects.filter(unit__in=units,
+    ecs = EventConfig.objects.filter(unit__in=sub_units,
                                      event_type=AccreditationFlagEventHandler.EVENT_TYPE)
     flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
 
@@ -434,7 +436,7 @@ def course_accreditation_csv(request):
             'flags',
         ])
 
-        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
+        found = _course_accreditation_data(viewer, sub_units, semesters, operator, selected_flags)
         for offering, instructor, matched_flags in found:
             csv.writerow([
                 offering.owner.label,
