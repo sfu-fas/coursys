@@ -21,11 +21,13 @@ $(document).ready(function() {
 <div id="actions">
   <h2>Actions</h2>
   <ul class="fa-ul">
+    {% if form.is_valid %}
     <li>
       <a href="{% url 'faculty.views.course_accreditation_csv' %}?{{ request.GET.urlencode }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     </li>
+    {% endif %}
   </ul>
 </div>
 {% endblock %}
@@ -44,7 +46,6 @@ $(document).ready(function() {
   <input class="submit" type="reset" value="Clear" />
 </form>
 
-{% if not form.errors %}
 <table>
   <thead><tr>
     <th>Unit</th>
@@ -73,5 +74,4 @@ $(document).ready(function() {
   {% endfor %}
   </tbody>
 </table>
-{% endif %}
 {% endblock %}
