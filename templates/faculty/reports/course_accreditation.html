@@ -21,13 +21,15 @@ $(document).ready(function() {
 <div id="actions">
   <h2>Actions</h2>
   <ul class="fa-ul">
-    {% if form.is_valid %}
     <li>
+    {% if form.is_valid %}
       <a href="{% url 'faculty.views.course_accreditation_csv' %}?{{ request.GET.urlencode }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
-    </li>
+    {% else %}
+      <del><i class="fa fa-li fa-download"></i> Download CSV</del>
     {% endif %}
+    </li>
   </ul>
 </div>
 {% endblock %}
