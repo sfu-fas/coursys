@@ -729,7 +729,7 @@ def _get_semester_era(code):
     return {
         'startDate': '{:%Y,%m,%d}'.format(start),
         'endDate': '{:%Y,%m,%d}'.format(end),
-        'headline': '{} {}'.format(Semester.label_lookup[season], year),
+        'headline': '{} {}'.format(Semester.slug_lookup[season], code),
     }
 
 
