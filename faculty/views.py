@@ -3,6 +3,7 @@ import datetime
 import itertools
 import json
 import operator
+from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 
 from courselib.auth import requires_role, NotFoundResponse
@@ -30,12 +31,15 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 from reports.reportlib.semester import date2semester, current_semester
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
-from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, AvailableCapacityForm
+from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
+from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import UnicodeWriter
+from faculty.event_types.base import Choices
+from faculty.event_types.career import AccreditationFlagEventHandler
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -313,6 +317,87 @@ def teaching_capacity_csv(request):
         return response
 
     return HttpResponseBadRequest(form.errors)
+
+
+def _matched_flags(operator, selected_flags, instructor_flags):
+    if operator == 'AND':
+        # Instructor must have all flags
+        if selected_flags <= instructor_flags:
+            return selected_flags
+        else:
+            return None
+    elif operator == 'OR':
+        # Instructor must have at least one of the flags
+        common = selected_flags & instructor_flags
+        if common:
+            return common
+        else:
+            return None
+    elif operator == 'NONE_OF':
+        # Instructor must have none of the flags
+        if not selected_flags & instructor_flags:
+            return instructor_flags - selected_flags
+        else:
+            return None
+    else:
+        # No filtering
+        return instructor_flags
+
+
+def _get_visible_flags(viewer, offering, instructor):
+    return set(event.config['flag']
+               for event in CareerEvent.objects.by_type(AccreditationFlagEventHandler)
+                                               .filter(unit=offering.owner)
+                                               .filter(person=instructor)
+                                               .overlaps_semester(offering.semester)
+               if event.get_handler().can_view(viewer))
+
+
+@requires_role('ADMN')
+def course_accreditation(request):
+    viewer, _ = _get_faculty_or_404(request.units, request.user.username)
+    courses = defaultdict(list)
+
+    units = Unit.objects.all()
+
+    # Gather all visible accreditation flags for viewer from all units
+    ecs = EventConfig.objects.filter(unit__in=units,
+                                     event_type=AccreditationFlagEventHandler.EVENT_TYPE)
+    flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
+
+    form = CourseAccreditationForm(request.GET, flags=flag_choices)
+
+    if form.is_valid():
+        start_semester = form.cleaned_data.get('start_semester')
+        end_semester = form.cleaned_data.get('end_semester')
+        operator = form.cleaned_data.get('operator')
+        selected_flags = set(form.cleaned_data.get('flag'))
+
+        semesters = [Semester.objects.get(name=name)
+                     for name in Semester.range(start_semester, end_semester)]
+
+        # Get all offerings that fall within the selected semesters.
+        offerings = CourseOffering.objects.filter(semester__in=semesters)
+
+        # Group offerings by course
+        for offering in offerings:
+            for instructor in offering.instructors():
+                # Get flags for instructor that were active during this offering's semester
+                flags = _get_visible_flags(viewer, offering, instructor)
+
+                # Only show offering if there's a flag match
+                matched_flags = _matched_flags(operator, selected_flags, flags)
+                if matched_flags is not None:
+                    presentation_flags = ((flag, flag_choices[flag]) for flag in matched_flags)
+                    courses[offering.course.full_name()].append((offering,
+                                                                 instructor,
+                                                                 presentation_flags))
+
+    context = {
+        'courses': dict(courses),
+        'form': form,
+    }
+    return render(request, 'faculty/reports/course_accreditation.html', context)
 
 
 ###############################################################################

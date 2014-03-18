@@ -34,8 +34,13 @@ $(document).ready(function() {
     <li class="newsec">
       <a href="{% url 'grants_index' %}"><i class="fa fa-li fa-trophy"></i> Grants</a>
     </li>
-    <li>
+    <li class="newsec">
       <a href="{% url 'faculty.views.teaching_capacity' %}"><i class="fa fa-li fa-beer"></i> Teaching Capacity by Unit</a>
+    </li>
+    <li>
+      <a href="{% url 'faculty.views.course_accreditation' %}">
+        <i class="fa fa-li fa-flag"></i> Courses by Instructor Accreditation
+      </a>
     </li>
   </ul>
 </div>

@@ -147,3 +147,29 @@ class AvailableCapacityForm(forms.Form):
         super(AvailableCapacityForm, self).__init__(*args, **kwargs)
         if 'semester' not in self.data:
             self.data['semester'] = Semester.current().name
+
+
+class CourseAccreditationForm(forms.Form):
+
+    OPERATOR_CHOICES = (
+        ('', '----'),
+        ('AND', 'HAS ALL'),
+        ('OR', 'HAS ANY'),
+        ('NONE_OF', 'HAS NONE OF'),
+    )
+
+    start_semester = SemesterCodeField()
+    end_semester = SemesterCodeField()
+    operator = forms.ChoiceField(choices=OPERATOR_CHOICES, required=False)
+    flag = forms.MultipleChoiceField(choices=[], required=False,
+                                      widget=forms.CheckboxSelectMultiple())
+
+    def __init__(self, *args, **kwargs):
+        flags = kwargs.pop('flags', [])
+        super(CourseAccreditationForm, self).__init__(*args, **kwargs)
+
+        if 'start_semester' not in self.data:
+            self.data['start_semester'] = Semester.current().name
+        if 'end_semester' not in self.data:
+            self.data['end_semester'] = Semester.current().name
+        self.fields['flag'].choices = flags

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Courses by Instructor Accreditation{% endblock %}
+{% block h1 %}Courses by Instructor Accreditation{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Courses by Instructor Accreditation</li>
+{% endblock %}
+
+{% block content %}
+<form action="" method="GET" class="noprint">
+  <fieldset id="form_fields">
+    {{ form|as_dl }}
+  </fieldset>
+  <input class="submit" type="submit" value="Select" />
+</form>
+
+{% if not form.errors %}
+<table>
+  <thead><tr>
+    <th>Unit</th>
+    <th>Semester</th>
+    <th>Course</th>
+    <th>Course Title</th>
+    <th>Instructor</th>
+    <th>Flags</th>
+  </tr></thead>
+  <tbody>
+  {% for course, matches in courses.iteritems %}
+  {% for offering, instructor, flags in matches %}
+    <tr>
+      <td>{{ offering.owner.label }}</td>
+      <td>{{ offering.semester.label }}</td>
+      <td>{{ offering.name }}</td>
+      <td>{{ offering.title }}</td>
+      <td>{{ instructor }}</td>
+      <td>
+      {% for flag, name in flags %}
+        <span title="{{ name }}">{{ flag }}</span>
+      {% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}
