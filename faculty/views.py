@@ -37,7 +37,7 @@ from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportFor
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
-from faculty.util import make_csv_writer_response
+from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.base import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 
@@ -701,38 +701,6 @@ def timeline(request, userid):
     return render(request, 'faculty/timeline.html', {'person': person})
 
 
-def _get_semester_code(date):
-    prefix = str(date.year - 1900)
-
-    if date.month >= 9:
-        return prefix + '7'
-    elif date.month >= 5:
-        return prefix + '4'
-    else:
-        return prefix + '1'
-
-
-def _get_semester_era(code):
-    year = int(code[:3]) + 1900
-    season = code[3]
-
-    if season == '1':
-        start = datetime.date(year, 1, 1)
-        end = datetime.date(year, 4, 30)
-    elif season == '4':
-        start = datetime.date(year, 5, 1)
-        end = datetime.date(year, 8, 31)
-    elif season == '7':
-        start = datetime.date(year, 9, 1)
-        end = datetime.date(year, 12, 31)
-
-    return {
-        'startDate': '{:%Y,%m,%d}'.format(start),
-        'endDate': '{:%Y,%m,%d}'.format(end),
-        'headline': '{} {}'.format(Semester.slug_lookup[season], code),
-    }
-
-
 @requires_role('ADMN')
 def timeline_json(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
@@ -745,7 +713,7 @@ def timeline_json(request, userid):
         },
     }
 
-    semester_names = set()
+    semesters = set()
 
     # Populate events
     for event in CareerEvent.objects.filter(person=person).not_deleted():
@@ -756,11 +724,15 @@ def timeline_json(request, userid):
 
             if blurb:
                 payload['timeline']['date'].append(blurb)
-                semester_names.add(_get_semester_code(handler.event.start_date))
+                semesters.add(ReportingSemester(handler.event.start_date))
 
     # Populate semesters
-    for name in semester_names:
-        payload['timeline']['era'].append(_get_semester_era(name))
+    for semester in semesters:
+        payload['timeline']['era'].append({
+            'startDate': '{:%Y,%m,%d}'.format(semester.start_date),
+            'endDate': '{:%Y,%m,%d}'.format(semester.end_date),
+            'headline': semester.short_label,
+        })
 
     return HttpResponse(json.dumps(payload), mimetype='application/json')
 
