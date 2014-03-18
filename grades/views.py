@@ -1145,6 +1145,7 @@ def _all_grades_output(response, course):
     students = Member.objects.filter(offering=course, role="STUD").select_related('person')
 
     # get grade data into a format we can work with
+    labtut = course.labtut
     grades = {}
     for a in activities:
         grades[a.slug] = {}
@@ -1158,12 +1159,16 @@ def _all_grades_output(response, course):
     # output results
     writer = csv.writer(response)
     row = ['Last name', 'First name', Person.userid_header(), Person.emplid_header()]
+    if labtut:
+        row.append('Lab/Tutorial')
     for a in activities:
         row.append(a.short_name)
     writer.writerow(row)
     
     for s in students:
         row = [s.person.last_name, s.person.first_name, s.person.userid, s.person.emplid]
+        if labtut:
+            row.append(s.labtut_section or '')
         for a in activities:
             try:
                 gr = grades[a.slug][s.person.userid]
