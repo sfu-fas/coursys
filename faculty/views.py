@@ -37,7 +37,7 @@ from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportFor
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
-from faculty.util import UnicodeWriter, make_csv_writer_response
+from faculty.util import make_csv_writer_response
 from faculty.event_types.base import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 
