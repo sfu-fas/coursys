@@ -1,4 +1,4 @@
-from base import *
+from submission.models.base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
 from django import forms

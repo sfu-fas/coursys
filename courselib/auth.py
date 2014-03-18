@@ -319,18 +319,6 @@ def requires_instructor(function=None, login_url=None):
         return actual_decorator
 
 
-def _return_unavailable(request, *args, **kwargs):
+def service_unavailable(request, *args, **kwargs):
+    # view called by featureflags when something is disabled
     return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)
-
-def uses_feature(feature):
-    """
-    Decorator to allow disabling features temporarily with settings.DISABLED_FEATURES aka feature flags.
-    """
-    if feature in settings.DISABLED_FEATURES:
-        def real_decorator(function):
-            return _return_unavailable
-    else:
-        def real_decorator(function):
-            return function
-    return real_decorator
-

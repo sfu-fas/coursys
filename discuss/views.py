@@ -1,5 +1,5 @@
 from coredata.models import CourseOffering, Member
-from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug, uses_feature
+from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug
 from discuss.models import DiscussionTopic, DiscussionMessage, DiscussionSubscription, TopicSubscription
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
+from featureflags.flags import uses_feature
 from discuss.forms import discussion_topic_form_factory,\
     DiscussionTopicStatusForm, DiscussionMessageForm, DiscussionSubscriptionForm, TopicSubscriptionForm
 import datetime, itertools, json

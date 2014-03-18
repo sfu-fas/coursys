@@ -705,6 +705,8 @@ class CourseOffering(models.Model):
         d['campus'] = self.campus
         d['meetingtimes'] = [m.export_dict() for m in self.meetingtime_set.all()]
         d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST").select_related('person')]
+        d['wqb'] = [desc for flag,desc in WQB_FLAGS if getattr(self.flags, flag)]
+        d['class_nbr'] = self.class_nbr
         return d
     
     def delete(self, *args, **kwargs):

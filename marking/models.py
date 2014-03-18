@@ -448,6 +448,8 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
+    from submission.models.code import CodeComponent
+    from submission.models.codefile import CodefileComponent
     # copy things in offering's .config dict
     for f in course_copy_from.copy_config_fields:
         if f in course_copy_from.config:
@@ -484,6 +486,9 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_submission_component.pk = None
             new_submission_component.activity = new_activity
             new_submission_component.slug = None
+            if isinstance(new_submission_component, CodeComponent):
+                # upgrade Code to Codefile while migrating
+                new_submission_component = CodefileComponent.build_from_codecomponent(new_submission_component)
             new_submission_component.save(force_insert=True)
     
     for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
