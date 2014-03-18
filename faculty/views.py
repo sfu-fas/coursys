@@ -37,7 +37,7 @@ from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportFor
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
-from faculty.util import UnicodeWriter
+from faculty.util import UnicodeWriter, make_csv_writer_response
 from faculty.event_types.base import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 
@@ -291,11 +291,9 @@ def teaching_capacity_csv(request):
 
     if form.is_valid():
         semester = Semester.objects.get(name=form.cleaned_data['semester'])
-        filename = 'teaching_capacity_{}.csv'.format(semester.name)
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-        csv = UnicodeWriter(response)
+        filename = 'teaching_capacity_{}.csv'.format(semester.name)
+        csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
             'person',
@@ -353,12 +351,29 @@ def _get_visible_flags(viewer, offering, instructor):
                if event.get_handler().can_view(viewer))
 
 
+def _course_accreditation_data(viewer, semesters, operator, selected_flags):
+    # Get all offerings that fall within the selected semesters.
+    offerings = CourseOffering.objects.filter(semester__in=semesters)
+
+    for offering in offerings:
+        for instructor in offering.instructors():
+            # Get flags for instructor that were active during this offering's semester
+            flags = _get_visible_flags(viewer, offering, instructor)
+
+            # Only show offering if there's a flag match
+            matched_flags = _matched_flags(operator, selected_flags, flags)
+            if matched_flags is not None:
+                yield (
+                    offering,
+                    instructor,
+                    matched_flags,
+                )
+
+
 @requires_role('ADMN')
 def course_accreditation(request):
-    viewer, _ = _get_faculty_or_404(request.units, request.user.username)
+    viewer, units = _get_faculty_or_404(request.units, request.user.username)
     courses = defaultdict(list)
-
-    units = Unit.objects.all()
 
     # Gather all visible accreditation flags for viewer from all units
     ecs = EventConfig.objects.filter(unit__in=units,
@@ -376,28 +391,67 @@ def course_accreditation(request):
         semesters = [Semester.objects.get(name=name)
                      for name in Semester.range(start_semester, end_semester)]
 
-        # Get all offerings that fall within the selected semesters.
-        offerings = CourseOffering.objects.filter(semester__in=semesters)
-
         # Group offerings by course
-        for offering in offerings:
-            for instructor in offering.instructors():
-                # Get flags for instructor that were active during this offering's semester
-                flags = _get_visible_flags(viewer, offering, instructor)
-
-                # Only show offering if there's a flag match
-                matched_flags = _matched_flags(operator, selected_flags, flags)
-                if matched_flags is not None:
-                    presentation_flags = ((flag, flag_choices[flag]) for flag in matched_flags)
-                    courses[offering.course.full_name()].append((offering,
-                                                                 instructor,
-                                                                 presentation_flags))
+        found = _course_accreditation_data(viewer, semesters, operator, selected_flags)
+        for offering, instructor, matched_flags in found:
+            presentation_flags = ((flag, flag_choices[flag]) for flag in matched_flags)
+            courses[offering.course.full_name()].append((offering,
+                                                         instructor,
+                                                         presentation_flags))
 
     context = {
         'courses': dict(courses),
         'form': form,
     }
     return render(request, 'faculty/reports/course_accreditation.html', context)
+
+
+@requires_role('ADMN')
+def course_accreditation_csv(request):
+    viewer, units = _get_faculty_or_404(request.units, request.user.username)
+
+    # Gather all visible accreditation flags for viewer from all units
+    ecs = EventConfig.objects.filter(unit__in=units,
+                                     event_type=AccreditationFlagEventHandler.EVENT_TYPE)
+    flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
+
+    form = CourseAccreditationForm(request.GET, flags=flag_choices)
+
+    if form.is_valid():
+        start_semester = form.cleaned_data.get('start_semester')
+        end_semester = form.cleaned_data.get('end_semester')
+        operator = form.cleaned_data.get('operator')
+        selected_flags = set(form.cleaned_data.get('flag'))
+
+        semesters = [Semester.objects.get(name=name)
+                     for name in Semester.range(start_semester, end_semester)]
+
+        # Set up for CSV shenanigans
+        filename = 'course_accreditation_{}-{}.csv'.format(start_semester, end_semester)
+        csv, response = make_csv_writer_response(filename)
+        csv.writerow([
+            'unit',
+            'semester',
+            'course',
+            'course title',
+            'instructor',
+            'flags',
+        ])
+
+        found = _course_accreditation_data(viewer, semesters, operator, selected_flags)
+        for offering, instructor, matched_flags in found:
+            csv.writerow([
+                offering.owner.label,
+                offering.semester.label(),
+                offering.name(),
+                offering.title,
+                instructor.name(),
+                ','.join(matched_flags),
+            ])
+
+        return response
+
+    return HttpResponseBadRequest(form.errors)
 
 
 ###############################################################################

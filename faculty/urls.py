@@ -20,6 +20,7 @@ urlpatterns = patterns('',
 
     # Report: Courses + Instructor Accreditation
     url(r'^report/course_accreditation$', 'faculty.views.course_accreditation'),
+    url(r'^report/course_accreditation.csv$', 'faculty.views.course_accreditation_csv'),
 
     url(r'^event-management$', 'faculty.views.manage_event_index', name="faculty_events_manage_index"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates$', 'faculty.views.memo_templates', name="template_index"),
