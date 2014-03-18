@@ -5,6 +5,16 @@
 {% block h1 %}Courses by Instructor Accreditation{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('table').dataTable({
+      bPaginate: false,
+      bInfo: false,
+      aaSorting: [[0, 'asc']],
+      bJQueryUI: true
+  });
+});
+</script>
 {% endblock %}
 
 {% block actions %}
@@ -31,6 +41,7 @@
     {{ form|as_dl }}
   </fieldset>
   <input class="submit" type="submit" value="Select" />
+  <input class="submit" type="reset" value="Clear" />
 </form>
 
 {% if not form.errors %}
