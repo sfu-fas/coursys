@@ -1287,12 +1287,14 @@ def convert_grant(request, gid):
             grant = form.save(commit=False)
             grant.save()
             try:
+                # TODO: anything else to add to grant balance? can YTD actual be calculated?
                 balance = Decimal(tmp.config["cur_balance"])
                 this_month = Decimal(tmp.config["cur_month"])
                 gb = grant.update_balance(balance, this_month)
             except (KeyError, InvalidOperation):
                 pass
             else:
+                # Delete the temporary grant
                 tmp.delete()
                 return HttpResponseRedirect(reverse("grants_index"))
         else:

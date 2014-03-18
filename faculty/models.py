@@ -460,6 +460,7 @@ class TempGrantManager(models.Manager):
                     failed.append(row)
                     continue
                 try:
+                    # Grab things from the CSV
                     balance = Decimal(unicode(row[4].strip(), errors='ignore'))
                     cur_month = Decimal(unicode(row[5].strip(), errors='ignore'))
                     ytd_actual = Decimal(unicode(row[6].strip(), errors='ignore'))
@@ -468,6 +469,7 @@ class TempGrantManager(models.Manager):
                     failed.append(row)
                     continue
                 
+                # Make sure its not a duplicate label
                 if not TempGrant.objects.filter(label__exact=label).exists():
                     t = TempGrant(
                         label=label,
