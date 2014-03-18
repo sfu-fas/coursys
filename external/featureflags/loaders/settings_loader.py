@@ -1,4 +1,7 @@
 from django.conf import settings
 
 def get_disabled_features():
-    return settings.DISABLED_FEATURES
+    """
+    Load the disabled features from the settings file
+    """
+    return settings.FEATUREFLAGS_DISABLE

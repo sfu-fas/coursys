@@ -179,6 +179,11 @@ else:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
+    if getattr(secrets, 'FORCE_MEMCACHED', False):
+        CACHES = { 'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': '127.0.0.1:11211',
+        } }
     BASE_ABS_URL = "http://localhost:8000"
     DB_PASS_FILE = "./dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -252,7 +257,9 @@ DISABLE_REPORTING_DB = getattr(secrets, 'DISABLE_REPORTING_DB', False)
 # Possible values for the set documented in server-setup/index.html#flags
 FEATUREFLAGS_LOADER = 'featureflags.loaders.settings_loader'
 FEATUREFLAGS_DISABLED_VIEW = 'courselib.auth.service_unavailable'
-DISABLED_FEATURES = set([])
+#FEATUREFLAGS_CACHE_TIMEOUT = 5
+FEATUREFLAGS_DISABLE = set([])
+#FEATUREFLAGS_DISABLE = set(['course_browser'])
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
