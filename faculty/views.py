@@ -351,9 +351,9 @@ def _get_visible_flags(viewer, offering, instructor):
                if event.get_handler().can_view(viewer))
 
 
-def _course_accreditation_data(viewer, semesters, operator, selected_flags):
+def _course_accreditation_data(viewer, units, semesters, operator, selected_flags):
     # Get all offerings that fall within the selected semesters.
-    offerings = CourseOffering.objects.filter(semester__in=semesters)
+    offerings = CourseOffering.objects.filter(semester__in=semesters, owner__in=units)
 
     for offering in offerings:
         for instructor in offering.instructors():
@@ -363,11 +363,7 @@ def _course_accreditation_data(viewer, semesters, operator, selected_flags):
             # Only show offering if there's a flag match
             matched_flags = _matched_flags(operator, selected_flags, flags)
             if matched_flags is not None:
-                yield (
-                    offering,
-                    instructor,
-                    matched_flags,
-                )
+                yield offering, instructor, matched_flags
 
 
 @requires_role('ADMN')
@@ -392,7 +388,7 @@ def course_accreditation(request):
                      for name in Semester.range(start_semester, end_semester)]
 
         # Group offerings by course
-        found = _course_accreditation_data(viewer, semesters, operator, selected_flags)
+        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
         for offering, instructor, matched_flags in found:
             presentation_flags = ((flag, flag_choices[flag]) for flag in matched_flags)
             courses[offering.course.full_name()].append((offering,
@@ -438,7 +434,7 @@ def course_accreditation_csv(request):
             'flags',
         ])
 
-        found = _course_accreditation_data(viewer, semesters, operator, selected_flags)
+        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
         for offering, instructor, matched_flags in found:
             csv.writerow([
                 offering.owner.label,
