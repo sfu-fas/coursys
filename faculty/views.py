@@ -262,8 +262,7 @@ def _teaching_capacity_data(unit, semester):
 
 @requires_role('ADMN')
 def teaching_capacity(request):
-    _, units = _get_faculty_or_404(request.units, request.user.username)
-    sub_units = Unit.sub_units(units)
+    sub_units = Unit.sub_units(request.units)
 
     form = AvailableCapacityForm(request.GET or {'semester': Semester.current().name})
     collected_units = []
@@ -291,8 +290,7 @@ def teaching_capacity(request):
 
 @requires_role('ADMN')
 def teaching_capacity_csv(request):
-    _, units = _get_faculty_or_404(request.units, request.user.username)
-    sub_units = Unit.sub_units(units)
+    sub_units = Unit.sub_units(request.units)
 
     form = AvailableCapacityForm(request.GET)
 
@@ -354,8 +352,7 @@ def _get_visible_flags(viewer, offering, instructor):
                for event in CareerEvent.objects.by_type(AccreditationFlagEventHandler)
                                                .filter(unit=offering.owner)
                                                .filter(person=instructor)
-                                               .overlaps_semester(offering.semester)
-               if event.get_handler().can_view(viewer))
+                                               .overlaps_semester(offering.semester))
 
 
 def _course_accreditation_data(viewer, units, semesters, operator, selected_flags):
@@ -375,12 +372,12 @@ def _course_accreditation_data(viewer, units, semesters, operator, selected_flag
 
 @requires_role('ADMN')
 def course_accreditation(request):
-    viewer, units = _get_faculty_or_404(request.units, request.user.username)
-    sub_units = Unit.sub_units(units)
+    viewer = request.user
+    units = Unit.sub_units(request.units)
     courses = defaultdict(list)
 
     # Gather all visible accreditation flags for viewer from all units
-    ecs = EventConfig.objects.filter(unit__in=sub_units,
+    ecs = EventConfig.objects.filter(unit__in=units,
                                      event_type=AccreditationFlagEventHandler.EVENT_TYPE)
     flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
 
@@ -396,7 +393,7 @@ def course_accreditation(request):
                      for name in Semester.range(start_semester, end_semester)]
 
         # Group offerings by course
-        found = _course_accreditation_data(viewer, sub_units, semesters, operator, selected_flags)
+        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
         for offering, instructor, matched_flags in found:
             presentation_flags = ((flag, flag_choices[flag]) for flag in matched_flags)
             courses[offering.course.full_name()].append((offering,
@@ -412,11 +409,11 @@ def course_accreditation(request):
 
 @requires_role('ADMN')
 def course_accreditation_csv(request):
-    viewer, units = _get_faculty_or_404(request.units, request.user.username)
-    sub_units = Unit.sub_units(units)
+    viewer = request.user
+    units = Unit.sub_units(request.units)
 
     # Gather all visible accreditation flags for viewer from all units
-    ecs = EventConfig.objects.filter(unit__in=sub_units,
+    ecs = EventConfig.objects.filter(unit__in=units,
                                      event_type=AccreditationFlagEventHandler.EVENT_TYPE)
     flag_choices = Choices(*itertools.chain(*[ec.config.get('flags', []) for ec in ecs]))
 
@@ -443,7 +440,7 @@ def course_accreditation_csv(request):
             'flags',
         ])
 
-        found = _course_accreditation_data(viewer, sub_units, semesters, operator, selected_flags)
+        found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
         for offering, instructor, matched_flags in found:
             csv.writerow([
                 offering.owner.label,
