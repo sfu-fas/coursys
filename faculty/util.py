@@ -23,7 +23,7 @@ class ReportingSemester(object):
 
     Example:
         semester = ReportingSemester('1141')
-        semester.code  -> '1144'
+        semester.code  -> '1141'
         semester.start_date -> Jan. 1st, 2014
         semester.end_date -> April 30th, 2014
         semester.full_label -> 'Spring 2014'
@@ -81,14 +81,14 @@ class ReportingSemester(object):
         return self.__class__(new_date)
 
     @classmethod
-    def range(cls, start_semester_code, end_semester_code):
+    def range(cls, start_semester_data, end_semester_data):
         """Iterates over all ReportingSemester objects within the semester code range.
 
         Example:
             range('1141', '1147') -> [ReportingSemester<1141>, ReportingSemester<1144>, ...]
         """
-        current = cls(start_semester_code)
-        end = cls(end_semester_code)
+        current = cls(start_semester_data)
+        end = cls(end_semester_data)
 
         while current <= end:
             yield current
