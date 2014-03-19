@@ -704,6 +704,8 @@ def timeline(request, userid):
 @requires_role('ADMN')
 def timeline_json(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
     payload = {
         'timeline': {
             'type': 'default',
@@ -712,14 +714,14 @@ def timeline_json(request, userid):
             'era': [],
         },
     }
-
     semesters = set()
 
     # Populate events
-    for event in CareerEvent.objects.filter(person=person).not_deleted():
+    events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
+    for event in events:
         handler = event.get_handler()
 
-        if handler.can_view(person):
+        if handler.can_view(viewer):
             blurb = handler.to_timeline()
 
             if blurb:
