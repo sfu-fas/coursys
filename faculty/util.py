@@ -56,16 +56,43 @@ class ReportingSemester(object):
     def __repr__(self):
         return repr("<ReportingSemester('{}')>".format(self.code))
 
+    def next(self):
+        """Returns the next chronological semester."""
+        new_month = ((self.start_date.month - 1) + 4) % 12 + 1
+
+        # Did we move to the next year?
+        if new_month < self.start_date.month:
+            new_date = datetime.date(self.start_date.year + 1, new_month, 1)
+        else:
+            new_date = datetime.date(self.start_date.year, new_month, 1)
+
+        return self.__class__(new_date)
+
+    def prev(self):
+        """Returns the previous chronological semester."""
+        new_month = ((self.start_date.month - 1) - 4) % 12 + 1
+
+        # Did we move to the previous year?
+        if new_month > self.start_date.month:
+            new_date = datetime.date(self.start_date.year - 1, new_month, 1)
+        else:
+            new_date = datetime.date(self.start_date.year, new_month, 1)
+
+        return self.__class__(new_date)
+
     @classmethod
-    def range(cls, start_semester, end_semester):
-        """Iterates over all ReportingSemester objects within the code range.
+    def range(cls, start_semester_code, end_semester_code):
+        """Iterates over all ReportingSemester objects within the semester code range.
 
         Example:
-            range(<1141>, <1147>) -> [<1141>, <1144>, <1147>]
+            range('1141', '1147') -> [ReportingSemester<1141>, ReportingSemester<1144>, ...]
         """
-        # TODO: Implement this! Also maybe pick a better name, not a fan of using
-        #       built-in names.
-        pass
+        current = cls(start_semester_code)
+        end = cls(end_semester_code)
+
+        while current <= end:
+            yield current
+            current = current.next()
 
     @staticmethod
     def make_full_label(code):
