@@ -11,7 +11,10 @@ $(document).ready(function() {
   $('table').dataTable({
       bPaginate: false,
       bInfo: false,
-      aaSorting: [[0, 'asc']],
+      aaSorting: [
+        [0, 'desc'],
+        [1, 'asc']
+      ],
       bJQueryUI: true
   });
 } );

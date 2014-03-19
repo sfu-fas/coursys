@@ -251,7 +251,7 @@ def salary_summary(request, userid):
 def _teaching_capacity_data(unit, semester):
     people = set(role.person for role in Role.objects.filter(role='FAC', unit=unit))
 
-    for person in people:
+    for person in sorted(people):
         summary = FacultySummary(person)
         credits, load = summary.teaching_credits(semester)
 
@@ -310,7 +310,7 @@ def teaching_capacity_csv(request):
         for unit in sub_units:
             for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
                 csv.writerow([
-                    unit.name,
+                    unit.label,
                     person.name(),
                     str(credits),
                     str(load),
