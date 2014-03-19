@@ -724,7 +724,13 @@ def timeline_json(request, userid):
 
             if blurb:
                 payload['timeline']['date'].append(blurb)
-                semesters.add(ReportingSemester(handler.event.start_date))
+
+                # Show all semesters that the event covers, if possible.
+                if event.end_date is not None:
+                    for semester in ReportingSemester.range(event.start_date, event.end_date):
+                        semesters.add(semester)
+                else:
+                    semesters.add(ReportingSemester(event.start_date))
 
     # Populate semesters
     for semester in semesters:
