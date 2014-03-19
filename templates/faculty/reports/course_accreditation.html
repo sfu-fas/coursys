@@ -10,7 +10,10 @@ $(document).ready(function() {
   $('table').dataTable({
       bPaginate: false,
       bInfo: false,
-      aaSorting: [[0, 'asc']],
+      aaSorting: [
+        [0, 'asc'],
+        [1, 'desc']
+      ],
       bJQueryUI: true
   });
 });
@@ -62,7 +65,7 @@ $(document).ready(function() {
   {% for offering, instructor, flags in matches %}
     <tr>
       <td>{{ offering.owner.label }}</td>
-      <td>{{ offering.semester.label }}</td>
+      <td>{{ offering.semester.name }}</td>
       <td>{{ offering.name }}</td>
       <td>{{ offering.title }}</td>
       <td>{{ instructor }}</td>

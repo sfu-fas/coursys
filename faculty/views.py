@@ -349,15 +349,18 @@ def _matched_flags(operator, selected_flags, instructor_flags):
 
 def _get_visible_flags(viewer, offering, instructor):
     return set(event.config['flag']
-               for event in CareerEvent.objects.by_type(AccreditationFlagEventHandler)
+               for event in CareerEvent.objects.not_deleted()
+                                               .by_type(AccreditationFlagEventHandler)
                                                .filter(unit=offering.owner)
                                                .filter(person=instructor)
-                                               .overlaps_semester(offering.semester))
+                                               .overlaps_semester(offering.semester)
+               if event.get_handler().can_view(viewer))
 
 
 def _course_accreditation_data(viewer, units, semesters, operator, selected_flags):
     # Get all offerings that fall within the selected semesters.
-    offerings = CourseOffering.objects.filter(semester__in=semesters, owner__in=units)
+    offerings = (CourseOffering.objects.filter(semester__in=semesters, owner__in=units)
+                                       .order_by('owner', '-semester'))
 
     for offering in offerings:
         for instructor in offering.instructors():
@@ -372,7 +375,7 @@ def _course_accreditation_data(viewer, units, semesters, operator, selected_flag
 
 @requires_role('ADMN')
 def course_accreditation(request):
-    viewer = request.user
+    viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
     courses = defaultdict(list)
 
@@ -409,7 +412,7 @@ def course_accreditation(request):
 
 @requires_role('ADMN')
 def course_accreditation_csv(request):
-    viewer = request.user
+    viewer = get_object_or_404(Person, userid=request.user.username)
     units = Unit.sub_units(request.units)
 
     # Gather all visible accreditation flags for viewer from all units
@@ -444,7 +447,7 @@ def course_accreditation_csv(request):
         for offering, instructor, matched_flags in found:
             csv.writerow([
                 offering.owner.label,
-                offering.semester.label(),
+                offering.semester.name,
                 offering.name(),
                 offering.title,
                 instructor.name(),
