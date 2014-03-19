@@ -470,10 +470,10 @@ tr.even {
   background-color: #eee;
   color: #999;
 }
-table.display td.center {
+table td.center {
     text-align: center;
 }
-table.display td.num {
+table td.num {
     text-align: right;
 }
 table td.hidden, table tr.hidden {
