@@ -14,7 +14,6 @@ def get_letter(request, grad_slug, letter_slug):
     l = LetterContents(to_addr_lines=letter.to_lines.split("\n"), 
                         from_name_lines=letter.from_lines.split("\n"), 
                         date=letter.date, 
-                        salutation=letter.salutation,
                         closing=letter.closing, 
                         signer=letter.from_person,
                         use_sig=letter.use_sig())

@@ -1335,7 +1335,6 @@ class Letter(models.Model):
     to_lines = models.TextField(help_text='Delivery address for the letter', null=True, blank=True)
     content = models.TextField(help_text="I.e. 'This is to confirm Mr. Baker ... '")
     template = models.ForeignKey(LetterTemplate)
-    salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
     closing = models.CharField(max_length=100, default="Sincerely")
     from_person = models.ForeignKey(Person, null=True)
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Program Director"')

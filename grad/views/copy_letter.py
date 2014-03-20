@@ -14,7 +14,7 @@ def copy_letter(request, grad_slug, letter_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     old_letter = get_object_or_404(Letter, slug=letter_slug, student=grad)
     letter = Letter(student=grad, to_lines=old_letter.to_lines, content=old_letter.content, template=old_letter.template,
-                    salutation=old_letter.salutation, closing=old_letter.closing, from_person=old_letter.from_person,
+                    closing=old_letter.closing, from_person=old_letter.from_person,
                     from_lines=old_letter.from_lines)
     letter.set_use_sig(old_letter.use_sig())
 
