@@ -543,12 +543,12 @@ class Grant(models.Model):
     def get_absolute_url(self):
         return reverse("view_grant", kwargs={'unit_slug': self.unit.slug, 'grant_slug': self.slug})
 
-    def update_balance(self, balance, spent_this_month, date=datetime.datetime.today()):
+    def update_balance(self, balance, spent_this_month, actual, date=datetime.datetime.today()):
         gb = GrantBalance.objects.create(
             date=date,
             grant=self,
             balance=balance,
-            actual=self.initial - balance,
+            actual=actual,
             month=spent_this_month
         )
         return gb

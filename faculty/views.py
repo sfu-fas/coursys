@@ -1276,7 +1276,8 @@ def convert_grant(request, gid):
                 # TODO: anything else to add to grant balance? can YTD actual be calculated?
                 balance = Decimal(tmp.config["cur_balance"])
                 this_month = Decimal(tmp.config["cur_month"])
-                gb = grant.update_balance(balance, this_month)
+                ytd_actual = Decimal(tmp.config["ytd_actual"])
+                gb = grant.update_balance(balance, this_month, ytd_actual)
             except (KeyError, InvalidOperation):
                 pass
             else:
