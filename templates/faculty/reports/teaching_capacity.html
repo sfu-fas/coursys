@@ -64,7 +64,7 @@ $(document).ready(function() {
       <tr>
         <td>{{ unit.label }}</td>
         <td>
-          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.name }}&end_semester={{ semester.name }}">
+          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&end_semester={{ semester.code }}">
             {{ person }}
           </a>
         </td>
