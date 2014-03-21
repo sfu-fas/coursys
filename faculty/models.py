@@ -39,6 +39,7 @@ from faculty.event_types.info import SpecialDealHandler
 from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
 from faculty.event_types.teaching import OneInNineHandler
+from faculty.util import ReportingSemester
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -125,7 +126,12 @@ class CareerQuerySet(models.query.QuerySet):
         """
         Returns CareerEvents starting and ending within this semester.
         """
-        start, end = Semester.start_end_dates(semester)
+        if isinstance(semester, Semester):
+            semester = ReportingSemester(semester)
+
+        start = semester.start_date
+        end = semester.end_date
+
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
         return self.exclude(status='D').filter(start_date__gte=start).filter(end_okay)
 
@@ -133,7 +139,12 @@ class CareerQuerySet(models.query.QuerySet):
         """
         Returns CareerEvents occurring during the semester.
         """
-        start, end = Semester.start_end_dates(semester)
+        if isinstance(semester, Semester):
+            semester = ReportingSemester(semester)
+
+        start = semester.start_date
+        end = semester.end_date
+
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=start)
         return self.exclude(status='D').filter(start_date__lte=end).filter(end_okay)
 
