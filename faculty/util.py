@@ -119,7 +119,7 @@ class ReportingSemester(object):
     @staticmethod
     def code_from_date(date):
         """Returns the semester code that the given date falls in."""
-        prefix = str(date.year - 1900)
+        prefix = '{:03d}'.format(date.year - 1900)
 
         if date.month >= 9:
             return prefix + '7'
