@@ -56,6 +56,9 @@ class ReportingSemester(object):
     def __repr__(self):
         return repr("<ReportingSemester('{}')>".format(self.code))
 
+    def __unicode__(self):
+        return unicode(self.full_label)
+
     def next(self):
         """Returns the next chronological semester."""
         new_month = ((self.start_date.month - 1) + 4) % 12 + 1
@@ -119,7 +122,7 @@ class ReportingSemester(object):
     @staticmethod
     def code_from_date(date):
         """Returns the semester code that the given date falls in."""
-        prefix = str(date.year - 1900)
+        prefix = '{:03d}'.format(date.year - 1900)
 
         if date.month >= 9:
             return prefix + '7'

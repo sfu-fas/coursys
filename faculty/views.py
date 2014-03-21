@@ -4,7 +4,7 @@ import itertools
 import json
 import operator
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_DOWN
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -29,10 +29,9 @@ from courselib.search import find_userid_or_emplid
 from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
 from grad.models import Supervisor
 from ra.models import RAAppointment
-from reports.reportlib.semester import date2semester, current_semester
 
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
@@ -186,6 +185,60 @@ def salary_index(request):
     }
     return render(request, 'faculty/salary_index.html', context)
 
+@requires_role('ADMN')
+def fallout_report(request):
+    """
+    Fallout Report 
+    """
+    form = DateRangeForm()
+    filterform = UnitFilterForm()
+
+    if request.GET:
+        form = DateRangeForm(request.GET)
+
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+        else:
+            end_date = datetime.date.today()
+            start_date = datetime.date(end_date.year, 1, 1)
+
+    else:
+        end_date = datetime.date.today()
+        start_date = datetime.date(end_date.year, 1, 1)
+        initial = { 'start_date': start_date,
+                    'end_date': end_date }
+        form = DateRangeForm(initial=initial)
+
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    table = []
+    tot_fallout = 0
+    for p, roles in fac_roles:
+        salary = FacultySummary(p).base_salary(end_date)
+        units = ', '.join(r.unit.label for r in roles)
+        # TODO: below line should only select pay from units the user can see
+        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        for event in salary_events:
+            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
+                days = event.get_duration_within_range(start_date, end_date)
+                fraction = FacultySummary(p).salary_event_info(event)[1]
+                d = fraction.denominator
+                n = fraction.numerator
+                fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
+                tot_fallout += fallout
+
+                table += [(units, p, event, days, salary, fraction, fallout )]
+
+    context = {
+        'form': form,
+        'table': table,
+        'tot_fallout': tot_fallout,
+        'filterform': filterform,
+    }
+    return render(request, 'faculty/reports/fallout_report.html', context)
+
 
 @requires_role('ADMN')
 def status_index(request):
@@ -273,7 +326,7 @@ def teaching_capacity(request):
     }
 
     if form.is_valid():
-        semester = Semester.objects.get(name=form.cleaned_data['semester'])
+        semester = ReportingSemester(form.cleaned_data['semester'])
 
         for unit in sub_units:
             entries = []
@@ -295,9 +348,9 @@ def teaching_capacity_csv(request):
     form = AvailableCapacityForm(request.GET)
 
     if form.is_valid():
-        semester = Semester.objects.get(name=form.cleaned_data['semester'])
+        semester = ReportingSemester(form.cleaned_data['semester'])
 
-        filename = 'teaching_capacity_{}.csv'.format(semester.name)
+        filename = 'teaching_capacity_{}.csv'.format(semester.code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
@@ -387,13 +440,16 @@ def course_accreditation(request):
     form = CourseAccreditationForm(request.GET, flags=flag_choices)
 
     if form.is_valid():
-        start_semester = form.cleaned_data.get('start_semester')
-        end_semester = form.cleaned_data.get('end_semester')
+        start_code = form.cleaned_data.get('start_semester')
+        end_code = form.cleaned_data.get('end_semester')
         operator = form.cleaned_data.get('operator')
         selected_flags = set(form.cleaned_data.get('flag'))
 
-        semesters = [Semester.objects.get(name=name)
-                     for name in Semester.range(start_semester, end_semester)]
+        # Since CourseOfferings require actual Semesters, ignore any semesters in the
+        # input range that do not "exist".
+        semester_codes = [semester.code
+                          for semester in ReportingSemester.range(start_code, end_code)]
+        semesters = Semester.objects.filter(name__in=semester_codes)
 
         # Group offerings by course
         found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
@@ -423,16 +479,19 @@ def course_accreditation_csv(request):
     form = CourseAccreditationForm(request.GET, flags=flag_choices)
 
     if form.is_valid():
-        start_semester = form.cleaned_data.get('start_semester')
-        end_semester = form.cleaned_data.get('end_semester')
+        start_code = form.cleaned_data.get('start_semester')
+        end_code = form.cleaned_data.get('end_semester')
         operator = form.cleaned_data.get('operator')
         selected_flags = set(form.cleaned_data.get('flag'))
 
-        semesters = [Semester.objects.get(name=name)
-                     for name in Semester.range(start_semester, end_semester)]
+        # Since CourseOfferings require actual Semesters, ignore any semesters in the
+        # input range that do not "exist".
+        semester_codes = [semester.code
+                          for semester in ReportingSemester.range(start_code, end_code)]
+        semesters = Semester.objects.filter(name__in=semester_codes)
 
         # Set up for CSV shenanigans
-        filename = 'course_accreditation_{}-{}.csv'.format(start_semester, end_semester)
+        filename = 'course_accreditation_{}-{}.csv'.format(start_code, end_code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
@@ -492,21 +551,21 @@ def teaching_summary(request, userid):
     def teaching_events_table(semester):
         cb = 0
         e = []
-        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
+        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.code) \
             .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
         for course in courses:
-            e += [(semester.name, course.offering.name(), course.offering.title, course.teaching_credit())]
+            e += [(semester.code, course.offering.name(), course.offering.title, course.teaching_credit())]
             cb += course.teaching_credit()
 
         # TODO: should filter only user-visible events
-        teaching_events = FacultySummary(person).teaching_events(semester)
+        teaching_events = FacultySummary(person).teaching_events(Semester(name=semester.code))
         for event in teaching_events:
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
             if load_decrease:
-                e += [(semester.name, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease)]
+                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease, event)]
             if credits:
-                e += [(semester.name, event.get_event_type_display(), event.get_handler().short_summary(), credits)]
+                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), credits, event)]
             cb += credits + load_decrease
 
         return cb, e
@@ -517,8 +576,8 @@ def teaching_summary(request, userid):
         if form.is_valid():
             start = form.cleaned_data['start_semester']
             end = form.cleaned_data['end_semester']
-            start_semester = Semester(name=start)
-            end_semester = Semester(name=end)
+            start_semester = ReportingSemester(start)
+            end_semester = ReportingSemester(end)
 
             curr_semester = start_semester
             while curr_semester <= end_semester:
@@ -526,11 +585,11 @@ def teaching_summary(request, userid):
                 credit_balance += cb
                 events += event
 
-                curr_semester = curr_semester.next_semester()
+                curr_semester = curr_semester.next()
 
     else:
-        start_semester = end_semester = Semester.current()
-        start = end = start_semester.name
+        start_semester = end_semester = ReportingSemester(datetime.date.today())
+        start = end = start_semester.code
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -550,35 +609,47 @@ def teaching_summary(request, userid):
 def study_leave_credits(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     form = TeachingSummaryForm()
+    slc_total = 0
+    events = []
+    end_semester = ReportingSemester(datetime.date.today())
+    start_semester = end_semester.prev()
+    finish_semester = end_semester
 
     def study_credit_events_table(semester, show_in_table, running_total):
         slc = 0
         e = []
-        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
+        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.code) \
             .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
         for course in courses:
             tc = course.teaching_credit()
+            running_total += tc
             if show_in_table and tc:
-                running_total += tc
-                e += [(semester.name, course.offering.name(), tc, tc, running_total)]
+                e += [(semester.code, course.offering.name(), tc, tc, fraction_display(running_total))]
 
         # TODO: should filter only user-visible events
-        teaching_events = FacultySummary(person).teaching_events(semester)
+        teaching_events = FacultySummary(person).teaching_events(Semester(name=semester.code))
         for event in teaching_events:
             # only want to account for the study leave event once
-            if event.event_type == 'STUDYLEAVE' and Semester.start_end_dates(semester)[0] <= event.start_date:
+            if event.event_type == 'STUDYLEAVE':
                 Handler = EVENT_TYPES[event.event_type]
                 handler = Handler(event)
-                slc = handler.get_study_leave_credits()
-                running_total -= slc
-                if show_in_table:
-                    e += [(semester.name, event.get_event_type_display(), '-', -slc , running_total)]
+                if ReportingSemester.start_and_end_dates(semester.code)[0] <= event.start_date:
+                    slc = handler.get_study_leave_credits()
+                    running_total -= slc
+                    if show_in_table:
+                        e += [(semester.code, 'Begin Study Leave', '-', -slc , fraction_display(running_total))]
+                if event.end_date and ReportingSemester.start_and_end_dates(semester.code)[1] >= event.end_date:
+                    tot = handler.get_credits_carried_forward()
+                    if tot != None:
+                        running_total = tot
+                    if show_in_table:
+                        e += [(semester.code, 'End Study Leave', '-', '-' , fraction_display(running_total))]
             else:
                 credits, load_decrease = FacultySummary(person).teaching_event_info(event)
                 if show_in_table and credits:
                         running_total += credits
-                        e += [(semester.name, event.get_event_type_display(), credits, credits, running_total)]
+                        e += [(semester.code, event.get_event_type_display(), credits, credits, fraction_display(running_total))]
 
 
         return e, running_total
@@ -586,19 +657,19 @@ def study_leave_credits(request, userid):
     def all_study_events(start_semester, end_semester):
         slc_total = 0
         events = []
-        finish_semester = max(end_semester, Semester.current()) # in case we want to look into future semesters
-        curr_semester = Semester(name='0651')
+        finish_semester = ReportingSemester(max(end_semester.code, ReportingSemester(datetime.date.today()).code)) # in case we want to look into future semesters
+        curr_semester = ReportingSemester('0651')
         while curr_semester <= finish_semester:
             if curr_semester >= start_semester and curr_semester <= end_semester:
                 event, slc_total = study_credit_events_table(curr_semester, True, slc_total)
             else:
                 event, slc_total = study_credit_events_table(curr_semester, False, slc_total)
 
-            if curr_semester == start_semester.previous_semester():
-                events += [('-', 'Study Leave Credits prior to '+start_semester.name, '-', slc_total , slc_total)]
+            if curr_semester == start_semester.prev():
+                events += [('-', 'Study Leave Credits prior to '+start_semester.code, '-', fraction_display(slc_total) , fraction_display(slc_total))]
 
             events += event
-            curr_semester = curr_semester.next_semester()
+            curr_semester = curr_semester.next()
 
         return slc_total, events, finish_semester
 
@@ -608,29 +679,26 @@ def study_leave_credits(request, userid):
         if form.is_valid():
             start = form.cleaned_data['start_semester']
             end = form.cleaned_data['end_semester']
-            start_semester = Semester(name=start)
-            end_semester = Semester(name=end)
+            start_semester = ReportingSemester(start)
+            end_semester = ReportingSemester(end)
 
             slc_total, events, finish_semester = all_study_events(start_semester, end_semester)
 
     else:
-        end_semester = Semester.current()
-        start_semester = end_semester.previous_semester()
-        start = start_semester.name
-        end = end_semester.name
+        start = start_semester.code
+        end = end_semester.code
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
 
         slc_total, events, finish_semester = all_study_events(start_semester, end_semester)
 
-    slc_mmixed = fraction_display(slc_total)
     context = {
         'form': form,
         'person': person,
-        'study_credits': slc_mmixed,
+        'study_credits': fraction_display(slc_total),
         'events': events,
-        'finish_semester': finish_semester
+        'finish_semester': ReportingSemester.make_full_label(finish_semester.code)
     }
     return render(request, 'faculty/study_leave_credits.html', context)
 

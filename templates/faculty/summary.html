@@ -80,4 +80,21 @@ $(document).ready(function() {
 </tbody>
 </table>
 
+<table id="grants_table">
+  <thead><tr class="th">
+    <th scope="col">Grant</th>
+    <th scope="col">Start Date</th>
+    <th scope="col">End Date</th>
+  </tr></thead>
+  <tbody>
+  {% for grant in grants %}
+  <tr>
+    <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
+    <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
+    <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+
 {% endblock %}
