@@ -157,7 +157,14 @@ def login(request, next_page=None, required=False):
     service = _service_url(request, next_page)
     if ticket:
         from django.contrib import auth
-        user = auth.authenticate(ticket=ticket, service=service)
+        try:
+            user = auth.authenticate(ticket=ticket, service=service)
+        except IOError as e:
+            # Here we want to catch timeouts and only timeouts
+            if e.errno == 110:
+                user = None
+            else:
+                raise e
         if user is not None:
             auth.login(request, user)
             #LOG EVENT#

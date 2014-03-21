@@ -189,7 +189,8 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
                                         owner__in=request.formgroups)
 
     # get the next sheet that hasn't been completed (as the default next sheet to assign)
-    filled_orders = [val['sheet__order'] for val in
+    # ([-1000] ensures there's something for the max() below)
+    filled_orders = [-1000] + [val['sheet__order'] for val in
                      form_submission.sheetsubmission_set.filter(status='DONE').values('sheet__order')]
     later_sheets = Sheet.objects \
                    .filter(form=form_submission.form, active=True, order__gt=max(filled_orders)) \
