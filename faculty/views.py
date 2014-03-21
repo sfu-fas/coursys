@@ -440,13 +440,16 @@ def course_accreditation(request):
     form = CourseAccreditationForm(request.GET, flags=flag_choices)
 
     if form.is_valid():
-        start_semester = form.cleaned_data.get('start_semester')
-        end_semester = form.cleaned_data.get('end_semester')
+        start_code = form.cleaned_data.get('start_semester')
+        end_code = form.cleaned_data.get('end_semester')
         operator = form.cleaned_data.get('operator')
         selected_flags = set(form.cleaned_data.get('flag'))
 
-        semesters = [Semester.objects.get(name=name)
-                     for name in Semester.range(start_semester, end_semester)]
+        # Since CourseOfferings require actual Semesters, ignore any semesters in the
+        # input range that do not "exist".
+        semester_codes = [semester.code
+                          for semester in ReportingSemester.range(start_code, end_code)]
+        semesters = Semester.objects.filter(name__in=semester_codes)
 
         # Group offerings by course
         found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
@@ -476,16 +479,19 @@ def course_accreditation_csv(request):
     form = CourseAccreditationForm(request.GET, flags=flag_choices)
 
     if form.is_valid():
-        start_semester = form.cleaned_data.get('start_semester')
-        end_semester = form.cleaned_data.get('end_semester')
+        start_code = form.cleaned_data.get('start_semester')
+        end_code = form.cleaned_data.get('end_semester')
         operator = form.cleaned_data.get('operator')
         selected_flags = set(form.cleaned_data.get('flag'))
 
-        semesters = [Semester.objects.get(name=name)
-                     for name in Semester.range(start_semester, end_semester)]
+        # Since CourseOfferings require actual Semesters, ignore any semesters in the
+        # input range that do not "exist".
+        semester_codes = [semester.code
+                          for semester in ReportingSemester.range(start_code, end_code)]
+        semesters = Semester.objects.filter(name__in=semester_codes)
 
         # Set up for CSV shenanigans
-        filename = 'course_accreditation_{}-{}.csv'.format(start_semester, end_semester)
+        filename = 'course_accreditation_{}-{}.csv'.format(start_code, end_code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
