@@ -44,10 +44,14 @@ $(document).ready(function() {
       <th scope="col">Credits</th>
     </tr></thead>
     <tbody>
-    {% for semester, course, summary, credits in events %}
+    {% for semester, course, summary, credits, event in events %}
     <tr>
       <td>{{ semester }}</td>
-      <td>{{ course }}</td>
+      <td>
+        {% if event %}
+        <a href="{{ event.get_absolute_url }}">
+        {% endif %}
+        {{ course }}</td>
       <td>{{ summary }}</td>
       <td>{{ credits }}</td>
     </tr>
