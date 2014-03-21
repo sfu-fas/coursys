@@ -47,11 +47,11 @@ $(document).ready(function() {
     {% for semester, course, summary, credits, event in events %}
     <tr>
       <td>{{ semester }}</td>
-      <td>
-        {% if event %}
-        <a href="{{ event.get_absolute_url }}">
-        {% endif %}
-        {{ course }}</td>
+      {% if event %}
+        <td><a href="{{ event.get_absolute_url }}">{{ course }}</a></td>
+      {% else %}
+        <td>{{ course }}</td>
+      {% endif %}
       <td>{{ summary }}</td>
       <td>{{ credits }}</td>
     </tr>
