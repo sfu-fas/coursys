@@ -34,7 +34,12 @@ class ApprovalForm(forms.ModelForm):
 
 
 class GetSalaryForm(forms.Form):
-    date = forms.DateField();
+    date = forms.DateField()
+
+
+class DateRangeForm(forms.Form):
+    start_date = forms.DateField()
+    end_date = forms.DateField()
 
 
 class TeachingSummaryForm(forms.Form):

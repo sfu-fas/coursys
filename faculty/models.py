@@ -144,6 +144,13 @@ class CareerQuerySet(models.query.QuerySet):
             filters = {"start_date__gte": start, "end_date__lte": end}
         return self.exclude(status='D').filter(**filters)
 
+    def overlaps_daterange(self, start, end):
+        """
+        Returns CareerEvents occurring during the date range.
+        """
+        end_okay = Q(end_date__isnull=True) | Q(end_date__gte=start)
+        return self.exclude(status='D').filter(start_date__lte=end).filter(end_okay)
+
     def by_type(self, Handler):
         """
         Returns all CareerEvents matching the given CareerEventHandler class.
@@ -238,6 +245,20 @@ class CareerEvent(models.Model):
         if not hasattr(self, 'handler_cache'):
             self.handler_cache = EVENT_TYPES[self.event_type](self)
         return self.handler_cache
+
+    def get_duration_within_range(self, start, end):
+        """
+        Returns the number of days the event overlaps with a given date range
+        """
+        if (self.start_date < end and (self.end_date == None or self.end_date > start)):
+            s = max(start, self.start_date)
+            if self.end_date:
+                e = min(end, self.end_date)
+            else:
+                e = end
+            delta = e - s
+            return delta.days
+        return 0
 
     def filter_classes(self):
         """

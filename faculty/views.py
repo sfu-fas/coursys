@@ -4,7 +4,7 @@ import itertools
 import json
 import operator
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_DOWN
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -31,7 +31,7 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
@@ -184,6 +184,60 @@ def salary_index(request):
         'pay_tot': pay_tot,
     }
     return render(request, 'faculty/salary_index.html', context)
+
+@requires_role('ADMN')
+def fallout_report(request):
+    """
+    Fallout Report 
+    """
+    form = DateRangeForm()
+    filterform = UnitFilterForm()
+
+    if request.GET:
+        form = DateRangeForm(request.GET)
+
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+        else:
+            end_date = datetime.date.today()
+            start_date = datetime.date(end_date.year, 1, 1)
+
+    else:
+        end_date = datetime.date.today()
+        start_date = datetime.date(end_date.year, 1, 1)
+        initial = { 'start_date': start_date,
+                    'end_date': end_date }
+        form = DateRangeForm(initial=initial)
+
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    table = []
+    tot_fallout = 0
+    for p, roles in fac_roles:
+        salary = FacultySummary(p).base_salary(end_date)
+        units = ', '.join(r.unit.label for r in roles)
+        # TODO: below line should only select pay from units the user can see
+        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        for event in salary_events:
+            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
+                days = event.get_duration_within_range(start_date, end_date)
+                fraction = FacultySummary(p).salary_event_info(event)[1]
+                d = fraction.denominator
+                n = fraction.numerator
+                fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
+                tot_fallout += fallout
+
+                table += [(units, p, event, days, salary, fraction, fallout )]
+
+    context = {
+        'form': form,
+        'table': table,
+        'tot_fallout': tot_fallout,
+        'filterform': filterform,
+    }
+    return render(request, 'faculty/reports/fallout_report.html', context)
 
 
 @requires_role('ADMN')
@@ -503,9 +557,9 @@ def teaching_summary(request, userid):
         for event in teaching_events:
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
             if load_decrease:
-                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease)]
+                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease, event)]
             if credits:
-                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), credits)]
+                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), credits, event)]
             cb += credits + load_decrease
 
         return cb, e
@@ -610,14 +664,12 @@ def study_leave_credits(request, userid):
 
             events += event
             curr_semester = curr_semester.next()
-            print curr_semester.code
 
         return slc_total, events, finish_semester
 
     if request.GET:
         form = TeachingSummaryForm(request.GET)
 
-        print form.is_valid()
         if form.is_valid():
             start = form.cleaned_data['start_semester']
             end = form.cleaned_data['end_semester']
