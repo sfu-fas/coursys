@@ -489,8 +489,16 @@ class TempGrantManager(models.Manager):
                 except (IndexError, InvalidOperation):
                     failed.append(row)
                     continue
-                
-                # Make sure its not a duplicate label
+               
+                # If Grant with the label already exists, then we update the balance
+                try:
+                    grant = Grant.objects.get(label__exact=label)
+                except Grant.DoesNotExist:
+                    pass
+                else:
+                    gb = grant.update_balance(cur_balance, cur_month, ytd_actual)
+
+                # Make sure its not a duplicate label for Temp Grants
                 if not TempGrant.objects.filter(label__exact=label).exists():
                     t = TempGrant(
                         label=label,

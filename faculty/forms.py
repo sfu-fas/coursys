@@ -134,6 +134,7 @@ class GrantForm(forms.ModelForm):
             self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
             self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
 
+        # TODO: this might be causing owners not to be saved, since it rewrites the values?
         owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"]).distinct()
         self.fields['owners'].queryset = owners
 
