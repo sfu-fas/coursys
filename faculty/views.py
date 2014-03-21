@@ -899,29 +899,38 @@ def faculty_wizard(request, userid):
         form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST)
         form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST)
         form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST)
+
+        del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
+        
         if form_appoint.is_valid() and form_salary.is_valid() and form_load.is_valid():
             handler_appoint = Handler_appoint.create_for(person=person, form=form_appoint)
             handler_appoint.save(editor)
             handler_appoint.set_status(editor)
 
             handler_salary = Handler_salary.create_for(person=person, form=form_salary)
+            handler_salary.event.start_date = handler_appoint.event.start_date
             handler_salary.save(editor)
             handler_salary.set_status(editor)
 
             handler_load = Handler_load.create_for(person=person, form=form_load)
+            handler_load.event.start_date = handler_appoint.event.start_date
             handler_load.save(editor)
             handler_load.set_status(editor)
             return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
         else:
-            forms = [form_appoint, form_salary, form_load]
-            context.update({"event_form": forms})
+            form_list = [form_appoint, form_salary, form_load]
+            context.update({"event_form": form_list})
     else:
         # Display new blank form
         form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units)
         form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units)
         form_load = Handler_load.get_entry_form(editor=editor, units=member_units)
-        forms = [form_appoint, form_salary, form_load]
-        context.update({"event_form": forms})
+
+        del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
+        del form_salary.fields['start_date'], form_load.fields['start_date'] 
+        
+        form_list = [form_appoint, form_salary, form_load]
+        context.update({"event_form": form_list})
 
     return render(request, 'faculty/faculty_wizard.html', context)
 

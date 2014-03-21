@@ -7,6 +7,11 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  $("#SetupForm").formToWizard();
+});
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -20,17 +25,17 @@
 
 {% block content %}
 <div class="form_container">
-    <form action="" method="post" enctype="multipart/form-data">
+    <form id="SetupForm" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %} 
         {% for form in event_form %}
         <fieldset>
-            <h2> {{ form.title.value }} </h2>
+            <legend>{{ form.title.value }}</legend>           
             {{ form|as_dl }}
             {{ form.media }}
             </br>
         </fieldset>
         {% endfor %}
-        <p><input type="submit" class="submit" value="Submit" /></p>
+        <p><input id="save_setup" type="submit" class="submit" value="Submit" /></p>
     </form>
 </div>
 {% endblock %}
