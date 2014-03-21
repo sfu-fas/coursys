@@ -165,14 +165,9 @@ class SemesterCodeField(forms.CharField):
         if value in forms.fields.validators.EMPTY_VALUES:
             return None
 
-        if not (len(value) == 4 and value.isdigit()):
+        if not (len(value) == 4 and value.isdigit() and (value[3] == '1' or value[3] == '4' or value[3] == '7')):
             # XXX: Technically this check isn't needed as the db query would also fail
             #      but maybe we gain something by not making that call?
-            raise ValidationError(_('Invalid semester code'))
-
-        try:
-            semester = Semester.objects.get(name=value)
-        except (AssertionError, Semester.DoesNotExist):
             raise ValidationError(_('Invalid semester code'))
 
         return value
