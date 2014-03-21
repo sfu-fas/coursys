@@ -56,6 +56,9 @@ class ReportingSemester(object):
     def __repr__(self):
         return repr("<ReportingSemester('{}')>".format(self.code))
 
+    def __unicode__(self):
+        return unicode(self.full_label)
+
     def next(self):
         """Returns the next chronological semester."""
         new_month = ((self.start_date.month - 1) + 4) % 12 + 1
