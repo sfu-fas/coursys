@@ -12,6 +12,8 @@ import datetime
 
 from coredata.models import Semester
 
+from faculty.util import ReportingSemester
+
 class SemesterDateInput(forms.widgets.MultiWidget):
     class Media:
         js = ('js/semesters.js',)
@@ -122,17 +124,14 @@ class SemesterToDateField(forms.CharField):
             return None
 
         if not (len(value) == 4 and value.isdigit()):
-            # XXX: Technically this check isn't needed as the db query would also fail
-            #      but maybe we gain something by not making that call?
             raise ValidationError(_('Invalid semester code'))
 
         try:
-            semester = Semester.objects.get(name=value)
-        except (AssertionError, Semester.DoesNotExist):
+            semester = ReportingSemester(value)
+        except ValueError:
             raise ValidationError(_('Invalid semester code'))
 
-        start_date, end_date = Semester.start_end_dates(semester)
-        return self.start and start_date or end_date
+        return self.start and semester.start_date or semester.end_date
 
     def run_validators(self, value):
         # XXX: Validation is already done inside `to_python`.
@@ -144,9 +143,8 @@ class SemesterToDateField(forms.CharField):
         elif value is None:
             return ''
         else:
-            date = datetime.date(value.year, value.month, 10)
-            semester = Semester.get_semester(date)
-            return semester.name
+            return ReportingSemester(value).code
+
 
 class SemesterCodeField(forms.CharField):
     """
