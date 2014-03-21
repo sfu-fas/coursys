@@ -326,7 +326,7 @@ def teaching_capacity(request):
     }
 
     if form.is_valid():
-        semester = Semester.objects.get(name=form.cleaned_data['semester'])
+        semester = ReportingSemester(form.cleaned_data['semester'])
 
         for unit in sub_units:
             entries = []
@@ -348,9 +348,9 @@ def teaching_capacity_csv(request):
     form = AvailableCapacityForm(request.GET)
 
     if form.is_valid():
-        semester = Semester.objects.get(name=form.cleaned_data['semester'])
+        semester = ReportingSemester(form.cleaned_data['semester'])
 
-        filename = 'teaching_capacity_{}.csv'.format(semester.name)
+        filename = 'teaching_capacity_{}.csv'.format(semester.code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
