@@ -219,14 +219,12 @@ class LetterContents(object):
     to_addr_lines: the lines of the recipient's address (list of strings)
     from_name_lines: the sender's name (and title, etc) (list of strings)
     date: sending date of the letter (datetime.date object)
-    saluations: letter's salutation (string)
     closing: letter's closing (string)
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
-    def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern",
+    def __init__(self, to_addr_lines, from_name_lines, date=None,
                  closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True):
         self.date = date or datetime.date.today()
-        self.salutation = salutation
         self.closing = closing
         self.flowables = []
         self.to_addr_lines = to_addr_lines
@@ -283,9 +281,6 @@ class LetterContents(object):
         for line in self.to_addr_lines:
             contents.append(Paragraph(line, style))
         contents.append(Spacer(1, 2*space_height))
-        if self.salutation:
-            contents.append(Paragraph(self.salutation+",", style))
-            contents.append(Spacer(1, space_height))
         
         for f in self.flowables[:-1]:
             # last paragraph is put in the KeepTogether below, to prevent bad page break
