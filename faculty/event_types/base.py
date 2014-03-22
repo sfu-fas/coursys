@@ -318,9 +318,13 @@ class CareerEventHandlerBase(object):
         """
         Given a valid form, load its data into the handler.
         """
-        self.event.unit = form.cleaned_data['unit']
+        try:
+            self.event.unit = form.cleaned_data['unit']
+            self.event.start_date = form.cleaned_data['start_date']
+        except KeyError:
+            pass
+
         self.event.title = form.cleaned_data['title']
-        self.event.start_date = form.cleaned_data['start_date']
         self.event.end_date = form.cleaned_data.get('end_date', None)
         self.event.comments = form.cleaned_data.get('comments', None)
         # XXX: Event status is set based on the editor,

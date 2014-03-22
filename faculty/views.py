@@ -950,9 +950,6 @@ def faculty_wizard(request, userid):
         return NotFoundResponse(request)
 
     tmp1 = Handler_appoint.create_for(person)
-    tmp2 = Handler_salary.create_for(person)
-    tmp3 = Handler_load.create_for(person)
-
     if not tmp1.can_edit(editor):
         raise PermissionDenied("'%s' not allowed to create this event" %(event_type))
 
@@ -964,11 +961,15 @@ def faculty_wizard(request, userid):
     }
 
     if request.method == "POST":
-        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST)
-        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST)
-        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='appoint')
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='salary')
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='load')
 
+        # Nuke unwanted fields
         del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
+        del form_salary.fields['start_date'], form_load.fields['start_date']
+        del form_salary.fields['unit'], form_load.fields['unit']
+        del form_appoint.fields['leaving_reason']
         
         if form_appoint.is_valid() and form_salary.is_valid() and form_load.is_valid():
             handler_appoint = Handler_appoint.create_for(person=person, form=form_appoint)
@@ -977,11 +978,13 @@ def faculty_wizard(request, userid):
 
             handler_salary = Handler_salary.create_for(person=person, form=form_salary)
             handler_salary.event.start_date = handler_appoint.event.start_date
+            handler_salary.event.unit = handler_appoint.event.unit
             handler_salary.save(editor)
             handler_salary.set_status(editor)
 
             handler_load = Handler_load.create_for(person=person, form=form_load)
             handler_load.event.start_date = handler_appoint.event.start_date
+            handler_load.event.unit = handler_appoint.event.unit
             handler_load.save(editor)
             handler_load.set_status(editor)
             return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
@@ -990,12 +993,15 @@ def faculty_wizard(request, userid):
             context.update({"event_form": form_list})
     else:
         # Display new blank form
-        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units)
-        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units)
-        form_load = Handler_load.get_entry_form(editor=editor, units=member_units)
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, prefix='appoint')
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, prefix='salary')
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, prefix='load')
 
+        # Nuke unwanted fields
         del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
-        del form_salary.fields['start_date'], form_load.fields['start_date'] 
+        del form_salary.fields['start_date'], form_load.fields['start_date']
+        del form_salary.fields['unit'], form_load.fields['unit']
+        del form_appoint.fields['leaving_reason']
         
         form_list = [form_appoint, form_salary, form_load]
         context.update({"event_form": form_list})
