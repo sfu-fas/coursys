@@ -56,5 +56,6 @@ urlpatterns = patterns('',
     url(r'^grants/delete/(?P<gid>\d+)$', 'faculty.views.delete_grant', name="delete_grant"),
     url(r'^grants/import$', 'faculty.views.import_grants', name="import_grants"),
     url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '$', 'faculty.views.view_grant', name="view_grant"),
+    url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '/edit$', 'faculty.views.edit_grant', name="edit_grant"),
     
 )

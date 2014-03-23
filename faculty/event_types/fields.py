@@ -43,16 +43,18 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         try:
             assert len(code) == 4
             assert code.isdigit()
-            s = Semester.objects.get(name=code)
+            #s = Semester.objects.get(name=code)
+            s = ReportingSemester(code)
             return s
-        except (AssertionError, Semester.DoesNotExist):
+        except AssertionError:
+        #except (AssertionError, Semester.DoesNotExist):
             # Semester does not exist, or its in the wrong format
             return 
 
     def get_semester_date(self, semester):
         if not semester:
             return 
-        start, end = semester.start_end_dates(semester)
+        start, end = semester.start_and_end_dates(semester.code)
         if self.semester_start:
             return start
         return end

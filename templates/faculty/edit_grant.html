@@ -6,18 +6,18 @@
 <script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 {% endblock %}
 
-{% block title %}New Grant{% endblock %}
-{% block h1 %}New Grant{% endblock %}
+{% block title %}Edit Grant: {{ grant }}{% endblock %}
+{% block h1 %}Edit Grant: {{ grant }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url 'grants_index' %}">Grants</a></li>
-<li>New Grant</li>
+<li>Edit Grant: {{ grant }}</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-	<form action="{% url 'new_grant' %}" method="post">
+	<form action="{% url 'edit_grant' grant.unit.slug grant.slug %}" method="post">
 		{% csrf_token %}
 		<fieldset>
             {{grant_form|as_dl}}

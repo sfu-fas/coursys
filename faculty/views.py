@@ -1392,11 +1392,31 @@ def new_grant(request):
     if request.method == "POST":
         form = GrantForm(units, request.POST)
         if form.is_valid():
-            grant = form.save(commit=False)
-            grant.save()
+            grant = form.save()
         else:
             context.update({"grant_form": form})
     return render(request, "faculty/new_grant.html", context)
+
+
+@requires_role('ADMN')
+def edit_grant(request, unit_slug, grant_slug):
+    editor = get_object_or_404(Person, userid=request.user.username)
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    units = Unit.objects.filter(id__in=sub_unit_ids)
+    grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
+    form = GrantForm(units, instance=grant)
+    context = {
+        "grant": grant,
+        "grant_form": form,
+        "editor": editor,
+    }
+    if request.method == "POST":
+        form = GrantForm(units, request.POST, instance=grant)
+        if form.is_valid():
+            grant = form.save()
+        else:
+            context.update({"grant_form": form})
+    return render(request, "faculty/edit_grant.html", context)
 
 
 @requires_role('ADMN')

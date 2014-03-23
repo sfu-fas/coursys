@@ -80,6 +80,9 @@ $(document).ready(function() {
 </tbody>
 </table>
 
+{% with grants=person.grant_set.all %}
+{% if grants %}
+<h4>Grants owned by {{ person.first_name }}</h4>
 <table id="grants_table">
   <thead><tr class="th">
     <th scope="col">Grant</th>
@@ -90,11 +93,13 @@ $(document).ready(function() {
   {% for grant in grants %}
   <tr>
     <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
-    <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
-    <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
+    <td><span class="sort">{{ grant.start_date.isoformat }}</span>{{ grant.start_date }}</td>
+    <td><span class="sort">{{ grant.end_date.isoformat }}</span>{{ grant.end_date }}</td>
   </tr>
   {% endfor %}
 </tbody>
 </table>
+{% endif %}
+{% endwith %}
 
 {% endblock %}
