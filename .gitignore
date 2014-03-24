@@ -47,6 +47,7 @@ celerybeat-schedule
 local_settings.py
 courses/secrets.py
 media/CACHE
+whoosh_index
 .project
 .pydevproject
 .settings

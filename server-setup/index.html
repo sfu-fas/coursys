@@ -220,6 +220,24 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote>
 
 
+
+
+<h2 id="solr">Solr Search (not yet deployed)</h2>
+<p>Solr will (at some point) be used to power the full-text search in production (with Whoosh doing the job in development environments.</p>
+<blockquote><pre>sudo apt-get install solr-jetty openjdk-7-jdk</pre></blockquote>
+
+<p>Edit <code class="file">/etc/default/jetty</code> so the server actually starts (<code>NO_START=0</code>), uses the right port (<code>JETTY_PORT=8983</code>), finds the JDK (<code>JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64</code>),
+and (in development only) listens enough that we can test (<code>JETTY_HOST=0.0.0.0</code>)</p>
+<p>The Haystack schema for Solr must be installed:</p>
+<blockquote><pre>cd ~/courses
+./manage.py build_solr_schema > /tmp/schema.xml <!-- | grep -v 'class="solr.LatLonType"' | grep -v 'class="solr.GeoHashField"' | grep -v 'type="location"'  -->
+sudo cp /tmp/schema.xml /etc/solr/conf/schema.xml
+sudo ln -s /etc/solr/conf/stopwords.txt /etc/solr/conf/stopwords_en.txt
+sudo /etc/init.d/jetty restart
+echo 'y' | ./manage.py rebuild_index
+</pre></blockquote>
+
+
 </body>
 </html>
 
