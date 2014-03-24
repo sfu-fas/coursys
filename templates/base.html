@@ -60,10 +60,9 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
         </section>
         <section class="actionable-header">
           <div class="search">
-            <form action="/search.html" method="get">
+            <form action="{% url "dashboard.views.site_search" %}" method="get">
               <fieldset class="search-field">
                 <input type="search" placeholder="Search" name="q">
-                <input type="hidden" name="p" data-value="/content/sfu/computing">
               </fieldset>
 
               <fieldset class="search-scope-set">

@@ -32,3 +32,5 @@ django-celery==3.1.1
 django-celery-email==1.0.4
 #kombu==3.0.10
 iso8601==0.1.8
+django-haystack==2.1.0
+whoosh==2.5.7
