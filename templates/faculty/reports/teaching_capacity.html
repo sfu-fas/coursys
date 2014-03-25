@@ -10,7 +10,7 @@
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('capacity-table').dataTable({
+  $('#capacity-table').dataTable({
       bPaginate: false,
       bInfo: false,
       aaSorting: [
@@ -72,7 +72,7 @@ $(document).ready(function() {
     <tr class="{{ unit.label }}">
         <td>{{ unit.label }}</td>
         <td>
-          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&end_semester={{ semester.code }}">
+          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&amp;end_semester={{ semester.code }}">
             {{ person }}
           </a>
         </td>

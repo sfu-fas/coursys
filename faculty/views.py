@@ -1441,7 +1441,7 @@ def import_grants(request):
     return HttpResponseRedirect(reverse("grants_index"))
 
 
-#@transaction.atomic
+@transaction.atomic
 @requires_role('ADMN')
 def convert_grant(request, gid):
     tmp = get_object_or_404(TempGrant, id=gid)
