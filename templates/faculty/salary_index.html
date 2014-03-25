@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}Faculty Salaries{% endblock %}
 {% block h1 %}Faculty Salaries{% endblock %}
 
@@ -10,6 +10,7 @@
       margin-top: -53px;
     }
 </style>
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#faculty_salary_table').dataTable( {
@@ -21,6 +22,16 @@ $(document).ready(function() {
   $("#id_date").datepicker({
       'dateFormat' : 'yy-mm-dd'
     });
+  $('#filter-form').change( function() {
+    event_filter_update('faculty_salary_table');
+    var sum = 0;
+    $('.rowdata').each(function() {
+        sum += Number($(this).text());
+    });
+    $('#salary_sum').text("Total: $" + sum)
+    
+  });
+  event_filter_update('faculty_salary_table');
 } );
 </script>
 {% endblock %}
@@ -48,17 +59,18 @@ $(document).ready(function() {
 <form action="{% url 'faculty.views.salary_index' %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
-  <div>Total: ${{ pay_tot }}</div>
 </form>
+<div id="salary_sum">Total: ${{ pay_tot }}</div>
 
+{% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">
 <table id="faculty_salary_table" class="display">
   <thead><tr><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">Pay</th></tr></thead>
   <tbody>
   {% for person,units,pay in fac_roles_pay %}
-  <tr>
+  <tr class="{{ units }}">
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
-  <td>{{ units }}</td>
+  <td>{{ units.informal_name }}</td>
   <td><span class="rowdata">{{pay}}</span> ${{ pay }}</td>
   </tr>
   {% endfor %}

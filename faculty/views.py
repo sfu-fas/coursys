@@ -178,6 +178,7 @@ def salary_index(request):
         'form': form,
         'fac_roles_pay': fac_roles_pay,
         'pay_tot': pay_tot,
+        'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
     return render(request, 'faculty/salary_index.html', context)
 
@@ -265,7 +266,7 @@ def fallout_report(request):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+                table += [(units, p, event, days, salary, fraction, fallout )]
     # table, tot_fallout = _fallout_report_data(request, start_date, end_date)
 
     context = {
@@ -297,7 +298,7 @@ def _fallout_report_data(request, start_date, end_date):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+                table += [(units, p, event, days, salary, fraction, fallout )]
     return table
 
 @requires_role('ADMN')
