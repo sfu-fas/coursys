@@ -323,6 +323,7 @@ def teaching_capacity(request):
     context = {
         'form': form,
         'units': collected_units,
+        'filterform': UnitFilterForm(),
     }
 
     if form.is_valid():
