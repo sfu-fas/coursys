@@ -34,8 +34,11 @@ $(document).ready(function() {
 <div id="actions">
   <h2>Actions</h2>
   <ul class="fa-ul">
+    {% if career_events %}
     <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-plus"></i> Create New Event</a></li>
-    <li><a href="{% url 'faculty_wizard' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-magic"></i>Faculty Setup Wizard</a></li>
+    {% else %}
+    <li><a href="{% url 'faculty_wizard' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-magic"></i>Faculty Setup Wizard</a></li> 
+    {% endif %}
     <li class="newsec"><a href="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-book"></i> Teaching Summary</a></li>
     <li><a href="{% url 'faculty.views.study_leave_credits' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-rocket"></i> Study Leave Credits</a></li>
     <li><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-money"></i> Salary Info</a></li>
