@@ -425,6 +425,7 @@ def teaching_capacity(request):
     context = {
         'form': form,
         'units': collected_units,
+        'filterform': UnitFilterForm(),
     }
 
     if form.is_valid():
@@ -564,6 +565,7 @@ def course_accreditation(request):
     context = {
         'courses': dict(courses),
         'form': form,
+        'filterform': UnitFilterForm(),
     }
     return render(request, 'faculty/reports/course_accreditation.html', context)
 
