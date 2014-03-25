@@ -22,7 +22,7 @@ function event_filter_update(datatable) {
     "bRetrieve": true,
   } );
 
-  $.fn.dataTableExt.afnFiltering.pop();
+  $.fn.dataTableExt.afnFiltering = [];
   $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
     if ( oSettings.nTable.id != datatable ) {
       return true;
