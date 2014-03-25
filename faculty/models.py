@@ -561,10 +561,10 @@ class Grant(models.Model):
         ("A", "Active"),
         ("D", "Deleted"),
     )
-    title = models.CharField(max_length=64)
+    title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
     label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True, db_index=True)
-    owners = models.ManyToManyField(Person, blank=True, null=True)
+    owners = models.ManyToManyField(Person, blank=True, null=True, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
@@ -572,7 +572,7 @@ class Grant(models.Model):
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
-    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="unit who owns the grant")
+    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="Unit who owns the grant")
     config = JSONField(blank=True, null=True, default={})  # addition configuration for within the grant
 
     objects = GrantManager()

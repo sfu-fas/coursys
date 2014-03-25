@@ -151,15 +151,14 @@ class GrantForm(forms.ModelForm):
     def __init__(self, units, *args, **kwargs):
         self.units = units
         super(GrantForm, self).__init__(*args, **kwargs)
-        if units:
-            self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
-            self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
-    
-        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"]).distinct()
+        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"], role__unit__in=units).distinct()
         self.fields['owners'].queryset = owners
 
     class Meta:
         model = Grant
+        fields = ['title', 'owners', 'start_date', 'expiry_date', 'initial', 'overhead', 'unit']
 
 
 class GrantImportForm(forms.Form):

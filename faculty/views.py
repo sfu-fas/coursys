@@ -1458,7 +1458,11 @@ def convert_grant(request, gid):
         form = GrantForm(units, request.POST)
         if form.is_valid():
             grant = form.save(commit=False)
+            grant.label = tmp.label
+            grant.project_code = tmp.project_code
+            grant.status = 'A'
             grant.save()
+            print grant
             try:
                 # TODO: anything else to add to grant balance? can YTD actual be calculated?
                 balance = Decimal(tmp.config["cur_balance"])
