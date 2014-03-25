@@ -247,7 +247,7 @@ def letter(request, ra_slug):
         closing="Yours Truly", 
         signer=appointment.hiring_faculty,
         cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
-    contents.add_paragraphs("Dear " + appointment.person.get_title() + ' ' + appintment.person.last_name)
+    contents.add_paragraphs("Dear " + appointment.person.get_title() + ' ' + appointment.person.last_name)
     contents.add_paragraphs(appointment.letter_paragraphs())
     letter.add_letter(contents)
     letter.write()
