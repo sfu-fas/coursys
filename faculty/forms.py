@@ -107,6 +107,24 @@ class SearchForm(forms.Form):
     only_current = forms.BooleanField(required=False)
 
 class UnitFilterForm(forms.Form):
+    """
+    Form for filtering a table by units the user has access to
+
+    1) Initialize the form in view with UnitFilterForm(units)
+       Here, units = Unit.sub_units(request.units)
+
+    2) In the template, include 'faculty/_unit_form.html' to render the form
+
+    3) Add the necessary javascript to get the form working, see search_form.html as an example
+       - The table rows need a unit label class name, ex: <tr class="{{ handler.event.unit.label }}">
+       - initialize filtering:
+        $('#filter-form').change( function() {
+          event_filter_update('<table_id>');
+        });
+        event_filter_update('<table_id>');
+
+    """
+
     CATEGORIES = [
         ('all', 'All Units'),
     ]
