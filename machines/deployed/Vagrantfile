@@ -10,8 +10,8 @@ Vagrant::Config.run do |config|
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
-  config.vm.box = "saucy64"
-  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/saucy/current/saucy-server-cloudimg-amd64-vagrant-disk1.box"
+  config.vm.box = "trusty64"
+  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
 
   # Boot with a GUI so you can see the screen. (Default is headless)
   # config.vm.boot_mode = :gui
@@ -39,7 +39,9 @@ Vagrant::Config.run do |config|
   config.vm.share_folder "coursys_root_directory", "/home/vagrant/courses", "../.."
 
   # https://github.com/mitchellh/vagrant/issues/516#issuecomment-3998630
-  config.vm.customize(["modifyvm", :id, "--nictype1", "Am79C973"])
+  config.vm.customize(["modifyvm", :id, "--nictype1", "Am79C973",
+    "--memory", "1024"
+  ])
 
   # Enable provisioning with chef solo, specifying a cookbooks path, roles
   # path, and data_bags path (all relative to this Vagrantfile), and adding 
