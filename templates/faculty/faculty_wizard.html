@@ -24,7 +24,7 @@
         {% csrf_token %} 
         {% for form in event_form %}
         <fieldset>
-            <h2> {{ form.title.value }} </h2>
+            <legend>{{ form.title.value }}</legend>           
             {{ form|as_dl }}
             {{ form.media }}
             </br>

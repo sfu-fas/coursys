@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load event_display %}
 {% load form_display %}
 
@@ -6,54 +7,24 @@
 {% block h1 %}Teaching Capacity by Unit{% if semester %}: {{ semester }}{% endif %}{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('.capacity-unit i.fa-toggle-down').click(function () {
-    var icon = $(this);
-    var inner = icon.parent().parent().find('.capacity-unit-inner');
-
-    if (inner.hasClass('hidden')) {
-      icon.removeClass('fa-toggle-down');
-      icon.addClass('fa-toggle-right');
-    }
-    else {
-      icon.removeClass('fa-toggle-right');
-      icon.addClass('fa-toggle-down');
-    }
-    inner.toggleClass('hidden');
-  });
-
-  $('.capacity-unit table').dataTable({
+  $('#capacity-table').dataTable({
       bPaginate: false,
       bInfo: false,
-      aaSorting: [[0, 'asc']],
+      aaSorting: [
+        [0, 'desc'],
+        [1, 'asc']
+      ],
       bJQueryUI: true
   });
-} );
-</script>
 
-<style>
-.capacity-unit {
-  border: 2px solid;
-  padding: 5px 10px 5px 10px;
-  margin-bottom: 10px;
-}
-.capacity-unit:hover .fa {
-  color: #a6192e;
-}
-.capacity-unit .fa {
-  margin-right: 5px;
-}
-.capacity-unit h3 {
-  margin: 0px;
-}
-.capacity-unit h3 small {
-  float: right;
-}
-.capacity-unit .hidden {
-  display: none;
-}
-</style>
+  $('#filter-form').change( function() {
+    event_filter_update('capacity-table');
+  }).change();
+});
+</script>
 {% endblock %}
 
 {% block actions %}
@@ -61,9 +32,13 @@ $(document).ready(function() {
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
+    {% if form.is_valid %}
       <a href="{% url 'faculty.views.teaching_capacity_csv' %}?{{ request.GET.urlencode }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
+    {% else %}
+      <del><i class="fa fa-li fa-download"></i> Download CSV</del>
+    {% endif %}
     </li>
   </ul>
 </div>
@@ -81,28 +56,22 @@ $(document).ready(function() {
   <input class="submit" type="reset" value="Clear" />
 </form>
 
-{% for unit_name, info in units %}
-{% with unit_capacity=info.0 summaries=info.1 %}
-<div class="capacity-unit">
-  <h3>
-    <i class="fa {{ summaries|yesno:'fa-toggle-down,fa-times' }}"></i>
-    {{ unit_name }}
-    <small>Available Capacity: {{ unit_capacity|fraction_display }}</small>
-  </h3>
-  {% if summaries %}
-  <div class="capacity-unit-inner hidden">
-  <table>
-    <thead><tr>
-      <th class="name" scope="col">Name</th>
-      <th scope="col">Teaching Credits</th>
-      <th scope="col">Load Decrease</th>
-      <th scope="col">Available Capacity</th>
-    </tr></thead>
-    <tbody>
+{% include 'faculty/_unit_form.html' %}
+<table id='capacity-table'>
+  <thead><tr>
+    <th scope="col">Unit</th>
+    <th scope="col">Person</th>
+    <th scope="col">Teaching Credits</th>
+    <th scope="col">Expected Teaching Load</th>
+    <th scope="col">Available Capacity</th>
+  </tr></thead>
+  <tbody>
+  {% for unit, summaries in units %}
     {% for person, credits, load_decrease, capacity in summaries %}
-      <tr>
+    <tr class="{{ unit.label }}">
+        <td>{{ unit.label }}</td>
         <td>
-          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.name }}&end_semester={{ semester.name }}">
+          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&amp;end_semester={{ semester.code }}">
             {{ person }}
           </a>
         </td>
@@ -111,11 +80,7 @@ $(document).ready(function() {
         <td>{{ capacity|fraction_display }}</td>
       </tr>
     {% endfor %}
-    </tbody>
-  </table>
-  </div>
-  {% endif %}
-</div>
-{% endwith %}
-{% endfor %}
+  {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

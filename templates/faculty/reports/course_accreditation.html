@@ -1,18 +1,28 @@
 {% extends "base.html" %}
+{% load static %}
 {% load form_display %}
 
 {% block title %}Courses by Instructor Accreditation{% endblock %}
 {% block h1 %}Courses by Instructor Accreditation{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('table').dataTable({
+  $('accreditation-table').dataTable({
       bPaginate: false,
       bInfo: false,
-      aaSorting: [[0, 'asc']],
+      aaSorting: [
+        [0, 'asc'],
+        [1, 'desc']
+      ],
       bJQueryUI: true
   });
+
+  $('#filter-form').change(function() {
+    event_filter_update('accreditation-table');
+  });
+  event_filter_update('accreditation-table');
 });
 </script>
 {% endblock %}
@@ -22,9 +32,13 @@ $(document).ready(function() {
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
+    {% if form.is_valid %}
       <a href="{% url 'faculty.views.course_accreditation_csv' %}?{{ request.GET.urlencode }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
+    {% else %}
+      <del><i class="fa fa-li fa-download"></i> Download CSV</del>
+    {% endif %}
     </li>
   </ul>
 </div>
@@ -44,8 +58,8 @@ $(document).ready(function() {
   <input class="submit" type="reset" value="Clear" />
 </form>
 
-{% if not form.errors %}
-<table>
+{% include 'faculty/_unit_form.html' %}
+<table id="accreditation-table">
   <thead><tr>
     <th>Unit</th>
     <th>Semester</th>
@@ -57,9 +71,9 @@ $(document).ready(function() {
   <tbody>
   {% for course, matches in courses.iteritems %}
   {% for offering, instructor, flags in matches %}
-    <tr>
+    <tr class="{{ offering.owner.label }}">
       <td>{{ offering.owner.label }}</td>
-      <td>{{ offering.semester.label }}</td>
+      <td>{{ offering.semester.name }}</td>
       <td>{{ offering.name }}</td>
       <td>{{ offering.title }}</td>
       <td>{{ instructor }}</td>
@@ -73,5 +87,4 @@ $(document).ready(function() {
   {% endfor %}
   </tbody>
 </table>
-{% endif %}
 {% endblock %}

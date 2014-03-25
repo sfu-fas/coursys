@@ -39,6 +39,7 @@ from faculty.event_types.info import SpecialDealHandler
 from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
 from faculty.event_types.teaching import OneInNineHandler
+from faculty.util import ReportingSemester
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -125,7 +126,12 @@ class CareerQuerySet(models.query.QuerySet):
         """
         Returns CareerEvents starting and ending within this semester.
         """
-        start, end = Semester.start_end_dates(semester)
+        if isinstance(semester, Semester):
+            semester = ReportingSemester(semester)
+
+        start = semester.start_date
+        end = semester.end_date
+
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
         return self.exclude(status='D').filter(start_date__gte=start).filter(end_okay)
 
@@ -133,7 +139,12 @@ class CareerQuerySet(models.query.QuerySet):
         """
         Returns CareerEvents occurring during the semester.
         """
-        start, end = Semester.start_end_dates(semester)
+        if isinstance(semester, Semester):
+            semester = ReportingSemester(semester)
+
+        start = semester.start_date
+        end = semester.end_date
+
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=start)
         return self.exclude(status='D').filter(start_date__lte=end).filter(end_okay)
 
@@ -143,6 +154,13 @@ class CareerQuerySet(models.query.QuerySet):
         else:
             filters = {"start_date__gte": start, "end_date__lte": end}
         return self.exclude(status='D').filter(**filters)
+
+    def overlaps_daterange(self, start, end):
+        """
+        Returns CareerEvents occurring during the date range.
+        """
+        end_okay = Q(end_date__isnull=True) | Q(end_date__gte=start)
+        return self.exclude(status='D').filter(start_date__lte=end).filter(end_okay)
 
     def by_type(self, Handler):
         """
@@ -238,6 +256,20 @@ class CareerEvent(models.Model):
         if not hasattr(self, 'handler_cache'):
             self.handler_cache = EVENT_TYPES[self.event_type](self)
         return self.handler_cache
+
+    def get_duration_within_range(self, start, end):
+        """
+        Returns the number of days the event overlaps with a given date range
+        """
+        if (self.start_date < end and (self.end_date == None or self.end_date > start)):
+            s = max(start, self.start_date)
+            if self.end_date:
+                e = min(end, self.end_date)
+            else:
+                e = end
+            delta = e - s
+            return delta.days
+        return 0
 
     def filter_classes(self):
         """
@@ -468,8 +500,16 @@ class TempGrantManager(models.Manager):
                 except (IndexError, InvalidOperation):
                     failed.append(row)
                     continue
-                
-                # Make sure its not a duplicate label
+               
+                # If Grant with the label already exists, then we update the balance
+                try:
+                    grant = Grant.objects.get(label__exact=label)
+                except Grant.DoesNotExist:
+                    pass
+                else:
+                    gb = grant.update_balance(cur_balance, cur_month, ytd_actual)
+
+                # Make sure its not a duplicate label for Temp Grants
                 if not TempGrant.objects.filter(label__exact=label).exists():
                     t = TempGrant(
                         label=label,
@@ -521,10 +561,10 @@ class Grant(models.Model):
         ("A", "Active"),
         ("D", "Deleted"),
     )
-    title = models.CharField(max_length=64)
+    title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
     label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True, db_index=True)
-    owners = models.ManyToManyField(Person, blank=True, null=True)
+    owners = models.ManyToManyField(Person, blank=True, null=True, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
@@ -532,7 +572,7 @@ class Grant(models.Model):
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
-    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="unit who owns the grant")
+    unit = models.ForeignKey(Unit, null=False, blank=False, help_text="Unit who owns the grant")
     config = JSONField(blank=True, null=True, default={})  # addition configuration for within the grant
 
     objects = GrantManager()
@@ -543,12 +583,12 @@ class Grant(models.Model):
     def get_absolute_url(self):
         return reverse("view_grant", kwargs={'unit_slug': self.unit.slug, 'grant_slug': self.slug})
 
-    def update_balance(self, balance, spent_this_month, date=datetime.datetime.today()):
+    def update_balance(self, balance, spent_this_month, actual, date=datetime.datetime.today()):
         gb = GrantBalance.objects.create(
             date=date,
             grant=self,
             balance=balance,
-            actual=self.initial - balance,
+            actual=actual,
             month=spent_this_month
         )
         return gb

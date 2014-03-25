@@ -34,7 +34,12 @@ class ApprovalForm(forms.ModelForm):
 
 
 class GetSalaryForm(forms.Form):
-    date = forms.DateField();
+    date = forms.DateField()
+
+
+class DateRangeForm(forms.Form):
+    start_date = forms.DateField()
+    end_date = forms.DateField()
 
 
 class TeachingSummaryForm(forms.Form):
@@ -102,13 +107,34 @@ class SearchForm(forms.Form):
     only_current = forms.BooleanField(required=False)
 
 class UnitFilterForm(forms.Form):
+    """
+    Form for filtering a table by units the user has access to
+
+    1) Initialize the form in view with UnitFilterForm(units)
+       Here, units = Unit.sub_units(request.units)
+
+    2) In the template, include 'faculty/_unit_form.html' to render the form
+
+    3) Add the necessary javascript to get the form working, see search_form.html as an example
+       - The table rows need a unit label class name, ex: <tr class="{{ handler.event.unit.label }}">
+       - initialize filtering:
+        $('#filter-form').change( function() {
+          event_filter_update('<table_id>');
+        });
+        event_filter_update('<table_id>');
+
+    """
+
     CATEGORIES = [
         ('all', 'All Units'),
-        ('CMPT', 'Computing Science'),
-        ('ENSC', 'Engineering Science'),
-        ('FAS', 'Faculty of Applied Science'),
     ]
     category = forms.ChoiceField(choices=CATEGORIES, initial='all', widget=forms.RadioSelect())
+
+    def __init__(self, units, *args, **kwargs):
+        super(UnitFilterForm, self).__init__(*args, **kwargs)
+        if units:
+            all_units = [(unicode(u.label), unicode(u.informal_name())) for u in units]
+            self.fields['category'].choices = [('all', 'All Units')] + all_units
 
 
 class EventFilterForm(forms.Form):
@@ -125,15 +151,14 @@ class GrantForm(forms.ModelForm):
     def __init__(self, units, *args, **kwargs):
         self.units = units
         super(GrantForm, self).__init__(*args, **kwargs)
-        if units:
-            self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
-            self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
-
-        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"]).distinct()
+        self.fields['unit'].queryset = Unit.objects.filter(id__in=(u.id for u in units))
+        self.fields['unit'].choices = [(unicode(u.id), unicode(u)) for u in units]
+        owners = Person.objects.filter(role__role__in=["ADMN", "FAC", "FUND"], role__unit__in=units).distinct()
         self.fields['owners'].queryset = owners
 
     class Meta:
         model = Grant
+        fields = ['title', 'owners', 'start_date', 'expiry_date', 'initial', 'overhead', 'unit']
 
 
 class GrantImportForm(forms.Form):

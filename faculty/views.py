@@ -4,7 +4,7 @@ import itertools
 import json
 import operator
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_DOWN
 
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
@@ -29,15 +29,14 @@ from courselib.search import find_userid_or_emplid
 from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
 from grad.models import Supervisor
 from ra.models import RAAppointment
-from reports.reportlib.semester import date2semester, current_semester
 
 from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm
+from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
-from faculty.util import UnicodeWriter, make_csv_writer_response
+from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.base import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 
@@ -110,7 +109,7 @@ def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
     unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
-    filterform = UnitFilterForm()
+    filterform = UnitFilterForm(Unit.sub_units(request.units))
 
     results = []
 
@@ -169,11 +168,7 @@ def salary_index(request):
         initial = { 'date': date }
         form = GetSalaryForm(initial=initial)
 
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
-    fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
-    # TODO: below line should only select pay from units the user can see
-    fac_roles_pay = [(p, ', '.join(r.unit.informal_name() for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
+    fac_roles_pay = _salary_index_data(request, date)
 
     pay_tot = 0
     for p, r, pay in fac_roles_pay:
@@ -185,6 +180,166 @@ def salary_index(request):
         'pay_tot': pay_tot,
     }
     return render(request, 'faculty/salary_index.html', context)
+
+
+def _salary_index_data(request, date):
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
+    # TODO: below line should only select pay from units the user can see
+    fac_roles_pay = [(p, ', '.join(r.unit.informal_name() for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
+    return fac_roles_pay
+
+
+@requires_role('ADMN')
+def salary_index_csv(request):
+    if request.GET:
+        form = GetSalaryForm(request.GET)
+        if form.is_valid():
+            date = form.cleaned_data['date']
+        else:
+            date = datetime.date.today()
+
+    else:
+        date = datetime.date.today()
+
+    filename = 'salary_summary_{}.csv'.format(date.isoformat())
+    csv, response = make_csv_writer_response(filename)
+    csv.writerow([
+        'Name',
+        'Unit',
+        'Pay',
+    ])
+
+    for person, units, pay in _salary_index_data(request, date):
+        csv.writerow([
+            person.name(),
+            units,
+            pay,
+        ])
+
+    return response
+
+
+@requires_role('ADMN')
+def fallout_report(request):
+    """
+    Fallout Report 
+    """
+    form = DateRangeForm()
+    filterform = UnitFilterForm(Unit.sub_units(request.units))
+
+    if request.GET:
+        form = DateRangeForm(request.GET)
+
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+        else:
+            end_date = datetime.date.today()
+            start_date = datetime.date(end_date.year, 1, 1)
+
+    else:
+        end_date = datetime.date.today()
+        start_date = datetime.date(end_date.year, 1, 1)
+        initial = { 'start_date': start_date,
+                    'end_date': end_date }
+        form = DateRangeForm(initial=initial)
+
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    table = []
+    tot_fallout = 0
+    for p, roles in fac_roles:
+        salary = FacultySummary(p).base_salary(end_date)
+        units = ', '.join(r.unit.label for r in roles)
+        # TODO: below line should only select pay from units the user can see
+        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        for event in salary_events:
+            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
+                days = event.get_duration_within_range(start_date, end_date)
+                fraction = FacultySummary(p).salary_event_info(event)[1]
+                d = fraction.denominator
+                n = fraction.numerator
+                fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
+                tot_fallout += fallout
+
+                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+    # table, tot_fallout = _fallout_report_data(request, start_date, end_date)
+
+    context = {
+        'form': form,
+        'table': table,
+        'tot_fallout': tot_fallout,
+        'filterform': filterform,
+    }
+    return render(request, 'faculty/reports/fallout_report.html', context)
+
+
+def _fallout_report_data(request, start_date, end_date):
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    table = []
+    tot_fallout = 0
+    for p, roles in fac_roles:
+        salary = FacultySummary(p).base_salary(end_date)
+        units = ', '.join(r.unit.label for r in roles)
+        # TODO: below line should only select pay from units the user can see
+        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        for event in salary_events:
+            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
+                days = event.get_duration_within_range(start_date, end_date)
+                fraction = FacultySummary(p).salary_event_info(event)[1]
+                d = fraction.denominator
+                n = fraction.numerator
+                fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
+                tot_fallout += fallout
+
+                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+    return table
+
+@requires_role('ADMN')
+def fallout_report_csv(request):
+    if request.GET:
+        form = DateRangeForm(request.GET)
+
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+        else:
+            end_date = datetime.date.today()
+            start_date = datetime.date(end_date.year, 1, 1)
+
+    else:
+        end_date = datetime.date.today()
+        start_date = datetime.date(end_date.year, 1, 1)
+
+    filename = 'fallout_report_{}-{}.csv'.format(start_date.isoformat(), end_date.isoformat())
+    csv, response = make_csv_writer_response(filename)
+    csv.writerow([
+        'Unit',
+        'Name',
+        'Event',
+        'Days',
+        'Base',
+        'Fraction',
+        'Fallout'
+    ])
+
+    for untis, p, event, days, salary, fraction, fallout in _fallout_report_data(request, start_date, end_date):
+        csv.writerow([
+            units,
+            p.name(),
+            event.get_event_type_display(),
+            days,
+            salary,
+            fraction,
+            fallout,
+        ])
+
+    return response
 
 
 @requires_role('ADMN')
@@ -249,36 +404,40 @@ def salary_summary(request, userid):
 
 
 def _teaching_capacity_data(unit, semester):
-    people = set(role.person for role in Role.objects.filter(unit=unit))
+    people = set(role.person for role in Role.objects.filter(role='FAC', unit=unit))
 
-    for person in people:
+    for person in sorted(people):
         summary = FacultySummary(person)
         credits, load = summary.teaching_credits(semester)
-        yield person, credits, load, -(credits + load)
+
+        # -load: we're showing "expected teaching load"
+        # -capacity: if this is negative, then we have available capacity
+        yield person, credits, -load, -(credits + load)
 
 
 @requires_role('ADMN')
 def teaching_capacity(request):
+    sub_units = Unit.sub_units(request.units)
+
     form = AvailableCapacityForm(request.GET or {'semester': Semester.current().name})
-    units = []
+    collected_units = []
 
     context = {
         'form': form,
-        'units': units,
+        'units': collected_units,
+        'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
 
     if form.is_valid():
-        semester = Semester.objects.get(name=form.cleaned_data['semester'])
+        semester = ReportingSemester(form.cleaned_data['semester'])
 
-        for unit in Unit.objects.order_by('label'):
+        for unit in sub_units:
             entries = []
-            total = 0
 
             for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
-                total += credits + load
                 entries.append((person, credits, load, capacity))
 
-            units.append((unit.name, (-total, entries)))
+            collected_units.append((unit, entries))
 
         context['semester'] = semester
 
@@ -287,25 +446,27 @@ def teaching_capacity(request):
 
 @requires_role('ADMN')
 def teaching_capacity_csv(request):
+    sub_units = Unit.sub_units(request.units)
+
     form = AvailableCapacityForm(request.GET)
 
     if form.is_valid():
-        semester = Semester.objects.get(name=form.cleaned_data['semester'])
+        semester = ReportingSemester(form.cleaned_data['semester'])
 
-        filename = 'teaching_capacity_{}.csv'.format(semester.name)
+        filename = 'teaching_capacity_{}.csv'.format(semester.code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
             'person',
             'teaching credits',
-            'load decrease',
+            'expected teaching load',
             'available capacity',
         ])
 
-        for unit in Unit.objects.order_by('label'):
+        for unit in sub_units:
             for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
                 csv.writerow([
-                    unit.name,
+                    unit.label,
                     person.name(),
                     str(credits),
                     str(load),
@@ -344,7 +505,8 @@ def _matched_flags(operator, selected_flags, instructor_flags):
 
 def _get_visible_flags(viewer, offering, instructor):
     return set(event.config['flag']
-               for event in CareerEvent.objects.by_type(AccreditationFlagEventHandler)
+               for event in CareerEvent.objects.not_deleted()
+                                               .by_type(AccreditationFlagEventHandler)
                                                .filter(unit=offering.owner)
                                                .filter(person=instructor)
                                                .overlaps_semester(offering.semester)
@@ -353,7 +515,8 @@ def _get_visible_flags(viewer, offering, instructor):
 
 def _course_accreditation_data(viewer, units, semesters, operator, selected_flags):
     # Get all offerings that fall within the selected semesters.
-    offerings = CourseOffering.objects.filter(semester__in=semesters, owner__in=units)
+    offerings = (CourseOffering.objects.filter(semester__in=semesters, owner__in=units)
+                                       .order_by('owner', '-semester'))
 
     for offering in offerings:
         for instructor in offering.instructors():
@@ -368,7 +531,8 @@ def _course_accreditation_data(viewer, units, semesters, operator, selected_flag
 
 @requires_role('ADMN')
 def course_accreditation(request):
-    viewer, units = _get_faculty_or_404(request.units, request.user.username)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+    units = Unit.sub_units(request.units)
     courses = defaultdict(list)
 
     # Gather all visible accreditation flags for viewer from all units
@@ -379,13 +543,16 @@ def course_accreditation(request):
     form = CourseAccreditationForm(request.GET, flags=flag_choices)
 
     if form.is_valid():
-        start_semester = form.cleaned_data.get('start_semester')
-        end_semester = form.cleaned_data.get('end_semester')
+        start_code = form.cleaned_data.get('start_semester')
+        end_code = form.cleaned_data.get('end_semester')
         operator = form.cleaned_data.get('operator')
         selected_flags = set(form.cleaned_data.get('flag'))
 
-        semesters = [Semester.objects.get(name=name)
-                     for name in Semester.range(start_semester, end_semester)]
+        # Since CourseOfferings require actual Semesters, ignore any semesters in the
+        # input range that do not "exist".
+        semester_codes = [semester.code
+                          for semester in ReportingSemester.range(start_code, end_code)]
+        semesters = Semester.objects.filter(name__in=semester_codes)
 
         # Group offerings by course
         found = _course_accreditation_data(viewer, units, semesters, operator, selected_flags)
@@ -398,13 +565,15 @@ def course_accreditation(request):
     context = {
         'courses': dict(courses),
         'form': form,
+        'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
     return render(request, 'faculty/reports/course_accreditation.html', context)
 
 
 @requires_role('ADMN')
 def course_accreditation_csv(request):
-    viewer, units = _get_faculty_or_404(request.units, request.user.username)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+    units = Unit.sub_units(request.units)
 
     # Gather all visible accreditation flags for viewer from all units
     ecs = EventConfig.objects.filter(unit__in=units,
@@ -414,16 +583,19 @@ def course_accreditation_csv(request):
     form = CourseAccreditationForm(request.GET, flags=flag_choices)
 
     if form.is_valid():
-        start_semester = form.cleaned_data.get('start_semester')
-        end_semester = form.cleaned_data.get('end_semester')
+        start_code = form.cleaned_data.get('start_semester')
+        end_code = form.cleaned_data.get('end_semester')
         operator = form.cleaned_data.get('operator')
         selected_flags = set(form.cleaned_data.get('flag'))
 
-        semesters = [Semester.objects.get(name=name)
-                     for name in Semester.range(start_semester, end_semester)]
+        # Since CourseOfferings require actual Semesters, ignore any semesters in the
+        # input range that do not "exist".
+        semester_codes = [semester.code
+                          for semester in ReportingSemester.range(start_code, end_code)]
+        semesters = Semester.objects.filter(name__in=semester_codes)
 
         # Set up for CSV shenanigans
-        filename = 'course_accreditation_{}-{}.csv'.format(start_semester, end_semester)
+        filename = 'course_accreditation_{}-{}.csv'.format(start_code, end_code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'unit',
@@ -438,7 +610,7 @@ def course_accreditation_csv(request):
         for offering, instructor, matched_flags in found:
             csv.writerow([
                 offering.owner.label,
-                offering.semester.label(),
+                offering.semester.name,
                 offering.name(),
                 offering.title,
                 instructor.name(),
@@ -483,21 +655,21 @@ def teaching_summary(request, userid):
     def teaching_events_table(semester):
         cb = 0
         e = []
-        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
+        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.code) \
             .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
         for course in courses:
-            e += [(semester.name, course.offering.name(), course.offering.title, course.teaching_credit())]
+            e += [(semester.code, course.offering.name(), course.offering.title, course.teaching_credit())]
             cb += course.teaching_credit()
 
         # TODO: should filter only user-visible events
-        teaching_events = FacultySummary(person).teaching_events(semester)
+        teaching_events = FacultySummary(person).teaching_events(Semester(name=semester.code))
         for event in teaching_events:
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
             if load_decrease:
-                e += [(semester.name, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease)]
+                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease, event)]
             if credits:
-                e += [(semester.name, event.get_event_type_display(), event.get_handler().short_summary(), credits)]
+                e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), credits, event)]
             cb += credits + load_decrease
 
         return cb, e
@@ -508,8 +680,8 @@ def teaching_summary(request, userid):
         if form.is_valid():
             start = form.cleaned_data['start_semester']
             end = form.cleaned_data['end_semester']
-            start_semester = Semester(name=start)
-            end_semester = Semester(name=end)
+            start_semester = ReportingSemester(start)
+            end_semester = ReportingSemester(end)
 
             curr_semester = start_semester
             while curr_semester <= end_semester:
@@ -517,11 +689,11 @@ def teaching_summary(request, userid):
                 credit_balance += cb
                 events += event
 
-                curr_semester = curr_semester.next_semester()
+                curr_semester = curr_semester.next()
 
     else:
-        start_semester = end_semester = Semester.current()
-        start = end = start_semester.name
+        start_semester = end_semester = ReportingSemester(datetime.date.today())
+        start = end = start_semester.code
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -541,35 +713,47 @@ def teaching_summary(request, userid):
 def study_leave_credits(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     form = TeachingSummaryForm()
+    slc_total = 0
+    events = []
+    end_semester = ReportingSemester(datetime.date.today())
+    start_semester = end_semester.prev()
+    finish_semester = end_semester
 
     def study_credit_events_table(semester, show_in_table, running_total):
         slc = 0
         e = []
-        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.name) \
+        courses = Member.objects.filter(role='INST', person=person, added_reason='AUTO', offering__semester__name=semester.code) \
             .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
             .select_related('offering', 'offering__semester')
         for course in courses:
             tc = course.teaching_credit()
+            running_total += tc
             if show_in_table and tc:
-                running_total += tc
-                e += [(semester.name, course.offering.name(), tc, tc, running_total)]
+                e += [(semester.code, course.offering.name(), tc, tc, fraction_display(running_total))]
 
         # TODO: should filter only user-visible events
-        teaching_events = FacultySummary(person).teaching_events(semester)
+        teaching_events = FacultySummary(person).teaching_events(Semester(name=semester.code))
         for event in teaching_events:
             # only want to account for the study leave event once
-            if event.event_type == 'STUDYLEAVE' and Semester.start_end_dates(semester)[0] <= event.start_date:
+            if event.event_type == 'STUDYLEAVE':
                 Handler = EVENT_TYPES[event.event_type]
                 handler = Handler(event)
-                slc = handler.get_study_leave_credits()
-                running_total -= slc
-                if show_in_table:
-                    e += [(semester.name, event.get_event_type_display(), '-', -slc , running_total)]
+                if ReportingSemester.start_and_end_dates(semester.code)[0] <= event.start_date:
+                    slc = handler.get_study_leave_credits()
+                    running_total -= slc
+                    if show_in_table:
+                        e += [(semester.code, 'Begin Study Leave', '-', -slc , fraction_display(running_total))]
+                if event.end_date and ReportingSemester.start_and_end_dates(semester.code)[1] >= event.end_date:
+                    tot = handler.get_credits_carried_forward()
+                    if tot != None:
+                        running_total = tot
+                    if show_in_table:
+                        e += [(semester.code, 'End Study Leave', '-', '-' , fraction_display(running_total))]
             else:
                 credits, load_decrease = FacultySummary(person).teaching_event_info(event)
                 if show_in_table and credits:
                         running_total += credits
-                        e += [(semester.name, event.get_event_type_display(), credits, credits, running_total)]
+                        e += [(semester.code, event.get_event_type_display(), credits, credits, fraction_display(running_total))]
 
 
         return e, running_total
@@ -577,19 +761,19 @@ def study_leave_credits(request, userid):
     def all_study_events(start_semester, end_semester):
         slc_total = 0
         events = []
-        finish_semester = max(end_semester, Semester.current()) # in case we want to look into future semesters
-        curr_semester = Semester(name='0651')
+        finish_semester = ReportingSemester(max(end_semester.code, ReportingSemester(datetime.date.today()).code)) # in case we want to look into future semesters
+        curr_semester = ReportingSemester('0651')
         while curr_semester <= finish_semester:
             if curr_semester >= start_semester and curr_semester <= end_semester:
                 event, slc_total = study_credit_events_table(curr_semester, True, slc_total)
             else:
                 event, slc_total = study_credit_events_table(curr_semester, False, slc_total)
 
-            if curr_semester == start_semester.previous_semester():
-                events += [('-', 'Study Leave Credits prior to '+start_semester.name, '-', slc_total , slc_total)]
+            if curr_semester == start_semester.prev():
+                events += [('-', 'Study Leave Credits prior to '+start_semester.code, '-', fraction_display(slc_total) , fraction_display(slc_total))]
 
             events += event
-            curr_semester = curr_semester.next_semester()
+            curr_semester = curr_semester.next()
 
         return slc_total, events, finish_semester
 
@@ -599,29 +783,26 @@ def study_leave_credits(request, userid):
         if form.is_valid():
             start = form.cleaned_data['start_semester']
             end = form.cleaned_data['end_semester']
-            start_semester = Semester(name=start)
-            end_semester = Semester(name=end)
+            start_semester = ReportingSemester(start)
+            end_semester = ReportingSemester(end)
 
             slc_total, events, finish_semester = all_study_events(start_semester, end_semester)
 
     else:
-        end_semester = Semester.current()
-        start_semester = end_semester.previous_semester()
-        start = start_semester.name
-        end = end_semester.name
+        start = start_semester.code
+        end = end_semester.code
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
 
         slc_total, events, finish_semester = all_study_events(start_semester, end_semester)
 
-    slc_mmixed = fraction_display(slc_total)
     context = {
         'form': form,
         'person': person,
-        'study_credits': slc_mmixed,
+        'study_credits': fraction_display(slc_total),
         'events': events,
-        'finish_semester': finish_semester
+        'finish_semester': ReportingSemester.make_full_label(finish_semester.code)
     }
     return render(request, 'faculty/study_leave_credits.html', context)
 
@@ -695,41 +876,11 @@ def timeline(request, userid):
     return render(request, 'faculty/timeline.html', {'person': person})
 
 
-def _get_semester_code(date):
-    prefix = str(date.year - 1900)
-
-    if date.month >= 9:
-        return prefix + '7'
-    elif date.month >= 5:
-        return prefix + '4'
-    else:
-        return prefix + '1'
-
-
-def _get_semester_era(code):
-    year = int(code[:3]) + 1900
-    season = code[3]
-
-    if season == '1':
-        start = datetime.date(year, 1, 1)
-        end = datetime.date(year, 4, 30)
-    elif season == '4':
-        start = datetime.date(year, 5, 1)
-        end = datetime.date(year, 8, 31)
-    elif season == '7':
-        start = datetime.date(year, 9, 1)
-        end = datetime.date(year, 12, 31)
-
-    return {
-        'startDate': '{:%Y,%m,%d}'.format(start),
-        'endDate': '{:%Y,%m,%d}'.format(end),
-        'headline': '{} {}'.format(Semester.label_lookup[season], year),
-    }
-
-
 @requires_role('ADMN')
 def timeline_json(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
     payload = {
         'timeline': {
             'type': 'default',
@@ -738,23 +889,33 @@ def timeline_json(request, userid):
             'era': [],
         },
     }
-
-    semester_names = set()
+    semesters = set()
 
     # Populate events
-    for event in CareerEvent.objects.filter(person=person).not_deleted():
+    events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
+    for event in events:
         handler = event.get_handler()
 
-        if handler.can_view(person):
+        if handler.can_view(viewer):
             blurb = handler.to_timeline()
 
             if blurb:
                 payload['timeline']['date'].append(blurb)
-                semester_names.add(_get_semester_code(handler.event.start_date))
+
+                # Show all semesters that the event covers, if possible.
+                if event.end_date is not None:
+                    for semester in ReportingSemester.range(event.start_date, event.end_date):
+                        semesters.add(semester)
+                else:
+                    semesters.add(ReportingSemester(event.start_date))
 
     # Populate semesters
-    for name in semester_names:
-        payload['timeline']['era'].append(_get_semester_era(name))
+    for semester in semesters:
+        payload['timeline']['era'].append({
+            'startDate': '{:%Y,%m,%d}'.format(semester.start_date),
+            'endDate': '{:%Y,%m,%d}'.format(semester.end_date),
+            'headline': semester.short_label,
+        })
 
     return HttpResponse(json.dumps(payload), mimetype='application/json')
 
@@ -893,9 +1054,6 @@ def faculty_wizard(request, userid):
         return NotFoundResponse(request)
 
     tmp1 = Handler_appoint.create_for(person)
-    tmp2 = Handler_salary.create_for(person)
-    tmp3 = Handler_load.create_for(person)
-
     if not tmp1.can_edit(editor):
         raise PermissionDenied("'%s' not allowed to create this event" %(event_type))
 
@@ -907,32 +1065,50 @@ def faculty_wizard(request, userid):
     }
 
     if request.method == "POST":
-        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST)
-        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST)
-        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST)
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='appoint')
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='salary')
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='load')
+
+        # Nuke unwanted fields
+        del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
+        del form_salary.fields['start_date'], form_load.fields['start_date']
+        del form_salary.fields['unit'], form_load.fields['unit']
+        del form_appoint.fields['leaving_reason']
+        
         if form_appoint.is_valid() and form_salary.is_valid() and form_load.is_valid():
             handler_appoint = Handler_appoint.create_for(person=person, form=form_appoint)
             handler_appoint.save(editor)
             handler_appoint.set_status(editor)
 
             handler_salary = Handler_salary.create_for(person=person, form=form_salary)
+            handler_salary.event.start_date = handler_appoint.event.start_date
+            handler_salary.event.unit = handler_appoint.event.unit
             handler_salary.save(editor)
             handler_salary.set_status(editor)
 
             handler_load = Handler_load.create_for(person=person, form=form_load)
+            handler_load.event.start_date = handler_appoint.event.start_date
+            handler_load.event.unit = handler_appoint.event.unit
             handler_load.save(editor)
             handler_load.set_status(editor)
             return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
         else:
-            forms = [form_appoint, form_salary, form_load]
-            context.update({"event_form": forms})
+            form_list = [form_appoint, form_salary, form_load]
+            context.update({"event_form": form_list})
     else:
         # Display new blank form
-        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units)
-        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units)
-        form_load = Handler_load.get_entry_form(editor=editor, units=member_units)
-        forms = [form_appoint, form_salary, form_load]
-        context.update({"event_form": forms})
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, prefix='appoint')
+        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, prefix='salary')
+        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, prefix='load')
+
+        # Nuke unwanted fields
+        del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
+        del form_salary.fields['start_date'], form_load.fields['start_date']
+        del form_salary.fields['unit'], form_load.fields['unit']
+        del form_appoint.fields['leaving_reason']
+        
+        form_list = [form_appoint, form_salary, form_load]
+        context.update({"event_form": form_list})
 
     return render(request, 'faculty/faculty_wizard.html', context)
 
@@ -1265,6 +1441,7 @@ def import_grants(request):
     return HttpResponseRedirect(reverse("grants_index"))
 
 
+@transaction.atomic
 @requires_role('ADMN')
 def convert_grant(request, gid):
     tmp = get_object_or_404(TempGrant, id=gid)
@@ -1281,12 +1458,17 @@ def convert_grant(request, gid):
         form = GrantForm(units, request.POST)
         if form.is_valid():
             grant = form.save(commit=False)
+            grant.label = tmp.label
+            grant.project_code = tmp.project_code
+            grant.status = 'A'
             grant.save()
+            print grant
             try:
                 # TODO: anything else to add to grant balance? can YTD actual be calculated?
                 balance = Decimal(tmp.config["cur_balance"])
                 this_month = Decimal(tmp.config["cur_month"])
-                gb = grant.update_balance(balance, this_month)
+                ytd_actual = Decimal(tmp.config["ytd_actual"])
+                gb = grant.update_balance(balance, this_month, ytd_actual)
             except (KeyError, InvalidOperation):
                 pass
             else:
@@ -1318,11 +1500,31 @@ def new_grant(request):
     if request.method == "POST":
         form = GrantForm(units, request.POST)
         if form.is_valid():
-            grant = form.save(commit=False)
-            grant.save()
+            grant = form.save()
         else:
             context.update({"grant_form": form})
     return render(request, "faculty/new_grant.html", context)
+
+
+@requires_role('ADMN')
+def edit_grant(request, unit_slug, grant_slug):
+    editor = get_object_or_404(Person, userid=request.user.username)
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    units = Unit.objects.filter(id__in=sub_unit_ids)
+    grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
+    form = GrantForm(units, instance=grant)
+    context = {
+        "grant": grant,
+        "grant_form": form,
+        "editor": editor,
+    }
+    if request.method == "POST":
+        form = GrantForm(units, request.POST, instance=grant)
+        if form.is_valid():
+            grant = form.save()
+        else:
+            context.update({"grant_form": form})
+    return render(request, "faculty/edit_grant.html", context)
 
 
 @requires_role('ADMN')

@@ -35,6 +35,15 @@ class FacultySummary(object):
         pay = tot_salary * tot_fraction.numerator/tot_fraction.denominator + tot_bonus
         return Decimal(pay).quantize(Decimal('.01'), rounding=ROUND_DOWN)
 
+    def base_salary(self, date):
+        """ Returns just the sum of the 'add_salary' info """
+        events  = self.salary_events(date)
+        salary = 0
+        for event in events:
+            salary += self.salary_event_info(event)[0]
+
+        return salary
+
     def salary_event_info(self, event):
         instance = event
         Handler = EVENT_TYPES[instance.event_type]

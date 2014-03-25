@@ -12,6 +12,8 @@ import datetime
 
 from coredata.models import Semester
 
+from faculty.util import ReportingSemester
+
 class SemesterDateInput(forms.widgets.MultiWidget):
     class Media:
         js = ('js/semesters.js',)
@@ -41,16 +43,18 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         try:
             assert len(code) == 4
             assert code.isdigit()
-            s = Semester.objects.get(name=code)
+            #s = Semester.objects.get(name=code)
+            s = ReportingSemester(code)
             return s
-        except (AssertionError, Semester.DoesNotExist):
+        except AssertionError:
+        #except (AssertionError, Semester.DoesNotExist):
             # Semester does not exist, or its in the wrong format
             return 
 
     def get_semester_date(self, semester):
         if not semester:
             return 
-        start, end = semester.start_end_dates(semester)
+        start, end = semester.start_and_end_dates(semester.code)
         if self.semester_start:
             return start
         return end
@@ -122,17 +126,14 @@ class SemesterToDateField(forms.CharField):
             return None
 
         if not (len(value) == 4 and value.isdigit()):
-            # XXX: Technically this check isn't needed as the db query would also fail
-            #      but maybe we gain something by not making that call?
             raise ValidationError(_('Invalid semester code'))
 
         try:
-            semester = Semester.objects.get(name=value)
-        except (AssertionError, Semester.DoesNotExist):
+            semester = ReportingSemester(value)
+        except ValueError:
             raise ValidationError(_('Invalid semester code'))
 
-        start_date, end_date = Semester.start_end_dates(semester)
-        return self.start and start_date or end_date
+        return self.start and semester.start_date or semester.end_date
 
     def run_validators(self, value):
         # XXX: Validation is already done inside `to_python`.
@@ -144,9 +145,8 @@ class SemesterToDateField(forms.CharField):
         elif value is None:
             return ''
         else:
-            date = datetime.date(value.year, value.month, 10)
-            semester = Semester.get_semester(date)
-            return semester.name
+            return ReportingSemester(value).code
+
 
 class SemesterCodeField(forms.CharField):
     """
@@ -165,14 +165,9 @@ class SemesterCodeField(forms.CharField):
         if value in forms.fields.validators.EMPTY_VALUES:
             return None
 
-        if not (len(value) == 4 and value.isdigit()):
+        if not (len(value) == 4 and value.isdigit() and (value[3] == '1' or value[3] == '4' or value[3] == '7')):
             # XXX: Technically this check isn't needed as the db query would also fail
             #      but maybe we gain something by not making that call?
-            raise ValidationError(_('Invalid semester code'))
-
-        try:
-            semester = Semester.objects.get(name=value)
-        except (AssertionError, Semester.DoesNotExist):
             raise ValidationError(_('Invalid semester code'))
 
         return value

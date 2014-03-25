@@ -3,8 +3,8 @@
 {% load event_display %}
 {% load staticfiles %}
 
-{% block title %}{{ person.name }}: {{ event.title }}{% endblock %}
-{% block h1 %}{{ person.name }}: {{ event.title }}{% endblock %}
+{% block title %}Grant: {{ grant }}{% endblock %}
+{% block h1 %}Grant: {{ grant }}{% endblock %}
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/faculty.css" %}" />
@@ -27,7 +27,24 @@
 
 {% block content %}
 <div class="grant">
-{{ grant }}
+<p>Start Date: {{ grant.start_date }}</p>
+<p>Initial: ${{ grant.initial }}</p>
+<p>Overhead: ${{ grant.overhead }}</p>
+<p>Status: {{ grant.get_status_display }}</p>
+<h3>Balance</h3>
+<table id="grant_balance_table" class="display">
+  <thead><tr><th scope="col">Date</th><th scope="col">Balance</th><th scope="col">YTD Actual</th><th>This Month</th></tr></thead>
+  <tbody>
+  {% for bal in grant.grantbalance_set.all %}
+  <tr>
+	<td>{{ bal.date }}</td>
+    <td>${{ bal.balance }}</td>
+    <td>${{ bal.actual }}</td>
+    <td>${{ bal.month }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
 </div>
 <div class="clearfix"></div>
 

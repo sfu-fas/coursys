@@ -196,7 +196,8 @@ class PagesTest(TestCase):
         # as department admin
         c.login_user('dixon')
 
-        test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index'],
+        test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
+                'teaching_capacity'],
                 {})
         test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo', 'event_type_list'],
                 {'userid': 'ggbaker'})
