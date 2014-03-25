@@ -109,11 +109,14 @@ class SearchForm(forms.Form):
 class UnitFilterForm(forms.Form):
     CATEGORIES = [
         ('all', 'All Units'),
-        ('CMPT', 'Computing Science'),
-        ('ENSC', 'Engineering Science'),
-        ('FAS', 'Faculty of Applied Science'),
     ]
     category = forms.ChoiceField(choices=CATEGORIES, initial='all', widget=forms.RadioSelect())
+
+    def __init__(self, units, *args, **kwargs):
+        super(UnitFilterForm, self).__init__(*args, **kwargs)
+        if units:
+            all_units = [(unicode(u.label), unicode(u.name)) for u in units]
+            self.fields['category'].choices = [('all', 'All Units')] + all_units
 
 
 class EventFilterForm(forms.Form):

@@ -109,7 +109,8 @@ def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
     unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
-    filterform = UnitFilterForm()
+    form_units = Unit.sub_units(request.units)
+    filterform = UnitFilterForm(form_units)
 
     results = []
 
