@@ -10,10 +10,16 @@ urlpatterns = patterns('',
     url(r'^$', 'faculty.views.index'),
     url(r'^search$', 'faculty.views.search_index'),
     url(r'^search/(?P<event_type>{})$'.format(SLUG_RE), 'faculty.views.search_events'),
-    url(r'^fallout$', 'faculty.views.fallout_report'),
-    url(r'^salaries$', 'faculty.views.salary_index'),
-    url(r'^salaries/' + USERID_OR_EMPLID + '$', 'faculty.views.salary_summary'),
     url(r'^queue/$', 'faculty.views.status_index', name="status_index"),
+
+    # Reports: Salaries
+    url(r'^salaries$', 'faculty.views.salary_index'),
+    url(r'^salaries.csv$', 'faculty.views.salary_index_csv'),
+    url(r'^salaries/' + USERID_OR_EMPLID + '$', 'faculty.views.salary_summary'),
+
+    # Report: Fallout
+    url(r'^fallout$', 'faculty.views.fallout_report'),
+    url(r'^fallout.csv$', 'faculty.views.fallout_report_csv'),
 
     # Report: Available Teaching Capacity
     url(r'^report/teaching_capacity$', 'faculty.views.teaching_capacity'),

@@ -168,11 +168,7 @@ def salary_index(request):
         initial = { 'date': date }
         form = GetSalaryForm(initial=initial)
 
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
-    fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
-    # TODO: below line should only select pay from units the user can see
-    fac_roles_pay = [(p, ', '.join(r.unit.informal_name() for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
+    fac_roles_pay = _salary_index_data(request, date)
 
     pay_tot = 0
     for p, r, pay in fac_roles_pay:
@@ -184,6 +180,46 @@ def salary_index(request):
         'pay_tot': pay_tot,
     }
     return render(request, 'faculty/salary_index.html', context)
+
+
+def _salary_index_data(request, date):
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
+    # TODO: below line should only select pay from units the user can see
+    fac_roles_pay = [(p, ', '.join(r.unit.informal_name() for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
+    return fac_roles_pay
+
+
+@requires_role('ADMN')
+def salary_index_csv(request):
+    if request.GET:
+        form = GetSalaryForm(request.GET)
+        if form.is_valid():
+            date = form.cleaned_data['date']
+        else:
+            date = datetime.date.today()
+
+    else:
+        date = datetime.date.today()
+
+    filename = 'salary_summary_{}.csv'.format(date.isoformat())
+    csv, response = make_csv_writer_response(filename)
+    csv.writerow([
+        'Name',
+        'Unit',
+        'Pay',
+    ])
+
+    for person, units, pay in _salary_index_data(request, date):
+        csv.writerow([
+            person.name(),
+            units,
+            pay,
+        ])
+
+    return response
+
 
 @requires_role('ADMN')
 def fallout_report(request):
@@ -229,7 +265,8 @@ def fallout_report(request):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(units, p, event, days, salary, fraction, fallout )]
+                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+    # table, tot_fallout = _fallout_report_data(request, start_date, end_date)
 
     context = {
         'form': form,
@@ -238,6 +275,71 @@ def fallout_report(request):
         'filterform': filterform,
     }
     return render(request, 'faculty/reports/fallout_report.html', context)
+
+
+def _fallout_report_data(request, start_date, end_date):
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
+    fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    table = []
+    tot_fallout = 0
+    for p, roles in fac_roles:
+        salary = FacultySummary(p).base_salary(end_date)
+        units = ', '.join(r.unit.label for r in roles)
+        # TODO: below line should only select pay from units the user can see
+        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        for event in salary_events:
+            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
+                days = event.get_duration_within_range(start_date, end_date)
+                fraction = FacultySummary(p).salary_event_info(event)[1]
+                d = fraction.denominator
+                n = fraction.numerator
+                fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
+                tot_fallout += fallout
+
+                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+    return table
+
+@requires_role('ADMN')
+def fallout_report_csv(request):
+    if request.GET:
+        form = DateRangeForm(request.GET)
+
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+        else:
+            end_date = datetime.date.today()
+            start_date = datetime.date(end_date.year, 1, 1)
+
+    else:
+        end_date = datetime.date.today()
+        start_date = datetime.date(end_date.year, 1, 1)
+
+    filename = 'fallout_report_{}-{}.csv'.format(start_date.isoformat(), end_date.isoformat())
+    csv, response = make_csv_writer_response(filename)
+    csv.writerow([
+        'Unit',
+        'Name',
+        'Event',
+        'Days',
+        'Base',
+        'Fraction',
+        'Fallout'
+    ])
+
+    for untis, p, event, days, salary, fraction, fallout in _fallout_report_data(request, start_date, end_date):
+        csv.writerow([
+            units,
+            p.name(),
+            event.get_event_type_display(),
+            days,
+            salary,
+            fraction,
+            fallout,
+        ])
+
+    return response
 
 
 @requires_role('ADMN')

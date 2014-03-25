@@ -34,6 +34,19 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.fallout_report_csv' %}?{{ request.GET.urlencode }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li>Fallout Report</li>
@@ -56,7 +69,7 @@ $(document).ready(function() {
     <th scope="col">Event</th>
     <th scope="col">Days</th>
     <th scope="col">Base</th>
-    <th scope="col">Frac.</th>
+    <th scope="col">Fraction</th>
     <th scope="col">Fallout</th>
   </tr></thead>
   <tbody>
@@ -66,7 +79,7 @@ $(document).ready(function() {
   <td><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
   <td><a href="{{ event.get_absolute_url }}">{{ event.get_event_type_display }}</td>
   <td>{{ days }}</td>
-  <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">${{ salary }}</td>
+  <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">${{ salary }}</a></td>
   <td>{{ frac }}</td>
   <td><span class="rowdata">{{fallout}}</span> ${{ fallout }}</td>
   </tr>
