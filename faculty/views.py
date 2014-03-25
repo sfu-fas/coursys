@@ -178,6 +178,7 @@ def salary_index(request):
         'form': form,
         'fac_roles_pay': fac_roles_pay,
         'pay_tot': pay_tot,
+        'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
     return render(request, 'faculty/salary_index.html', context)
 
@@ -187,7 +188,7 @@ def _salary_index_data(request, date):
     fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
     fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
     # TODO: below line should only select pay from units the user can see
-    fac_roles_pay = [(p, ', '.join(r.unit.informal_name() for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
+    fac_roles_pay = [(p, ', '.join(r.unit.label for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
     return fac_roles_pay
 
 
@@ -265,7 +266,7 @@ def fallout_report(request):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+                table += [(units, p, event, days, salary, fraction, fallout )]
     # table, tot_fallout = _fallout_report_data(request, start_date, end_date)
 
     context = {
@@ -297,7 +298,7 @@ def _fallout_report_data(request, start_date, end_date):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(units, p, event, days, salary, fraction, fallout )], tot_fallout
+                table += [(units, p, event, days, salary, fraction, fallout )]
     return table
 
 @requires_role('ADMN')

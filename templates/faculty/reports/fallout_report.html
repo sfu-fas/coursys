@@ -27,6 +27,11 @@ $(document).ready(function() {
 
   $('#filter-form').change( function() {
     event_filter_update('fallout_table');
+        var sum = 0;
+    $('.rowdata').each(function() {
+        sum += Number($(this).text());
+    });
+    $('#fallout_sum').text("Total: $" + sum)
   });
   event_filter_update('fallout_table');
 
@@ -58,7 +63,7 @@ $(document).ready(function() {
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
-  <div>Total Fallout: ${{ tot_fallout }}</div>
+  <div>Total: ${{ tot_fallout }}</div>
 
 {% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">
