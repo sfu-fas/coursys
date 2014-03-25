@@ -230,7 +230,7 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 and (in development only) listens enough that we can test (<code>JETTY_HOST=0.0.0.0</code>)</p>
 <p>The Haystack schema for Solr must be installed:</p>
 <blockquote><pre>cd ~/courses
-./manage.py build_solr_schema > /tmp/schema.xml <!-- | grep -v 'class="solr.LatLonType"' | grep -v 'class="solr.GeoHashField"' | grep -v 'type="location"'  -->
+./manage.py build_solr_schema > /tmp/schema.xml
 sudo cp /tmp/schema.xml /etc/solr/conf/schema.xml
 sudo ln -s /etc/solr/conf/stopwords.txt /etc/solr/conf/stopwords_en.txt
 sudo /etc/init.d/jetty restart
