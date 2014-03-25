@@ -463,6 +463,7 @@ def course_accreditation(request):
     context = {
         'courses': dict(courses),
         'form': form,
+        'filterform': UnitFilterForm(),
     }
     return render(request, 'faculty/reports/course_accreditation.html', context)
 

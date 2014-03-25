@@ -1,13 +1,15 @@
 {% extends "base.html" %}
+{% load static %}
 {% load form_display %}
 
 {% block title %}Courses by Instructor Accreditation{% endblock %}
 {% block h1 %}Courses by Instructor Accreditation{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('table').dataTable({
+  $('accreditation-table').dataTable({
       bPaginate: false,
       bInfo: false,
       aaSorting: [
@@ -16,6 +18,11 @@ $(document).ready(function() {
       ],
       bJQueryUI: true
   });
+
+  $('#filter-form').change(function() {
+    event_filter_update('accreditation-table');
+  });
+  event_filter_update('accreditation-table');
 });
 </script>
 {% endblock %}
@@ -51,7 +58,8 @@ $(document).ready(function() {
   <input class="submit" type="reset" value="Clear" />
 </form>
 
-<table>
+{% include 'faculty/_unit_form.html' %}
+<table id="accreditation-table">
   <thead><tr>
     <th>Unit</th>
     <th>Semester</th>
@@ -63,7 +71,7 @@ $(document).ready(function() {
   <tbody>
   {% for course, matches in courses.iteritems %}
   {% for offering, instructor, flags in matches %}
-    <tr>
+    <tr class="{{ offering.owner.label }}">
       <td>{{ offering.owner.label }}</td>
       <td>{{ offering.semester.name }}</td>
       <td>{{ offering.name }}</td>
