@@ -109,8 +109,7 @@ def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
     unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
-    form_units = Unit.sub_units(request.units)
-    filterform = UnitFilterForm(form_units)
+    filterform = UnitFilterForm(Unit.sub_units(request.units))
 
     results = []
 
@@ -228,7 +227,7 @@ def fallout_report(request):
     Fallout Report 
     """
     form = DateRangeForm()
-    filterform = UnitFilterForm()
+    filterform = UnitFilterForm(Unit.sub_units(request.units))
 
     if request.GET:
         form = DateRangeForm(request.GET)
@@ -426,7 +425,7 @@ def teaching_capacity(request):
     context = {
         'form': form,
         'units': collected_units,
-        'filterform': UnitFilterForm(),
+        'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
 
     if form.is_valid():
@@ -566,7 +565,7 @@ def course_accreditation(request):
     context = {
         'courses': dict(courses),
         'form': form,
-        'filterform': UnitFilterForm(),
+        'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
     return render(request, 'faculty/reports/course_accreditation.html', context)
 
