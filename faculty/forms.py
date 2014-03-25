@@ -133,7 +133,7 @@ class UnitFilterForm(forms.Form):
     def __init__(self, units, *args, **kwargs):
         super(UnitFilterForm, self).__init__(*args, **kwargs)
         if units:
-            all_units = [(unicode(u.label), unicode(u.name)) for u in units]
+            all_units = [(unicode(u.label), unicode(u.informal_name())) for u in units]
             self.fields['category'].choices = [('all', 'All Units')] + all_units
 
 
