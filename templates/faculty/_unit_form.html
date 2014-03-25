@@ -1,7 +1,7 @@
 {% if filterform.multiple_units %}
 <form id="filter-form" action="">
   {% for radio in filterform.category %}
-  {{ radio }}
+  <span style="white-space: nowrap;">{{ radio }}</span>
   {% endfor %}
 </form>
 {% endif %}
