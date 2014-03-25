@@ -10,4 +10,5 @@ package "zlib1g-dev"
 execute "install_pip_requirements" do
     cwd "/home/vagrant/"
     command "pip install -r /home/vagrant/courses/build_deps/working_deps.txt"
+    command "sudo locale-gen en_CA.UTF-8"
 end

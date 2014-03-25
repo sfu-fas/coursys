@@ -226,7 +226,7 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <p>Solr will (at some point) be used to power the full-text search in production (with Whoosh doing the job in development environments.</p>
 <blockquote><pre>sudo apt-get install solr-jetty openjdk-7-jdk</pre></blockquote>
 
-<p>Edit <code class="file">/etc/default/jetty</code> so the server actually starts (<code>NO_START=0</code>), uses the right port (<code>JETTY_PORT=8983</code>), finds the JDK (<code>JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64</code>),
+<p>Edit <code class="file">/etc/default/jetty</code> so the server actually starts (<code>NO_START=0</code>), uses the right port (<code>JETTY_PORT=8983</code>),
 and (in development only) listens enough that we can test (<code>JETTY_HOST=0.0.0.0</code>)</p>
 <p>The Haystack schema for Solr must be installed:</p>
 <blockquote><pre>cd ~/courses
@@ -236,7 +236,7 @@ sudo ln -s /etc/solr/conf/stopwords.txt /etc/solr/conf/stopwords_en.txt
 sudo /etc/init.d/jetty restart
 echo 'y' | ./manage.py rebuild_index
 </pre></blockquote>
-
+<p>At the moment, there is <a href="http://osdir.com/ml/general/2014-03/msg07628.html">a bug</a> requiring a downgrade of libtomcat6-java to <a href="http://packages.ubuntu.com/saucy/all/libtomcat6-java/download">6.0.37 from Ubuntu saucy</a>.</p>
 
 </body>
 </html>
