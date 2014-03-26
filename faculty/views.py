@@ -1354,7 +1354,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
             f = form.save(commit=False)
             f.career_event = instance
             f.save()
-            messages.success(request, "Updated memo for %s" % (form.instance.career_event.title))            
+            messages.success(request, "Updated memo.")
             return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))  
     else:
         form = MemoForm(instance=memo)

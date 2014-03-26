@@ -199,8 +199,7 @@ class CareerEvent(models.Model):
     person = models.ForeignKey(Person, related_name="career_events")
     unit = models.ForeignKey(Unit)
 
-    title = models.CharField(max_length=255, blank=False, null=False)
-    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
+    slug = AutoSlugField(populate_from='slug_string', unique_with=('person', 'unit'),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -221,11 +220,11 @@ class CareerEvent(models.Model):
         ordering = (
             '-start_date',
             '-end_date',
-            'title',
+            'event_type',
         )
 
     def __unicode__(self):
-        return u"%s" % self.title
+        return u"%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
 
     def save(self, editor, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -245,8 +244,8 @@ class CareerEvent(models.Model):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 
     @property
-    def full_title(self):
-        return u'{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
+    def slug_string(self):
+        return u'{} {}'.format(self.start_date.year, self.get_event_type_display())
 
     def get_event_type_display(self):
         "Override to display nicely"
@@ -326,7 +325,6 @@ class CareerEvent(models.Model):
                 'last_name': self.person.last_name,
                 'start_date': self.start_date,
                 'end_date': self.end_date,
-                'event_title': self.title,
               }
         ls = dict(ls.items() + config_data.items())
         return ls

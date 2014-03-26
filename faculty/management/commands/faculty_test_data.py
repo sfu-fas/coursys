@@ -146,21 +146,21 @@ class Command(BaseCommand):
         for person in [tony, diana, greg]:
             # appointment
             e, h = event_get_or_create(person=person, unit=cmpt, event_type='APPOINT', start_date=date(2000,9,1),
-                                    status='A', title=EVENT_TYPES['APPOINT'].default_title())
+                                    status='A')
             e.config = {'spousal_hire': False, 'leaving_reason': 'HERE'}
             h.save(editor=editor)
             appt = e
 
             # teaching load
             e, h = event_get_or_create(person=person, unit=cmpt, event_type='NORM_TEACH', start_date=date(2000,9,1),
-                                    status='A', title=EVENT_TYPES['NORM_TEACH'].default_title())
+                                    status='A')
             e.config = {'load': 2}
             h.save(editor=editor)
 
             # annual salary updates
             for year in range(2000, 2014):
                 e, h = event_get_or_create(person=person, unit=cmpt, event_type='SALARY', start_date=date(year,9,1),
-                                        status='A', title=EVENT_TYPES['SALARY'].default_title())
+                                        status='A')
                 e.config = {'rank': 'SLEC' if year>2005 else 'LECT',
                             'step': year-1999,
                             'base_salary': 60000 + (year-2000)*2000,
@@ -171,25 +171,25 @@ class Command(BaseCommand):
 
         # teaching credits
         e, h = event_get_or_create(person=greg, unit=cmpt, event_type='TEACHING', start_date=date(2012,9,1),
-                                end_date=date(2012,12,31), status='A', title='Teaching credit because is good person')
+                                end_date=date(2012,12,31), status='A')
         e.config = {'category': 'RELEASE', 'teaching_credits': '1', 'reason': "We just couldn't say no!"}
         h.save(editor=editor)
 
         e, h = event_get_or_create(person=greg, unit=cmpt, event_type='TEACHING', start_date=date(2013,9,1),
-                                end_date=date(2014,4,30), status='NA', title='Teaching buyout',
+                                end_date=date(2014,4,30), status='NA',
                                 comments='Note that this is one teaching credit spread across two semesters.')
         e.config = {'category': 'BUYOUT', 'teaching_credits': '1/2', 'reason': "Somebody gave money."}
         h.save(editor=editor)
 
         # admin position
         e, h = event_get_or_create(person=greg, unit=cmpt, event_type='ADMINPOS', start_date=date(2008,9,1),
-                                end_date=date(2010,8,31), status='A', title='Undergraduate Director')
+                                end_date=date(2010,8,31), status='A')
         e.config = {'position': 'UGRAD_DIRECTOR', 'teaching_credit': '1/2'}
         h.save(editor=editor)
 
         # admin position in other unit
         e, h = event_get_or_create(person=greg, unit=ensc, event_type='ADMINPOS', start_date=date(2010,9,1),
-                                end_date=date(2011,8,31), status='A', title='ENSC Undergraduate Director')
+                                end_date=date(2011,8,31), status='A')
         e.config = {'position': 'UGRAD_DIRECTOR', 'teaching_credit': '0'}
         h.save(editor=editor)
 
@@ -204,7 +204,7 @@ class Command(BaseCommand):
 
         # out-of-unit events: Dean's office staff should see MSE stuff
         e, h = event_get_or_create(person=farid, unit=mse, event_type='SALARY', start_date=date(2000,9,1),
-                                status='A', title=EVENT_TYPES['SALARY'].default_title())
+                                status='A')
         e.config = {'step': 7,
                     'base_salary': 100000,
                     'add_salary': 17,
@@ -213,13 +213,13 @@ class Command(BaseCommand):
         h.save(editor=editor)
 
         e, h = event_get_or_create(person=farid, unit=mse, event_type='NORM_TEACH', start_date=date(2000,9,1),
-                                status='A', title=EVENT_TYPES['NORM_TEACH'].default_title())
+                                status='A')
         e.config = {'load': 1}
         h.save(editor=editor)
 
         # out-of-unit events: nobody should be seeing PHIL events
         e, h = event_get_or_create(person=phillip, unit=phil, event_type='SALARY', start_date=date(2000,9,1),
-                                status='A', title=EVENT_TYPES['SALARY'].default_title())
+                                status='A')
         e.config = {'step': 7,
                     'base_salary': 1000000,
                     'add_salary': 17,
@@ -228,7 +228,7 @@ class Command(BaseCommand):
         h.save(editor=editor)
 
         e, h = event_get_or_create(person=phillip, unit=phil, event_type='NORM_TEACH', start_date=date(2000,9,1),
-                                status='A', title=EVENT_TYPES['NORM_TEACH'].default_title())
+                                status='A')
         e.config = {'load': 2}
         h.save(editor=editor)
 

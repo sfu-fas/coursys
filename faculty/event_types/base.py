@@ -78,8 +78,6 @@ class CareerEventMeta(abc.ABCMeta):
 
 
 class BaseEntryForm(forms.Form):
-    title = forms.CharField(max_length=80, required=True,
-                            widget=forms.TextInput(attrs={'size': 60}))
     start_date = SemesterField(required=True, semester_start=True)
     end_date = SemesterField(required=False, semester_start=False)
     comments = forms.CharField(required=False,
@@ -97,7 +95,6 @@ class BaseEntryForm(forms.Form):
 
         # Load initial data from the handler instance if possible
         if handler:
-            self.initial['title'] = handler.event.title
             self.initial['start_date'] = handler.event.start_date
             self.initial['end_date'] = handler.event.end_date
             self.initial['unit'] = handler.event.unit
@@ -324,7 +321,6 @@ class CareerEventHandlerBase(object):
         except KeyError:
             pass
 
-        self.event.title = form.cleaned_data['title']
         self.event.end_date = form.cleaned_data.get('end_date', None)
         self.event.comments = form.cleaned_data.get('comments', None)
         # XXX: Event status is set based on the editor,
@@ -342,7 +338,6 @@ class CareerEventHandlerBase(object):
         Return a Django Form that can be used to create/edit a CareerEvent
         """
         initial = {
-            'title': cls.default_title(),
             'start_date': datetime.date.today(),
         }
         form = cls.EntryForm(editor=editor,
@@ -458,10 +453,6 @@ class CareerEventHandlerBase(object):
 
         '''
         pass
-
-    @classmethod
-    def default_title(cls):
-        return cls.NAME
 
     # Override these
 
