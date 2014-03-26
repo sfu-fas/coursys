@@ -1056,7 +1056,7 @@ def faculty_wizard(request, userid):
 
     tmp1 = Handler_appoint.create_for(person)
     if not tmp1.can_edit(editor):
-        raise PermissionDenied("'%s' not allowed to create this event" %(event_type))
+        raise PermissionDenied("not allowed to create events")
 
     context = {
         'person': person,
