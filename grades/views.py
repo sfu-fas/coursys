@@ -1476,3 +1476,39 @@ def export_all(request, course_slug):
         pass
     return response
 
+
+@requires_course_staff_by_slug
+def gitolite_config(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    staff = Member.objects.filter(offering=course, role__in=['INST', 'TA', 'APPR']).exclude(person__userid__isnull=True).select_related('person')
+    students = Member.objects.filter(offering=course, role='STUD').exclude(person__userid__isnull=True).select_related('person')
+    from groups.models import Group
+    groups = Group.objects.filter(courseoffering=course)
+
+    if 'suffix' in request.GET:
+        suffix = '-'+ request.GET['suffix']
+    else:
+        suffix = ''
+
+    config = []
+    staff_userids = [m.person.userid for m in staff]
+    config.append('@staff = ' + ' '.join(staff_userids))
+    config.append('\n')
+
+    for g in groups:
+        config.append('\nrepo ' + g.slug + suffix)
+        gms = g.groupmember_set.filter(confirmed=True).exclude(student__person__userid__isnull=True).select_related('student__person')
+        people = set(gm.student.person for gm in gms)
+        userids = ' '.join(p.userid for p in people)
+        config.append('\n    RW = ' + userids)
+        config.append('\n    RW = @staff')
+        config.append('\n')
+
+    for m in students:
+        userid = m.person.userid
+        config.append('\nrepo ' + userid + suffix)
+        config.append('\n    RW = ' + userid)
+        config.append('\n    RW = @staff')
+        config.append('\n   ')
+
+    return HttpResponse(config, content_type='text/plain')

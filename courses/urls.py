@@ -110,6 +110,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/students/$', 'grades.views.student_search'),
     url(r'^' + COURSE_SLUG + '/students/' + USERID_SLUG + '$', 'grades.views.student_info'),
     url(r'^' + COURSE_SLUG + '/export', 'grades.views.export_all'),
+    url(r'^' + COURSE_SLUG + '/gitolite', 'grades.views.gitolite_config'),
 
     url(r'^' + COURSE_ACTIVITY_SLUG + '/$', 'grades.views.activity_info'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/stat$', 'grades.views.activity_stat'),
