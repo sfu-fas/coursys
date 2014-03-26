@@ -52,7 +52,7 @@ $(document).ready(function() {
   {% for e in salary_events %}
   {% if e.add_salary %}
   <tr>
-  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
   <td>{{ e.get_event_type_display }}</td>
   <td>${{ e.add_salary }}</td>
   </tr>
@@ -79,7 +79,7 @@ $(document).ready(function() {
   {% for e in salary_events %}
   {% if e.salary_fraction != 1 %}
   <tr>
-  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
   <td>{{ e.get_event_type_display }}</td>
   <td>{{ e.salary_fraction }}</td>
   </tr>
@@ -106,7 +106,7 @@ $(document).ready(function() {
   {% for e in salary_events %}
   {% if e.add_bonus %}
   <tr>
-  <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
   <td>{{ e.get_event_type_display }}</td>
   <td>${{ e.add_bonus }}</td>
   </tr>

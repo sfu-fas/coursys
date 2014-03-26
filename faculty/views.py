@@ -1218,7 +1218,7 @@ def new_memo_template(request, event_type):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
-    event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+    event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
 
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST)
@@ -1303,7 +1303,7 @@ def manage_memo_template(request, event_type, slug):
 @requires_role('ADMN')
 def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
-    template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=member_units)
+    template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=Unit.sub_units(request.units))
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     author = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
 
@@ -1319,7 +1319,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             f.config.update(ls)
             f.template = template;
             f.save()
-            messages.success(request, "Created new %s memo for %s." % (form.instance.template.label, form.instance.career_event.title))            
+            messages.success(request, "Created new %s memo." % (form.instance.template.label,))
             return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))  
     else:
         initial = {

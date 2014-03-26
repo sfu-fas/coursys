@@ -39,8 +39,7 @@ $(document).ready(function() {
   <table id="teaching_event_table" class="display">
     <thead><tr class="th">
       <th scope="col">Semester</th>
-      <th scope="col">Course/Event Type</th>
-      <th scope="col">Summary</th>
+      <th scope="col">Course/Event</th>
       <th scope="col">Credits</th>
     </tr></thead>
     <tbody>
@@ -48,11 +47,10 @@ $(document).ready(function() {
     <tr>
       <td>{{ semester }}</td>
       {% if event %}
-        <td><a href="{{ event.get_absolute_url }}">{{ course }}</a></td>
+        <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
       {% else %}
-        <td>{{ course }}</td>
+        <td>{{ course }} ({{summary}})</td>
       {% endif %}
-      <td>{{ summary }}</td>
       <td>{{ credits }}</td>
     </tr>
     {% endfor %}

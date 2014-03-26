@@ -177,7 +177,6 @@ class AvailableCapacityForm(forms.Form):
 class CourseAccreditationForm(forms.Form):
 
     OPERATOR_CHOICES = (
-        ('', '----'),
         ('AND', 'HAS ALL'),
         ('OR', 'HAS ANY'),
         ('NONE_OF', 'HAS NONE OF'),
@@ -185,7 +184,7 @@ class CourseAccreditationForm(forms.Form):
 
     start_semester = SemesterCodeField()
     end_semester = SemesterCodeField()
-    operator = forms.ChoiceField(choices=OPERATOR_CHOICES, required=False)
+    operator = forms.ChoiceField(choices=OPERATOR_CHOICES, required=False, initial='AND')
     flag = forms.MultipleChoiceField(choices=[], required=False,
                                       widget=forms.CheckboxSelectMultiple())
 

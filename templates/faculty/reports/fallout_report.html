@@ -82,7 +82,7 @@ $(document).ready(function() {
   <tr class="{{ units }}">
   <td>{{ units }}</td>
   <td><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
-  <td><a href="{{ event.get_absolute_url }}">{{ event.get_event_type_display }}</td>
+  <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</td>
   <td>{{ days }}</td>
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">${{ salary }}</a></td>
   <td>{{ frac }}</td>
