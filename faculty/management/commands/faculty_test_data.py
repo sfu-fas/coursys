@@ -161,7 +161,8 @@ class Command(BaseCommand):
             for year in range(2000, 2014):
                 e, h = event_get_or_create(person=person, unit=cmpt, event_type='SALARY', start_date=date(year,9,1),
                                         status='A', title=EVENT_TYPES['SALARY'].default_title())
-                e.config = {'step': year-1999,
+                e.config = {'rank': 'SLEC' if year>2005 else 'LECT',
+                            'step': year-1999,
                             'base_salary': 60000 + (year-2000)*2000,
                             'add_salary': 1000 if year>2005 else 0,
                             'add_pay': 500 if year<2005 else 0,
