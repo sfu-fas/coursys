@@ -345,6 +345,7 @@ class CareerEventHandlerBase(object):
                              initial=initial,
                              handler=handler,
                              **kwargs)
+        form.legend = cls.NAME
         return form
 
     # Stuff relating to HTML display

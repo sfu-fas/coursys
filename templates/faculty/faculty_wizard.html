@@ -24,10 +24,9 @@
         {% csrf_token %} 
         {% for form in event_form %}
         <fieldset>
-            <legend>{{ form.title.value }}</legend>           
+            <legend>{{ form.legend }}</legend>
             {{ form|as_dl }}
             {{ form.media }}
-            </br>
         </fieldset>
         {% endfor %}
         <p><input type="submit" class="submit" value="Submit" /></p>
