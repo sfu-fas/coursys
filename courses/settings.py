@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'compressor',
+    'haystack',
     'djcelery',
     'djcelery_email',
     'featureflags',
@@ -168,6 +169,12 @@ if DEPLOY_MODE == 'production':
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
     } }
+    HAYSTACK_CONNECTIONS = {
+        'default': {
+            'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+            'URL': 'http://localhost:8983/solr'
+        },
+    }
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
@@ -179,6 +186,15 @@ else:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
+    HAYSTACK_CONNECTIONS = {
+        'default': {
+            #'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
+            'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+            'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+            #'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+            #'URL': 'http://localhost:8983/solr'
+        },
+    }
     if getattr(secrets, 'FORCE_MEMCACHED', False):
         CACHES = { 'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',

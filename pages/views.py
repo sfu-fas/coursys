@@ -18,6 +18,7 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, HttpError
 from importer import HTMLWiki
 import json, datetime
 
+
 def _check_allowed(request, offering, acl_value, date=None):
     """
     Check to see if the person is allowed to do this Page action.
@@ -26,15 +27,8 @@ def _check_allowed(request, offering, acl_value, date=None):
     
     If a release date is given and is in the future, acl_value is tightened accordingly.
     """
-    if date and datetime.date.today() < date:
-        # release date hasn't passed: upgrade the security level accordingly.
-        if acl_value == 'NONE':
-            pass
-        elif acl_value == 'STAF':
-            acl_value = 'INST'
-        else:
-            acl_value = 'STAF'
-    
+    acl_value = Page.adjust_acl_release(acl_value, date)
+
     members = Member.objects.filter(person__userid=request.user.username, offering=offering)
     if not members:
         if acl_value=='ALL':
