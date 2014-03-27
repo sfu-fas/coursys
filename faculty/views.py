@@ -87,8 +87,12 @@ def index(request):
     fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
     fac_roles = [(p, ', '.join(r.unit.informal_name() for r in roles)) for p, roles in fac_roles]
 
+    editor = get_object_or_404(Person, userid=request.user.username)
+    events = CareerEvent.objects.filter(status='NA').only_subunits(request.units).count()
+
     context = {
         'fac_roles': fac_roles,
+        'queued_events': events,
     }
     return render(request, 'faculty/index.html', context)
 
@@ -1439,6 +1443,9 @@ def import_grants(request):
     if form.is_valid():
         csvfile = form.cleaned_data["file"]
         created, failed = TempGrant.objects.create_from_csv(csvfile)
+        if failed:
+            # TODO: Notify user that some grants have failed.
+            pass
     return HttpResponseRedirect(reverse("grants_index"))
 
 
