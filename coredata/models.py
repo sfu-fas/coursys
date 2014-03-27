@@ -884,7 +884,7 @@ class Member(models.Model):
         """
         Clear out the official grade field on old records: no need to tempt fate.
         """
-        cutoff = datetime.date.today() - datetime.timedelta(days=240)
+        cutoff = datetime.date.today() - datetime.timedelta(days=120)
         old_grades = Member.objects.filter(offering__semester__end__lt=cutoff, official_grade__isnull=False)
         old_grades.update(official_grade=None)
 
