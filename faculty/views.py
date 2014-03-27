@@ -1424,9 +1424,9 @@ def view_memo(request, userid, event_slug, memo_slug):
 
 @requires_role('ADMN')
 def grant_index(request):
-    grants = Grant.objects.active()
-    temp_grants = TempGrant.objects.all()
     editor = get_object_or_404(Person, userid=request.user.username)
+    temp_grants = TempGrant.objects.all()
+    grants = Grant.objects.active()
     import_form = GrantImportForm()
     context = {
         "grants": grants,
@@ -1439,10 +1439,11 @@ def grant_index(request):
 @require_POST
 @requires_role('ADMN')
 def import_grants(request):
+    editor = get_object_or_404(Person, userid=request.user.username)
     form = GrantImportForm(request.POST, request.FILES)
     if form.is_valid():
         csvfile = form.cleaned_data["file"]
-        created, failed = TempGrant.objects.create_from_csv(csvfile)
+        created, failed = TempGrant.objects.create_from_csv(csvfile, editor)
         if failed:
             # TODO: Notify user that some grants have failed.
             pass
@@ -1470,7 +1471,7 @@ def convert_grant(request, gid):
             grant.project_code = tmp.project_code
             grant.status = 'A'
             grant.save()
-            print grant
+            form.save_m2m()
             try:
                 # TODO: anything else to add to grant balance? can YTD actual be calculated?
                 balance = Decimal(tmp.config["cur_balance"])

@@ -473,7 +473,7 @@ class EventConfig(models.Model):
 
 
 class TempGrantManager(models.Manager): 
-    def create_from_csv(self, fh):
+    def create_from_csv(self, fh, creator):
         reader = csv.reader(fh.read().splitlines())
         # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
         failed = []
@@ -513,6 +513,7 @@ class TempGrantManager(models.Manager):
                         label=label,
                         initial=balance,
                         project_code=fund,
+                        creator=creator,
                         config={"cur_month": cur_month,
                                 "ytd_actual": ytd_actual,
                                 "cur_balance": cur_balance}
@@ -527,6 +528,8 @@ class TempGrant(models.Model):
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
+    creator = models.ForeignKey(Person, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
     config = JSONField(default={}) # addition configuration for within the temp grant
 
     objects = TempGrantManager()

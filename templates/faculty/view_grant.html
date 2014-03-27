@@ -20,7 +20,7 @@
 <div id="actions">
   <h2>Actions</h2>
   <ul>
-    <li><a href="#">Edit Grant</a></li>
+    <li><a href="{% url 'edit_grant' grant.unit.label|lower grant.slug %}">Edit Grant</a></li>
   </ul>
 </div>
 {% endblock %}
