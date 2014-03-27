@@ -54,6 +54,7 @@ urlpatterns += patterns('',
     url(r'^data/students$', 'coredata.views.student_search'),
     #url(r'^data/sims_people', 'coredata.views.sims_person_search'),
     url(r'^courses/(?P<tail>.*)$', RedirectView.as_view(url='/browse/%(tail)s', permanent=True)),
+    url(r'^search$', 'dashboard.views.site_search'),
 
     url(r'^browse/$', 'coredata.views.browse_courses'),
     url(r'^browse/info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),

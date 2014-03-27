@@ -134,6 +134,26 @@ class Page(models.Model):
             cache.set(key, v, 3600) # expired when a PageVersion is saved
             return v
 
+    @classmethod
+    def adjust_acl_release(cls, acl_value, date):
+        """
+        Adjust the access control value appropriately, taking the release date into account.
+        """
+        if not date:
+            # no release date, so nothing to do.
+            return acl_value
+        elif date and datetime.date.today() >= date:
+            # release date passed: nothing to do.
+            return acl_value
+        else:
+            # release date hasn't passed: upgrade the security level accordingly.
+            if acl_value == 'NONE':
+                return 'NONE'
+            elif acl_value == 'STAF':
+                return 'INST'
+            else:
+                return 'STAF'
+
     def release_message(self):
         return self._release_message(self.releasedate(), self.can_read, "viewable")
     def _release_message(self, date, acl_value, attrib):
