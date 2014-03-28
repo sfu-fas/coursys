@@ -311,12 +311,23 @@ class FulltextTest(TestCase):
         res = SearchQuerySet().models(CourseOffering).filter(text='Something')
         self.assertEqual(len(res), 1)
 
+
         # but we do update Pages in real time
         res = SearchQuerySet().models(Page).filter(text='fernwhizzles')
         self.assertEqual(len(res), 0)
+
+        # create a page
         p = Page(offering=self.offering, label='SomePage', can_read='ALL', can_write='STAF')
         p.save()
         pv = PageVersion(page=p, title='Some Page', wikitext='This is a page about fernwhizzles.', editor=self.instructor)
         pv.save()
         res = SearchQuerySet().models(Page).filter(text='fernwhizzles')
+        self.assertEqual(len(res), 1)
+
+        # update a page
+        pv = PageVersion(page=p, title='Some Page', wikitext='This is a page about bobdazzles.', editor=self.instructor)
+        pv.save()
+        res = SearchQuerySet().models(Page).filter(text='fernwhizzles')
+        self.assertEqual(len(res), 0)
+        res = SearchQuerySet().models(Page).filter(text='bobdazzles')
         self.assertEqual(len(res), 1)
