@@ -194,7 +194,7 @@ def salary_index(request):
         'pay_tot': pay_tot,
         'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
-    return render(request, 'faculty/salary_index.html', context)
+    return render(request, 'faculty/reports/salary_index.html', context)
 
 
 def _salary_index_data(request, date):
@@ -456,7 +456,7 @@ def salary_summary(request, userid):
         'add_bonus_total': add_bonus_total,
     }
 
-    return render(request, 'faculty/salary_summary.html', context)
+    return render(request, 'faculty/reports/salary_summary.html', context)
 
 
 def _teaching_capacity_data(unit, semester):
@@ -743,7 +743,7 @@ def teaching_summary(request, userid):
         'credit_balance': cb_mmixed,
         'events': events,
     }
-    return render(request, 'faculty/teaching_summary.html', context)
+    return render(request, 'faculty/reports/teaching_summary.html', context)
 
 def _teaching_events_data(person, semester):
     cb = 0
@@ -855,7 +855,7 @@ def study_leave_credits(request, userid):
         'events': events,
         'finish_semester': ReportingSemester.make_full_label(finish_semester.code)
     }
-    return render(request, 'faculty/study_leave_credits.html', context)
+    return render(request, 'faculty/reports/study_leave_credits.html', context)
 
 
 def _study_credit_events_data(person, semester, show_in_table, running_total):
@@ -1031,7 +1031,7 @@ def view_event(request, userid, event_slug):
 @requires_role('ADMN')
 def timeline(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
-    return render(request, 'faculty/timeline.html', {'person': person})
+    return render(request, 'faculty/reports/timeline.html', {'person': person})
 
 
 @requires_role('ADMN')

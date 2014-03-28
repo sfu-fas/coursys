@@ -49,7 +49,7 @@
 
 {% with attachments=event.attachments.all %}
 {% if attachments %}
-<h4>Attachments</h4>
+<h2 id="attachments">Attachments</h2>
 <ul>
 {% for a in attachments %}
 <li>{{ a.title }} ({{ a.mediatype }}, {{ a.contents.file.size|filesizeformat }})
@@ -62,7 +62,7 @@
 {% endwith %}
 
 {% if memos %}
-<h4>Memos</h4>
+<h2 id="memos">Memos</h2>
 <ul>
 {% for l in memos %}
 <li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_lines }})
