@@ -57,6 +57,14 @@ def _get_event_or_404(units, **kwargs):
     instance = get_object_or_404(CareerEvent, unit__id__in=subunit_ids, **kwargs)
     return instance
 
+def _get_tempgrants(units, **kwargs):
+    subunit_ids = Unit.sub_unit_ids(units)
+    grants = TempGrant.objects.filter(unit__id__in=subunit_ids, **kwargs)
+
+def _get_grants(units, **kwargs):
+    subunit_ids = Unit.sub_unit_ids(units)
+    grants = Grant.objects.active().filter(unit__id__in=subunit_ids, **kwargs)
+    return grants
 
 def _get_Handler_or_404(handler_slug):
     handler_slug = handler_slug.upper()
@@ -1438,8 +1446,8 @@ def view_memo(request, userid, event_slug, memo_slug):
 @requires_role('ADMN')
 def grant_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
-    temp_grants = TempGrant.objects.all()
-    grants = Grant.objects.active()
+    temp_grants = TempGrant.objects.all() #_get_tempgrants(request.units)
+    grants = _get_grants(request.units)
     import_form = GrantImportForm()
     context = {
         "grants": grants,
@@ -1458,8 +1466,9 @@ def import_grants(request):
         csvfile = form.cleaned_data["file"]
         created, failed = TempGrant.objects.create_from_csv(csvfile, editor)
         if failed:
-            # TODO: Notify user that some grants have failed.
-            pass
+            messages.error(request, "Created %d grants, %d failed" % (len(created), len(failed)))
+        else:
+            messages.info(request, "Created %d grants" % (len(created)))
     return HttpResponseRedirect(reverse("grants_index"))
 
 
@@ -1534,6 +1543,8 @@ def edit_grant(request, unit_slug, grant_slug):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     units = Unit.objects.filter(id__in=sub_unit_ids)
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
+    if grant.unit.id not in sub_unit_ids:
+        raise PermissionDenied("Not allowed to edit this grant")
     form = GrantForm(units, instance=grant)
     context = {
         "grant": grant,
@@ -1551,6 +1562,7 @@ def edit_grant(request, unit_slug, grant_slug):
 
 @requires_role('ADMN')
 def view_grant(request, unit_slug, grant_slug):
+    # TODO: should other faculties be able to view grants not in their unit?
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
     context = {
         "grant": grant,
