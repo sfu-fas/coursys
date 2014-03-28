@@ -86,6 +86,7 @@ class BaseEntryForm(forms.Form):
 
     def __init__(self, editor, units, *args, **kwargs):
         handler = kwargs.pop('handler', None)
+        self.person = kwargs.pop('person', None)
         self.editor = editor
         self.units = units
         super(BaseEntryForm, self).__init__(*args, **kwargs)
@@ -333,7 +334,7 @@ class CareerEventHandlerBase(object):
             self.set_config(name, form.cleaned_data.get(name, None))
 
     @classmethod
-    def get_entry_form(cls, editor, units, handler=None, **kwargs):
+    def get_entry_form(cls, editor, units, handler=None, person=None, **kwargs):
         """
         Return a Django Form that can be used to create/edit a CareerEvent
         """
@@ -344,6 +345,7 @@ class CareerEventHandlerBase(object):
                              units=units,
                              initial=initial,
                              handler=handler,
+                             person=person,
                              **kwargs)
         form.legend = cls.NAME
         return form
