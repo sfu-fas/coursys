@@ -8,7 +8,7 @@ from dashboard.models import UserConfig
 from django.test.testcases import TransactionTestCase
 import datetime
 
-class AdvistorNotestest(TestCase):
+class AdvisorNotestest(TestCase):
     fixtures = ['test_data']
 
     def test_pages(self):

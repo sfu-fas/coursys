@@ -270,3 +270,53 @@ class DashboardTest(TestCase):
         test_views(self, c, 'dashboard.views.', ['signatures', 'new_signature'], {})
 
 
+from django.core.management import call_command
+from haystack.query import SearchQuerySet
+from pages.models import Page, PageVersion
+class FulltextTest(TestCase):
+    """
+    Tests of the full-text indexing and searching.
+    """
+    def setUp(self):
+        self.offering = create_test_offering()
+        self.instructor = Member.objects.get(offering=self.offering, role='INST')
+        call_command('clear_index', interactive=False, verbosity=0)
+        self._update_index()
+
+    def _update_index(self):
+        call_command('update_index', verbosity=0)
+
+    #def test_search_page(self):
+    #    c = Client()
+    #    test_views(self, c, 'dashboard.views.', ['site_search'], {}, qs='q=student')
+
+    def test_updating(self):
+        """
+        Test the way the full text index updates
+        """
+        res = SearchQuerySet().models(CourseOffering).filter(text='Babbling')
+        self.assertEqual(len(res), 1)
+        self.assertEquals(res[0].object, self.offering)
+
+        # don't expect CourseOfferings to update automatically
+        self.offering.title = 'Something Else'
+        self.offering.save()
+        res = SearchQuerySet().models(CourseOffering).filter(text='Babbling')
+        self.assertEqual(len(res), 1)
+
+        # but a manual refresh should find changes
+        self._update_index()
+        res = SearchQuerySet().models(CourseOffering).filter(text='Babbling')
+        self.assertEqual(len(res), 0)
+        res = SearchQuerySet().models(CourseOffering).filter(text='Something')
+        self.assertEqual(len(res), 1)
+
+        # but we do update Pages in real time
+        res = SearchQuerySet().models(Page).filter(text='fernwhizzles')
+        self.assertEqual(len(res), 0)
+        p = Page(offering=self.offering, label='SomePage', can_read='ALL', can_write='STAF')
+        p.save()
+        pv = PageVersion(page=p, title='Some Page', wikitext='This is a page about fernwhizzles.', editor=self.instructor)
+        pv.save()
+        res = SearchQuerySet().models(Page).filter(text='fernwhizzles')
+        self.assertEqual(len(res), 1)
