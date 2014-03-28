@@ -126,7 +126,7 @@ span.sort { /* content that fixes datatables sorting but isn't user-visible */
 span.rowdata { /* content used for calculating totals on data tables */
   display: none;
 }
-.hidden {
+.hidden, .printonly {
     display: none;
 }
 #ui-datepicker-div { /* shrink the datepicker to something more reasonable */
