@@ -30,10 +30,11 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig, FacultyMemberInfo
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
+from faculty.forms import FacultyMemberInfoForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
@@ -944,6 +945,56 @@ def timeline_json(request, userid):
         })
 
     return HttpResponse(json.dumps(payload), mimetype='application/json')
+
+
+@requires_role('ADMN')
+def faculty_member_info(request, userid):
+    viewer = get_object_or_404(Person, userid=request.user.username)
+    person = get_object_or_404(Person, userid=userid)
+    info = FacultyMemberInfo.objects.filter(person=person).first()
+
+    # TODO: Figure who can modify contact information and also who can view
+    #       emergency contact info.
+    can_modify = viewer == person
+    can_view_emergency = viewer == person
+
+    context = {
+        'person': person,
+        'info': info,
+        'can_modify': can_modify,
+        'can_view_emergency': can_view_emergency,
+    }
+    return render(request, 'faculty/faculty_member_info.html', context)
+
+
+@requires_role('ADMN')
+def edit_faculty_member_info(request, userid):
+    viewer = get_object_or_404(Person, userid=request.user.username)
+    person = get_object_or_404(Person, userid=userid)
+
+    # TODO: Figure out who has permission to modify contact information besides
+    #       the faculty member.
+    if viewer != person:
+        raise HttpResponseForbidden(request)
+
+    info = (FacultyMemberInfo.objects.filter(person=person).first()
+            or FacultyMemberInfo(person=person))
+
+    if request.POST:
+        form = FacultyMemberInfoForm(request.POST, instance=info)
+
+        if form.is_valid():
+            new_info = form.save()
+            messages.success(request, 'Contact information was saved successfully.')
+            return HttpResponseRedirect(new_info.get_absolute_url())
+    else:
+        form = FacultyMemberInfoForm(instance=info)
+
+    context = {
+        'person': person,
+        'form': form,
+    }
+    return render(request, 'faculty/edit_faculty_member_info.html', context)
 
 
 ###############################################################################

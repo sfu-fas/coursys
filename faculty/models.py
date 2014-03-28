@@ -605,3 +605,22 @@ class GrantBalance(models.Model):
 
     def __unicode__(self):
         return u"%s balance as of %s" % (self.grant, self.date)
+
+
+class FacultyMemberInfo(models.Model):
+
+    person = models.ForeignKey(Person, unique=True, related_name='+')
+    title = models.CharField(max_length=50)
+    birthday = models.DateField()
+    office_number = models.CharField('Office Number', max_length=20)
+    phone_number = models.CharField('Local Phone Number', max_length=20)
+    emergency_contact = models.TextField('Emergency Contact Information', blank=True)
+
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'<FacultyMemberInfo({})>'.format(self.person)
+
+    def get_absolute_url(self):
+        return reverse('faculty.views.faculty_member_info',
+                       args=[self.person.userid_or_emplid()])
