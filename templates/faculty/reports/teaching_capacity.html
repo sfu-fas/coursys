@@ -20,8 +20,13 @@ $(document).ready(function() {
       bJQueryUI: true
   });
 
-  $('#filter-form').change( function() {
+  $('#filter-form').change(function() {
     event_filter_update('capacity-table');
+
+    // XXX: Hacked together since event_filter_update isn't very extensible.
+    var cat = $('#filter-form input:radio[name=category]:checked').val();
+    $('#total-capacity-list dd').filter('.' + cat).show();
+    $('#total-capacity-list dd').not('.' + cat).hide();
   }).change();
 });
 </script>
@@ -57,6 +62,18 @@ $(document).ready(function() {
 </form>
 
 {% include 'faculty/_unit_form.html' %}
+
+{% if units %}
+<dl id="total-capacity-list">
+  <dt>Total Available Capacity:</dt>
+  {% for unit, _, total_capacity in units %}
+  <dd class="all {{ unit.label }}">
+    <strong>{{ unit.label }}</strong>: {{ total_capacity|fraction_display }}
+  </dd>
+  {% endfor %}
+</dl>
+{% endif %}
+
 <table id='capacity-table'>
   <thead><tr>
     <th scope="col">Unit</th>
@@ -66,7 +83,7 @@ $(document).ready(function() {
     <th scope="col">Available Capacity</th>
   </tr></thead>
   <tbody>
-  {% for unit, summaries in units %}
+  {% for unit, summaries, _ in units %}
     {% for person, credits, load_decrease, capacity in summaries %}
     <tr class="{{ unit.label }}">
         <td>{{ unit.label }}</td>

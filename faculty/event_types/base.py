@@ -383,27 +383,6 @@ class CareerEventHandlerBase(object):
         context.update(self.to_html_context())
         return template.render(Context(context))
 
-    def to_timeline(self):
-        """
-        Returns a dictionary of the following format:
-            {
-                'startDate': '2014,2,27',
-                'endDate': '2014,3,1',
-                'headline': 'Testing',
-                'text': '<p>some body</p>',
-            }
-
-        """
-        payload = {
-            'startDate': '{:%Y,%m,%d}'.format(self.event.start_date),
-            'headline': self.short_summary(),
-        }
-
-        if self.event.end_date is not None:
-            payload['endDate'] = '{:%Y,%m,%d}'.format(self.event.end_date)
-
-        return payload
-
     # Stuff relating to searching
 
     @classmethod

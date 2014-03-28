@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Contact Info: {{ person.name }}{% endblock %}
+{% block h1 %}Contact Info: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function () {
+  $('#id_birthday').datepicker({
+    dateFormat: 'yy-mm-dd',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: '-100:c',
+  });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>
+  <a href="{% url 'faculty.views.faculty_member_info' userid=person.userid_or_emplid %}">
+    Contact Info
+  </a>
+</li>
+<li>Edit</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <form action="" method="POST">
+    {% csrf_token %}
+    <fieldset>
+      {{ form|as_dl }}
+    </fieldset>
+    <input type="submit" class="submit" value="Save" />
+  </form>
+</div>
+{% endblock %}

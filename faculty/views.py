@@ -30,15 +30,17 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig
+from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig, FacultyMemberInfo
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
+from faculty.forms import FacultyMemberInfoForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.base import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
+from faculty.event_types.career import SalaryBaseEventHandler
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -57,6 +59,14 @@ def _get_event_or_404(units, **kwargs):
     instance = get_object_or_404(CareerEvent, unit__id__in=subunit_ids, **kwargs)
     return instance
 
+def _get_tempgrants(units, **kwargs):
+    subunit_ids = Unit.sub_unit_ids(units)
+    grants = TempGrant.objects.filter(unit__id__in=subunit_ids, **kwargs)
+
+def _get_grants(units, **kwargs):
+    subunit_ids = Unit.sub_unit_ids(units)
+    grants = Grant.objects.active().filter(unit__id__in=subunit_ids, **kwargs)
+    return grants
 
 def _get_Handler_or_404(handler_slug):
     handler_slug = handler_slug.upper()
@@ -175,7 +185,7 @@ def salary_index(request):
     fac_roles_pay = _salary_index_data(request, date)
 
     pay_tot = 0
-    for p, r, pay, t1, t2, t3 in fac_roles_pay:
+    for p, r, pay, t1, t2, t3, t4, t5 in fac_roles_pay:
         pay_tot += pay
 
     context = {
@@ -204,7 +214,25 @@ def _salary_index_data(request, date):
             salary_fraction_total = salary_fraction_total*event.salary_fraction
             add_bonus_total += event.add_bonus
 
-        fac_pay_summary += [(person, ', '.join(r.unit.label for r in roles), FacultySummary(person).salary(date), add_salary_total, salary_fraction_total, add_bonus_total)]
+        #get most recent step and rank from base_salary
+        recent_salary_update = FacultySummary(person).recent_salary(date)
+        if recent_salary_update != None:
+            try:
+                step = recent_salary_update.config["step"]
+            except KeyError:
+                step = "-"
+            try:
+                handler = recent_salary_update.get_handler()
+                rank = handler.get_display('rank')
+            except KeyError:
+                rank = "-"
+        else:
+            step = "-"
+            rank = "-"
+
+        current_salary = FacultySummary(person).salary(date)
+
+        fac_pay_summary += [(person, ' , '.join(r.unit.label for r in roles), current_salary, add_salary_total, salary_fraction_total, add_bonus_total, step, rank)]
 
     # TODO: below line should only select pay from units the user can see
     return fac_pay_summary
@@ -226,14 +254,24 @@ def salary_index_csv(request):
     csv, response = make_csv_writer_response(filename)
     csv.writerow([
         'Name',
+        'Rank',
+        'Step',
         'Unit',
-        'Pay',
+        'Total Salary',
+        'Multiplier',
+        'Bonus',
+        'Total Pay',
     ])
 
-    for person, units, pay in _salary_index_data(request, date):
+    for person, units, pay, salary, fraction, bonus, step, rank in _salary_index_data(request, date):
         csv.writerow([
             person.name(),
+            rank,
+            step,
             units,
+            salary,
+            fraction,
+            bonus,
             pay,
         ])
 
@@ -271,7 +309,7 @@ def fallout_report(request):
     tot_fallout = 0
     for p, roles in fac_roles:
         salary = FacultySummary(p).base_salary(end_date)
-        units = ', '.join(r.unit.label for r in roles)
+        units = ' , '.join(r.unit.label for r in roles)
         # TODO: below line should only select pay from units the user can see
         salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
@@ -303,7 +341,7 @@ def _fallout_report_data(request, start_date, end_date):
     tot_fallout = 0
     for p, roles in fac_roles:
         salary = FacultySummary(p).base_salary(end_date)
-        units = ', '.join(r.unit.label for r in roles)
+        units = ' , '.join(r.unit.label for r in roles)
         # TODO: below line should only select pay from units the user can see
         salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
@@ -451,11 +489,13 @@ def teaching_capacity(request):
 
         for unit in sub_units:
             entries = []
+            total_capacity = 0
 
             for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
+                total_capacity += capacity
                 entries.append((person, credits, load, capacity))
 
-            collected_units.append((unit, entries))
+            collected_units.append((unit, entries, total_capacity))
 
         context['semester'] = semester
 
@@ -528,6 +568,7 @@ def _get_visible_flags(viewer, offering, instructor):
                                                .filter(unit=offering.owner)
                                                .filter(person=instructor)
                                                .overlaps_semester(offering.semester)
+                                               .filter(status='A')
                if event.get_handler().can_view(viewer))
 
 
@@ -1009,22 +1050,31 @@ def timeline_json(request, userid):
     semesters = set()
 
     # Populate events
-    events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
+    events = (CareerEvent.objects.not_deleted()
+                         .only_subunits(request.units)
+                         .filter(person=person, status='A')
+                         .exclude(event_type=SalaryBaseEventHandler.EVENT_TYPE))
     for event in events:
         handler = event.get_handler()
 
         if handler.can_view(viewer):
-            blurb = handler.to_timeline()
+            blurb = {
+                'startDate': '{:%Y,%m,%d}'.format(handler.event.start_date),
+                'headline': handler.short_summary(),
+                'text': u'<a href="{}">permalink</a>'.format(handler.event.get_absolute_url()),
+            }
 
-            if blurb:
-                payload['timeline']['date'].append(blurb)
+            if handler.event.end_date is not None:
+                payload['endDate'] = '{:%Y,%m,%d}'.format(handler.event.end_date)
 
-                # Show all semesters that the event covers, if possible.
-                if event.end_date is not None:
-                    for semester in ReportingSemester.range(event.start_date, event.end_date):
-                        semesters.add(semester)
-                else:
-                    semesters.add(ReportingSemester(event.start_date))
+            payload['timeline']['date'].append(blurb)
+
+            # Show all semesters that the event covers, if possible.
+            if event.end_date is not None:
+                for semester in ReportingSemester.range(event.start_date, event.end_date):
+                    semesters.add(semester)
+            else:
+                semesters.add(ReportingSemester(event.start_date))
 
     # Populate semesters
     for semester in semesters:
@@ -1035,6 +1085,56 @@ def timeline_json(request, userid):
         })
 
     return HttpResponse(json.dumps(payload), mimetype='application/json')
+
+
+@requires_role('ADMN')
+def faculty_member_info(request, userid):
+    viewer = get_object_or_404(Person, userid=request.user.username)
+    person = get_object_or_404(Person, userid=userid)
+    info = FacultyMemberInfo.objects.filter(person=person).first()
+
+    # TODO: Figure who can modify contact information and also who can view
+    #       emergency contact info.
+    can_modify = viewer == person
+    can_view_emergency = viewer == person
+
+    context = {
+        'person': person,
+        'info': info,
+        'can_modify': can_modify,
+        'can_view_emergency': can_view_emergency,
+    }
+    return render(request, 'faculty/faculty_member_info.html', context)
+
+
+@requires_role('ADMN')
+def edit_faculty_member_info(request, userid):
+    viewer = get_object_or_404(Person, userid=request.user.username)
+    person = get_object_or_404(Person, userid=userid)
+
+    # TODO: Figure out who has permission to modify contact information besides
+    #       the faculty member.
+    if viewer != person:
+        raise HttpResponseForbidden(request)
+
+    info = (FacultyMemberInfo.objects.filter(person=person).first()
+            or FacultyMemberInfo(person=person))
+
+    if request.POST:
+        form = FacultyMemberInfoForm(request.POST, instance=info)
+
+        if form.is_valid():
+            new_info = form.save()
+            messages.success(request, 'Contact information was saved successfully.')
+            return HttpResponseRedirect(new_info.get_absolute_url())
+    else:
+        form = FacultyMemberInfoForm(instance=info)
+
+    context = {
+        'person': person,
+        'form': form,
+    }
+    return render(request, 'faculty/edit_faculty_member_info.html', context)
 
 
 ###############################################################################
@@ -1537,8 +1637,8 @@ def view_memo(request, userid, event_slug, memo_slug):
 @requires_role('ADMN')
 def grant_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
-    temp_grants = TempGrant.objects.all()
-    grants = Grant.objects.active()
+    temp_grants = TempGrant.objects.all() #_get_tempgrants(request.units)
+    grants = _get_grants(request.units)
     import_form = GrantImportForm()
     context = {
         "grants": grants,
@@ -1557,8 +1657,9 @@ def import_grants(request):
         csvfile = form.cleaned_data["file"]
         created, failed = TempGrant.objects.create_from_csv(csvfile, editor)
         if failed:
-            # TODO: Notify user that some grants have failed.
-            pass
+            messages.error(request, "Created %d grants, %d failed" % (len(created), len(failed)))
+        else:
+            messages.info(request, "Created %d grants" % (len(created)))
     return HttpResponseRedirect(reverse("grants_index"))
 
 
@@ -1633,6 +1734,8 @@ def edit_grant(request, unit_slug, grant_slug):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     units = Unit.objects.filter(id__in=sub_unit_ids)
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
+    if grant.unit.id not in sub_unit_ids:
+        raise PermissionDenied("Not allowed to edit this grant")
     form = GrantForm(units, instance=grant)
     context = {
         "grant": grant,
@@ -1650,6 +1753,7 @@ def edit_grant(request, unit_slug, grant_slug):
 
 @requires_role('ADMN')
 def view_grant(request, unit_slug, grant_slug):
+    # TODO: should other faculties be able to view grants not in their unit?
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
     context = {
         "grant": grant,

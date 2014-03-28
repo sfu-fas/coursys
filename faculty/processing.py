@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404
 
 from faculty.models import CareerEvent, CareerEventManager, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
 
+from faculty.event_types.career import SalaryBaseEventHandler
+
 
 class FacultySummary(object):
     def __init__(self, person):
@@ -14,6 +16,15 @@ class FacultySummary(object):
     def salary_events(self, date):
         career_events = CareerEvent.objects.not_deleted().effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         return career_events
+
+    def recent_salary(self, date):
+        career_events = CareerEvent.objects.not_deleted().effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
+        base_salary_events = career_events.filter(event_type=SalaryBaseEventHandler.EVENT_TYPE)
+        try:
+            recent = base_salary_events.order_by('-start_date')[0]
+        except IndexError:
+            recent = None
+        return recent
 
     def teaching_events(self, semester):
         career_events = CareerEvent.objects.not_deleted().overlaps_semester(semester).filter(person=self.person).filter(flags=CareerEvent.flags.affects_teaching).filter(status='A')

@@ -72,13 +72,13 @@ $(document).ready(function() {
   <thead><tr>
     <th scope="col">Name</th>
     <th scope="col">Unit</th>
-    <th scope="col">Salary</th>
+    <th scope="col">Total Salary</th>
     <th scope="col">Multiplier</th>
     <th scope="col">Bonus</th>
-    <th scope="col">Pay</th>
+    <th scope="col">Total Pay</th>
   </tr></thead>
   <tbody>
-  {% for person,units,pay,salary,fraction,bonus in fac_roles_pay %}
+  {% for person,units,pay,salary,fraction,bonus,step,rank in fac_roles_pay %}
   <tr class="{{ units }}">
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
   <td>{{ units }}</td>
