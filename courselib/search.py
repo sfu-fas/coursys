@@ -58,7 +58,6 @@ from django.db import models
 from haystack.signals import RealtimeSignalProcessor
 
 from pages.models import Page, PageVersion
-REALTIME_MODELS = [Page, PageVersion]
 
 class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     """
@@ -66,11 +65,14 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     search engine appropriately.
     """
     def handle_save(self, sender, instance, **kwargs):
-        if sender not in REALTIME_MODELS:
-            return
-        return super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
+        if sender == Page:
+            # reindex Page
+            return super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
+        elif sender == PageVersion:
+            # reindex corresponding Page
+            page = instance.page
+            self.handle_save(Page, page)
 
     def handle_delete(self, sender, instance, **kwargs):
-        if sender not in REALTIME_MODELS:
-            return
-        return super(SelectiveRealtimeSignalProcessor, self).handle_delete(sender=sender, instance=instance, **kwargs)
+        # Page and PageVersion don't get deleted
+        pass
