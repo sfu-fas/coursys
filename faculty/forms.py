@@ -205,7 +205,7 @@ class FacultyMemberInfoForm(forms.ModelForm):
 
     class Meta:
         model = FacultyMemberInfo
-        exclude = ('person',)
+        exclude = ('person', 'config')
 
         help_texts = {
             'title': _('Mr., Mrs., Dr., etc'),
