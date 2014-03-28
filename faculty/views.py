@@ -175,7 +175,7 @@ def salary_index(request):
     fac_roles_pay = _salary_index_data(request, date)
 
     pay_tot = 0
-    for p, r, pay, t1, t2, t3 in fac_roles_pay:
+    for p, r, pay, t1, t2, t3, t4, t5 in fac_roles_pay:
         pay_tot += pay
 
     context = {
@@ -204,7 +204,25 @@ def _salary_index_data(request, date):
             salary_fraction_total = salary_fraction_total*event.salary_fraction
             add_bonus_total += event.add_bonus
 
-        fac_pay_summary += [(person, ' , '.join(r.unit.label for r in roles), FacultySummary(person).salary(date), add_salary_total, salary_fraction_total, add_bonus_total)]
+        #get most recent step and rank from base_salary
+        recent_salary_update = FacultySummary(person).recent_salary(date)
+        if recent_salary_update != None:
+            try:
+                step = recent_salary_update.config["step"]
+            except KeyError:
+                step = "-"
+            try:
+                handler = recent_salary_update.get_handler()
+                rank = handler.get_display('rank')
+            except KeyError:
+                rank = "-"
+        else:
+            step = "-"
+            rank = "-"
+
+        current_salary = FacultySummary(person).salary(date)
+
+        fac_pay_summary += [(person, ' , '.join(r.unit.label for r in roles), current_salary, add_salary_total, salary_fraction_total, add_bonus_total, step, rank)]
 
     # TODO: below line should only select pay from units the user can see
     return fac_pay_summary
@@ -226,14 +244,24 @@ def salary_index_csv(request):
     csv, response = make_csv_writer_response(filename)
     csv.writerow([
         'Name',
+        'Rank',
+        'Step',
         'Unit',
-        'Pay',
+        'Total Salary',
+        'Multiplier',
+        'Bonus',
+        'Total Pay',
     ])
 
-    for person, units, pay in _salary_index_data(request, date):
+    for person, units, pay, salary, fraction, bonus, step, rank in _salary_index_data(request, date):
         csv.writerow([
             person.name(),
+            rank,
+            step,
             units,
+            salary,
+            fraction,
+            bonus,
             pay,
         ])
 

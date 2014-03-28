@@ -78,7 +78,7 @@ $(document).ready(function() {
     <th scope="col">Total Pay</th>
   </tr></thead>
   <tbody>
-  {% for person,units,pay,salary,fraction,bonus in fac_roles_pay %}
+  {% for person,units,pay,salary,fraction,bonus,step,rank in fac_roles_pay %}
   <tr class="{{ units }}">
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
   <td>{{ units }}</td>
