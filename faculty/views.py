@@ -204,7 +204,7 @@ def _salary_index_data(request, date):
             salary_fraction_total = salary_fraction_total*event.salary_fraction
             add_bonus_total += event.add_bonus
 
-        fac_pay_summary += [(person, ', '.join(r.unit.label for r in roles), FacultySummary(person).salary(date), add_salary_total, salary_fraction_total, add_bonus_total)]
+        fac_pay_summary += [(person, ' , '.join(r.unit.label for r in roles), FacultySummary(person).salary(date), add_salary_total, salary_fraction_total, add_bonus_total)]
 
     # TODO: below line should only select pay from units the user can see
     return fac_pay_summary
@@ -271,7 +271,7 @@ def fallout_report(request):
     tot_fallout = 0
     for p, roles in fac_roles:
         salary = FacultySummary(p).base_salary(end_date)
-        units = ', '.join(r.unit.label for r in roles)
+        units = ' , '.join(r.unit.label for r in roles)
         # TODO: below line should only select pay from units the user can see
         salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
@@ -303,7 +303,7 @@ def _fallout_report_data(request, start_date, end_date):
     tot_fallout = 0
     for p, roles in fac_roles:
         salary = FacultySummary(p).base_salary(end_date)
-        units = ', '.join(r.unit.label for r in roles)
+        units = ' , '.join(r.unit.label for r in roles)
         # TODO: below line should only select pay from units the user can see
         salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
