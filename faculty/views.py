@@ -1711,23 +1711,26 @@ def delete_grant(request, gid):
     return HttpResponseRedirect(reverse("grants_index"))
 
 
-@requires_role('ADMN')
-def new_grant(request):
-    editor = get_object_or_404(Person, userid=request.user.username)
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    units = Unit.objects.filter(id__in=sub_unit_ids)
-    form = GrantForm(units)
-    context = {
-        "grant_form": form,
-        "editor": editor,
-    }
-    if request.method == "POST":
-        form = GrantForm(units, request.POST)
-        if form.is_valid():
-            grant = form.save()
-        else:
-            context.update({"grant_form": form})
-    return render(request, "faculty/new_grant.html", context)
+#@requires_role('ADMN')
+#def new_grant(request):
+#    editor = get_object_or_404(Person, userid=request.user.username)
+#    sub_unit_ids = Unit.sub_unit_ids(request.units)
+#    units = Unit.objects.filter(id__in=sub_unit_ids)
+#    form = GrantForm(units)
+#    context = {
+#        "grant_form": form,
+#        "editor": editor,
+#    }
+#    if request.method == "POST":
+#        form = GrantForm(units, request.POST)
+#        if form.is_valid():
+#            grant = form.save()
+#            GrantOwner.objects.filter(grant=grant).delete()
+#            for p in form.cleaned_data['owners']:
+#                GrantOwner(grant=grant, person=p).save()
+#        else:
+#            context.update({"grant_form": form})
+#    return render(request, "faculty/new_grant.html", context)
 
 
 @requires_role('ADMN')
