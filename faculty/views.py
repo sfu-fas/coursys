@@ -94,17 +94,18 @@ def _get_event_types():
 
 @requires_role('ADMN')
 def index(request):
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
+    sub_units = Unit.sub_units(request.units)
+    fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit')
     fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
-    fac_roles = [(p, ', '.join(r.unit.informal_name() for r in roles)) for p, roles in fac_roles]
+    fac_roles = [(p, [r.unit for r in roles]) for p, roles in fac_roles]
 
-    editor = get_object_or_404(Person, userid=request.user.username)
     events = CareerEvent.objects.filter(status='NA').only_subunits(request.units).count()
+    filterform = UnitFilterForm(sub_units)
 
     context = {
         'fac_roles': fac_roles,
         'queued_events': events,
+        'filterform': filterform,
     }
     return render(request, 'faculty/index.html', context)
 

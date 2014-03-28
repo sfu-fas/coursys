@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Faculty Management{% endblock %}
 {% block h1 %}Faculty Management{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#facultytable').dataTable( {
@@ -11,6 +14,9 @@ $(document).ready(function() {
     "aaSorting": [[0, "asc"]],
     "bJQueryUI": true,
   } );
+  $('#filter-form').change( function() {
+          event_filter_update('facultytable');
+        }).change();
 } );
 </script>
 {% endblock %}
@@ -55,17 +61,19 @@ $(document).ready(function() {
 
 {% block content %}
 
-<div class="datatable_container">
+{% include 'faculty/_unit_form.html' %}
+
 <table id="facultytable" class="display">
   <thead><tr><th scope="col">Name</th><th scope="col">Unit</th></tr></thead>
   <tbody>
   {% for person,units in fac_roles %}
-  <tr>
+  <tr class="{% for u in units %}{{ u.label }} {% endfor %}">
   <td><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
-  <td>{{ units }}</td>
+  <td>
+      {% for u in units %}{{ u.informal_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  </td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
-</div>
 {% endblock %}
