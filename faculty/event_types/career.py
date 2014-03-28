@@ -336,7 +336,6 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
                 teaching_load = abs(FacultySummary(self.person).teaching_credits(semester)[1])
             else:
                 teaching_load = 0
-            # teaching_decrease = fields.TeachingReductionField()
 
             self.fields['teaching_decrease'].initial = teaching_load
 
