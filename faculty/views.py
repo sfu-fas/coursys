@@ -30,7 +30,9 @@ from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
-from faculty.models import CareerEvent, CareerEventManager, MemoTemplate, Memo, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS, Grant, TempGrant, EventConfig, FacultyMemberInfo
+from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
+from faculty.models import Grant, TempGrant, GrantOwner
+from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
@@ -1680,9 +1682,11 @@ def convert_grant(request, gid):
             grant = form.save(commit=False)
             grant.label = tmp.label
             grant.project_code = tmp.project_code
-            grant.status = 'A'
             grant.save()
-            form.save_m2m()
+            GrantOwner.objects.filter(grant=grant).delete()
+            for p in form.cleaned_data['owners']:
+                GrantOwner(grant=grant, person=p).save()
+
             try:
                 # TODO: anything else to add to grant balance? can YTD actual be calculated?
                 balance = Decimal(tmp.config["cur_balance"])
@@ -1743,7 +1747,12 @@ def edit_grant(request, unit_slug, grant_slug):
     if request.method == "POST":
         form = GrantForm(units, request.POST, instance=grant)
         if form.is_valid():
-            grant = form.save()
+            grant = form.save(commit=False)
+            grant.save()
+            GrantOwner.objects.filter(grant=grant).delete()
+            for p in form.cleaned_data['owners']:
+                GrantOwner(grant=grant, person=p).save()
+
         else:
             context.update({"grant_form": form})
     return render(request, "faculty/edit_grant.html", context)

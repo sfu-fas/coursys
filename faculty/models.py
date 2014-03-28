@@ -543,6 +543,7 @@ class TempGrant(models.Model):
     def grant_dict(self, **kwargs):
         data = {
             "label": self.label,
+            "title": self.label,
             "project_code": self.project_code,
             "initial": self.initial,
             "import_key": self.import_key,
