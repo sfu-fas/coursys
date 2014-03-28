@@ -995,3 +995,18 @@ div#main .artifact-note p {
 #browser_container div.table {
   overflow-x: visible;
 }
+
+
+/* faculty management */
+
+form#filter-form {
+  text-align: center;
+  padding: 0.5em;
+}
+form#filter-form label {
+  margin-top: 0;
+  padding-left: 0.33em;
+}
+form#filter-form span {
+  white-space: nowrap;
+}
