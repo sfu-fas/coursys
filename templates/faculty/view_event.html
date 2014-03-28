@@ -38,7 +38,7 @@
 {% if editor|can_approve:event %}
 <form action="{{ event.get_status_change_url }}" method="post">
 	{% csrf_token %}
-	{{ approval_form }}
+	{{ approval_form.as_p }}
 	<input type="submit" value="Change"/>
 </form>
 {% else %}

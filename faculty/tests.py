@@ -196,12 +196,14 @@ class PagesTest(TestCase):
         c = Client()
 
         # as department admin
-        c.login_user('dixon')
+        c.login_user('dzhao')
 
         test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
-                'teaching_capacity'],
+                'teaching_capacity', 'fallout_report', 'course_accreditation', 'grant_index'],
                 {})
-        test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo', 'event_type_list'],
+        test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
+                'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',
+                'faculty_wizard'],
                 {'userid': 'ggbaker'})
         test_views(self, c, 'faculty.views.', ['view_event', 'change_event', 'new_attachment'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position'})
@@ -214,6 +216,8 @@ class PagesTest(TestCase):
         test_views(self, c, 'faculty.views.', ['manage_memo', 'view_memo'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
                  'memo_slug': '2000-appointment-to-position-welcome'})
+
+        # TODO: 'convert_grant', 'delete_grant', 'new_grant', 'edit_grant', 'view_grant'
 
         # per-handler views
         for Handler in HANDLERS:
