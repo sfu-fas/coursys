@@ -158,6 +158,8 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'com
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
 
+HAYSTACK_SIGNAL_PROCESSOR = 'courselib.search.SelectiveRealtimeSignalProcessor'
+#HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 if DEPLOY_MODE == 'production':
     # things only relevant to the true production environment

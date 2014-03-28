@@ -52,3 +52,26 @@ def get_query(query_string, search_fields, startonly=False):
         else:
             query = query & or_query
     return query
+
+
+from django.db import models
+from haystack.signals import RealtimeSignalProcessor
+
+from pages.models import Page, PageVersion
+REALTIME_MODELS = [Page, PageVersion]
+
+class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
+    """
+    Allows for observing when saves/deletes fire & automatically updates the
+    search engine appropriately.
+    """
+    def handle_save(self, sender, instance, **kwargs):
+        if sender not in REALTIME_MODELS:
+            return
+        print "SAVE HANDLER"
+        return super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
+
+    def handle_delete(self, sender, instance, **kwargs):
+        if sender not in REALTIME_MODELS:
+            return
+        return super(SelectiveRealtimeSignalProcessor, self).handle_delete(sender=sender, instance=instance, **kwargs)

@@ -1,4 +1,4 @@
-from pages.models import Page
+from pages.models import Page, PageVersion
 from haystack import indexes
 
 class PageIndex(indexes.SearchIndex, indexes.Indexable):
@@ -13,6 +13,14 @@ class PageIndex(indexes.SearchIndex, indexes.Indexable):
 
     def index_queryset(self, using=None):
         return self.get_model().objects.exclude(can_read='NONE').select_related('offering')
+
+    def should_update(self, p):
+        # no PageVersion yet? Still mid-save, so ignore.
+        try:
+            p.current_version()
+            return True
+        except PageVersion.DoesNotExist:
+            return False
 
     def prepare_text(self, p):
         v = p.current_version()
