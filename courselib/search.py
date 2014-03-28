@@ -68,7 +68,6 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     def handle_save(self, sender, instance, **kwargs):
         if sender not in REALTIME_MODELS:
             return
-        print "SAVE HANDLER"
         return super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
     def handle_delete(self, sender, instance, **kwargs):
