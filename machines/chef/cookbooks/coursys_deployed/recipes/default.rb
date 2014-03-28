@@ -6,8 +6,7 @@ package "libmysqlclient-dev"
 # Media Server
 package "nginx"
 
-# WSGI Server
-package "gunicorn"
+package "make"
 
 # Queue Server
 package "rabbitmq-server"
@@ -31,10 +30,44 @@ execute "install_pip_requirements" do
     command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
 end
 
-# TODO
-#  - move nginx to port 8000
-#  - create startup script to run gunicorn on port 80
-#     gunicorn wsgi --bind 0.0.0.0:80
+# configure secrets
+cookbook_file "secrets.py" do
+    path "/home/vagrant/courses/courses/secrets.py"
+    action :create
+end
+
+# configure NGINX
+cookbook_file "nginx_default.conf" do
+    path "/etc/nginx/sites-available/default"
+    action :create
+end
+
+# put in the fake https certification
+cookbook_file "self-ssl.key" do 
+    path "/etc/nginx/cert.key"
+end
+
+cookbook_file "self-ssl.pem" do 
+    path "/etc/nginx/cert.pem"
+end
+
+# create a directory for the gunicorn log files
+# directory "/var/log/gunicorn"
+directory "/var/log/gunicorn" do 
+    owner "vagrant"
+    mode "00755"
+    action :create
+end
+
+# create a script to run gunicorn
+cookbook_file "Makefile" do
+    path "/home/vagrant/courses/Makefile"
+    owner "vagrant"
+    mode "0755"
+    action :create
+end
+
+# create supervisor to run gunicorn, nginx
 
 
 # TODO for proddev environment:

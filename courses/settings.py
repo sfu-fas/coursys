@@ -22,6 +22,8 @@ else:
     # standard development environment
     DEPLOY_MODE = 'devel'
 
+print "DEPLOY_MODE: ", DEPLOY_MODE
+
 DEBUG = DEPLOY_MODE != 'production'
 TEMPLATE_DEBUG = DEBUG
 
@@ -209,7 +211,7 @@ else:
 if DEPLOY_MODE == 'proddev':
     # changes between production and almost-production
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # todo: could use Malm or something
-    BASE_ABS_URL = "https://theserver.sfu.ca"
+    BASE_ABS_URL = "https://localhost:8000"
 
 
 
