@@ -539,6 +539,7 @@ def _get_visible_flags(viewer, offering, instructor):
                                                .filter(unit=offering.owner)
                                                .filter(person=instructor)
                                                .overlaps_semester(offering.semester)
+                                               .filter(status='A')
                if event.get_handler().can_view(viewer))
 
 
