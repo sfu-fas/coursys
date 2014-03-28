@@ -872,7 +872,7 @@ def _study_credit_events_data(person, semester, show_in_table, running_total):
             e += [(semester.code, course.offering.name(), tc, tc, fraction_display(running_total))]
 
     # TODO: should filter only user-visible events
-    teaching_events = FacultySummary(person).teaching_events(Semester(name=semester.code))
+    teaching_events = FacultySummary(person).teaching_events(semester)
     for event in teaching_events:
         # only want to account for the study leave event once
         if event.event_type == 'STUDYLEAVE':
