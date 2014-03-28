@@ -175,7 +175,7 @@ def salary_index(request):
     fac_roles_pay = _salary_index_data(request, date)
 
     pay_tot = 0
-    for p, r, pay in fac_roles_pay:
+    for p, r, pay, t1, t2, t3 in fac_roles_pay:
         pay_tot += pay
 
     context = {
@@ -191,9 +191,23 @@ def _salary_index_data(request, date):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
     fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
+    fac_pay_summary = []
+    for person, roles in fac_roles_pay:
+
+        salary_events = copy.copy(FacultySummary(person).salary_events(date))
+        add_salary_total = add_bonus_total = 0
+        salary_fraction_total = 1
+
+        for event in salary_events:
+            event.add_salary, event.salary_fraction, event.add_bonus = FacultySummary(person).salary_event_info(event)
+            add_salary_total += event.add_salary
+            salary_fraction_total = salary_fraction_total*event.salary_fraction
+            add_bonus_total += event.add_bonus
+
+        fac_pay_summary += [(person, ', '.join(r.unit.label for r in roles), FacultySummary(person).salary(date), add_salary_total, salary_fraction_total, add_bonus_total)]
+
     # TODO: below line should only select pay from units the user can see
-    fac_roles_pay = [(p, ', '.join(r.unit.label for r in roles), FacultySummary(p).salary(date)) for p, roles in fac_roles_pay]
-    return fac_roles_pay
+    return fac_pay_summary
 
 
 @requires_role('ADMN')

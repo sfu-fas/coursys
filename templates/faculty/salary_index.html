@@ -65,12 +65,22 @@ $(document).ready(function() {
 {% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">
 <table id="faculty_salary_table" class="display">
-  <thead><tr><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">Pay</th></tr></thead>
+  <thead><tr>
+    <th scope="col">Name</th>
+    <th scope="col">Unit</th>
+    <th scope="col">Salary</th>
+    <th scope="col">Multiplier</th>
+    <th scope="col">Bonus</th>
+    <th scope="col">Pay</th>
+  </tr></thead>
   <tbody>
-  {% for person,units,pay in fac_roles_pay %}
+  {% for person,units,pay,salary,fraction,bonus in fac_roles_pay %}
   <tr class="{{ units }}">
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
-  <td>{{ units.informal_name }}</td>
+  <td>{{ units }}</td>
+  <td>{{ salary}}</td>
+  <td>{{ fraction}}</td>
+  <td>{{ bonus }}</td>
   <td><span class="rowdata">{{pay}}</span> ${{ pay }}</td>
   </tr>
   {% endfor %}
