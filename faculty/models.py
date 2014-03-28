@@ -471,6 +471,9 @@ class EventConfig(models.Model):
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
     config = JSONField(default={})
 
+    class Meta:
+        unique_together = ('unit', 'event_type')
+
 
 class TempGrantManager(models.Manager): 
     def create_from_csv(self, fh, creator):

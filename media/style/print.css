@@ -32,7 +32,7 @@ div#main {
 .printonly {
 	display: block;
 }
-.datatable_container .ui-widget-header, .DataTables_sort_icon {
+.ui-widget-header, .DataTables_sort_icon {
 	display: none;
 }
 
