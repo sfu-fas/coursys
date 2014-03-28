@@ -460,11 +460,13 @@ def teaching_capacity(request):
 
         for unit in sub_units:
             entries = []
+            total_capacity = 0
 
             for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
+                total_capacity += capacity
                 entries.append((person, credits, load, capacity))
 
-            collected_units.append((unit, entries))
+            collected_units.append((unit, entries, total_capacity))
 
         context['semester'] = semester
 
