@@ -25,19 +25,19 @@ $(document).ready(function() {
     <li>
       <a href="{% url 'faculty.views.status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue {% if queued_events %}<i class="fa fa-warning infomessage"> {{ queued_events }}</i>{% endif %}</a>
     </li>
+    <li>
+      <a href="{% url 'grants_index' %}"><i class="fa fa-li fa-trophy"></i> Grants</a>
+    </li>
     <li class="newsec">
       <a href="{% url 'faculty.views.search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
     </li>
-    <li>
+    <li class="newsec">
       <a href="{% url 'faculty.views.salary_index' %}"><i class="fa fa-li fa-money"></i> Salaries</a>
     </li>
     <li>
       <a href="{% url 'faculty.views.fallout_report' %}"><i class="fa fa-li fa-umbrella"></i> Fallout Report</a>
     </li>
-    <li class="newsec">
-      <a href="{% url 'grants_index' %}"><i class="fa fa-li fa-trophy"></i> Grants</a>
-    </li>
-    <li class="newsec">
+    <li>
       <a href="{% url 'faculty.views.teaching_capacity' %}"><i class="fa fa-li fa-beer"></i> Teaching Capacity by Unit</a>
     </li>
     <li>
