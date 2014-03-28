@@ -569,7 +569,7 @@ class Grant(models.Model):
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default='A')
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
@@ -596,7 +596,7 @@ class Grant(models.Model):
 
 
 class GrantBalance(models.Model):
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=datetime.date.today)
     grant = models.ForeignKey(Grant, null=False, blank=False)
     balance = models.DecimalField(verbose_name="grant balance", max_digits=12, decimal_places=2)
     actual = models.DecimalField(verbose_name="YTD actual", max_digits=12, decimal_places=2)
@@ -608,7 +608,6 @@ class GrantBalance(models.Model):
 
 
 class FacultyMemberInfo(models.Model):
-
     person = models.ForeignKey(Person, unique=True, related_name='+')
     title = models.CharField(max_length=50)
     birthday = models.DateField()

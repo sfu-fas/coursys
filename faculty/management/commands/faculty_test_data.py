@@ -1,7 +1,9 @@
 from django.core.management.base import BaseCommand
 from coredata.models import Unit, Role, Person
 from courselib.testing import create_fake_semester
-from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, EVENT_TYPES
+from faculty.models import CareerEvent, EventConfig, EVENT_TYPES
+from faculty.models import MemoTemplate, Memo
+from faculty.models import TempGrant, Grant, GrantBalance
 from datetime import date
 
 def event_get_or_create(**kwargs):
@@ -233,12 +235,23 @@ class Command(BaseCommand):
         h.save(editor=editor)
 
 
+        # some grants
+        tg, _ = TempGrant.objects.get_or_create(label="Cukierman startup", initial=4000, project_code='13-12345',
+                                             creator=danyu)
+        tg.config['cur_month'] = 500
+        tg.config['ytd_actual'] = 1000
+        tg.config['cur_balance'] = 1500
+        tg.save()
 
-
-
-
-
-
-
-
+        g, _ = Grant.objects.get_or_create(title="Baker startup grant", label='Baker startup', unit=cmpt,
+                                        project_code='13-23456', start_date=date(2000,9,1), initial=4000, overhead=0)
+        g.owners.clear()
+        g.owners.add(greg)
+        g.save()
+        gb, _ = GrantBalance.objects.get_or_create(grant=g, date=date(2000,9,30), balance=4000, actual=0, month=0)
+        gb.save()
+        gb, _ = GrantBalance.objects.get_or_create(grant=g, date=date(2001,9,10), balance=3000, actual=1000, month=250)
+        gb.save()
+        gb, _ = GrantBalance.objects.get_or_create(grant=g, date=date(2002,9,10), balance=0, actual=3000, month=0)
+        gb.save()
 
