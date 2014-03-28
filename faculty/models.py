@@ -565,7 +565,7 @@ class Grant(models.Model):
     title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
     label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True, db_index=True)
-    owners = models.ManyToManyField(Person, blank=True, null=True, help_text='Who owns/controls this grant?')
+    owners = models.ManyToManyField(Person, through='GrantOwner', blank=True, null=True, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
@@ -594,6 +594,10 @@ class Grant(models.Model):
         )
         return gb
 
+class GrantOwner(models.Model):
+    grant = models.ForeignKey(Grant)
+    person = models.ForeignKey(Person)
+    config = JSONField(blank=True, null=True, default={})  # addition configuration
 
 class GrantBalance(models.Model):
     date = models.DateField(default=datetime.date.today)
@@ -601,7 +605,7 @@ class GrantBalance(models.Model):
     balance = models.DecimalField(verbose_name="grant balance", max_digits=12, decimal_places=2)
     actual = models.DecimalField(verbose_name="YTD actual", max_digits=12, decimal_places=2)
     month = models.DecimalField(verbose_name="current month", max_digits=12, decimal_places=2)
-    config = JSONField(blank=True, null=True, default={})  # addition configuration for within the memo
+    config = JSONField(blank=True, null=True, default={})  # addition configuration within the memo
 
     def __unicode__(self):
         return u"%s balance as of %s" % (self.grant, self.date)
@@ -614,6 +618,7 @@ class FacultyMemberInfo(models.Model):
     office_number = models.CharField('Office Number', max_length=20)
     phone_number = models.CharField('Local Phone Number', max_length=20)
     emergency_contact = models.TextField('Emergency Contact Information', blank=True)
+    config = JSONField(blank=True, null=True, default={})  # addition configuration
 
     last_updated = models.DateTimeField(auto_now=True)
 
