@@ -273,7 +273,7 @@ def fallout_report(request):
         salary = FacultySummary(p).base_salary(end_date)
         units = ', '.join(r.unit.label for r in roles)
         # TODO: below line should only select pay from units the user can see
-        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
             if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
                 days = event.get_duration_within_range(start_date, end_date)
@@ -305,7 +305,7 @@ def _fallout_report_data(request, start_date, end_date):
         salary = FacultySummary(p).base_salary(end_date)
         units = ', '.join(r.unit.label for r in roles)
         # TODO: below line should only select pay from units the user can see
-        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
             if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
                 days = event.get_duration_within_range(start_date, end_date)

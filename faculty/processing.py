@@ -12,11 +12,11 @@ class FacultySummary(object):
         self.person = person
    
     def salary_events(self, date):
-        career_events = CareerEvent.objects.not_deleted().effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        career_events = CareerEvent.objects.not_deleted().effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         return career_events
 
     def teaching_events(self, semester):
-        career_events = CareerEvent.objects.not_deleted().overlaps_semester(semester).filter(person=self.person).filter(flags=CareerEvent.flags.affects_teaching).exclude(status='D')
+        career_events = CareerEvent.objects.not_deleted().overlaps_semester(semester).filter(person=self.person).filter(flags=CareerEvent.flags.affects_teaching).filter(status='A')
         return career_events
        
     def salary(self, date):
