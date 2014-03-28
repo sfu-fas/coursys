@@ -784,9 +784,10 @@ class Member(models.Model):
         #     default: self.offering (if accessed by m.get_origsection())
         # 'bu': The number of BUs this TA has
         # 'teaching_credit': The number of teaching credits instructor receives for this offering. Fractions stored as strings: '1/3'
+        # 'teaching_credit_reason': reason for the teaching credit override
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
 
-    defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
+    defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0}
     raw_bu, set_bu = getter_setter('bu')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
