@@ -1089,14 +1089,13 @@ def timeline_json(request, userid):
 
 @requires_role('ADMN')
 def faculty_member_info(request, userid):
-    viewer = get_object_or_404(Person, userid=request.user.username)
-    person = get_object_or_404(Person, userid=userid)
+    #viewer = get_object_or_404(Person, userid=request.user.username)
+    person, _ = _get_faculty_or_404(request.units, userid)
     info = FacultyMemberInfo.objects.filter(person=person).first()
 
-    # TODO: Figure who can modify contact information and also who can view
-    #       emergency contact info.
-    can_modify = viewer == person
-    can_view_emergency = viewer == person
+    # TODO: are there people who should be able to only view?
+    can_modify = True
+    can_view_emergency = True
 
     context = {
         'person': person,
@@ -1109,13 +1108,12 @@ def faculty_member_info(request, userid):
 
 @requires_role('ADMN')
 def edit_faculty_member_info(request, userid):
-    viewer = get_object_or_404(Person, userid=request.user.username)
-    person = get_object_or_404(Person, userid=userid)
+    #viewer = get_object_or_404(Person, userid=request.user.username)
+    person, _ = _get_faculty_or_404(request.units, userid)
 
-    # TODO: Figure out who has permission to modify contact information besides
-    #       the faculty member.
-    if viewer != person:
-        raise HttpResponseForbidden(request)
+    # TODO: are there people who should be able to only view?
+    #if viewer != person:
+    #    return HttpResponseForbidden(request)
 
     info = (FacultyMemberInfo.objects.filter(person=person).first()
             or FacultyMemberInfo(person=person))
