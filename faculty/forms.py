@@ -1,6 +1,7 @@
 from django import forms
 from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
+from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person
 
@@ -12,6 +13,7 @@ from models import EVENT_TYPE_CHOICES
 from faculty.event_types.fields import SemesterField, SemesterCodeField
 from models import Grant
 from models import GrantBalance
+from faculty.models import FacultyMemberInfo
 
 
 
@@ -197,3 +199,18 @@ class CourseAccreditationForm(forms.Form):
         if 'end_semester' not in self.data:
             self.data['end_semester'] = Semester.current().name
         self.fields['flag'].choices = flags
+
+
+class FacultyMemberInfoForm(forms.ModelForm):
+
+    class Meta:
+        model = FacultyMemberInfo
+        exclude = ('person',)
+
+        help_texts = {
+            'title': _('Mr., Mrs., Dr., etc'),
+            'emergency_contact': _('Name, phone number, etc'),
+        }
+        widgets = {
+            'birthday': forms.DateInput(attrs={'class': 'date-input'}),
+        }

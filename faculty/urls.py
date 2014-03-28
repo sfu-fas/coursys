@@ -45,6 +45,10 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/timeline$', 'faculty.views.timeline'),
     url(r'^' + USERID_OR_EMPLID + '/timeline.json$', 'faculty.views.timeline_json'),
 
+    # Extra Faculty Member Info
+    url(r'^' + USERID_OR_EMPLID + '/contact-info$', 'faculty.views.faculty_member_info'),
+    url(r'^' + USERID_OR_EMPLID + '/contact-info/edit$', 'faculty.views.edit_faculty_member_info'),
+
     url(r'^' + EVENT_PREFIX + '/$', 'faculty.views.view_event', name="faculty_event_view"),
     url(r'^' + EVENT_PREFIX + '/change$', 'faculty.views.change_event', name="faculty_change_event"),
     url(r'^' + EVENT_PREFIX + '/change-status$', 'faculty.views.change_event_status', name="faculty_change_event_status"),
