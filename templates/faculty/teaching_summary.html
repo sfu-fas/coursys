@@ -23,6 +23,20 @@ $(document).ready(function() {
 } );
 </script>
 {% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?{{ request.GET.urlencode }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
