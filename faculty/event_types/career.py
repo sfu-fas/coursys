@@ -128,10 +128,6 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
             'biweekly': total/365*14,
         }
 
-    def to_timeline(self):
-        # exclude base salary events from timeline
-        return None
-
     def get_rank_display(self):
         return RANK_CHOICES.get(self.get_config('rank'), 'Unknown Rank')
 

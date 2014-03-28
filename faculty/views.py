@@ -40,6 +40,7 @@ from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.base import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
+from faculty.event_types.career import SalaryBaseEventHandler
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -922,22 +923,31 @@ def timeline_json(request, userid):
     semesters = set()
 
     # Populate events
-    events = CareerEvent.objects.not_deleted().only_subunits(request.units).filter(person=person)
+    events = (CareerEvent.objects.not_deleted()
+                         .only_subunits(request.units)
+                         .filter(person=person, status='A')
+                         .exclude(event_type=SalaryBaseEventHandler.EVENT_TYPE))
     for event in events:
         handler = event.get_handler()
 
         if handler.can_view(viewer):
-            blurb = handler.to_timeline()
+            blurb = {
+                'startDate': '{:%Y,%m,%d}'.format(handler.event.start_date),
+                'headline': handler.short_summary(),
+                'text': u'<a href="{}">permalink</a>'.format(handler.event.get_absolute_url()),
+            }
 
-            if blurb:
-                payload['timeline']['date'].append(blurb)
+            if handler.event.end_date is not None:
+                payload['endDate'] = '{:%Y,%m,%d}'.format(handler.event.end_date)
 
-                # Show all semesters that the event covers, if possible.
-                if event.end_date is not None:
-                    for semester in ReportingSemester.range(event.start_date, event.end_date):
-                        semesters.add(semester)
-                else:
-                    semesters.add(ReportingSemester(event.start_date))
+            payload['timeline']['date'].append(blurb)
+
+            # Show all semesters that the event covers, if possible.
+            if event.end_date is not None:
+                for semester in ReportingSemester.range(event.start_date, event.end_date):
+                    semesters.add(semester)
+            else:
+                semesters.add(ReportingSemester(event.start_date))
 
     # Populate semesters
     for semester in semesters:
