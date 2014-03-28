@@ -48,11 +48,13 @@ $(document).ready(function() {
       <i class="fa fa-li fa-user"></i> Contact Info
     </a>
   </li>
-  <li class="newsec">
-    <a href="{% url 'faculty.views.timeline' person.userid_or_emplid %}">
-      <i class="fa fa-li fa-random"></i> Career Timeline
-    </a>
-  </li>
+    {% if career_events %}
+    <li class="newsec">
+      <a href="{% url 'faculty.views.timeline' person.userid_or_emplid %}">
+        <i class="fa fa-li fa-random"></i> Career Timeline
+      </a>
+    </li>
+    {% endif %}
   </ul>
 </div>
 {% endblock %}
