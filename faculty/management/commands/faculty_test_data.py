@@ -211,6 +211,7 @@ class Command(BaseCommand):
                     'base_salary': 100000,
                     'add_salary': 17,
                     'add_pay': '6.50',
+                    'rank': 'FULL',
                     }
         h.save(editor=editor)
 

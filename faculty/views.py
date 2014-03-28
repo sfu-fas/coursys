@@ -97,7 +97,7 @@ def index(request):
     sub_units = Unit.sub_units(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit')
     fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
-    fac_roles = [(p, [r.unit for r in roles]) for p, roles in fac_roles]
+    fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles]
 
     events = CareerEvent.objects.filter(status='NA').only_subunits(request.units).count()
     filterform = UnitFilterForm(sub_units)

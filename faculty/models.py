@@ -247,6 +247,18 @@ class CareerEvent(models.Model):
     def slug_string(self):
         return u'{} {}'.format(self.start_date.year, self.get_event_type_display())
 
+    @classmethod
+    def current_ranks(cls, person):
+        """
+        Return a string representing the current rank(s) for this person
+        """
+        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY').effective_now()
+        if not salaries:
+            return 'unknown'
+
+        ranks = set(s.get_handler().get_rank_display() for s in salaries)
+        return ', '.join(ranks)
+
     def get_event_type_display(self):
         "Override to display nicely"
         return EVENT_TYPES[self.event_type].NAME
