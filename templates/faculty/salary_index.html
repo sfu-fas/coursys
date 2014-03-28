@@ -28,10 +28,14 @@ $(document).ready(function() {
     $('.rowdata').each(function() {
         sum += Number($(this).text());
     });
-    $('#salary_sum').text("Total: $" + sum)
-    
+    $('#salary_sum').text("Total: $" + sum) 
   });
   event_filter_update('faculty_salary_table');
+  var sum = 0;
+  $('.rowdata').each(function() {
+      sum += Number($(this).text());
+  });
+  $('#salary_sum').text("Total: $" + sum)
 } );
 </script>
 {% endblock %}
@@ -60,7 +64,7 @@ $(document).ready(function() {
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
-<div id="salary_sum">Total: ${{ pay_tot }}</div>
+<div id="salary_sum"></div>
 
 {% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">

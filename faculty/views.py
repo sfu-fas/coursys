@@ -246,7 +246,6 @@ def fallout_report(request):
     Fallout Report 
     """
     form = DateRangeForm()
-    filterform = UnitFilterForm(Unit.sub_units(request.units))
 
     if request.GET:
         form = DateRangeForm(request.GET)
@@ -291,7 +290,7 @@ def fallout_report(request):
         'form': form,
         'table': table,
         'tot_fallout': tot_fallout,
-        'filterform': filterform,
+        'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
     return render(request, 'faculty/reports/fallout_report.html', context)
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}Fallout Report{% endblock %}
 {% block h1 %}Fallout Report{% endblock %}
@@ -12,6 +12,7 @@
       margin-top: -53px;
     }
 </style>
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#fallout_table').dataTable( {
@@ -27,15 +28,19 @@ $(document).ready(function() {
 
   $('#filter-form').change( function() {
     event_filter_update('fallout_table');
-        var sum = 0;
+    var sum = 0;
     $('.rowdata').each(function() {
         sum += Number($(this).text());
     });
     $('#fallout_sum').text("Total: $" + sum)
   });
   event_filter_update('fallout_table');
-
-});
+  var sum = 0;
+  $('.rowdata').each(function() {
+      sum += Number($(this).text());
+  });
+  $('#fallout_sum').text("Total: $" + sum)
+} );
 </script>
 {% endblock %}
 
@@ -63,7 +68,7 @@ $(document).ready(function() {
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
-  <div>Total: ${{ tot_fallout }}</div>
+  <div id='fallout_sum'></div>
 
 {% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">
