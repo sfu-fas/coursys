@@ -10,12 +10,11 @@ Vagrant::Config.run do |config|
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
-  config.vm.box = "precise32"
-  config.vm.box_url = "http://files.vagrantup.com/precise32.box"
-
-  # uncomment the following lines to use DB2
-  # config.vm.box = "precise64"
-  # config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+  config.vm.box = "trusty32"
+  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-i386-vagrant-disk1.box "
+  # uncomment if you really want 64-bit
+  #config.vm.box = "trusty64"
+  #config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
 
   # Boot with a GUI so you can see the screen. (Default is headless)
   # config.vm.boot_mode = :gui
