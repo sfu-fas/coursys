@@ -30,6 +30,12 @@ execute "install_pip_requirements" do
     command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
 end
 
+# configure local settings
+cookbook_file "localsettings.py" do
+    path "/home/vagrant/courses/courses/localsettings.py"
+    action :create
+end
+
 # configure secrets
 cookbook_file "secrets.py" do
     path "/home/vagrant/courses/courses/secrets.py"

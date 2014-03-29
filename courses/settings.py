@@ -3,6 +3,12 @@ import socket, sys, os
 hostname = socket.gethostname()
 
 try:
+    from . import localsettings
+except ImportError:
+    # not there? Assume the defaults are okay
+    localsettings = None
+
+try:
     from . import secrets
 except ImportError:
     # not there? Hope we're not in production and continue
@@ -10,8 +16,8 @@ except ImportError:
 
 # set overall deployment personality
 
-if getattr(secrets, 'DEPLOY_MODE', None):
-    DEPLOY_MODE = secrets.DEPLOY_MODE
+if getattr(localsettings, 'DEPLOY_MODE', None):
+    DEPLOY_MODE = localsettings.DEPLOY_MODE
 elif hostname == 'courses':
     # full production mode
     DEPLOY_MODE = 'production'
@@ -103,7 +109,7 @@ USE_L10N = False
 USE_TZ = False
 
 # security-related settings
-ALLOWED_HOSTS = getattr(secrets, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca'])
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca'])
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'
@@ -155,7 +161,7 @@ STATICFILES_FINDERS = (
     #'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 )
-COMPRESS_ENABLED = getattr(secrets, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
+COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
@@ -197,7 +203,7 @@ else:
             #'URL': 'http://localhost:8983/solr'
         },
     }
-    if getattr(secrets, 'FORCE_MEMCACHED', False):
+    if getattr(localsettings, 'FORCE_MEMCACHED', False):
         CACHES = { 'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
             'LOCATION': '127.0.0.1:11211',
@@ -217,7 +223,7 @@ if DEPLOY_MODE == 'proddev':
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(secrets, 'USE_CELERY', DEPLOY_MODE != 'devel')
+USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
@@ -269,7 +275,7 @@ GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
-DISABLE_REPORTING_DB = getattr(secrets, 'DISABLE_REPORTING_DB', False)
+DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
 
 # Feature flags to temporarily limit server load, aka "feature flags"
 # Possible values for the set documented in server-setup/index.html#flags
@@ -287,7 +293,7 @@ if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
     MIDDLEWARE_CLASSES = tuple(MIDDLEWARE_CLASSES)
     LOGIN_URL = "/fake_login"
     LOGOUT_URL = "/fake_logout"
-    DISABLE_REPORTING_DB = getattr(secrets, 'DISABLE_REPORTING_DB', True)
+    DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)
 
 REPORT_CACHE_LOCATION = "/tmp/report_cache"
 
