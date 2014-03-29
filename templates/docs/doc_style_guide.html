@@ -9,10 +9,8 @@
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPython.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPlain.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
-
-<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPhp.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushSass.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
 <script type="text/javascript">
     SyntaxHighlighter.defaults['light'] = true;
     SyntaxHighlighter.all()
@@ -30,11 +28,12 @@
 
 {% block content %}
 
-<p>This style guide is a reference for common styles and standards unique to the Coursys website. Please refer to the SFU web and graphics standards for detailed information on the SFU theme including: colours, typography, grid layouts and any additional styling not included in this style guide.</p>
+<p>This style guide is a reference for common styles and standards unique to the Coursys website. 
+</br>Please refer to the <a href="http://www.sfu.ca/clf/downloads.html">SFU Common Look and Feel</a> section for detailed information on the SFU theme including: colours, typography, grid layouts and any additional styling not included in this style guide.</p>
 
-<h2 id="overview">Overview</h2>
+<h2 id="overview">Styling Overview</h2>
 <h3 id="templates">Templates</h3>
-<p>All pages should extend from either "base.html" or "base-wide.html" found in the "Code/courses/templates" directory. "base.html" has a left-hand column for the actions menu while "base-wide.html" allows the body to span the full width of the page content division as can be seen in the figures below. The wide format is typically used for pages with large tables. For all other pages, "base.html" is the recommended default template to extend from.</p> 
+<p>All pages should extend from either "base.html" or "base-wide.html" found in the "courses/templates" directory. "base.html" has a left-hand column for the actions menu while "base-wide.html" allows the body to span the full width of the page content division as can be seen in the figures below. The wide format is used for pages with large tables. For all other pages, "base.html" is the recommended default template to extend from.</p> 
 <figure class="double-image">
 	<img src="/media/images/styleguide/base-sample.jpg" id="img_base" alt="Page extending from base.html">
 	<img src="/media/images/styleguide/base-wide-sample.jpg" id="img_base-wide" alt="Page extending from base-wide.html"> 
@@ -43,26 +42,26 @@
 
 <p>There are many built-in Django template tags used but here is a sample setup for a basic page:</p>
 <pre class="brush: django">
-	{ % extends "base.html" % }
+	{% templatetag openblock %} extends "base.html" {% templatetag closeblock %}
 
-	{ % block title % } Title { % endblock % }
-	{ % block h1 % } Header { % endblock % }
+	{% templatetag openblock %} block title {% templatetag closeblock %} Title {% templatetag openblock %} endblock {% templatetag closeblock %}
+	{% templatetag openblock %} block h1 {% templatetag closeblock %} Title {% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block headextra % }
+	{% templatetag openblock %} block headextra {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block subbreadcrumbs % }
+	{% templatetag openblock %} block subbreadcrumbs {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block actions % }
+	{% templatetag openblock %} block actions {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 
-	{ % block content % }
+	{% templatetag openblock %} block content {% templatetag closeblock %}
 		...
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 </pre>
 
 <h3 id="Naviation">Navigation</h3>
@@ -71,21 +70,29 @@
 	<figcaption>Highlights: Breadcrumbs (pink), Coursys header (green), Course dropdown menu (purple), Actions menu (blue)</figcaption>
 </figure>
 
-<p>The main source of navigation within Coursys is breadcrumbs. All pages should have breadcrumbs for navigation near the top of the page. The base templates start off the breadcrumbs with the Coursys home page. Subsequent links are inserted within the subbreadcrumb block in individual templates. For example,</p>
-<pre class="brush: html">
-	{ % block subbreadcrumbs % }
-		<li><a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>Style Guide</li>
-	{ % endblock % }
-</pre>
-
-<p>Breadcrumb links are usually determined using a django url tag like the following:</p>
+<p>The main source of navigation within Coursys is breadcrumbs. All pages should have breadcrumbs for navigation near the top of the page. The base templates start off the breadcrumbs with the Coursys home page. Subsequent links are inserted within the subbreadcrumb block in individual templates. Internal links are always generated using url tags. For example,</p>
 <pre class="brush: django">
-	{ % url "dashboard.views.list_docs" % }
+	{% templatetag openblock %} block subbreadcrumbs {% templatetag closeblock %}
+		<li><a href="{% templatetag openblock %} url &quot;dashboard.views.list_docs&quot; {% templatetag closeblock %}">Docs</a></li><li>Style Guide</li>
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
 </pre>
+<p>The second most important source of navigation is the actions menu. The actions menu varies as you navigate from page to page. Only the main dashboards have Font Awesome icons to emphasize the most important actions.
+</p>
+<pre class="brush:django">
+	{% templatetag openblock %} block actions {% templatetag closeblock %}
+	<div id="actions">
+	    <h2>Actions</h2>
+	    <ul class="fa-ul">
+	    <li><a href="{% url "dashboard.views.news_list" %}"><i class="fa fa-li fa-envelope"></i> All News Items</a></li>
+	    <li><a href="{% url "dashboard.views.config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
+	    <li><a href="{% url "dashboard.views.calendar" %}"><i class="fa fa-li fa-calendar"></i> View Calendar</a></li>
+	    <li><a href="{% url "coredata.views.browse_courses" %}"><i class="fa fa-li fa-eye"></i> Browse Course Offerings</a></li>
+	</div>
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
+</pre>
+<p>Additional sources of navigation can be found within the header. Clicking on "Coursys" will return the user to the Coursys home page. Hovering over "Courses" will reveal a dropdown of related courses in recent semesters. Clicking on a course from this menu will direct the user to the course page.</p>
 
-<p>Secondary sources of navigation can be found within the header. Clicking on "Coursys" will return the user to the Coursys home page. Hovering over "Courses" will reveal a dropdown of related courses in recent semesters. Clicking on a course from this menu will direct the user to the course page.</p>
-
-<h2 id="forms">Forms</h2>
+<h3 id="forms">Forms</h3>
 <p>All forms are outputted using <code>as_dl</code> found in "courses/dashboard/templatetags/form_display.py". There are a few variations which include the following:</p>
 <table>
 	<tr>
@@ -100,14 +107,10 @@
 		<td><code>as_dl_includefields</code></td>
 		<td>Like <code>as_dl</code>, but allows including some fields with filter argument
 		    <code>Hide helptext</code></td>
-	</tr>
-	<tr>
-		<td><code>as_dl_onlineforms</code></td>
-		<td>Returns <code>as_dl</code></td>
-	</tr>
+	</tr>	
 	<tr>
 		<td><code>as_dl_noreq</code></td>
-		<td>Like <code>as_dl</code>, but no message required</td>
+		<td>Like <code>as_dl</code>, but no footer message is required</td>
 	</tr>
 	<tr>
 		<td><code>as_dl_inline</code></td>
@@ -116,141 +119,60 @@
 </table>
 
 <p>A Django form object only outputs its own fields so additional html tags are needed in the template. Here is an example:</p>
-<pre class="brush: html">
-	<form action="/2014sp-cmpt-165-c1/new_message" method="post" enctype="multipart/form-data">
-		{ % csrf_token % }
+<pre class="brush: django">
+	<form action="{% templatetag openblock %} url &quot;grades.views.new_message&quot; course_slug=course.slug {% templatetag closeblock %}" method="post" enctype="multipart/form-data">
+		{% templatetag openblock %} csrf_token {% templatetag closeblock %}
 		<fieldset>
-			{ { form|as_dl } }
+			{% templatetag openvariable %} form|as_dl {% templatetag closevariable %} 
 		</fieldset>
 		<p><input class="submit" type="submit" value="Send" /></p>
 	</form>
 </pre>
 
-<p>The form action is generated in the same manner as breadcrumb links. For this particular example, an additional slug is needed (see example below). Slugs provide a way to generate a valid url. It replaces all spaces with hyphens and capital letters with small letters given a title or other piece of data.</p>
+<p>The form action is generated in the same manner as breadcrumb links. For this particular example, an additional slug is needed. Slugs provide a way to generate a valid url. It replaces all spaces with hyphens and capital letters with small letters given a title or other piece of data.</p>
+
+<p>If the form includes uploaded files, include <code>enctype="multipart/form-data"</code> in the form element. For security, <code>{% templatetag openblock %} csrf_token {% templatetag closeblock %}</code> sends a random key in both cookie and form data to prevent third party websites from getting the site's cookies. Please include the csrf token for protection. 
+
+<h3 id="tables">Tables</h3>
+<p>Tables can be classified into two categories: data tables and information tables. Data tables are larger and have key values listed in the first row. These are used for displaying grades, class lists and course activities. Data tables also have features such as sorting, filtering and searching. Information tables are smaller and have their key values listed in the first column. Each course page will have an information table showing course information. </p>
+
+<p> To enable different features, javascript needs to be added to the <code>headextra</code> block. It is preferable to keep all javascript in a separate file especially if the script can be reused. Below is an example of a script for datatables:</p>
+<pre class="brush: django">
+{% templatetag openblock %} block headextra {% templatetag closeblock %} 
+<script type="text/javascript">
+	$(document).ready(function() {
+	  $('#members').dataTable( {
+	    'bPaginate': false,
+	    'bInfo': false,
+	    'bLengthChange': false,
+	    'bFilter ': false,
+	    "bJQueryUI": true,
+	  } );
+	} );
+</script>
+{% templatetag openblock %}  endblock {% templatetag closeblock %} 
+</pre>
+<p>For a list of different features and initialisation options, please see: <a href="http://datatables.net/ref">http://datatables.net/ref</a></br>For additional information on the plug-in used for datatables, please see: <a href="https://datatables.net/">https://datatables.net/</a></p>
+
+<h3 id="buttons">Buttons & Icons</h3>
+<p>Most icons are vector icons used to emphasize important action items on pages like the main dashboard. These vector icons are obtained from Font Awesome, a free collection of scalable vector icons that can be customized with CSS. The example below shows how to incorporate Font Awesome icons as individual icons or to replace default bullets in unordered lists:</p>
 <pre class="brush: html">
-	{ % url "grades.views.new_message" course_slug=course.slug % }
+	<i class="fa fa-calendar"></i>
+	<i class="fa fa-li fa-calendar"></i>
+</pre>
+<p>The above example outputs an icon that looks like a calendar. To change the icon, simply modify the class and replace <code>fa-calendar</code> with any other Font Awesome icon reference.</p>
+<p>For additional icon references, please see: <a href="http://fortawesome.github.io/Font-Awesome/icons/"/>http://fortawesome.github.io/Font-Awesome/icons/</a></br>For additional examples on how to use Font Awesome, please see: </br><a href="hhttp://fortawesome.github.io/Font-Awesome/examples/"/>http://fortawesome.github.io/Font-Awesome/examples/</a></br></p>
+
+<p>Aside from the Font Awesome vector icons, there are also submit buttons which are automatically styled through <code>main.css</code>. These buttons are used to submit forms or release grades from course pages. Submit buttons should be wrapped in a paragraph tag within a form and have an explicit verb to convey the corresponding action like "Update", "Create", "Search" or "Disable". Here is an example:</p>
+<pre class="brush: django">
+	<form action="{% templatetag openblock %} url &quot;advisornotes.views.edit_artifact&quot; artifact_slug=artifact.slug {% templatetag closeblock %}" method="post">
+        {% templatetag openblock %} csrf_token {% templatetag closeblock %}
+            {% templatetag openvariable %} form|as_dl {% templatetag closevariable %}
+            <p><input type="submit" class="submit" value="Update" /></p>
+    </form>
 </pre>
 
-<p>If the form includes uploaded files, include <code>enctype="multipart/form-data"</code> in the form element. <code>{ % csrf_token % }</code> sends a random key in both cookie and form data to prevent third party websites from getting the site's cookies. Please include the csrf token for protection. The result of <code>{ { form|as_dl } }</code> will be a description list like the following:</p>
-<pre class="brush: html">
-	<dl class="dlform">
-		<dt><label for="id_title">Title:&nbsp;<i class="reqicon fa fa-star-o"></i></label></dt>
-		<dd>
-			<div class="field"><input id="id_title" maxlength="100" name="title" type="text"></div>
-			<div class="helptext">Story title (plain text)</div>
-		</dd>
-		<dt><label for="id_content">Content:&nbsp;<i class="reqicon fa fa-star-o"></i></label></dt>
-		<dd>
-			<div class="field"><textarea cols="40" id="id_content" name="content" rows="10"></textarea></div>
-			<div class="helptext">
-				Main story content 
-				(<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a>)
-			</div>
-		</dd>
-		<dt><label for="id_url">URL:</label></dt>
-		<dd>
-			<div class="field"><input id="id_url" maxlength="200" name="url" type="url"></div>
-			<div class="helptext">absolute URL for the item: starts with "http://" or "/"</div>
-		</dd>
-	</dl>
-</pre>
-
-<h2 id="containeres">Containers</h2>
-<p>Containers are divisions of the page content for specific purposes. They can be identified as a <code>div</code> with one of the following classes:</p>
-<table>
-	<tr>
-		<td>form_container</td>
-		<td><code>div</code> containing a form</td>
-	</tr>
-	<tr>
-		<td>table_container</td>
-		<td><code>div</code> containing a table</td>
-	</tr>
-	<tr>
-		<td>datatable_container</td>
-		<td><code>div</code> containing a larger data table</td>
-	</tr>
-	<tr>
-		<td>semesters-container</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>submission_error_container</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>submission_history_view_container</td>
-		<td></td>
-	</tr>
-</table>
-
-<h2 id="tables">Tables</h2>
-<p>All course pages have a table showing course details.</p>
-<pre class="brush: html">
-<div class="table_container">
-    <div class="table"><table class="info">
-        <tbody>
-            <tr>
-                <th scope="row">Course Number</th>
-                <td>CMPT 165 C100, Spring 2014 (1141)</td>
-            </tr>
-            <tr>
-                <th scope="row">Title</th>
-                <td>Intro Internet  World Wide Web</td>
-            </tr>
-            <tr>
-                <th scope="row">Instructor(s)</th>
-                <td>
-                    Gregory Baker &lt;<a href="mailto:ggbaker@sfu.ca">ggbaker@sfu.ca</a>&gt;
-                    </td>
-            </tr>
-            <tr>
-                <th scope="row">TA(s)</th>
-                <td>
-                
-                <a href="mailto:cmpt-165-contact@sfu.ca">cmpt-165-contact@sfu.ca</a>
-                (Fqpvmoea (Fqpv) Grad &lt;<a href="mailto:0hhhgrad@sfu.ca">0hhhgrad@sfu.ca</a>&gt;, Douglas (Doug) Gradstudent &lt;<a href="mailto:0grad1@sfu.ca">0grad1@sfu.ca</a>&gt;)
-                
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">Number of Students</th>
-                <td>40</td>
-            </tr>
-            <tr>
-                <th scope="row">Course home page</th>
-                <td><a href="http://www.cs.sfu.ca/CC/165/common/" rel="nofollow">http://www.cs.sfu.ca/CC/165/common/</a></td>
-            </tr>
-        </tbody>
-    </table></div>
-</div>
-</pre>
-<p>Tables may also be used to display large amounts of data such as a list of students.</p>
-<pre class="brush:html">
-	<div class="datatable_container">
-    <table class="display" id="students">
-        <thead>
-            <tr>
-                <th scope="col">Column 1</th>
-                <th scope="col">Column 2</th>
-				<th scope="col">Column 3</th>
-            </tr>
-		</thead>
-        <tbody>
-        <tr>
-            <td>(1,1)</td>
-            <td>(1,2)</td>
-            <td>(1,3)</td>
-        </tr>
-        </tbody>
-    </table>
-	</div>
-</pre>
-
-<h2 id="buttons">Buttons</h2>
-<p></p>
-
-<h2 id="code">Code</h2>
+<h3 id="code">Syntax Highlighting</h3>
 <p>When adding to this style guide, use syntaxhighlighter to highlight any examples of code. Syntaxhighlighter has a variety of brushes for different types of syntax. To use syntaxhighlighter, insert your code within preformatted tags and set the class to a brush matching the syntax of your code.</p>
 <pre class="brush: html">
 	<pre class="brush: python">
@@ -260,16 +182,175 @@
 </pre>
 <p>Also, don't forget to include the following stylesheets and corresponding brush scripts in the head:</p>
 <pre class="brush: html">
-	{ % block headextra % }
+	{% templatetag openblock %} block headextra {% templatetag closeblock %}
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
 		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPython.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushPlain.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushDjango.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushXml.js"></script>
+		<script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shBrushJScript.js"></script>
 		<script type="text/javascript">
 		    SyntaxHighlighter.defaults['light'] = true;
 		    SyntaxHighlighter.all()
 		</script>
 		<link href="{{STATIC_URL}}syntaxhighlighter/styles/shCoreSFU.css" rel="stylesheet" type="text/css" />
 		<link href="{{STATIC_URL}}syntaxhighlighter/styles/shThemeSFU.css" rel="stylesheet" type="text/css" />
-	{ % endblock % }
+	{% templatetag openblock %} endblock {% templatetag closeblock %}
+</pre>
+<p>Note: You may need to include additional brushes for different types of syntax.<p>
+
+<h2 id="codepatterns">Code Patterns</h2>
+<h3 id="statusfields">Status Fields</h3>
+<p>Often, a model can be in one of several states.
+A form from our forms system, for example, can be Active, Inactive, Waiting, Stalled, Happy, Sad, Grumpy, or Sleepy.
+Generally, statuses start as a list of tuples, like so:</p>
+<pre class="brush: python">
+	NOTE_CATEGORIES = 	(
+	   ("EXC", "Exceptions"),
+	   ("WAI", "Waivers"),
+	   ("REQ", "Requirements"),
+	   ("TRA", "Transfers"),
+	   ("MIS", "Miscellaneous")
+   	)
+</pre>
+<p>This list can be fed directly to a CharField in a Model, like so:</p>
+<pre class="brush: python">
+	category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
+</pre>
+<p>When accessing the model's 'category' field, it will return the three-letter-code, but you can - for example, in a template - return the 'pretty wording' using the <code>.get_foo_display</code> property.</p>
+<pre class="brush: python">
+	note.get_category_display
 </pre>
 
+<h3 id="persons">Persons & Roles</h3>
+<p>For every person in the system, there is a <code>coredata.models</code> Person object.
+FK'd to Person is the Role object, an object describing "one job" that is held by that person. A person can have many roles - in the live system, for example, I am one of just about every damn thing, for the purposes of debugging and also occasional larceny.
+It is possible to restrict access to a view to for _just people who have a specific role_, using the <code>@requires_role decorator</code>.</p>
+<pre class="brush: python">
+	@requires_role("ADVS")
+   	def view_student_notes(...):
+       ...
+</pre>
+<p>Anybody who attempts to trigger this view without having a Role object of the type "ADVS" foreign-keyed to their account will just get an Access Denied message.</p>
+
+<h3 id="unit">Unit</h3>
+<p>Many things have a <code>coredata.models</code> "Unit" associated with them. This is a way of subdividing parts of the system by school in the university - Units include groups like "CMPT", "ENGI", "MSE", corresponding to different logical groups within SFU.
+Roles must be created with a Unit. You can't just be an "Advisor", you have to be an "Advisor - CMPT" or an "Advisor - MSE".
+The <code>requires_role</code> decorator automatically appends to the request object a <code>request.units</code> list of units that the current user has _this role_ for. So, for example, if I'm a CMPT Advisor and MSE Advisor, and I'm logged in:</p>
+<pre class="brush: python">
+ @requires_role("ADVS")
+   def view_student_notes(self, request):
+       print request.units
+</pre>
+<p>This <code>request.units</code> should contain the "CMPT" and "MSE" Unit model objects.
+The units where the use has the role should me used to show them only the data they should be allowed to view. Assuming each note has a unit field, which points to the unit that owns that note:</p>
+<pre class="brush: python">
+	@requires_role("ADVS")
+	def view_student_notes(self, request):
+       notes = Notes.objects.filter(unit__in=request.units)
+       ...
+</pre>
+
+<h3 id="autoslugs">Autoslugs & URLs</h3>
+<p>We want to keep our URLs as tidy and human-readable as possible.</p>
+<p>Bad:</p>
+<pre class="brush: html">
+	coursys.cs.sfu.ca/forms/923
+</pre>
+<p>Good:</p>
+<pre class="brush: html">
+	coursys.cs.sfu.ca/forms/course_appeal_form
+</pre>
+<p>The <a href="https://pypi.python.org/pypi/django-autoslug">django-autoslug package</a> has got us covered - when creating a model, we can create an 'autoslug' field, point it at another field in the model, and from that point on the model has a 'slug' field that we can search on. For more complicated slug logic, we can create an 'autoslug' function. See "courses/advisornotes/models.py" for an example:</p>
+<pre class="brush: python">
+	class Artifact(models.Model):
+       name = models.CharField(max_length=140, help_text='The name of the artifact', null=False, blank=False)
+       category = models.CharField(max_length=3, choices=ARTIFACT_CATEGORIES, null=False, blank=False)
+       
+       def autoslug(self):
+           return make_slug(self.unit.label + '-' + self.name)
+       
+       slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+       unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
+       config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+</pre>
+<p>Here we're automatically making a slug out of the Artifact's unit (CMPT) and name - "cmpt-thingamajigger".</p>
+
+<h3 id="config">Configuration Fields</h3>
+<p>When building models that may change in the future (pro-tip: this is most models) we often include an empty JSON field in the model.</p>
+<pre class="brush: python">
+	config = JSONField(null=False, blank=False, default={})
+</pre>
+<p>When working with the config field, it's considered polite to include any fields that we might be storing in the config field as a comment.</p>
+<pre class="brush: python">
+	# phonenumber - the user's phone number
+   	# words - words words words
+</pre>
+<p>The config field can be treated as an object:</p>
+<pre class="brush: python">
+	model_object.config["data"] = "harblar"
+</pre>
+<p>But before accessing config data, always protect against a KeyError or check if the data exists:</p>
+<pre class="brush: python">
+	if "data" in model_object.config:
+       data = model_object.config["data"]
+   	else:
+       data = "STEVE"
+</pre>
+
+<h3 id="hiddenfield">Hidden Fields</h3>
+<p>We try our very best to never delete anything. Instead, we set a 'hidden' flag, and filter out all 'hidden' variables every time that we pull data from the database.
+Here's an example from the Grad subsystem:</p>
+<pre class="brush: python">
+	hidden = models.BooleanField(null=False, default=False)
+	req = GradRequirement.objects.filter(program=grad.program, hidden=False)
+</pre>
+
+<h3 id="urls">URLs</h3>
+<p>Never hardcode URLs.</p>
+
+<h3 id="modelforms">ModelForms</h3>
+<p>They're magic.</p>
+
+<h3 id="modelforms">Fat Models, Thin Views, Skinny Templates</h3>
+<p>Logic belongs in models before views, and views before templates.</p>
+
+<h2 id="security">Security & Protection</h2>
+<p>When writing a new function, don't forget to specify what role is required. When writing queries, don't forget to specify <code>unit__in=request.units</code>.</p>
+<pre class="brush: python">
+	@requires_role('ADVS')
+	def note_search(request):
+	    
+	    ...
+	    
+	    notes = AdvisorNote.objects.filter(query, unit__in=request.units) 
+
+	    ...
+
+	    context = {'notes': notes}
+	    return render(request, 'advisornotes/note_search.html', context)
+</pre>
+
+<h2 id="legacy">Legacy Code</h2>
+The following sections describe legacy code that should be either removed or modified to follow the current iteration. 
+<h3 id="containers">Containers</h3>
+<p>Containers were used for styling purposes. However, with the new SFU styling standard, these are no longer needed and can be removed if found. They can be identified as a <code>div</code> with one of the following classes:</p>
+<ul>
+	<li><code>form_container</code></li>
+	<li><code>table_container</code></li>
+	<li><code>datatable_container</code></li>
+	<li><code>semesters-container</code></li>
+	<li><code>submission_error_container</code></li>
+	<li><code>submission_history_view_container</code></li>
+</ul>
+<h3 id="legacy_forms">Forms</h3>
+<p>All forms using <code>as_dl_onlineforms</code> should be changed to <code>as_dl</code> because they output the same thing. Any form not using some variation of as_dl as listed in the form section should be changed to as_dl.</p>
+<p>Legend tags should be removed from forms unless it actually adds something.</p>
+<p>Submit buttons must have a good verb representing the corresponding action - not just "submit". </br>Examples of better verbs: add , update, create, post, disable, search. </p>
+
+<h3 id="styles_scripts">Styles and Scripts</h3>
+<p>All styles and scripts should be in external files if possible.</p>
+
+<h3 id="legacy_tables">Tables</h3>
+<p>Tables with the <code>display</code> class can have the class removed.</p>
 {% endblock %}

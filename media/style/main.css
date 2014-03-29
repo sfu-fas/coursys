@@ -473,10 +473,10 @@ tr.even {
   background-color: #eee;
   color: #999;
 }
-table.display td.center {
+table td.center {
     text-align: center;
 }
-table.display td.num {
+table td.num {
     text-align: right;
 }
 table td.hidden, table tr.hidden {
@@ -492,10 +492,14 @@ table.info th {
   font-weight: bold;
   width: 12em;
   background-color: #eee;
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
+  padding: .15em .5em;
+  line-height: 1.25em;
 }
 table.info td {
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
+  padding: .15em .5em;
+  line-height: 1.25em;
 }
 table.info p {
   padding: 0;

@@ -41,6 +41,8 @@ TEMPLATE_LOADERS = (
 )
 TEMPLATE_DIRS = (
     os.path.join(PROJECT_DIR, 'templates'),
+    '/usr/local/lib/python2.7/dist-packages/compressor/templates/',
+    os.path.join(PROJECT_DIR, '..', 'lib','python2.7','site-packages','compressor','templates'),
 )
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
