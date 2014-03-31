@@ -234,6 +234,7 @@ if USE_CELERY:
         BROKER_URL = "django://"
         INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
 
+    CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
