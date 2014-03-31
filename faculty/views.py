@@ -99,12 +99,15 @@ def index(request):
     fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
     fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles]
 
-    events = CareerEvent.objects.filter(status='NA').only_subunits(request.units).count()
+    editor = get_object_or_404(Person, userid=request.user.username)
+    events = CareerEvent.objects.filter(status='NA').only_subunits(request.units)
+    events = [e.get_handler() for e in events]
+    events = [h for h in events if h.can_approve(editor)]
     filterform = UnitFilterForm(sub_units)
 
     context = {
         'fac_roles': fac_roles,
-        'queued_events': events,
+        'queued_events': len(events),
         'filterform': filterform,
     }
     return render(request, 'faculty/index.html', context)
@@ -1638,7 +1641,7 @@ def view_memo(request, userid, event_slug, memo_slug):
 @requires_role('ADMN')
 def grant_index(request):
     editor = get_object_or_404(Person, userid=request.user.username)
-    temp_grants = TempGrant.objects.all() #_get_tempgrants(request.units)
+    temp_grants = TempGrant.objects.filter(creator=editor)
     grants = _get_grants(request.units)
     import_form = GrantImportForm()
     context = {
@@ -1689,7 +1692,6 @@ def convert_grant(request, gid):
                 GrantOwner(grant=grant, person=p).save()
 
             try:
-                # TODO: anything else to add to grant balance? can YTD actual be calculated?
                 balance = Decimal(tmp.config["cur_balance"])
                 this_month = Decimal(tmp.config["cur_month"])
                 ytd_actual = Decimal(tmp.config["ytd_actual"])

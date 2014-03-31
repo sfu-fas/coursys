@@ -50,6 +50,7 @@ $(document).ready(function() {
 </form>
 
 <h2 id="new">Imported but not converted grants</h2>
+{% if temp_grants.exists %}
 <div class="datatable_container">
 <table id="temp_grants_table" class="display">
   <thead><tr><th scope="col">Grant</th><th scope="col">Project Code</th><th scope="col">Creator</th><th scope="col">Initial</th><th>Actions</th></tr></thead>
@@ -66,5 +67,8 @@ $(document).ready(function() {
   </tbody>
 </table>
 </div>
+{% else %}
+<p>No grants imported</p>
+{% endif %}
 
 {% endblock %}
