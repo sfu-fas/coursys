@@ -228,7 +228,8 @@ if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
         # use AMPQ in production, and move email sending to Celery
-        BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:supersecretpassword@localhost:5672/myvhost")
+        AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
+        BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
         CELERY_EMAIL_BACKEND = EMAIL_BACKEND
         EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
     else:

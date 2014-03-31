@@ -33,8 +33,10 @@ code.file {
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
 apt-get install nginx subversion mysql-client memcached stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev python-mysqldb git python-pip screen libmysqlclient-dev</pre></blockquote></dd>
+<!--
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
+-->
 <dt>Mail Server</dt>
   <dd>Configure Postfix with smarthost mailgate.sfu.ca.  Put a useful email address in <code class="file">/root/.forward</code></dd>
 
@@ -131,12 +133,14 @@ SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': '?????', 'passwd': '?????',
             'db': '?????', 'port': 4000}
 BROKER_URL = "amqp://coursys:?????@localhost:5672/myvhost"</pre></blockquote>
   </dd>
+<!--
 <dt>PIL Build</dt>
   <dd>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL with PIP:
   <blockquote><pre>sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib/
 sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/
 sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/</pre></blockquote>
   </dd>
+-->
 <dt>PIP Libraries</dt>
   <dd>To install the various libraries required by the system:
   <blockquote><pre>sudo pip install -r build_deps/working_deps.txt
