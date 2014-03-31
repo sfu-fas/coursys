@@ -896,6 +896,7 @@ def main():
     offerings = list(offerings)
     offerings.sort()
 
+    # note on doing this kind of thing in Celery when the time comes: http://stackoverflow.com/questions/13271056/how-to-chain-a-celery-task-that-returns-a-list-into-a-group
     print "importing course members"
     last = None
     for o in offerings:

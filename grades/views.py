@@ -1261,31 +1261,35 @@ def student_photo(request, emplid):
     from dashboard.tasks import fetch_photos_task
     from dashboard.photos import DUMMY_IMAGE_FILE, PHOTO_TIMEOUT
     PRINT_STUFF = False
-    task_id = cache.get('photo-task-'+unicode(emplid), None)
-    photo_data = cache.get('photo-image-'+unicode(emplid), None)
+    task_key = 'photo-task-'+unicode(emplid)
+    image_key = 'photo-image-'+unicode(emplid)
+    task_id = cache.get(task_key, None)
+    photo_data = cache.get(image_key, None)
     data = None
     status = 200
 
     if photo_data:
-        # found image in cache: was fetched previously or task already completed before we got here
+        # found image in cache: was fetched previously or task completed before we got here
         if PRINT_STUFF: print "cache data", emplid
         data = photo_data
+
     elif task_id and settings.USE_CELERY:
         # found a task fetching the photo: wait for it to complete and get the data
         task = fetch_photos_task.AsyncResult(task_id)
         try:
             if PRINT_STUFF: print "cache task", emplid
             task.get(timeout=PHOTO_TIMEOUT)
-            data = cache.get('photo-image-'+unicode(emplid), None)
+            data = cache.get(image_key, None)
         except celery.exceptions.TimeoutError:
             pass
+
     elif settings.USE_CELERY:
         # no cache warming: new task to get the photo
         if PRINT_STUFF: print "no cache", emplid
         task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
         try:
             task.get(timeout=PHOTO_TIMEOUT)
-            data = cache.get('photo-image-'+unicode(emplid), None)
+            data = cache.get(image_key, None)
         except celery.exceptions.TimeoutError:
             pass
 
@@ -1297,7 +1301,7 @@ def student_photo(request, emplid):
     # return the photo
     response = HttpResponse(data, content_type='image/jpeg')
     response.status_code = status
-    response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
+    response['Content-Disposition'] = 'inline; filename="%s.jpg"' % (emplid)
     # TODO: be a little less heavy-handed with the caching if it can be done safely
     response['Cache-Control'] = 'no-store'
     response['Pragma'] = 'no-cache'
