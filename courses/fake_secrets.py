@@ -12,4 +12,7 @@ SECRET_KEY=''
 
 # password for the SVN repository database
 SVN_DB_PASS=''
-#SIMS_USER='ggbaker'
+
+# reporting DB connection
+SIMS_USER='ggbaker'
+SIMS_PASSWORD=''

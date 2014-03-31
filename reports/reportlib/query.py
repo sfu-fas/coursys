@@ -17,7 +17,8 @@ class DefaultLog(object):
     def __init__(self):
         pass
     def log(self, x):
-        print x
+        pass
+        #print x
 
 class BaseQuery(object):
     """ The base class for queries. Performs a simple DB query. """

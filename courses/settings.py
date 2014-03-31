@@ -184,7 +184,6 @@ if DEPLOY_MODE == 'production':
         },
     }
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
-    DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
     SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
             'db': 'coursesvn', 'port': 4000}
@@ -209,7 +208,6 @@ else:
             'LOCATION': '127.0.0.1:11211',
         } }
     BASE_ABS_URL = "http://localhost:8000"
-    DB_PASS_FILE = "./dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     SVN_DB_CONNECT = None
 
@@ -263,6 +261,7 @@ DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
+SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', 'real password')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 DATE_FORMAT = "D N d Y"

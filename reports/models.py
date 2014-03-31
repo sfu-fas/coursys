@@ -347,7 +347,7 @@ class RunLineLogger(object):
     def __init__(self, run):
         self.run = run
     def log(self, x):
-        print x
+        #print x
         self.run.addLine(x)
 
 class RunLine(models.Model):
