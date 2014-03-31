@@ -25,17 +25,16 @@ $(document).ready(function(){
 {% block content %}
 
 
+<form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
+
 {% if source_pages %}
-<h2>These course pages will be copied:</h2>
-<ul>
+<p>These course pages will be copied:</p>
+<ul class="bulleted">
 {% for p in source_pages %}
 <li>{{p.label}}</li>
 {% endfor %}
 </ul>
 {% endif %}
-
-
-<form action="{% url "marking.views.copy_course_setup" course_slug=course.slug %}?copy_from={{source_course.slug}}" method="post">{% csrf_token %}
 
 
 {% if source_setup %}
