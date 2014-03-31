@@ -7,9 +7,9 @@ import hashlib, string, datetime
 import urllib, urllib2, json, base64
 
 ACCOUNT_NAME = 'cs'
-TOKEN_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/Token'
-PHOTO_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Values/%s?includePhoto=true'
-PASSWORD_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/ChangePassword'
+TOKEN_URL = 'https://photos-api-stg.its.sfu.ca/Account/Token'
+PHOTO_URL = 'https://photos-api-stg.its.sfu.ca/Values/%s?includePhoto=true'
+PASSWORD_URL = 'https://photos-api-stg.its.sfu.ca/Account/ChangePassword'
 DUMMY_IMAGE_FILE = os.path.join(settings.STATIC_ROOT, 'images', 'No_image.JPG') # from http://commons.wikimedia.org/wiki/File:No_image.JPG
 
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
@@ -102,10 +102,10 @@ def _get_photos(emplids):
     photo_response = json.load(photo_request)
     photos = {}
     for data in photo_response:
-        if 'SFUID' not in data or 'STUDENT_PICTURE' not in data or not data['STUDENT_PICTURE']:
+        if 'SfuId' not in data or 'PictureIdentification' not in data or not data['PictureIdentification']:
             continue
-        key = data['SFUID']
-        jpg = base64.b64decode(data['STUDENT_PICTURE'])
+        key = data['SfuId']
+        jpg = base64.b64decode(data['PictureIdentification'])
         photos[key] = jpg
     return photos
 

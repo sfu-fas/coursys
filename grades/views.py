@@ -1260,6 +1260,7 @@ def student_photo(request, emplid):
     # get the photo
     from dashboard.tasks import fetch_photos_task
     from dashboard.photos import DUMMY_IMAGE_FILE, PHOTO_TIMEOUT
+    PRINT_STUFF = False
     task_id = cache.get('photo-task-'+unicode(emplid), None)
     photo_data = cache.get('photo-image-'+unicode(emplid), None)
     data = None
@@ -1267,23 +1268,24 @@ def student_photo(request, emplid):
 
     if photo_data:
         # found image in cache: was fetched previously or task already completed before we got here
-        #print "cache data", emplid
+        if PRINT_STUFF: print "cache data", emplid
         data = photo_data
     elif task_id and settings.USE_CELERY:
         # found a task fetching the photo: wait for it to complete and get the data
         task = fetch_photos_task.AsyncResult(task_id)
         try:
-            #print "cache task", emplid
+            if PRINT_STUFF: print "cache task", emplid
             task.get(timeout=PHOTO_TIMEOUT)
             data = cache.get('photo-image-'+unicode(emplid), None)
         except celery.exceptions.TimeoutError:
             pass
     elif settings.USE_CELERY:
         # no cache warming: new task to get the photo
-        #print "no cache", emplid
-        task = fetch_photos_task.apply([emplid])
+        if PRINT_STUFF: print "no cache", emplid
+        task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
         try:
-            data = task.get(timeout=PHOTO_TIMEOUT)
+            task.get(timeout=PHOTO_TIMEOUT)
+            data = cache.get('photo-image-'+unicode(emplid), None)
         except celery.exceptions.TimeoutError:
             pass
 
