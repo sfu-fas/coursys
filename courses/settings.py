@@ -167,12 +167,8 @@ COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-if DEPLOY_MODE == 'production':
-    # things only relevant to the true production environment
-    MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SUBMISSION_PATH = '/data/submitted_files'
+# production-like vs development settings
+if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
@@ -183,16 +179,17 @@ if DEPLOY_MODE == 'production':
             'URL': 'http://localhost:8983/solr'
         },
     }
-    BASE_ABS_URL = "https://courses.cs.sfu.ca"
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
-            'db': 'coursesvn', 'port': 4000}
+    USE_CELERY = True
 
 else:
-    SUBMISSION_PATH = "submitted_files"
     CACHES = { 'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
+    if getattr(localsettings, 'FORCE_MEMCACHED', False):
+        CACHES = { 'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': '127.0.0.1:11211',
+        } }
     HAYSTACK_CONNECTIONS = {
         'default': {
             #'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
@@ -202,26 +199,31 @@ else:
             #'URL': 'http://localhost:8983/solr'
         },
     }
-    if getattr(localsettings, 'FORCE_MEMCACHED', False):
-        CACHES = { 'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': '127.0.0.1:11211',
-        } }
+    USE_CELERY = False
+
+
+# things only relevant to the true production environment
+if DEPLOY_MODE == 'production':
+    MIDDLEWARE_CLASSES = ('courselib.middleware.MonitoringMiddleware',) + MIDDLEWARE_CLASSES
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SUBMISSION_PATH = '/data/submitted_files'
+    BASE_ABS_URL = "https://courses.cs.sfu.ca"
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
+    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': getattr(secrets, 'SVN_DB_PASS'),
+            'db': 'coursesvn', 'port': 4000}
+
+else:
+    SUBMISSION_PATH = "submitted_files"
     BASE_ABS_URL = "http://localhost:8000"
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    SVN_DB_CONNECT = None
-
-
-if DEPLOY_MODE == 'proddev':
-    # changes between production and almost-production
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # todo: could use Malm or something
-    BASE_ABS_URL = "https://localhost:8000"
+    SVN_DB_CONNECT = None
 
 
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', DEPLOY_MODE != 'devel')
+USE_CELERY = getattr(localsettings, 'USE_CELERY', USE_CELERY)
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
