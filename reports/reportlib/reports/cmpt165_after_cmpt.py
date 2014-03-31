@@ -7,8 +7,8 @@ import string, itertools, collections
 
 
 class CMPT165_after_CMPT_Query(DB2_Query):
-    title = "All academic plans for students in CMPT courses"
-    description = "All academic plans for students in courses, as of the start of the semester"
+    title = "Students taking CMPT 165 after a CMPT >=200 course"
+    description = "Students taking CMPT 165 after a 200-or-above CMPT course."
 
     query = string.Template("""
         SELECT se.emplid, ct.strm, ct.subject, ct.catalog_nbr, ct.class_section, se.crse_grade_off
@@ -20,7 +20,7 @@ class CMPT165_after_CMPT_Query(DB2_Query):
           AND ct.class_type='E'
           AND se.emplid in (SELECT se.emplid FROM ps_class_tbl ct
             INNER JOIN ps_stdnt_enrl se ON ct.class_nbr=se.class_nbr and ct.strm=se.strm and se.enrl_status_reason IN ('ENRL','EWAT')
-            WHERE ct.strm='1141' AND ct.subject='CMPT' AND ct.catalog_nbr LIKE '%165%')
+            WHERE ct.strm>='1141' AND ct.subject='CMPT' AND ct.catalog_nbr LIKE '%165%')
           ORDER BY se.emplid, ct.strm, ct.subject, ct.catalog_nbr
     """)
 
@@ -39,13 +39,10 @@ class CMPT165_after_CMPT_Report(Report):
         email.filter(EmailQuery.campus_email)
         email.remove_column("PREF_EMAIL_FLAG")
         email.remove_column("E_ADDR_TYPE")
-
         taking_165.left_join(email, "EMPLID")
-
 
         names = NameQuery().result()
         taking_165.left_join(names, "EMPLID")
-
 
         self.artifacts.append(taking_165)
 
