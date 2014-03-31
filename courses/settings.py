@@ -226,12 +226,12 @@ if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
         # use AMPQ in production, and move email sending to Celery
-        BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
+        BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:supersecretpassword@localhost:5672/myvhost")
         CELERY_EMAIL_BACKEND = EMAIL_BACKEND
         EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
     else:
         # use Kombo (aka the Django database) in devel
-        BROKER_URL = "django://"
+        BROKER_URL = getattr(secrets, 'BROKER_URL', "django://")
         INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
 
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"

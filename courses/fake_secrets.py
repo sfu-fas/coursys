@@ -1,14 +1,17 @@
 # MySQL connection stuff
-DB_CONNECTION = {
-    'NAME': '',
-    'USER': '',
-    'PASSWORD': '',
-    'HOST': '',
-    'PORT': 4000,
-}
+#DB_CONNECTION = {
+#    'NAME': '',
+#    'USER': '',
+#    'PASSWORD': '',
+#    'HOST': '',
+#    'PORT': 4000,
+#}
 
 # 50-random-character secret key for crypto thingies. Use tools/secret_key_gen.py to create a good one if needed
 SECRET_KEY = ''
+
+# Celery broker
+#BROKER_URL = "amqp://coursys:supersecretpassword@localhost:5672/myvhost"
 
 # password for the SVN repository database
 SVN_DB_PASS = ''
