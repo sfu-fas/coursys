@@ -16,3 +16,5 @@ SVN_DB_PASS = ''
 # reporting DB connection
 SIMS_USER = 'ggbaker'
 SIMS_PASSWORD = ''
+
+AMAINT_DB_PASSWORD = ''

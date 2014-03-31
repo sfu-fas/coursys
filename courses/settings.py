@@ -261,9 +261,11 @@ DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
-SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', 'real password')
+SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
+AMAINT_DB_PASSWORD = getattr(secrets, 'AMAINT_DB_PASSWORD', '')
+
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"
