@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator
 from grades.models import Activity
 from coredata.models import Member, Person,CourseOffering
 from groups.models import Group,GroupMember
@@ -11,7 +12,6 @@ import os.path
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from courselib.slugs import make_slug
-
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
@@ -212,4 +212,26 @@ class SubmittedComponent(models.Model):
         if prefix:
             filename = os.path.join(prefix, filename)
         return filename
+
+
+
+# adapted from http://stackoverflow.com/questions/849142/how-to-limit-the-maximum-value-of-a-numeric-field-in-a-django-model
+class FileSizeField(models.PositiveIntegerField):
+    def __init__(self, verbose_name=None, name=None, **kwargs):
+        self.min_value, self.max_value = 0, settings.MAX_SUBMISSION_SIZE
+        models.IntegerField.__init__(self, verbose_name, name, **kwargs)
+
+    def formfield(self, **kwargs):
+        defaults = {'min_value': self.min_value, 'max_value':self.max_value}
+        defaults.update(kwargs)
+        field = super(FileSizeField, self).formfield(**defaults)
+        # monkey-patch a better error message
+        for v in field.validators:
+            if isinstance(v, MaxValueValidator):
+                v.message = "We currently limit submissions to %i kB on this system. For larger files, we suggest having students upload the files to their web space and submitting a URL." % (settings.MAX_SUBMISSION_SIZE)
+        return field
+
+
+
+
 
