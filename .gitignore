@@ -46,8 +46,10 @@ submitted_files
 celerybeat-schedule
 local_settings.py
 courses/secrets.py
+courses/localsettings.py
 media/CACHE
 whoosh_index
+disabled_features.json
 .project
 .pydevproject
 .settings
