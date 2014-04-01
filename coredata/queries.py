@@ -86,7 +86,10 @@ class SIMSConn(DBConn):
         import DB2
         SIMSConn.DatabaseError = DB2.DatabaseError
         SIMSConn.DB2Error = DB2.Error
-        dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=self.sims_passwd)
+        try:
+            dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=self.sims_passwd)
+        except DB2._db2.DatabaseError:
+            raise SIMSProblem, "Could not communicate with reporting database."
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
         return dbconn, cursor
