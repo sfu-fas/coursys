@@ -1,12 +1,9 @@
 # MySQL
-package "mysql-server"
 package "mysql-client"
 package "libmysqlclient-dev"
 
 # Media Server
 package "nginx"
-
-package "make"
 
 # Queue Server
 package "rabbitmq-server"
@@ -21,25 +18,15 @@ package "stunnel4"
 package "ntp"
 
 # Dev tools
+package "make"
 package "vim"
 package "git"
+package "ack-grep"
 
 # pip install any listed requirements
 execute "install_pip_requirements" do
     cwd "/home/vagrant/"
     command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
-end
-
-# configure local settings
-cookbook_file "localsettings.py" do
-    path "/home/vagrant/courses/courses/localsettings.py"
-    action :create
-end
-
-# configure secrets
-cookbook_file "secrets.py" do
-    path "/home/vagrant/courses/courses/secrets.py"
-    action :create
 end
 
 # configure NGINX
@@ -57,6 +44,12 @@ cookbook_file "self-ssl.pem" do
     path "/etc/nginx/cert.pem"
 end
 
+#configure supervisord
+cookbook_file "supervisord.conf" do 
+    path "/etc/supervisord.conf"
+    mode "0744"
+end
+
 # create a directory for the gunicorn log files
 # directory "/var/log/gunicorn"
 directory "/var/log/gunicorn" do 
@@ -72,11 +65,3 @@ cookbook_file "Makefile" do
     mode "0755"
     action :create
 end
-
-# create supervisor to run gunicorn, nginx
-
-
-# TODO for proddev environment:
-# - create mysql database 'coursys' on localhost
-# - GRANT ALL PRIVILEGES ON coursys.* to coursysuser@localhost IDENTIFIED BY 'coursyspassword';
-# - syncdb, migrate
