@@ -73,12 +73,19 @@ class Command(BaseCommand):
             print 'FAIL (celery disabled)'
         except django.db.utils.ProgrammingError:
             print 'FAIL (celery DB tables missing)'
+        except django.db.utils.OperationalError:
+            print "FAIL (djkombu tables missing: try migrating)"
 
         print "Django cache:",
         # have a subprocess do something to make sure we're in a persistent shared cache, not DummyCache
         subprocess.call(['python', 'manage.py', 'check_things', '--cache_subcall'])
         res = cache.get('check_things_cache_test')
-        self._expect(res == randval+1)
+        if res == randval:
+            print 'FAIL (other processes not sharing cache)'
+        elif res != randval + 1:
+            print 'FAIL (unknown)'
+        else:
+            print 'okay'
 
         print "Reporting DB connection:",
         try:
