@@ -44,10 +44,15 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'faculty.views.study_leave_credits' userid=person.userid_or_emplid %}" method="GET">
+<form class="noprint" action="{% url 'faculty.views.study_leave_credits' userid=person.userid_or_emplid %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
+
+<h3 class="printonly">{{ start_label }}{% if start_label != end_label %}
+   - {{ end_label  }}
+{% endif %}
+</h3>
 
 <div class="datatable_container">
   <table id="study_credit_table" class="display">

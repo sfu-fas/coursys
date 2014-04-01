@@ -64,11 +64,13 @@ $(document).ready(function() {
 
 {% block content %}
 
-<form action="{% url 'faculty.views.fallout_report' %}" method="GET">
+<form class="noprint" action="{% url 'faculty.views.fallout_report' %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
-  <div id='fallout_sum'></div>
+
+<h3 class="printonly">{{ start_date }} - {{ end_date }}</h3>
+<div id='fallout_sum'></div>
 
 {% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">

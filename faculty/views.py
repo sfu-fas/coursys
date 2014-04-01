@@ -190,14 +190,10 @@ def salary_index(request):
 
     fac_roles_pay = _salary_index_data(request, date)
 
-    pay_tot = 0
-    for p, r, pay, t1, t2, t3, t4, t5 in fac_roles_pay:
-        pay_tot += pay
-
     context = {
         'form': form,
         'fac_roles_pay': fac_roles_pay,
-        'pay_tot': pay_tot,
+        'date': date,
         'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
     return render(request, 'faculty/reports/salary_index.html', context)
@@ -333,7 +329,9 @@ def fallout_report(request):
     context = {
         'form': form,
         'table': table,
-        'tot_fallout': tot_fallout,
+        # 'tot_fallout': tot_fallout, not using this at the moment
+        'start_date': start_date,
+        'end_date': end_date,
         'filterform': UnitFilterForm(Unit.sub_units(request.units)),
     }
     return render(request, 'faculty/reports/fallout_report.html', context)
@@ -715,6 +713,7 @@ def teaching_summary(request, userid):
     form = TeachingSummaryForm()
 
     credit_balance = 0
+    start_label = end_label = ''
     events = []
 
     if request.GET:
@@ -725,6 +724,8 @@ def teaching_summary(request, userid):
             end = form.cleaned_data['end_semester']
             start_semester = ReportingSemester(start)
             end_semester = ReportingSemester(end)
+            start_label = ReportingSemester.make_full_label(start)
+            end_label  = ReportingSemester.make_full_label(end)
 
             curr_semester = start_semester
             while curr_semester <= end_semester:
@@ -737,6 +738,7 @@ def teaching_summary(request, userid):
     else:
         start_semester = end_semester = ReportingSemester(datetime.date.today())
         start = end = start_semester.code
+        start_label = end_label = ReportingSemester.make_full_label(start)
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -745,6 +747,8 @@ def teaching_summary(request, userid):
     cb_mmixed = fraction_display(credit_balance)
     context = {
         'form': form,
+        'start_label': start_label,
+        'end_label': end_label,
         'person': person,
         'credit_balance': cb_mmixed,
         'events': events,
@@ -829,6 +833,7 @@ def study_leave_credits(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
     form = TeachingSummaryForm()
     slc_total = 0
+    start_label = end_label = ''
     events = []
     end_semester = ReportingSemester(datetime.date.today())
     start_semester = end_semester.prev()
@@ -842,12 +847,16 @@ def study_leave_credits(request, userid):
             end = form.cleaned_data['end_semester']
             start_semester = ReportingSemester(start)
             end_semester = ReportingSemester(end)
+            start_label = ReportingSemester.make_full_label(start)
+            end_label  = ReportingSemester.make_full_label(end)
 
             slc_total, events, finish_semester = _all_study_events(person, start_semester, end_semester)
 
     else:
         start = start_semester.code
         end = end_semester.code
+        start_label = ReportingSemester.make_full_label(start)
+        end_label  = ReportingSemester.make_full_label(end)
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -856,6 +865,8 @@ def study_leave_credits(request, userid):
 
     context = {
         'form': form,
+        'start_label': start_label,
+        'end_label': end_label,
         'person': person,
         'study_credits': fraction_display(slc_total),
         'events': events,

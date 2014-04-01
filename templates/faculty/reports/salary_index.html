@@ -60,10 +60,11 @@ $(document).ready(function() {
 
 {% block content %}
 
-<form action="{% url 'faculty.views.salary_index' %}" method="GET">
+<form class="noprint" action="{% url 'faculty.views.salary_index' %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
+<h3 class="printonly">{{ date }}</h3>
 <div id="salary_sum"></div>
 
 {% include 'faculty/_unit_form.html' %}
