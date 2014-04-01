@@ -1,4 +1,5 @@
-import fractions, itertools
+import fractions
+import itertools
 
 from django import forms
 
@@ -9,8 +10,7 @@ from faculty.event_types.base import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
-
-RANK_CHOICES = [
+RANK_CHOICES = Choices(
     ('LABI', 'Laboratory Instructor'),
     ('LECT', 'Lecturer'),
     ('SLEC', 'Senior Lecturer'),
@@ -20,7 +20,7 @@ RANK_CHOICES = [
     ('FULL', 'Full Professor'),
     #('UNIV', 'University Professor'),
     #('UNIR', 'University Research Professor'),
-]
+)
 
 
 class AppointmentEventHandler(CareerEventHandlerBase):
@@ -91,6 +91,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Rank &amp; Step</dt><dd>{{ handler|get_display:"rank" }}, step {{ handler|get_display:"step" }}</dd>
         <dt>Base salary</dt><dd>${{ handler|get_display:"base_salary"|floatformat:2 }}</dd>
         <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2 }}</dd>
         <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2 }}</dd>
@@ -100,6 +101,7 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     """
 
     class EntryForm(BaseEntryForm):
+        rank = forms.ChoiceField(choices=RANK_CHOICES, required=True)
         step = forms.DecimalField(max_digits=4, decimal_places=2,
                                   help_text="Current salary step")
         base_salary = fields.AddSalaryField(help_text="Base annual salary for this rank + step.")
@@ -107,10 +109,12 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         add_pay = fields.AddPayField()
 
     SEARCH_RULES = {
+        'rank': search.ChoiceSearchRule,
         'base_salary': search.ComparableSearchRule,
         'step': search.ComparableSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
+        'rank',
         'base_salary',
         'step',
     ]
@@ -124,17 +128,16 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
             'biweekly': total/365*14,
         }
 
-    def to_timeline(self):
-        # exclude base salary events from timeline
-        return None
+    def get_rank_display(self):
+        return RANK_CHOICES.get(self.get_config('rank'), 'Unknown Rank')
 
     @classmethod
     def default_title(cls):
         return 'Base Salary'
 
     def short_summary(self):
-        return "Base salary of ${0} at step {1}".format(self.get_config('base_salary'),
-                                                     self.get_config('step'))
+        return "{2} step {1} at ${0}".format(self.get_config('base_salary'),
+                                                     self.get_config('step'), self.get_rank_display())
 
     def salary_adjust_annually(self):
         salary = self.get_config('base_salary')
@@ -324,6 +327,18 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         teaching_decrease = fields.TeachingReductionField()
         study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99, help_text='Total number of Study Leave Credits spent for entire leave')
         credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0, max_value=10000, help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
+
+        def post_init(self):
+            # finding the teaching load and set the decrease to that value
+            if (self.person):
+                from faculty.util import ReportingSemester
+                from faculty.processing import FacultySummary
+                semester = ReportingSemester(self.initial['start_date'])
+                teaching_load = abs(FacultySummary(self.person).teaching_credits(semester)[1])
+            else:
+                teaching_load = 0
+
+            self.fields['teaching_decrease'].initial = teaching_load
 
     SEARCH_RULES = {
         'pay_fraction': search.ComparableSearchRule,

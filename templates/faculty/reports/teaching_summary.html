@@ -23,6 +23,20 @@ $(document).ready(function() {
 } );
 </script>
 {% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?{{ request.GET.urlencode }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
@@ -30,17 +44,21 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<form action="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}" method="GET">
+<form class="noprint" action="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
+
+<h3 class="printonly">{{ start_label }}{% if start_label != end_label %}
+   - {{ end_label  }}
+{% endif %}
+</h3>
 
 <div class="datatable_container">
   <table id="teaching_event_table" class="display">
     <thead><tr class="th">
       <th scope="col">Semester</th>
-      <th scope="col">Course/Event Type</th>
-      <th scope="col">Summary</th>
+      <th scope="col">Course/Event</th>
       <th scope="col">Credits</th>
     </tr></thead>
     <tbody>
@@ -48,11 +66,10 @@ $(document).ready(function() {
     <tr>
       <td>{{ semester }}</td>
       {% if event %}
-        <td><a href="{{ event.get_absolute_url }}">{{ course }}</a></td>
+        <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
       {% else %}
-        <td>{{ course }}</td>
+        <td>{{ course }} ({{summary}})</td>
       {% endif %}
-      <td>{{ summary }}</td>
       <td>{{ credits }}</td>
     </tr>
     {% endfor %}

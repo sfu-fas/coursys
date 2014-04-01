@@ -15,16 +15,16 @@
       })
     }
 
-	$(document).ready(function() {
-		$("#id_sent_date").datepicker({
-			'dateFormat' : 'yy-mm-dd'
-		});
+  $(document).ready(function() {
+    $("#id_sent_date").datepicker({
+      'dateFormat' : 'yy-mm-dd'
+    });
 
-		url = '{% url "faculty.views.get_memo_text" userid=person.userid_or_emplid event_slug=event.slug memo_template_id=template.id %}'
-		getData(url);
+    url = '{% url "faculty.views.get_memo_text" userid=person.userid_or_emplid event_slug=event.slug memo_template_id=template.id %}'
+    getData(url);
 
-		$("#id_from_lines").html(subject);
-	});
+    $("#id_from_lines").html(subject);
+  });
 
 //]]></script>
 {% endblock %}
@@ -33,22 +33,22 @@
 {% block h1 %}New {{ template.label|title }} Memo{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li><a href="{% url "faculty.views.view_event" userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.title }}</a></li>
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{% url 'faculty.views.view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.title }}</a></li>
 <li>New {{ template.label|title }} Memo</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-	<form action="{% url "faculty.views.new_memo" userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=template.slug %}" method="post">
-		{% csrf_token %}
-		<fieldset>
-            {{form|as_dl}}
-			<p>
-				<input class="submit"  type="submit" value="Submit" />
-			</p>
-		</fieldset>
-	</form>
+  <form action="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=template.slug %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+      {{ form|as_dl }}
+      <p>
+        <input class="submit"  type="submit" value="Submit" />
+      </p>
+    </fieldset>
+  </form>
 </div>
 {% endblock %}

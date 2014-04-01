@@ -1,18 +1,17 @@
 from django import forms
 from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
+from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person
 
-from models import CareerEvent
-from models import DocumentAttachment
-from models import MemoTemplate
-from models import Memo
-from models import EVENT_TYPE_CHOICES
-from faculty.event_types.fields import SemesterField, SemesterCodeField
-from models import Grant
-from models import GrantBalance
-
+from faculty.event_types.fields import SemesterCodeField
+from faculty.models import CareerEvent
+from faculty.models import DocumentAttachment
+from faculty.models import FacultyMemberInfo
+from faculty.models import Grant
+from faculty.models import Memo
+from faculty.models import MemoTemplate
 
 
 def career_event_factory(person, post_data=None, post_files=None):
@@ -113,15 +112,14 @@ class UnitFilterForm(forms.Form):
     1) Initialize the form in view with UnitFilterForm(units)
        Here, units = Unit.sub_units(request.units)
 
-    2) In the template, include 'faculty/_unit_form.html' to render the form
+    2) In the template, {% include 'faculty/_unit_form.html' %} to render the form
 
     3) Add the necessary javascript to get the form working, see search_form.html as an example
        - The table rows need a unit label class name, ex: <tr class="{{ handler.event.unit.label }}">
        - initialize filtering:
         $('#filter-form').change( function() {
           event_filter_update('<table_id>');
-        });
-        event_filter_update('<table_id>');
+        }).change();
 
     """
 
@@ -132,9 +130,9 @@ class UnitFilterForm(forms.Form):
 
     def __init__(self, units, *args, **kwargs):
         super(UnitFilterForm, self).__init__(*args, **kwargs)
-        if units:
-            all_units = [(unicode(u.label), unicode(u.informal_name())) for u in units]
-            self.fields['category'].choices = [('all', 'All Units')] + all_units
+        self.multiple_units = len(units) > 1
+        all_units = [(unicode(u.label), unicode(u.informal_name())) for u in units]
+        self.fields['category'].choices = [('all', 'All Units')] + all_units
 
 
 class EventFilterForm(forms.Form):
@@ -177,7 +175,6 @@ class AvailableCapacityForm(forms.Form):
 class CourseAccreditationForm(forms.Form):
 
     OPERATOR_CHOICES = (
-        ('', '----'),
         ('AND', 'HAS ALL'),
         ('OR', 'HAS ANY'),
         ('NONE_OF', 'HAS NONE OF'),
@@ -185,7 +182,7 @@ class CourseAccreditationForm(forms.Form):
 
     start_semester = SemesterCodeField()
     end_semester = SemesterCodeField()
-    operator = forms.ChoiceField(choices=OPERATOR_CHOICES, required=False)
+    operator = forms.ChoiceField(choices=OPERATOR_CHOICES, required=False, initial='AND')
     flag = forms.MultipleChoiceField(choices=[], required=False,
                                       widget=forms.CheckboxSelectMultiple())
 
@@ -198,3 +195,18 @@ class CourseAccreditationForm(forms.Form):
         if 'end_semester' not in self.data:
             self.data['end_semester'] = Semester.current().name
         self.fields['flag'].choices = flags
+
+
+class FacultyMemberInfoForm(forms.ModelForm):
+
+    class Meta:
+        model = FacultyMemberInfo
+        exclude = ('person', 'config')
+
+        help_texts = {
+            'title': _('Mr., Mrs., Dr., etc'),
+            'emergency_contact': _('Name, phone number, etc'),
+        }
+        widgets = {
+            'birthday': forms.DateInput(attrs={'class': 'date-input'}),
+        }

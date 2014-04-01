@@ -121,7 +121,7 @@ class CareerQuerySet(models.query.QuerySet):
     def effective_date(self, date):
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
         return self.exclude(status='D').filter(start_date__lte=date).filter(end_okay)
-    
+
     def effective_semester(self, semester):
         """
         Returns CareerEvents starting and ending within this semester.
@@ -177,7 +177,7 @@ class CareerQuerySet(models.query.QuerySet):
 
 
 class CareerEventManager(models.Manager):
-    def get_query_set(self): 
+    def get_query_set(self):
         model = models.get_model('faculty', 'CareerEvent')
         return CareerQuerySet(model)
 
@@ -199,8 +199,7 @@ class CareerEvent(models.Model):
     person = models.ForeignKey(Person, related_name="career_events")
     unit = models.ForeignKey(Unit)
 
-    title = models.CharField(max_length=255, blank=False, null=False)
-    slug = AutoSlugField(populate_from='full_title', unique_with=('person', 'unit'),
+    slug = AutoSlugField(populate_from='slug_string', unique_with=('person', 'unit'),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -214,18 +213,18 @@ class CareerEvent(models.Model):
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, blank=False, default='')
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     objects = CareerEventManager()
 
     class Meta:
         ordering = (
             '-start_date',
             '-end_date',
-            'title',
+            'event_type',
         )
 
     def __unicode__(self):
-        return u"%s" % self.title
+        return u"%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
 
     def save(self, editor, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
@@ -245,8 +244,20 @@ class CareerEvent(models.Model):
         return reverse("faculty_change_event", args=[self.person.userid, self.slug])
 
     @property
-    def full_title(self):
-        return u'{} {} {}'.format(self.start_date.year, self.title, self.unit.label.lower())
+    def slug_string(self):
+        return u'{} {}'.format(self.start_date.year, self.get_event_type_display())
+
+    @classmethod
+    def current_ranks(cls, person):
+        """
+        Return a string representing the current rank(s) for this person
+        """
+        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY').effective_now()
+        if not salaries:
+            return 'unknown'
+
+        ranks = set(s.get_handler().get_rank_display() for s in salaries)
+        return ', '.join(ranks)
 
     def get_event_type_display(self):
         "Override to display nicely"
@@ -294,7 +305,7 @@ class CareerEvent(models.Model):
         # basic personal stuff
         gender = self.person.gender()
         title = self.person.get_title()
-        
+
         if gender == "M" :
             hisher = "his"
             heshe = 'he'
@@ -306,15 +317,14 @@ class CareerEvent(models.Model):
             heshe = 'he/she'
 
         # grab event type specific config data
-        Handler = EVENT_TYPES[self.event_type]
-        handler = Handler(self)
+        handler = self.get_handler()
         config_data = self.config
         for key in config_data:
             try:
                 config_data[key] = unicode(handler.get_display(key))
             except AttributeError:
                 pass
-        
+
         ls = { # if changing, also update EVENT_TAGS above!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'title' : title,
@@ -326,7 +336,6 @@ class CareerEvent(models.Model):
                 'last_name': self.person.last_name,
                 'start_date': self.start_date,
                 'end_date': self.end_date,
-                'event_title': self.title,
               }
         ls = dict(ls.items() + config_data.items())
         return ls
@@ -473,9 +482,12 @@ class EventConfig(models.Model):
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES)
     config = JSONField(default={})
 
+    class Meta:
+        unique_together = ('unit', 'event_type')
 
-class TempGrantManager(models.Manager): 
-    def create_from_csv(self, fh):
+
+class TempGrantManager(models.Manager):
+    def create_from_csv(self, fh, creator):
         reader = csv.reader(fh.read().splitlines())
         # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
         failed = []
@@ -500,7 +512,7 @@ class TempGrantManager(models.Manager):
                 except (IndexError, InvalidOperation):
                     failed.append(row)
                     continue
-               
+
                 # If Grant with the label already exists, then we update the balance
                 try:
                     grant = Grant.objects.get(label__exact=label)
@@ -515,6 +527,7 @@ class TempGrantManager(models.Manager):
                         label=label,
                         initial=balance,
                         project_code=fund,
+                        creator=creator,
                         config={"cur_month": cur_month,
                                 "ytd_actual": ytd_actual,
                                 "cur_balance": cur_balance}
@@ -529,6 +542,8 @@ class TempGrant(models.Model):
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
+    creator = models.ForeignKey(Person, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
     config = JSONField(default={}) # addition configuration for within the temp grant
 
     objects = TempGrantManager()
@@ -542,6 +557,7 @@ class TempGrant(models.Model):
     def grant_dict(self, **kwargs):
         data = {
             "label": self.label,
+            "title": self.label,
             "project_code": self.project_code,
             "initial": self.initial,
             "import_key": self.import_key,
@@ -564,11 +580,11 @@ class Grant(models.Model):
     title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
     label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True, db_index=True)
-    owners = models.ManyToManyField(Person, blank=True, null=True, help_text='Who owns/controls this grant?')
+    owners = models.ManyToManyField(Person, through='GrantOwner', blank=True, null=True, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=2, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=2, choices=STATUS_CHOICES, default='A')
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     overhead = models.DecimalField(verbose_name="annual overhead", max_digits=12, decimal_places=2)
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
@@ -593,14 +609,37 @@ class Grant(models.Model):
         )
         return gb
 
+class GrantOwner(models.Model):
+    grant = models.ForeignKey(Grant)
+    person = models.ForeignKey(Person)
+    config = JSONField(blank=True, null=True, default={})  # addition configuration
 
 class GrantBalance(models.Model):
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=datetime.date.today)
     grant = models.ForeignKey(Grant, null=False, blank=False)
     balance = models.DecimalField(verbose_name="grant balance", max_digits=12, decimal_places=2)
     actual = models.DecimalField(verbose_name="YTD actual", max_digits=12, decimal_places=2)
     month = models.DecimalField(verbose_name="current month", max_digits=12, decimal_places=2)
-    config = JSONField(blank=True, null=True, default={})  # addition configuration for within the memo
+    config = JSONField(blank=True, null=True, default={})  # addition configuration within the memo
 
     def __unicode__(self):
         return u"%s balance as of %s" % (self.grant, self.date)
+
+
+class FacultyMemberInfo(models.Model):
+    person = models.ForeignKey(Person, unique=True, related_name='+')
+    title = models.CharField(max_length=50)
+    birthday = models.DateField()
+    office_number = models.CharField('Office Number', max_length=20)
+    phone_number = models.CharField('Local Phone Number', max_length=20)
+    emergency_contact = models.TextField('Emergency Contact Information', blank=True)
+    config = JSONField(blank=True, null=True, default={})  # addition configuration
+
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'<FacultyMemberInfo({})>'.format(self.person)
+
+    def get_absolute_url(self):
+        return reverse('faculty.views.faculty_member_info',
+                       args=[self.person.userid_or_emplid()])

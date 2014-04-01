@@ -11,10 +11,10 @@
 {% block content %}
 <h2>Memo Templates by Event Type</h2>
 <ul>
-	{% for e in events %}
-	<li>
-		<a href="{% url 'faculty.views.memo_templates' event_type=e.slug %}">{{ e.name }}</a>
-	</li>
-	{% endfor %}
-</ul> 
+  {% for e in events %}
+  <li>
+    <a href="{% url 'faculty.views.memo_templates' event_type=e.slug %}">{{ e.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
 {% endblock %}

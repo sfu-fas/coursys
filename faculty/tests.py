@@ -16,7 +16,7 @@ from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
 from faculty.models import CareerEvent
-from faculty.models import HANDLERS
+from faculty.models import HANDLERS, EVENT_TYPES
 from faculty.management.commands import faculty_test_data
 
 import datetime
@@ -120,6 +120,8 @@ class CareerEventHandlerBaseTest(TestCase):
         self.Handler = FoobarHandler
         self.person = Person.objects.get(userid='ggbaker')
         self.unit = Unit.objects.get(id=1)
+        # monkey-patch the fake handler into plae
+        EVENT_TYPES['FOOBAR'] = FoobarHandler
 
     def test_is_instant(self):
         self.Handler.IS_INSTANT = True
@@ -165,7 +167,7 @@ class CareerEventTest(TestCase):
         self.p = Person.objects.get(userid='ggbaker')
         self.u = Unit.objects.get(id=1)
         self.date = datetime.date(2014, 1, 1)
-        self.e = CareerEvent(title="Appointed to Test", person=self.p, unit=self.u, event_type="APPOINT", start_date=self.date)
+        self.e = CareerEvent(person=self.p, unit=self.u, event_type="APPOINT", start_date=self.date)
         self.e.save(self.p)
 
     def test_get_effective_date(self):
@@ -194,24 +196,28 @@ class PagesTest(TestCase):
         c = Client()
 
         # as department admin
-        c.login_user('dixon')
+        c.login_user('dzhao')
 
         test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
-                'teaching_capacity'],
+                'teaching_capacity', 'fallout_report', 'course_accreditation', 'grant_index'],
                 {})
-        test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo', 'event_type_list'],
+        test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
+                'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',
+                'faculty_wizard'],
                 {'userid': 'ggbaker'})
         test_views(self, c, 'faculty.views.', ['view_event', 'change_event', 'new_attachment'],
-                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position-cmpt'})
+                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position'})
 
         test_views(self, c, 'faculty.views.', ['manage_memo_template'],
                 {'event_type': 'appoint', 'slug': 'cmpt-welcome'})
         test_views(self, c, 'faculty.views.', ['new_memo'],
-                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position-cmpt',
+                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
                  'memo_template_slug': 'cmpt-welcome'})
         test_views(self, c, 'faculty.views.', ['manage_memo', 'view_memo'],
-                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position-cmpt',
-                 'memo_slug': '2000-appointment-to-position-cmpt-welcome'})
+                {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
+                 'memo_slug': '2000-appointment-to-position-welcome'})
+
+        # TODO: 'convert_grant', 'delete_grant', 'new_grant', 'edit_grant', 'view_grant'
 
         # per-handler views
         for Handler in HANDLERS:

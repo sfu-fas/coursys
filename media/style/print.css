@@ -29,7 +29,10 @@ div#main {
 .noprint {
 	display: none;
 }
-.datatable_container .ui-widget-header, .DataTables_sort_icon {
+.printonly {
+	display: block;
+}
+.ui-widget-header, .DataTables_sort_icon {
 	display: none;
 }
 

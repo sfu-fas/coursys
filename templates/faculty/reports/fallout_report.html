@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}Fallout Report{% endblock %}
 {% block h1 %}Fallout Report{% endblock %}
@@ -12,6 +12,7 @@
       margin-top: -53px;
     }
 </style>
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#fallout_table').dataTable( {
@@ -27,10 +28,19 @@ $(document).ready(function() {
 
   $('#filter-form').change( function() {
     event_filter_update('fallout_table');
+    var sum = 0;
+    $('.rowdata').each(function() {
+        sum += Number($(this).text());
+    });
+    $('#fallout_sum').text("Total: $" + sum)
   });
   event_filter_update('fallout_table');
-
-});
+  var sum = 0;
+  $('.rowdata').each(function() {
+      sum += Number($(this).text());
+  });
+  $('#fallout_sum').text("Total: $" + sum)
+} );
 </script>
 {% endblock %}
 
@@ -54,11 +64,13 @@ $(document).ready(function() {
 
 {% block content %}
 
-<form action="{% url 'faculty.views.fallout_report' %}" method="GET">
+<form class="noprint" action="{% url 'faculty.views.fallout_report' %}" method="GET">
   {{ form.as_p }}
   <input type="submit" value="Select" />
 </form>
-  <div>Total Fallout: ${{ tot_fallout }}</div>
+
+<h3 class="printonly">{{ start_date }} - {{ end_date }}</h3>
+<div id='fallout_sum'></div>
 
 {% include 'faculty/_unit_form.html' %}
 <div class="datatable_container">
@@ -77,7 +89,7 @@ $(document).ready(function() {
   <tr class="{{ units }}">
   <td>{{ units }}</td>
   <td><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
-  <td><a href="{{ event.get_absolute_url }}">{{ event.get_event_type_display }}</td>
+  <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</td>
   <td>{{ days }}</td>
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">${{ salary }}</a></td>
   <td>{{ frac }}</td>

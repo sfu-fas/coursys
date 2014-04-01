@@ -123,11 +123,11 @@ $(document).ready(function() {
     <tbody>
     {% for handler in results %}
     <tr class="{{ handler.event.unit.label }}">
-      <td><a href="{{ handler.event.get_absolute_url }}">{{ handler.event.title }}</a></td>
+      <td><a href="{{ handler.event.get_absolute_url }}">{{ handler.short_summary }}</a></td>
       <td>{{ handler.event.person }}</td>
       <td>{{ handler.event.unit.label }}</td>
-      <td><span class="sort">{{ hander.event.start_date.isoformat }}</span>{{ handler.event.start_date }}</td>
-      <td><span class="sort">{{ hander.event.end_date.isoformat }}</span>{{ handler.event.end_date }}</td>
+      <td><span class="sort">{{ handler.event.start_date.isoformat }}</span>{{ handler.event.start_date }}</td>
+      <td><span class="sort">{{ handler.event.end_date.isoformat }}</span>{{ handler.event.end_date }}</td>
       {% for value in handler.to_search_row %}
       <td>{{ value }}</td>
       {% endfor %}

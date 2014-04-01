@@ -7,7 +7,6 @@ from faculty.event_types import search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import TeachingAdjust
-from faculty.event_types.fields import SemesterToDateField
 from faculty.event_types.fields import TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent
 
@@ -22,7 +21,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }} courses per semester</dd>
+        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }} course{{ handler|get_display:'load'|pluralize }} per semester</dd>
         {% endblock %}
     """
 

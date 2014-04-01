@@ -1,10 +1,7 @@
-import datetime
-import fractions
 from decimal import Decimal, ROUND_DOWN
 
-from django.shortcuts import get_object_or_404
-
-from faculty.models import CareerEvent, CareerEventManager, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
+from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.models import CareerEvent, EVENT_TYPES
 
 
 class FacultySummary(object):
@@ -12,11 +9,20 @@ class FacultySummary(object):
         self.person = person
    
     def salary_events(self, date):
-        career_events = CareerEvent.objects.not_deleted().effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).exclude(status='D')
+        career_events = CareerEvent.objects.not_deleted().effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         return career_events
 
+    def recent_salary(self, date):
+        career_events = CareerEvent.objects.not_deleted().effective_date(date).filter(person=self.person).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
+        base_salary_events = career_events.filter(event_type=SalaryBaseEventHandler.EVENT_TYPE)
+        try:
+            recent = base_salary_events.order_by('-start_date')[0]
+        except IndexError:
+            recent = None
+        return recent
+
     def teaching_events(self, semester):
-        career_events = CareerEvent.objects.not_deleted().overlaps_semester(semester).filter(person=self.person).filter(flags=CareerEvent.flags.affects_teaching).exclude(status='D')
+        career_events = CareerEvent.objects.not_deleted().overlaps_semester(semester).filter(person=self.person).filter(flags=CareerEvent.flags.affects_teaching).filter(status='A')
         return career_events
        
     def salary(self, date):
@@ -45,18 +51,14 @@ class FacultySummary(object):
         return salary
 
     def salary_event_info(self, event):
-        instance = event
-        Handler = EVENT_TYPES[instance.event_type]
-        handler = Handler(instance)
+        handler = event.get_handler()
         add_salary, salary_fraction, add_bonus =  handler.salary_adjust_annually()
 
         return Decimal(add_salary).quantize(Decimal('.01'), rounding=ROUND_DOWN), salary_fraction, Decimal(add_bonus).quantize(Decimal('.01'), rounding=ROUND_DOWN)
    
 
     def teaching_event_info(self, event):
-        instance = event
-        Handler = EVENT_TYPES[instance.event_type]
-        handler = Handler(instance)
+        handler = event.get_handler()
         credits, load_decrease =  handler.teaching_adjust_per_semester()
 
         return credits, load_decrease
