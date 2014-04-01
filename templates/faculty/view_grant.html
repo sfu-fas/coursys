@@ -11,8 +11,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url "grants_index" %}">Grants</a></li>
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'grants_index' %}">Grants</a></li>
 <li>{{ grant.title }}</li>
 {% endblock %}
 
@@ -37,7 +37,7 @@
   <tbody>
   {% for bal in grant.grantbalance_set.all %}
   <tr>
-	<td>{{ bal.date }}</td>
+    <td>{{ bal.date }}</td>
     <td>${{ bal.balance }}</td>
     <td>${{ bal.actual }}</td>
     <td>${{ bal.month }}</td>
@@ -49,4 +49,3 @@
 <div class="clearfix"></div>
 
 {% endblock %}
-

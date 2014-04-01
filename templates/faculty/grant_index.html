@@ -19,7 +19,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
 <li>Grants</li>
 {% endblock %}
 
@@ -44,9 +44,9 @@ $(document).ready(function() {
 </div>
 
 <form action="{% url 'import_grants' %}" method="post" enctype="multipart/form-data">
-	{% csrf_token %}
-	{{ import_form|as_dl }}
-	<input type="submit" value="Import Grants CSV" />
+  {% csrf_token %}
+  {{ import_form|as_dl }}
+  <input type="submit" value="Import Grants CSV" />
 </form>
 
 <h2 id="new">Imported but not converted grants</h2>
