@@ -41,9 +41,9 @@ from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.base import Choices
+from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
-
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
     """
@@ -1428,7 +1428,7 @@ def manage_event_index(request):
         for key, Handler in EVENT_TYPE_CHOICES]
 
     context = {
-               'events': types,          
+               'events': types,      
                }
     return render(request, 'faculty/manage_events_index.html', context)
 
@@ -1437,10 +1437,18 @@ def memo_templates(request, event_type):
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=event_type.upper(), hidden=False)
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
 
+    if event_type == "fellow":
+        ecs = EventConfig.objects.filter(event_type=FellowshipEventHandler.EVENT_TYPE)
+        choices = Choices(*itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs]))
+    else: 
+        choices = []
+
     context = {
                'templates': templates,
                'event_type_slug':event_type,
-               'event_name': event_type_object[1].NAME        
+               'event_name': event_type_object[1].NAME,     
+               'flags': choices, 
+               'test': ecs, 
                }
     return render(request, 'faculty/memo_templates.html', context)
 

@@ -7,12 +7,17 @@
 		<li >
 			<a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">New Memo Template</a>
 		</li>
+		{% if flags %}
+		<li >
+			<a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">New Event Flag</a>
+		</li>
+		{% endif %}
 	</ul>
 </div>
 {% endblock %}
 
-{% block title %}Memo Templates{% endblock %}
-{% block h1 %}Memo Templates{% endblock %}
+{% block title %}Event Management{% endblock %}
+{% block h1 %}Event Management{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
@@ -21,6 +26,7 @@
 {% endblock %}
 
 {% block content %}
+<h2>Memo Templates</h2>
 {% if templates %}
 <div class="table_container">
 	<table class="display" id="memo_templates">
@@ -49,4 +55,31 @@
 {% else %}
 <p>There are no templates for this event type. <a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">Create one now.</a></p>
 {% endif %}
+
+{% if flags %}
+<h2>Event Flags</h2>
+<div class="table_container">
+	<table class="display" id="memo_templates">
+		<thead>
+			<tr>
+				<th scope="col">Flag Name</th>
+				<th scope="col">Event Type</th>
+				<th scope="col">Unit</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for t in test %}
+			{% for value in t.config.fellowships%}
+			<tr>
+				<td>{{value.1}}</td>
+				<td>{{t.event_type}}</td>
+				<td>{{t.unit}}</td>
+			</tr>
+			{% endfor %}
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+
 {% endblock %} 
