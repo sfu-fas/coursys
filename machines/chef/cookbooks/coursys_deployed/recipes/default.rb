@@ -1,12 +1,9 @@
 # MySQL
-package "mysql-server"
 package "mysql-client"
 package "libmysqlclient-dev"
 
 # Media Server
 package "nginx"
-
-package "make"
 
 # Queue Server
 package "rabbitmq-server"
@@ -21,8 +18,10 @@ package "stunnel4"
 package "ntp"
 
 # Dev tools
+package "make"
 package "vim"
 package "git"
+package "ack-grep"
 package "screen"
 
 # pip install any listed requirements
@@ -47,9 +46,11 @@ end
 cookbook_file "stunnel.conf" do
     path "/etc/stunnel/stunnel.conf"
 end
+
 cookbook_file "rabbitmq.conf" do
     path "/etc/rabbitmq/rabbitmq.conf"
 end
+
 execute "deny_coursys_ssh" do
     cwd "/"
     command "grep -q 'DenyUsers coursys'  /etc/ssh/sshd_config || (echo '\nDenyUsers coursys' >> /etc/ssh/sshd_config)"
@@ -83,22 +84,17 @@ execute "debconf_reconfigure" do
     command "rm /etc/postfix/main.cf /etc/postfix/master.cf ; dpkg-reconfigure -f noninteractive postfix"
 end
 
-
-
-
 # configure NGINX
 cookbook_file "nginx_default.conf" do
     path "/etc/nginx/sites-available/default"
     action :create
 end
 
-# put in the fake https certification
-cookbook_file "self-ssl.key" do 
-    path "/etc/nginx/cert.key"
-end
 
-cookbook_file "self-ssl.pem" do 
-    path "/etc/nginx/cert.pem"
+#configure supervisord
+cookbook_file "supervisord.conf" do 
+    path "/etc/supervisord.conf"
+    mode "0744"
 end
 
 # create a directory for the gunicorn log files
@@ -109,18 +105,10 @@ directory "/var/log/gunicorn" do
     action :create
 end
 
-# create a script to run gunicorn
+# create a script to run and restart supervisord
 cookbook_file "Makefile" do
     path "/home/vagrant/courses/Makefile"
     owner "vagrant"
     mode "0755"
     action :create
 end
-
-# create supervisor to run gunicorn, nginx
-
-
-# TODO for proddev environment:
-# - create mysql database 'coursys' on localhost
-# - GRANT ALL PRIVILEGES ON coursys.* to coursysuser@localhost IDENTIFIED BY 'coursyspassword';
-# - syncdb, migrate
