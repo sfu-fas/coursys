@@ -892,8 +892,7 @@ def _study_credit_events_data(person, semester, show_in_table, running_total):
     for event in teaching_events:
         # only want to account for the study leave event once
         if event.event_type == 'STUDYLEAVE':
-            Handler = EVENT_TYPES[event.event_type]
-            handler = Handler(event)
+            handler = event.get_handler()
             if ReportingSemester.start_and_end_dates(semester.code)[0] <= event.start_date:
                 slc = handler.get_study_leave_credits()
                 running_total -= slc
@@ -1020,22 +1019,22 @@ def view_event(request, userid, event_slug):
     memos = Memo.objects.filter(career_event=instance)
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=instance.event_type, hidden=False)
     
-    Handler = EVENT_TYPES[instance.event_type](event=instance)
+    handler = instance.get_handler()
 
-    if not Handler.can_view(editor):
+    if not handler.can_view(editor):
         raise PermissionDenied("'%s' not allowed to view this event" % editor)
 
     # TODO: can editors change the status of events to something else?
     # TODO: For now just assuming editor who is allowed to approve event is also allowed to 
     # delete event, in essence change the status of the event to anything they want.
     approval = None
-    if Handler.can_approve(editor):
+    if handler.can_approve(editor):
         approval = ApprovalForm(instance=instance)
 
     context = {
         'person': person,
         'editor': editor,
-        'handler': Handler,
+        'handler': handler,
         'event': instance,
         'memos': memos,
         'templates': templates,
@@ -1176,10 +1175,7 @@ def create_event(request, userid, event_type):
     person, member_units = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
     
-    try:
-        Handler = EVENT_TYPES[event_type.upper()]
-    except KeyError:
-        return NotFoundResponse(request)
+    Handler = _get_Handler_or_404(event_type.upper())
 
     tmp = Handler.create_for(person)
     if not tmp.can_edit(editor):
@@ -1220,15 +1216,15 @@ def change_event(request, userid, event_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
 
-    Handler = EVENT_TYPES[instance.event_type]
+    Handler = _get_Handler_or_404(instance.event_type)
+    handler = Handler(instance)
+
     context = {
         'person': person,
         'editor': editor,
-        'handler': Handler,
         'event': instance,
-        'event_type': Handler.EVENT_TYPE
+        'event_type': Handler.EVENT_TYPE,
     }
-    handler = Handler(instance)
     if not handler.can_edit(editor):
         return HttpResponseForbidden(request, "'%s' not allowed to edit this event" % editor)
     if request.method == "POST":
@@ -1260,8 +1256,8 @@ def change_event_status(request, userid, event_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
    
-    Handler = EVENT_TYPES[instance.event_type](event=instance)
-    if not Handler.can_approve(editor):
+    handler = instance.get_handler()
+    if not handler.can_approve(editor):
         raise PermissionDenied("You cannot change status of this event") 
     form = ApprovalForm(request.POST, instance=instance)
     if form.is_valid():
@@ -1277,12 +1273,9 @@ def faculty_wizard(request, userid):
     person, member_units = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
     
-    try:
-        Handler_appoint = EVENT_TYPES["APPOINT"]
-        Handler_salary = EVENT_TYPES["SALARY"]
-        Handler_load = EVENT_TYPES["NORM_TEACH"]
-    except KeyError:
-        return NotFoundResponse(request)
+    Handler_appoint = _get_Handler_or_404('APPOINT')
+    Handler_salary = _get_Handler_or_404('SALARY')
+    Handler_load = _get_Handler_or_404('NORM_TEACH')
 
     tmp1 = Handler_appoint.create_for(person)
     if not tmp1.can_edit(editor):
@@ -1384,8 +1377,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
 
-    Handler = EVENT_TYPES[event.event_type]
-    handler = Handler(event)
+    handler = event.get_handler()
     if not handler.can_view(viewer):
        raise PermissionDenied(" Not allowed to view this attachment")
 
@@ -1403,8 +1395,7 @@ def download_attachment(request, userid, event_slug, attach_slug):
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
 
-    Handler = EVENT_TYPES[event.event_type]
-    handler = Handler(event)
+    handler = event.get_handler()
     if not handler.can_view(viewer):
         raise PermissionDenied("aNot allowed to download this attachment")
 
@@ -1573,8 +1564,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    Handler = EVENT_TYPES[instance.event_type]
-    handler = Handler(instance)
+    handler = instance.get_handler()
     if not handler.can_view(person):
         return HttpResponseForbidden(request, "Not allowed to view this memo")
 
@@ -1615,8 +1605,7 @@ def get_memo_pdf(request, userid, event_slug, memo_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    Handler = EVENT_TYPES[instance.event_type]
-    handler = Handler(instance)
+    handler = instance.get_handler()
     if not handler.can_view(person):
         raise PermissionDenied("Not allowed to view this memo")
 
@@ -1632,8 +1621,7 @@ def view_memo(request, userid, event_slug, memo_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    Handler = EVENT_TYPES[instance.event_type]
-    handler = Handler(instance)
+    handler = instance.get_handler()
     if not handler.can_view(person):
         raise PermissionDenied("Not allowed to view this memo")
 

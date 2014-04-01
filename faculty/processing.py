@@ -51,18 +51,14 @@ class FacultySummary(object):
         return salary
 
     def salary_event_info(self, event):
-        instance = event
-        Handler = EVENT_TYPES[instance.event_type]
-        handler = Handler(instance)
+        handler = event.get_handler()
         add_salary, salary_fraction, add_bonus =  handler.salary_adjust_annually()
 
         return Decimal(add_salary).quantize(Decimal('.01'), rounding=ROUND_DOWN), salary_fraction, Decimal(add_bonus).quantize(Decimal('.01'), rounding=ROUND_DOWN)
    
 
     def teaching_event_info(self, event):
-        instance = event
-        Handler = EVENT_TYPES[instance.event_type]
-        handler = Handler(instance)
+        handler = event.get_handler()
         credits, load_decrease =  handler.teaching_adjust_per_semester()
 
         return credits, load_decrease

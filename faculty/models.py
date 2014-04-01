@@ -317,8 +317,7 @@ class CareerEvent(models.Model):
             heshe = 'he/she'
 
         # grab event type specific config data
-        Handler = EVENT_TYPES[self.event_type]
-        handler = Handler(self)
+        handler = self.get_handler()
         config_data = self.config
         for key in config_data:
             try:
