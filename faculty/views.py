@@ -9,7 +9,6 @@ from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.db import transaction
-from django.db.models import Q
 
 from django.http import Http404
 from django.http import HttpResponse
@@ -33,7 +32,7 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
 from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
+from faculty.forms import MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm

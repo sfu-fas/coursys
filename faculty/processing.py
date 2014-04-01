@@ -1,12 +1,7 @@
-import datetime
-import fractions
 from decimal import Decimal, ROUND_DOWN
 
-from django.shortcuts import get_object_or_404
-
-from faculty.models import CareerEvent, CareerEventManager, EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS
-
 from faculty.event_types.career import SalaryBaseEventHandler
+from faculty.models import CareerEvent, EVENT_TYPES
 
 
 class FacultySummary(object):
