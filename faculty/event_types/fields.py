@@ -1,3 +1,6 @@
+import copy
+import datetime
+
 from django import forms
 from django.utils.encoding import smart_str
 from fractions import Fraction
@@ -5,14 +8,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 from django.utils.html import conditional_escape
-from django.utils.safestring import mark_safe
-
-import copy
-import datetime
-
-from coredata.models import Semester
 
 from faculty.util import ReportingSemester
+
 
 class SemesterDateInput(forms.widgets.MultiWidget):
     class Media:
@@ -49,11 +47,11 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         except AssertionError:
         #except (AssertionError, Semester.DoesNotExist):
             # Semester does not exist, or its in the wrong format
-            return 
+            return
 
     def get_semester_date(self, semester):
         if not semester:
-            return 
+            return
         start, end = semester.start_and_end_dates(semester.code)
         if self.semester_start:
             return start

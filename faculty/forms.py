@@ -5,16 +5,13 @@ from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person
 
-from models import CareerEvent
-from models import DocumentAttachment
-from models import MemoTemplate
-from models import Memo
-from models import EVENT_TYPE_CHOICES
-from faculty.event_types.fields import SemesterField, SemesterCodeField
-from models import Grant
-from models import GrantBalance
+from faculty.event_types.fields import SemesterCodeField
+from faculty.models import CareerEvent
+from faculty.models import DocumentAttachment
 from faculty.models import FacultyMemberInfo
-
+from faculty.models import Grant
+from faculty.models import Memo
+from faculty.models import MemoTemplate
 
 
 def career_event_factory(person, post_data=None, post_files=None):

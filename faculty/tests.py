@@ -120,8 +120,12 @@ class CareerEventHandlerBaseTest(TestCase):
         self.Handler = FoobarHandler
         self.person = Person.objects.get(userid='ggbaker')
         self.unit = Unit.objects.get(id=1)
-        # monkey-patch the fake handler into plae
+
+        # XXX: Monkey-patch the test Handler into the global handler dict
         EVENT_TYPES['FOOBAR'] = FoobarHandler
+
+    def tearDown(self):
+        del EVENT_TYPES['FOOBAR']
 
     def test_is_instant(self):
         self.Handler.IS_INSTANT = True

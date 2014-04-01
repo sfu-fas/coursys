@@ -1,4 +1,5 @@
-import fractions, itertools
+import fractions
+import itertools
 
 from django import forms
 

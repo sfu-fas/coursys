@@ -9,7 +9,6 @@ from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from courselib.auth import requires_role, NotFoundResponse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.db import transaction
-from django.db.models import Q
 
 from django.http import Http404
 from django.http import HttpResponse
@@ -33,7 +32,7 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
 from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
-from faculty.forms import CareerEventForm, MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
+from faculty.forms import MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm
@@ -283,7 +282,7 @@ def salary_index_csv(request):
 @requires_role('ADMN')
 def fallout_report(request):
     """
-    Fallout Report 
+    Fallout Report
     """
     form = DateRangeForm()
 
@@ -315,7 +314,7 @@ def fallout_report(request):
         # TODO: below line should only select pay from units the user can see
         salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
-            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
+            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':
                 days = event.get_duration_within_range(start_date, end_date)
                 fraction = FacultySummary(p).salary_event_info(event)[1]
                 d = fraction.denominator
@@ -349,7 +348,7 @@ def _fallout_report_data(request, start_date, end_date):
         # TODO: below line should only select pay from units the user can see
         salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
         for event in salary_events:
-            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':                
+            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':
                 days = event.get_duration_within_range(start_date, end_date)
                 fraction = FacultySummary(p).salary_event_info(event)[1]
                 d = fraction.denominator
@@ -724,8 +723,8 @@ def teaching_summary(request, userid):
             end = form.cleaned_data['end_semester']
             start_semester = ReportingSemester(start)
             end_semester = ReportingSemester(end)
-            start_label = ReportingSemester.make_full_label(start)
-            end_label  = ReportingSemester.make_full_label(end)
+            start_label = start_semester.full_label
+            end_label = end_semester.full_label
 
             curr_semester = start_semester
             while curr_semester <= end_semester:
@@ -738,7 +737,7 @@ def teaching_summary(request, userid):
     else:
         start_semester = end_semester = ReportingSemester(datetime.date.today())
         start = end = start_semester.code
-        start_label = end_label = ReportingSemester.make_full_label(start)
+        start_label = end_label = start_semester.full_label
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -847,16 +846,16 @@ def study_leave_credits(request, userid):
             end = form.cleaned_data['end_semester']
             start_semester = ReportingSemester(start)
             end_semester = ReportingSemester(end)
-            start_label = ReportingSemester.make_full_label(start)
-            end_label  = ReportingSemester.make_full_label(end)
+            start_label = start_semester.full_label
+            end_label = end_semester.full_label
 
             slc_total, events, finish_semester = _all_study_events(person, start_semester, end_semester)
 
     else:
         start = start_semester.code
         end = end_semester.code
-        start_label = ReportingSemester.make_full_label(start)
-        end_label  = ReportingSemester.make_full_label(end)
+        start_label = start_semester.full_label
+        end_label = end_semester.full_label
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -870,7 +869,7 @@ def study_leave_credits(request, userid):
         'person': person,
         'study_credits': fraction_display(slc_total),
         'events': events,
-        'finish_semester': ReportingSemester.make_full_label(finish_semester.code)
+        'finish_semester': finish_semester.full_label,
     }
     return render(request, 'faculty/reports/study_leave_credits.html', context)
 
@@ -893,8 +892,7 @@ def _study_credit_events_data(person, semester, show_in_table, running_total):
     for event in teaching_events:
         # only want to account for the study leave event once
         if event.event_type == 'STUDYLEAVE':
-            Handler = EVENT_TYPES[event.event_type]
-            handler = Handler(event)
+            handler = event.get_handler()
             if ReportingSemester.start_and_end_dates(semester.code)[0] <= event.start_date:
                 slc = handler.get_study_leave_credits()
                 running_total -= slc
@@ -1020,23 +1018,23 @@ def view_event(request, userid, event_slug):
     editor = get_object_or_404(Person, userid=request.user.username)
     memos = Memo.objects.filter(career_event=instance)
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=instance.event_type, hidden=False)
-    
-    Handler = EVENT_TYPES[instance.event_type](event=instance)
 
-    if not Handler.can_view(editor):
+    handler = instance.get_handler()
+
+    if not handler.can_view(editor):
         raise PermissionDenied("'%s' not allowed to view this event" % editor)
 
     # TODO: can editors change the status of events to something else?
-    # TODO: For now just assuming editor who is allowed to approve event is also allowed to 
+    # TODO: For now just assuming editor who is allowed to approve event is also allowed to
     # delete event, in essence change the status of the event to anything they want.
     approval = None
-    if Handler.can_approve(editor):
+    if handler.can_approve(editor):
         approval = ApprovalForm(instance=instance)
 
     context = {
         'person': person,
         'editor': editor,
-        'handler': Handler,
+        'handler': handler,
         'event': instance,
         'memos': memos,
         'templates': templates,
@@ -1176,11 +1174,8 @@ def create_event(request, userid, event_type):
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
-    
-    try:
-        Handler = EVENT_TYPES[event_type.upper()]
-    except KeyError:
-        return NotFoundResponse(request)
+
+    Handler = _get_Handler_or_404(event_type.upper())
 
     tmp = Handler.create_for(person)
     if not tmp.can_edit(editor):
@@ -1221,15 +1216,15 @@ def change_event(request, userid, event_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
 
-    Handler = EVENT_TYPES[instance.event_type]
+    Handler = _get_Handler_or_404(instance.event_type)
+    handler = Handler(instance)
+
     context = {
         'person': person,
         'editor': editor,
-        'handler': Handler,
         'event': instance,
-        'event_type': Handler.EVENT_TYPE
+        'event_type': Handler.EVENT_TYPE,
     }
-    handler = Handler(instance)
     if not handler.can_edit(editor):
         return HttpResponseForbidden(request, "'%s' not allowed to edit this event" % editor)
     if request.method == "POST":
@@ -1260,10 +1255,10 @@ def change_event_status(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
-   
-    Handler = EVENT_TYPES[instance.event_type](event=instance)
-    if not Handler.can_approve(editor):
-        raise PermissionDenied("You cannot change status of this event") 
+
+    handler = instance.get_handler()
+    if not handler.can_approve(editor):
+        raise PermissionDenied("You cannot change status of this event")
     form = ApprovalForm(request.POST, instance=instance)
     if form.is_valid():
         event = form.save(commit=False)
@@ -1277,13 +1272,10 @@ def faculty_wizard(request, userid):
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
-    
-    try:
-        Handler_appoint = EVENT_TYPES["APPOINT"]
-        Handler_salary = EVENT_TYPES["SALARY"]
-        Handler_load = EVENT_TYPES["NORM_TEACH"]
-    except KeyError:
-        return NotFoundResponse(request)
+
+    Handler_appoint = _get_Handler_or_404('APPOINT')
+    Handler_salary = _get_Handler_or_404('SALARY')
+    Handler_load = _get_Handler_or_404('NORM_TEACH')
 
     tmp1 = Handler_appoint.create_for(person)
     if not tmp1.can_edit(editor):
@@ -1306,7 +1298,7 @@ def faculty_wizard(request, userid):
         del form_salary.fields['start_date'], form_load.fields['start_date']
         del form_salary.fields['unit'], form_load.fields['unit']
         del form_appoint.fields['leaving_reason']
-        
+
         if form_appoint.is_valid() and form_salary.is_valid() and form_load.is_valid():
             handler_appoint = Handler_appoint.create_for(person=person, form=form_appoint)
             handler_appoint.save(editor)
@@ -1338,7 +1330,7 @@ def faculty_wizard(request, userid):
         del form_salary.fields['start_date'], form_load.fields['start_date']
         del form_salary.fields['unit'], form_load.fields['unit']
         del form_appoint.fields['leaving_reason']
-        
+
         form_list = [form_appoint, form_salary, form_load]
         context.update({"event_form": form_list})
 
@@ -1373,7 +1365,7 @@ def new_attachment(request, userid, event_slug):
             return HttpResponseRedirect(event.get_absolute_url())
         else:
             context.update({"attachment_form": form})
-    
+
     return render(request, 'faculty/document_attachment_form.html', context)
 
 
@@ -1385,8 +1377,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
 
-    Handler = EVENT_TYPES[event.event_type]
-    handler = Handler(event)
+    handler = event.get_handler()
     if not handler.can_view(viewer):
        raise PermissionDenied(" Not allowed to view this attachment")
 
@@ -1404,8 +1395,7 @@ def download_attachment(request, userid, event_slug, attach_slug):
 
     attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
 
-    Handler = EVENT_TYPES[event.event_type]
-    handler = Handler(event)
+    handler = event.get_handler()
     if not handler.can_view(viewer):
         raise PermissionDenied("aNot allowed to download this attachment")
 
@@ -1421,14 +1411,14 @@ def download_attachment(request, userid, event_slug, attach_slug):
 
 @requires_role('ADMN')
 def manage_event_index(request):
-    types = [ 
+    types = [
         {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': Handler.IS_INSTANT,
          'affects_teaching': 'affects_teaching' in Handler.FLAGS,
          'affects_salary': 'affects_salary' in Handler.FLAGS}
         for key, Handler in EVENT_TYPE_CHOICES]
 
     context = {
-               'events': types,      
+               'events': types,
                }
     return render(request, 'faculty/manage_events_index.html', context)
 
@@ -1446,26 +1436,26 @@ def memo_templates(request, event_type):
     context = {
                'templates': templates,
                'event_type_slug':event_type,
-               'event_name': event_type_object[1].NAME,     
-               'flags': choices, 
-               'test': ecs, 
+               'event_name': event_type_object[1].NAME,
+               'flags': choices,
+               'test': ecs,
                }
     return render(request, 'faculty/memo_templates.html', context)
 
 @requires_role('ADMN')
 def new_memo_template(request, event_type):
-    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
+    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
     event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
 
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST)
-        form.fields['unit'].choices = unit_choices 
+        form.fields['unit'].choices = unit_choices
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = person  
-            f.event_type = event_type.upper()         
+            f.created_by = person
+            f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Created memo template %s for %s." % (form.instance.label, form.instance.unit))
             return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
@@ -1496,7 +1486,7 @@ def new_memo_template(request, event_type):
 
 @requires_role('ADMN')
 def manage_memo_template(request, event_type, slug):
-    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))   
+    person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     memo_template = get_object_or_404(MemoTemplate, slug=slug)
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
@@ -1506,13 +1496,13 @@ def manage_memo_template(request, event_type, slug):
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = person
-            f.event_type = event_type.upper()             
+            f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Updated %s template for %s." % (form.instance.label, form.instance.unit))
             return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(instance=memo_template)
-        form.fields['unit'].choices = unit_choices 
+        form.fields['unit'].choices = unit_choices
 
     tags = sorted(EVENT_TAGS.iteritems())
     event_handler = event_type_object[1].CONFIG_FIELDS
@@ -1526,7 +1516,7 @@ def manage_memo_template(request, event_type, slug):
 
     add = sorted(add_tags.iteritems())
     lt = tags + add
-    
+
     context = {
                'form': form,
                'memo_template': memo_template,
@@ -1559,7 +1549,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             f.template = template;
             f.save()
             messages.success(request, "Created new %s memo." % (form.instance.template.label,))
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))  
+            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         initial = {
             'date': datetime.date.today(),
@@ -1582,8 +1572,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    Handler = EVENT_TYPES[instance.event_type]
-    handler = Handler(instance)
+    handler = instance.get_handler()
     if not handler.can_view(person):
         return HttpResponseForbidden(request, "Not allowed to view this memo")
 
@@ -1594,10 +1583,10 @@ def manage_memo(request, userid, event_slug, memo_slug):
             f.career_event = instance
             f.save()
             messages.success(request, "Updated memo.")
-            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))  
+            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         form = MemoForm(instance=memo)
-        
+
     context = {
                'form': form,
                'person': person,
@@ -1624,15 +1613,14 @@ def get_memo_pdf(request, userid, event_slug, memo_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    Handler = EVENT_TYPES[instance.event_type]
-    handler = Handler(instance)
+    handler = instance.get_handler()
     if not handler.can_view(person):
         raise PermissionDenied("Not allowed to view this memo")
 
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (memo_slug)
 
-    memo.write_pdf(response) 
+    memo.write_pdf(response)
     return response
 
 @requires_role('ADMN')
@@ -1641,8 +1629,7 @@ def view_memo(request, userid, event_slug, memo_slug):
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
 
-    Handler = EVENT_TYPES[instance.event_type]
-    handler = Handler(instance)
+    handler = instance.get_handler()
     if not handler.can_view(person):
         raise PermissionDenied("Not allowed to view this memo")
 

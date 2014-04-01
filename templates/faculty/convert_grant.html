@@ -3,28 +3,28 @@
 {% load staticfiles %}
 
 {% block headextra %}
-<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 {% endblock %}
 
 {% block title %}Convert Grant{% endblock %}
 {% block h1 %}Convert Grant{% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
 <li><a href="{% url 'grants_index' %}">Grants</a></li>
 <li>Convert Grant {{ temp_grant.label }}</li>
 {% endblock %}
 
 {% block content %}
 <div class="form_container">
-	<form action="{{ temp_grant.get_convert_url }}" method="post">
-		{% csrf_token %}
-		<fieldset>
-            {{grant_form|as_dl}}
-			<p>
-				<input class="submit"  type="submit" value="Submit" />
-			</p>
-		</fieldset>
-	</form>
+  <form action="{{ temp_grant.get_convert_url }}" method="post">
+    {% csrf_token %}
+    <fieldset>
+      {{grant_form|as_dl}}
+      <p>
+        <input class="submit"  type="submit" value="Submit" />
+      </p>
+    </fieldset>
+  </form>
 </div>
 {% endblock %}

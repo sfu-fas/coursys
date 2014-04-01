@@ -121,7 +121,7 @@ class CareerQuerySet(models.query.QuerySet):
     def effective_date(self, date):
         end_okay = Q(end_date__isnull=True) | Q(end_date__gte=date)
         return self.exclude(status='D').filter(start_date__lte=date).filter(end_okay)
-    
+
     def effective_semester(self, semester):
         """
         Returns CareerEvents starting and ending within this semester.
@@ -177,7 +177,7 @@ class CareerQuerySet(models.query.QuerySet):
 
 
 class CareerEventManager(models.Manager):
-    def get_query_set(self): 
+    def get_query_set(self):
         model = models.get_model('faculty', 'CareerEvent')
         return CareerQuerySet(model)
 
@@ -213,7 +213,7 @@ class CareerEvent(models.Model):
     status = models.CharField(max_length=2, choices=STATUS_CHOICES, blank=False, default='')
     import_key = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     objects = CareerEventManager()
 
     class Meta:
@@ -305,7 +305,7 @@ class CareerEvent(models.Model):
         # basic personal stuff
         gender = self.person.gender()
         title = self.person.get_title()
-        
+
         if gender == "M" :
             hisher = "his"
             heshe = 'he'
@@ -317,15 +317,14 @@ class CareerEvent(models.Model):
             heshe = 'he/she'
 
         # grab event type specific config data
-        Handler = EVENT_TYPES[self.event_type]
-        handler = Handler(self)
+        handler = self.get_handler()
         config_data = self.config
         for key in config_data:
             try:
                 config_data[key] = unicode(handler.get_display(key))
             except AttributeError:
                 pass
-        
+
         ls = { # if changing, also update EVENT_TAGS above!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'title' : title,
@@ -487,7 +486,7 @@ class EventConfig(models.Model):
         unique_together = ('unit', 'event_type')
 
 
-class TempGrantManager(models.Manager): 
+class TempGrantManager(models.Manager):
     def create_from_csv(self, fh, creator):
         reader = csv.reader(fh.read().splitlines())
         # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
@@ -513,7 +512,7 @@ class TempGrantManager(models.Manager):
                 except (IndexError, InvalidOperation):
                     failed.append(row)
                     continue
-               
+
                 # If Grant with the label already exists, then we update the balance
                 try:
                     grant = Grant.objects.get(label__exact=label)
