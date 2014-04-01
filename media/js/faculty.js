@@ -17,6 +17,11 @@ $(document).ready(function(){
 });
 
 function event_filter_update(datatable) {
+  if ( $('input:radio[name=category]').length == 0 ) {
+    // if form hidden, don't filter
+    return;
+  }
+
   var cat = $('input:radio[name=category]:checked').val();
   var table = $('#' + datatable).dataTable( {
     "bRetrieve": true,
