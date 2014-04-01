@@ -47,11 +47,11 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         except AssertionError:
         #except (AssertionError, Semester.DoesNotExist):
             # Semester does not exist, or its in the wrong format
-            return 
+            return
 
     def get_semester_date(self, semester):
         if not semester:
-            return 
+            return
         start, end = semester.start_and_end_dates(semester.code)
         if self.semester_start:
             return start

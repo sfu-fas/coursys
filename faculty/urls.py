@@ -42,7 +42,7 @@ urlpatterns = patterns('',
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/new$', 'faculty.views.new_memo_template', name="faculty_create_template"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name="faculty_manage_template"),
     url(r'^' + USERID_OR_EMPLID + '/summary$', 'faculty.views.summary', name="faculty_summary"),
-    url(r'^' + USERID_OR_EMPLID + '/setup$', 'faculty.views.faculty_wizard', name="faculty_wizard"),    
+    url(r'^' + USERID_OR_EMPLID + '/setup$', 'faculty.views.faculty_wizard', name="faculty_wizard"),
     url(r'^' + USERID_OR_EMPLID + '/otherinfo$', 'faculty.views.otherinfo', name="faculty_otherinfo"),
     url(r'^' + USERID_OR_EMPLID + '/new-event$', 'faculty.views.event_type_list', name="faculty_event_types"),
     url(r'^' + USERID_OR_EMPLID + '/new-event/(?P<event_type>' + SLUG_RE + ')$', 'faculty.views.create_event', name="faculty_create_event"),
@@ -73,5 +73,5 @@ urlpatterns = patterns('',
     url(r'^grants/import$', 'faculty.views.import_grants', name="import_grants"),
     url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '$', 'faculty.views.view_grant', name="view_grant"),
     url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '/edit$', 'faculty.views.edit_grant', name="edit_grant"),
-    
+
 )
