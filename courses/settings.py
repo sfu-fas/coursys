@@ -287,8 +287,9 @@ DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
 # Possible values for the set documented in server-setup/index.html#flags
 FEATUREFLAGS_LOADER = 'featureflags.loaders.settings_loader'
 FEATUREFLAGS_DISABLED_VIEW = 'courselib.auth.service_unavailable'
-#FEATUREFLAGS_CACHE_TIMEOUT = 5
 FEATUREFLAGS_DISABLE = set([])
+FEATUREFLAGS_PANIC_DISABLE = set(['course_browser', 'sims', 'feeds'])
+
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 
