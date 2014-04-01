@@ -724,8 +724,8 @@ def teaching_summary(request, userid):
             end = form.cleaned_data['end_semester']
             start_semester = ReportingSemester(start)
             end_semester = ReportingSemester(end)
-            start_label = ReportingSemester.make_full_label(start)
-            end_label  = ReportingSemester.make_full_label(end)
+            start_label = start_semester.full_label
+            end_label = end_semester.full_label
 
             curr_semester = start_semester
             while curr_semester <= end_semester:
@@ -738,7 +738,7 @@ def teaching_summary(request, userid):
     else:
         start_semester = end_semester = ReportingSemester(datetime.date.today())
         start = end = start_semester.code
-        start_label = end_label = ReportingSemester.make_full_label(start)
+        start_label = end_label = start_semester.full_label
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -847,16 +847,16 @@ def study_leave_credits(request, userid):
             end = form.cleaned_data['end_semester']
             start_semester = ReportingSemester(start)
             end_semester = ReportingSemester(end)
-            start_label = ReportingSemester.make_full_label(start)
-            end_label  = ReportingSemester.make_full_label(end)
+            start_label = start_semester.full_label
+            end_label = end_semester.full_label
 
             slc_total, events, finish_semester = _all_study_events(person, start_semester, end_semester)
 
     else:
         start = start_semester.code
         end = end_semester.code
-        start_label = ReportingSemester.make_full_label(start)
-        end_label  = ReportingSemester.make_full_label(end)
+        start_label = start_semester.full_label
+        end_label = end_semester.full_label
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -870,7 +870,7 @@ def study_leave_credits(request, userid):
         'person': person,
         'study_credits': fraction_display(slc_total),
         'events': events,
-        'finish_semester': ReportingSemester.make_full_label(finish_semester.code)
+        'finish_semester': finish_semester.full_label,
     }
     return render(request, 'faculty/reports/study_leave_credits.html', context)
 
