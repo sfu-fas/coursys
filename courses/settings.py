@@ -136,6 +136,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'PORT': 3306,
         })
 
+    DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
 
 else:
