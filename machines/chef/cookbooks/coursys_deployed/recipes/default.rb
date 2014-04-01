@@ -90,14 +90,6 @@ cookbook_file "nginx_default.conf" do
     action :create
 end
 
-# put in the fake https certification
-cookbook_file "self-ssl.key" do 
-    path "/etc/nginx/cert.key"
-end
-
-cookbook_file "self-ssl.pem" do 
-    path "/etc/nginx/cert.pem"
-end
 
 #configure supervisord
 cookbook_file "supervisord.conf" do 
