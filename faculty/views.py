@@ -1429,16 +1429,14 @@ def memo_templates(request, event_type):
 
     if event_type == "fellow":
         ecs = EventConfig.objects.filter(event_type=FellowshipEventHandler.EVENT_TYPE)
-        choices = Choices(*itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs]))
     else: 
-        choices = []
+        ecs = None
 
     context = {
                'templates': templates,
                'event_type_slug':event_type,
                'event_name': event_type_object[1].NAME,
-               'flags': choices,
-               'test': ecs,
+               'flags': ecs,
                }
     return render(request, 'faculty/memo_templates.html', context)
 
