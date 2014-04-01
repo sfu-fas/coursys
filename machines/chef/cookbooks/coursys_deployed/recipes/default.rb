@@ -53,7 +53,7 @@ end
 
 execute "deny_coursys_ssh" do
     cwd "/"
-    command "grep -q 'DenyUsers coursys'  /etc/ssh/sshd_config || (echo '\nDenyUsers coursys' >> /etc/ssh/sshd_config)"
+    command "grep -q 'DenyUsers coursys'  /etc/ssh/sshd_config || (echo '\nDenyUsers coursys\nDenyUsers www-data' >> /etc/ssh/sshd_config)"
 end
 
 # celery daemon
