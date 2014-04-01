@@ -1,0 +1,5 @@
+postfix	postfix/main_mailer_type	select Internet with smarthost
+postfix	postfix/destinations	string	courses.cs.sfu.ca, localhost.localdomain, localhost
+postfix	postfix/root_address	string	ggbaker@sfu.ca
+postfix	postfix/relayhost	string	mailgate.sfu.ca
+postfix	postfix/mailname	string	courses.cs.sfu.ca
