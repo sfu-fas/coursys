@@ -21,9 +21,9 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **kwargs):
-        self._install_from('STUNNEL_PEM', '/etc/stunnel/stunnel.pem')
-        self._install_from('CERT_PEM', '/etc/nginx/cert.pem')
-        self._install_from('CERT_KEY', '/etc/nginx/cert.key')
+        #self._install_from('STUNNEL_PEM', '/etc/stunnel/stunnel.pem')
+        #self._install_from('CERT_PEM', '/etc/nginx/cert.pem')
+        #self._install_from('CERT_KEY', '/etc/nginx/cert.key')
 
         # AMPQ user
         if hasattr(secrets, 'AMPQ_PASSWORD') and getattr(secrets, 'AMPQ_PASSWORD'):

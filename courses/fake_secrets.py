@@ -20,12 +20,3 @@ SIMS_USER = 'ggbaker'
 SIMS_PASSWORD = ''
 
 AMAINT_DB_PASSWORD = ''
-
-
-
-
-# things put in place by 'sudo manage.py install_secrets'
-
-CERT_KEY = ''
-CERT_PEM = ''
-STUNNEL_PEM = ''
