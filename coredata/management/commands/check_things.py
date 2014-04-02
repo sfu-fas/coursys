@@ -91,6 +91,8 @@ class Command(BaseCommand):
         res = cache.get('check_things_cache_test')
         if res == randval:
             failed.append(('Django cache', 'other processes not sharing cache: DummyCache probably being used instead of memcached'))
+        elif res is None:
+            failed.append(('Django cache', 'unable to retrieve anything from cache'))
         elif res != randval + 1:
             failed.append(('Django cache', 'unknown result'))
         else:
@@ -110,6 +112,7 @@ class Command(BaseCommand):
 
 
         # TODO: svn database, amaint database
+        # TODO: are SSL certs in the right places with the right permissions?
 
         # report results
         if passed:

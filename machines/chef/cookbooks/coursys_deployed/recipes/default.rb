@@ -48,7 +48,7 @@ cookbook_file "stunnel.conf" do
 end
 
 cookbook_file "rabbitmq.conf" do
-    path "/etc/rabbitmq/rabbitmq.conf"
+    path "/etc/rabbitmq/rabbitmq-env.conf"
 end
 
 execute "deny_coursys_ssh" do
