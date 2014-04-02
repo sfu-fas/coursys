@@ -28,7 +28,7 @@ else:
     # standard development environment
     DEPLOY_MODE = 'devel'
 
-print "DEPLOY_MODE: ", DEPLOY_MODE
+#print "DEPLOY_MODE: ", DEPLOY_MODE
 
 DEBUG = DEPLOY_MODE != 'production'
 TEMPLATE_DEBUG = DEBUG

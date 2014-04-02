@@ -34,6 +34,8 @@ class Command(BaseCommand):
             print 'FAIL'
 
     def handle(self, *args, **options):
+        print "Deploy mode:", settings.DEPLOY_MODE
+
         if options['cache_subcall']:
             res = cache.get('check_things_cache_test', -100)
             cache.set('check_things_cache_test', res + 1)
