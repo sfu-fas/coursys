@@ -25,84 +25,108 @@ class Command(BaseCommand):
             help="Email this address to make sure it's sent."),
         )
 
-    def _expect(self, cond, message=None):
-        if cond:
-            print 'okay'
-        elif message:
-            print 'FAIL (%s)' % (message)
-        else:
-            print 'FAIL'
-
     def handle(self, *args, **options):
-        print "Deploy mode:", settings.DEPLOY_MODE
-
         if options['cache_subcall']:
+            # add one to the cached value, so the main process can tell we see/update the same cache
             res = cache.get('check_things_cache_test', -100)
             cache.set('check_things_cache_test', res + 1)
             return
 
+        passed = []
+        failed = []
+        unknown = []
+
+        passed.append(('Deploy mode', settings.DEPLOY_MODE))
+
+        # email sending
         if options['email']:
             email = options['email']
             send_mail('check_things test message', "This is a test message to make sure they're getting through.",
                       settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
-            print "Email sending: sent to %s." % (email)
+            unknown.append(('Email sending', "message sent to %s." % (email)))
         else:
-            print "Email sending: provide an --email to test."
+            unknown.append(('Email sending', "provide an --email argument to test."))
 
         # cache something now to see if it's still there further down.
         randval = random.randint(1, 1000000)
         cache.set('check_things_cache_test', randval, 60)
 
-        print "Main database connection:",
+        # Django database
         try:
             n = Semester.objects.all().count()
-            self._expect(n > 0, message="Can't find any coredata.Semester objects")
+            if n > 0:
+                passed.append(('Main database connection', 'okay'))
+            else:
+                failed.append(('Main database connection', "Can't find any coredata.Semester objects"))
         except django.db.utils.OperationalError:
-            print "FAIL (can't connect to database)"
+            failed.append(('Main database connection', "can't connect to database"))
         except django.db.utils.ProgrammingError:
-            print 'FAIL (database tables missing)'
+            failed.append(('Main database connection', "database tables missing"))
 
-        print "Celery task:",
+        # Celery tasks
         try:
-            t = ping.apply_async()
-            res = t.get(timeout=5)
-            self._expect(res == True)
+            if settings.USE_CELERY:
+                t = ping.apply_async()
+                res = t.get(timeout=5)
+                if res == True:
+                    passed.append(('Celery task', 'okay'))
+                else:
+                    failed.append(('Celery task', 'got incorrect result from task'))
+            else:
+                failed.append(('Celery task', 'celery disabled in settings'))
         except celery.exceptions.TimeoutError:
-            print "FAIL (didn't get result before timeout: celeryd maybe not running)"
+            failed.append(('Celery task', "didn't get result before timeout: celeryd maybe not running"))
         except socket.error:
-            print "FAIL (can't communicate with broker)"
+            failed.append(('Celery task', "can't communicate with broker"))
         except NotImplementedError:
-            print 'FAIL (celery disabled)'
+            failed.append(('Celery task', 'celery disabled'))
         except django.db.utils.ProgrammingError:
-            print 'FAIL (celery DB tables missing)'
+            failed.append(('Celery task', 'celery DB tables missing'))
         except django.db.utils.OperationalError:
-            print "FAIL (djkombu tables missing: try migrating)"
+            failed.append(('Celery task', 'djkombu tables missing: try migrating'))
 
-        print "Django cache:",
-        # have a subprocess do something to make sure we're in a persistent shared cache, not DummyCache
+        # Django cache
+        # (has a subprocess do something to make sure we're in a persistent shared cache, not DummyCache)
         subprocess.call(['python', 'manage.py', 'check_things', '--cache_subcall'])
         res = cache.get('check_things_cache_test')
         if res == randval:
-            print 'FAIL (other processes not sharing cache)'
+            failed.append(('Django cache', 'other processes not sharing cache: DummyCache probably being used instead of memcached'))
         elif res != randval + 1:
-            print 'FAIL (unknown)'
+            failed.append(('Django cache', 'unknown result'))
         else:
-            print 'okay'
+            passed.append(('Django cache', 'okay'))
 
-        print "Reporting DB connection:",
+        # Reporting DB connection
         try:
             db = SIMSConn()
             db.execute("SELECT last_name FROM ps_names WHERE emplid=200133427", ())
             n = len(list(db))
-            self._expect(n > 0)
+            if n > 0:
+                passed.append(('Reporting DB connection', 'okay'))
+            else:
+                failed.append(('Reporting DB connection', 'query inexplicably returned nothing'))
         except SIMSProblem as e:
-            print 'FAIL (SIMSProblem: ' + unicode(e) + ')'
+            failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (unicode(e))))
 
 
         # TODO: svn database, amaint database
 
+        # report results
+        if passed:
+            self.stdout.write('\nThese checks passed:\n')
+        for criteria, message in passed:
+            self.stdout.write('  %s: %s' % (criteria, message))
 
+        if failed:
+            self.stdout.write('\nThese checks failed:\n')
+        for criteria, message in failed:
+            self.stdout.write('  %s: %s' % (criteria, message))
 
+        if unknown:
+            self.stdout.write('\nStatus unknown:\n')
+        for criteria, message in unknown:
+            self.stdout.write('  %s: %s' % (criteria, message))
 
+        self.stdout.write('\n')
 
 
