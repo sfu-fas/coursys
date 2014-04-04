@@ -817,13 +817,13 @@ def teaching_summary_csv(request, userid):
             csv.writerow([
                 semester,
                 event.get_handler().short_summary(),
-                "%.3f" % (credits),
+                _csvfrac(credits),
             ])
         else:
             csv.writerow([
                 semester,
                 course.offering.name(),
-                "%.3f" % (credits),
+                _csvfrac(credits),
                 reason,
             ])
 
@@ -877,6 +877,9 @@ def study_leave_credits(request, userid):
     return render(request, 'faculty/reports/study_leave_credits.html', context)
 
 
+def _csvfrac(f):
+    return "%.3f" % (f)
+
 def _study_credit_events_data(person, semester, show_in_table, running_total):
     # Study credit events for one semester
     slc = 0
@@ -888,7 +891,7 @@ def _study_credit_events_data(person, semester, show_in_table, running_total):
         tc = course.teaching_credit()
         running_total += tc
         if show_in_table and tc:
-            e += [(semester.code, course.offering.name(), tc, tc, fraction_display(running_total))]
+            e += [(semester.code, course.offering.name(), _csvfrac(tc), _csvfrac(tc), _csvfrac(running_total))]
 
     # TODO: should filter only user-visible events
     teaching_events = FacultySummary(person).teaching_events(semester)
@@ -900,18 +903,18 @@ def _study_credit_events_data(person, semester, show_in_table, running_total):
                 slc = handler.get_study_leave_credits()
                 running_total -= slc
                 if show_in_table:
-                    e += [(semester.code, 'Begin Study Leave', '-', -slc , fraction_display(running_total))]
+                    e += [(semester.code, 'Begin Study Leave', '', _csvfrac(-slc) , _csvfrac(running_total))]
             if event.end_date and ReportingSemester.start_and_end_dates(semester.code)[1] >= event.end_date:
                 tot = handler.get_credits_carried_forward()
                 if tot != None:
                     running_total = tot
                 if show_in_table:
-                    e += [(semester.code, 'End Study Leave', '-', '-' , fraction_display(running_total))]
+                    e += [(semester.code, 'End Study Leave', '', '' , _csvfrac(running_total))]
         else:
             credits, load_decrease = FacultySummary(person).teaching_event_info(event)
             running_total += credits
             if show_in_table and credits:
-                    e += [(semester.code, event.get_event_type_display(), credits, credits, fraction_display(running_total))]
+                    e += [(semester.code, event.get_event_type_display(), _csvfrac(credits), _csvfrac(credits), _csvfrac(running_total))]
 
 
     return e, running_total
@@ -929,7 +932,7 @@ def _all_study_events(person, start_semester, end_semester):
             event, slc_total = _study_credit_events_data(person, curr_semester, False, slc_total)
 
         if curr_semester == start_semester.prev():
-            events += [('-', 'Study Leave Credits prior to '+start_semester.code, '-', fraction_display(slc_total) , fraction_display(slc_total))]
+            events += [('', 'Study Leave Credits prior to '+start_semester.code, '', _csvfrac(slc_total) , _csvfrac(slc_total))]
 
         events += event
         curr_semester = curr_semester.next()
@@ -1079,7 +1082,7 @@ def timeline_json(request, userid):
             blurb = {
                 'startDate': '{:%Y,%m,%d}'.format(handler.event.start_date),
                 'headline': handler.short_summary(),
-                'text': u'<a href="{}">permalink</a>'.format(handler.event.get_absolute_url()),
+                'text': u'<a href="{}">more information</a>'.format(handler.event.get_absolute_url()),
             }
 
             if handler.event.end_date is not None:
@@ -1129,10 +1132,6 @@ def edit_faculty_member_info(request, userid):
     #viewer = get_object_or_404(Person, userid=request.user.username)
     person, _ = _get_faculty_or_404(request.units, userid)
 
-    # TODO: are there people who should be able to only view?
-    #if viewer != person:
-    #    return HttpResponseForbidden(request)
-
     info = (FacultyMemberInfo.objects.filter(person=person).first()
             or FacultyMemberInfo(person=person))
 
@@ -1141,6 +1140,8 @@ def edit_faculty_member_info(request, userid):
 
         if form.is_valid():
             new_info = form.save()
+            person.set_title(new_info.title)
+            person.save()
             messages.success(request, 'Contact information was saved successfully.')
             return HttpResponseRedirect(new_info.get_absolute_url())
     else:
@@ -1463,7 +1464,7 @@ def memo_templates(request, event_type):
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
 
     if event_type == "fellow":
-        ecs = EventConfig.objects.filter(event_type=FellowshipEventHandler.EVENT_TYPE)
+        ecs = EventConfig.objects.filter(event_type=FellowshipEventHandler.EVENT_TYPE, unit__in=Unit.sub_units(request.units))
     else: 
         ecs = None
 
@@ -1797,6 +1798,8 @@ def edit_grant(request, unit_slug, grant_slug):
             GrantOwner.objects.filter(grant=grant).delete()
             for p in form.cleaned_data['owners']:
                 GrantOwner(grant=grant, person=p).save()
+
+            return HttpResponseRedirect(reverse("grants_index"))
 
         else:
             context.update({"grant_form": form})

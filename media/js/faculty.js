@@ -1,6 +1,5 @@
 $(document).ready(function(){
   /* date pickers for date inputs */
-  /* XXX: Surely we can just pick a CSS class to use instead? */
   var dates = $('.date-input');
   dates.datepicker({
     dateFormat: 'yy-mm-dd',
@@ -13,6 +12,9 @@ $(document).ready(function(){
     $(this).css('float', 'right');
     $(this).insertBefore($('#id_template_text'));
   });
+
+  /* grant owners multiselect */
+  $("#id_owners").css("min-height", "180px").multiselect();
 
 });
 

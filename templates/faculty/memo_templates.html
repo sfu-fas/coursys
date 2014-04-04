@@ -63,7 +63,6 @@
 		<thead>
 			<tr>
 				<th scope="col">Flag Name</th>
-				<th scope="col">Event Type</th>
 				<th scope="col">Unit</th>
 			</tr>
 		</thead>
@@ -72,7 +71,6 @@
 			{% for value in t.config.fellowships%}
 			<tr>
 				<td>{{value.1}}</td>
-				<td>{{t.event_type}}</td>
 				<td>{{t.unit}}</td>
 			</tr>
 			{% endfor %}

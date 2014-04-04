@@ -23,27 +23,15 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<div class="datatable_container">
-<table id="event_type_table" class="display">
-  <thead><tr>
-    <th scope="col">Event Type</th>
-    <th scope="col">Instantaneous</th>
-    <th scope="col">Affects Teaching</th>
-    <th scope="col">Affects Salary</th>
-  </tr></thead>
-  <tbody>
+<p>Select the type of event to create:</p>
+<ul>
   {% for type in event_types %}
   {% can_edit_handler type.slug editor person as editable %}
   {% if editable %}
-  <tr>
-    <td><a href="{% url 'faculty_create_event' userid=person.userid_or_emplid event_type=type.slug %}">{{ type.name }}</a></td>
-    <td>{{ type.is_instant|yesno }}</td>
-    <td>{{ type.affects_teaching|yesno }}</td>
-    <td>{{ type.affects_salary|yesno }}</td>
-  </tr>
+  <li>
+      <a href="{% url 'faculty_create_event' userid=person.userid_or_emplid event_type=type.slug %}">{{ type.name }}</a>
+  </li>
   {% endif %}
   {% endfor %}
-  </tbody>
-</table>
-</div>
+</ul>
 {% endblock %}

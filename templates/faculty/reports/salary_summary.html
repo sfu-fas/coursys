@@ -29,8 +29,8 @@ $(document).ready(function() {
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
-<li><a href="{% url "faculty.views.salary_index" %}">Salaries</a></li>
-<li>{{ person.name }}</li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Salary Info</li>
 {% endblock %}
 
 {% block content %}

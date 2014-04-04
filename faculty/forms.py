@@ -5,7 +5,7 @@ from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person
 
-from faculty.event_types.fields import SemesterCodeField, TeachingCreditField
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
 from faculty.models import FacultyMemberInfo
@@ -162,6 +162,12 @@ class GrantForm(forms.ModelForm):
     class Meta:
         model = Grant
         fields = ['title', 'owners', 'start_date', 'expiry_date', 'initial', 'overhead', 'unit']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'class': 'date-input'}),
+            'expiry_date': forms.DateInput(attrs={'class': 'date-input'}),
+            'initial': DollarInput(),
+            'overhead': DollarInput(),
+        }
 
 
 class GrantImportForm(forms.Form):

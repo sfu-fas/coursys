@@ -86,7 +86,8 @@ class Person(models.Model):
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
-    
+    _, set_title = getter_setter('title')
+
 
     @staticmethod
     def emplid_header():
