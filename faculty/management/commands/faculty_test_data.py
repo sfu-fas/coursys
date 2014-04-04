@@ -206,6 +206,23 @@ class Command(BaseCommand):
                 "Because we are so excited to hire him, we will be throwing a party. Date to be announced.")
         m.save()
 
+        # some leaves etc to demo salary/fallout
+        e, h = event_get_or_create(person=diana, unit=cmpt, event_type='LEAVE', start_date=date(2014,1,1),
+                                end_date=date(2014,12,31), status='A')
+        e.config = {'reason': 'MEDICAL', 'leave_fraction': '1/2', 'teaching_load_decrease': 1, 'teaching_credits': 0}
+        h.save(editor=editor)
+
+        e, h = event_get_or_create(person=tony, unit=cmpt, event_type='STUDYLEAVE', start_date=date(2013,9,1),
+                                end_date=date(2014,8,31), status='A')
+        e.config = {'pay_fraction': '4/5', 'teaching_decrease': 2, 'study_leave_credits': 24, 'credits_forward': 0}
+        h.save(editor=editor)
+
+        e, h = event_get_or_create(person=tony, unit=cmpt, event_type='FELLOW', start_date=date(2012,1,1),
+                                end_date=None, status='A')
+        e.config = {'position': 'BBYM', 'add_salary': 0, 'add_pay': 10000, 'teaching_credit': 0}
+        h.save(editor=editor)
+
+
         # out-of-unit events: Dean's office staff should see MSE stuff
         e, h = event_get_or_create(person=farid, unit=mse, event_type='SALARY', start_date=date(2000,9,1),
                                 status='A')

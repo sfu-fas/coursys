@@ -906,7 +906,7 @@ def _study_credit_events_data(person, semester, show_in_table, running_total):
                     e += [(semester.code, 'Begin Study Leave', '', _csvfrac(-slc) , _csvfrac(running_total))]
             if event.end_date and ReportingSemester.start_and_end_dates(semester.code)[1] >= event.end_date:
                 tot = handler.get_credits_carried_forward()
-                if tot:
+                if tot != None:
                     running_total = tot
                 if show_in_table:
                     e += [(semester.code, 'End Study Leave', '', '' , _csvfrac(running_total))]
