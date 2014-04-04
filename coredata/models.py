@@ -831,6 +831,10 @@ class Member(models.Model):
             # if manually set, then honour it
             if 'teaching_credit_reason' in self.config:
                 reason = self.config['teaching_credit_reason']
+                if len(reason) > 15:
+                    reason = 'set manually: ' + reason[:15] + u'\u2026'
+                else:
+                    reason = 'set manually: ' + reason
             else:
                 reason = 'set manually'
             return fractions.Fraction(self.config['teaching_credit']), reason

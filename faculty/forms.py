@@ -5,7 +5,7 @@ from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person
 
-from faculty.event_types.fields import SemesterCodeField, FractionField
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
 from faculty.models import FacultyMemberInfo
@@ -47,7 +47,7 @@ class TeachingSummaryForm(forms.Form):
 
 
 class TeachingCreditOverrideForm(forms.Form):
-    teaching_credits = FractionField(help_text='May be a fraction eg. 2/3')
+    teaching_credits = TeachingCreditField(help_text='May be a fraction eg. 2/3')
     reason = forms.CharField(required=False, max_length=200, widget=forms.Textarea(attrs={'rows':2, 'cols':70,}))
 
 
