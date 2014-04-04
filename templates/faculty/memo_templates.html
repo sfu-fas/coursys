@@ -9,7 +9,7 @@
 		</li>
 		{% if flags %}
 		<li >
-		<a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">New Event Flag</a>
+		<a href="{% url 'faculty.views.new_event_flag' event_type=event_type_slug %}">New Event Flag</a>
 		</li>
 		{% endif %}
 	</ul>
@@ -22,7 +22,7 @@
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
-<li>{{ event_name }} Templates</li>
+<li>{{ event_name }}</li>
 {% endblock %}
 
 {% block content %}
@@ -65,15 +65,19 @@
 				<th scope="col">Flag Name</th>
 				<th scope="col">Event Type</th>
 				<th scope="col">Unit</th>
+				<th scope="col">Action</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for t in flags %}
 			{% for value in t.config.fellowships%}
 			<tr>
+				{% if value.2 == 'ACTIVE' %}
 				<td>{{value.1}}</td>
 				<td>{{t.event_type}}</td>
 				<td>{{t.unit}}</td>
+				<td><a href="{% url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=t.unit.label flag=value.0 %}">Delete</a></td>
+				{% endif %}
 			</tr>
 			{% endfor %}
 			{% endfor %}

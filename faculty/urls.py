@@ -40,10 +40,12 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/study_leave_credits$', 'faculty.views.study_leave_credits', name="faculty_study_leave_credits"),
     url(r'^' + USERID_OR_EMPLID + '/study_leave_credits.csv$', 'faculty.views.study_leave_credits_csv'),
 
-    # Memo Management
+    # Event Management
     url(r'^event-management$', 'faculty.views.manage_event_index', name="faculty_events_manage_index"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates$', 'faculty.views.memo_templates', name="template_index"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/new$', 'faculty.views.new_memo_template', name="faculty_create_template"),
+    url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/new-flag$', 'faculty.views.new_event_flag', name="faculty_create_flag"),
+    url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/(?P<unit>\w+)/(?P<flag>\w+)/delete-flag$', 'faculty.views.delete_event_flag', name="faculty_delete_flag"),
     url(r'^event-management/(?P<event_type>' + SLUG_RE + ')/memo-templates/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name="faculty_manage_template"),
 
     # Person Specific Actions

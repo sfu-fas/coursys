@@ -40,7 +40,11 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             ecs = EventConfig.objects.filter(unit__in=self.units,
                                              event_type=FellowshipEventHandler.EVENT_TYPE)
             choices = itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs])
-            self.fields['position'].choices = choices
+            end_choices = []
+            for i, (flag_short, flag_long, status) in enumerate(choices):
+                if status == 'ACTIVE':
+                    end_choices = end_choices + [(flag_short, flag_long)]
+            self.fields['position'].choices = end_choices
 
         def clean(self):
             from faculty.models import EventConfig
@@ -52,9 +56,10 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             try:
                 ec = EventConfig.objects.get(unit=data['unit'],
                                              event_type=FellowshipEventHandler.EVENT_TYPE)
-                fellowships = dict(ec.config.get('fellowships', []))
-                if data['position'] in fellowships:
-                    found = True
+                fellowships = ec.config['fellowships']
+                for i, (flag_short, flag_long, status) in enumerate(fellowships):
+                    if flag_short == data['position']:
+                         found = True
             except EventConfig.DoesNotExist:
                 pass
 
@@ -78,12 +83,16 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         from faculty.models import EventConfig
         try:
             ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.EVENT_TYPE)
-            fellowships = dict(ec.config.get('fellowships', {}))
+            fellowships = ec.config['fellowships']
         except EventConfig.DoesNotExist:
             fellowships = {}
 
         pos = self.event.config.get('position', '???')
-        return fellowships.get(pos, pos)
+        pos_ret = ""
+        for i, (flag_short, flag_long, status) in enumerate(fellowships):
+            if flag_short == pos:
+                pos_ret = flag_long
+        return pos_ret
 
     @classmethod
     def default_title(cls):

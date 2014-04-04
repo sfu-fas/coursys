@@ -102,9 +102,9 @@ class Command(BaseCommand):
         mt.save()
         ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='FELLOW')
         ec.config = {'fellowships': [
-            ('LEEF', 'Leef Chair'),
-            ('BBYM', 'Burnaby Mountain Chair'),
-            ('UNIR', 'University Research Chair')
+            ('LEEF', 'Leef Chair', 'ACTIVE'),
+            ('BBYM', 'Burnaby Mountain Chair', 'ACTIVE'),
+            ('UNIR', 'University Research Chair', 'ACTIVE')
         ]}
         ec.save()
         ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='ACCRED')

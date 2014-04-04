@@ -33,7 +33,7 @@ from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, Faculty
 from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
-from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
+from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm
 from faculty.processing import FacultySummary
@@ -1439,6 +1439,49 @@ def memo_templates(request, event_type):
                'flags': ecs,
                }
     return render(request, 'faculty/memo_templates.html', context)
+
+@requires_role('ADMN')
+def new_event_flag(request, event_type):
+    unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
+    event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+
+    if request.method == 'POST':
+        form = EventFlagForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            unit_obj = Unit.objects.get(id=request.POST.get("unit"))
+            ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type='FELLOW')
+            if 'fellowships' in ec.config:
+                ec.config['fellowships'] = ec.config['fellowships'] + [(request.POST.get("flag_short"), request.POST.get("flag"), 'ACTIVE')]
+            else:
+                ec.config = {'fellowships': [(request.POST.get("flag_short"), request.POST.get("flag"), 'ACTIVE')]}
+            ec.save()
+            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))       
+    else:
+        form = EventFlagForm(initial={'unit': in_unit})
+        form.fields['unit'].choices = unit_choices
+
+    context = {
+               'form': form,
+               'event_type_slug': event_type,
+               'event_name': event_type_object[1].NAME
+               }
+    return render(request, 'faculty/event_flag.html', context)
+
+@requires_role('ADMN')
+def delete_event_flag(request, event_type, unit, flag):
+    unit_obj = Unit.objects.get(label=unit)
+    ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type='FELLOW')
+    list_flags = ec.config['fellowships']
+    for i, (flag_short, flag_long, status) in enumerate(list_flags):
+        if flag_short == flag:
+            list_flags[i] = (flag_short, flag_long, 'DELETED')
+            break
+    ec.config['fellowships'] = list_flags
+    ec.save()
+
+    return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type})) 
 
 @requires_role('ADMN')
 def new_memo_template(request, event_type):
