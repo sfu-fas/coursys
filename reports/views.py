@@ -48,7 +48,9 @@ def new_report(request):
 
 
 def _has_access(request, report):
-    return has_role('SYSA', request) or AccessRule.objects.get(report=report, person__userid=request.user.username)
+    return (has_role('SYSA', request) or 
+            (len(AccessRule.objects.filter(report=report, person__userid=request.user.username)) > 0)
+            )
 
 
 def view_report(request, report):
@@ -248,10 +250,10 @@ def run(request, report):
             else: 
                 messages.error(request, "Run Failed!")
         run = runs[0]
-        try:
-            shutil.rmtree(settings.REPORT_CACHE_LOCATION)
-        except OSError as e:
-            print e
+        #try:
+        #    shutil.rmtree(settings.REPORT_CACHE_LOCATION)
+        #except OSError as e:
+        #    print e
         return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
     else:
         messages.error(request, "You haven't added any queries or reports to run, yet!")
