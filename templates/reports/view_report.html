@@ -98,11 +98,10 @@
 <div id="console-modal" style="display:none;" title="Console"> 
     <pre id='code'> 
         Now running your report! 
-        Extended console output won't display on a single-threaded server. (Django &lt; 1.4) 
     </pre>
 </div> 
 
-<em>{{report.description}}</em>
+<em>{{report.description|linebreaks}}</em>
 
 <h2>Access Rules</h2>
 <p>These people can see the output of this report:</p>
