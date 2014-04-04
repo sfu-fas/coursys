@@ -12,10 +12,6 @@ $(document).ready(function(){
     $(this).css('float', 'right');
     $(this).insertBefore($('#id_template_text'));
   });
-
-  /* grant owners multiselect */
-  $("#id_owners").css("min-height", "180px").multiselect();
-
 });
 
 function event_filter_update(datatable) {
