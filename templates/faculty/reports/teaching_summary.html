@@ -67,10 +67,11 @@ $(document).ready(function() {
       <td>{{ semester }}</td>
       {% if event %}
         <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
+        <td>{{ credits }}</td>
       {% else %}
-        <td>{{ course }} ({{summary}})</td>
+        <td>{{ course.offering.name }} ({{summary}})</td>
+        <td><a title='Edit' href="{% url 'faculty.views.teaching_credit_override' userid=person.userid_or_emplid course_slug=course.offering.slug %}">{{ credits }}</a></td>
       {% endif %}
-      <td>{{ credits }}</td>
     </tr>
     {% endfor %}
   </tbody>

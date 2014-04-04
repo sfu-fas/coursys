@@ -35,7 +35,7 @@ from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
-from faculty.forms import FacultyMemberInfoForm
+from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
@@ -761,7 +761,7 @@ def _teaching_events_data(person, semester):
         .exclude(offering__component='CAN').exclude(offering__flags=CourseOffering.flags.combined) \
         .select_related('offering', 'offering__semester')
     for course in courses:
-        e += [(semester.code, course.offering.name(), course.offering.title, course.teaching_credit(), '')]
+        e += [(semester.code, course, course.offering.title, course.teaching_credit(), '')]
         cb += course.teaching_credit()
 
     # TODO: should filter only user-visible events
@@ -820,7 +820,7 @@ def teaching_summary_csv(request, userid):
         else:
             csv.writerow([
                 semester,
-                course,
+                course.offering.name(),
                 credits,
             ])
 
@@ -1148,6 +1148,38 @@ def edit_faculty_member_info(request, userid):
         'form': form,
     }
     return render(request, 'faculty/edit_faculty_member_info.html', context)
+
+
+@requires_role('ADMN')
+def teaching_credit_override(request, userid, course_slug):
+    person, _ = _get_faculty_or_404(request.units, userid)
+    course = get_object_or_404(Member, person=person, offering__slug=course_slug)
+
+    context = {
+        'person': person,
+        'course':course,
+        'course_slug': course_slug,
+    }
+
+    if request.POST:
+        form = TeachingCreditOverrideForm(request.POST)
+        if form.is_valid():
+            course.set_teaching_credit(form.cleaned_data['teaching_credits'])
+            course.set_teaching_credit_reason(form.cleaned_data['reason'])
+            course.save()
+            return HttpResponseRedirect(reverse(teaching_summary, kwargs={'userid':userid}))
+
+        else:
+            context.update({'form': form})
+            return render(request, 'faculty/override_teaching_credit.html', context)
+
+    else:
+        credits, reason = course.teaching_credit_with_reason()
+        initial = { 'teaching_credits': credits,
+                    'reason': reason }
+        form = TeachingCreditOverrideForm(initial=initial)
+        context.update({'form': form})
+        return render(request, 'faculty/override_teaching_credit.html', context)
 
 
 ###############################################################################

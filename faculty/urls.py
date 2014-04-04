@@ -59,6 +59,8 @@ urlpatterns = patterns('',
     url(r'^' + USERID_OR_EMPLID + '/contact-info$', 'faculty.views.faculty_member_info'),
     url(r'^' + USERID_OR_EMPLID + '/contact-info/edit$', 'faculty.views.edit_faculty_member_info'),
 
+    url(r'^' + USERID_OR_EMPLID + '/teaching_credit_override/(?P<course_slug>' + SLUG_RE + ')$', 'faculty.views.teaching_credit_override'),   
+
     # Event Specific Actions
     url(r'^' + EVENT_PREFIX + '/$', 'faculty.views.view_event', name="faculty_event_view"),
     url(r'^' + EVENT_PREFIX + '/change$', 'faculty.views.change_event', name="faculty_change_event"),

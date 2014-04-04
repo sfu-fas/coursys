@@ -829,7 +829,11 @@ class Member(models.Model):
 
         if 'teaching_credit' in self.config:
             # if manually set, then honour it
-            return fractions.Fraction(self.config['teaching_credit']), 'set manually'
+            if 'teaching_credit_reason' in self.config:
+                reason = self.config['teaching_credit_reason']
+            else:
+                reason = 'set manually'
+            return fractions.Fraction(self.config['teaching_credit']), reason
         elif self.offering.enrl_tot == 0:
             # no students => no teaching credit (probably a cancelled section we didn't catch on import)
             return fractions.Fraction(0), 'empty section'
@@ -865,6 +869,9 @@ class Member(models.Model):
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
+
+    def set_teaching_credit_reason(self, reason):
+        self.config['teaching_credit_reason'] = unicode(reason)
 
     def get_tug(self):
         assert self.role == 'TA'
