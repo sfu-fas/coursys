@@ -94,7 +94,7 @@ def _get_event_types():
 @requires_role('ADMN')
 def index(request):
     sub_units = Unit.sub_units(request.units)
-    fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit')
+    fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit').order_by('person')
     fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
     fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles]
 
