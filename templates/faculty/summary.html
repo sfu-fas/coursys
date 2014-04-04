@@ -82,7 +82,7 @@ $(document).ready(function() {
     <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
     <td>{{ e.get_event_type_display }}</td>
     <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
-    <td><span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}</td>
+    <td>{% if e.end_date %}<span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}{% else %}&mdash;{% endif %}</td>
     <td>{{ e.get_status_display }}</td>
   </tr>
   {% endif %}

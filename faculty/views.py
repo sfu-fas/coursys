@@ -1178,7 +1178,8 @@ def teaching_credit_override(request, userid, course_slug):
             return render(request, 'faculty/override_teaching_credit.html', context)
 
     else:
-        credits, reason = course.teaching_credit_with_reason()
+        credits = course.teaching_credit()
+        reason = course.config.get('teaching_credit_reason', '')
         initial = { 'teaching_credits': credits,
                     'reason': reason }
         form = TeachingCreditOverrideForm(initial=initial)
