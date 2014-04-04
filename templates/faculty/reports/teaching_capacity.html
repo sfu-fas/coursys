@@ -78,8 +78,8 @@ $(document).ready(function() {
   <thead><tr>
     <th scope="col">Unit</th>
     <th scope="col">Person</th>
-    <th scope="col">Teaching Credits</th>
     <th scope="col">Expected Teaching Load</th>
+    <th scope="col">Teaching Credits</th>
     <th scope="col">Available Capacity</th>
   </tr></thead>
   <tbody>
@@ -92,8 +92,8 @@ $(document).ready(function() {
             {{ person }}
           </a>
         </td>
-        <td>{{ credits|fraction_display }}</td>
         <td>{{ load_decrease|fraction_display }}</td>
+        <td>{{ credits|fraction_display }}</td>
         <td>{{ capacity|fraction_display }}</td>
       </tr>
     {% endfor %}

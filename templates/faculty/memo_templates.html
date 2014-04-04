@@ -2,25 +2,31 @@
 
 {% block actions %}
 <div id="actions">
-  <h2>Actions</h2>
-  <ul>
-    <li >
-    <a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">New Memo Template</a>
-    </li>
-  </ul>
+	<h2>Actions</h2>
+	<ul>
+		<li >
+		<a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">New Memo Template</a>
+		</li>
+		{% if flags %}
+		<li >
+		<a href="{% url 'faculty.views.new_event_flag' event_type=event_type_slug %}">New Event Flag</a>
+		</li>
+		{% endif %}
+	</ul>
 </div>
 {% endblock %}
 
-{% block title %}Memo Templates{% endblock %}
-{% block h1 %}Memo Templates{% endblock %}
+{% block title %}Event Management{% endblock %}
+{% block h1 %}Event Management{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
-<li>{{ event_name }} Templates</li>
+<li>{{ event_name }}</li>
 {% endblock %}
 
 {% block content %}
+<h2>Memo Templates</h2>
 {% if templates %}
 <div class="table_container">
   <table class="display" id="memo_templates">
@@ -49,4 +55,32 @@
 {% else %}
 <p>There are no templates for this event type. <a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">Create one now.</a></p>
 {% endif %}
-{% endblock %}
+
+{% if flags %}
+<h2>Event Flags</h2>
+<div class="table_container">
+	<table class="display" id="memo_templates">
+		<thead>
+			<tr>
+				<th scope="col">Flag Name</th>
+				<th scope="col">Unit</th>
+				<th scope="col">Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for t in flags %}
+			{% for value in t.config.fellowships%}
+			<tr>
+				{% if value.2 == 'ACTIVE' %}
+				<td>{{value.1}}</td>
+				<td>{{t.unit}}</td>
+				<td><a href="{% url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=t.unit.label flag=value.0 %}">Delete</a></td>
+				{% endif %}
+			</tr>
+			{% endfor %}
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+{% endblock %} 

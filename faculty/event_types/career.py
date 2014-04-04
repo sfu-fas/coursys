@@ -411,7 +411,7 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
             from faculty.models import EventConfig
             data = self.cleaned_data
             if 'unit' not in data:
-                raise forms.ValidationError("Couldn't check unit for fellowship ownership.")
+                raise forms.ValidationError("Couldn't check unit for attribute ownership.")
 
             found = False
             try:
@@ -424,7 +424,7 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
                 pass
 
             if not found:
-                raise forms.ValidationError("That fellowship is not owned by the selected unit.")
+                raise forms.ValidationError("That attribute is not owned by the selected unit.")
 
             return data
 

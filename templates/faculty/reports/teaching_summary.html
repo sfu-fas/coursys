@@ -62,15 +62,19 @@ $(document).ready(function() {
       <th scope="col">Credits</th>
     </tr></thead>
     <tbody>
-    {% for semester, course, summary, credits, event in events %}
+    {% for semester, course, summary, credits, reason, event in events %}
     <tr>
       <td>{{ semester }}</td>
       {% if event %}
         <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
+        <td>{{ credits }}</td>
       {% else %}
-        <td>{{ course }} ({{summary}})</td>
+        <td>{{ course.offering.name }} ({{summary}})</td>
+        <td><span class="sort">{{ credits|floatformat:'3' }}</span>
+          <a title='Edit' href="{% url 'faculty.views.teaching_credit_override' userid=person.userid_or_emplid course_slug=course.offering.slug %}">{{ credits }}</a>
+          {% if reason %}({{ reason }}){% endif %}
+        </td>
       {% endif %}
-      <td>{{ credits }}</td>
     </tr>
     {% endfor %}
   </tbody>

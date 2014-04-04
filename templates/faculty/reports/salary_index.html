@@ -83,9 +83,9 @@ $(document).ready(function() {
   <tr class="{{ units }}">
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{ person.sortname }}</a></td>
   <td>{{ units }}</td>
-  <td>{{ salary }}</td>
-  <td>{{ fraction }}</td>
-  <td>{{ bonus }}</td>
+  <td>${{ salary}}</td>
+  <td>{{ fraction}}</td>
+  <td>${{ bonus }}</td>
   <td><span class="rowdata">{{ pay }}</span> ${{ pay }}</td>
   </tr>
   {% endfor %}

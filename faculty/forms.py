@@ -5,7 +5,7 @@ from django.utils.translation import ugettext as _
 
 from coredata.models import Semester, Unit, Person
 
-from faculty.event_types.fields import SemesterCodeField
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
 from faculty.models import FacultyMemberInfo
@@ -46,6 +46,11 @@ class TeachingSummaryForm(forms.Form):
     end_semester = SemesterCodeField()
 
 
+class TeachingCreditOverrideForm(forms.Form):
+    teaching_credits = TeachingCreditField(help_text='May be a fraction eg. 2/3')
+    reason = forms.CharField(required=False, max_length=200, widget=forms.Textarea(attrs={'rows':2, 'cols':70,}))
+
+
 def attachment_formset_factory():
     return modelformset_factory(DocumentAttachment, form=AttachmentForm, extra=1)
 
@@ -55,6 +60,10 @@ class AttachmentForm(forms.ModelForm):
         model = DocumentAttachment
         exclude = ("career_event", "created_by")
 
+class EventFlagForm(forms.Form):
+    flag_short = forms.CharField(label='Flag short form', help_text='e.g. LEEF')
+    flag = forms.CharField(label='Flag full name', help_text='e.g. Leef Chair')
+    unit = forms.ChoiceField()
 
 class MemoTemplateForm(forms.ModelForm):
     class Meta:
@@ -157,6 +166,12 @@ class GrantForm(forms.ModelForm):
     class Meta:
         model = Grant
         fields = ['title', 'owners', 'start_date', 'expiry_date', 'initial', 'overhead', 'unit']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'class': 'date-input'}),
+            'expiry_date': forms.DateInput(attrs={'class': 'date-input'}),
+            'initial': DollarInput(),
+            'overhead': DollarInput(),
+        }
 
 
 class GrantImportForm(forms.Form):

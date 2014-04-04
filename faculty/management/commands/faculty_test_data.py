@@ -37,6 +37,8 @@ class Command(BaseCommand):
     def global_data(self):
         univ, _ = Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University', parent=None)
         fas, _ = Unit.objects.get_or_create(label='FAS', name='Faculty of Applied Sciences', parent=univ)
+        fas.config['informal_name'] = 'Applied Sciences'
+        fas.save()
         cmpt, _ = Unit.objects.get_or_create(label='CMPT')
         cmpt.name = 'School of Computing Science'
         cmpt.config['informal_name'] = 'Computing Science'
@@ -102,9 +104,9 @@ class Command(BaseCommand):
         mt.save()
         ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='FELLOW')
         ec.config = {'fellowships': [
-            ('LEEF', 'Leef Chair'),
-            ('BBYM', 'Burnaby Mountain Chair'),
-            ('UNIR', 'University Research Chair')
+            ('LEEF', 'Leef Chair', 'ACTIVE'),
+            ('BBYM', 'Burnaby Mountain Chair', 'ACTIVE'),
+            ('UNIR', 'University Research Chair', 'ACTIVE')
         ]}
         ec.save()
         ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='ACCRED')
@@ -133,11 +135,11 @@ class Command(BaseCommand):
         fas = Unit.objects.get(slug='fas')
 
         # create basic roles
-        Role.objects.get_or_create(person=greg, unit=ensc, role='FAC')
         Role.objects.get_or_create(person=greg, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=brad, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=diana, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='FAC')
+        Role.objects.get_or_create(person=tony, unit=ensc, role='FAC')
         Role.objects.get_or_create(person=farid, unit=mse, role='FAC')
         Role.objects.get_or_create(person=phillip, unit=phil, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='ADMN')
@@ -203,6 +205,23 @@ class Command(BaseCommand):
         m.memo_text = ("We are pleased to appoint Gregory Baker to a new job.\n\n" +
                 "Because we are so excited to hire him, we will be throwing a party. Date to be announced.")
         m.save()
+
+        # some leaves etc to demo salary/fallout
+        e, h = event_get_or_create(person=diana, unit=cmpt, event_type='LEAVE', start_date=date(2014,1,1),
+                                end_date=date(2014,12,31), status='A')
+        e.config = {'reason': 'MEDICAL', 'leave_fraction': '1/2', 'teaching_load_decrease': 1, 'teaching_credits': 0}
+        h.save(editor=editor)
+
+        e, h = event_get_or_create(person=tony, unit=cmpt, event_type='STUDYLEAVE', start_date=date(2013,9,1),
+                                end_date=date(2014,8,31), status='A')
+        e.config = {'pay_fraction': '4/5', 'teaching_decrease': 2, 'study_leave_credits': 24, 'credits_forward': 0}
+        h.save(editor=editor)
+
+        e, h = event_get_or_create(person=tony, unit=cmpt, event_type='FELLOW', start_date=date(2012,1,1),
+                                end_date=None, status='A')
+        e.config = {'position': 'BBYM', 'add_salary': 0, 'add_pay': 10000, 'teaching_credit': 0}
+        h.save(editor=editor)
+
 
         # out-of-unit events: Dean's office staff should see MSE stuff
         e, h = event_get_or_create(person=farid, unit=mse, event_type='SALARY', start_date=date(2000,9,1),
