@@ -18,7 +18,7 @@ urlpatterns = patterns('',
     # Report: Salary
     url(r'^salaries$', 'faculty.views.salary_index'),
     url(r'^salaries.csv$', 'faculty.views.salary_index_csv'),
-    url(r'^salaries/' + USERID_OR_EMPLID + '$', 'faculty.views.salary_summary'),
+    url(r'^' + USERID_OR_EMPLID + '/salary$', 'faculty.views.salary_summary'),
 
     # Report: Fallout
     url(r'^fallout$', 'faculty.views.fallout_report'),

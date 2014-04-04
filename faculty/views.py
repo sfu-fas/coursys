@@ -271,7 +271,7 @@ def salary_index_csv(request):
             step,
             units,
             salary,
-            fraction,
+            _csvfrac(fraction),
             bonus,
             pay,
         ])
@@ -391,10 +391,10 @@ def fallout_report_csv(request):
         csv.writerow([
             units,
             p.name(),
-            event.get_event_type_display(),
+            event.get_handler().short_summary(),
             days,
             salary,
-            fraction,
+            _csvfrac(fraction),
             fallout,
         ])
 
@@ -517,11 +517,11 @@ def teaching_capacity_csv(request):
         filename = 'teaching_capacity_{}.csv'.format(semester.code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
-            'unit',
-            'person',
-            'teaching credits',
-            'expected teaching load',
-            'available capacity',
+            'Unit',
+            'Person',
+            'Expected teaching load',
+            'Teaching credits',
+            'Available capacity',
         ])
 
         for unit in sub_units:
@@ -529,9 +529,9 @@ def teaching_capacity_csv(request):
                 csv.writerow([
                     unit.label,
                     person.name(),
-                    str(credits),
-                    str(load),
-                    str(capacity),
+                    _csvfrac(load),
+                    _csvfrac(credits),
+                    _csvfrac(capacity),
                 ])
 
         return response
