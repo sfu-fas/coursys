@@ -37,6 +37,8 @@ class Command(BaseCommand):
     def global_data(self):
         univ, _ = Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University', parent=None)
         fas, _ = Unit.objects.get_or_create(label='FAS', name='Faculty of Applied Sciences', parent=univ)
+        fas.config['informal_name'] = 'Applied Sciences'
+        fas.save()
         cmpt, _ = Unit.objects.get_or_create(label='CMPT')
         cmpt.name = 'School of Computing Science'
         cmpt.config['informal_name'] = 'Computing Science'

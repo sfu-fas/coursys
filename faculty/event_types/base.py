@@ -209,8 +209,9 @@ class CareerEventHandlerBase(object):
 
     def set_config(self, name, value):
         field = self.CONFIG_FIELDS[name]
-
-        if isinstance(value, models.Model):
+        if value is None:
+            raw_value = None
+        elif isinstance(value, models.Model):
             raw_value = unicode(value.pk)
         else:
             raw_value = unicode(field.prepare_value(value))
