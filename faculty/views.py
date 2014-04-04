@@ -1466,7 +1466,7 @@ def memo_templates(request, event_type):
 
     if event_type == "fellow":
         ecs = EventConfig.objects.filter(event_type=FellowshipEventHandler.EVENT_TYPE, unit__in=Unit.sub_units(request.units))
-    else: 
+    else:
         ecs = None
 
     context = {
@@ -1494,7 +1494,7 @@ def new_event_flag(request, event_type):
             else:
                 ec.config = {'fellowships': [(request.POST.get("flag_short"), request.POST.get("flag"), 'ACTIVE')]}
             ec.save()
-            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))       
+            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
     else:
         form = EventFlagForm(initial={'unit': in_unit})
         form.fields['unit'].choices = unit_choices
@@ -1518,7 +1518,7 @@ def delete_event_flag(request, event_type, unit, flag):
     ec.config['fellowships'] = list_flags
     ec.save()
 
-    return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type})) 
+    return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
 
 @requires_role('ADMN')
 def new_memo_template(request, event_type):
@@ -1853,7 +1853,10 @@ def edit_grant(request, unit_slug, grant_slug):
 @requires_role('ADMN')
 def view_grant(request, unit_slug, grant_slug):
     # TODO: should other faculties be able to view grants not in their unit?
+    sub_unit_ids = Unit.sub_unit_ids(request.units)
     grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
+    if not grant.unit.id in sub_unit_ids:
+        raise PermissionDenied("Not allowed to view this grant")
     context = {
         "grant": grant,
     }
