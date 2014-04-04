@@ -1,5 +1,5 @@
 from ..report import Report
-from ..queries import ActivePlanQuery, SingleCourseQuery, CGPAQuery, EmailQuery
+from ..queries import ActivePlanQuery, SingleCourseQuery, SubplanQuery, CGPAQuery, EmailQuery
 from .. import rules
 
 import copy
@@ -33,6 +33,12 @@ class FasStudentReport( Report ):
         # Queries 
         student_query = ActivePlanQuery( {'plans':['ENSCPRO']} )
         students = student_query.result()
+
+        subplan_query = SubplanQuery( )
+        subplans = subplan_query.result()
+        subplans.flatten("EMPLID")
+
+        students.left_join(subplans, "EMPLID")
         
         students.title = "Master Table" 
 
@@ -78,11 +84,13 @@ class FasStudentReport( Report ):
 
         students_70.filter( lambda x: floaty(x['CREDITS']) > 69.9 )
         students_70.filter( lambda x: not x['HAS_ENSC_194'] or not x['HAS_ENSC_195'] or not x['HAS_ENSC_196'] )
+        students_70.flatten("EMPLID")
 
         students_100 = copy.deepcopy(students)
         students_100.title = "Students with >100 Credits and no ENSC 295-296"
         students_100.filter( lambda x: floaty(x['CREDITS']) > 99.9 )
         students_100.filter( lambda x: not x['HAS_ENSC_295'] or not x['HAS_ENSC_296'] )
+        students_100.flatten("EMPLID")
 
         self.artifacts.append(students)
         self.artifacts.append(students_70)
