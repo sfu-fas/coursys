@@ -424,7 +424,7 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
                 pass
 
             if not found:
-                raise forms.ValidationError("That fellowship is not owned by the selected unit.")
+                raise forms.ValidationError("That attribute is not owned by the selected unit.")
 
             return data
 

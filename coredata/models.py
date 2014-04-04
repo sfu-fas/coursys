@@ -86,7 +86,8 @@ class Person(models.Model):
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
-    
+    _, set_title = getter_setter('title')
+
 
     @staticmethod
     def emplid_header():
@@ -829,7 +830,15 @@ class Member(models.Model):
 
         if 'teaching_credit' in self.config:
             # if manually set, then honour it
-            return fractions.Fraction(self.config['teaching_credit']), 'set manually'
+            if 'teaching_credit_reason' in self.config:
+                reason = self.config['teaching_credit_reason']
+                if len(reason) > 15:
+                    reason = 'set manually: ' + reason[:15] + u'\u2026'
+                else:
+                    reason = 'set manually: ' + reason
+            else:
+                reason = 'set manually'
+            return fractions.Fraction(self.config['teaching_credit']), reason
         elif self.offering.enrl_tot == 0:
             # no students => no teaching credit (probably a cancelled section we didn't catch on import)
             return fractions.Fraction(0), 'empty section'
@@ -865,6 +874,9 @@ class Member(models.Model):
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
+
+    def set_teaching_credit_reason(self, reason):
+        self.config['teaching_credit_reason'] = unicode(reason)
 
     def get_tug(self):
         assert self.role == 'TA'

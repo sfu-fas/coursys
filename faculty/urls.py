@@ -18,7 +18,7 @@ urlpatterns = patterns('',
     # Report: Salary
     url(r'^salaries$', 'faculty.views.salary_index'),
     url(r'^salaries.csv$', 'faculty.views.salary_index_csv'),
-    url(r'^salaries/' + USERID_OR_EMPLID + '$', 'faculty.views.salary_summary'),
+    url(r'^' + USERID_OR_EMPLID + '/salary$', 'faculty.views.salary_summary'),
 
     # Report: Fallout
     url(r'^fallout$', 'faculty.views.fallout_report'),
@@ -60,6 +60,8 @@ urlpatterns = patterns('',
 
     url(r'^' + USERID_OR_EMPLID + '/contact-info$', 'faculty.views.faculty_member_info'),
     url(r'^' + USERID_OR_EMPLID + '/contact-info/edit$', 'faculty.views.edit_faculty_member_info'),
+
+    url(r'^' + USERID_OR_EMPLID + '/teaching_credit_override/(?P<course_slug>' + SLUG_RE + ')$', 'faculty.views.teaching_credit_override'),   
 
     # Event Specific Actions
     url(r'^' + EVENT_PREFIX + '/$', 'faculty.views.view_event', name="faculty_event_view"),

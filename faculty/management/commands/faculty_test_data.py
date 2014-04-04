@@ -133,11 +133,11 @@ class Command(BaseCommand):
         fas = Unit.objects.get(slug='fas')
 
         # create basic roles
-        Role.objects.get_or_create(person=greg, unit=ensc, role='FAC')
         Role.objects.get_or_create(person=greg, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=brad, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=diana, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='FAC')
+        Role.objects.get_or_create(person=tony, unit=ensc, role='FAC')
         Role.objects.get_or_create(person=farid, unit=mse, role='FAC')
         Role.objects.get_or_create(person=phillip, unit=phil, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='ADMN')
