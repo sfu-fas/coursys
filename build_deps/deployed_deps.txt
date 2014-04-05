@@ -4,7 +4,8 @@ pillow==2.3.0
 #flup==1.0.2
 python-memcached==1.53
 MySQL-python==1.2.5
-pysolr==3.2.0
+#pysolr==3.2.0
+pyelasticsearch==0.6.1
 lxml==3.3.3
 gunicorn==18.0
 supervisor==3.0

@@ -176,11 +176,11 @@ if DEPLOY_MODE in ['production', 'proddev']:
     } }
     HAYSTACK_CONNECTIONS = {
         'default': {
-            'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
-            'URL': 'http://localhost:8983/solr'
-            #'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-            #'URL': 'http://127.0.0.1:9200/',
-            #'INDEX_NAME': 'haystack',
+            #'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+            #'URL': 'http://localhost:8983/solr'
+            'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+            'URL': 'http://127.0.0.1:9200/',
+            'INDEX_NAME': 'haystack',
         },
     }
     USE_CELERY = True
