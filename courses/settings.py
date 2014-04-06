@@ -231,13 +231,16 @@ if USE_CELERY:
         # use AMPQ in production, and move email sending to Celery
         AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
         BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
-        CELERY_EMAIL_BACKEND = EMAIL_BACKEND
-        EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
     else:
         # use Kombo (aka the Django database) in devel
         BROKER_URL = getattr(secrets, 'BROKER_URL', "django://")
         INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
 
+    CELERY_EMAIL = getattr(localsettings, 'CELERY_EMAIL', DEPLOY_MODE != 'devel')
+    if CELERY_EMAIL:
+        CELERY_EMAIL_BACKEND = EMAIL_BACKEND
+        EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+    
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'
