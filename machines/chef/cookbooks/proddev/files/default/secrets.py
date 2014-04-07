@@ -12,3 +12,5 @@ SECRET_KEY='THIS IS NOT A VERY SECRET KEY'
 
 # You should set this to whoever you are. 
 #SIMS_USER='ggbaker'
+
+AMPQ_PASSWORD = 'supersecretpassword'

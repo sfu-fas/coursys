@@ -37,10 +37,10 @@ cookbook_file "localsettings.py" do
 end
 
 # configure secrets
-cookbook_file "secrets.py" do
-    path "/home/vagrant/courses/courses/secrets.py"
-    action :create
-end
+#cookbook_file "secrets.py" do
+#    path "/home/vagrant/courses/courses/secrets.py"
+#    action :create
+#end
 
 # misc system config
 cookbook_file "stunnel.conf" do

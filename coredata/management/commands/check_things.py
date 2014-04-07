@@ -134,6 +134,15 @@ class Command(BaseCommand):
         else:
             failed.append(('Asset compression enabled', 'disabled in settings'))
 
+        # Haystack searching
+        from haystack.query import SearchQuerySet
+        res = SearchQuerySet().filter(text='cmpt')
+        if res:
+            passed.append(('Haystack search', 'okay'))
+        else:
+            failed.append(('Haystack search', 'nothing found: maybe update_index?'))
+
+
         # TODO: svn database, amaint database
         # TODO: are SSL certs in the right places with the right permissions?
 

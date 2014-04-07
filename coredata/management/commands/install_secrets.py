@@ -35,6 +35,7 @@ class Command(BaseCommand):
             subprocess.call(['rabbitmqctl', '-q', 'add_vhost', vhost])
             subprocess.call(['rabbitmqctl', '-q', 'set_permissions', '-p', vhost, user, '.*', '.*', '.*'])
             subprocess.call(['rabbitmqctl', '-q', 'change_password', user, pw]) # to change if necessary: add_user doesn't
+            subprocess.call(['rabbitmqctl', '-q', 'change_password', 'guest', pw]) # hey, there's a default guest account
 
         else:
             self._report_missing('AMPQ_PASSWORD', 'AMPQ user')
