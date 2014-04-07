@@ -9,7 +9,7 @@ from coredata.models import Semester
 from coredata.queries import SIMSConn, SIMSProblem
 from optparse import make_option
 import random, subprocess, socket
-
+import os, stat
 
 class Command(BaseCommand):
     help = 'Check the status of the various things we rely on in deployment.'
@@ -33,6 +33,19 @@ class Command(BaseCommand):
 
     def _last_component(self, s):
         return s.split('.')[-1]
+
+    def check_cert(self, filename):
+        try:
+            st = os.stat(filename)
+        except OSError:
+            return filename + " doesn't exist"
+        else:
+            good_perm = stat.S_IFREG | stat.S_IRUSR # | stat.S_IWUSR
+            if (st[stat.ST_UID], st[stat.ST_GID]) != (0,0):
+                return 'not owned by root.root'
+            perm = st[stat.ST_MODE]
+            if good_perm != perm:
+                return "expected permissions %o but found %o." % (good_perm, perm)
 
     def handle(self, *args, **options):
         if options['cache_subcall']:
@@ -142,9 +155,25 @@ class Command(BaseCommand):
         else:
             failed.append(('Haystack search', 'nothing found: maybe update_index?'))
 
+        # certificates
+        bad_cert = 0
+        res = self.check_cert('/etc/stunnel/stunnel.pem')
+        if res:
+            failed.append(('Stunnel cert', res))
+            bad_cert += 1
+        res = self.check_cert('/etc/nginx/cert.pem')
+        if res:
+            failed.append(('SSL PEM', res))
+            bad_cert += 1
+        res = self.check_cert('/etc/nginx/cert.key')
+        if res:
+            failed.append(('SSL KEY', res))
+            bad_cert += 1
+
+        if bad_cert == 0:
+            passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/'))
 
         # TODO: svn database, amaint database
-        # TODO: are SSL certs in the right places with the right permissions?
 
         # report results
         self._report('For information', info)
