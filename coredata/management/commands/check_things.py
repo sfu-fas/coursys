@@ -52,6 +52,8 @@ class Command(BaseCommand):
         info.append(('Cache backend', self._last_component(settings.CACHES['default']['BACKEND'])))
         info.append(('Haystack engine', self._last_component(settings.HAYSTACK_CONNECTIONS['default']['ENGINE'])))
         info.append(('Email backend', '.'.join(settings.EMAIL_BACKEND.split('.')[-2:])))
+        info.append(('Celery broker', settings.BROKER_URL.split(':')[0]))
+
 
 
         # email sending

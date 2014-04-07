@@ -231,6 +231,8 @@ if USE_CELERY:
         # use AMPQ in production, and move email sending to Celery
         AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
         BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
+        CELERY_RESULT_BACKEND = 'amqp'
+        CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
     else:
         # use Kombo (aka the Django database) in devel
         BROKER_URL = getattr(secrets, 'BROKER_URL', "django://")
