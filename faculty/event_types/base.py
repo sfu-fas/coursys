@@ -196,10 +196,10 @@ class CareerEventHandlerBase(object):
 
         try:
             if raw_value is None:
-                if default is not None:
-                    return default
-                else:
+                if field.initial is not None and field.initial != '':
                     return field.to_python(field.initial)
+                else:
+                    return default
             else:
                     return field.to_python(raw_value)
         except forms.ValidationError:
