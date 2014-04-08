@@ -1,20 +1,8 @@
 {% extends "base.html" %}
 {% load event_display %}
-{% block title %}Search Events{% endblock %}
-{% block h1 %}Search Events{% endblock %}
 
-{% block headextra %}
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#event_type_table').dataTable({
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[0, "asc"]],
-    "bJQueryUI": true,
-  });
-});
-</script>
-{% endblock %}
+{% block title %}Event Search{% endblock %}
+{% block h1 %}Event Search{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
@@ -22,27 +10,15 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-<div class="datatable_container">
-<table id="event_type_table" class="display">
-  <thead><tr>
-    <th scope="col">Event Type</th>
-    <th scope="col">Instantaneous</th>
-    <th scope="col">Affects Teaching</th>
-    <th scope="col">Affects Salary</th>
-  </tr></thead>
-  <tbody>
+<p>Select the type of event to search for:</p>
+<ul>
   {% for event_type in event_types %}
   {% can_view_handler event_type.slug editor person as viewable %}
   {% if viewable %}
-  <tr>
-    <td><a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a></td>
-    <td>{{ event_type.is_instant|yesno }}</td>
-    <td>{{ event_type.affects_teaching|yesno }}</td>
-    <td>{{ event_type.affects_salary|yesno }}</td>
-  </tr>
+  <li>
+    <a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a>
+  </li>
   {% endif %}
   {% endfor %}
-  </tbody>
-</table>
-</div>
+</ul>
 {% endblock %}
