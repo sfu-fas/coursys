@@ -179,12 +179,16 @@ class GrantImportForm(forms.Form):
 
 
 class AvailableCapacityForm(forms.Form):
-    semester = SemesterCodeField()
+
+    start_semester = SemesterCodeField()
+    end_semester = SemesterCodeField()
 
     def __init__(self, *args, **kwargs):
         super(AvailableCapacityForm, self).__init__(*args, **kwargs)
-        if 'semester' not in self.data:
-            self.data['semester'] = Semester.current().name
+        if 'start_semester' not in self.data:
+            self.data['start_semester'] = Semester.current().name
+        if 'end_semester' not in self.data:
+            self.data['end_semester'] = Semester.current().name
 
 
 class CourseAccreditationForm(forms.Form):

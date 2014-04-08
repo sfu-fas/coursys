@@ -500,19 +500,19 @@ def teaching_capacity(request):
     }
 
     if form.is_valid():
-        semester = ReportingSemester(form.cleaned_data['semester'])
+        start_code = form.cleaned_data['start_semester']
+        end_code = form.cleaned_data['end_semester']
 
         for unit in sub_units:
             entries = []
             total_capacity = 0
 
-            for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
-                total_capacity += capacity
-                entries.append((person, credits, load, capacity))
+            for semester in ReportingSemester.range(start_code, end_code):
+                for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
+                    total_capacity += capacity
+                    entries.append((semester, person, credits, load, capacity))
 
             collected_units.append((unit, entries, total_capacity))
-
-        context['semester'] = semester
 
     return render(request, 'faculty/reports/teaching_capacity.html', context)
 
@@ -524,12 +524,14 @@ def teaching_capacity_csv(request):
     form = AvailableCapacityForm(request.GET)
 
     if form.is_valid():
-        semester = ReportingSemester(form.cleaned_data['semester'])
+        start_code = form.cleaned_data['start_semester']
+        end_code = form.cleaned_data['end_semester']
 
-        filename = 'teaching_capacity_{}.csv'.format(semester.code)
+        filename = 'teaching_capacity_{}-{}.csv'.format(start_code, end_code)
         csv, response = make_csv_writer_response(filename)
         csv.writerow([
             'Unit',
+            'Semester',
             'Person',
             'Expected teaching load',
             'Teaching credits',
@@ -537,14 +539,16 @@ def teaching_capacity_csv(request):
         ])
 
         for unit in sub_units:
-            for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
-                csv.writerow([
-                    unit.label,
-                    person.name(),
-                    _csvfrac(load),
-                    _csvfrac(credits),
-                    _csvfrac(capacity),
-                ])
+            for semester in ReportingSemester.range(start_code, end_code):
+                for person, credits, load, capacity in _teaching_capacity_data(unit, semester):
+                    csv.writerow([
+                        unit.label,
+                        semester.code,
+                        person.name(),
+                        _csvfrac(load),
+                        _csvfrac(credits),
+                        _csvfrac(capacity),
+                    ])
 
         return response
 

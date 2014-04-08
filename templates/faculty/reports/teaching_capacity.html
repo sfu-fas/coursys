@@ -77,6 +77,7 @@ $(document).ready(function() {
 <table id='capacity-table'>
   <thead><tr>
     <th scope="col">Unit</th>
+    <th scope="col">Semester</th>
     <th scope="col">Person</th>
     <th scope="col">Expected Teaching Load</th>
     <th scope="col">Teaching Credits</th>
@@ -84,9 +85,10 @@ $(document).ready(function() {
   </tr></thead>
   <tbody>
   {% for unit, summaries, _ in units %}
-    {% for person, credits, load_decrease, capacity in summaries %}
+    {% for semester, person, credits, load_decrease, capacity in summaries %}
     <tr class="{{ unit.label }}">
         <td>{{ unit.label }}</td>
+        <td>{{ semester.code }}</td>
         <td>
           <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&amp;end_semester={{ semester.code }}">
             {{ person }}
