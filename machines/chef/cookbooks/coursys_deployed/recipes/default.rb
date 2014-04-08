@@ -45,8 +45,8 @@ end
 # elasticsearch
 package "openjdk-7-jre-headless"
 execute "install_elasticsearch" do
-    cwd "/tmp"
-    command "wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb"
+    cwd "/home/vagrant"
+    command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb && /etc/init.d/elasticsearch restart"
 end
 
 # misc system config

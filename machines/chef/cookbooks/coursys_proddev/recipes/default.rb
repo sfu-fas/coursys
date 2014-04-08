@@ -10,6 +10,12 @@ execute "grant privileges" do
     command "echo \"grant all on coursys_db.* to 'coursys_user'@'localhost' identified by 'coursys_password';\" | mysql"
 end
 
+# remove mail server if installed by a previous version of recipes
+execute "remove_postfix" do
+    command "dpkg --purge postfix"
+end
+
+
 # put in the fake https certification
 cookbook_file "self-ssl.key" do 
     path "/etc/nginx/cert.key"
