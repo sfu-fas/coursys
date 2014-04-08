@@ -382,6 +382,20 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         return self.get_config('study_leave_credits')
 
 
+class AccreditationFlagSearchRule(search.ChoiceSearchRule):
+    """A hack to make viewer specific choice fields work."""
+
+    def make_value_field(self, viewer, member_units):
+        field = super(AccreditationFlagSearchRule, self).make_value_field(viewer, member_units)
+
+        from faculty.models import EventConfig
+        ecs = EventConfig.objects.filter(unit__in=member_units,
+                                         event_type=AccreditationFlagEventHandler.EVENT_TYPE)
+        field.choices += itertools.chain(*[ec.config.get('flags', []) for ec in ecs])
+
+        return field
+
+
 class AccreditationFlagEventHandler(CareerEventHandlerBase):
     """
     Aquisition of a accreditation-related property
@@ -429,7 +443,7 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
             return data
 
     SEARCH_RULES = {
-        'flag': search.ChoiceSearchRule,
+        'flag': AccreditationFlagSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'flag',
