@@ -12,6 +12,7 @@ from faculty.models import FacultyMemberInfo
 from faculty.models import Grant
 from faculty.models import Memo
 from faculty.models import MemoTemplate
+from faculty.util import ReportingSemester
 
 
 def career_event_factory(person, post_data=None, post_files=None):
@@ -186,9 +187,9 @@ class AvailableCapacityForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(AvailableCapacityForm, self).__init__(*args, **kwargs)
         if 'start_semester' not in self.data:
-            self.data['start_semester'] = Semester.current().name
+            self.data['start_semester'] = ReportingSemester.current().prev().prev().code
         if 'end_semester' not in self.data:
-            self.data['end_semester'] = Semester.current().name
+            self.data['end_semester'] = ReportingSemester.current().code
 
 
 class CourseAccreditationForm(forms.Form):
