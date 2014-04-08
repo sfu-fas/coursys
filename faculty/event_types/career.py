@@ -66,6 +66,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         'leaving_reason': search.ChoiceSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
+        'position_number',
         'spousal_hire',
         'leaving_reason',
     ]
