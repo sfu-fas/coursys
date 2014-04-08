@@ -11,6 +11,24 @@ from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 from faculty.event_types.search import ChoiceSearchRule, ComparableSearchRule, StringSearchRule
 
 
+class FellowshipPositionSearchRule(ChoiceSearchRule):
+    """A hack to make viewer specific choice fields work."""
+
+    def make_value_field(self, viewer, member_units):
+        field = super(FellowshipPositionSearchRule, self).make_value_field(viewer, member_units)
+
+        # TODO: Refactor this to reduce code duplication
+        from faculty.models import EventConfig
+        ecs = EventConfig.objects.filter(unit__in=member_units,
+                                         event_type=FellowshipEventHandler.EVENT_TYPE)
+        choices = itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs])
+        for i, (flag_short, flag_long, status) in enumerate(choices):
+            if status == 'ACTIVE':
+                field.choices += ((flag_short, flag_long),)
+
+        return field
+
+
 class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
     Appointment to a fellowship/chair
@@ -69,7 +87,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             return data
 
     SEARCH_RULES = {
-        'position': StringSearchRule,
+        'position': FellowshipPositionSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'position',
