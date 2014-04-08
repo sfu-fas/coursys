@@ -76,18 +76,28 @@ execute "debconf_update" do
     command "chsh -s /bin/bash www-data"
 end
 
-
 # configure NGINX
 cookbook_file "nginx_default.conf" do
     path "/etc/nginx/sites-available/default"
     action :create
 end
 
-
 #configure supervisord
 cookbook_file "supervisord.conf" do 
     path "/etc/supervisord.conf"
     mode "0744"
+end
+
+#put supervisord in init.d
+cookbook_file "supervisor_init.d" do
+    path "/etc/init.d/supervisord"
+    mode "0755"
+end
+
+#start supervisord
+execute "supervisord" do
+    command "supervisord"
+    ignore_failure true    
 end
 
 # create a directory for the gunicorn log files
@@ -100,8 +110,13 @@ end
 
 # create a script to run and restart supervisord
 cookbook_file "Makefile" do
-    path "/home/vagrant/courses/Makefile"
-    owner "vagrant"
+    path "/home/coursys/courses/Makefile"
+    owner "coursys"
     mode "0755"
     action :create
+end
+
+# restart nginx
+execute "restart nginx" do
+    command "/etc/init.d/nginx restart"
 end
