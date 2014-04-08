@@ -1,3 +1,28 @@
+# Create 'coursys' user
+user "coursys" do
+    home "/home/coursys"
+    action :create
+    shell "/bin/bash"
+end
+
+directory "/home/coursys" do
+    owner "coursys"
+    mode "00755"
+    action :create
+end
+
+# Move /home/vagrant/courses to /home/coursys/courses"
+execute "copy coursys" do
+    command "cp -r /home/vagrant/courses /home/coursys/courses"
+end
+
+directory "/home/coursys/courses" do 
+    owner "coursys"
+    mode "00755"
+    recursive true
+    action :create
+end
+
 # MySQL
 package "mysql-client"
 package "libmysqlclient-dev"
@@ -100,7 +125,7 @@ end
 # create a directory for the gunicorn log files
 # directory "/var/log/gunicorn"
 directory "/var/log/gunicorn" do 
-    owner "vagrant"
+    owner "www-data"
     mode "00755"
     action :create
 end
@@ -108,7 +133,7 @@ end
 # create a script to run and restart supervisord
 cookbook_file "Makefile" do
     path "/home/vagrant/courses/Makefile"
-    owner "vagrant"
+    owner "coursys"
     mode "0755"
     action :create
 end
