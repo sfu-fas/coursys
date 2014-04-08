@@ -5,7 +5,7 @@ from django.conf import settings
 import django
 import celery
 from coredata.tasks import ping
-from coredata.models import Semester
+from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem
 from dashboard.photos import do_photo_fetch
 from optparse import make_option
@@ -73,9 +73,12 @@ class Command(BaseCommand):
         # email sending
         if options['email']:
             email = options['email']
-            send_mail('check_things test message', "This is a test message to make sure they're getting through.",
-                      settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
-            unknown.append(('Email sending', "message sent to %s." % (email)))
+            try:
+                send_mail('check_things test message', "This is a test message to make sure they're getting through.",
+                          settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
+                unknown.append(('Email sending', "message sent to %s." % (email)))
+            except socket.error:
+                failed.append(('Email sending', "socket error: maybe can't communicate with AMPQ for celery sending?"))
         else:
             unknown.append(('Email sending', "provide an --email argument to test."))
 
@@ -168,7 +171,7 @@ class Command(BaseCommand):
                     failed.append(('Photo fetching', "didn't find photo we expect to exist"))
                 else:
                     passed.append(('Photo fetching', 'okay'))
-            except KeyError:
+            except (KeyError, Unit.DoesNotExist):
                 failed.append(('Photo fetching', 'photo password not set'))
             except urllib2.HTTPError as e:
                 failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
