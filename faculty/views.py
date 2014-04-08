@@ -140,16 +140,27 @@ def search_events(request, event_type):
         if form.is_valid() and Handler.validate_all_search(rules):
             events = CareerEvent.objects.only_subunits(request.units).by_type(Handler).not_deleted()
 
-            # TODO: Find a better place for this initial filtering logic
-            if form.cleaned_data['start_date']:
-                events = events.filter(start_date__gte=form.cleaned_data['start_date'])
-            if form.cleaned_data['end_date']:
-                events = events.filter(end_date__lte=form.cleaned_data['end_date'])
+            # Filter events by date
+            start_date, end_date = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+            if start_date and end_date:
+                # Events that were active during the date range
+                events = events.overlaps_daterange(start_date, end_date)
+            elif start_date:
+                # Events since the start date
+                events = events.filter(start_date__gte=start_date)
+            elif end_date:
+                # Events before the end date
+                events = events.filter(end_date__lte=end_date)
+
+            # Filter by unit
             if form.cleaned_data['unit']:
                 events = events.filter(unit=form.cleaned_data['unit'])
+
+            # Filter events that are still active today
             if form.cleaned_data['only_current']:
                 events = events.effective_now()
 
+            # Filter events by the Handler specific rules + viewable_by
             results = Handler.filter(events, rules=rules, viewer=viewer)
     else:
         form = SearchForm()
