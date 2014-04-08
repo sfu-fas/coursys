@@ -387,8 +387,9 @@ class CareerEventHandlerBase(object):
     # Stuff relating to searching
 
     @classmethod
-    def get_search_rules(cls, data=None):
-        return [(rule, rule.make_form(data)) for rule in cls.SEARCH_RULE_INSTANCES.itervalues()]
+    def get_search_rules(cls, viewer, member_units, data=None):
+        return [(rule, rule.make_form(viewer, member_units, data))
+                for rule in cls.SEARCH_RULE_INSTANCES.itervalues()]
 
     @classmethod
     def validate_all_search(cls, rules):

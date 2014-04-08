@@ -127,6 +127,7 @@ def search_index(request):
 def search_events(request, event_type):
     Handler = _get_Handler_or_404(event_type)
     viewer = get_object_or_404(Person, userid=request.user.username)
+    member_units = Unit.sub_units(request.units)
     unit_choices = [('', u'\u2012',)] + [(u.id, u.name) for u in Unit.sub_units(request.units)]
     filterform = UnitFilterForm(Unit.sub_units(request.units))
 
@@ -135,7 +136,7 @@ def search_events(request, event_type):
     if request.GET:
         form = SearchForm(request.GET)
         form.fields['unit'].choices = unit_choices
-        rules = Handler.get_search_rules(request.GET)
+        rules = Handler.get_search_rules(viewer, member_units, request.GET)
 
         if form.is_valid() and Handler.validate_all_search(rules):
             events = CareerEvent.objects.only_subunits(request.units).by_type(Handler).not_deleted()
@@ -165,7 +166,7 @@ def search_events(request, event_type):
     else:
         form = SearchForm()
         form.fields['unit'].choices = unit_choices
-        rules = Handler.get_search_rules()
+        rules = Handler.get_search_rules(viewer, member_units)
 
     context = {
         'event_type': Handler.NAME,

@@ -15,24 +15,24 @@ class SearchRule(object):
         self.Handler = Handler
         self.pretty_field_name = pretty_name(self.field_name)
 
-    def make_operator_field(self):
+    def make_operator_field(self, viewer, member_units):
         return forms.ChoiceField(choices=self.OPERATOR_CHOICES, label='', required=False)
 
-    def make_value_field(self):
+    def make_value_field(self, viewer, member_units):
         field = copy.deepcopy(self.field)
         field.label = ''
         field.required = False
         field.initial = ''
         return field
 
-    def make_fields(self):
+    def make_fields(self, viewer, member_units):
         return (
-            ('operator', self.make_operator_field()),
-            ('value', self.make_value_field()),
+            ('operator', self.make_operator_field(viewer, member_units)),
+            ('value', self.make_value_field(viewer, member_units)),
         )
 
-    def make_form(self, data=None):
-        Form = type('SearchRuleForm', (forms.Form,), dict(self.make_fields()))
+    def make_form(self, viewer, member_units, data=None):
+        Form = type('SearchRuleForm', (forms.Form,), dict(self.make_fields(viewer, member_units)))
 
         if data:
             form = Form(data, prefix=self.field_name)
@@ -72,8 +72,8 @@ class ComparableSearchRule(SearchRule):
 
 class ChoiceSearchRule(SearchRule):
 
-    def make_value_field(self):
-        field = super(ChoiceSearchRule, self).make_value_field()
+    def make_value_field(self, viewer, member_units):
+        field = super(ChoiceSearchRule, self).make_value_field(viewer, member_units)
 
         if self.field.required and not isinstance(self.field, forms.ModelChoiceField):
             field.choices = (('', '----'),) + tuple(field.choices)
@@ -81,9 +81,9 @@ class ChoiceSearchRule(SearchRule):
 
         return field
 
-    def make_fields(self):
+    def make_fields(self, viewer, member_units):
         return (
-            ('value', self.make_value_field()),
+            ('value', self.make_value_field(viewer, member_units)),
         )
 
     def matches(self, handler, form):
@@ -100,7 +100,7 @@ class StringSearchRule(SearchRule):
         ('equals', 'EQUALS'),
     )
 
-    def make_value_field(self):
+    def make_value_field(self, viewer, member_units):
         return forms.CharField(label='', required=False)
 
     def matches(self, handler, form):
@@ -126,12 +126,12 @@ class BooleanSearchRule(SearchRule):
         ('no', 'NO'),
     )
 
-    def make_value_field(self):
+    def make_value_field(self, viewer, member_units):
         return forms.ChoiceField(choices=self.CHOICES, initial='', label='', required=False)
 
-    def make_fields(self):
+    def make_fields(self, viewer, member_units):
         return (
-            ('value', self.make_value_field()),
+            ('value', self.make_value_field(viewer, member_units)),
         )
 
     def matches(self, handler, form):
