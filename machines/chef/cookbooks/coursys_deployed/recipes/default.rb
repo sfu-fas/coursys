@@ -62,9 +62,16 @@ cookbook_file "localsettings.py" do
 end
 
 # configure secrets
-cookbook_file "secrets.py" do
-    path "/home/vagrant/courses/courses/secrets.py"
-    action :create
+#cookbook_file "secrets.py" do
+#    path "/home/vagrant/courses/courses/secrets.py"
+#    action :create
+#end
+
+# elasticsearch
+package "openjdk-7-jre-headless"
+execute "install_elasticsearch" do
+    cwd "/home/vagrant"
+    command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb && /etc/init.d/elasticsearch restart"
 end
 
 # misc system config
@@ -94,20 +101,6 @@ execute "debconf_update" do
     command "chsh -s /bin/bash www-data"
 end
 
-
-# postfix mail server
-package "postfix"
-cookbook_file "package-config.txt" do
-    path "/tmp/package-config.txt"
-end
-execute "debconf_update" do
-    cwd "/"
-    command "debconf-set-selections /tmp/package-config.txt"
-end
-execute "debconf_reconfigure" do
-    cwd "/"
-    command "rm /etc/postfix/main.cf /etc/postfix/master.cf ; dpkg-reconfigure -f noninteractive postfix"
-end
 
 # configure NGINX
 cookbook_file "nginx_default.conf" do

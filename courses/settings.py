@@ -176,8 +176,11 @@ if DEPLOY_MODE in ['production', 'proddev']:
     } }
     HAYSTACK_CONNECTIONS = {
         'default': {
-            'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
-            'URL': 'http://localhost:8983/solr'
+            #'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+            #'URL': 'http://localhost:8983/solr'
+            'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+            'URL': 'http://127.0.0.1:9200/',
+            'INDEX_NAME': 'haystack',
         },
     }
     USE_CELERY = True
@@ -231,13 +234,18 @@ if USE_CELERY:
         # use AMPQ in production, and move email sending to Celery
         AMPQ_PASSWORD = getattr(secrets, 'AMPQ_PASSWORD', 'supersecretpassword')
         BROKER_URL = getattr(secrets, 'BROKER_URL', "amqp://coursys:%s@localhost:5672/myvhost" % (AMPQ_PASSWORD))
-        CELERY_EMAIL_BACKEND = EMAIL_BACKEND
-        EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+        CELERY_RESULT_BACKEND = 'amqp'
+        CELERY_TASK_RESULT_EXPIRES = 18000 # 5 hours.
     else:
         # use Kombo (aka the Django database) in devel
         BROKER_URL = getattr(secrets, 'BROKER_URL', "django://")
         INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
 
+    CELERY_EMAIL = getattr(localsettings, 'CELERY_EMAIL', DEPLOY_MODE != 'devel')
+    if CELERY_EMAIL:
+        CELERY_EMAIL_BACKEND = EMAIL_BACKEND
+        EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+    
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
     CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     CELERY_TASK_SERIALIZER = 'json'

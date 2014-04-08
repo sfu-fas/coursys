@@ -68,7 +68,7 @@ def do_photo_fetch(emplids):
         for emplid in missing:
             cache.set('photo-image-'+unicode(emplid), data, 3600)
 
-    return set(photos.keys())
+    return list(set(photos.keys()))
 
 
 

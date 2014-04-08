@@ -296,8 +296,7 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 
 
 
-
-<h2 id="solr">Solr Search (not yet deployed)</h2>
+<h2 id="solr">Solr Search (not yet deployed: maybe never, in favour of elasticsearch?)</h2>
 <p>Solr will (at some point) be used to power the full-text search in production (with Whoosh doing the job in development environments.</p>
 <blockquote><pre>sudo apt-get install solr-jetty openjdk-7-jdk</pre></blockquote>
 
@@ -313,6 +312,16 @@ echo 'y' | ./manage.py rebuild_index
 </pre></blockquote>
 <p>At the moment, there is <a href="http://osdir.com/ml/general/2014-03/msg07628.html">a bug</a> requiring a downgrade of libtomcat6-java to <a href="http://packages.ubuntu.com/saucy/all/libtomcat6-java/download">6.0.37 from Ubuntu saucy</a>.</p>
 
+
+
+<h2 id="elastic">ElasticSearch (not yet deployed)</h2>
+<p><a href="https://gist.github.com/wingdspur/2026107">instructions adapted from this</a></p>
+<blockquote><pre>cd /tmp
+sudo apt-get install openjdk-7-jre-headless -y
+wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb
+sudo dpkg -i elasticsearch-1.1.0.deb
+sudo pip install pyelasticsearch
+echo 'y' | ./manage.py rebuild_index</pre></blockquote>
 </body>
 </html>
 
