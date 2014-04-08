@@ -7,8 +7,9 @@ import celery
 from coredata.tasks import ping
 from coredata.models import Semester
 from coredata.queries import SIMSConn, SIMSProblem
+from dashboard.photos import do_photo_fetch
 from optparse import make_option
-import random, subprocess, socket
+import random, subprocess, socket, urllib2
 import os, stat
 
 class Command(BaseCommand):
@@ -95,12 +96,14 @@ class Command(BaseCommand):
             failed.append(('Main database connection', "database tables missing"))
 
         # Celery tasks
+        celery_okay = False
         try:
             if settings.USE_CELERY:
                 t = ping.apply_async()
                 res = t.get(timeout=5)
                 if res == True:
                     passed.append(('Celery task', 'okay'))
+                    celery_okay = True
                 else:
                     failed.append(('Celery task', 'got incorrect result from task'))
             else:
@@ -119,6 +122,7 @@ class Command(BaseCommand):
         # Django cache
         # (has a subprocess do something to make sure we're in a persistent shared cache, not DummyCache)
         subprocess.call(['python', 'manage.py', 'check_things', '--cache_subcall'])
+        cache_okay = False
         res = cache.get('check_things_cache_test')
         if res == randval:
             failed.append(('Django cache', 'other processes not sharing cache: dummy/local probably being used instead of memcached'))
@@ -128,6 +132,7 @@ class Command(BaseCommand):
             failed.append(('Django cache', 'unknown result'))
         else:
             passed.append(('Django cache', 'okay'))
+            cache_okay = True
 
         # Reporting DB connection
         try:
@@ -154,6 +159,21 @@ class Command(BaseCommand):
             passed.append(('Haystack search', 'okay'))
         else:
             failed.append(('Haystack search', 'nothing found: maybe update_index?'))
+
+        # photo fetching
+        if cache_okay and celery_okay:
+            try:
+                res = do_photo_fetch(['301222726'])
+                if '301222726' not in res: # I don't know who 301222726 is, but he/she is real.
+                    failed.append(('Photo fetching', "didn't find photo we expect to exist"))
+                else:
+                    passed.append(('Photo fetching', 'okay'))
+            except KeyError:
+                failed.append(('Photo fetching', 'photo password not set'))
+            except urllib2.HTTPError as e:
+                failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
+        else:
+            failed.append(('Photo fetching', 'not testing since memcached or celery failed'))
 
         # certificates
         bad_cert = 0
