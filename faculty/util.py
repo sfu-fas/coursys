@@ -150,3 +150,8 @@ class ReportingSemester(object):
             raise ValueError('Invalid semester code: {}'.format(code))
 
         return start, end
+
+    @classmethod
+    def current(cls):
+        """Returns the current ReportingSemester."""
+        return cls(datetime.date.today())
