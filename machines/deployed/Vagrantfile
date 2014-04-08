@@ -56,7 +56,7 @@ Vagrant::Config.run do |config|
      chef.add_recipe "coursys"
      chef.add_recipe "coursys_deployed"
      #only for prod-dev, not for production
-     chef.add_recipe "proddev"
+     chef.add_recipe "coursys_proddev"
 
      chef.add_recipe "sfu-db2"
 
