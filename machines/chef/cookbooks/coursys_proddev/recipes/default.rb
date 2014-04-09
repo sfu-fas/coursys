@@ -27,13 +27,13 @@ end
 
 # configure local settings
 cookbook_file "localsettings.py" do
-    path "/home/vagrant/courses/courses/localsettings.py"
+    path "/home/coursys/courses/courses/localsettings.py"
     action :create
 end
 
 # configure secrets
 cookbook_file "secrets.py" do
-    path "/home/vagrant/courses/courses/secrets.py"
+    path "/home/coursys/courses/courses/secrets.py"
     action :create
 end
 
