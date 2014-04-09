@@ -7,9 +7,11 @@ import hashlib, string, datetime
 import urllib, urllib2, json, base64
 
 ACCOUNT_NAME = 'cs'
-TOKEN_URL = 'https://photos-api-stg.its.sfu.ca/Account/Token'
-PHOTO_URL = 'https://photos-api-stg.its.sfu.ca/Values/%s?includePhoto=true'
-PASSWORD_URL = 'https://photos-api-stg.its.sfu.ca/Account/ChangePassword'
+
+URL_BASE = 'https://photos-api-stg.its.sfu.ca/'
+TOKEN_URL = URL_BASE + 'Account/Token'
+PHOTO_URL = URL_BASE + 'Values/%s?includePhoto=true'
+PASSWORD_URL = URL_BASE + 'Account/ChangePassword'
 DUMMY_IMAGE_FILE = os.path.join(settings.STATIC_ROOT, 'images', 'No_image.JPG') # from http://commons.wikimedia.org/wiki/File:No_image.JPG
 
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
