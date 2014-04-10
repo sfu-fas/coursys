@@ -88,6 +88,9 @@ end
 cookbook_file "rabbitmq.conf" do
     path "/etc/rabbitmq/rabbitmq-env.conf"
 end
+service "rabbitmq-server" do
+  action :restart
+end
 
 execute "deny_coursys_ssh" do
     cwd "/"

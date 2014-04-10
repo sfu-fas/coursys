@@ -163,7 +163,8 @@ class Command(BaseCommand):
         if res:
             passed.append(('Haystack search', 'okay'))
         else:
-            failed.append(('Haystack search', 'nothing found: maybe update_index?'))
+            failed.append(('Haystack search', 'nothing found: maybe update_index, or wait for search server to fully start'))
+
 
         # photo fetching
         if cache_okay and celery_okay:
@@ -173,7 +174,7 @@ class Command(BaseCommand):
                     failed.append(('Photo fetching', "didn't find photo we expect to exist"))
                 else:
                     passed.append(('Photo fetching', 'okay'))
-            except (KeyError, Unit.DoesNotExist):
+            except (KeyError, Unit.DoesNotExist, django.db.utils.ProgrammingError):
                 failed.append(('Photo fetching', 'photo password not set'))
             except urllib2.HTTPError as e:
                 failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
