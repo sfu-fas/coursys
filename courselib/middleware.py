@@ -73,6 +73,9 @@ class ExceptionIgnorer(object):
                  or 'EOF occurred in violation of protocol' in message)):
             # CAS verification timeout
             return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
+        elif isinstance(exception, AssertionError) and "Django CAS middleware requires authentication middleware" in format:
+            # CAS choke
+            return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
         elif isinstance(exception, EOFError) and "return request.POST.get('csrfmiddlewaretoken', '')" in format:
             # file upload EOF
             return HttpError(request, status=500, title="Upload Error", error="Upload seems to have not completed properly.")
