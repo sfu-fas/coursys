@@ -1,11 +1,11 @@
 # postfix mail server
 package "postfix"
 cookbook_file "package-config.txt" do
-    path "/tmp/package-config.txt"
+    path "/home/coursys/config/package-config-trueprod.txt"
 end
 execute "debconf_update" do
     cwd "/"
-    command "debconf-set-selections /tmp/package-config.txt"
+    command "debconf-set-selections /home/coursys/config/package-config-trueprod.txt"
 end
 execute "debconf_reconfigure" do
     cwd "/"
