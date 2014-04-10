@@ -127,7 +127,6 @@ if DEPLOY_MODE in ['production', 'proddev']:
     }
 
     if DEPLOY_MODE == 'proddev':
-        #
         DATABASES['default'].update({
             'NAME': 'coursys',
             'USER': 'coursysuser',
