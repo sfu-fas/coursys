@@ -21,7 +21,7 @@ from optparse import make_option
 from django.conf import settings
 
 grad_programs = {}
-grad_programs['COMP SCI'] = ['CPPHD', 'CPPZU', 'CPMSC', 'CPMCW', 'CPMZU', 'CPGND', 'CPGQL']
+grad_programs['COMP SCI'] = ['CPPHD', 'CPPZU', 'CPMSC', 'CPMCW', 'CPMZU', 'CPGND', 'CPGQL', 'CPMBD']
 grad_programs['ENG SCI'] = ['ESPHD', 'ESMAS', 'ESMEN']
 grad_programs['MECH SYS'] = ['MSMAS', 'MSEPH', 'MSEMS'] 
 
@@ -72,6 +72,7 @@ class Command(BaseCommand):
                 'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
                 'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
                 'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
+                'CPMBD': GradProgram.objects.get(label="MSc Big Data", unit=cmptunit),
 
                 'MSEPH': GradProgram.objects.get(label="Ph.D.", unit=mechunit),
                 'MSEMS': GradProgram.objects.get(label="M.A.Sc.", unit=mechunit),

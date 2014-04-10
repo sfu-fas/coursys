@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from submission.forms import make_form_from_list
-from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug, uses_feature
+from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, get_current_submission, select_all_components, \
     get_submission_components, get_component, find_type_by_label, generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES
 from django.core.urlresolvers import reverse
@@ -13,6 +13,7 @@ from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
 from django.forms.util import ErrorList
+from featureflags.flags import uses_feature
 
 
 @login_required

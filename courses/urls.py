@@ -54,6 +54,7 @@ urlpatterns += patterns('',
     url(r'^data/students$', 'coredata.views.student_search'),
     #url(r'^data/sims_people', 'coredata.views.sims_person_search'),
     url(r'^courses/(?P<tail>.*)$', RedirectView.as_view(url='/browse/%(tail)s', permanent=True)),
+    url(r'^search$', 'dashboard.views.site_search'),
 
     url(r'^browse/$', 'coredata.views.browse_courses'),
     url(r'^browse/info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),
@@ -110,6 +111,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/students/$', 'grades.views.student_search'),
     url(r'^' + COURSE_SLUG + '/students/' + USERID_SLUG + '$', 'grades.views.student_info'),
     url(r'^' + COURSE_SLUG + '/export', 'grades.views.export_all'),
+    url(r'^' + COURSE_SLUG + '/gitolite', 'grades.views.gitolite_config'),
 
     url(r'^' + COURSE_ACTIVITY_SLUG + '/$', 'grades.views.activity_info'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/stat$', 'grades.views.activity_stat'),
@@ -444,7 +446,7 @@ urlpatterns += patterns('',
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),
 )
 
-if not settings.DEPLOYED:
+if settings.DEPLOY_MODE != 'production':
     # URLs for development only:
     from django.conf.urls.static import static
     urlpatterns += patterns('',

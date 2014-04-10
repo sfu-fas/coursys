@@ -11,7 +11,7 @@ from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
-    has_role, uses_feature
+    has_role
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
@@ -21,6 +21,7 @@ from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
+from featureflags.flags import uses_feature
 import pytz
 
 
@@ -102,7 +103,7 @@ def fake_login(request, next_page=None):
         next_page = '/'
 
     hostname = socket.gethostname()
-    if settings.DEPLOYED or hostname.startswith('courses'):
+    if settings.DEPLOY_MODE == 'production' or hostname.startswith('courses'):
         # make damn sure we're not in production
         raise NotImplementedError
     
@@ -126,7 +127,7 @@ def fake_logout(request):
     """
     import socket
     hostname = socket.gethostname()
-    if settings.DEPLOYED or hostname.startswith('courses'):
+    if settings.DEPLOY_MODE == 'production' or hostname.startswith('courses'):
         # make sure we're not in production
         raise NotImplementedError
     
@@ -927,3 +928,86 @@ def photo_agreement(request):
         
     context = {"form": form}
     return render(request, "dashboard/photo_agreement.html", context)
+
+
+
+from haystack.query import SearchQuerySet
+from haystack.inputs import AutoQuery, Exact, Clean
+import itertools
+from urllib import urlencode
+from pages.models import Page, ACL_ROLES
+SEARCH_URL = 'http://www.sfu.ca/search.html?'
+
+def _query_results(query, person):
+    if len(query) < 2:
+        return []
+
+    #query = query.replace('@sfu.ca', '') # hack to make email addresses searchable like userids
+    query = Clean(query)
+
+    # offerings person was a member of
+    if person:
+        members = Member.objects.filter(person=person).exclude(role='DROP').select_related('offering')
+        offering_slugs = set(m.offering.slug for m in members)
+        offering_results = SearchQuerySet().models(CourseOffering).filter(text=query) # offerings that match the query
+        offering_results = offering_results.filter(slug__in=offering_slugs) # ... and this person was in
+    else:
+        members = []
+        offering_results = []
+
+    # pages this person can view
+    page_acl = set(['ALL'])
+    for m in members:
+        # builds a set of offering_slug+"_"+acl_value strings, which will match the permission_key field in the index
+        member_acl = set("%s_%s" % (m.offering.slug, acl) for acl in ACL_ROLES[m.role] if acl != 'ALL')
+        page_acl |= member_acl
+
+    page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
+    page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
+
+    # students taught by instructor
+    instr_members = Member.objects.filter(person=person, role='INST').select_related('offering')
+    if instr_members:
+        offering_slugs = set(m.offering.slug for m in instr_members)
+        member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
+        member_results = member_results.filter(offering_slug__in=offering_slugs) # ... and this person was the instructor for
+        member_results = member_results.load_all()
+    else:
+        member_results = []
+
+    results = itertools.chain(offering_results, page_results, member_results)
+    results = list(results)
+
+    return results
+
+def site_search(request):
+    # Things that would be nice:
+    # activities in your courses
+    # discussion in your courses
+    # grad students you admin/supervise
+    # advisors: students/advisornote content
+    # marking comments
+
+    if request.user.is_authenticated():
+        try:
+            person = Person.objects.get(userid=request.user.username)
+        except Person.DoesNotExist:
+            person = None
+    else:
+        person = None
+
+    query = request.GET.get('q', '')
+    if True or ('search-scope' in request.GET and request.GET['search-scope'] == 'sfu'):
+        # redirect to SFU-wide search if appropriate
+        url = SEARCH_URL + urlencode({'q': query, 'search-scope': 'sfu'})
+        return HttpResponseRedirect(url)
+
+    results = _query_results(query, person)
+
+    context = {
+        "query": query,
+        "results": results,
+    }
+
+    #print [r.text for r in results]
+    return render(request, "dashboard/site_search.html", context)

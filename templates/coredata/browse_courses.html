@@ -23,12 +23,13 @@ $(document).ready(function() {
 {% block content %}
 <form action="" id="filterform">
 <ul>
+{{ form.semester|browser_field }}
 {{ form.subject|browser_field }}
 {{ form.number|browser_field }}
 {{ form.section|browser_field }}
 {{ form.instructor|browser_field }}
 {{ form.campus|browser_field }}
-{{ form.semester|browser_field }}
+{{ form.distance|browser_field }}
 {{ form.crstitle|browser_field }}
 {{ form.wqb|browser_field }}
 </ul>

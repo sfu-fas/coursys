@@ -5,7 +5,8 @@ from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
-        has_formgroup, uses_feature
+        has_formgroup
+from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
         UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
@@ -468,6 +469,8 @@ def course_search(request):
     return response
 
 # AJAX/JSON for student search autocomplete
+EXCLUDE_EMPLIDS = set(['953022983']) # exclude these from autocomplete
+  # 953022983 is an inactive staff account and should not be assigned things
 @login_required
 def student_search(request):
     # check permissions
@@ -492,7 +495,7 @@ def student_search(request):
     else:
         nonStudents = []
 
-    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
+    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
     data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
 
     data.sort(key = lambda x: x['label'])
@@ -671,6 +674,12 @@ class OfferingDataJson(BaseDatatableView):
                 continue # not in our list of flags: not safe to getattr
             qs = qs.filter(flags=getattr(CourseOffering.flags, f))
 
+        distance = GET.get('distance', None)
+        if distance == 'dist':
+            qs = qs.filter(instr_mode='DE')
+        elif distance == 'on':
+            qs = qs.exclude(instr_mode='DE')
+
         #print qs.query
         #qs = qs[:500] # ignore requests for crazy amounts of data
         return qs
@@ -759,6 +768,3 @@ def _offering_meeting_time_data(request, offering):
                                          dt_string=True, colour=True, browse_titles=True))
     json.dump(data, response, indent=1)
     return response
-
-
-

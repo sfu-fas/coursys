@@ -42,6 +42,7 @@
 <form action="{% url "coredata.views.sysadmin" %}" method="get">
 {{ form.non_field_errors }}
 <p>Person search: {{ form.user }} {{ form.user.errors }} <input type="submit" name="usersearch" value="Search" class="submit" /></p>
+<div class="clearfix"></div>
 <p>Course Offering search: {{ form.offering }} {{ form.offering.errors }} <input type="submit" name="offeringsearch" value="Search" class="submit"/></p>
 </form>
 

@@ -25,7 +25,7 @@ from grad.models import STATUS_APPLICANT
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
 white = CMYKColor(0, 0, 0, 0)
-media_path = os.path.join(settings.PROJECT_DIR, 'external', 'sfu')
+media_path = os.path.join(settings.BASE_DIR, 'external', 'sfu')
 logofile = os.path.join(media_path, 'logo.png')
 
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
@@ -1885,7 +1885,7 @@ class FASnetForm(object):
         Create FASnet account form in the file object (which could be a Django HttpResponse).
         """
         self.c = canvas.Canvas(outfile, pagesize=letter)
-        self.legal = open(os.path.join(settings.PROJECT_DIR, 'external', 'sfu', 'fasnet_legal.txt')).read()
+        self.legal = open(os.path.join(settings.BASE_DIR, 'external', 'sfu', 'fasnet_legal.txt')).read()
 
     def save(self):
         self.c.save()

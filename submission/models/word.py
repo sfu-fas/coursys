@@ -7,7 +7,7 @@ from django.http import HttpResponse
 
 class WordComponent(SubmissionComponent):
     "A Word/OpenDoc file submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the Word/OpenDoc file, in kB.", null=False, default=10000)
+    max_size = FileSizeField(help_text="Maximum size of the Word/OpenDoc file, in kB.", null=False, default=10000)
     allowed_types = {
             "WORD": [".doc", '.docx'],
             "OPENDOC": [".odt"]

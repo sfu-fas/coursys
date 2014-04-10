@@ -66,8 +66,15 @@ class ExceptionIgnorer(object):
         exc_info = sys.exc_info()
         format = traceback.format_exc(exc_info[2])
         message = unicode(exception)
-        if isinstance(exception, IOError) and 'Connection reset by peer' in message and '_verify(ticket, service)' in format:
+        if (isinstance(exception, IOError) and '_verify(ticket, service)' in format
+            and ('Connection reset by peer' in message
+                 or 'Name or service not known' in message
+                 or 'Connection timed out' in message
+                 or 'EOF occurred in violation of protocol' in message)):
             # CAS verification timeout
+            return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
+        elif isinstance(exception, AssertionError) and "Django CAS middleware requires authentication middleware" in format:
+            # CAS choke
             return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
         elif isinstance(exception, EOFError) and "return request.POST.get('csrfmiddlewaretoken', '')" in format:
             # file upload EOF
