@@ -35,6 +35,10 @@ package "rabbitmq-server"
 
 # Cache Server
 package "memcached"
+service "memcached" do
+  action :restart
+end
+
 
 # We need this to connect to things in our data center because BLAUGH 
 package "stunnel4"
@@ -57,17 +61,25 @@ execute "install_pip_requirements" do
     command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
 end
 
-# configure local settings
-cookbook_file "localsettings.py" do
-    path "/home/coursys/courses/courses/localsettings.py"
-    action :create
-end
-
 # elasticsearch
 package "openjdk-7-jre-headless"
+directory "/home/coursys/config" do
+    owner "coursys"
+    group "coursys"
+    mode 00755
+    action :create
+end
 execute "install_elasticsearch" do
-    cwd "/home/vagrant"
-    command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb && /etc/init.d/elasticsearch restart"
+    cwd "/home/coursys/config"
+    command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb"
+    not_if do ::File.exists?('/var/lib/elasticsearch/') end
+end
+cookbook_file "elasticsearch.yml" do
+    path "/etc/elasticsearch/elasticsearch.yml"
+end
+
+service "elasticsearch" do
+  action :restart
 end
 
 # misc system config
@@ -78,6 +90,9 @@ end
 #Rabbit Configuration
 cookbook_file "rabbitmq.conf" do
     path "/etc/rabbitmq/rabbitmq-env.conf"
+end
+service "rabbitmq-server" do
+  action :restart
 end
 
 execute "dos2unix" do
@@ -97,9 +112,12 @@ end
 cookbook_file "celeryd-defaults" do
     path "/etc/default/celeryd"
 end
-execute "debconf_update" do
+execute "wwwdata_shell" do
     cwd "/"
     command "chsh -s /bin/bash www-data"
+end
+service "celeryd" do
+  action :restart
 end
 
 # configure NGINX

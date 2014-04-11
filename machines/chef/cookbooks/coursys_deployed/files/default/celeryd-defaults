@@ -2,14 +2,14 @@
 CELERYD_NODES="worker fastworker photo sims"
 
 # Absolute or relative path to the 'celery' command:
-CELERY_BIN="/home/vagrant/courses/manage.py celery"
+CELERY_BIN="/home/coursys/courses/manage.py celery"
 
 # settings for django integration
 CELERY_LOADER="django"
 DJANGO_SETTINGS_MODULE="courses.settings"
 
 # Where to chdir at start.
-CELERYD_CHDIR="/home/vagrant/courses"
+CELERYD_CHDIR="/home/coursys/courses"
 
 # Extra command-line arguments to the worker
 BEAT_OPTS="-B:worker --schedule=/var/run/celery/celerybeat.schedule" # options for celerybeat

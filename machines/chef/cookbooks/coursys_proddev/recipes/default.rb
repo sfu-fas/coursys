@@ -18,16 +18,18 @@ end
 # put in the fake https certification
 cookbook_file "self-ssl.key" do 
     path "/etc/nginx/cert.key"
+    mode 0400
 end
 
 cookbook_file "self-ssl.pem" do 
     path "/etc/nginx/cert.pem"
+    mode 0400
 end
 
 # configure local settings
 cookbook_file "localsettings.py" do
     path "/home/coursys/courses/courses/localsettings.py"
-    action :create
+    action :create_if_missing
 end
 
 # configure secrets

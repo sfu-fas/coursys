@@ -66,6 +66,8 @@ class Command(BaseCommand):
         info.append(('Cache backend', self._last_component(settings.CACHES['default']['BACKEND'])))
         info.append(('Haystack engine', self._last_component(settings.HAYSTACK_CONNECTIONS['default']['ENGINE'])))
         info.append(('Email backend', '.'.join(settings.EMAIL_BACKEND.split('.')[-2:])))
+        if settings.CELERY_EMAIL:
+            info.append(('Celery email backend', '.'.join(settings.CELERY_EMAIL_BACKEND.split('.')[-2:])))
         info.append(('Celery broker', settings.BROKER_URL.split(':')[0]))
 
 
@@ -161,7 +163,8 @@ class Command(BaseCommand):
         if res:
             passed.append(('Haystack search', 'okay'))
         else:
-            failed.append(('Haystack search', 'nothing found: maybe update_index?'))
+            failed.append(('Haystack search', 'nothing found: maybe update_index, or wait for search server to fully start'))
+
 
         # photo fetching
         if cache_okay and celery_okay:
@@ -171,7 +174,7 @@ class Command(BaseCommand):
                     failed.append(('Photo fetching', "didn't find photo we expect to exist"))
                 else:
                     passed.append(('Photo fetching', 'okay'))
-            except (KeyError, Unit.DoesNotExist):
+            except (KeyError, Unit.DoesNotExist, django.db.utils.ProgrammingError):
                 failed.append(('Photo fetching', 'photo password not set'))
             except urllib2.HTTPError as e:
                 failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
@@ -195,6 +198,39 @@ class Command(BaseCommand):
 
         if bad_cert == 0:
             passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/'))
+
+        # SVN database
+        if settings.SVN_DB_CONNECT:
+            from courselib.svn import SVN_TABLE, _db_conn
+            import MySQLdb
+            try:
+                db = _db_conn()
+                db.execute('SELECT count(*) FROM '+SVN_TABLE, ())
+                n = list(db)[0][0]
+                if n > 0:
+                    passed.append(('SVN database', 'okay'))
+                else:
+                    failed.append(('SVN database', "couldn't access records"))
+            except MySQLdb.OperationalError:
+                failed.append(('SVN database', "can't connect to database"))
+        else:
+            failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
+
+        # AMAINT database
+        if settings.AMAINT_DB_PASSWORD:
+            from coredata.importer import AMAINTConn
+            try:
+                db = AMAINTConn()
+                db.execute("SELECT count(*) FROM idMap", ())
+                n = list(db)[0][0]
+                if n > 0:
+                    passed.append(('AMAINT database', 'okay'))
+                else:
+                    failed.append(('AMAINT database', "couldn't access records"))
+            except MySQLdb.OperationalError:
+                failed.append(('AMAINT database', "can't connect to database"))
+        else:
+            failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
 
         # TODO: svn database, amaint database
 

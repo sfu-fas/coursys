@@ -931,7 +931,6 @@ def photo_agreement(request):
 
 
 
-
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery, Exact, Clean
 import itertools
@@ -1012,4 +1011,3 @@ def site_search(request):
 
     #print [r.text for r in results]
     return render(request, "dashboard/site_search.html", context)
-

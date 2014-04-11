@@ -1,0 +1,9 @@
+.double-image img{
+	height:40%; 
+	width:40%;
+}
+
+figcaption{
+	font-size:.8em;
+	font-weight:bold;
+}

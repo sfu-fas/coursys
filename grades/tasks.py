@@ -32,7 +32,7 @@ def _create_grade_released_history(activity_id, entered_by_id):
     let_grades = LetterGrade.objects.filter(id=activity_id)
     activity = Activity.objects.get(id=activity_id)
     for g in itertools.chain(num_grades, let_grades):
-        gh = GradeHistory(activity_id=activity, member=g.member, entered_by_id=entered_by_id, activity_status=activity.status,
+        gh = GradeHistory(activity=activity, member=g.member, entered_by_id=entered_by_id, activity_status=activity.status,
                           grade_flag=g.flag, comment=g.comment, mark=None, group=None, status_change=True)
         if hasattr(g, 'value'):
             # NumericGrade

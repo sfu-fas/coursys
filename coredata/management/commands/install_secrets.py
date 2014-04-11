@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 import os, stat, subprocess
 
 import courses.secrets as secrets
+from dashboard.photos import get_photo_password, set_photo_password
 
 class Command(BaseCommand):
     def _report_missing(self, config, obj):
@@ -21,9 +22,6 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **kwargs):
-        #self._install_from('STUNNEL_PEM', '/etc/stunnel/stunnel.pem')
-        #self._install_from('CERT_PEM', '/etc/nginx/cert.pem')
-        #self._install_from('CERT_KEY', '/etc/nginx/cert.key')
 
         # AMPQ user
         if hasattr(secrets, 'AMPQ_PASSWORD') and getattr(secrets, 'AMPQ_PASSWORD'):
@@ -40,5 +38,17 @@ class Command(BaseCommand):
         else:
             self._report_missing('AMPQ_PASSWORD', 'AMPQ user')
 
+        # photo system initial password
+        try:
+            get_photo_password()
+            photo_pass_needed = False
+        except KeyError:
+            photo_pass_needed = True
 
+        if photo_pass_needed:
+            if hasattr(secrets, 'INITIAL_PHOTO_PASSWORD') and getattr(secrets, 'INITIAL_PHOTO_PASSWORD'):
+                pw = getattr(secrets, 'INITIAL_PHOTO_PASSWORD')
+                set_photo_password(pw)
+            else:
+                self._report_missing('INITIAL_PHOTO_PASSWORD', 'photo password')
 
