@@ -124,6 +124,9 @@ end
 execute "dos2unix" do
     command "dos2unix /etc/default/celeryd"
 end
+execute "update-rc.d" do
+    command "update-rc.d celeryd defaults"
+end
 execute "wwwdata_shell" do
     cwd "/"
     command "chsh -s /bin/bash www-data"

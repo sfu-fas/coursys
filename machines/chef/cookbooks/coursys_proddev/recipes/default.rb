@@ -1,7 +1,6 @@
 package "mysql-server"
 
 # this is a default poorly-secured database.
-
 execute "create database" do 
     command "echo \"create database if not exists coursys_db;\" | mysql"
 end
@@ -36,4 +35,25 @@ end
 cookbook_file "secrets.py" do
     path "/home/coursys/courses/courses/secrets.py"
     action :create
+end
+
+# set rabbitmq password
+execute "rabbit add_user" do 
+    user "rabbitmq"
+    environment ({'HOME' => '/var/lib/rabbitmq'})
+    command "rabbitmqctl add_user coursys supersecretpassword"
+    ignore_failure true    
+end
+
+execute "rabbit add_vhost" do
+    user "rabbitmq"
+    environment ({'HOME' => '/var/lib/rabbitmq'})
+    command "rabbitmqctl add_vhost myvhost"
+    ignore_failure true    
+end
+
+execute "rabbit set_permissions" do
+    user "rabbitmq"
+    environment ({'HOME' => '/var/lib/rabbitmq'})
+    command "rabbitmqctl set_permissions -p myvhost coursys \".*\" \".*\" \".*\""
 end
