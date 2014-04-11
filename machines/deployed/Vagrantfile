@@ -61,10 +61,8 @@ Vagrant::Config.run do |config|
 
      chef.add_recipe "sfu-db2"
 
-
-  # 
   #   # You may also specify custom JSON attributes:
-  #   chef.json = { :mysql_password => "foo" }
+     chef.json = { :sfu_db2 => { :users => ['coursys']} }
   end
 
 end

@@ -58,6 +58,8 @@ package "git"
 package "ack-grep"
 package "screen"
 
+package "dos2unix"
+
 # pip install any listed requirements
 execute "install_pip_requirements" do
     cwd "/home/vagrant/"
@@ -84,14 +86,18 @@ service "elasticsearch" do
   action :restart
 end
 
-# rabbitmq
+#Rabbit Configuration
 cookbook_file "rabbitmq.conf" do
     path "/etc/rabbitmq/rabbitmq-env.conf"
+end
+execute "dos2unix" do
+    command "dos2unix /etc/rabbitmq/rabbitmq-env.conf"
 end
 execute "kill_the_rabbit" do
     # sometimes the initial startup seems to not connect to the pid file
     cwd "/"
     command "killall rabbitmq-server; killall beam"
+    ignore_failure true
 end
 service "rabbitmq-server" do
   action :restart
@@ -111,8 +117,14 @@ cookbook_file "celeryd-init" do
     path "/etc/init.d/celeryd"
     mode 0755
 end
+execute "dos2unix" do
+    command "dos2unix /etc/init.d/celeryd"
+end
 cookbook_file "celeryd-defaults" do
     path "/etc/default/celeryd"
+end
+execute "dos2unix" do
+    command "dos2unix /etc/default/celeryd"
 end
 execute "wwwdata_shell" do
     cwd "/"
@@ -127,6 +139,9 @@ cookbook_file "nginx_default.conf" do
     path "/etc/nginx/sites-available/default"
     action :create
 end
+service "nginx" do
+  action :restart
+end
 
 #configure supervisord
 cookbook_file "supervisord.conf" do 
@@ -140,17 +155,11 @@ cookbook_file "supervisor_init.d" do
     mode "0755"
 end
 
-#start supervisord
-execute "supervisord" do
-    command "supervisord"
-    ignore_failure true    
-end
-
 # create a directory for the gunicorn log files
 # directory "/var/log/gunicorn"
 directory "/var/log/gunicorn" do 
-    owner "www-data"
-    mode "00755"
+    owner "coursys"
+    mode "00766"
     action :create
 end
 
@@ -162,7 +171,8 @@ cookbook_file "Makefile" do
     action :create
 end
 
-# restart nginx
-execute "restart nginx" do
-    command "/etc/init.d/nginx restart"
+#start supervisord
+execute "supervisord" do
+    command "supervisord"
+    ignore_failure true    
 end

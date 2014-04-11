@@ -15,7 +15,6 @@ execute "remove_postfix" do
     command "dpkg --purge postfix"
 end
 
-
 # put in the fake https certification
 cookbook_file "self-ssl.key" do 
     path "/etc/nginx/cert.key"
@@ -38,6 +37,3 @@ cookbook_file "secrets.py" do
     path "/home/coursys/courses/courses/secrets.py"
     action :create
 end
-
-
-
