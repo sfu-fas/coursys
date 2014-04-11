@@ -219,6 +219,7 @@ class Command(BaseCommand):
         # AMAINT database
         if settings.AMAINT_DB_PASSWORD:
             from coredata.importer import AMAINTConn
+            import MySQLdb
             try:
                 db = AMAINTConn()
                 db.execute("SELECT count(*) FROM idMap", ())

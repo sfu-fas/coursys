@@ -4,7 +4,11 @@ user "coursys" do
     action :create
     shell "/bin/bash"
 end
-
+group "admin" do
+  action :modify
+  members "coursys"
+  append true
+end
 directory "/home/coursys" do
     owner "coursys"
     mode "00755"
@@ -14,6 +18,7 @@ end
 # Move /home/vagrant/courses to /home/coursys/courses"
 execute "copy coursys" do
     command "cp -r /home/vagrant/courses /home/coursys/courses"
+    not_if do ::File.exists?('/home/coursys/courses/manage.py') end
 end
 
 directory "/home/coursys/courses" do 
@@ -77,14 +82,8 @@ end
 cookbook_file "elasticsearch.yml" do
     path "/etc/elasticsearch/elasticsearch.yml"
 end
-
 service "elasticsearch" do
   action :restart
-end
-
-# misc system config
-cookbook_file "stunnel.conf" do
-    path "/etc/stunnel/stunnel.conf"
 end
 
 #Rabbit Configuration
@@ -98,13 +97,16 @@ execute "kill_the_rabbit" do
     # sometimes the initial startup seems to not connect to the pid file
     cwd "/"
     command "killall rabbitmq-server; killall beam"
-    ignore_failure true    
+    ignore_failure true
 end
 service "rabbitmq-server" do
   action :restart
 end
 
-
+# misc system config
+cookbook_file "stunnel.conf" do
+    path "/etc/stunnel/stunnel.conf"
+end
 execute "deny_coursys_ssh" do
     cwd "/"
     command "grep -q 'DenyUsers coursys'  /etc/ssh/sshd_config || (echo '\nDenyUsers coursys\nDenyUsers www-data' >> /etc/ssh/sshd_config)"

@@ -28,7 +28,7 @@ end
 # configure local settings
 cookbook_file "localsettings.py" do
     path "/home/coursys/courses/courses/localsettings.py"
-    action :create_if_missing
+    action :create
 end
 
 # configure secrets
