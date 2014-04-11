@@ -8,15 +8,14 @@
 #}
 
 # 50-random-character secret key for crypto thingies. Use tools/secret_key_gen.py to create a good one if needed
-SECRET_KEY = ''
+SECRET_KEY = 'THIS IS NOT A VERY SECRET KEY'
 
-#AMPQ_PASSWORD = ''
-
-# password for the SVN repository database
+# passwords for various connections:
 SVN_DB_PASS = ''
+AMAINT_DB_PASSWORD = ''
+AMPQ_PASSWORD = 'supersecretpassword'
+INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py install_secrets', if needed
 
 # reporting DB connection
 SIMS_USER = 'ggbaker'
 SIMS_PASSWORD = ''
-
-AMAINT_DB_PASSWORD = ''

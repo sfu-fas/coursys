@@ -100,7 +100,7 @@ def _get_photos(emplids):
     photo_url = PHOTO_URL % (emplid_str)
     headers = {'Authorization': 'Bearer ' + token}
     photo_request_obj = urllib2.Request(url=photo_url, headers=headers)
-    photo_request = urllib2.urlopen(photo_request_obj)
+    photo_request = urllib2.urlopen(photo_request_obj, timeout=30)
     photo_response = json.load(photo_request)
     photos = {}
     for data in photo_response:

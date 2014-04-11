@@ -199,6 +199,39 @@ class Command(BaseCommand):
         if bad_cert == 0:
             passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/'))
 
+        # SVN database
+        if settings.SVN_DB_CONNECT:
+            from courselib.svn import SVN_TABLE, _db_conn
+            import MySQLdb
+            try:
+                db = _db_conn()
+                db.execute('SELECT count(*) FROM '+SVN_TABLE, ())
+                n = list(db)[0][0]
+                if n > 0:
+                    passed.append(('SVN database', 'okay'))
+                else:
+                    failed.append(('SVN database', "couldn't access records"))
+            except MySQLdb.OperationalError:
+                failed.append(('SVN database', "can't connect to database"))
+        else:
+            failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
+
+        # AMAINT database
+        if settings.AMAINT_DB_PASSWORD:
+            from coredata.importer import AMAINTConn
+            try:
+                db = AMAINTConn()
+                db.execute("SELECT count(*) FROM idMap", ())
+                n = list(db)[0][0]
+                if n > 0:
+                    passed.append(('AMAINT database', 'okay'))
+                else:
+                    failed.append(('AMAINT database', "couldn't access records"))
+            except MySQLdb.OperationalError:
+                failed.append(('AMAINT database', "can't connect to database"))
+        else:
+            failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
+
         # TODO: svn database, amaint database
 
         # report results
