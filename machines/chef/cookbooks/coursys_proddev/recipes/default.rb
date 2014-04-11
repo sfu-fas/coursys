@@ -15,7 +15,6 @@ execute "remove_postfix" do
     command "dpkg --purge postfix"
 end
 
-
 # put in the fake https certification
 cookbook_file "self-ssl.key" do 
     path "/etc/nginx/cert.key"
@@ -37,5 +36,8 @@ cookbook_file "secrets.py" do
     action :create
 end
 
-
+# restart nginx
+execute "restart nginx" do
+    command "/etc/init.d/nginx restart"
+end
 
