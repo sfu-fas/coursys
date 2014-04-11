@@ -37,9 +37,3 @@ cookbook_file "secrets.py" do
     path "/home/coursys/courses/courses/secrets.py"
     action :create
 end
-
-# restart nginx
-execute "restart nginx" do
-    command "/etc/init.d/nginx restart"
-end
-
