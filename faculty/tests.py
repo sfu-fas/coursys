@@ -78,7 +78,6 @@ class EventTypesTest(TestCase):
                     self.assertTrue(issubclass(Handler, SalaryCareerEvent))
                     self.assertIsInstance(handler, SalaryCareerEvent)
                     self.assertIsInstance(handler.salary_adjust_annually(), SalaryAdjust)
-                    self.assertTrue(handler.event.flags.affects_salary)
                 else:
                     self.assertFalse(handler.event.flags.affects_salary)
 
@@ -86,7 +85,6 @@ class EventTypesTest(TestCase):
                     self.assertTrue(issubclass(Handler, TeachingCareerEvent))
                     self.assertIsInstance(handler, TeachingCareerEvent)
                     self.assertIsInstance(handler.teaching_adjust_per_semester(), TeachingAdjust)
-                    self.assertTrue(handler.event.flags.affects_teaching)
                 else:
                     self.assertFalse(handler.event.flags.affects_teaching)
 
@@ -172,7 +170,7 @@ class CareerEventTest(TestCase):
         self.u = Unit.objects.get(id=1)
         self.date = datetime.date(2014, 1, 1)
         self.e = CareerEvent(person=self.p, unit=self.u, event_type="APPOINT", start_date=self.date)
-        self.e.save(self.p)
+        self.e.get_handler().save(self.p)
 
     def test_get_effective_date(self):
         events = CareerEvent.objects.effective_date(self.date)
@@ -187,6 +185,30 @@ class CareerEventTest(TestCase):
         for e in events:
             assert e.start_date >= start
             assert e.end_date == None or (e.end_date <= end and e.end_date >= start)
+
+    def test_flag_logic(self):
+        """
+        Check the event.flags setting logic: flags set only if there's a real effect.
+        """
+        e = CareerEvent(person=self.p, unit=self.u, event_type="FELLOW", start_date=self.date)
+        e.config = {'add_salary': 0, 'add_pay': 0, 'teaching_credit': 0}
+        h = e.get_handler()
+        h.save(self.p)
+        self.assertFalse(e.flags.affects_salary)
+        self.assertFalse(e.flags.affects_teaching)
+
+        e.config['add_salary'] = 5
+        h.save(self.p)
+        self.assertTrue(e.flags.affects_salary)
+        self.assertFalse(e.flags.affects_teaching)
+
+        e.config['add_salary'] = 0
+        e.config['teaching_credit'] = 1
+        h.save(self.p)
+        self.assertFalse(e.flags.affects_salary)
+        self.assertTrue(e.flags.affects_teaching)
+
+
 
 
 class PagesTest(TestCase):

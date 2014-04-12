@@ -226,9 +226,10 @@ class CareerEvent(models.Model):
     def __unicode__(self):
         return u"%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
 
-    def save(self, editor, *args, **kwargs):
+    def save(self, editor, call_from_handler=False, *args, **kwargs):
         # we're doing to so we can add an audit trail later.
         assert editor.__class__.__name__ == 'Person'
+        assert call_from_handler, "must save through handler"
         return super(CareerEvent, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
