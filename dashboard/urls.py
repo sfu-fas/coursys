@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from django.views.generic import RedirectView
-from courselib.urlparts import USERID_SLUG, COURSE_SLUG, SLUG_RE
+from courselib.urlparts import USERID_SLUG, COURSE_SLUG, SLUG_RE, USERID_OR_EMPLID
 
 config_patterns = [ # prefix /config/
     url(r'^$', 'dashboard.views.config'),
@@ -32,4 +32,10 @@ calendar_patterns = [ # prefix /calendar/
 docs_patterns = [ # prefix /docs/
     url(r'^docs/$', 'dashboard.views.list_docs'),
     url(r'^docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
+]
+
+studentsearch_patterns = [ # prefix /students/
+    # basic student search: hopefully replace with full text search
+    url(r'^$', 'dashboard.views.student_info'),
+    url(r'^' + USERID_OR_EMPLID + '$', 'dashboard.views.student_info'),
 ]

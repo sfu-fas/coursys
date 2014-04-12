@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from courselib.urlparts import COURSE_SLUG, USERID_OR_EMPLID, USERID_SLUG
+from courselib.urlparts import COURSE_SLUG, USERID_OR_EMPLID, USERID_SLUG, EMPLID_SLUG
 
 data_patterns = [ # prefix /data/
     url(r'^courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
@@ -9,6 +9,7 @@ data_patterns = [ # prefix /data/
     url(r'^students$', 'coredata.views.student_search'),
     #url(r'^sims_people', 'coredata.views.sims_person_search'),
     url(r'^scholarships/(?P<student_id>\d{9})$', 'ra.views.search_scholarships_by_student'),
+    url(r'^photos/' + EMPLID_SLUG + '$', 'grades.views.student_photo'),
 ]
 
 admin_patterns = [ # prefix /admin/
@@ -46,4 +47,9 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^dishonesty/new$', 'discipline.views.new_template'),
     url(r'^dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
     url(r'^dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
+]
+
+browse_patterns = [ # prefix /browse/
+    url(r'^browse/$', 'coredata.views.browse_courses'),
+    url(r'^browse/info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),
 ]

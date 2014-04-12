@@ -9,7 +9,7 @@ SHEETSUBMIT_SLUG = '(?P<sheetsubmit_slug>' + SLUG_RE + ')'
 FORMGROUP_SLUG = '(?P<formgroup_slug>' + SLUG_RE + ')'
 SECRET_SUBMIT_URL = '(?P<secret_url>' + SLUG_RE + ')'
 
-urlpatterns = [
+forms_patterns = [
     url(r'^groups/$', 'onlineforms.views.manage_groups'),
     url(r'^groups/new$', 'onlineforms.views.new_group'),
     url(r'^groups/' + FORMGROUP_SLUG + '/$', 'onlineforms.views.manage_group'),

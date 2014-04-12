@@ -5,7 +5,7 @@ REPORT_SLUG = '(?P<report>' + SLUG_RE + ')'
 RUN_SLUG = '(?P<run>' + SLUG_RE + ')'
 RESULT_SLUG = '(?P<result>' + SLUG_RE + ')'
 
-urlpatterns = [
+report_patterns = [
     url(r'^$', 'reports.views.view_reports'),
     url(r'^new$', 'reports.views.new_report'),
     url(r'^type/' + REPORT_SLUG + '$', 'reports.views.view_report'),

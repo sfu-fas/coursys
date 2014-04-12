@@ -2,12 +2,12 @@ from django.conf.urls import url, include
 from django.views.generic import RedirectView
 from courselib.urlparts import USERID_SLUG, ACTIVITY_SLUG
 
-from groups.urls import group_patterns
-from discuss.urls import discussion_patterns
-from submission.urls import submission_patterns
-from marking.urls import marking_patterns
 from discipline.urls import discipline_offering_patterns
+from discuss.urls import discussion_patterns
+from groups.urls import group_patterns
+from marking.urls import marking_patterns
 from pages.urls import pages_patterns
+from submission.urls import submission_patterns
 
 activity_patterns = [ # prefix /COURSE_SLUG/+ACTIVITY_SLUG/
     url(r'^$', 'grades.views.activity_info'),
