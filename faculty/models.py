@@ -288,7 +288,8 @@ class CareerEvent(models.Model):
         """
         today = datetime.date.today()
         classes = []
-        if self.start_date <= today and (self.end_date == None or self.end_date >= today):
+        #if self.start_date <= today and (self.end_date == None or self.end_date >= today):
+        if self.end_date == None or self.end_date >= today:
             classes.append('current')
         if self.flags.affects_teaching:
             classes.append('teach')
