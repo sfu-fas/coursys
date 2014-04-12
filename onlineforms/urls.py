@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
 
 FORM_SLUG = '(?P<form_slug>' + SLUG_RE + ')'
@@ -9,7 +9,7 @@ SHEETSUBMIT_SLUG = '(?P<sheetsubmit_slug>' + SLUG_RE + ')'
 FORMGROUP_SLUG = '(?P<formgroup_slug>' + SLUG_RE + ')'
 SECRET_SUBMIT_URL = '(?P<secret_url>' + SLUG_RE + ')'
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^groups/$', 'onlineforms.views.manage_groups'),
     url(r'^groups/new$', 'onlineforms.views.new_group'),
     url(r'^groups/' + FORMGROUP_SLUG + '/$', 'onlineforms.views.manage_group'),
@@ -44,4 +44,4 @@ urlpatterns = patterns('',
     url(r'^submission/' + SECRET_SUBMIT_URL + '/$', 'onlineforms.views.sheet_submission_via_url'),
     url(r'^' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '/reject$', 'onlineforms.views.reject_sheet_subsequent'),
     url(r'^submission/' + SECRET_SUBMIT_URL + '/reject$', 'onlineforms.views.reject_sheet_via_url'),
-)
+]

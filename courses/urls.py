@@ -1,23 +1,15 @@
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.conf import settings
 from django.views.generic import TemplateView,  RedirectView
 
-#if not settings.DEPLOYED:
-#    from django.contrib import admin
-#    admin.autodiscover()
-
 from courselib.urlparts import *
+from dashboard.urls import config_patterns, news_patterns, calendar_patterns, docs_patterns
+from coredata.urls import data_patterns, admin_patterns, sysadmin_patterns
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
-urlpatterns = patterns('')
-
-urlpatterns += patterns('',
-
-)
-
 #---------------------------------------
-urlpatterns += patterns('',
+urlpatterns = [
     url(r'^login/$', 'dashboard.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
     url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
@@ -27,41 +19,25 @@ urlpatterns += patterns('',
     url(r'^$', 'dashboard.views.index'),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
     url(r'^history$', 'dashboard.views.index_full'),
-    url(r'^config/$', 'dashboard.views.config'),
-    url(r'^news/$', 'dashboard.views.news_list'),
-    url(r'^news/configure/$', RedirectView.as_view(url='/config/', permanent=True)),
-    url(r'^config/news/set$', 'dashboard.views.create_news_url'),
-    url(r'^config/news/del$', 'dashboard.views.disable_news_url'),
-    url(r'^config/calendar/set$', 'dashboard.views.create_calendar_url'),
-    url(r'^config/calendar/del$', 'dashboard.views.disable_calendar_url'),
-    url(r'^config/advisor-api/set$', 'dashboard.views.enable_advisor_token'),
-    url(r'^config/advisor-api/del$', 'dashboard.views.disable_advisor_token'),
-    url(r'^config/advisor-api/change$', 'dashboard.views.change_advisor_token'),
-    url(r'^config/news$', 'dashboard.views.news_config'),
-    url(r'^config/photos$', 'dashboard.views.photo_agreement'),
 
-    url(r'^news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
-    url(r'^news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '/' + COURSE_SLUG + '$', 'dashboard.views.atom_feed'),
-    url(r'^calendar/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '(?:~*)$', 'dashboard.views.calendar_ical'),
-    url(r'^calendar/$', 'dashboard.views.calendar'),
-    url(r'^calendar/data$', 'dashboard.views.calendar_data'),
-    url(r'^docs/$', 'dashboard.views.list_docs'),
-    url(r'^docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
-    url(r'^data/courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
-    url(r'^data/offerings$', 'coredata.views.offerings_search'),
-    url(r'^data/courses$', 'coredata.views.course_search'),
-    url(r'^data/offering$', 'coredata.views.offering_by_id'),
-    url(r'^data/students$', 'coredata.views.student_search'),
-    #url(r'^data/sims_people', 'coredata.views.sims_person_search'),
-    url(r'^courses/(?P<tail>.*)$', RedirectView.as_view(url='/browse/%(tail)s', permanent=True)),
+    url(r'^config/', include(config_patterns)),
+    url(r'^news/', include(news_patterns)),
+    url(r'^calendar/', include(calendar_patterns)),
+    url(r'^docs/', include(docs_patterns)),
+    url(r'^data/', include(data_patterns)),
+    url(r'^admin/', include(admin_patterns)),
+    url(r'^sysadmin/', include(sysadmin_patterns)),
+
     url(r'^search$', 'dashboard.views.site_search'),
 
+    url(r'^courses/(?P<tail>.*)$', RedirectView.as_view(url='/browse/%(tail)s', permanent=True)),
     url(r'^browse/$', 'coredata.views.browse_courses'),
     url(r'^browse/info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),
-    url(r'^data/scholarships/(?P<student_id>\d{9})$', 'ra.views.search_scholarships_by_student'),
+
     url(r'^students/$', 'dashboard.views.student_info'),
     url(r'^students/' + USERID_OR_EMPLID + '$', 'dashboard.views.student_info'),
     url(r'^photos/' + EMPLID_SLUG + '$', 'grades.views.student_photo'),
+    url(r'^users/' + USERID_SLUG + '/$', RedirectView.as_view(url='/sysadmin/users/%(userid)s/', permanent=True)),  # accept the URL provided as get_absolute_url for user objects
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
     url(r'^' + COURSE_SLUG + '/reorder_activity$', 'grades.views.reorder_activity'),
@@ -257,46 +233,7 @@ urlpatterns += patterns('',
     url(r'^ta/' + POST_SLUG + '/application/' + USERID_SLUG + '/update$', 'ta.views.update_application'),
     url(r'^ta/' + POST_SLUG + '/application/' + USERID_SLUG + '/edit', 'ta.views.edit_application'),
 
-    # system admin
 
-    url(r'^sysadmin/$', 'coredata.views.sysadmin'),
-    url(r'^sysadmin/log/$', 'log.views.index'),
-    url(r'^sysadmin/roles/$', 'coredata.views.role_list'),
-    url(r'^sysadmin/roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_role'),
-    url(r'^sysadmin/roles/new$', 'coredata.views.new_role'),
-    #url(r'^sysadmin/roles/instr$', 'coredata.views.missing_instructors'),
-    url(r'^sysadmin/units/$', 'coredata.views.unit_list'),
-    url(r'^sysadmin/units/new$', 'coredata.views.edit_unit'),
-    url(r'^sysadmin/units/(?P<unit_slug>[\w-]+)/edit$', 'coredata.views.edit_unit'),
-    url(r'^sysadmin/members/$', 'coredata.views.members_list'),
-    url(r'^sysadmin/members/new$', 'coredata.views.edit_member'),
-    url(r'^sysadmin/members/(?P<member_id>\d+)/edit$', 'coredata.views.edit_member'),
-    url(r'^users/' + USERID_SLUG + '/$', RedirectView.as_view(url='/sysadmin/users/%(userid)s/', permanent=True)),  # accept the URL provided as get_absolute_url for user objects
-    url(r'^sysadmin/semesters/$', 'coredata.views.semester_list'),
-    url(r'^sysadmin/semesters/new$', 'coredata.views.edit_semester'),
-    url(r'^sysadmin/semesters/edit/(?P<semester_name>\d{4})$', 'coredata.views.edit_semester'),
-    url(r'^sysadmin/users/' + USERID_OR_EMPLID + '/$', 'coredata.views.user_summary'),
-    url(r'^sysadmin/offerings/' + COURSE_SLUG + '/$', 'coredata.views.offering_summary'),
-    url(r'^sysadmin/people/new$', 'coredata.views.new_person'),
-    url(r'^sysadmin/dishonesty/$', 'discipline.views.show_templates'),
-    url(r'^sysadmin/dishonesty/new$', 'discipline.views.new_template'),
-    url(r'^sysadmin/dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
-    url(r'^sysadmin/dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
-
-    url(r'^admin/$', 'coredata.views.unit_admin'),
-    url(r'^admin/roles/$', 'coredata.views.unit_role_list'),
-    url(r'^admin/roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_unit_role'),
-    url(r'^admin/roles/new$', 'coredata.views.new_unit_role'),
-    url(r'^admin/signatures/$', 'dashboard.views.signatures'),
-    url(r'^admin/signatures/new$', 'dashboard.views.new_signature'),
-    url(r'^admin/signatures/' + USERID_SLUG + '/view$', 'dashboard.views.view_signature'),
-    url(r'^admin/signatures/' + USERID_SLUG + '/delete', 'dashboard.views.delete_signature'),
-    url(r'^admin/(?P<unit_slug>[\w-]+)/address$', 'coredata.views.unit_address'),
-    url(r'^admin/(?P<unit_slug>[\w-]+)/instr$', 'coredata.views.missing_instructors'),
-
-)
-
-urlpatterns += patterns('',
 
     #Graduate student database
 
@@ -444,16 +381,16 @@ urlpatterns += patterns('',
 
     # redirect old mobile URLs to rightful locations
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),
-)
+]
 
 if settings.DEPLOY_MODE != 'production':
     # URLs for development only:
     from django.conf.urls.static import static
-    urlpatterns += patterns('',
+    urlpatterns += [
         url(r'^fake_login', 'dashboard.views.fake_login'),
         url(r'^fake_logout', 'dashboard.views.fake_logout'),
         #(r'^admin/(.*)', admin.site.root),
         #(r'^static/(?P<path>.*)$', 'django.views.static.serve',
         #    {'document_root': settings.STATIC_ROOT}),
-    )
+    ]
 
