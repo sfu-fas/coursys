@@ -5,17 +5,17 @@ from django.views.generic import TemplateView,  RedirectView
 from courselib.urlparts import *
 from dashboard.urls import config_patterns, news_patterns, calendar_patterns, docs_patterns
 from coredata.urls import data_patterns, admin_patterns, sysadmin_patterns
+from grades.urls import offering_patterns
+from discipline.urls import discipline_patterns
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
-#---------------------------------------
 urlpatterns = [
     url(r'^login/$', 'dashboard.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
     url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
 
-#---------------------------------------
     url(r'^$', 'dashboard.views.index'),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
     url(r'^history$', 'dashboard.views.index_full'),
@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^data/', include(data_patterns)),
     url(r'^admin/', include(admin_patterns)),
     url(r'^sysadmin/', include(sysadmin_patterns)),
+    url(r'^discipline/', include(discipline_patterns)),
 
     url(r'^search$', 'dashboard.views.site_search'),
 
@@ -39,159 +40,16 @@ urlpatterns = [
     url(r'^photos/' + EMPLID_SLUG + '$', 'grades.views.student_photo'),
     url(r'^users/' + USERID_SLUG + '/$', RedirectView.as_view(url='/sysadmin/users/%(userid)s/', permanent=True)),  # accept the URL provided as get_absolute_url for user objects
 
-    url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
-    url(r'^' + COURSE_SLUG + '/reorder_activity$', 'grades.views.reorder_activity'),
-    url(r'^' + COURSE_SLUG + '/new_message$', 'grades.views.new_message'),
-    url(r'^' + COURSE_SLUG + '/config/$', 'grades.views.course_config'),
-    url(r'^' + COURSE_SLUG + '/config/tas$', 'coredata.views.manage_tas'),
-    url(r'^' + COURSE_SLUG + '/config/copysetup$', 'marking.views.copy_course_setup'),
+    # course offering URL hierarchy
+    url(r'^' + COURSE_SLUG + '/', include(offering_patterns)),
 
-    # course groups
-
-    url(r'^' + COURSE_SLUG + '/groups$', RedirectView.as_view(url='/%(course_slug)s/groups/', permanent=True)),
-    url(r'^' + COURSE_SLUG + '/groups/$', 'groups.views.groupmanage'),
-    url(r'^' + COURSE_SLUG + '/groups/new$', 'groups.views.create'),
-    url(r'^' + COURSE_SLUG + '/groups/assignStudent$', 'groups.views.assign_student'),
-    url(r'^' + COURSE_SLUG + '/groups/submit$', 'groups.views.submit'),
-    url(r'^' + COURSE_SLUG + '/groups/for/' + ACTIVITY_SLUG + '$', 'groups.views.groupmanage'),
-    url(r'^' + COURSE_SLUG + '/groups/invite/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.invite'),
-    url(r'^' + COURSE_SLUG + '/groups/join/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.join'),
-    url(r'^' + COURSE_SLUG + '/groups/reject/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.reject'),
-    url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/remove$', 'groups.views.remove_student'),
-    url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/add$', 'groups.views.assign_student'),
-    url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/rename$', 'groups.views.change_name'),
-
-    #Discussion
-    url(r'^' + COURSE_SLUG + '/discussion/$', 'discuss.views.discussion_index'),
-    url(r'^' + COURSE_SLUG + '/discussion/create_topic/$', 'discuss.views.create_topic'),
-    url(r'^' + COURSE_SLUG + '/discussion/subscribe$', 'discuss.views.manage_discussion_subscription'),
-    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/$', 'discuss.views.view_topic'),
-    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/edit$', 'discuss.views.edit_topic'),
-    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/change$', 'discuss.views.change_topic_status'),
-    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/subscribe$', 'discuss.views.manage_topic_subscription'),
-    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/remove/(?P<message_slug>' + SLUG_RE + ')$', 'discuss.views.remove_message'),
-    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_slug>' + SLUG_RE + ')/edit/(?P<message_slug>' + SLUG_RE + ')$', 'discuss.views.edit_message'),
-
-    # course activities/grades
-
-    url(r'^' + COURSE_SLUG + '/grades$', 'grades.views.all_grades'),
-    url(r'^' + COURSE_SLUG + '/grades_csv$', 'grades.views.all_grades_csv'),
-    url(r'^' + COURSE_SLUG + '/activity_choice$', 'grades.views.activity_choice'),
-    url(r'^' + COURSE_SLUG + '/new_numeric$', 'grades.views.add_numeric_activity'),
-    url(r'^' + COURSE_SLUG + '/new_letter$', 'grades.views.add_letter_activity'),
-    url(r'^' + COURSE_SLUG + '/new_cal_numeric$', 'grades.views.add_cal_numeric_activity'),
-    url(r'^' + COURSE_SLUG + '/new_cal_letter$', 'grades.views.add_cal_letter_activity'),
-    url(r'^' + COURSE_SLUG + '/formula_tester$', 'grades.views.formula_tester'),
-    url(r'^' + COURSE_SLUG + '/list$', 'grades.views.class_list'),
-    url(r'^' + COURSE_SLUG + '/photolist$', 'grades.views.photo_list'),
-    url(r'^' + COURSE_SLUG + '/students/$', 'grades.views.student_search'),
-    url(r'^' + COURSE_SLUG + '/students/' + USERID_SLUG + '$', 'grades.views.student_info'),
-    url(r'^' + COURSE_SLUG + '/export', 'grades.views.export_all'),
-    url(r'^' + COURSE_SLUG + '/gitolite', 'grades.views.gitolite_config'),
-
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/$', 'grades.views.activity_info'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/stat$', 'grades.views.activity_stat'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/cal_all$', 'grades.views.calculate_all'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/cal_all_letter$', 'grades.views.calculate_all_lettergrades'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/cal_idv_ajax$', 'grades.views.calculate_individual_ajax'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/official$', 'grades.views.compare_official'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/change/' + USERID_SLUG + '$', 'grades.views.grade_change'),
-    #url(r'^' + COURSE_ACTIVITY_SLUG + '/' + USERID_SLUG + '/cal_idv$', 'grades.views.calculate_individual'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/edit$', 'grades.views.edit_activity'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/cutoffs$', 'grades.views.edit_cutoffs'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/groups$', 'grades.views.activity_info_with_groups'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/release$', 'grades.views.release_activity'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/delete$', 'grades.views.delete_activity'),
-
-    # activity submission
-
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/$', 'submission.views.show_components'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/history$', 'submission.views.show_components_submission_history'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/download$', 'submission.views.download_activity_files'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/components/new$', 'submission.views.add_component'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/components/edit$', 'submission.views.edit_single'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + COMPONENT_SLUG + '/' + SUBMISSION_ID + '/get$', 'submission.views.download_file'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/get$', 'submission.views.download_file'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/view$', 'submission.views.show_student_submission_staff'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/history$', 'submission.views.show_components_submission_history'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + GROUP_SLUG + '/mark$', 'submission.views.take_ownership_and_mark'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/mark$', 'submission.views.take_ownership_and_mark'),
-
-    # activity marking
-
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/markall/students$', 'marking.views.mark_all_students'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/markall/groups$', 'marking.views.mark_all_groups'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/$', 'marking.views.manage_activity_components'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/positions$', 'marking.views.manage_component_positions'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/common$', 'marking.views.manage_common_problems'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/import$', 'marking.views.import_marks'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/export$', 'marking.views.export_marks'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/new/students/' + USERID_SLUG + '/$', 'marking.views.marking_student'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/new/groups/' + GROUP_SLUG + '/$', 'marking.views.marking_group'),
-
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/$', 'marking.views.mark_summary_student'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/groups/' + GROUP_SLUG + '/$', 'marking.views.mark_summary_group'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/history', 'marking.views.mark_history_student'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/groups/' + GROUP_SLUG + '/history', 'marking.views.mark_history_group'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/' + ACTIVITY_MARK_ID + '/attachment', 'marking.views.download_marking_attachment'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/rubric$', 'marking.views.import_components'),
-
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/gradestatus/' + USERID_SLUG + '/$', 'marking.views.change_grade_status'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/sims_csv$', 'marking.views.export_sims'),
-
-    # discipline
-
-    url(r'^discipline/$', 'discipline.views.chair_index'),
-    url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/create$', 'discipline.views.chair_create'),
-    url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/$', 'discipline.views.chair_show'),
-    url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/instr$', 'discipline.views.chair_show_instr'),
-
-    url(r'^' + COURSE_SLUG + '/dishonesty/$', 'discipline.views.index'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/new$', 'discipline.views.new'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/newgroup$', 'discipline.views.newgroup'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/new_nonstudent$', 'discipline.views.new_nonstudent'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/clusters/' + DGROUP_SLUG + '$', 'discipline.views.showgroup'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '$', 'discipline.views.show'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/related$', 'discipline.views.edit_related'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/letter$', 'discipline.views.view_letter'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/attach$', 'discipline.views.edit_attach'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/attach/new$', 'discipline.views.new_file'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)$', 'discipline.views.download_file'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)/edit$', 'discipline.views.edit_file'),
-    url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/(?P<field>[a-z_]+)$', 'discipline.views.edit_case_info'),
-
-    # pages
-
-    url(r'^' + COURSE_SLUG + '/pages/$', 'pages.views.index_page'),
-    url(r'^' + COURSE_SLUG + '/pages/_all$', 'pages.views.all_pages'),
-    url(r'^' + COURSE_SLUG + '/pages/_new$', 'pages.views.new_page'),
-    url(r'^' + COURSE_SLUG + '/pages/_import$', 'pages.views.import_site'),
-    url(r'^' + COURSE_SLUG + '/pages/_newfile$', 'pages.views.new_file'),
-    url(r'^' + COURSE_SLUG + '/pages/_convert$', 'pages.views.convert_content'),
-    url(r'^' + COURSE_SLUG + '/pages/_push$', 'pages.views.api_import'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '$', 'pages.views.view_page'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/view$', 'pages.views.view_file'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/download$', 'pages.views.download_file'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/edit$', 'pages.views.edit_page'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/import$', 'pages.views.import_page'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/history$', 'pages.views.page_history'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', 'pages.views.page_version'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/_convert$', 'pages.views.convert_content'),
 
     # TA's TUGs
 
     #url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.index_page'),
     url(r'^tugs/$', 'ta.views.all_tugs_admin'),
     url(r'^tugs/(?P<semester_name>\d+)$', 'ta.views.all_tugs_admin'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/$', 'ta.views.view_tug'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/edit$', 'ta.views.edit_tug'),
 
-    url(r'^' + COURSE_SLUG + '/config/taoffers/$', 'ta.views.ta_offers'),
-
-    # redirect for old-style activity URLs (must be last to avoid conflict with other rules)
-    url(r'^' + COURSE_ACTIVITY_SLUG_OLD + '(?P<tail>.*)$', 'grades.views.activity_info_oldurl'),  # redirect old activity URLs
 
     # TA postings/contracts
 
@@ -385,12 +243,8 @@ urlpatterns = [
 
 if settings.DEPLOY_MODE != 'production':
     # URLs for development only:
-    from django.conf.urls.static import static
     urlpatterns += [
         url(r'^fake_login', 'dashboard.views.fake_login'),
         url(r'^fake_logout', 'dashboard.views.fake_logout'),
-        #(r'^admin/(.*)', admin.site.root),
-        #(r'^static/(?P<path>.*)$', 'django.views.static.serve',
-        #    {'document_root': settings.STATIC_ROOT}),
     ]
 
