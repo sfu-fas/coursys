@@ -27,12 +27,14 @@ end
 
 # configure local settings
 cookbook_file "localsettings.py" do
+    owner "coursys"
     path "/home/coursys/courses/courses/localsettings.py"
     action :create
 end
 
 # configure secrets
 cookbook_file "secrets.py" do
+    owner "coursys"
     path "/home/coursys/courses/courses/secrets.py"
     action :create
 end
