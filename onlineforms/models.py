@@ -593,6 +593,8 @@ class SheetSubmission(models.Model):
         template = get_template('onlineforms/emails/reminder.txt')
         
         for filler, sheets in filler_ss:
+            if filler.isSFUPerson() and filler.getFormFiller().userid == 'lshannon':
+                continue
             context = Context({'full_url': full_url,
                     'filler': filler, 'sheets': list(sheets)})
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()])
