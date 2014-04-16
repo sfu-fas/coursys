@@ -28,6 +28,10 @@ directory "/home/coursys/courses" do
     action :create
 end
 
+execute "chmod courses" do 
+    command "chown -R coursys /home/coursys/courses"
+end
+
 # MySQL
 package "mysql-client"
 package "libmysqlclient-dev"

@@ -59,3 +59,17 @@ execute "rabbit set_permissions" do
     environment ({'HOME' => '/var/lib/rabbitmq'})
     command "rabbitmqctl set_permissions -p myvhost coursys \".*\" \".*\" \".*\""
 end
+
+execute "create DB" do
+    cwd "/home/coursys/courses"
+    command "make create_db"
+end
+
+execute "restart gunicorns" do
+    cwd "/home/coursys/courses"
+    command "make restart"
+end
+
+service "nginx" do
+  action :restart
+end
