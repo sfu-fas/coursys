@@ -43,7 +43,7 @@ class Person(models.Model):
     emplid = models.PositiveIntegerField(db_index=True, unique=True, null=False,
                                          verbose_name="ID #",
         help_text='Employee ID (i.e. student number)')
-    userid = models.CharField(max_length=8, null=True, db_index=True, unique=True,
+    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True, unique=True,
                               verbose_name="User ID",
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     last_name = models.CharField(max_length=32)
