@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
+    'dbdump',
     'compressor',
     'haystack',
     'djcelery',
@@ -183,6 +184,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
         },
     }
     USE_CELERY = True
+    DB_BACKUP_DIR = '/home/coursys/db_backup'
 
 else:
     CACHES = { 'default': {
@@ -203,6 +205,7 @@ else:
         },
     }
     USE_CELERY = False
+    DB_BACKUP_DIR = os.path.join(BASE_DIR, 'db_backup')
 
 
 # things only relevant to the true production environment

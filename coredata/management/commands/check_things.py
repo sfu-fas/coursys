@@ -233,7 +233,7 @@ class Command(BaseCommand):
         else:
             failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
 
-        # TODO: svn database, amaint database
+        # TODO: www-data can create files in DB backup directory, submission directory, media/CACHE
 
         # report results
         self._report('For information', info)
