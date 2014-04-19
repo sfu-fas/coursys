@@ -53,7 +53,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
-    'dbdump',
     'compressor',
     'haystack',
     'djcelery',
@@ -138,6 +137,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
+    INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
 else:
     DATABASES = {
