@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from dbdump.management.commands import dbdump
 from optparse import make_option
 import datetime, os, glob
 
@@ -17,6 +16,7 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
+        from dbdump.management.commands import dbdump
         path = settings.DB_BACKUP_DIR
         filename_format = '%Y-%m-%dT%H-%M-%S.dump'
 
