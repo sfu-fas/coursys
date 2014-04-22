@@ -313,7 +313,13 @@ if DEPLOY_MODE != 'production' or DEBUG or hostname != 'courses':
     LOGOUT_URL = "/fake_logout"
     DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', True)
 
+# For security reasons, when we're live, we don't want to keep potentially 
+#  sensitive user data in /tmp for longer than the space of one run. 
 REPORT_CACHE_LOCATION = "/tmp/report_cache"
+REPORT_CACHE_CLEAR = True
+if DEPLOY_MODE == 'production':
+    REPORT_CACHE_CLEAR = True
+
 
 #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
