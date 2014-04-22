@@ -1,3 +1,4 @@
+
 # Create 'coursys' user
 user "coursys" do
     home "/home/coursys"
@@ -15,21 +16,14 @@ directory "/home/coursys" do
     action :create
 end
 
-# Move /home/vagrant/courses to /home/coursys/courses"
-execute "copy coursys" do
-    command "cp -r /home/vagrant/courses /home/coursys/courses"
+# Link /home/vagrant/courses to /home/coursys/courses"
+execute "link coursys" do
+    command "ln -s /home/vagrant/courses /home/coursys/courses"
     not_if do ::File.exists?('/home/coursys/courses/manage.py') end
 end
-
-directory "/home/coursys/courses" do 
-    owner "coursys"
-    mode "00755"
-    recursive true
-    action :create
-end
-
 execute "chmod courses" do 
-    command "chown -R coursys /home/coursys/courses"
+    command "chown -R coursys /home/vagrant/courses"
+    ignore_failure true    
 end
 
 # MySQL
@@ -47,7 +41,6 @@ package "memcached"
 service "memcached" do
   action :restart
 end
-
 
 # We need this to connect to things in our data center because BLAUGH 
 package "stunnel4"
@@ -72,14 +65,14 @@ end
 
 # elasticsearch
 package "openjdk-7-jre-headless"
-directory "/home/coursys/config" do
+directory "/tmp/elasticsearch" do
     owner "coursys"
     group "coursys"
     mode 00755
     action :create
 end
 execute "install_elasticsearch" do
-    cwd "/home/coursys/config"
+    cwd "/tmp/elasticsearch"
     command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb"
     not_if do ::File.exists?('/var/lib/elasticsearch/') end
 end

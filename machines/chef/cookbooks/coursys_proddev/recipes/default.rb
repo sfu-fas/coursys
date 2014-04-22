@@ -1,6 +1,9 @@
+
+
+# Mysql
+# this is a default poorly-secured database.
 package "mysql-server"
 
-# this is a default poorly-secured database.
 execute "create database" do 
     command "echo \"create database if not exists coursys_db;\" | mysql"
 end
@@ -68,8 +71,4 @@ end
 execute "restart gunicorns" do
     cwd "/home/coursys/courses"
     command "make restart"
-end
-
-service "nginx" do
-  action :restart
 end
