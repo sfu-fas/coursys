@@ -38,7 +38,7 @@ $(document).ready(function() {
   <ul class="fa-ul">
     <li>
     {% if form.is_valid %}
-      <a href="{% url 'faculty.views.teaching_capacity_csv' %}?start_semester={{ start_code }}&end_semester={{ end_code }}">
+      <a href="{% url 'faculty.views.teaching_capacity_csv' %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     {% else %}
