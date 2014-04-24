@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from coredata.models import Unit, Role, Person
-from courselib.testing import create_fake_semester
+from coredata.models import Unit, Role, Person, CourseOffering, Semester, Member
+from courselib.testing import create_fake_semester, TEST_COURSE_SLUG
 from faculty.models import CareerEvent, EventConfig, EVENT_TYPES
 from faculty.models import MemoTemplate, Memo
 from faculty.models import TempGrant, Grant, GrantBalance, GrantOwner
@@ -92,6 +92,18 @@ class Command(BaseCommand):
         phillip = get_or_create_nosave(Person, userid='phillip', first_name='Phillip', last_name='Philosophy')
         phillip.emplid = 220000129
         phillip.save()
+
+        try:
+            o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        except CourseOffering.DoesNotExist:
+            o = CourseOffering(slug=TEST_COURSE_SLUG, semester=Semester.current(), subject='CMPT', number='123',
+                               enrl_cap=10, enrl_tot=5, wait_tot=0)
+            o.save()
+
+        m, _ = Member.objects.get_or_create(person=greg, offering=o, role='INST')
+        m.added_reason = 'AUTO'
+        m.save()
+
 
     def department_data(self):
         danyu = Person.objects.get(userid='dzhao')

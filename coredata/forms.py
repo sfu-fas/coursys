@@ -489,7 +489,6 @@ class OfferingFilterForm(forms.Form):
     @classmethod
     @cached(24*3600)
     def allowed_semesters(self):
-        print "DOING WORK 1"
         # semester choices: start of good data, to reasonably in the future
         today = datetime.date.today()
         offering_sem = CourseOffering.objects.order_by().values('semester').distinct()
@@ -500,7 +499,6 @@ class OfferingFilterForm(forms.Form):
     @classmethod
     @cached(24*3600)
     def all_subjects(self, semesters):
-        print "DOING WORK 2"
         return CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
 
     def __init__(self, *args, **kwargs):

@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import safestring
-from courselib.testing import Client, test_views
+from courselib.testing import Client, test_views, TEST_COURSE_SLUG
 
 from coredata.models import Semester
 from coredata.models import Person
@@ -15,7 +15,7 @@ from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.mixins import SalaryCareerEvent
 from faculty.event_types.mixins import TeachingCareerEvent
-from faculty.models import CareerEvent
+from faculty.models import CareerEvent, TempGrant
 from faculty.models import HANDLERS, EVENT_TYPES
 from faculty.management.commands import faculty_test_data
 
@@ -203,7 +203,7 @@ class PagesTest(TestCase):
         c.login_user('dzhao')
 
         test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
-                'teaching_capacity', 'fallout_report', 'course_accreditation', 'grant_index'],
+                'teaching_capacity', 'fallout_report', 'course_accreditation'],
                 {})
         test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
                 'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',
@@ -221,7 +221,19 @@ class PagesTest(TestCase):
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position',
                  'memo_slug': '2000-appointment-to-position-welcome'})
 
-        # TODO: 'convert_grant', 'delete_grant', 'new_grant', 'edit_grant', 'view_grant'
+        test_views(self, c, 'faculty.views.', ['teaching_credit_override'],
+                {'userid': 'ggbaker', 'course_slug': TEST_COURSE_SLUG})
+        test_views(self, c, 'faculty.views.', ['new_event_flag'],
+                {'event_type': 'fellow'})
+
+        # grant views
+        test_views(self, c, 'faculty.views.', ['grant_index'], {})
+        test_views(self, c, 'faculty.views.', ['convert_grant'],
+                {'gid': TempGrant.objects.all()[0].id})
+        test_views(self, c, 'faculty.views.', ['edit_grant', 'view_grant'],
+                {'unit_slug': 'cmpt', 'grant_slug': 'baker-startup-grant'})
+
+        # TODO: CSV views, JSON view
 
         # per-handler views
         for Handler in HANDLERS:

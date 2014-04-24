@@ -6,7 +6,7 @@ import operator
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 
-from courselib.auth import requires_role, NotFoundResponse
+from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.db import transaction
 
@@ -1807,6 +1807,7 @@ def convert_grant(request, gid):
     return render(request, "faculty/convert_grant.html", context)
 
 
+@require_POST
 @requires_role('ADMN')
 def delete_grant(request, gid):
     tmp = get_object_or_404(TempGrant, id=gid)
