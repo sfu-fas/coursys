@@ -110,6 +110,8 @@ class CachedQuery(BaseQuery):
 
     @staticmethod
     def cache_location():
+        if not os.path.exists(settings.REPORT_CACHE_LOCATION):
+            os.makedirs(settings.REPORT_CACHE_LOCATION)
         return settings.REPORT_CACHE_LOCATION
     
     @property
