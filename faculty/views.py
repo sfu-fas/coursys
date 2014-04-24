@@ -217,7 +217,7 @@ def _salary_index_data(request, date):
     for role in fac_roles_pay:
         person = role.person
         unit = role.unit
-        salary_events = copy.copy(FacultySummary(person).salary_events(date, unit=unit))
+        salary_events = copy.copy(FacultySummary(person).salary_events(date, units=[unit]))
         add_salary_total = add_bonus_total = 0
         salary_fraction_total = 1
 
@@ -228,7 +228,7 @@ def _salary_index_data(request, date):
             add_bonus_total += event.add_bonus
 
         #get most recent step and rank from base_salary
-        recent_salary_update = FacultySummary(person).recent_salary(date, unit=unit)
+        recent_salary_update = FacultySummary(person).recent_salary(date, units=[unit])
         if recent_salary_update != None:
             try:
                 step = recent_salary_update.config["step"]
@@ -243,7 +243,7 @@ def _salary_index_data(request, date):
             step = "-"
             rank = "-"
 
-        current_salary = FacultySummary(person).salary(date, unit=unit)
+        current_salary = FacultySummary(person).salary(date, units=[unit])
 
         fac_pay_summary += [(person, unit.informal_name(), current_salary, add_salary_total, salary_fraction_total, add_bonus_total, step, rank)]
 
@@ -292,10 +292,6 @@ def salary_index_csv(request):
 
 @requires_role('ADMN')
 def fallout_report(request):
-    """
-    Fallout Report
-    """
-    form = DateRangeForm()
 
     if request.GET:
         form = DateRangeForm(request.GET)
@@ -304,8 +300,9 @@ def fallout_report(request):
             start_date = form.cleaned_data['start_date']
             end_date = form.cleaned_data['end_date']
         else:
-            end_date = datetime.date.today()
-            start_date = datetime.date(end_date.year, 1, 1)
+            today = datetime.date.today()
+            start_date = datetime.date(today.year, 1, 1)
+            end_date = datetime.date(today.year, 12, 31)
 
     else:
         end_date = datetime.date.today()
@@ -314,27 +311,7 @@ def fallout_report(request):
                     'end_date': end_date }
         form = DateRangeForm(initial=initial)
 
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
-    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
-    table = []
-    tot_fallout = 0
-    for p, roles in fac_roles:
-        salary = FacultySummary(p).base_salary(end_date)
-        units = ' , '.join(r.unit.label for r in roles)
-        # TODO: below line should only select pay from units the user can see
-        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
-        for event in salary_events:
-            if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':
-                days = event.get_duration_within_range(start_date, end_date)
-                fraction = FacultySummary(p).salary_event_info(event)[1]
-                d = fraction.denominator
-                n = fraction.numerator
-                fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
-                tot_fallout += fallout
-
-                table += [(units, p, event, days, salary, fraction, fallout )]
-    # table, tot_fallout = _fallout_report_data(request, start_date, end_date)
+    table = _fallout_report_data(request, start_date, end_date)
 
     context = {
         'form': form,
@@ -350,14 +327,14 @@ def fallout_report(request):
 def _fallout_report_data(request, start_date, end_date):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
-    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
     table = []
     tot_fallout = 0
-    for p, roles in fac_roles:
-        salary = FacultySummary(p).base_salary(end_date)
-        units = ' , '.join(r.unit.label for r in roles)
-        # TODO: below line should only select pay from units the user can see
-        salary_events = CareerEvent.objects.not_deleted().overlaps_daterange(start_date, end_date).filter(person=p).filter(flags=CareerEvent.flags.affects_salary).filter(status='A')
+    for role in fac_roles:
+        unit = role.unit
+        p = role.person
+        salary = FacultySummary(p).base_salary(end_date, units=[unit])
+        salary_events = CareerEvent.objects.approved().overlaps_daterange(start_date, end_date) \
+            .filter(person=p, unit=unit, flags=CareerEvent.flags.affects_salary)
         for event in salary_events:
             if event.event_type == 'LEAVE' or event.event_type == 'STUDYLEAVE':
                 days = event.get_duration_within_range(start_date, end_date)
@@ -367,7 +344,7 @@ def _fallout_report_data(request, start_date, end_date):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(units, p, event, days, salary, fraction, fallout )]
+                table += [(unit.label, p, event, days, salary, fraction, fallout )]
     return table
 
 @requires_role('ADMN')
@@ -433,7 +410,6 @@ def salary_summary(request, userid):
     Shows all salary career events at a date
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
-    form = GetSalaryForm()
 
     if request.GET:
         form = GetSalaryForm(request.GET)
@@ -446,15 +422,15 @@ def salary_summary(request, userid):
         initial = { 'date': date }
         form = GetSalaryForm(initial=initial)
 
-    # TODO: below code should return only salary in units user is allowed to see
-    pay_tot = FacultySummary(person).salary(date)
+    pay_tot = FacultySummary(person).salary(date, units=member_units)
 
-    salary_events = copy.copy(FacultySummary(person).salary_events(date))
+    salary_events = copy.copy(FacultySummary(person).salary_events(date, units=member_units))
     add_salary_total = add_bonus_total = 0
     salary_fraction_total = 1
 
     for event in salary_events:
-        event.add_salary, event.salary_fraction, event.add_bonus = FacultySummary(person).salary_event_info(event)
+        event.add_salary, event.salary_fraction, event.add_bonus = FacultySummary(person) \
+            .salary_event_info(event)
         add_salary_total += event.add_salary
         salary_fraction_total = salary_fraction_total*event.salary_fraction
         add_bonus_total += event.add_bonus
@@ -478,7 +454,7 @@ def _teaching_capacity_data(unit, semester):
 
     for person in sorted(people):
         summary = FacultySummary(person)
-        credits, load = summary.teaching_credits(semester)
+        credits, load = summary.teaching_credits(semester, units=[unit])
 
         # -load: we're showing "expected teaching load"
         # -capacity: if this is negative, then we have available capacity

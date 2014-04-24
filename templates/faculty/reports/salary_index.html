@@ -28,14 +28,14 @@ $(document).ready(function() {
     $('.rowdata').each(function() {
         sum += Number($(this).text());
     });
-    $('#salary_sum').text("Total: $" + sum)
+    $('#salary_sum').text("Total: $" + sum.toFixed(2))
   });
   event_filter_update('faculty_salary_table');
   var sum = 0;
   $('.rowdata').each(function() {
       sum += Number($(this).text());
   });
-  $('#salary_sum').text("Total: $" + sum)
+  $('#salary_sum').text("Total: $" + sum.toFixed(2))
 } );
 </script>
 {% endblock %}

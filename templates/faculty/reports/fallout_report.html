@@ -32,14 +32,14 @@ $(document).ready(function() {
     $('.rowdata').each(function() {
         sum += Number($(this).text());
     });
-    $('#fallout_sum').text("Total: $" + sum)
+    $('#fallout_sum').text("Total: $" + sum.toFixed(2))
   });
   event_filter_update('fallout_table');
   var sum = 0;
   $('.rowdata').each(function() {
       sum += Number($(this).text());
   });
-  $('#fallout_sum').text("Total: $" + sum)
+  $('#fallout_sum').text("Total: $" + sum.toFixed(2))
 } );
 </script>
 {% endblock %}

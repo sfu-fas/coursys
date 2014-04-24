@@ -117,6 +117,12 @@ class CareerQuerySet(models.query.QuerySet):
         """
         return self.exclude(status='D')
 
+    def approved(self):
+        """
+        All Career Events that have not been deleted.
+        """
+        return self.filter(status='A')
+
     def effective_now(self):
         return self.effective_date(datetime.date.today())
 
