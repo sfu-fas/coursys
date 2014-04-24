@@ -29,7 +29,7 @@ $(document).ready(function() {
   <h2>Actions</h2>
   <ul class="fa-ul">
     <li>
-      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?{{ request.GET.urlencode }}">
+      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     </li>

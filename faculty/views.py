@@ -465,7 +465,7 @@ def _teaching_capacity_data(unit, semester):
 def teaching_capacity(request):
     sub_units = Unit.sub_units(request.units)
 
-    form = AvailableCapacityForm(request.GET or {'semester': Semester.current().name})
+    form = AvailableCapacityForm(request.GET)
     collected_units = []
 
     context = {
@@ -477,6 +477,8 @@ def teaching_capacity(request):
     if form.is_valid():
         start_code = form.cleaned_data['start_semester']
         end_code = form.cleaned_data['end_semester']
+        context['start_code'] = start_code
+        context['end_code'] = end_code
 
         for unit in sub_units:
             entries = []
@@ -488,6 +490,7 @@ def teaching_capacity(request):
                     entries.append((semester, person, credits, load, capacity))
 
             collected_units.append((unit, entries, total_capacity))
+
 
     return render(request, 'faculty/reports/teaching_capacity.html', context)
 
@@ -726,9 +729,12 @@ def teaching_summary(request, userid):
                 curr_semester = curr_semester.next()
 
     else:
-        start_semester = end_semester = ReportingSemester(datetime.date.today())
-        start = end = start_semester.code
-        start_label = end_label = start_semester.full_label
+        end_semester = ReportingSemester(datetime.date.today())
+        start_semester = end_semester.prev().prev()
+        start = start_semester.code
+        end = end_semester.code
+        start_label = start_semester.full_label
+        end_label = end_semester.full_label
         initial = { 'start_semester': start,
                     'end_semester': end }
         form = TeachingSummaryForm(initial=initial)
@@ -739,6 +745,8 @@ def teaching_summary(request, userid):
         'form': form,
         'start_label': start_label,
         'end_label': end_label,
+        'start_code': start,
+        'end_code': end,
         'person': person,
         'credit_balance': cb_mmixed,
         'events': events,
@@ -756,7 +764,6 @@ def _teaching_events_data(person, semester):
         e += [(semester.code, course, course.offering.title, credits, reason, '')]
         cb += course.teaching_credit()
 
-    # TODO: should filter only user-visible events
     teaching_events = FacultySummary(person).teaching_events(semester)
     for event in teaching_events:
         credits, load_decrease = FacultySummary(person).teaching_event_info(event)
@@ -790,8 +797,10 @@ def teaching_summary_csv(request, userid):
                 curr_semester = curr_semester.next()
 
     else:
-        start_semester = end_semester = ReportingSemester(datetime.date.today())
-        start = end = start_semester.code
+        end_semester = ReportingSemester(datetime.date.today())
+        start_semester = end_semester.prev().prev()
+        start = start_semester.code
+        end = end_semester.code
         cb, events = _teaching_events_data(person, start_semester)
 
     filename = 'teaching_summary_{}-{}.csv'.format(start, end)
