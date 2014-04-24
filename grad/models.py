@@ -831,32 +831,55 @@ class GradStudent(models.Model):
         else:
             startyear = 'UNKNOWN'
             startsem = 'UNKNOWN'
-        
-        potentials = Supervisor.objects.filter(student=self, supervisor_type='POT', removed=False).exclude(supervisor__isnull=True)
-        if potentials:
-            potsup = potentials[0]
-            supervisor_name = potsup.supervisor.name()
-            supervisor_email = potsup.supervisor.email()
-            sgender = potsup.supervisor.gender()
-            if sgender == "M" :
-                supervisor_hisher = "his"
-                supervisor_heshe = "he"
-                supervisor_himher = "him"
-            elif sgender == "F":
-                supervisor_hisher = "her"
-                supervisor_heshe = "she"
-                supervisor_himher = "her"
-            else:
-                supervisor_hisher = "his/her"
-                supervisor_heshe = "he/she"
-                supervisor_himher = "him/her"
-        else:
-            supervisor_name = 'UNKNOWN'
-            supervisor_email = 'UNKNOWN@sfu.ca'
+       
+        def supervisor_details( supervisor_type, ordinal=1 ):
+            # we default to selecting the first (ordinal=1) supervisor that matches the type
+            # if ordinal > 1, we select the 2nd, 3rd, et-al
+            supervisor_name = '?'
+            supervisor_email = '?'
             supervisor_hisher = 'his/her'
             supervisor_heshe = "he/she"
             supervisor_himher = "him/her"
+            potentials = Supervisor.objects.filter(student=self, supervisor_type=supervisor_type, removed=False)
+            if len(potentials) > ordinal-1:
+                potsup = potentials[ordinal-1]
+                if potsup.supervisor:
+                    supervisor_name = potsup.supervisor.name()
+                    supervisor_email = potsup.supervisor.email()
+                    sgender = potsup.supervisor.gender()
+                    if sgender == "M" :
+                        supervisor_hisher = "his"
+                        supervisor_heshe = "he"
+                        supervisor_himher = "him"
+                    elif sgender == "F":
+                        supervisor_hisher = "her"
+                        supervisor_heshe = "she"
+                        supervisor_himher = "her"
+                else:
+                    supervisor_name = potsup.external
+                    supervisor_email = ""
+            return supervisor_name, supervisor_email, supervisor_hisher, supervisor_heshe, supervisor_himher
         
+        supervisor_name, supervisor_email, supervisor_hisher, supervisor_heshe, supervisor_himher = supervisor_details("POT")
+        sr_supervisor_name, sr_supervisor_email, sr_supervisor_hisher, sr_supervisor_heshe, sr_supervisor_himher = supervisor_details("SEN")
+        defence_chair_name, defence_chair_email, x, y, z = supervisor_details('CHA')
+        sfu_examiner_name, sfu_examiner_email, x, y, z = supervisor_details('SFU')
+        external_examiner_name, external_examiner_email, x, y, z = supervisor_details('EXT')
+        co_sr_supervisor_name, co_sr_supervisor_email, x, y, z = supervisor_details('COS')
+        committee_1_name, committee_1_email, x, y, z = supervisor_details('COM', 1)
+        committee_2_name, committee_2_email, x, y, z = supervisor_details('COM', 2)
+        committee_3_name, committee_3_email, x, y, z = supervisor_details('COM', 3)
+        
+        all_supervisors = [x for x in Supervisor.objects.filter(student=self, removed=False)]
+        all_supervisors.sort(cmp=lambda x,y: cmp(x.type_order(), y.type_order()))
+        committee = ""
+        for supervisor in all_supervisors:
+            if supervisor.supervisor:
+                name = supervisor.supervisor.name()
+            else:
+                name = supervisor.external
+            committee += supervisor.get_supervisor_type_display() + ": " + name + "\n"
+
         ls = { # if changing, also update LETTER_TAGS below with docs!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'title' : title,
@@ -875,6 +898,26 @@ class GradStudent(models.Model):
                 'supervisor_heshe': supervisor_heshe,
                 'supervisor_himher': supervisor_himher,
                 'supervisor_email': supervisor_email,
+                'committee': committee,
+                'sr_supervisor_name': sr_supervisor_name,
+                'sr_supervisor_hisher': sr_supervisor_hisher,
+                'sr_supervisor_heshe': sr_supervisor_heshe,
+                'sr_supervisor_himher': sr_supervisor_himher,
+                'sr_supervisor_email': sr_supervisor_email,
+                'defence_chair_name': defence_chair_name, 
+                'defence_chair_email': defence_chair_email,
+                'sfu_examiner_name': sfu_examiner_name, 
+                'sfu_examiner_email': sfu_examiner_email,
+                'external_examiner_name': external_examiner_name, 
+                'external_examiner_email': external_examiner_email,
+                'co_sr_supervisor_name': co_sr_supervisor_name, 
+                'co_sr_supervisor_email': co_sr_supervisor_email,
+                'committee_1_name': committee_1_name,
+                'committee_1_email': committee_1_email, 
+                'committee_2_name': committee_2_name,
+                'committee_2_email': committee_2_email, 
+                'committee_3_name': committee_3_name,
+                'committee_3_email': committee_3_email, 
                 'recent_empl': recent_empl,
                 'tafunding': tafunding,
                 'rafunding': rafunding,
@@ -1059,6 +1102,26 @@ LETTER_TAGS = {
                'supervisor_heshe': 'pronoun for the potential supervisor ("he" or "she")',
                'supervisor_himher': 'pronoun for the potential supervisor ("him" or "her")',
                'supervisor_email': "potential supervisor's email address",
+               'committee': "display this student's entire committee",
+               'sr_supervisor_name': "the name of the student's senior supervisor",
+               'sr_supervisor_hisher': 'pronoun for the senior supervisor ("his" or "her")',
+               'sr_supervisor_heshe': 'pronoun for the senior supervisor ("he" or "she")',
+               'sr_supervisor_himher': 'pronoun for the senior supervisor ("him" or "her")',
+               'sr_supervisor_email': "potential supervisor's email address",
+               'defence_chair_name': "the name of the student's defence chair", 
+               'defence_chair_email': "the email address of the student's defence chair",
+               'sfu_examiner_name': "the name of the student's internal (SFU) examiner", 
+               'sfu_examiner_email': "the email of the student's internal (SFU) examiner",
+               'external_examiner_name': "the name of the student's external examiner", 
+               'external_examiner_email': "the email of the student's external examiner",
+               'co_sr_supervisor_name': "the name of the student's co-senior supervisor", 
+               'co_sr_supervisor_email': "the email of the student's co-senior supervisor",
+               'committee_1_name': "the name of the student's first committee member",
+               'committee_1_email': "the email of the student's first committee member", 
+               'committee_2_name': "the name of the student's second committee member",
+               'committee_2_email': "the email of the student's second committee member",
+               'committee_3_name': "the name of the student's third committee member",
+               'committee_3_email': "the email of the student's third committee member", 
                'recent_empl': 'most recent employment ("teaching assistant" or "research assistant")',
                'tafunding': 'List of funding as a TA',
                'rafunding': 'List of funding as an RA',
