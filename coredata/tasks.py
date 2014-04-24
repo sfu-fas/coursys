@@ -30,6 +30,6 @@ def slow_task():
 #    return True
 
 
-@periodic_task(run_every=crontab(minute=0, hour='*/2'))
+@periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def backup_database():
     backup_db.Command().handle(clean_old=True)
