@@ -60,10 +60,9 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
         </section>
         <section class="actionable-header">
           <div class="search">
-            <form action="/search.html" method="get">
+            <form action="{% url "dashboard.views.site_search" %}" method="get">
               <fieldset class="search-field">
                 <input type="search" placeholder="Search" name="q">
-                <input type="hidden" name="p" data-value="/content/sfu/computing">
               </fieldset>
 
               <fieldset class="search-scope-set">
@@ -101,45 +100,15 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                     {% endfor %}
                     </ul>
               </li>
-<!--              <li>
-                <a href="#">A-Z Directory</a>
-
-                <ul class="expanded directory">
-                  <li><a href="http://www.sfu.ca/main/dir/a.html">a</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/b.html">b</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/c.html">c</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/d.html">d</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/e.html">e</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/f.html">f</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/g.html">g</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/h.html">h</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/i.html">i</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/j.html">j</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/k.html">k</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/l.html">l</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/m.html">m</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/n.html">n</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/o.html">o</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/p.html">p</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/q.html">q</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/r.html">r</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/s.html">s</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/t.html">t</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/u.html">u</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/v.html">v</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/w.html">w</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/x.html">x</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/y.html">y</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/z.html">z</a></li>
-                </ul>
-              </li>
--->
               <li>
-                {% if user.is_authenticated %}<a href="{{ LOGOUT_URL }}">Sign Out</a>{% else %}<a href="{{ LOGIN_URL }}">Sign In</a>{% endif %}
+                {% if user.is_authenticated %}<a href="{% url "dashboard.views.index" %}">{{user.username}}</a>{% else %}<a href="{{ LOGIN_URL }}">Sign In</a>{% endif %}
                 <ul class="expanded">
-                  <li><a href="http://connect.sfu.ca">SFU Connect + mySFU</a></li>
-                  <li><a href="http://go.sfu.ca">Student Information System</a></li>
-                  <li><a href="https://canvas.sfu.ca">Canvas</a></li>
+                  <li><a href="{% url "dashboard.views.news_list" %}">All News Items</a></li>
+                  <li><a href="{% url "dashboard.views.calendar" %}">View Calendar</a></li>
+                  <li><a href="{% url "dashboard.views.config" %}">User Configuration</a></li>
+                  {% if 'FAC' in roles or 'SESS' in roles or 'INST' in roles %}
+                  <li><a href="{% url "ta.views.instr_offers" %}">TA Offers</a></li>{% endif %}
+                  {% if user.is_authenticated %}<li><a href="{{ LOGOUT_URL }}">Sign Out</a></li>{% endif %}
                 </ul>
               </li>
             </ul>

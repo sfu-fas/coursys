@@ -510,6 +510,8 @@ class SearchForm(forms.Form):
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
+    grad_flags = forms.MultipleChoiceField(choices=[],
+            label='Program Options', required=False)
     campus = forms.MultipleChoiceField(GRAD_CAMPUS_CHOICES, required=False)
     supervisor = forms.MultipleChoiceField([], required=False, label='Senior Supervisor')
     
@@ -522,9 +524,6 @@ class SearchForm(forms.Form):
             widget=forms.RadioSelect)
     incomplete_requirements = forms.MultipleChoiceField([],
             label='Incomplete requirements', required=False)
-
-    grad_flags = forms.MultipleChoiceField(choices=[],
-            label='Grad Flags', required=False)
 
     is_canadian = NullBooleanSearchField(required=False)
     
@@ -567,9 +566,9 @@ class SearchForm(forms.Form):
             ]
     program_fields = [
             'program',
+            'grad_flags',
             'campus',
             'supervisor',
-            'grad_flags',
             ]
     requirement_fields = [
             'requirements',

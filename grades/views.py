@@ -1145,6 +1145,7 @@ def _all_grades_output(response, course):
     students = Member.objects.filter(offering=course, role="STUD").select_related('person')
 
     # get grade data into a format we can work with
+    labtut = course.labtut
     grades = {}
     for a in activities:
         grades[a.slug] = {}
@@ -1158,12 +1159,16 @@ def _all_grades_output(response, course):
     # output results
     writer = csv.writer(response)
     row = ['Last name', 'First name', Person.userid_header(), Person.emplid_header()]
+    if labtut:
+        row.append('Lab/Tutorial')
     for a in activities:
         row.append(a.short_name)
     writer.writerow(row)
     
     for s in students:
         row = [s.person.last_name, s.person.first_name, s.person.userid, s.person.emplid]
+        if labtut:
+            row.append(s.labtut_section or '')
         for a in activities:
             try:
                 gr = grades[a.slug][s.person.userid]
@@ -1255,30 +1260,36 @@ def student_photo(request, emplid):
     # get the photo
     from dashboard.tasks import fetch_photos_task
     from dashboard.photos import DUMMY_IMAGE_FILE, PHOTO_TIMEOUT
-    task_id = cache.get('photo-task-'+unicode(emplid), None)
-    photo_data = cache.get('photo-image-'+unicode(emplid), None)
+    PRINT_STUFF = False
+    task_key = 'photo-task-'+unicode(emplid)
+    image_key = 'photo-image-'+unicode(emplid)
+    task_id = cache.get(task_key, None)
+    photo_data = cache.get(image_key, None)
     data = None
     status = 200
 
     if photo_data:
-        # found image in cache: was fetched previously or task already completed before we got here
-        #print "cache data", emplid
+        # found image in cache: was fetched previously or task completed before we got here
+        if PRINT_STUFF: print "cache data", emplid
         data = photo_data
+
     elif task_id and settings.USE_CELERY:
         # found a task fetching the photo: wait for it to complete and get the data
         task = fetch_photos_task.AsyncResult(task_id)
         try:
-            #print "cache task", emplid
+            if PRINT_STUFF: print "cache task", emplid
             task.get(timeout=PHOTO_TIMEOUT)
-            data = cache.get('photo-image-'+unicode(emplid), None)
+            data = cache.get(image_key, None)
         except celery.exceptions.TimeoutError:
             pass
+
     elif settings.USE_CELERY:
         # no cache warming: new task to get the photo
-        #print "no cache", emplid
-        task = fetch_photos_task.apply([emplid])
+        if PRINT_STUFF: print "no cache", emplid
+        task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
         try:
-            data = task.get(timeout=PHOTO_TIMEOUT)
+            task.get(timeout=PHOTO_TIMEOUT)
+            data = cache.get(image_key, None)
         except celery.exceptions.TimeoutError:
             pass
 
@@ -1290,7 +1301,7 @@ def student_photo(request, emplid):
     # return the photo
     response = HttpResponse(data, content_type='image/jpeg')
     response.status_code = status
-    response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
+    response['Content-Disposition'] = 'inline; filename="%s.jpg"' % (emplid)
     # TODO: be a little less heavy-handed with the caching if it can be done safely
     response['Cache-Control'] = 'no-store'
     response['Pragma'] = 'no-cache'
@@ -1471,3 +1482,50 @@ def export_all(request, course_slug):
         pass
     return response
 
+
+def _git_repo_name(offering, slug, suffix=''):
+    return offering.slug + '-' + slug + suffix
+
+@requires_course_staff_by_slug
+def gitolite_config(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    staff = Member.objects.filter(offering=offering, role__in=['INST', 'TA', 'APPR']).exclude(person__userid__isnull=True).select_related('person')
+    from groups.models import Group
+
+    if 'suffix' in request.GET:
+        suffix = '-'+ request.GET['suffix']
+    else:
+        suffix = ''
+
+    staff_id = 'staffgroup'
+
+    config = []
+    staff_userids = [m.person.userid for m in staff]
+    config.append('@%s = %s' % (staff_id, ' '.join(staff_userids)))
+    config.append('\n')
+
+    if 'groups' in request.GET:
+        groups = Group.objects.filter(courseoffering=offering)
+    else:
+        groups = []
+
+    if 'indiv' in request.GET:
+        students = Member.objects.filter(offering=offering, role='STUD').exclude(person__userid__isnull=True).select_related('person')
+    else:
+        students = []
+
+    for g in groups:
+        config.append('\nrepo ' + _git_repo_name(offering, g.slug, suffix))
+        gms = g.groupmember_set.filter(confirmed=True).exclude(student__person__userid__isnull=True).select_related('student__person')
+        people = set(gm.student.person for gm in gms)
+        userids = ' '.join(p.userid for p in people)
+        config.append('\n    RW = %s %s' % (userids, staff_id))
+        config.append('\n')
+
+    for m in students:
+        userid = m.person.userid
+        config.append('\nrepo ' + _git_repo_name(offering, userid, suffix))
+        config.append('\n    RW = %s %s' % (userid, staff_id))
+        config.append('\n   ')
+
+    return HttpResponse(config, content_type='text/plain')

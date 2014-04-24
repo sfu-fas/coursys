@@ -22,9 +22,80 @@ code.file {
 <body>
 <h1>CourSys Server Config</h1>
 
-<p>This document describes the setup of the <code>courses.cs.sfu.ca</code> server as done in April/May 2011 by Greg Baker, and modified thereafter to reflect reality as closely as possible.</p>
+<p>This describes the (proposed) method used to set up the production <code>courses.cs.sfu.ca</code> serverin May 2014.</p>
 
 <h2 id="base">Base System Setup</h2>
+<dl>
+    <dt>Base system</dt>
+    <dd>
+        <p>VM provided by CSTS with Ubuntu 14.04 base system installed.</p>
+        <p>Basic setup needed to bootstsrap the coursys user:</p>
+        <blockquote><pre>sudo apt-get install git chef
+sudo adduser coursys
+sudo su coursys</pre></blockquote>
+    </dd>
+
+    <dt>Get the codebase</dt>
+    <dd>
+        <p>Add the deployment user's <code class="file">id_rsa</code> and <code class="file">id_rsa.pub</code> in
+            <code class="file">~/.ssh/</code>.</p>
+        <blockquote><pre>git clone ssh://www-data@coffee.fas.sfu.ca/home/git/courses -b deployed ~/courses</pre></blockquote>
+        <p>But please <strong>check the correct branch</strong>: we have been known to rename the deployment/production branch.</p>
+    </dd>
+
+</dl>
+
+<h2 id="app">Application Setup</h2>
+<dl>
+    <dt>Chef</dt>
+    <dd>
+        <p>Chef-solo will do most of the rest of the work:</p>
+        <blockquote><pre>cd ~/courses/machines/deployed
+sudo chef-solo something something
+sudo reboot</pre></blockquote>
+    </dd>
+    <dt>Certificates</dt>
+    <dd>
+        <p>Put these certificates in place:</p>
+        <ul>
+            <li><code class="file">/etc/stunnel/stunnel.pem</code></li>
+            <li><code class="file">/etc/nginx/cert.pem</code></li>
+            <li><code class="file">/etc/nginx/cert.key</code></li>
+        </ul>
+        <p>&hellip; and <code>chmod 0600</code> each of them.</p>
+    </dd>
+    <dt>Secrets</dt>
+    <dd>
+        <p>Put the <code class="file">~/courses/courses/secrets.py</code> file in place containing all of the relevant
+            passwords, etc. Use <code class="file">~/courses/courses/fake_secrets.py</code> as a template if necessary.</p>
+        <blockquote><pre>cd ~/courses
+sudo ./manage.py install_secrets</pre></blockquote>
+    </dd>
+    <dt>Check it out</dt>
+    <dd>
+        <p>Run the environment tests to see if everything is functional:</p>
+        <blockquote><pre>cd ~/courses
+./manage.py check_things</pre></blockquote>
+        <p>Check with <a href="http://www.digicert.com/help/">the Digicert SSL Certificate Checker</a> that the SSL is installed properly. Maybe also try <a href="https://www.ssllabs.com/ssltest/analyze.html?d=courses.cs.sfu.ca&hideResults=on">the SSL Labs test</a>.</p>
+    </dd>
+</dl>
+
+<h2 id="data">Data Files</h2>
+<dl>
+    <dt>Partition copy</dt>
+    <dd>
+        <p>Something about how we handle <code class="file">/data</code>.</p>
+    </dd>
+</dl>
+
+
+
+
+<hr/>
+
+<p>The below describes the setup of the <code>courses.cs.sfu.ca</code> server as done in April/May 2011 by Greg Baker, and modified thereafter to reflect reality as closely as possible.</p>
+
+<h2 id="basex">Base System Setup</h2>
 <dl>
 <dt>Base system</dt>
   <dd>Ubuntu 10.04 Lucid LTS (as provided by CSTS).
@@ -33,8 +104,10 @@ code.file {
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
 apt-get install nginx subversion mysql-client memcached stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev python-mysqldb git python-pip screen libmysqlclient-dev</pre></blockquote></dd>
+<!--
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
+-->
 <dt>Mail Server</dt>
   <dd>Configure Postfix with smarthost mailgate.sfu.ca.  Put a useful email address in <code class="file">/root/.forward</code></dd>
 
@@ -108,7 +181,7 @@ chmod 0711 ~</pre>
   </dd>
 </dl>
 
-<h2 id="app">Actual Application</h2>
+<h2 id="appx">Actual Application</h2>
 <dl>
 <dt>Code</dt>
   <dd>Code checked out from Subversion repository:
@@ -131,12 +204,14 @@ SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': '?????', 'passwd': '?????',
             'db': '?????', 'port': 4000}
 BROKER_URL = "amqp://coursys:?????@localhost:5672/myvhost"</pre></blockquote>
   </dd>
+<!--
 <dt>PIL Build</dt>
   <dd>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL with PIP:
   <blockquote><pre>sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib/
 sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/
 sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/</pre></blockquote>
   </dd>
+-->
 <dt>PIP Libraries</dt>
   <dd>To install the various libraries required by the system:
   <blockquote><pre>sudo pip install -r build_deps/working_deps.txt
@@ -220,6 +295,33 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote>
 
 
+
+<h2 id="solr">Solr Search (not yet deployed: maybe never, in favour of elasticsearch?)</h2>
+<p>Solr will (at some point) be used to power the full-text search in production (with Whoosh doing the job in development environments.</p>
+<blockquote><pre>sudo apt-get install solr-jetty openjdk-7-jdk</pre></blockquote>
+
+<p>Edit <code class="file">/etc/default/jetty</code> so the server actually starts (<code>NO_START=0</code>), uses the right port (<code>JETTY_PORT=8983</code>),
+and (in development only) listens enough that we can test (<code>JETTY_HOST=0.0.0.0</code>)</p>
+<p>The Haystack schema for Solr must be installed:</p>
+<blockquote><pre>cd ~/courses
+./manage.py build_solr_schema > /tmp/schema.xml
+sudo cp /tmp/schema.xml /etc/solr/conf/schema.xml
+sudo ln -s /etc/solr/conf/stopwords.txt /etc/solr/conf/stopwords_en.txt
+sudo /etc/init.d/jetty restart
+echo 'y' | ./manage.py rebuild_index
+</pre></blockquote>
+<p>At the moment, there is <a href="http://osdir.com/ml/general/2014-03/msg07628.html">a bug</a> requiring a downgrade of libtomcat6-java to <a href="http://packages.ubuntu.com/saucy/all/libtomcat6-java/download">6.0.37 from Ubuntu saucy</a>.</p>
+
+
+
+<h2 id="elastic">ElasticSearch (not yet deployed)</h2>
+<p><a href="https://gist.github.com/wingdspur/2026107">instructions adapted from this</a></p>
+<blockquote><pre>cd /tmp
+sudo apt-get install openjdk-7-jre-headless -y
+wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb
+sudo dpkg -i elasticsearch-1.1.0.deb
+sudo pip install pyelasticsearch
+echo 'y' | ./manage.py rebuild_index</pre></blockquote>
 </body>
 </html>
 

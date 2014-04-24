@@ -43,18 +43,9 @@ class DB2_Query(Query):
         
         if settings.DISABLE_REPORTING_DB:
             raise SIMSProblem, "Reporting database access has been disabled in this deployment."
-        try:
-            passfile = open(settings.DB_PASS_FILE)
-            _ = passfile.next()
-            _ = passfile.next()
-            _ = passfile.next()
-            sims_passwd = passfile.next().strip()
-        except IOError:
-            print settings.DB_PASS_FILE + " not found"
-            raise SIMSProblem, "Reporting database access requires a password file." 
-            sims_passwd = ''
 
         sims_user = settings.SIMS_USER
+        sims_passwd = settings.SIMS_PASSWORD
         sims_db_name = settings.SIMS_DB_NAME
         sims_db_schema = settings.SIMS_DB_SCHEMA
         

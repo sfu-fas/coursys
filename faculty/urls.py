@@ -6,7 +6,7 @@ EVENT_PREFIX = USERID_OR_EMPLID + '/events/' + EVENT_SLUG
 GRANT_SLUG = '(?P<grant_slug>' + SLUG_RE + ')'
 
 
-urlpatterns = patterns('',
+faculty_patterns = [
     # Top Level Stuff
     url(r'^$', 'faculty.views.index'),
     url(r'^queue/$', 'faculty.views.status_index', name="status_index"),
@@ -84,4 +84,4 @@ urlpatterns = patterns('',
     url(r'^grants/import$', 'faculty.views.import_grants', name="import_grants"),
     url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '$', 'faculty.views.view_grant', name="view_grant"),
     url(r'^grants/' + UNIT_SLUG + '/' + GRANT_SLUG + '/edit$', 'faculty.views.edit_grant', name="edit_grant"),
-)
+]

@@ -17,7 +17,8 @@ class DefaultLog(object):
     def __init__(self):
         pass
     def log(self, x):
-        print x
+        pass
+        #print x
 
 class BaseQuery(object):
     """ The base class for queries. Performs a simple DB query. """
@@ -109,6 +110,8 @@ class CachedQuery(BaseQuery):
 
     @staticmethod
     def cache_location():
+        if not os.path.exists(settings.REPORT_CACHE_LOCATION):
+            os.makedirs(settings.REPORT_CACHE_LOCATION)
         return settings.REPORT_CACHE_LOCATION
     
     @property

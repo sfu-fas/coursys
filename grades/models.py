@@ -728,8 +728,6 @@ class GradeHistory(models.Model):
     """
     Grade audit history. Created automatically by ActivityMark.save().
     """
-    from marking.models import ActivityMark
-    from groups.models import Group
     activity = models.ForeignKey(Activity, null=False)
     member = models.ForeignKey(Member, null=False)
     entered_by = models.ForeignKey(Person, null=False, blank=False)
@@ -740,8 +738,8 @@ class GradeHistory(models.Model):
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
     comment = models.TextField(null=True)
 
-    mark = models.ForeignKey(ActivityMark, null=True, help_text='The ActivityMark object this grade came from, if applicable.')
-    group = models.ForeignKey(Group, null=True, help_text='If this was a mark for a group, the group.')
+    mark = models.ForeignKey('marking.ActivityMark', null=True, help_text='The ActivityMark object this grade came from, if applicable.')
+    group = models.ForeignKey('groups.Group', null=True, help_text='If this was a mark for a group, the group.')
     status_change = models.BooleanField(null=False, default=False)
 
     timestamp = models.DateTimeField(auto_now_add=True)

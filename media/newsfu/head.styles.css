@@ -137,19 +137,19 @@ a{color:#a6192e;text-decoration:none;}
 a img{border:none;}
 #page-content p a:hover,#page-content h1 a:hover,#page-content h2 a:hover,#page-content h3 a:hover,#page-content h4 a:hover,#page-content h5 a:hover,#page-content li a:hover,#page-content table a:hover,.breadcrumb a:hover{opacity:.8;}
 fieldset{border:none;}
-body{font:normal 100% Cambria,Georgia,"Times New Roman",Times,serif;line-height:1.5em;margin:0;background:#a6192e url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/textured-red-01-small.png) top left repeat;}
+body{font:normal 100% Cambria,Georgia,"Times New Roman",Times,serif;line-height:1.5em;margin:0;background:#a6192e url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/textured-red-01-small.png) top left repeat;}
 @text Colour;.brand-font-italic{font-family:"DINWebItalic";}
-@font-face{font-family:'DINWebLight';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.woff') format('woff');}
-@font-face{font-family:'DINWeb';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.woff') format('woff');}
-@font-face{font-family:'DINWebBold';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.woff') format('woff');}
-@font-face{font-family:'DINWebMedium';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Medium.woff') format('woff');}
-@font-face{font-family:'DINWebBlack';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.woff') format('woff');}
-@font-face{font-family:'DINWebLightItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.woff') format('woff');font-weight:normal;font-style:italic;}
-@font-face{font-family:'DINWebItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.woff') format('woff');font-weight:normal;font-style:italic;}
-@font-face{font-family:'DINWebMediumItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.woff') format('woff');font-weight:normal;font-style:italic;}
-@font-face{font-family:'DINWebBoldItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.woff') format('woff');font-weight:bold;font-style:italic;}
-@font-face{font-family:'DINWebBlackItalic';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.woff') format('woff');font-weight:bold;font-style:italic;}
-@font-face{font-family:'fontawesome';src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.eot');src:url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.eot?#iefix') format('embedded-opentype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.woff') format('woff'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.ttf') format('truetype'),url('http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.svg#fontawesome') format('svg');font-weight:normal;font-style:normal;}
+@font-face{font-family:'DINWebLight';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Light.woff') format('woff');}
+@font-face{font-family:'DINWeb';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb.woff') format('woff');}
+@font-face{font-family:'DINWebBold';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.woff') format('woff');}
+@font-face{font-family:'DINWebMedium';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Bold.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Medium.woff') format('woff');}
+@font-face{font-family:'DINWebBlack';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Black.woff') format('woff');}
+@font-face{font-family:'DINWebLightItalic';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-LightIta.woff') format('woff');font-weight:normal;font-style:italic;}
+@font-face{font-family:'DINWebItalic';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-Ita.woff') format('woff');font-weight:normal;font-style:italic;}
+@font-face{font-family:'DINWebMediumItalic';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-MediumIta.woff') format('woff');font-weight:normal;font-style:italic;}
+@font-face{font-family:'DINWebBoldItalic';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BoldIta.woff') format('woff');font-weight:bold;font-style:italic;}
+@font-face{font-family:'DINWebBlackItalic';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/DINWeb-BlackIta.woff') format('woff');font-weight:bold;font-style:italic;}
+@font-face{font-family:'fontawesome';src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.eot');src:url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.eot?#iefix') format('embedded-opentype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.woff') format('woff'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.ttf') format('truetype'),url('//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/fonts/fontawesome.svg#fontawesome') format('svg');font-weight:normal;font-style:normal;}
 .icon{font-size:1em;line-height:1em;font-family:"fontawesome",sans-serif;font-weight:normal;font-size:1em;line-height:1em;font-family:"fontawesome",sans-serif;font-weight:normal;}
 .icon-plus-sign:before{content:"+";}
 .icon-minus-sign:before{content:"-";}
@@ -183,7 +183,7 @@ header{position:relative;width:100%;background-color:#eee;background:-webkit-gra
 header fieldset{border:none;padding:0;width:100%;}
 .heading{float:left;width:77.7777%;padding-top:93px;position:relative;}
 .brand-title{position:absolute;top:0;left:0;}
-.branding{width:300px;height:46px;background:transparent url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo.png) top left no-repeat;background-size:contain;}
+.branding{width:300px;height:46px;background:transparent url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo.png) top left no-repeat;background-size:contain;}
 .brand-title>a{width:300px;display:block;}
 .branding h1{display:none;}
 .site-title{color:#3d3935;clear:left;margin-left:102px;}
@@ -202,7 +202,7 @@ header fieldset{border:none;padding:0;width:100%;}
 .sf-menu ul{background-color:#fff;}
 .mobile-global-links-container{display:none;}
 .expanded a{font-family:"DINWebMedium",sans-serif;}
-.header-divider{clear:left;height:25px;width:100%;background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-small.png) -70px 0 no-repeat;}
+.header-divider{clear:left;height:25px;width:100%;background:#3d3935 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-small.png) -70px 0 no-repeat;}
 .search{position:relative;z-index:999;}
 .search form{background:none;border:none;margin:0;padding:0;}
 .search .search-field{margin-top:0;}
@@ -212,7 +212,7 @@ header fieldset{border:none;padding:0;width:100%;}
 .search-scope-set label input{display:inline;float:none;margin:.4em .5em 0 .2em;}
 .first-col{float:left;width:22.222222222%;}
 .nav-control{display:none;}
-.default-nav{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;text-transform:uppercase;border-bottom:14px solid #777;margin-bottom:20px;padding-bottom:70px;border-top:15px solid #777;background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-textured.png) 0 0 repeat;}
+.default-nav{font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;font-size:.8571428571428571em;line-height:1.3125em;font-family:"DINWeb",sans-serif;font-weight:normal;text-transform:uppercase;border-bottom:14px solid #777;margin-bottom:20px;padding-bottom:70px;border-top:15px solid #777;background:#3d3935 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-textured.png) 0 0 repeat;}
 .default-nav .top.active>ul{display:block;}
 .default-nav a{display:block;padding:8px 5px 8px 12px;}
 .default-nav ul>li>a{color:#fff;}
@@ -284,7 +284,7 @@ footer address{font-style:normal;}
 @media(max-width:980px){header{transition:margin-top .5s;-moz-transition:margin-top .5s;-webkit-transition:margin-top .5s;-o-transition:margin-top .5s;margin-top:0;}
 .heading{width:100%;}
 .reveal-search{transition:margin-top .5s;-moz-transition:margin-top .5s;-webkit-transition:margin-top .5s;-o-transition:margin-top .5s;margin-top:70px;}
-.toggle-search-control{position:absolute;top:0;right:0;z-index:1;display:block;background:#003087 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/search-icon@2x.png) 4px 5px no-repeat;background-size:21px 25px;text-indent:-999em;width:21px;border:none;cursor:pointer;margin-top:0;margin-right:6%;padding:10px 16px;}
+.toggle-search-control{position:absolute;top:0;right:0;z-index:1;display:block;background:#003087 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/search-icon@2x.png) 4px 5px no-repeat;background-size:21px 25px;text-indent:-999em;width:21px;border:none;cursor:pointer;margin-top:0;margin-right:6%;padding:10px 16px;}
 .actionable-header{float:none;height:70px;position:absolute;top:-75px;left:0;background-color:#485881;color:#fff;width:100%;padding:8px 2% 12px 2%;}
 .actionable-header .search{float:left;width:48%;margin-right:2%;}
 .search .search-field input{width:100%;border-radius:5px;box-shadow:none;}
@@ -324,9 +324,9 @@ fieldset.search-field{float:none;}
 .default-nav{box-shadow:none;}
 .default-nav li:first-child{border-top:none;}
 .default-nav .top.active>ul li:first-child{display:block;}
-.nav-revealed{background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px 9px no-repeat;background-size:21px 72px;}
-.nav-revealed:hover{background:#555 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px 9px no-repeat;background-size:21px 72px;}
-.main-nav button,.default-nav button{background:#fff url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px -46px no-repeat;background-size:21px 72px;text-indent:-999em;width:21px;border:none;cursor:pointer;margin-right:6%;padding:9px 16px 11px 16px;float:right;}
+.nav-revealed{background:#3d3935 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px 9px no-repeat;background-size:21px 72px;}
+.nav-revealed:hover{background:#555 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px 9px no-repeat;background-size:21px 72px;}
+.main-nav button,.default-nav button{background:#fff url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon@2x.png) 5px -46px no-repeat;background-size:21px 72px;text-indent:-999em;width:21px;border:none;cursor:pointer;margin-right:6%;padding:9px 16px 11px 16px;float:right;}
 .main-nav button:hover,.default-nav button:hover{background-color:#3d3935;background-position:5px -18px;}
 .main-nav a{display:block;color:#fff;padding:10px 0 5px 12px;}
 .main-nav ul,.default-nav ul{display:none;}
@@ -334,7 +334,7 @@ fieldset.search-field{float:none;}
 .main-nav>ul>li>ul,.default-nav>ul>li>ul{display:none;}
 .default-nav>ul>li{background-color:#3d3935;}
 .main-nav>ul>li>ul>li.active>a{color:#3d3935;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebBold",sans-serif;font-weight:normal;background-color:#ccc;}
-nav>ul>li.nav-item-expandable{cursor:pointer;background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/nav-plus-minus@2x.png) 94% -16px no-repeat;background-size:23px 39px;}
+nav>ul>li.nav-item-expandable{cursor:pointer;background:#3d3935 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/nav-plus-minus@2x.png) 94% -16px no-repeat;background-size:23px 39px;}
 nav>ul>li.nav-item-expanded{background-position:94% 10px;}
 .default-nav li:last-child{border-bottom:none;}
 .default-nav li.rule{border-top:none;}
@@ -362,13 +362,13 @@ footer ul{width:50%;}
 footer ul:nth-child(3),footer ul:last-child{clear:left;}
 table td,table th{padding:.125em .25em;}
 }
-@media(-webkit-min-device-pixel-ratio:1.25),(min-device-pixel-ratio:1.25),(min-resolution:96dpi){.branding{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo@2x.png);}
+@media(-webkit-min-device-pixel-ratio:1.25),(min-device-pixel-ratio:1.25),(min-resolution:96dpi){.branding{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo@2x.png);}
 }
-.ext-ie6 .toggle-search-control,.ext-ie7 .toggle-search-control,.ext-ie8 .toggle-search-control{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/search-icon.png);}
-.ext-ie6 .nav-revealed,.ext-ie7 .nav-revealed,.ext-ie8 .nav-revealed{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
-.ext-ie6 .nav-revealed:hover,.ext-ie7 .nav-revealed:hover,.ext-ie8 .nav-revealed:hover{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
-.ext-ie6 .main-nav button,.ext-ie7 .main-nav button,.ext-ie8 .main-nav button,.ext-ie6 .default-nav button,.ext-ie7 .default-nav button,.ext-ie8 .default-nav button{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
-.ext-ie6 .main-nav>ul>li.nav-item-expandable,.ext-ie7 .main-nav>ul>li.nav-item-expandable,.ext-ie8 .main-nav>ul>li.nav-item-expandable,.ext-ie6 .default-nav>ul>li.nav-item-expandable,.ext-ie7 .default-nav>ul>li.nav-item-expandable,.ext-ie8 .default-nav>ul>li.nav-item-expandable{background-image:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/nav-plus-minus.png);}
+.ext-ie6 .toggle-search-control,.ext-ie7 .toggle-search-control,.ext-ie8 .toggle-search-control{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/search-icon.png);}
+.ext-ie6 .nav-revealed,.ext-ie7 .nav-revealed,.ext-ie8 .nav-revealed{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
+.ext-ie6 .nav-revealed:hover,.ext-ie7 .nav-revealed:hover,.ext-ie8 .nav-revealed:hover{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
+.ext-ie6 .main-nav button,.ext-ie7 .main-nav button,.ext-ie8 .main-nav button,.ext-ie6 .default-nav button,.ext-ie7 .default-nav button,.ext-ie8 .default-nav button{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/menu-icon.png);}
+.ext-ie6 .main-nav>ul>li.nav-item-expandable,.ext-ie7 .main-nav>ul>li.nav-item-expandable,.ext-ie8 .main-nav>ul>li.nav-item-expandable,.ext-ie6 .default-nav>ul>li.nav-item-expandable,.ext-ie7 .default-nav>ul>li.nav-item-expandable,.ext-ie8 .default-nav>ul>li.nav-item-expandable{background-image:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/nav-plus-minus.png);}
 @media print{body{font-size:13px;}
 .header-divider,nav,.search,.branding,.global-links,.toggle-search-control,footer,.breadcrumb,.actionable-header,.documenttools,#comments-form,.below-nav{display:none!important;}
 header{border-top:none;}
@@ -376,7 +376,7 @@ header{border-top:none;}
 .cq-colctrl-lt8>div,.cq-colctrl-lt2>div{float:left!important;width:50%!important;}
 .cq-colctrl-lt8-c2{clear:both;}
 .page-content{clear:both;margin-top:50px;}
-.site-title:before{display:block;margin-left:-33.33%!important;content:url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo@2x.png);-webkit-transform:scale(0.5)!important;-ms-transform:scale(0.5)!important;transform:scale(0.5)!important;margin-top:-20px!important;}
+.site-title:before{display:block;margin-left:-33.33%!important;content:url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/sfu-logo@2x.png);-webkit-transform:scale(0.5)!important;-ms-transform:scale(0.5)!important;transform:scale(0.5)!important;margin-top:-20px!important;}
 .site-title h2{width:100%;margin-top:-20px;font-size:1em;}
 .main a{text-decoration:none;}
 .main a[href^=http]:after{content:"\00a0(" attr(href) ") ";font-style:italic;}
@@ -561,7 +561,7 @@ a.linkFeed{background:url("/content/dam/sfu/images/icons/feed.png") no-repeat sc
 .datestamp{font-size:1em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;font-size:1em;line-height:1.3125em;font-family:"DINWebLight",sans-serif;font-weight:normal;margin-bottom:3%;}
 .carousel{width:100%;margin-bottom:4%;}
 .carousel .flex-control-nav{bottom:-29px;}
-.carousel .news{background:#3d3935 url(http://www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-textured.png) 0 0 repeat;border-bottom:25px solid #ddd;}
+.carousel .news{background:#3d3935 url(//www.sfu.ca/etc/designs/clf/clientlibs/clf/source/images/bg-textured.png) 0 0 repeat;border-bottom:25px solid #ddd;}
 .carousel .news h3{font-size:1.75em;line-height:1.2em;margin-top:0;margin-bottom:6px;}
 .carousel .news .carousel-image{background-color:#000;width:61.770833%;float:left;margin:0;overflow:hidden;}
 .carousel .news .carousel-image img{max-width:100%;}
@@ -617,19 +617,19 @@ p.galleryText{color:#555;margin:0 0 0 .8em;}
 .box:hover{opacity:.8;transition-property:background-color .2s linear .1s;transition-property:opacity .2s linear .1s;-moz-transition:background-color .2s linear .1s;-moz-transition:opacity .2s linear .1s;-webkit-transition:background-color .2s linear .1s;-webkit-transition:opacity .2s linear .1s;}
 div.download div.item{clear:both;margin:0 0 1em 0;}
 div.download span.icon img{width:16px;height:16px;}
-div.download span.icon{float:left;padding:0 1em 1em 0;background:url(http://www.sfu.ca/etc/designs/default/images/icons/default.gif) no-repeat;}
-div.download span.icon.type_doc{background:url(http://www.sfu.ca/etc/designs/default/images/icons/doc.gif) no-repeat;}
-div.download span.icon.type_docx{background:url(http://www.sfu.ca/etc/designs/default/images/icons/doc.gif) no-repeat;}
-div.download span.icon.type_eps{background:url(http://www.sfu.ca/etc/designs/default/images/icons/eps.gif) no-repeat;}
-div.download span.icon.type_gif{background:url(http://www.sfu.ca/etc/designs/default/images/icons/zip.gif) no-repeat;}
-div.download span.icon.type_jpg{background:url(http://www.sfu.ca/etc/designs/default/images/icons/jpg.gif) no-repeat;}
-div.download span.icon.type_pdf{background:url(http://www.sfu.ca/etc/designs/default/images/icons/pdf.gif) no-repeat;}
+div.download span.icon{float:left;padding:0 1em 1em 0;background:url(//www.sfu.ca/etc/designs/default/images/icons/default.gif) no-repeat;}
+div.download span.icon.type_doc{background:url(//www.sfu.ca/etc/designs/default/images/icons/doc.gif) no-repeat;}
+div.download span.icon.type_docx{background:url(//www.sfu.ca/etc/designs/default/images/icons/doc.gif) no-repeat;}
+div.download span.icon.type_eps{background:url(//www.sfu.ca/etc/designs/default/images/icons/eps.gif) no-repeat;}
+div.download span.icon.type_gif{background:url(//www.sfu.ca/etc/designs/default/images/icons/zip.gif) no-repeat;}
+div.download span.icon.type_jpg{background:url(//www.sfu.ca/etc/designs/default/images/icons/jpg.gif) no-repeat;}
+div.download span.icon.type_pdf{background:url(//www.sfu.ca/etc/designs/default/images/icons/pdf.gif) no-repeat;}
 div.download span.icon.type_ppt{background:url(etc/designs/clf/clientlibs/designs/default/images/icons/ppt.gif) no-repeat;}
-div.download span.icon.type_tif{background:url(http://www.sfu.ca/etc/designs/default/images/icons/tif.gif) no-repeat;}
-div.download span.icon.type_txt{background:url(http://www.sfu.ca/etc/designs/default/images/icons/txt.gif) no-repeat;}
-div.download span.icon.type_xls{background:url(http://www.sfu.ca/etc/designs/default/images/icons/xls.gif) no-repeat;}
-div.download span.icon.type_xlsx{background:url(http://www.sfu.ca/etc/designs/default/images/icons/xls.gif) no-repeat;}
-div.download span.icon.type_zip{background:url(http://www.sfu.ca/etc/designs/default/images/icons/zip.gif) no-repeat;}
+div.download span.icon.type_tif{background:url(//www.sfu.ca/etc/designs/default/images/icons/tif.gif) no-repeat;}
+div.download span.icon.type_txt{background:url(//www.sfu.ca/etc/designs/default/images/icons/txt.gif) no-repeat;}
+div.download span.icon.type_xls{background:url(//www.sfu.ca/etc/designs/default/images/icons/xls.gif) no-repeat;}
+div.download span.icon.type_xlsx{background:url(//www.sfu.ca/etc/designs/default/images/icons/xls.gif) no-repeat;}
+div.download span.icon.type_zip{background:url(//www.sfu.ca/etc/designs/default/images/icons/zip.gif) no-repeat;}
 .image-gallery p{background-color:#3d3935;margin-top:-1px;padding:1em;color:#fff;}
 .flex-control-thumbs li:nth-of-type(4n+1){clear:left;}
 form{margin:1em 0;border:1px solid #D2E1E6;border-radius:3px 3px 3px 3px;padding:.8em;background-color:#E9EFF1;}

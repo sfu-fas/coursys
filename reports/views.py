@@ -2,6 +2,7 @@ from models import Report, HardcodedReport, Result, Run, RunLine, \
                     Query, AccessRule, ScheduleRule
 from forms import ReportForm, HardcodedReportForm, QueryForm, \
                     AccessRuleForm, ScheduleRuleForm
+from cache import clear_cache
 from alerts.models import AlertType
 from alerts.forms import AlertTypeForm
 from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
@@ -12,10 +13,8 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.template import Template, Context
 from django.forms.util import ErrorList
-from django.conf import settings
 import unicodecsv as csv
 import datetime
-import shutil
 
 
 def view_reports(request):
@@ -239,7 +238,6 @@ def run(request, report):
     if not _has_access(request, report):
         return ForbiddenResponse(request)
    
-    # TODO: this really shouldn't be a synchronous operation. 
     runs = report.run()
     if len(runs) > 0: 
         for run in runs: 
@@ -248,7 +246,7 @@ def run(request, report):
             else: 
                 messages.error(request, "Run Failed!")
         run = runs[0]
-        shutil.rmtree(settings.REPORT_CACHE_LOCATION)
+        clear_cache()
         return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
     else:
         messages.error(request, "You haven't added any queries or reports to run, yet!")

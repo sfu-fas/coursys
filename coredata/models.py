@@ -44,7 +44,7 @@ class Person(models.Model):
     emplid = models.PositiveIntegerField(db_index=True, unique=True, null=False,
                                          verbose_name="ID #",
         help_text='Employee ID (i.e. student number)')
-    userid = models.CharField(max_length=8, null=True, db_index=True, unique=True,
+    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True, unique=True,
                               verbose_name="User ID",
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     last_name = models.CharField(max_length=32)
@@ -725,6 +725,8 @@ class CourseOffering(models.Model):
         d['campus'] = self.campus
         d['meetingtimes'] = [m.export_dict() for m in self.meetingtime_set.all()]
         d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST").select_related('person')]
+        d['wqb'] = [desc for flag,desc in WQB_FLAGS if getattr(self.flags, flag)]
+        d['class_nbr'] = self.class_nbr
         return d
     
     def delete(self, *args, **kwargs):
@@ -914,7 +916,7 @@ class Member(models.Model):
         """
         Clear out the official grade field on old records: no need to tempt fate.
         """
-        cutoff = datetime.date.today() - datetime.timedelta(days=240)
+        cutoff = datetime.date.today() - datetime.timedelta(days=120)
         old_grades = Member.objects.filter(offering__semester__end__lt=cutoff, official_grade__isnull=False)
         old_grades.update(official_grade=None)
 

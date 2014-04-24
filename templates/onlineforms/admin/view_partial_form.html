@@ -45,7 +45,7 @@
 </ul>
 {% endif %}
 {% if form_sub.status == 'DONE' %}
-<p>Closed by: {{ form_sub.closer.name|default_if_none:"unknown"}}.
+<p>Closed by: {% if form_sub.closer %}{{ form_sub.closer.name|default_if_none:"unknown"}}{% else %}<span class="empty">nobody</span>{% endif %}.
 {% if form_sub.summary %}Summary given: &ldquo;{{ form_sub.summary }}&rdquo;.{% endif %}
 The initiator {% if form_sub.emailed %}<strong>was</strong>{% else %}was <strong>not</strong>{% endif %} emailed by the system.
 </p>

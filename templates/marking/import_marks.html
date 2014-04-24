@@ -14,6 +14,7 @@
   <h2 class="heading">Actions</h2>
   <ul>
     <li><a href="{% url "marking.views.export_marks" course_slug=course.slug activity_slug=activity.slug %}">Export Current Marks</a></li>
+    <li><a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}">Configure Marking</a></li>
   </ul>
 </div>
 {% endblock %}
