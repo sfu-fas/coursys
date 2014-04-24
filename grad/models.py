@@ -1064,11 +1064,11 @@ class GradStudent(models.Model):
 
     def thesis_summary(self): 
         summary = ""
-        if 'work_title' in self.config:
+        if 'work_title' in self.config and self.config['work_title']:
             summary += self.config['work_title'] + " : "
-        if 'thesis_location' in self.config:
+        if 'thesis_location' in self.config and self.config['thesis_location']:
             summary += "(" + self.config['thesis_location'] + ") "
-        if 'exam_date' in self.config:
+        if 'exam_date' in self.config and self.config['exam_date']:
             summary += self.config['exam_date'] + " "
         return summary
 
