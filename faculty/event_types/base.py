@@ -22,11 +22,12 @@ SalaryAdjust = collections.namedtuple('SalaryAdjust', [
     'salary_fraction',
     'add_bonus',
 ])
+SalaryAdjustIdentity = SalaryAdjust(0, 1, 0)
 TeachingAdjust = collections.namedtuple('TeachingAdjust', [
     'credits',
     'load_decrease',
 ])
-
+TeachingAdjustIdentity = TeachingAdjust(0, 0)
 
 class CareerEventMeta(abc.ABCMeta):
 
@@ -156,14 +157,15 @@ class CareerEventHandlerBase(object):
     def set_handler_specific_data(self):
         """
         Sets store Handler specific flags and type in the CareerEvent instance.
-
         """
-        from faculty.models import CareerEvent
         self.event.event_type = self.EVENT_TYPE
 
         self.event.flags = 0
-        for flag in self.FLAGS:
-            self.event.flags |= getattr(CareerEvent.flags, flag)
+        # only set the flags in the event if they have a non-identity value: i.e. they actually *do* affect something
+        self.event.flags.affects_salary = ('affects_salary' in self.FLAGS
+                                           and SalaryAdjustIdentity != self.salary_adjust_annually())
+        self.event.flags.affects_teaching = ('affects_teaching' in self.FLAGS
+                                             and TeachingAdjustIdentity != self.teaching_adjust_per_semester())
 
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
@@ -185,9 +187,9 @@ class CareerEventHandlerBase(object):
                                                  .order_by('start_date').last())
             if previous_event:
                 previous_event.end_date = self.event.start_date - datetime.timedelta(days=1)
-                previous_event.save(editor)
+                previous_event.save(editor, call_from_handler=True)
 
-        self.event.save(editor)
+        self.event.save(editor, call_from_handler=True)
         self.post_save()
 
     def get_config(self, name, default=None):

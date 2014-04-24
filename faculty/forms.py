@@ -148,7 +148,7 @@ class UnitFilterForm(forms.Form):
 class EventFilterForm(forms.Form):
     CATEGORIES = [
         ('all', 'All Events'),
-        ('current', 'Current Events'),
+        ('current', 'Current/Future'),
         ('teach', 'Teaching-related'),
         ('salary', 'Salary-related'),
     ]
