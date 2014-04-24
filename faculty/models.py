@@ -16,6 +16,7 @@ from coredata.models import Unit, Person, Semester
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
+from cache_utils.decorators import cached
 
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.awards import GrantApplicationEventHandler
@@ -77,6 +78,7 @@ EVENT_TAGS = {
                 'start_date': 'start date of the event, if applicable',
                 'end_date': 'end date of the event, if applicable',
                 'event_title': 'name of event',
+                'current_rank': "faculty member's current rank",
             }
 
 #event specific tags
@@ -176,6 +178,7 @@ class CareerQuerySet(models.query.QuerySet):
         return self.filter(unit__id__in=subunit_ids)
 
 
+# adapted from https://djangosnippets.org/snippets/562/
 class CareerEventManager(models.Manager):
     def get_query_set(self):
         model = models.get_model('faculty', 'CareerEvent')
@@ -189,7 +192,6 @@ class CareerEventManager(models.Manager):
 
 
 class CareerEvent(models.Model):
-
     STATUS_CHOICES = (
         ('NA', 'Needs Approval'),
         ('A', 'Approved'),
@@ -248,6 +250,7 @@ class CareerEvent(models.Model):
         return u'{} {}'.format(self.start_date.year, self.get_event_type_display())
 
     @classmethod
+    @cached(24*3600)
     def current_ranks(cls, person):
         """
         Return a string representing the current rank(s) for this person
@@ -336,6 +339,7 @@ class CareerEvent(models.Model):
                 'last_name': self.person.last_name,
                 'start_date': self.start_date,
                 'end_date': self.end_date,
+                'current_rank': CareerEvent.current_ranks(self.person)
               }
         ls = dict(ls.items() + config_data.items())
         return ls

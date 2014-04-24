@@ -3,7 +3,6 @@ from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE, UNIT_SLUG, COURSE_SLUG
 
 EVENT_TYPE = '(?P<event_type>' + SLUG_RE + ')'
 EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
-#EVENT_PREFIX = USERID_OR_EMPLID + '/events/' + EVENT_SLUG
 GRANT_SLUG = '(?P<grant_slug>' + SLUG_RE + ')'
 
 event_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/events/EVENT_SLUG/
@@ -52,10 +51,10 @@ faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/
 faculty_patterns = [ # prefix: /faculty/
     # Top Level Stuff
     url(r'^$', 'faculty.views.index'),
-    url(r'^queue/$', 'faculty.views.status_index', name="status_index"),
+    url(r'^queue$', 'faculty.views.status_index', name="status_index"),
 
     # Event Searching
-    url(r'^search$', 'faculty.views.search_index'),
+    url(r'^search/$', 'faculty.views.search_index'),
     url(r'^search/' + EVENT_TYPE + '$', 'faculty.views.search_events'),
 
     # Report: Salary
@@ -83,7 +82,7 @@ faculty_patterns = [ # prefix: /faculty/
     url(r'^event-management/' + EVENT_TYPE + '/memo-templates/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name="faculty_manage_template"),
 
     # Grant Stuff
-    url(r'^grants$', 'faculty.views.grant_index', name="grants_index"),
+    url(r'^grants/$', 'faculty.views.grant_index', name="grants_index"),
     #url(r'^grants/new$', 'faculty.views.new_grant', name="new_grant"),
     url(r'^grants/convert/(?P<gid>\d+)$', 'faculty.views.convert_grant', name="convert_grant"),
     url(r'^grants/delete/(?P<gid>\d+)$', 'faculty.views.delete_grant', name="delete_grant"),

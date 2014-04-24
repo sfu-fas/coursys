@@ -10,18 +10,20 @@ class FacultySummary(object):
     def __init__(self, person):
         self.person = person
 
-    def salary_events(self, date):
+    def salary_events(self, date, unit=None):
         """Returns all active affects_salary events that are in effect on date."""
         career_events = (CareerEvent.objects.not_deleted()
                                             .effective_date(date)
                                             .filter(person=self.person)
                                             .filter(flags=CareerEvent.flags.affects_salary)
                                             .filter(status='A'))
+        if unit:
+            career_events = career_events.filter(unit=unit)
         return career_events
 
-    def recent_salary(self, date):
+    def recent_salary(self, date, unit=None):
         """Returns the most recent active affects_salary event that is in effect on date."""
-        base_salary_events = self.salary_events(date).by_type(SalaryBaseEventHandler)
+        base_salary_events = self.salary_events(date, unit=unit).by_type(SalaryBaseEventHandler)
         return base_salary_events.order_by('-start_date').first()
 
     def teaching_events(self, semester):
@@ -33,13 +35,13 @@ class FacultySummary(object):
                                             .filter(status='A'))
         return career_events
 
-    def salary(self, date):
+    def salary(self, date, unit=None):
         """Returns the person's total pay as of a given date."""
         tot_salary = 0
         tot_fraction = 1
         tot_bonus = 0
 
-        for event in self.salary_events(date):
+        for event in self.salary_events(date, unit=unit):
             add_salary, salary_fraction, add_bonus = self.salary_event_info(event)
 
             tot_salary += add_salary

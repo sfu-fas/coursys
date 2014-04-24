@@ -1053,6 +1053,7 @@ class Unit(models.Model):
         
         Cached so we can avoid the work when possible.
         """
+        # sort unit.id values for consistent cache keys
         if by_id:
             unitids = sorted(list(set(units)))
         else:

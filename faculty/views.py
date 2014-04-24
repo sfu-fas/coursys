@@ -184,8 +184,6 @@ def salary_index(request):
     """
     Salaries of all faculty members
     """
-    form = GetSalaryForm()
-
     if request.GET:
         form = GetSalaryForm(request.GET)
 
@@ -213,11 +211,13 @@ def salary_index(request):
 def _salary_index_data(request, date):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
-    fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
+    #fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
     fac_pay_summary = []
-    for person, roles in fac_roles_pay:
 
-        salary_events = copy.copy(FacultySummary(person).salary_events(date))
+    for role in fac_roles_pay:
+        person = role.person
+        unit = role.unit
+        salary_events = copy.copy(FacultySummary(person).salary_events(date, unit=unit))
         add_salary_total = add_bonus_total = 0
         salary_fraction_total = 1
 
@@ -228,7 +228,7 @@ def _salary_index_data(request, date):
             add_bonus_total += event.add_bonus
 
         #get most recent step and rank from base_salary
-        recent_salary_update = FacultySummary(person).recent_salary(date)
+        recent_salary_update = FacultySummary(person).recent_salary(date, unit=unit)
         if recent_salary_update != None:
             try:
                 step = recent_salary_update.config["step"]
@@ -243,11 +243,10 @@ def _salary_index_data(request, date):
             step = "-"
             rank = "-"
 
-        current_salary = FacultySummary(person).salary(date)
+        current_salary = FacultySummary(person).salary(date, unit=unit)
 
-        fac_pay_summary += [(person, ' , '.join(r.unit.label for r in roles), current_salary, add_salary_total, salary_fraction_total, add_bonus_total, step, rank)]
+        fac_pay_summary += [(person, unit.informal_name(), current_salary, add_salary_total, salary_fraction_total, add_bonus_total, step, rank)]
 
-    # TODO: below line should only select pay from units the user can see
     return fac_pay_summary
 
 
