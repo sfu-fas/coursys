@@ -61,6 +61,12 @@ class AttachmentForm(forms.ModelForm):
         model = DocumentAttachment
         exclude = ("career_event", "created_by")
 
+class TextAttachmentForm(forms.ModelForm):
+    text_contents = forms.CharField(widget=forms.Textarea(attrs={'rows': 15, 'cols': 70}))
+    class Meta:
+        model = DocumentAttachment
+        exclude = ("career_event", "created_by", "contents")
+
 class EventFlagForm(forms.Form):
     flag_short = forms.CharField(label='Flag short form', help_text='e.g. LEEF')
     flag = forms.CharField(label='Flag full name', help_text='e.g. Leef Chair')

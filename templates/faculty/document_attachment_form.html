@@ -12,24 +12,10 @@ var event_type = "{{ event_type|escapejs }}";
 {% block subbreadcrumbs %}
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-{% if event %}
-<li><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></li>
-{% else %}
-<li><a href="{% url "faculty.views.event_type_list" userid=person.userid_or_emplid %}">New Event</a></li>
-<li><a href="{{ event.get_absolute_url }}">{{ name|title }}</a></li>
-{% endif %}
+<li><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></li>
 <li>Add Attachment</li>
 {% endblock %}
 
-{% block actions %}
-<div id="actions">
-  <h2>Actions</h2>
-  <ul>
-    <li><a href="{{ event.get_change_url }}">Edit event</a></li>
-    <li><a href="{{ event.get_attachment_url }}">Add Attachment</a></li>
-  </ul>
-</div>
-{% endblock %}
 
 {% block content %}
 <div class="form_container">
@@ -37,7 +23,7 @@ var event_type = "{{ event_type|escapejs }}";
         {% csrf_token %}
         <fieldset>
             {{ attachment_form|as_dl }}
-            <p><input type="submit" class="submit" value="Submit" /></p>
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
         </fieldset>
     </form>
 </div>

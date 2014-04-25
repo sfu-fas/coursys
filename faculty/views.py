@@ -3,6 +3,7 @@ import datetime
 import itertools
 import json
 import operator
+import StringIO
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 
@@ -32,7 +33,7 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
 from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
-from faculty.forms import MemoTemplateForm, MemoForm, AttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
+from faculty.forms import MemoTemplateForm, MemoForm, AttachmentForm, TextAttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
@@ -1375,6 +1376,7 @@ def faculty_wizard(request, userid):
 ###############################################################################
 # Management of DocumentAttachments and Memos
 @requires_role('ADMN')
+@transaction.atomic
 def new_attachment(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
@@ -1402,6 +1404,37 @@ def new_attachment(request, userid, event_slug):
             context.update({"attachment_form": form})
 
     return render(request, 'faculty/document_attachment_form.html', context)
+
+
+@requires_role('ADMN')
+@transaction.atomic
+def new_text_attachment(request, userid, event_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = TextAttachmentForm()
+    context = {"event": event,
+               "person": person,
+               "form": form}
+
+    if request.method == "POST":
+        form = TextAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.career_event = event
+            attachment.created_by = editor
+            content = form.cleaned_data['text_contents'].encode('utf-8')
+            contentio = StringIO.StringIO(content)
+            contentio.size = len(content)
+            attachment.contents.save('attachment.txt', contentio, save=True)
+            attachment.mediatype = 'text/plain; charset=utf-8'
+            attachment.save()
+            return HttpResponseRedirect(event.get_absolute_url())
+        else:
+            context.update({"form": form})
+
+    return render(request, 'faculty/text_attachment_form.html', context)
 
 
 @requires_role('ADMN')

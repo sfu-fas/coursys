@@ -243,9 +243,6 @@ class CareerEvent(models.Model):
     def get_absolute_url(self):
         return reverse("faculty_event_view", args=[self.person.userid, self.slug])
 
-    def get_attachment_url(self):
-        return reverse("faculty_add_attachment", args=[self.person.userid, self.slug])
-
     def get_status_change_url(self):
         return reverse("faculty_change_event_status", args=[self.person.userid, self.slug])
 
@@ -376,7 +373,7 @@ class DocumentAttachment(models.Model):
     """
     career_event = models.ForeignKey(CareerEvent, null=False, blank=False, related_name="attachments")
     title = models.CharField(max_length=250, null=False)
-    slug = AutoSlugField(populate_from='title', null=False, editable=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('career_event',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to)
@@ -409,7 +406,7 @@ class MemoTemplate(models.Model):
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return u"%s in %s" % (self.label, self.unit)
@@ -456,7 +453,7 @@ class Memo(models.Model):
 
     def autoslug(self):
         return make_slug(self.career_event.slug + "-" + self.template.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('career_event',))
 
     def __unicode__(self):
         return u"%s memo for %s" % (self.template.label, self.career_event)

@@ -231,7 +231,7 @@ class PagesTest(TestCase):
                 'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',
                 'faculty_wizard'],
                 {'userid': 'ggbaker'})
-        test_views(self, c, 'faculty.views.', ['view_event', 'change_event', 'new_attachment'],
+        test_views(self, c, 'faculty.views.', ['view_event', 'change_event', 'new_attachment', 'new_text_attachment'],
                 {'userid': 'ggbaker', 'event_slug': '2000-appointment-to-position'})
 
         test_views(self, c, 'faculty.views.', ['manage_memo_template'],
