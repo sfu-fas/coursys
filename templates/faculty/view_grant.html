@@ -26,12 +26,22 @@
 {% endblock %}
 
 {% block content %}
-<div class="grant">
-<p>Start Date: {{ grant.start_date }}</p>
-<p>Initial: ${{ grant.initial }}</p>
-<p>Overhead: ${{ grant.overhead }}</p>
-<p>Status: {{ grant.get_status_display }}</p>
-<h3>Balance</h3>
+        <dl class="tabular">
+            <dt>Active dates</dt>
+            <dd>{{ grant.start_date }} to {{ grant.end_date|default:'present' }}</dd>
+            <dt>Project code</dt>
+            <dd>{{ grant.project_code }}</dd>
+            <dt>Initial balance</dt>
+            <dd>${{ grant.initial }}</dd>
+            <dt>Annual overhead</dt>
+            <dd>${{ grant.overhead }}</dd>
+            <dt>Owner(s)</dt>
+            <dd>{{ owners_display }}</dd>
+            <dt>Owning unit</dt>
+            <dd>{{ grant.unit.informal_name }}</dd>
+        </dl>
+
+<h2 id="balance">Balance History</h2>
 <table id="grant_balance_table" class="display">
   <thead><tr><th scope="col">Date</th><th scope="col">Balance</th><th scope="col">YTD Actual</th><th>This Month</th></tr></thead>
   <tbody>
@@ -45,7 +55,7 @@
   {% endfor %}
   </tbody>
 </table>
-</div>
+
 <div class="clearfix"></div>
 
 {% endblock %}

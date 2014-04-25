@@ -1,12 +1,12 @@
 /* dl style adapted from http://www.maxdesign.com.au/articles/definition/ */
-.careerevent dl
+dl.tabular
 {
     float: left;
     width: 100%;
 	margin: 1em 0;
 	padding: 0;
 }
-.careerevent dt
+dl.tabular dt
 {
 	clear: left;
 	float: left;
@@ -15,7 +15,7 @@
 	padding: 5px;
 	font-weight: bold;
 }
-.careerevent dd
+dl.tabular dd
 {
 	float: left;
 	width: 75%;

@@ -34,9 +34,9 @@ $(document).ready(function() {
     <td>{{ grant.unit.label }}</td>
     <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
     <td>{{ grant.start_date }}</td>
-    <td>{{ grant.expiry_date }}</td>
-    <td>{{ grant.initial }}</td>
-    <td>{{ grant.unit }}</td>
+    <td>{{ grant.expiry_date|default:'&mdash;' }}</td>
+    <td>${{ grant.initial }}</td>
+    <td>{{ grant.unit.informal_name }}</td>
   </tr>
   {% endfor %}
   </tbody>

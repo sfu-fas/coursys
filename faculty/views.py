@@ -1775,12 +1775,14 @@ def grant_index(request):
 
 @require_POST
 @requires_role('ADMN')
+@transaction.atomic
 def import_grants(request):
     editor = get_object_or_404(Person, userid=request.user.username)
+    units = Unit.sub_units(request.units)
     form = GrantImportForm(request.POST, request.FILES)
     if form.is_valid():
         csvfile = form.cleaned_data["file"]
-        created, failed = TempGrant.objects.create_from_csv(csvfile, editor)
+        created, failed = TempGrant.objects.create_from_csv(csvfile, editor, units)
         if failed:
             messages.error(request, "Created %d grants, %d failed" % (len(created), len(failed)))
         else:
@@ -1788,17 +1790,15 @@ def import_grants(request):
     return HttpResponseRedirect(reverse("grants_index"))
 
 
-@transaction.atomic
 @requires_role('ADMN')
+@transaction.atomic
 def convert_grant(request, gid):
-    tmp = get_object_or_404(TempGrant, id=gid)
     editor = get_object_or_404(Person, userid=request.user.username)
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    units = Unit.objects.filter(id__in=sub_unit_ids)
-    form = GrantForm(units, initial=tmp.grant_dict())
+    tmp = get_object_or_404(TempGrant, id=gid, creator=editor)
+    units = Unit.sub_units(request.units)
+
     context = {
         "temp_grant": tmp,
-        "grant_form": form,
         "editor": editor,
     }
     if request.method == "POST":
@@ -1816,27 +1816,32 @@ def convert_grant(request, gid):
                 balance = Decimal(tmp.config["cur_balance"])
                 this_month = Decimal(tmp.config["cur_month"])
                 ytd_actual = Decimal(tmp.config["ytd_actual"])
-                gb = grant.update_balance(balance, this_month, ytd_actual)
+                grant.update_balance(balance, this_month, ytd_actual)
             except (KeyError, InvalidOperation):
                 pass
             else:
                 # Delete the temporary grant
                 tmp.delete()
                 return HttpResponseRedirect(reverse("grants_index"))
-        else:
-            context.update({"grant_form": form})
+    else:
+        form = GrantForm(units, initial=tmp.grant_dict())
+
+    context.update({"grant_form": form})
     return render(request, "faculty/convert_grant.html", context)
 
 
 @require_POST
 @requires_role('ADMN')
+@transaction.atomic
 def delete_grant(request, gid):
-    tmp = get_object_or_404(TempGrant, id=gid)
+    editor = get_object_or_404(Person, userid=request.user.username)
+    tmp = get_object_or_404(TempGrant, id=gid, creator=editor)
     tmp.delete()
     return HttpResponseRedirect(reverse("grants_index"))
 
 
 #@requires_role('ADMN')
+#@transaction.atomic
 #def new_grant(request):
 #    editor = get_object_or_404(Person, userid=request.user.username)
 #    sub_unit_ids = Unit.sub_unit_ids(request.units)
@@ -1859,17 +1864,14 @@ def delete_grant(request, gid):
 
 
 @requires_role('ADMN')
+@transaction.atomic
 def edit_grant(request, unit_slug, grant_slug):
     editor = get_object_or_404(Person, userid=request.user.username)
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    units = Unit.objects.filter(id__in=sub_unit_ids)
-    grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
-    if grant.unit.id not in sub_unit_ids:
-        raise PermissionDenied("Not allowed to edit this grant")
-    form = GrantForm(units, instance=grant)
+    units = Unit.sub_units(request.units)
+    grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug, unit__in=units)
+
     context = {
         "grant": grant,
-        "grant_form": form,
         "editor": editor,
     }
     if request.method == "POST":
@@ -1881,21 +1883,23 @@ def edit_grant(request, unit_slug, grant_slug):
             for p in form.cleaned_data['owners']:
                 GrantOwner(grant=grant, person=p).save()
 
-            return HttpResponseRedirect(reverse("grants_index"))
+            return HttpResponseRedirect(reverse("view_grant", kwargs={'unit_slug': grant.unit.slug, 'grant_slug': grant.slug}))
 
-        else:
-            context.update({"grant_form": form})
+    else:
+        form = GrantForm(units, instance=grant)
+
+    context.update({"grant_form": form})
+
     return render(request, "faculty/edit_grant.html", context)
 
 
 @requires_role('ADMN')
 def view_grant(request, unit_slug, grant_slug):
-    # TODO: should other faculties be able to view grants not in their unit?
-    sub_unit_ids = Unit.sub_unit_ids(request.units)
-    grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug)
-    if not grant.unit.id in sub_unit_ids:
-        raise PermissionDenied("Not allowed to view this grant")
+    units = Unit.sub_units(request.units)
+    grant = get_object_or_404(Grant, unit__slug=unit_slug, slug=grant_slug, unit__in=units)
+
     context = {
         "grant": grant,
+        'owners_display': grant.get_owners_display(units)
     }
     return render(request, "faculty/view_grant.html", context)

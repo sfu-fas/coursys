@@ -13,7 +13,7 @@ from autoslug import AutoSlugField
 from bitfield import BitField
 from jsonfield import JSONField
 
-from coredata.models import Unit, Person, Semester
+from coredata.models import Unit, Person, Semester, Role
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
@@ -507,9 +507,8 @@ class EventConfig(models.Model):
 
 
 class TempGrantManager(models.Manager):
-    def create_from_csv(self, fh, creator):
+    def create_from_csv(self, fh, creator, units):
         reader = csv.reader(fh.read().splitlines())
-        # TODO: do we have a csv file to play with, or should we use the XLS greg gave us?
         failed = []
         created = []
         for row in reader:
@@ -535,14 +534,14 @@ class TempGrantManager(models.Manager):
 
                 # If Grant with the label already exists, then we update the balance
                 try:
-                    grant = Grant.objects.get(label__exact=label)
+                    grant = Grant.objects.get(label=label, unit__in=units)
                 except Grant.DoesNotExist:
                     pass
                 else:
-                    gb = grant.update_balance(cur_balance, cur_month, ytd_actual)
+                    grant.update_balance(cur_balance, cur_month, ytd_actual)
 
                 # Make sure its not a duplicate label for Temp Grants
-                if not TempGrant.objects.filter(label__exact=label).exists():
+                if not TempGrant.objects.filter(label=label, creator=creator).exists():
                     t = TempGrant(
                         label=label,
                         initial=balance,
@@ -558,7 +557,7 @@ class TempGrantManager(models.Manager):
 
 
 class TempGrant(models.Model):
-    label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True)
+    label = models.CharField(max_length=255, help_text="for identification from FAST import")
     initial = models.DecimalField(verbose_name="initial balance", max_digits=12, decimal_places=2)
     project_code = models.CharField(max_length=32, help_text="The fund and project code, like '13-123456'")
     import_key = models.CharField(null=True, blank=True, max_length=255, help_text="e.g. 'nserc-43517b4fd422423382baab1e916e7f63'")
@@ -567,6 +566,9 @@ class TempGrant(models.Model):
     config = JSONField(default={}) # addition configuration for within the temp grant
 
     objects = TempGrantManager()
+
+    class Meta:
+        unique_together = (('label', 'creator'),)
 
     def get_convert_url(self):
         return reverse("convert_grant", args=[self.id])
@@ -599,7 +601,7 @@ class Grant(models.Model):
     )
     title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
-    label = models.CharField(max_length=255, help_text="for identification from FAST import", unique=True, db_index=True)
+    label = models.CharField(max_length=255, help_text="for identification from FAST import", db_index=True)
     owners = models.ManyToManyField(Person, through='GrantOwner', blank=False, null=True, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
@@ -612,6 +614,10 @@ class Grant(models.Model):
     config = JSONField(blank=True, null=True, default={})  # addition configuration for within the grant
 
     objects = GrantManager()
+
+    class Meta:
+        unique_together = (('label', 'unit'),)
+        ordering = ['title']
 
     def __unicode__(self):
         return u"%s" % self.title
@@ -629,6 +635,26 @@ class Grant(models.Model):
         )
         return gb
 
+    def get_owners_display(self, units):
+        """
+        HTML display of the owners list
+
+        (some logic required since we want to link to faculty profiles if exists && permitted)
+        """
+        from django.utils.html import conditional_escape as escape
+        from django.utils.safestring import mark_safe
+        res = []
+        for o in self.grantowner_set.all():
+            p = o.person
+            if Role.objects.filter(unit__in=units, role='FAC', person=p).exists():
+                url = reverse('faculty.views.summary', kwargs={'userid': p.userid_or_emplid()})
+                res.append('<a href="%s">%s</a>' %(escape(url), escape(o.person.name())))
+            else:
+                res.append(escape(o.person.name()))
+
+        return mark_safe(', '.join(res))
+
+
 class GrantOwner(models.Model):
     grant = models.ForeignKey(Grant)
     person = models.ForeignKey(Person)
@@ -644,6 +670,9 @@ class GrantBalance(models.Model):
 
     def __unicode__(self):
         return u"%s balance as of %s" % (self.grant, self.date)
+
+    class Meta:
+        ordering = ['date']
 
 
 class FacultyMemberInfo(models.Model):
