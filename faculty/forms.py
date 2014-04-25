@@ -49,7 +49,7 @@ class TeachingSummaryForm(forms.Form):
 
 class TeachingCreditOverrideForm(forms.Form):
     teaching_credits = TeachingCreditField(help_text='May be a fraction eg. 2/3')
-    reason = forms.CharField(required=False, max_length=200, widget=forms.Textarea(attrs={'rows':2, 'cols':70,}))
+    reason = forms.CharField(required=False, max_length=70, widget=forms.TextInput(attrs={'size':70,}))
 
 
 def attachment_formset_factory():
@@ -224,9 +224,16 @@ class FacultyMemberInfoForm(forms.ModelForm):
         exclude = ('person', 'config')
 
         help_texts = {
-            'title': _('Mr., Mrs., Dr., etc'),
+            'title': _('"Mr", "Mrs", "Dr", etc'),
             'emergency_contact': _('Name, phone number, etc'),
         }
         widgets = {
+            'title': forms.TextInput(attrs={'size': '3'}),
             'birthday': forms.DateInput(attrs={'class': 'date-input'}),
         }
+
+    def clean_title(self):
+        title = self.cleaned_data['title']
+        if title.endswith('.'):
+            title = title[:-1]
+        return title

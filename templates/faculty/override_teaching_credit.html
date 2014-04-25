@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Edit Teaching Credits for {{ person.name }} {{ course.offering.title }}{% endblock %}
-{% block h1 %}Edit Teaching Credits{% endblock %}
+{% block title %}Edit Teaching Credits: {{ course.offering.name }} ({{course.offering.semester }}){% endblock %}
+{% block h1 %}Edit Teaching Credits: {{ course.offering.name }} ({{course.offering.semester }}){% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
@@ -12,10 +12,9 @@
 {% endblock %}
 
 {% block content %}
-<h3>{{ person.name }}: {{ course.offering.name }} ({{course.offering.semester }})</h3>
 <form action="{% url 'faculty.views.teaching_credit_override' userid=person.userid_or_emplid course_slug=course_slug %}" method="POST">
   {% csrf_token %}
-  {{ form.as_p }}
+  {{ form|as_dl }}
   <input type="submit" value="Submit" />
 </form>
 

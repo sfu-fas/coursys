@@ -139,7 +139,7 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }}</dd>
+        <dt>Teaching Credits</dt><dd>{{ handler|get_display:"teaching_credits" }} per semester</dd>
         <dt>Type</dt><dd>{{ handler|get_display:"category" }}</dd>
         <dt>Reason</dt><dd>{{ handler|get_display:"reason" }}</dd>
         <dt>Approved By</dt><dd>{{ handler|get_display:"approved_by" }}</dd>
@@ -183,8 +183,9 @@ class TeachingCreditEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def short_summary(self):
         credit = self.get_config('teaching_credits')
+        length = self.semester_length()
         category = self.get_category_display()
-        return 'Received {0} {1}'.format(credit, category)
+        return 'Received {0} {1}'.format(credit*length, category)
 
     def teaching_adjust_per_semester(self):
         adjust = self.get_config('teaching_credits')

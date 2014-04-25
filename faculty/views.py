@@ -706,47 +706,38 @@ def teaching_summary(request, userid):
     person, _ = _get_faculty_or_404(request.units, userid)
 
     credit_balance = 0
-    start_label = end_label = ''
     events = []
-    validform = False
 
     if request.GET:
         form = TeachingSummaryForm(request.GET)
 
         if form.is_valid():
-            validform = True
             start = form.cleaned_data['start_semester']
             end = form.cleaned_data['end_semester']
             start_semester = ReportingSemester(start)
             end_semester = ReportingSemester(end)
-            start_label = start_semester.full_label
-            end_label = end_semester.full_label
-
-            curr_semester = start_semester
-            while curr_semester <= end_semester:
-                cb, event = _teaching_events_data(person, curr_semester)
-                credit_balance += cb
-                events += event
-
-                curr_semester = curr_semester.next()
-
         else:
             end_semester = ReportingSemester(datetime.date.today())
             start_semester = end_semester.prev().prev()
-            start = start_semester.code
-            end = end_semester.code
 
     else:
         end_semester = ReportingSemester(datetime.date.today())
         start_semester = end_semester.prev().prev()
-        start = start_semester.code
-        end = end_semester.code
-        start_label = start_semester.full_label
-        end_label = end_semester.full_label
-        initial = { 'start_semester': start,
-                    'end_semester': end }
+        initial = { 'start_semester': start_semester.code,
+                    'end_semester': end_semester.code }
         form = TeachingSummaryForm(initial=initial)
-        credit_balance, events = _teaching_events_data(person, start_semester)
+
+    curr_semester = start_semester
+    while curr_semester <= end_semester:
+        cb, event = _teaching_events_data(person, curr_semester)
+        credit_balance += cb
+        events.extend(event)
+        curr_semester = curr_semester.next()
+
+    start = start_semester.code
+    end = end_semester.code
+    start_label = start_semester.full_label
+    end_label = end_semester.full_label
 
     cb_mmixed = fraction_display(credit_balance)
     context = {
@@ -799,17 +790,21 @@ def teaching_summary_csv(request, userid):
             end_semester = ReportingSemester(end)
 
             curr_semester = start_semester
-            while curr_semester <= end_semester:
-                cb, event = _teaching_events_data(person, curr_semester)
-                events += event
-                curr_semester = curr_semester.next()
+        else:
+            end_semester = ReportingSemester(datetime.date.today())
+            start_semester = end_semester.prev().prev()
 
     else:
         end_semester = ReportingSemester(datetime.date.today())
         start_semester = end_semester.prev().prev()
-        start = start_semester.code
-        end = end_semester.code
-        cb, events = _teaching_events_data(person, start_semester)
+
+    while curr_semester <= end_semester:
+        cb, event = _teaching_events_data(person, curr_semester)
+        events.extend(event)
+        curr_semester = curr_semester.next()
+
+    start = start_semester.code
+    end = end_semester.code
 
     filename = 'teaching_summary_{}-{}.csv'.format(start, end)
     csv, response = make_csv_writer_response(filename)
@@ -1006,7 +1001,6 @@ def otherinfo(request, userid):
             .filter(student__program__unit__in=units) \
             .select_related('student', 'student__person', 'student__program', 'student__start_semester', 'student__end_semester')
 
-
     # RA appointments supervised
     ras = RAAppointment.objects.filter(deleted=False, hiring_faculty=person, unit__in=units) \
             .select_related('person', 'project', 'account')
@@ -1075,8 +1069,8 @@ def timeline_json(request, userid):
 
     # Populate events
     events = (CareerEvent.objects.not_deleted()
-                         .only_subunits(request.units)
-                         .filter(person=person, status='A')
+                         .only_subunits(request.units).approved()
+                         .filter(person=person)
                          .exclude(event_type=SalaryBaseEventHandler.EVENT_TYPE))
     for event in events:
         handler = event.get_handler()
@@ -1113,11 +1107,9 @@ def timeline_json(request, userid):
 
 @requires_role('ADMN')
 def faculty_member_info(request, userid):
-    #viewer = get_object_or_404(Person, userid=request.user.username)
     person, _ = _get_faculty_or_404(request.units, userid)
     info = FacultyMemberInfo.objects.filter(person=person).first()
 
-    # TODO: are there people who should be able to only view?
     can_modify = True
     can_view_emergency = True
 
@@ -1131,8 +1123,8 @@ def faculty_member_info(request, userid):
 
 
 @requires_role('ADMN')
+@transaction.atomic
 def edit_faculty_member_info(request, userid):
-    #viewer = get_object_or_404(Person, userid=request.user.username)
     person, _ = _get_faculty_or_404(request.units, userid)
 
     info = (FacultyMemberInfo.objects.filter(person=person).first()
@@ -1158,6 +1150,7 @@ def edit_faculty_member_info(request, userid):
 
 
 @requires_role('ADMN')
+@transaction.atomic
 def teaching_credit_override(request, userid, course_slug):
     person, _ = _get_faculty_or_404(request.units, userid)
     course = get_object_or_404(Member, person=person, offering__slug=course_slug)
@@ -1288,6 +1281,7 @@ def change_event(request, userid, event_slug):
 
 @require_POST
 @requires_role('ADMN')
+@transaction.atomic
 def change_event_status(request, userid, event_slug):
     """
     Change status of event, if the editor has such privileges.
@@ -1306,6 +1300,7 @@ def change_event_status(request, userid, event_slug):
         return HttpResponseRedirect(event.get_absolute_url())
 
 @requires_role('ADMN')
+@transaction.atomic
 def faculty_wizard(request, userid):
     """
     Initial wizard for a user, set up basic events (appointment, base salary, normal teaching load).

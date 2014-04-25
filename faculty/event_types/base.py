@@ -14,6 +14,7 @@ from coredata.models import Role, Unit
 from faculty.event_types.constants import PERMISSION_LEVEL, PERMISSION_CHOICES
 from faculty.event_types.fields import SemesterField
 from faculty.event_types.fields import SemesterToDateField
+from faculty.util import ReportingSemester
 
 ROLES = PERMISSION_CHOICES
 
@@ -420,6 +421,14 @@ class CareerEventHandlerBase(object):
 
     def to_search_row(self):
         return [self.get_display(name) for name in self.SEARCH_RESULT_FIELDS]
+
+    def semester_length(self):
+        if self.event.end_date:
+            rng = ReportingSemester.range(self.event.start_date, self.event.end_date)
+        else:
+            rng = ReportingSemester.range(self.event.start_date, datetime.date.today())
+        return len(list(rng))
+
 
     # Optionally override these
 

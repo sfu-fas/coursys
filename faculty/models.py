@@ -641,9 +641,9 @@ class GrantBalance(models.Model):
 class FacultyMemberInfo(models.Model):
     person = models.ForeignKey(Person, unique=True, related_name='+')
     title = models.CharField(max_length=50)
-    birthday = models.DateField()
-    office_number = models.CharField('Office Number', max_length=20)
-    phone_number = models.CharField('Local Phone Number', max_length=20)
+    birthday = models.DateField(verbose_name="Birthdate", null=True, blank=True)
+    office_number = models.CharField('Office', max_length=20, null=True, blank=True)
+    phone_number = models.CharField('Local Phone Number', max_length=20, null=True, blank=True)
     emergency_contact = models.TextField('Emergency Contact Information', blank=True)
     config = JSONField(blank=True, null=True, default={})  # addition configuration
 

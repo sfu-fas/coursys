@@ -26,7 +26,6 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
 
     class EntryForm(BaseEntryForm):
-
         load = TeachingCreditField(label='Teaching Load', help_text=mark_safe('Expected teaching load <strong>per semester</strong>. May be a fraction like 3/2.'))
 
     SEARCH_RULES = {
@@ -38,12 +37,12 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     def short_summary(self):
         load = self.get_config('load')
-        return "Teaching load: {}/semester".format(load)
+        return "Teaching load: {}/year".format(load*3)
 
     def teaching_adjust_per_semester(self):
         load = self.get_config('load')
-        # XXX: Normally it's (credits, load_decrease) so if I want a load increase then
-        #      load_decrease should be negated!
+        # Normally it's (credits, load_decrease) so if I want a load increase then
+        # load_decrease should be negated!
         return TeachingAdjust(0, -load)
 
 
