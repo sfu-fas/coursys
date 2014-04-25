@@ -254,6 +254,9 @@ class CareerEvent(models.Model):
     def slug_string(self):
         return u'{} {}'.format(self.start_date.year, self.get_event_type_display())
 
+    def handler_type_name(self):
+        return self.get_handler().NAME
+
     @classmethod
     @cached(24*3600)
     def current_ranks(cls, person):
