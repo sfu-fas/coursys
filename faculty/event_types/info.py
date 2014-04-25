@@ -64,10 +64,6 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
     def get_org_class_display(self):
         return self.EntryForm.ORG_CLASSES.get(self.get_config('org_class'))
 
-    @classmethod
-    def default_title(cls):
-        return 'Affiliated with '
-
     def short_summary(self):
         org_name = self.get_config('org_name')
         return 'Affiliated with {}'.format(org_name)
@@ -114,10 +110,6 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
         else:
             return '???'
 
-    @classmethod
-    def default_title(cls):
-        return 'Joined a committee'
-
     def short_summary(self):
         name = self.get_config('committee_name', '')
         unit = self.get_committee_unit_display_short()
@@ -159,10 +151,6 @@ class ResearchMembershipHandler(CareerEventHandlerBase):
     def get_location_display(self):
         return self.EntryForm.LOCATION_TYPES.get(self.get_config('location'), 'N/A')
 
-    @classmethod
-    def default_title(cls):
-        return 'Member of Reseach Group/Lab'
-
     def short_summary(self):
         return 'Member of {}'.format(self.get_config('lab_name'))
 
@@ -187,10 +175,6 @@ class ExternalServiceHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         description = forms.CharField(help_text='A brief description of the service', max_length=30)
         add_pay = fields.AddPayField()
         teaching_credits = fields.TeachingCreditField()
-
-    @classmethod
-    def default_title(cls):
-        return 'External Service'
 
     def short_summary(self):
         return 'External Service: %s' % (self.get_config('description'))

@@ -35,7 +35,7 @@
 {% block subbreadcrumbs %}
 <li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
 <li><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
-<li><a href="{% url 'faculty.views.view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.title }}</a></li>
+<li><a href="{% url 'faculty.views.view_event' userid=person.userid_or_emplid event_slug=event.slug %}">{{ event.get_handler.short_summary }}</a></li>
 <li>New {{ template.label|title }} Memo</li>
 {% endblock %}
 

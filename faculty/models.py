@@ -3,6 +3,7 @@ import datetime
 import csv
 import os
 import re
+import copy
 
 from django.db import models
 from django.db.models import Q
@@ -326,7 +327,7 @@ class CareerEvent(models.Model):
 
         # grab event type specific config data
         handler = self.get_handler()
-        config_data = self.config
+        config_data = copy.deepcopy(self.config)
         for key in config_data:
             try:
                 config_data[key] = unicode(handler.get_display(key))

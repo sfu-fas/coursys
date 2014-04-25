@@ -1527,7 +1527,7 @@ def new_event_flag(request, event_type):
             ec.save()
             return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
     else:
-        form = EventFlagForm(initial={'unit': in_unit})
+        form = EventFlagForm(initial={'unit': in_unit.id})
         form.fields['unit'].choices = unit_choices
 
     context = {
@@ -1537,9 +1537,12 @@ def new_event_flag(request, event_type):
                }
     return render(request, 'faculty/event_flag.html', context)
 
+@require_POST
 @requires_role('ADMN')
 def delete_event_flag(request, event_type, unit, flag):
-    unit_obj = Unit.objects.get(label=unit)
+    # currently not linked anywhere in frontend
+    Unit.sub_units(request.units)
+    unit_obj = get_object_or_404(Unit, id__in=Unit.sub_unit_ids(request.units), label=unit)
     ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type='FELLOW')
     list_flags = ec.config['fellowships']
     for i, (flag_short, flag_long, status) in enumerate(list_flags):
@@ -1596,9 +1599,10 @@ def new_memo_template(request, event_type):
 @requires_role('ADMN')
 def manage_memo_template(request, event_type, slug):
     person = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
-    unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
-    memo_template = get_object_or_404(MemoTemplate, slug=slug)
+    subunits = Unit.sub_units(request.units)
+    memo_template = get_object_or_404(MemoTemplate, unit__in=subunits, slug=slug)
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+    unit_choices = [(u.id, u.name) for u in subunits]
 
     if request.method == 'POST':
         form = MemoTemplateForm(request.POST, instance=memo_template)
@@ -1635,6 +1639,7 @@ def manage_memo_template(request, event_type, slug):
                }
     return render(request, 'faculty/memo_template_form.html', context)
 
+
 ###############################################################################
 # Creating and editing Memos
 
@@ -1642,7 +1647,7 @@ def manage_memo_template(request, event_type, slug):
 def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=Unit.sub_units(request.units))
-    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    instance = _get_event_or_404(units=member_units, slug=event_slug, person=person)
     author = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
 
     ls = instance.memo_info()
@@ -1655,7 +1660,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
             f.career_event = instance
             f.unit = template.unit
             f.config.update(ls)
-            f.template = template;
+            f.template = template
             f.save()
             messages.success(request, "Created new %s memo." % (form.instance.template.label,))
             return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))

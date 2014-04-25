@@ -64,7 +64,7 @@
 			<tr>
 				<th scope="col">Flag Name</th>
 				<th scope="col">Unit</th>
-				<th scope="col">Action</th>
+				<!--<th scope="col">Action</th>-->
 			</tr>
 		</thead>
 		<tbody>
@@ -74,7 +74,7 @@
 				{% if value.2 == 'ACTIVE' %}
 				<td>{{value.1}}</td>
 				<td>{{t.unit}}</td>
-				<td><a href="{% url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=t.unit.label flag=value.0 %}">Delete</a></td>
+				<!--<td><a href="{% url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=t.unit.label flag=value.0 %}">Delete</a></td>-->
 				{% endif %}
 			</tr>
 			{% endfor %}
