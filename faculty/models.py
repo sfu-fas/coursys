@@ -333,6 +333,9 @@ class CareerEvent(models.Model):
             except AttributeError:
                 pass
 
+        start = self.start_date.strftime('%B %d, %Y')
+        end = self.end_date.strftime('%B %d, %Y') if self.end_date else '???'
+
         ls = { # if changing, also update EVENT_TAGS above!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'title' : title,
@@ -342,8 +345,8 @@ class CareerEvent(models.Model):
                 'He_She' : heshe.title(),
                 'first_name': self.person.first_name,
                 'last_name': self.person.last_name,
-                'start_date': self.start_date,
-                'end_date': self.end_date,
+                'start_date': start,
+                'end_date': end,
                 'current_rank': CareerEvent.current_ranks(self.person)
               }
         ls = dict(ls.items() + config_data.items())
@@ -386,6 +389,9 @@ class DocumentAttachment(models.Model):
         ordering = ("created_at",)
         unique_together = (("career_event", "slug"),)
 
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
 
 class MemoTemplate(models.Model):
     """
@@ -396,7 +402,8 @@ class MemoTemplate(models.Model):
                              help_text='The name for this template (that you select it by when using it)')
     event_type = models.CharField(max_length=10, null=False, choices=EVENT_TYPE_CHOICES,
                                   help_text='The type of event that this memo applies to')
-    subject = models.CharField(help_text='The default subject of the memo', max_length=255)
+    default_from = models.CharField(verbose_name='Default From', help_text='The default sender of the memo', max_length=255, blank=True)
+    subject = models.CharField(verbose_name='Default Subject', help_text='The default subject of the memo', max_length=255)
     template_text = models.TextField(help_text="The template for the memo. It may be edited when creating "
             "each memo. (i.e. 'Congratulations {{first_name}} on ... ')")
 

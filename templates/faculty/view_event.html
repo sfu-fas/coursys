@@ -53,7 +53,7 @@
 <h2 id="attachments">Attachments</h2>
 <ul>
 {% for a in attachments %}
-<li>{{ a.title }} ({{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+<li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
   <a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
   <a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a>
 </li>

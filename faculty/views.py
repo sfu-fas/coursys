@@ -1447,7 +1447,7 @@ def view_attachment(request, userid, event_slug, attach_slug):
 
     handler = event.get_handler()
     if not handler.can_view(viewer):
-       raise PermissionDenied(" Not allowed to view this attachment")
+       raise PermissionDenied("Not allowed to view this attachment")
 
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -1465,7 +1465,7 @@ def download_attachment(request, userid, event_slug, attach_slug):
 
     handler = event.get_handler()
     if not handler.can_view(viewer):
-        raise PermissionDenied("aNot allowed to download this attachment")
+        raise PermissionDenied("Not allowed to download this attachment")
 
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
@@ -1663,7 +1663,8 @@ def new_memo(request, userid, event_slug, memo_template_slug):
         initial = {
             'date': datetime.date.today(),
             'subject': '%s %s\n%s ' % (person.get_title(), person.name(), template.subject),
-            'to_lines': person.letter_name()
+            'to_lines': person.letter_name(),
+            'from_lines': template.default_from,
         }
         form = MemoForm(initial=initial)
 

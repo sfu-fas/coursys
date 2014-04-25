@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}{% load staticfiles %}
-{% block title %}Add Attachment: {{ event }}{% endblock %}
-{% block h1 %}Add Attachment: {{ event }}{% endblock %}
+{% block title %}Add File Attachment{% endblock %}
+{% block h1 %}Add File Attachment{% endblock %}
 
 {% block headextra %}
 <script>
@@ -13,9 +13,8 @@ var event_type = "{{ event_type|escapejs }}";
 <li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
 <li><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></li>
-<li>Add Attachment</li>
+<li>Add File Attachment</li>
 {% endblock %}
-
 
 {% block content %}
 <div class="form_container">

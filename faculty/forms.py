@@ -62,7 +62,7 @@ class AttachmentForm(forms.ModelForm):
         exclude = ("career_event", "created_by")
 
 class TextAttachmentForm(forms.ModelForm):
-    text_contents = forms.CharField(widget=forms.Textarea(attrs={'rows': 15, 'cols': 70}))
+    text_contents = forms.CharField(required=True, widget=forms.Textarea(attrs={'rows': 15, 'cols': 70}))
     class Meta:
         model = DocumentAttachment
         exclude = ("career_event", "created_by", "contents")
@@ -79,6 +79,7 @@ class MemoTemplateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(MemoTemplateForm, self).__init__(*args, **kwargs)
+        self.fields['default_from'].widget.attrs['size'] = 50
         self.fields['subject'].widget.attrs['size'] = 50
         self.fields['template_text'].widget.attrs['rows'] = 20
         self.fields['template_text'].widget.attrs['cols'] = 50

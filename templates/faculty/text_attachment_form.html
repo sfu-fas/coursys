@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}{% load staticfiles %}
-{% block title %}Add Text Attachment: {{ event }}{% endblock %}
-{% block h1 %}Add Text Attachment: {{ event }}{% endblock %}
+{% block title %}Add Text Attachment{% endblock %}
+{% block h1 %}Add Text Attachment{% endblock %}
 
 {% block headextra %}
 <script>
@@ -15,7 +15,6 @@ var event_type = "{{ event_type|escapejs }}";
 <li><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></li>
 <li>Add Text Attachment</li>
 {% endblock %}
-
 
 {% block content %}
 <div class="form_container">
