@@ -30,8 +30,11 @@ code.file {
     <dd>
         <p>VM provided by CSTS with Ubuntu 14.04 base system installed.</p>
         <p>Basic setup needed to bootstsrap the coursys user:</p>
-        <blockquote><pre>sudo apt-get install git chef
+        <blockquote><pre>sudo apt-get update
+sudo apt-get dist-upgrade
+sudo apt-get install git chef
 sudo adduser coursys
+sudo gpasswd -a coursys admin
 sudo su coursys</pre></blockquote>
     </dd>
 
@@ -39,21 +42,25 @@ sudo su coursys</pre></blockquote>
     <dd>
         <p>Add the deployment user's <code class="file">id_rsa</code> and <code class="file">id_rsa.pub</code> in
             <code class="file">~/.ssh/</code>.</p>
-        <blockquote><pre>git clone ssh://www-data@coffee.fas.sfu.ca/home/git/courses -b deployed ~/courses</pre></blockquote>
+        <blockquote><pre>mkdir ~/.git
+git config --global user.name "Coursys Deployment"
+git config --global user.email "coursys@courses.cs.sfu.ca"
+git clone ssh://www-data@coffee.fas.sfu.ca/home/git/courses -b deployed ~/courses</pre></blockquote>
         <p>But please <strong>check the correct branch</strong>: we have been known to rename the deployment/production branch.</p>
+    </dd>
+
+    <dt>Let Chef cook</dt>
+    <dd>
+        <blockquote><pre>
+sudo mkdir -p /home/vagrant
+sudo ln -s /home/coursys/courses /home/vagrant/courses # why fight it?
+sudo chef-solo -c ~/courses/machines/chef/solo.rb -j ~/courses/machines/chef/run-list.json</pre></blockquote>
     </dd>
 
 </dl>
 
 <h2 id="app">Application Setup</h2>
 <dl>
-    <dt>Chef</dt>
-    <dd>
-        <p>Chef-solo will do most of the rest of the work:</p>
-        <blockquote><pre>cd ~/courses/machines/deployed
-sudo chef-solo something something
-sudo reboot</pre></blockquote>
-    </dd>
     <dt>Certificates</dt>
     <dd>
         <p>Put these certificates in place:</p>
