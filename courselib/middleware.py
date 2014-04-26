@@ -57,6 +57,7 @@ class MonitoringMiddleware(object):
 
 
 from courselib.auth import HttpError
+from django.db import OperationalError
 class ExceptionIgnorer(object):
     """
     Middleware to eat the exception that we really don't need to see.
@@ -79,6 +80,12 @@ class ExceptionIgnorer(object):
         elif isinstance(exception, EOFError) and "return request.POST.get('csrfmiddlewaretoken', '')" in format:
             # file upload EOF
             return HttpError(request, status=500, title="Upload Error", error="Upload seems to have not completed properly.")
+        elif isinstance(exception, OperationalError) and "Lost connection to MySQL server at 'reading initial communication packet'" in format:
+            # lost main DB
+            return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
+        elif isinstance(exception, AssertionError) and "The Django CAS middleware requires authentication middleware" in format:
+            # wacky authentication thing that means the database is missing, or something
+            return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
 
 
 
