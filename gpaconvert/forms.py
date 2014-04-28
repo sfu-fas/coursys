@@ -4,8 +4,8 @@ from django.core.validators import MinValueValidator
 from django.forms.models import ModelForm
 from django.forms.models import inlineformset_factory
 
-from django_countries import countries
-COUNTRIES = countries.countries
+from django_countries import Countries
+COUNTRIES = Countries().countries
 
 from gpaconvert.models import ContinuousRule
 from gpaconvert.models import DiscreteRule
