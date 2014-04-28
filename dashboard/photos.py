@@ -8,7 +8,7 @@ import urllib, urllib2, json, base64
 
 ACCOUNT_NAME = 'cs'
 
-URL_BASE = 'https://photos-api-stg.its.sfu.ca/'
+URL_BASE = 'https://photos-api.its.sfu.ca/'
 TOKEN_URL = URL_BASE + 'Account/Token'
 PHOTO_URL = URL_BASE + 'Values/%s?includePhoto=true'
 PASSWORD_URL = URL_BASE + 'Account/ChangePassword'
