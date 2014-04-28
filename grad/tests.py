@@ -5,7 +5,7 @@ from coredata.models import Person, Semester, Role
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment
-from courselib.testing import basic_page_tests, test_auth, Client
+from courselib.testing import basic_page_tests, test_auth, Client, test_views
 from grad.views.view import all_sections
 from django.http import QueryDict
 from grad.forms import SearchForm
@@ -72,27 +72,20 @@ class GradTest(TestCase):
         """
         client = Client()
         test_auth(client, 'ggbaker')
-        
-        prog = GradProgram.objects.all()[0]
-        GradRequirement(program=prog, description="Some Requirement").save()
-        Supervisor(student=GradStudent.objects.all()[0], supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
-        
-        # search results
-        url = reverse('grad.views.search', kwargs={}) + "?last_name_contains=Grad&columns=person.userid&columns=person.first_name"
-        response = basic_page_tests(self, client, url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('grad/search_results.html', [t.name for t in response.templates])
 
-        # other pages
-        for view in ['search', 'programs', 'new_program', 'requirements', 'new_requirement',
-                     'letter_templates', 'new_letter_template', 'manage_scholarshipType', 'funding_report']:
-            try:
-                url = reverse('grad.views.'+view, kwargs={})
-                response = basic_page_tests(self, client, url)
-                self.assertEqual(response.status_code, 200)
-            except:
-                print "with view==" + repr(view)
-                raise
+        gs = self.__make_test_grad()
+        prog = gs.program
+        GradRequirement(program=prog, description="Some New Requirement").save()
+        Supervisor(student=GradStudent.objects.all()[0], supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
+        lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
+        lt.save()
+
+        test_views(self, client, 'grad.views.',
+                ['programs', 'new_program', 'requirements', 'new_requirement', 'letter_templates',
+                 'new_letter_template', 'manage_scholarshipType', 'search', 'funding_report', 'all_promises'],
+                {})
+        test_views(self, client, 'grad.views.', ['manage_letter_template'], {'letter_template_slug': lt.slug})
+        test_views(self, client, 'grad.views.', ['not_found'], {}, qs='search=grad')
 
 
     def __make_test_grad(self):
@@ -116,6 +109,9 @@ class GradTest(TestCase):
         
         return gs
 
+
+
+
     def test_grad_student_pages(self):
         """
         Check the pages for a grad student and make sure they all load
@@ -123,9 +119,9 @@ class GradTest(TestCase):
         client = Client()
         test_auth(client, 'ggbaker')
         gs = self.__make_test_grad()
-
         lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
         lt.save()
+
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         content = client.get(url).content
         Letter(student=gs, template=lt, date=datetime.date.today(), content=content).save()
@@ -258,7 +254,6 @@ class GradTest(TestCase):
         form = SearchForm(QueryDict('start_semester_start=%s&columns=person.emplid' % (sem.next_semester().name)))
         semester_search = form.search_results(units)
         self.assertNotIn(gs, semester_search)
-
 
         # test GPA searching (which is a secondary filter)
         gs.person.config['gpa'] = 4.2

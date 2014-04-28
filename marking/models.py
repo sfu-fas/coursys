@@ -191,7 +191,7 @@ class ActivityComponentMark(models.Model):
     """
     activity_mark = models.ForeignKey(ActivityMark, null = False)    
     activity_component = models.ForeignKey(ActivityComponent, null = False)
-    value = models.DecimalField(max_digits=8, decimal_places=2)
+    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark')
     comment = models.TextField(null = True, max_length=1000, blank=True)
     
     def __unicode__(self):
@@ -334,7 +334,7 @@ def get_group_mark_by_id(activity, group, activity_mark_id):
      """
      Find the activity_mark with that id if it exists for the group on the activity
      return None if not found.
-     """            
+     """
      try:
          act_mark = GroupActivityMark.objects.get(id = activity_mark_id)
      except GroupActivityMark.DoesNotExist:
@@ -448,6 +448,8 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
+    from submission.models.code import CodeComponent
+    from submission.models.codefile import CodefileComponent
     # copy things in offering's .config dict
     for f in course_copy_from.copy_config_fields:
         if f in course_copy_from.config:
@@ -484,6 +486,15 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_submission_component.pk = None
             new_submission_component.activity = new_activity
             new_submission_component.slug = None
+            if isinstance(new_submission_component, CodeComponent):
+                # upgrade Code to Codefile while migrating
+                new_submission_component = CodefileComponent.build_from_codecomponent(new_submission_component)
+            
+            # enforce tighter submission size limits
+            if hasattr(new_submission_component, 'max_size'):
+                if new_submission_component.max_size > settings.MAX_SUBMISSION_SIZE:
+                  new_submission_component.max_size = settings.MAX_SUBMISSION_SIZE
+            
             new_submission_component.save(force_insert=True)
     
     for activity in CalLetterActivity.objects.filter(offering=course_copy_to):

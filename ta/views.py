@@ -68,43 +68,44 @@ def _tryget(member):
         return TUG.objects.get(member=member)
     except TUG.DoesNotExist:
         return None
-    
-@requires_course_staff_by_slug
-def all_tugs(request, course_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    current_user = Member.objects.exclude(role='DROP').get(person__userid=request.user.username, offering=course)
-    is_ta = current_user.role == 'TA'
-    if is_ta:
-        tas = [current_user]
-    else:
-        tas = Member.objects.filter(offering=course, role="TA")
 
-    tas_with_tugs = [(ta, _tryget(ta)) for ta in tas]
-    
-    context = {
-           'tas_with_tugs': tas_with_tugs,
-           'course': course,
-           'not_ta': not is_ta
-           }
-    
-    return render(request, 'ta/all_tugs.html', context)
-
-@requires_role("TAAD")
+@login_required
 def all_tugs_admin(request, semester_name=None):
+    """
+    View for admins to see all TUGS and instructors to manage theirs
+    """
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
     else:
         semester = Semester.current()
-    courses = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
-    tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering', 'person')
-    tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta)} for ta in tas]
-    
+
+    admin = has_role('TAAD', request)
+    instr_members = Member.objects.filter(person__userid=request.user.username, role='INST') \
+            .exclude(offering__component='CAN').select_related('offering')
+    if not admin and not instr_members:
+        return ForbiddenResponse(request)
+
+    admin_tas = set()
+    instr_tas = set()
+    if admin:
+        courses = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
+        admin_tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering', 'person')
+        admin_tas = set(admin_tas)
+
+    if instr_members:
+        # allow all instructors to see the page, but only populate with current semester's TAs
+        instr_members = instr_members.filter(offering__semester=semester)
+        offerings = set(m.offering for m in instr_members)
+        instr_tas = Member.objects.filter(offering__in=offerings, role='TA')
+        instr_tas = set(instr_tas)
+
+    tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta), 'is_instr': ta in instr_tas} for ta in admin_tas | instr_tas]
+
     context = {
-               'semester': semester,
-               'tas_with_tugs': tas_with_tugs,
-               'courses': courses,
-               #'empty_courses': [course for course in courses if not any(course == ta.offering for ta in tas )]
-                }
+            'admin': admin,
+            'semester': semester,
+            'tas_with_tugs': tas_with_tugs,
+            }
     
     return render(request, 'ta/all_tugs_admin.html', context)
 
@@ -408,11 +409,6 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 val = 'NONE'
             skill_values.append((s.position, s.name, val))
 
-    elif request.is_ajax():
-        # TO DO: Update formset to correct number of forms displayed
-        raise NotImplemented, "This is dead code, right?"
-        return HttpResponse("AJAX Completed") #return updated form.
-    
     elif editing:
         # editing: build initial form from existing values
         

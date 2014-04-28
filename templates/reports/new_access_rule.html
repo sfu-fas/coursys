@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}New Access Rule{% endblock %}
+{% block h1 %}New Access Rule{% endblock %}
+
+{% block headextra %}
+<script>
+    $(document).ready(function() {
+      $('#id_person').each(function() {
+        $(this).autocomplete({
+          source: '/data/students',
+          minLength: 2,
+          select: function(event, ui){
+            $(this).data("val", ui.item.value);
+          }
+        });
+      });
+  }); 
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a></li>
+<li>New Access Rule</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url "reports.views.new_access_rule" report=report.slug %}" method="post">{% csrf_token %}
+<fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+{% endblock %}

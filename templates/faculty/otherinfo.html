@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Faculty Summary: {{ person.name }}{% endblock %}
+{% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#coursestable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+  $('#supervisedtable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "asc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+  $('#ratable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Other Info</li>
+{% endblock %}
+
+{% block content %}
+<h2 id="teaching">Teaching History</h2>
+<div class="datatable_container">
+<table id="coursestable" class="display">
+  <thead><tr><th scope="col">Course</th><th scope="col">Semester</th><th scope="col">Title</th>
+  <th scope="col">Enrollment</th><th scope="col">Teaching Credit</th></tr></thead>
+  <tbody>
+  {% for m in instructed %}
+  <tr>
+  <td scope="row">{{ m.offering.name }}</td>
+  <td>{{ m.offering.semester.name }}</td>
+  <td>{{ m.offering.title }}</td>
+  <td>{{ m.offering.enrl_tot }}</td>
+  <td>{% with m.teaching_credit_with_reason as tcr %}
+      <span class="sort">{{ tcr.0|floatformat:'3' }}</span>
+      {{ tcr.0 }}
+      {% if tcr.1 %}({{ tcr.1 }}){% endif %}
+      {% endwith %}
+  </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h2 id="grad">Grad Supervision</h2>
+<div class="datatable_container">
+<table id="supervisedtable" class="display">
+  <thead><tr><th scope="col">Student</th><th scope="col">Role</th><th scope="col">Program</th><th scope="col">Status</th>
+  <th scope="col">Start</th><th scope="col">End</th></tr></thead>
+  <tbody>
+  {% for s in supervised %}
+  <tr>
+  <td scope="row">{{ s.student.person.sortname }}</td>
+  <td><span class="sort">{{s.type_order}}</span>{{ s.get_supervisor_type_display }}</td>
+  <td>{{ s.student.program.label }}</td>
+  <td>{{ s.student.get_current_status_display }}</td>
+  <td>{{ s.student.start_semester.name }}</td>
+  <td>{{ s.student.end_semester.name }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+
+<h2 id="ra">RA Supervision</h2>
+<div class="datatable_container">
+<table id="ratable" class="display">
+  <thead><tr><th scope="col">Hire</th><th scope="col">Start Date</th><th scope="col">End Date</th><th scope="col">Total Pay ($)</th>
+  </tr></thead>
+  <tbody>
+  {% for ra in ras %}
+  <tr>
+  <td scope="row">{{ ra.person.sortname }}</td>
+  <td><span class="sort">{{ra.start_date.isoformat}}</span>{{ ra.start_date }}</td>
+  <td><span class="sort">{{ra.end_date.isoformat}}</span>{{ ra.end_date }}</td>
+  <td>{{ ra.lump_sum_pay }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+
+{% endblock %}

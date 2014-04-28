@@ -575,6 +575,35 @@ class SheetSubmission(models.Model):
                                 'sheet_slug': self.sheet.slug,
                                 'sheetsubmit_slug': self.slug})
 
+
+    @classmethod
+    def sheet_maintenance(cls):
+        """
+        Do all of the stuff we need to update on a regular basis.
+        """
+        cls.reject_dormant_initial()
+        cls.email_waiting_sheets()
+
+    @classmethod
+    def reject_dormant_initial(cls):
+        """
+        Close any initial sheets that have been hanging around for too long.
+        """
+        days = 14
+        min_age = datetime.datetime.now() - datetime.timedelta(days=days)
+        sheetsubs = SheetSubmission.objects.filter(sheet__is_initial=True, status='WAIT', given_at__lt=min_age)
+        for ss in sheetsubs:
+            ss.status = 'REJE'
+            ss.set_reject_reason('Automatically closed by system after being dormant %i days.' % (days))
+            ss.save()
+
+            fs = ss.form_submission
+            fs.status = 'DONE'
+            fs.set_summary('Automatically closed by system after being dormant %i days.' % (days))
+            fs.save()
+
+
+
     @classmethod
     def waiting_sheets_by_user(cls):
         min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
@@ -582,9 +611,12 @@ class SheetSubmission(models.Model):
                 .exclude(given_at__gt=min_age) \
                 .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'form_submission__form__initiator', 'sheet')
         return itertools.groupby(sheet_subs, lambda ss: ss.filler)
-        
+
     @classmethod
     def email_waiting_sheets(cls):
+        """
+        Email those with sheets waiting for their attention.
+        """
         full_url = settings.BASE_ABS_URL + reverse('onlineforms.views.index')
         subject = 'Waiting form reminder'
         from_email = "nobody@courses.cs.sfu.ca"
@@ -593,6 +625,8 @@ class SheetSubmission(models.Model):
         template = get_template('onlineforms/emails/reminder.txt')
         
         for filler, sheets in filler_ss:
+            if filler.isSFUPerson() and filler.getFormFiller().userid == 'lshannon':
+                continue
             context = Context({'full_url': full_url,
                     'filler': filler, 'sheets': list(sheets)})
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()])

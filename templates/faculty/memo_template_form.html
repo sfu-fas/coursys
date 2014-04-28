@@ -1,0 +1,42 @@
+{% extends "base-wide.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}{% if memo_template %}Edit{% else %}New{% endif %} Memo Template{% endblock %}
+{% block h1 %}{% if memo_template %}Edit{% else %}New{% endif %} Memo Template{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
+<li><a href="{% url 'faculty.views.memo_templates' event_type=event_type_slug %}">{{ event_name }}</a></li>
+<li>{% if memo_template %}Edit &ldquo;{{ memo_template.label }}&rdquo;{% else %}New Template{% endif %}</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <form action="" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <div id="template-help">
+      <h3>Available tags:</h3>
+      <dl>
+        {% for tag, val in EVENT_TAGS %}
+        <dt>
+        {% templatetag openvariable %} {{ tag }} {% templatetag closevariable %}
+        </dt>
+        <dd>
+        {{ val }}
+        </dd>
+        {%endfor%}
+      </dl>
+    </div>
+    <p>
+      <input  class="submit"  type="submit" value="Save" />
+    </p>
+  </form>
+</div>
+{% endblock %}

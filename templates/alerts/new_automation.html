@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 {% load form_display %}
 
 {% block title %}New Automation{% endblock %}
@@ -37,6 +36,16 @@
 					</dd>
 				</dl>
 			</div>
+			<div style="float: left; width: 100%;">
+				<dl class="dlform">
+					<dt>
+                        From:
+					</dt>
+					<dd>
+                        noreply@courses.cs.sfu.ca
+					</dd>
+				</dl>
+			</div>
 			<div style="float: left; width: 40%;">
 				<dl class="dlform">
 					<dt>
@@ -46,6 +55,12 @@
 						{{form.threshold}}{{form.threshold.errors}}
 					</dd>
 				</dl>
+                <dl class="dlform">
+                    <dt></dt>
+                    <dd>
+                        <em>{{form.threshold.help_text}}</em>
+                    </dd>
+                </dl>
 			</div>
 			<div style="float:left; width: 100%">
 				<div style="float: left; width: 60%;">

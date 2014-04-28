@@ -1,108 +1,59 @@
-{% if can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_general" grad_slug=grad.slug  %}">Manage General Info</a></p>{% endif %}
+{% if can_edit %}
+<p class="manage_link">
+    <a href="{% url "grad.views.manage_general" grad_slug=grad.slug  %}">Manage General Info</a>
+    | <a href="{% url "grad.views.manage_program" grad_slug=grad.slug  %}">Change Program</a>
+</p>
+{% endif %}
+
+<h3>Programs</h3>
 {% include "grad/view__program.html" %}
-<div class="datatable">
-	<table class="display" id="academics">
-		<tbody id="academics-body">
-			<tr>
-				<td>
-				<dl>
-					<dt>
-						<label>Current Program :</label>
-					</dt>
-					<dd>
-						{{ grad.program }}
-					</dd>
-				</dl></td>
-				<td>
-				<dl>
-					<dt>
-						<label>Research Area : </label>
-					</dt>
-					<dd>
-						{{grad.research_area}}
-					</dd>
-				</dl></td>
-				<td>
-				<dl>
-					<dt>
-						<label>Main Location :</label>
-					</dt>
-					<dd>
-						{{ grad.get_campus_display }}
-					</dd>
-				</dl></td>
-			</tr>
-			<tr>
-				<td>
-				<dl>
-					<dt>
-						<label>English Fluency :</label>
-					</dt>
-					<dd>
-						{{grad.english_fluency}}
-					</dd>
-				</dl></td>
-				<td>
-				<dl>
-					<dt>
-						<label>Mother Tongue :</label>
-					</dt>
-					<dd>
-						{{ grad.mother_tongue }}
-					</dd>
-				</dl></td>
-				<td>
-				<dl>
-					<dt>
-						<label>Canadian : </label>
-					</dt>
-					<dd>
-						{{grad.is_canadian}}
-					</dd>
-				</dl></td>
-			</tr>
-            {% if grad.config.sin %}
-            <tr>
-                <td>
-                <dl>
-                    <dt>
-                        <label> SIN : </label>
-                    </dt>
-                    <dd>
-                        {{grad.config.sin }}
-                    </dd>
-                </dl>
-                </td>
-            </tr>
-            {% endif %}
-			<tr>
-				<td>
-				{% for gf, gfv in flag_values %}
-				<strong class="label">{{gf.label}}</strong>: {{gfv.value|yesno}}<br />
-				{% endfor %}
-				</td>
-			</tr>
-            {% if extras %}
-            <tr>
-                <td>
-                <ul>
-                    {% for extra, value in extras %}
-                    <li><strong class="label">{{extra}}</strong>: <br/>&nbsp;{{value}}</li>
-                    {% endfor %}
-                </ul>
-            </tr>
-            {% endif %}
-			<tr>
-				<td colspan="3">
-				<dl>
-					<dt>
-						<label>Comments :</label>
-					</dt>
-					<dd>
-						{{ grad.comments }}
-					</dd>
-				</dl></td>
-			</tr>
-		</tbody>
-	</table>
-</div>
+
+<h3>Info</h3>
+<table class="info">
+  <tbody>
+    <tr>
+      <th>Current Program</th>
+      <td>{{grad.program}}</td>
+    </tr>
+    <tr>
+      <th>Research Area</th>
+      <td>{{grad.research_area}}</td>
+    </tr>
+    <tr>
+      <th>Main Location</th>
+      <td>{{grad.get_campus_display}}</td>
+    </tr>
+    <tr>
+      <th>English Fluency</th>
+      <td>{{grad.english_fluency}}</td>
+    </tr>
+    <tr>
+      <th>Mother Tongue</th>
+      <td>{{grad.mother_tongue}}</td>
+    </tr>
+    <tr>
+      <th>Canadian</th>
+      <td>{{grad.is_canadian}}</td>
+    </tr>
+    <tr>
+      <th>SIN</th>
+      <td>{{grad.person.sin}}</td>
+    </tr>
+    {% for gf, gfv in flag_values %}
+    <tr>
+        <th>{{gf.label}}</th>
+        <td>{{gfv.value|yesno}}</td>
+    </tr>
+    {% endfor %}
+    {% for extra, value in extras %}
+    <tr>
+        <th>{{extra}}</th>
+        <td>{{value}}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <th>Comments:</th>
+        <td>{{ grad.comments|linebreaksbr }}</td>
+    </tr>
+  </tbody>
+</table>

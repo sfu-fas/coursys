@@ -24,7 +24,10 @@ from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN, 
 from log.models import LogEntry
 from groups.models import Group, GroupMember, all_activities_filter
 
-from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug, ForbiddenResponse, NotFoundResponse, uses_feature
+from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug,\
+    ForbiddenResponse, NotFoundResponse
+from courselib.db import retry_transaction
+from featureflags.flags import uses_feature
 
 from marking.forms import BaseCommonProblemFormSet, BaseActivityComponentFormSet
 from marking.forms import ActivityRenameForm
@@ -33,7 +36,7 @@ from marking.forms import GradeStatusForm, GradeStatusForm_LetterGrade
 from marking.forms import ActivityMarkForm, GroupActivityMarkForm, StudentActivityMarkForm, ActivityComponentMarkForm
 from marking.forms import MarkEntryForm, MarkEntryForm_LetterGrade
 from marking.forms import UploadGradeFileForm, UploadGradeFileForm_LetterGrade
-   
+
 # request to views in the marking may comes from different pages, for POST request, we need to redirect to the right page
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 def _redirct_response(request, course_slug, activity_slug):   
@@ -435,6 +438,7 @@ def change_grade_status(request, course_slug, activity_slug, userid):
         raise Http404('Unknown activity type.')
 
 
+@retry_transaction()
 @transaction.atomic
 def _change_grade_status_numeric(request, course, activity, userid):
     member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
@@ -476,6 +480,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
     return render_to_response("marking/grade_status.html", context,
                               context_instance=RequestContext(request))  
 
+@retry_transaction()
 @transaction.atomic
 def _change_grade_status_letter(request, course, activity, userid):
     member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
@@ -518,6 +523,7 @@ def _change_grade_status_letter(request, course, activity, userid):
                               context_instance=RequestContext(request))  
 
 
+@retry_transaction()
 @transaction.atomic
 @uses_feature('marking')
 def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
@@ -581,7 +587,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                 old_c = am.activitycomponentmark_set.filter(activity_component=c)[0]
             except IndexError: # just in case: leave old_c==None if old one can't be found in database
                 pass
-        f = ActivityComponentMarkForm(instance=old_c, data=postdata, prefix="cmp-%s" % (i+1))
+        f = ActivityComponentMarkForm(component=c, instance=old_c, data=postdata, prefix="cmp-%s" % (i+1))
         common = CommonProblem.objects.filter(activity_component=c, deleted=False)
         component_data.append( {'component': c, 'form': f, 'common_problems': common } )
     
@@ -746,7 +752,7 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
      
     act_mark_id = request.GET.get('activity_mark')
     if act_mark_id != None: 
-        act_mark = get_group_mark_by_id(activity, group_slug, act_mark_id)
+        act_mark = get_group_mark_by_id(activity, group, act_mark_id)
     else:
         act_mark = get_group_mark(activity, group)
     if act_mark == None:
@@ -998,6 +1004,7 @@ def mark_all_groups(request, course_slug, activity_slug):
         raise Http404('Unknown activity type.')
 
 
+@retry_transaction()
 @transaction.atomic
 def _mark_all_groups_numeric(request, course, activity):
     error_info = None
@@ -1075,6 +1082,7 @@ def _mark_all_groups_numeric(request, course, activity):
                           context_instance = RequestContext(request))
 
 
+@retry_transaction()
 @transaction.atomic
 def _mark_all_groups_letter(request, course, activity):
     error_info = None
@@ -1154,6 +1162,7 @@ def _mark_all_groups_letter(request, course, activity):
 #This is for change grade status of letter grades
 
 
+@retry_transaction()
 @transaction.atomic
 def _mark_all_students_letter(request, course, activity):
     rows = []
@@ -1304,6 +1313,7 @@ def mark_all_students(request, course_slug, activity_slug):
         raise Http404('Unknown activity type.')
 
    
+@retry_transaction()
 @transaction.atomic
 def _mark_all_students_numeric(request, course, activity):
     rows = []

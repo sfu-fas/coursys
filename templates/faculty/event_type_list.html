@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load event_display %}
+{% block title %}{{ person.name }}: New Event{% endblock %}
+{% block h1 %}{{ person.name }}: New Event{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+/*
+$(document).ready(function() {
+  $('#event_type_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "bJQueryUI": true,
+  } );
+} );
+*/
+</script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>New Event</li>
+{% endblock %}
+
+{% block content %}
+<p>Select the type of event to create:</p>
+<ul>
+  {% for type in event_types %}
+  {% can_edit_handler type.slug editor person as editable %}
+  {% if editable %}
+  <li>
+      <a href="{% url 'faculty_create_event' userid=person.userid_or_emplid event_type=type.slug %}">{{ type.name }}</a>
+  </li>
+  {% endif %}
+  {% endfor %}
+</ul>
+{% endblock %}

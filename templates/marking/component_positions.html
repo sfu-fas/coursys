@@ -1,12 +1,12 @@
-{% extends "marking/base.html" %}
+{% extends "base.html" %}
 {% load course_display %}
 
-{% block marking_header_extra %}
+{% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
 	var comp_ids = new Array(); 
     
-    $(document).ready(function() {    
+    $(document).ready(function() {
 		var oTable = $('#component_positions').dataTable({
 			"bJQueryUI": true,
 			"bSort": false,
@@ -76,16 +76,18 @@
 //]]></script>
 {% endblock %}
 
-{% block title %}{{activity.name}}Marking Components{% endblock %}
+{% block title %}{{activity.name}} Marking Components{% endblock %}
 {% block h1 %}{{activity.name}} Marking Components{% endblock %}
 
-{% block marking_subbreadcrumbs %}<li><a href="{{activity.get_absolute_url}}">{{activity.name}}</a></li><li>Marking Components</li>{% endblock %}
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
+<li><a href="{{activity.get_absolute_url}}">{{activity.name}}</a></li><li>Marking Components</li>{% endblock %}
+
 {% block content %}
 <ul id="form_nav">
     <li><a href="{% url "marking.views.manage_activity_components" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
     <li class="current"><a href="{% url "marking.views.manage_component_positions" course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
 </ul>
-<div class="datatable_container"> 
+<form action="#" class="subtle">
    <table class="display" id="component_positions">
    	<thead class="form_head">
           <tr>
@@ -118,10 +120,8 @@
           {% endfor %}
         </tbody>
       </table>
-   </div> 
-{% if components %}  
-<form action="#">
-<p><input class="updatebutton" id="save_order" type="button" value="Update" /></p>
-</form>
+{% if components %}
+<p><input class="submit" id="save_order" type="button" value="Update" /></p>
 {% endif %}
+</form>
 {% endblock %}

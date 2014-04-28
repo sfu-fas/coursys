@@ -3,9 +3,7 @@
 {% block jsextra %}
 $(document).ready(function() {
   sent_change();
-    $("#id_letter_date").datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
+    $("#id_letter_date").datepicker({ dateFormat: 'yy-mm-dd' });
 })
 
 function sent_change() {

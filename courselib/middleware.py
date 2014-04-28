@@ -57,6 +57,11 @@ class MonitoringMiddleware(object):
 
 
 from courselib.auth import HttpError
+try:
+    from MySQLdb import OperationalError
+except ImportError:
+    OperationalError = None
+
 class ExceptionIgnorer(object):
     """
     Middleware to eat the exception that we really don't need to see.
@@ -66,12 +71,25 @@ class ExceptionIgnorer(object):
         exc_info = sys.exc_info()
         format = traceback.format_exc(exc_info[2])
         message = unicode(exception)
-        if isinstance(exception, IOError) and 'Connection reset by peer' in message and '_verify(ticket, service)' in format:
+        if (isinstance(exception, IOError) and '_verify(ticket, service)' in format
+            and ('Connection reset by peer' in message
+                 or 'Name or service not known' in message
+                 or 'Connection timed out' in message
+                 or 'EOF occurred in violation of protocol' in message)):
             # CAS verification timeout
+            return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
+        elif isinstance(exception, AssertionError) and "Django CAS middleware requires authentication middleware" in format:
+            # CAS choke
             return HttpError(request, status=500, title="CAS Error", error="Could not contact the CAS server to verify your credentials. Please try logging in again.")
         elif isinstance(exception, EOFError) and "return request.POST.get('csrfmiddlewaretoken', '')" in format:
             # file upload EOF
             return HttpError(request, status=500, title="Upload Error", error="Upload seems to have not completed properly.")
+        elif OperationalError is not None and isinstance(exception, OperationalError) and "Lost connection to MySQL server at 'reading initial communication packet'" in format:
+            # lost main DB
+            return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
+        elif isinstance(exception, AssertionError) and "The Django CAS middleware requires authentication middleware" in format:
+            # wacky authentication thing that means the database is missing, or something
+            return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
 
 
 

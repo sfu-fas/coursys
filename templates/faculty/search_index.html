@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load event_display %}
+
+{% block title %}Event Search{% endblock %}
+{% block h1 %}Event Search{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Event Search</li>
+{% endblock %}
+
+{% block content %}
+<p>Select the type of event to search for:</p>
+<ul>
+  {% for event_type in event_types %}
+  {% can_view_handler event_type.slug editor person as viewable %}
+  {% if viewable %}
+  <li>
+    <a href="{% url 'faculty.views.search_events' event_type.slug %}">{{ event_type.name }}</a>
+  </li>
+  {% endif %}
+  {% endfor %}
+</ul>
+{% endblock %}

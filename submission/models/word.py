@@ -7,7 +7,7 @@ from django.http import HttpResponse
 
 class WordComponent(SubmissionComponent):
     "A Word/OpenDoc file submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the Word/OpenDoc file, in kB.", null=False, default=10000)
+    max_size = FileSizeField(help_text="Maximum size of the Word/OpenDoc file, in kB.", null=False, default=10000)
     allowed_types = {
             "WORD": [".doc", '.docx'],
             "OPENDOC": [".odt"]
@@ -70,7 +70,7 @@ class Word:
         def __init__(self, *args, **kwargs):
             super(Word.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
-            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
+            self.fields['max_size'].label=mark_safe("Max size")
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:

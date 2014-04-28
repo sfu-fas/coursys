@@ -1,8 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Faculty Summaries{% endblock %}
-{% block h1 %}Faculty Summaries{% endblock %}
+{% load static %}
+
+{% block title %}Faculty Management{% endblock %}
+{% block h1 %}Faculty Management{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
   $('#facultytable').dataTable( {
@@ -11,26 +14,65 @@ $(document).ready(function() {
     "aaSorting": [[0, "asc"]],
     "bJQueryUI": true,
   } );
+  $('#filter-form').change( function() {
+          event_filter_update('facultytable');
+        }).change();
 } );
 </script>
 {% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.manage_event_index' %}"><i class="fa fa-li fa-wrench"></i> Event Management</a>
+    </li>
+    <li>
+      <a href="{% url 'faculty.views.status_index' %}"><i class="fa fa-li fa-thumbs-o-up"></i> Event Queue {% if queued_events %}<i class="fa fa-warning infomessage"> {{ queued_events }}</i>{% endif %}</a>
+    </li>
+    <li>
+      <a href="{% url 'grants_index' %}"><i class="fa fa-li fa-trophy"></i> Grants</a>
+    </li>
+    <li class="newsec">
+      <a href="{% url 'faculty.views.search_index' %}"><i class="fa fa-li fa-search"></i> Event Search</a>
+    </li>
+    <li class="newsec">
+      <a href="{% url 'faculty.views.salary_index' %}"><i class="fa fa-li fa-money"></i> Salaries</a>
+    </li>
+    <li>
+      <a href="{% url 'faculty.views.fallout_report' %}"><i class="fa fa-li fa-umbrella"></i> Fallout Report</a>
+    </li>
+    <li>
+      <a href="{% url 'faculty.views.teaching_capacity' %}"><i class="fa fa-li fa-briefcase"></i> Teaching Capacity by Unit</a>
+    </li>
+    <li>
+      <a href="{% url 'faculty.views.course_accreditation' %}"><i class="fa fa-li fa-flag"></i> Courses by Instructor Accreditation</a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
 {% block subbreadcrumbs %}
-<li>Faculty Summaries</li>
+<li>Faculty Management</li>
 {% endblock %}
 
 {% block content %}
 
-<div class="datatable_container">
+{% include 'faculty/_unit_form.html' %}
+
 <table id="facultytable" class="display">
-  <thead><tr><th scope="col">Name</th><th scope="col">Unit</th></tr></thead>
+  <thead><tr><th scope="col">Name</th><th scope="col">Rank</th><th scope="col">Unit</th></tr></thead>
   <tbody>
-  {% for r in fac_roles %}
-  <tr>
-  <td><a href="{% url "faculty.views.summary" userid=r.person.userid_or_emplid %}">{{r.person.sortname}}</a></td>
-  <td>{{ r.unit.name }}</td>
+  {% for person,units,ranks in fac_roles %}
+  <tr class="{% for u in units %}{{ u.label }} {% endfor %}">
+  <td><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  <td>{{ ranks }}</td>
+  <td>
+      {% for u in units %}{{ u.informal_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  </td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
-</div>
 {% endblock %}

@@ -18,7 +18,6 @@
 </a>
 </li>
 <li>
-{{ spaceless }}
 <a href="
 {% if course %}
 {% url "advisornotes.views.view_course_notes" unit_course_slug=related.slug %}
@@ -29,9 +28,7 @@
 {% if artifact %}
 {% url "advisornotes.views.view_artifact_notes" artifact_slug=related.slug %}
 {% endif %}
-">{{ related }}
-{{ endspaceless }}
-</a></li>
+">{{ related }}</a></li>
 <li>New Artifact Note</li>
 {% endblock %}
 
@@ -60,30 +57,8 @@ $(function() {
 " enctype="multipart/form-data" method="post">
 {% endspaceless %}
 {% csrf_token %}
-<fieldset>
-<legend>Note</legend>
-{{ form.id }}
-<dl class="dlform">
-    {% for field in form %}
-    <dt class="{{ field.html_name }}">
-        <label for="{{ field.auto_id }}">
-            {{ field.label }}:
-            {% if field.field.required %}
-                <span class="required">*</span>
-            {% endif %}
-        </label>
-    </dt>
-    <dd>
-        <div class="field">
-            {{ field }}
-            {{ field.errors }}
-        </div>
-    </dd>
-    {% endfor %}
-</dl>
-
-<p><input type="submit" class="submit" value="Submit" /></p>
-</fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Create" /></p>
 </form>
 </div>
 

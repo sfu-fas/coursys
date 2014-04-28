@@ -1,0 +1,33 @@
+{% extends "base-wide.html" %}
+{% load staticfiles %}
+
+{% block title %}Career Timeline{% endblock %}
+{% block h1 %}Career Timeline: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static 'timeline/js/storyjs-embed.js' %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  createStoryJS({
+    type:       'timeline',
+    width:      '100%',
+    height:     '400',
+    start_zoom_adjust: 4,
+    source:     'timeline.json',
+    embed_id:   'timeline-embed'
+  });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>
+  <a href="{% url "faculty.views.summary" person.userid_or_emplid %}">{{ person.name }}</a>
+</li>
+<li>Career Timeline</li>
+{% endblock %}
+
+{% block content %}
+<div id="timeline-embed"></div>
+{% endblock %}

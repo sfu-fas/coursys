@@ -1,5 +1,22 @@
 var table;
 
+// from http://stackoverflow.com/questions/9235304/how-to-replace-the-location-hash-and-only-keep-the-last-history-entry
+(function(namespace) { // Closure to protect local variable "var hash"
+    if ('replaceState' in history) { // Yay, supported!
+        namespace.replaceHash = function(newhash) {
+            if ((''+newhash).charAt(0) !== '#') newhash = '#' + newhash;
+            history.replaceState('', '', newhash);
+        }
+    } else {
+        var hash = location.hash;
+        namespace.replaceHash = function(newhash) {
+            if (location.hash !== hash) history.back();
+            location.hash = newhash;
+        };
+    }
+})(window);
+
+
 function server_params() {
 	// build the extra GET parameters that will go in the datatables data request (by inspecting the filter form)
 	var params = [];
@@ -21,7 +38,8 @@ function server_params() {
 		    params.push({'name': v.attr('name'), 'value': $(v).val()});
 		}
 	});
-	jQuery.bbq.pushState('!'+jQuery.param(params), 2);
+	//jQuery.bbq.pushState('!'+jQuery.param(params), 2);
+	window.replaceHash('!'+jQuery.param(params));
 	return params;
 }
 function restore_form() {
@@ -37,6 +55,9 @@ function restore_form() {
             input.val(v);
         } else {
             // try it as a checkbox
+            if ( typeof(v) == 'string' ) { /* one selection -> string; multiple -> array */
+                v = Array(v);
+            }
             $(v).each(function (i,cv) {
                 $('input[name^="' + k + '"][value="' + cv + '"]').prop('checked', true);
             });
@@ -44,34 +65,36 @@ function restore_form() {
     });
 }
 function refresh() {
-        table.fnDraw();
+  table.fnDraw();
 }
+
 function browser_ready(my_url) {
-    table = $('#courses').dataTable( {
-  	'bJQueryUI': true,
-	'sPaginationType': 'full_numbers',
-	'iDisplayLength' : 20,
-	'aaSorting': [[0,'desc'],[1,'asc']],
-        'bProcessing': true,
-        'bServerSide': true,
-        'sPaginationType': "full_numbers",
-        'iDisplayLength' : 25,
-        'sAjaxSource': my_url + '?tabledata=yes',
-        'fnServerParams': function ( aoData ) {
-        aoData.push.apply(aoData, server_params());
+  restore_form();
+  table = $('#courses').dataTable( {
+    'bJQueryUI': true,
+    'sPaginationType': 'full_numbers',
+    'iDisplayLength' : 20,
+    'aaSorting': [[0,'desc'],[1,'asc']],
+    'bProcessing': true,
+    'bServerSide': true,
+    'sPaginationType': "full_numbers",
+    'iDisplayLength' : 25,
+    'sAjaxSource': my_url + '?tabledata=yes',
+    'fnServerParams': function ( aoData ) {
+      aoData.push.apply(aoData, server_params());
     },
     /* stop cache busting: http://datatables.net/forums/discussion/5714/solved-how-do-i-disable-the-cache-busting-query-parameter-that-datatables-attaches/p1 */
     'fnServerData': function ( sSource, aoData, fnCallback ) {
-    /* Add some data to send to the source, and send as 'POST' */
-    aoData.push( { "name": "data_type", "value": "json" } );
-    $.ajax( {
+      /* Add some data to send to the source, and send as 'POST' */
+      aoData.push( { "name": "data_type", "value": "json" } );
+      $.ajax( {
         "dataType": 'json',
         "type": "GET",
         "url": sSource,
         "data": aoData,
-        "success": fnCallback
-    } );
-},
+        "success": fnCallback,
+      } );
+    },
   } );
   $('#filterform').change(refresh);
   $('#id_instructor').autocomplete({
@@ -82,8 +105,6 @@ function browser_ready(my_url) {
           refresh();
         }
   });
-
-  $(window).bind( 'hashchange', restore_form);
-  restore_form();
+  //$(window).bind('hashchange', function(){restore_form();refresh();});
 }
 

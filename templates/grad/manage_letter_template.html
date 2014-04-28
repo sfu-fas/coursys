@@ -1,5 +1,4 @@
-{% extends "base.html" %}
-{% load mobile_tags %}
+{% extends "base-wide.html" %}
 {% load form_display %}
 
 {% block title %}{{page_title}}{% endblock %}
@@ -30,9 +29,6 @@ dl dt {
 	<form action="{% url "grad.views.manage_letter_template" letter_template_slug=letter_template.slug%}" method="post">
 		{% csrf_token %}
 		<fieldset>
-			<legend>
-				Letter Template Info
-			</legend>
 			{% if form.non_field_errors %}
 			{{ form.non_field_errors }}
 			{% endif %}
@@ -86,6 +82,5 @@ dl dt {
 			</p>
 		</fieldset>
 	</form>
-	<a class="button" href="{% url "grad.views.index" %}">Back</a>
 </div>
 {% endblock %} 

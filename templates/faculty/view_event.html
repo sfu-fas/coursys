@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load event_display %}
+{% load staticfiles %}
+
+{% block title %}{{ person.name }}: {{ handler.NAME }}, {{event.start_date.year }}{% endblock %}
+{% block h1 %}{{ person.name }}: {{ handler.NAME }}, {{event.start_date.year }}{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/faculty.css" %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>{{ event.handler_type_name }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    {% if editor|can_edit:event %}<li><a href="{{ event.get_change_url }}">Edit event</a></li>{% endif %}
+    <li class="newsec"><a href="{% url 'faculty.views.new_attachment' userid=event.person.userid_or_emplid event_slug=event.slug %}">Add File Attachment</a></li>
+    <li><a href="{% url 'faculty.views.new_text_attachment' userid=event.person.userid_or_emplid event_slug=event.slug %}">Add Text Attachment</a></li>
+
+    <li class="newsec"><a href="">New Memo (no template)</a></li>
+    {% for t in templates %}
+    <li><a href="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{ t.label|title }} Memo</a></li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="careerevent">
+{{ handler.to_html }}
+</div>
+<div class="clearfix"></div>
+
+{% if editor|can_approve:event %}
+<form action="{{ event.get_status_change_url }}" method="post">
+  {% csrf_token %}
+  {{ approval_form.as_p }}
+  <input type="submit" value="Change"/>
+</form>
+{% else %}
+<p class="empty">You cannot change the status of this event (as {{ user }})</p>
+{% endif %}
+
+{% with attachments=event.attachments.all %}
+{% if attachments %}
+<h2 id="attachments">Attachments</h2>
+<ul>
+{% for a in attachments %}
+<li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+  <a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
+  <a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+{% if memos %}
+<h2 id="memos">Memos</h2>
+<ul>
+{% for l in memos %}
+<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_lines }})
+  <a href="{% url 'faculty.views.get_memo_pdf' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
+  <a href="{% url 'faculty.views.view_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a> |
+  <a href="{% url 'faculty.views.manage_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

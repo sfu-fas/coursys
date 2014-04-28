@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load event_display %}
+{% load staticfiles %}
+
+{% block title %}Grant: {{ grant }}{% endblock %}
+{% block h1 %}Grant: {{ grant }}{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/faculty.css" %}" />
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'grants_index' %}">Grants</a></li>
+<li>{{ grant.title }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+    <li><a href="{% url 'edit_grant' grant.unit.label|lower grant.slug %}">Edit Grant</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+        <dl class="tabular">
+            <dt>Active dates</dt>
+            <dd>{{ grant.start_date }} to {{ grant.end_date|default:'present' }}</dd>
+            <dt>Project code</dt>
+            <dd>{{ grant.project_code }}</dd>
+            <dt>Initial balance</dt>
+            <dd>${{ grant.initial }}</dd>
+            <dt>Annual overhead</dt>
+            <dd>${{ grant.overhead }}</dd>
+            <dt>Owner(s)</dt>
+            <dd>{{ owners_display }}</dd>
+            <dt>Owning unit</dt>
+            <dd>{{ grant.unit.informal_name }}</dd>
+        </dl>
+
+<h2 id="balance">Balance History</h2>
+<table id="grant_balance_table" class="display">
+  <thead><tr><th scope="col">Date</th><th scope="col">Balance</th><th scope="col">YTD Actual</th><th>This Month</th></tr></thead>
+  <tbody>
+  {% for bal in grant.grantbalance_set.all %}
+  <tr>
+    <td>{{ bal.date }}</td>
+    <td>${{ bal.balance }}</td>
+    <td>${{ bal.actual }}</td>
+    <td>${{ bal.month }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="clearfix"></div>
+
+{% endblock %}

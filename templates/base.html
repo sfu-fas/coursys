@@ -1,8 +1,7 @@
-
 {% comment %}
 Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate/important-forms.html
 {% endcomment %}{% load staticfiles %}{% load compress %}<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
@@ -33,18 +32,12 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 
   {% compress css %}
   <link rel="stylesheet" href="{% static "newsfu/head.styles.css" %}" type="text/css">
-  <link rel="stylesheet" href="{% static "newsfu/clf.main-page.css" %}" type="text/css">
   <link rel="stylesheet" href="{% static "style/main.css" %}" />
   <link rel="stylesheet" href="{% static "style/jqueryui-smoothness/jquery-ui-1.10.3.custom.min.css" %}" />
   <link rel="stylesheet" href="{% static "style/print.css" %}" />
   <link rel="stylesheet" href="{% static "font-awesome/css/font-awesome.min.css" %}">
   {% endcompress %}
 
-  <!--[if lte IE 8]>
-  {% compress css %}
-  <link rel="stylesheet" href="{% static "style/main-ie.css" %}" type="text/css" />
-  {% endcompress %}
-  <![endif]-->
   <link rel="icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
   <link rel="shortcut icon" href="{% static "icons/favicon.ico" %}" type="image/x-icon" />
 
@@ -56,7 +49,6 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
     <div id="page">
       <header>
         <button class="toggle-search-control">Search</button>
-
         <section class="heading">
           <div class="brand-title">
             <a href="http://www.sfu.ca">
@@ -65,14 +57,12 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
             </div></a> <!-- end branding -->
             <div class="site-title"><h2><a href="/">CourSys</a></h2></div>
           </div>
-        </section><!-- end .heading -->
-
+        </section>
         <section class="actionable-header">
           <div class="search">
-            <form action="/search.html" method="get">
+            <form action="{% url "dashboard.views.site_search" %}" method="get">
               <fieldset class="search-field">
                 <input type="search" placeholder="Search" name="q">
-                <input type="hidden" name="p" data-value="/content/sfu/computing">
               </fieldset>
 
               <fieldset class="search-scope-set">
@@ -80,8 +70,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                 <label><input type="radio" value="sfu" name="search-scope">SFU.ca</label>
               </fieldset>
             </form>
-          </div><!-- end search -->
-
+          </div>
           <div class="global-links">
             <div class="mobile-global-links-container">
               <ul class="mobile-global-links">
@@ -111,65 +100,20 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
                     {% endfor %}
                     </ul>
               </li>
-<!--              <li>
-                <a href="#">A-Z Directory</a>
-
-                <ul class="expanded directory">
-                  <li><a href="http://www.sfu.ca/main/dir/a.html">a</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/b.html">b</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/c.html">c</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/d.html">d</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/e.html">e</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/f.html">f</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/g.html">g</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/h.html">h</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/i.html">i</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/j.html">j</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/k.html">k</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/l.html">l</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/m.html">m</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/n.html">n</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/o.html">o</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/p.html">p</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/q.html">q</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/r.html">r</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/s.html">s</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/t.html">t</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/u.html">u</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/v.html">v</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/w.html">w</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/x.html">x</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/y.html">y</a></li>
-                  <li><a href="http://www.sfu.ca/main/dir/z.html">z</a></li>
-                </ul>
-              </li>
--->
               <li>
-                {% if user.is_authenticated %}
-                    <a href="{{ LOGOUT_URL }}">Sign Out</a>
-				  {% else %}
-                    <a href="{{ LOGIN_URL }}">Sign In</a>
-				  {% endif %}
-
+                {% if user.is_authenticated %}<a href="{% url "dashboard.views.index" %}">{{user.username}}</a>{% else %}<a href="{{ LOGIN_URL }}">Sign In</a>{% endif %}
                 <ul class="expanded">
-                  <li>
-                    <a href="http://connect.sfu.ca">SFU Connect +
-                    mySFU</a>
-                  </li>
-
-                  <li>
-                    <a href="http://go.sfu.ca">Student Information
-                    System</a>
-                  </li>
-
-                  <li>
-                    <a href="https://canvas.sfu.ca">Canvas</a>
-                  </li>
+                  <li><a href="{% url "dashboard.views.news_list" %}">All News Items</a></li>
+                  <li><a href="{% url "dashboard.views.calendar" %}">View Calendar</a></li>
+                  <li><a href="{% url "dashboard.views.config" %}">User Configuration</a></li>
+                  {% if 'FAC' in roles or 'SESS' in roles or 'INST' in roles %}
+                  <li><a href="{% url "ta.views.instr_offers" %}">TA Offers</a></li>{% endif %}
+                  {% if user.is_authenticated %}<li><a href="{{ LOGOUT_URL }}">Sign Out</a></li>{% endif %}
                 </ul>
               </li>
-            </ul><!-- end sf-menu sf-navbar -->
-          </div><!-- end global-links -->
-        </section><!-- end .actionable-header -->
+            </ul>
+          </div>
+        </section>
       </header>
 
       <div class="header-divider">
@@ -228,73 +172,31 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
 
         <footer>
           <ul>
-            <li>
-              <a href="http://www.sfu.ca/admission">Admission</a>
-            </li>
-
-            <li>
-              <a href="http://www.sfu.ca/programs">Programs</a>
-            </li>
-
-            <li>
-              <a href="http://www.sfu.ca/learning">Learning</a>
-            </li>
-
-            <li>
-              <a href=
-              "http://www.sfu.ca/research-at-sfu">Research</a>
-            </li>
-
-            <li>
-              <a href=
-              "http://www.sfu.ca/sfu-community">Community</a>
-            </li>
-
-            <li>
-              <a href="http://www.sfu.ca/about">About</a>
-            </li>
+            <li><a href="http://www.sfu.ca/admission">Admission</a></li>
+            <li><a href="http://www.sfu.ca/programs">Programs</a></li>
+            <li><a href="http://www.sfu.ca/learning">Learning</a></li>
+            <li><a href="http://www.sfu.ca/research-at-sfu">Research</a></li>
+            <li><a href="http://www.sfu.ca/sfu-community">Community</a></li>
+            <li><a href="http://www.sfu.ca/about">About</a></li>
           </ul>
-
           <ul>
-            <li>
-              <a href="http://www.sfu.ca/campuses/maps.html">Maps +
-              directions</a>
-            </li>
-
-            <li>
-              <a href="http://www.lib.sfu.ca/">Library</a>
-            </li>
-
-            <li>
-              <a href="http://www.sfu.ca/calendar">Academic
-              Calendar</a>
-            </li>
-
-            <li>
-              <a href="http://www.sfu.ca/roads">Road Report</a>
-            </li>
-
-            <li>
-              <a href="http://www.sfu.ca/advancement">Give to
-              SFU</a>
-            </li>
+            <li><a href="http://www.sfu.ca/campuses/maps.html">Maps + directions</a></li>
+            <li><a href="http://www.lib.sfu.ca/">Library</a></li>
+            <li><a href="http://www.sfu.ca/calendar">Academic Calendar</a></li>
+            <li><a href="http://www.sfu.ca/roads">Road Report</a></li>
+            <li><a href="http://www.sfu.ca/advancement">Give to SFU</a></li>
           </ul>
 
           <ul>
             <li class="header">Connect with us</li>
-
             <li>
               <div class="inherited-parsys connect-with-us">
                 <div class="parsys">
                   <div class="text parbase section">
                     <div class="">
-                      <p><a href=
-                      "http://www.facebook.com/simonfraseruniversity">Facebook</a><br>
-
-                      <a href=
-                      "http://www.twitter.com/sfu">Twitter</a><br>
-                      <a href=
-                      "http://www.youtube.com/user/SFUNews">YouTube</a>
+                      <p><a href="http://www.facebook.com/simonfraseruniversity">Facebook</a><br>
+                      <a href="http://www.twitter.com/sfu">Twitter</a><br>
+                      <a href="http://www.youtube.com/user/SFUNews">YouTube</a>
                       </p>
                     </div>
                   </div>
@@ -304,9 +206,7 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
           </ul>
 
           <ul>
-            <li class="header">
-              <a href="http://www.sfu.ca/clf/contact.html">Contact us</a>
-            </li>
+            <li class="header"><a href="http://www.sfu.ca/clf/contact.html">Contact us</a></li>
 
             <li>
               <div class="inherited-parsys contact-us">
@@ -325,23 +225,17 @@ Adapted using this page as an exemplar http://www.sfu.ca/computing/undergraduate
           </ul>
 
           <ul>
-            <li>
-              <div class="inherited-parsys footer-right"></div>
-            </li>
-
-            <li>
-              <a href=
-              "http://www.sfu.ca/contact/terms-conditions.html">Terms
-              and conditions</a>
-            </li>
-
+            <li><div class="inherited-parsys footer-right"></div></li>
+            <li><a href="http://www.sfu.ca/contact/terms-conditions.html">Terms and conditions</a></li>
             <li>© Simon Fraser University</li>
           </ul>
         </footer>
-      </div><!-- end page-content -->
-    </div><!-- end page -->
-  </div><!-- end container -->
+      </div>
+    </div>
+  </div>
+  {% compress js %}
   <script type="text/javascript" src="{% static "newsfu/footer.scripts.js" %}"></script>
   <script type="text/javascript" src="{% static "newsfu/toggleFormContent.js" %}"></script>
+  {% endcompress %}
 </body>
 </html>

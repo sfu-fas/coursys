@@ -17,6 +17,7 @@ from django.core.cache import cache
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
+from reports.models import schedule_ping
 import itertools, random
 
 today = datetime.date.today()
@@ -35,6 +36,20 @@ def get_combined():
     # IMPORTANT: When combining sections in the future, ensure that the created
     #            section has 'owner': Unit(~CMPT~) 
     combined_sections = [
+        {
+            'subject': 'CMPT', 'number': '413', 'section': 'X100',
+            'semester': Semester.objects.get(name="1141"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32760, 'class_nbr': 32760,
+            'title': 'Computational Linguistics (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2014sp-cmpt-413-d1'),
+                CourseOffering.objects.get(slug='2014sp-cmpt-825-g1')
+            ]
+        },
         {
             'subject': 'CMPT', 'number': '419', 'section': 'X100',
             'semester': Semester.objects.get(name="1137"),
@@ -179,29 +194,11 @@ class AMAINTConn(MySQLConn):
     """
     db_user = "ggbaker"
     db_name = "amaint"
+    db_passwd = settings.AMAINT_DB_PASSWORD
 
     def get_connection(self):
-        passfile = open(self.dbpass_file)
-        pw = passfile.next().strip()
-
         conn = MySQLdb.connect(host=self.db_host, user=self.db_user,
-             passwd=pw, db=self.db_name, port=self.db_port)
-        return conn, conn.cursor()
-
-class TAConn(MySQLConn):
-    """
-    Singleton object representing TA DB connection
-    """
-    db_user = "ta_data_import"
-    db_name = "ta_data_drop"
-
-    def get_connection(self):
-        passfile = open(self.dbpass_file)
-        _ = passfile.next()
-        pw = passfile.next().strip()
-
-        conn = MySQLdb.connect(host=self.db_host, user=self.db_user,
-             passwd=pw, db=self.db_name, port=self.db_port)
+             passwd=self.db_passwd, db=self.db_name, port=self.db_port)
         return conn, conn.cursor()
 
 
@@ -268,12 +265,13 @@ def get_unit(acad_org, create=False):
             label = 'ENSC'
         else:
             label = acad_org[:4].strip()
+
         if create:
             unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
             unit.save()
         else:
             raise KeyError, "Unknown unit: acad_org=%s, label~=%s, name~=%s." % (acad_org, label, name)
-    
+
     return unit
         
 REQ_DES = None
@@ -320,6 +318,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
         # new record: create.
         c = CourseOffering(subject=subject, number=number, section=section, semester=semester)
 
+    c.section = section
     c.crse_id = crse_id
     c.class_nbr = class_nbr
     c.component = component
@@ -663,27 +662,6 @@ def import_instructors(offering):
         p = get_person(emplid)
         ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
 
-@transaction.atomic
-def import_tas(offering):
-    "Import TAs from cortez for this offering: no longer used since cortez is gone"
-    if offering.subject not in ['CMPT', 'MACM']:
-        return
-
-    nbr = offering.number
-    if nbr[-1] == "W":
-        nbr = nbr[:-1]
-
-    Member.objects.filter(added_reason="AUTO", offering=offering, role="TA").update(role='DROP')
-    tadb = TAConn()
-    tadb.execute("SELECT emplid, userid FROM ta_data WHERE strm=%s and subject=%s and " \
-                 "catalog_nbr REGEXP %s and class_section=%s", \
-                 (offering.semester.name, offering.subject, nbr+"W?", offering.section[0:2]))
-    for emplid, userid in tadb:
-        p = get_person(emplid)
-        if p is None:
-            print "    Unknown TA:", emplid, userid
-            return
-        ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
 
 @transaction.atomic
 def import_students(offering):
@@ -727,7 +705,6 @@ def import_offering_members(offering, students=True):
     """
     import_instructors(offering)
     if students:
-        #import_tas(offering)
         import_students(offering)
     import_meeting_times(offering)
     if settings.SVN_DB_CONNECT:
@@ -846,7 +823,6 @@ def update_all_userids():
     """
     Make sure everybody's userid is right.
     """
-    db = AMAINTConn()
     accounts_by_emplid = dict((ca.emplid, ca) for ca in ComputingAccount.objects.all())
     
     for p in Person.objects.all():
@@ -920,6 +896,7 @@ def main():
     offerings = list(offerings)
     offerings.sort()
 
+    # note on doing this kind of thing in Celery when the time comes: http://stackoverflow.com/questions/13271056/how-to-chain-a-celery-task-that-returns-a-list-into-a-group
     print "importing course members"
     last = None
     for o in offerings:
@@ -952,7 +929,10 @@ def main():
         #djkombu.models.Message.objects.cleanup() # no longer needed with AMPQ
         from djcelery.models import TaskMeta
         TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
-    
+
+    # run any Report reports
+    schedule_ping()
+
     print "People:", len(imported_people)
     print "Course Offerings:", len(offerings)
 

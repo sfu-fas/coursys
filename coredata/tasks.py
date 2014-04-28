@@ -1,5 +1,7 @@
 from courselib.svn import update_repository
+from coredata.management.commands import backup_db
 from celery.task import task
+
 
 @task(rate_limit="30/m", max_retries=2)
 def update_repository_task(*args, **kwargs):
@@ -10,7 +12,7 @@ def update_repository_task(*args, **kwargs):
 # some tasks for testing/experimenting
 import time
 from celery.task import periodic_task
-from celery.task.schedules import crontab
+from celery.schedules import crontab
 
 @task(queue='fast')
 def ping():
@@ -27,3 +29,7 @@ def slow_task():
 #    print "HELLO PERIODIC TASK"
 #    return True
 
+
+@periodic_task(run_every=crontab(minute=0, hour='*/3'))
+def backup_database():
+    backup_db.Command().handle(clean_old=True)

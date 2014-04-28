@@ -1,4 +1,4 @@
-from base import *
+from submission.models.base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
 from django import forms
@@ -44,6 +44,8 @@ CODE_TYPES = [
     (".r", "R (.r)"),
     (".dat", "Binary Output (.dat)"),
     (".mdx", "SQL Server Multi-Dimensional Expression (.mdx)"),
+    (".clj", "Clojure (.clj)"),
+    (".pde", "Processing IDE file (.pde)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()
@@ -51,7 +53,7 @@ CODE_TYPES = [(ext,desc) for (desc,ext) in CODE_TYPES]
 
 class CodeComponent(SubmissionComponent):
     "A Source Code submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the Code file, in kB.", null=False, default=2000)
+    max_size = FileSizeField(help_text="Maximum size of the Code file, in kB.", null=False, default=1000)
     allowed = models.CharField(max_length=500, null=False, verbose_name='Allowed file types',
                                help_text='Accepted file extensions. [Contact system admins if you need more file types here.]')
     class Meta:
@@ -104,6 +106,7 @@ class Code:
     descr = "a source code file"
     Component = CodeComponent
     SubmittedComponent = SubmittedCode
+    #active = False # depricated in favour of Codefile
 
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:

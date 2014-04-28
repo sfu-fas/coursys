@@ -35,13 +35,15 @@ $(function() {
         {% if not all %}
         <li><a href="{% url "alerts.views.view_all_alerts" alert_type=alert_type.slug %}">View All Alerts</a></li>
         {% endif %}
-        <li><a href="{% url "alerts.views.view_automation" alert_type=alert_type.slug %}">Automation Settings</a></li>
-        
+        <li><a href="{% url "alerts.views.view_automation" alert_type=alert_type.slug %}">Bulk Email ({{bulk_counter}} Candidates)</a></li>
+
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
+
+<p><em>{{alert_type.description}}</em></p>
 
 {% if resolved %}
 <h2> Resolved Alerts </h2>
@@ -58,10 +60,13 @@ $(function() {
     <thead>
         <tr>
             <th>Student</th>
+            <th>Actions</th>
+            <th>Status</th>
+            <th>Email</th>
             <th>Emails</th>
             <th>Comments</th>
             <th>Last Update</th>
-            <!--<th>Description</th>-->
+            <th> </th>
             {% for key, value in most_recent_alert.details.items %}
                 <th>{{key|lower|capfirst}}</th>
             {% endfor %}
@@ -71,12 +76,33 @@ $(function() {
         {% for alert in alerts %}
         <tr>
             <td>
-                <a href='{% url "advisornotes.views.student_notes" userid=alert.person.userid %}'>{{alert.person}}</a> 
+                <a href='{% url "alerts.views.view_alert" alert_type=alert_type.slug alert_id=alert.id %}'>{{alert.person}}</a>
+            </td>
+            <td style='white-space:nowrap'>
+                {% if alert.resolved %}
+                    <a href='{% url "alerts.views.reopen_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Reopen</a> |
+                    <a href='{% url "alerts.views.hide_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Delete</a> |
+                {% else %}
+                    <a href='{% url "alerts.views.resolve_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Resolve</a> |
+                {% endif %}
+                <a href='{% url "alerts.views.comment_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Comment</a> |
+                <a href='{% url "alerts.views.email_alert" alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Email</a>
+
+            </td>
+            <td>
+                {% if alert.resolved %}
+                Resolved
+                {% else %}
+                Open
+                {% endif %}
+            </td>
+            <td>
+                {{alert.person.email}}
             </td>
             <td>{{alert.n_emails}}</td>
             <td>{{alert.n_comments}}</td>
-            <td><a href='{% url "alerts.views.view_alert" alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
-            <!--<td>{{ alert.description }}</td>-->
+            <td>{{ alert.last_updated|date:"Y/m/d" }}</td>
+            <td> || </td>
             {% for key, value in alert.details.items %}
                 <td>{{value}}</td>
             {% endfor %}

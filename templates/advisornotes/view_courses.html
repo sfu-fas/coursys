@@ -39,7 +39,7 @@ $(function() {
         <tr>
             <td>{{ course.subject }} {{ course.number }}</td>
             <td><a href="{% url "advisornotes.views.view_course_notes" unit_course_slug=course.slug %}">{{ course.title }}</a></td>
-            <td>{% if course.id in with_note_ids %}<span class="sort">yes</span><img src="{{ STATIC_URL }}icons/tick.png" alt="yes" />{% endif %}</td>
+            <td class="iconcell">{% if course.id in with_note_ids %}<span class="sort">yes</span><i class="fa fa-check infomessage"></i>{% endif %}</td>
         </tr>
         {% endfor %}
     </tbody>

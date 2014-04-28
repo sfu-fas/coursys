@@ -5,7 +5,7 @@ from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
-from pages.models import _normalize_newlines
+from courselib.text import normalize_newlines
 import datetime
 
 HIRING_CATEGORY_CHOICES = (
@@ -174,7 +174,7 @@ class RAAppointment(models.Model):
         Return list of paragraphs in the letter (for PDF creation)
         """
         text = self.offer_letter_text or self.default_letter_text()
-        text = _normalize_newlines(text)
+        text = normalize_newlines(text)
         return text.split("\n\n") 
     
     @classmethod
@@ -197,18 +197,19 @@ class RAAppointment(models.Model):
         """
         First and last days of the semester, in the way that financial people do (without regard to class start/end dates)
         """
-        yr = int(semester.name[0:3]) + 1900
-        sm = int(semester.name[3])
-        if sm == 1:
-            start = datetime.date(yr, 1, 1)
-            end = datetime.date(yr, 4, 30)
-        elif sm == 4:
-            start = datetime.date(yr, 5, 1)
-            end = datetime.date(yr, 8, 31)
-        elif sm == 7:
-            start = datetime.date(yr, 9, 1)
-            end = datetime.date(yr, 12, 31)
-        return start, end
+        return Semester.start_end_dates(semester)
+        #yr = int(semester.name[0:3]) + 1900
+        #sm = int(semester.name[3])
+        #if sm == 1:
+        #    start = datetime.date(yr, 1, 1)
+        #    end = datetime.date(yr, 4, 30)
+        #elif sm == 4:
+        #    start = datetime.date(yr, 5, 1)
+        #    end = datetime.date(yr, 8, 31)
+        #elif sm == 7:
+        #    start = datetime.date(yr, 9, 1)
+        #    end = datetime.date(yr, 12, 31)
+        #return start, end
         
     def start_semester(self):
         "Guess the starting semester of this appointment"

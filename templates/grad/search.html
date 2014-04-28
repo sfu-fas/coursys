@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 {% load form_display %}
 
 {% block headextra %}
@@ -10,6 +9,7 @@
     $("#id_student_status").css("min-height", "180px").multiselect();
     $("#id_application_status").css("min-height", "160px").multiselect();
     $("#id_program").css("min-height", "160px").multiselect();
+    $("#id_grad_flags").css("min-height", "120px").multiselect();
     $("#id_supervisor").css("min-height", "160px").multiselect();
     $("#id_requirements").css("min-height", "160px").multiselect();
     $("#id_incomplete_requirements").css("min-height", "160px").multiselect();
@@ -56,7 +56,7 @@
 <input id="deleteinvalidsearchbutton" class="submit" type="submit" value="Delete this saved search">
 </form>
 {% endif %}
-<p>If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
+<p class="helptext">If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
 <div class="form_container">
     <form id="searchform" action="{% url "grad.views.search" %}" method="get">
         <fieldset>
@@ -78,13 +78,10 @@
             <h2 class="formheader">Financial</h2>
             <div class="formsection">{{ form|as_dl_includefields:form.financial_fields }}</div>
 
-        </fieldset>
-        <fieldset>
-        	<legend>Column Selection</legend>
-            {{ form|as_dl_includefields:form.col_fields }}
+            <h2 class="formheaderopen">Column Selection</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.col_fields }}</div>
         </fieldset>
         <p><input id="submitbutton" class="submit"  type="submit" value="Search" /></p>
     </form>
-    <a class="button" href="{% url "grad.views.index" %}" style="clear:both">Back</a>
 </div>
 {% endblock %}

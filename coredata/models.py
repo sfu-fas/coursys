@@ -5,6 +5,7 @@ from django.conf import settings
 import datetime, urlparse, decimal
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from cache_utils.decorators import cached
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
@@ -43,7 +44,7 @@ class Person(models.Model):
     emplid = models.PositiveIntegerField(db_index=True, unique=True, null=False,
                                          verbose_name="ID #",
         help_text='Employee ID (i.e. student number)')
-    userid = models.CharField(max_length=8, null=True, db_index=True, unique=True,
+    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True, unique=True,
                               verbose_name="User ID",
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     last_name = models.CharField(max_length=32)
@@ -85,7 +86,8 @@ class Person(models.Model):
     nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
-    
+    _, set_title = getter_setter('title')
+
 
     @staticmethod
     def emplid_header():
@@ -329,7 +331,25 @@ class Semester(models.Model):
     @classmethod
     def current(cls):
         return cls.get_semester()
-    
+
+    @staticmethod
+    def start_end_dates(semester):
+        """
+        First and last days of the semester, in the way that financial people do (without regard to class start/end dates)
+        """
+        yr = int(semester.name[0:3]) + 1900
+        sm = int(semester.name[3])
+        if sm == 1:
+            start = datetime.date(yr, 1, 1)
+            end = datetime.date(yr, 4, 30)
+        elif sm == 4:
+            start = datetime.date(yr, 5, 1)
+            end = datetime.date(yr, 8, 31)
+        elif sm == 7:
+            start = datetime.date(yr, 9, 1)
+            end = datetime.date(yr, 12, 31)
+        return start, end
+
     @classmethod
     def get_semester(cls, date=None):
         if not date:
@@ -705,6 +725,8 @@ class CourseOffering(models.Model):
         d['campus'] = self.campus
         d['meetingtimes'] = [m.export_dict() for m in self.meetingtime_set.all()]
         d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST").select_related('person')]
+        d['wqb'] = [desc for flag,desc in WQB_FLAGS if getattr(self.flags, flag)]
+        d['class_nbr'] = self.class_nbr
         return d
     
     def delete(self, *args, **kwargs):
@@ -755,7 +777,7 @@ class Member(models.Model):
     credits = models.PositiveSmallIntegerField(null=False, default=3,
         help_text='Number of credits this course is worth.')
     career = models.CharField(max_length=4, choices=CAREER_CHOICES)
-    added_reason = models.CharField(max_length=4, choices=REASON_CHOICES)
+    added_reason = models.CharField(max_length=4, choices=REASON_CHOICES, db_index=True)
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".')
     official_grade = models.CharField(max_length=2, null=True, blank=True)
@@ -765,9 +787,10 @@ class Member(models.Model):
         #     default: self.offering (if accessed by m.get_origsection())
         # 'bu': The number of BUs this TA has
         # 'teaching_credit': The number of teaching credits instructor receives for this offering. Fractions stored as strings: '1/3'
+        # 'teaching_credit_reason': reason for the teaching credit override
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
 
-    defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
+    defaults = {'bu': 0, 'teaching_credit': 1, 'teaching_credit_reason': None, 'last_discuss': 0}
     raw_bu, set_bu = getter_setter('bu')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
@@ -809,7 +832,15 @@ class Member(models.Model):
 
         if 'teaching_credit' in self.config:
             # if manually set, then honour it
-            return fractions.Fraction(self.config['teaching_credit']), 'set manually'
+            if 'teaching_credit_reason' in self.config:
+                reason = self.config['teaching_credit_reason']
+                if len(reason) > 15:
+                    reason = 'set manually: ' + reason[:15] + u'\u2026'
+                else:
+                    reason = 'set manually: ' + reason
+            else:
+                reason = 'set manually'
+            return fractions.Fraction(self.config['teaching_credit']), reason
         elif self.offering.enrl_tot == 0:
             # no students => no teaching credit (probably a cancelled section we didn't catch on import)
             return fractions.Fraction(0), 'empty section'
@@ -846,6 +877,21 @@ class Member(models.Model):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
         self.config['teaching_credit'] = unicode(cred)
 
+    def set_teaching_credit_reason(self, reason):
+        self.config['teaching_credit_reason'] = unicode(reason)
+
+    def get_tug(self):
+        assert self.role == 'TA'
+        from ta.models import TUG
+
+        tugs = TUG.objects.filter(member=self)
+        if tugs:
+            tug = tugs[0]
+        else:
+            tug = None
+        return tug
+
+
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
         return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.offering, self.person.userid))
@@ -870,7 +916,7 @@ class Member(models.Model):
         """
         Clear out the official grade field on old records: no need to tempt fate.
         """
-        cutoff = datetime.date.today() - datetime.timedelta(days=240)
+        cutoff = datetime.date.today() - datetime.timedelta(days=120)
         old_grades = Member.objects.filter(offering__semester__end__lt=cutoff, official_grade__isnull=False)
         old_grades.update(official_grade=None)
 
@@ -1007,11 +1053,38 @@ class Unit(models.Model):
         
         Cached so we can avoid the work when possible.
         """
+        # sort unit.id values for consistent cache keys
         if by_id:
             unitids = sorted(list(set(units)))
         else:
             unitids = sorted(list(set(u.id for u in units)))
         return Unit.__sub_unit_ids(unitids)
+
+    @classmethod
+    def sub_units(cls, units, by_id=False):
+        ids = cls.sub_unit_ids(units, by_id=by_id)
+        return Unit.objects.filter(id__in=ids)
+
+
+    def __super_units(self):
+        if not self.parent:
+            return []
+        else:
+            return [self.parent] + self.parent.super_units()
+            
+    def super_units(self):
+        """
+        Units directly above this in the heirarchy
+        """
+        key = 'superunits-' + self.slug
+        res = cache.get(key)
+        if res:
+            return res
+        else:
+            res = self.__super_units()
+            cache.set(key, res, 24*3600)
+            return res
+        
 
 
 ROLE_CHOICES = (
@@ -1055,6 +1128,7 @@ ROLE_DESCR = {
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',
         'INST': 'Instructors outside of the department or others who teach courses',
+        'REPR': 'Has Reporting Database access.',
         'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
               }
 INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors

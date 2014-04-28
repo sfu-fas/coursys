@@ -26,24 +26,24 @@ $(document).ready(function() {
     <table class="info">
         <tbody>
 	    <tr>
-                <th class="ui-state-default">Last Name</th>
+                <th scope="row">Last Name</th>
                 <td>{{ user.last_name }}</td>
             </tr>
 	    <tr>
-                <th class="ui-state-default">First Name</th>
+                <th scope="row">First Name</th>
                 <td>{{ user.first_name }}
                 </td>
             </tr>
 	    <tr>
-                <th class="ui-state-default">Middle Name</th>
+                <th scope="row">Middle Name</th>
                 <td>{{ user.middle_name }}</td>
             </tr>
 	    <tr>
-                <th class="ui-state-default">Student Number</th>
+                <th scope="row">Student Number</th>
                 <td>{{ user.emplid }}</td>
             </tr>
 	    <tr>
-                <th class="ui-state-default">Email Address</th>
+                <th scope="row">Email Address</th>
                 <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
             </tr>
         </tbody>

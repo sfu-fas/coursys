@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load mobile_tags %}
 
 {% block h1 %}Time Use Guidelines for {{semester}}{% endblock %}
 {% block title %}Time Use Guidelines for {{semester}}{% endblock %}
@@ -14,7 +13,6 @@
         "bPaginate": false,
 		"bJQueryUI": true,
 		"aaSorting": [[0, "asc"]],
-		//"aoColumns": [],
 	});
   });
 </script>
@@ -40,12 +38,15 @@
 
 {% block content %}
 
-<div class="datatable_container">
+{% if admin %}
+<p class="infomessage">You can direct instructors to this URL: they will see a list of their own TAs and can create/update TUGS here.</p>
+{% endif %}
+
 <table class="display" id="offerings">
 <thead>
     <tr>
         <th scope="col">Offering</th>
-        <th scope="col">Instructor</th>
+        {% if admin %}<th scope="col">Instructor</th>{% endif %}
         <th scope="col">TA</th>
         <th scope="col">TUG</th>
         <th scope="col">BU</th>
@@ -55,8 +56,10 @@
 <tbody>
 {% for data in tas_with_tugs %}
   <tr>
-  <td>{{data.ta.offering.name}}</td>
-  <td>{% for instructor in data.ta.offering.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+  <td>{% if data.is_instr %}<strong>{% endif %}{{data.ta.offering.name}}{% if data.is_instr %}</strong>{% endif %}</td>
+  {% if admin %}
+      <td>{% for instructor in data.ta.offering.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+  {% endif %}
   <td><a href="mailto:{{ data.ta.person.email }}">{{data.ta.person}}</a></td>
   <td>
   	{% if data.tug %}
@@ -67,6 +70,9 @@
   	        <a href="{% url "ta.views.view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
         {% endif %}
   	{% else %}
+      {% if data.is_instr %}
+      <a href="{% url "ta.views.new_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create TUG</a>
+      {% endif %}
   	{% endif %}
   </td>
   <td>
@@ -82,17 +88,5 @@
 {% endfor %}
 </tbody>
 </table>
-</div>
-
-{% comment %}
-{% if empty_courses %}
-<h3>The following courses do not have any TAs listed:</h3>
-{% endif %}
-<ul>
-{% for course in empty_courses %}
-<li>{{ course.name }}</li>
-{% endfor %}
-</ul>
-{% endcomment %}
 
 {% endblock %}

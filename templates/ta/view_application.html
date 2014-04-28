@@ -31,16 +31,16 @@
     <p>This application was submitted late.  <a href="{% url "ta.views.update_application" post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
   {% endif %}
   <table class="info">
-    <tr><th>Name</th><td>{{ application.person.name }} &lt;{{application.person.email_mailto}}&gt;</td></tr>
-    <tr><th>Student Number</th><td>{{ application.person.emplid }} </td></tr>
-    <tr><th>Semester</th><td>{{ application.posting.semester }}</td></tr>
-    <tr><th>Category</th><td>{{ application.get_category_display }}</td></tr>
-    <tr><th>Base Units</th><td>{{ application.base_units }}</td></tr>
-    <tr><th>Current Program</th><td>{{ application.current_program|linebreaksbr }}</td></tr>
-    <tr><th>Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
-    <tr><th>Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
-    <tr><th>Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
-    <tr><th>Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Name</th><td>{{ application.person.name }} &lt;{{application.person.email_mailto}}&gt;</td></tr>
+    <tr><th scope="row">Student Number</th><td>{{ application.person.emplid }} </td></tr>
+    <tr><th scope="row">Semester</th><td>{{ application.posting.semester }}</td></tr>
+    <tr><th scope="row">Category</th><td>{{ application.get_category_display }}</td></tr>
+    <tr><th scope="row">Base Units</th><td>{{ application.base_units }}</td></tr>
+    <tr><th scope="row">Current Program</th><td>{{ application.current_program|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
   </table>
 
   {% if application.config.extra_questions %}
@@ -53,9 +53,9 @@
   <h2 id="crs-applied">Courses Applied for</h2>
   <table class="info">
     <tr>
-      <th>Course</th>
-      <th>Taken</th>
-      <th>Experience</th>
+      <th scope="col">Course</th>
+      <th scope="col">Taken</th>
+      <th scope="col">Experience</th>
     </tr>
       {% for course in courses %}
         <tr>
@@ -70,7 +70,7 @@
   <h2 id="campus">Campus Preference</h2>
   <table class="info">
       {% for campus in campuses %}
-        <tr><th>{{ campus.get_campus_display }}</th><td>{{ campus.get_pref_display }}</td></tr>
+        <tr><th scope="row">{{ campus.get_campus_display }}</th><td>{{ campus.get_pref_display }}</td></tr>
       {% endfor %}
   </table> 
   {% endif %}  
@@ -79,7 +79,7 @@
   <h2 id="skills">Skills</h2>
   <table class="info">
       {% for skill in skills %}
-        <tr><th>{{ skill.skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
+        <tr><th scope="row">{{ skill.skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
       {% endfor %}
   </table>
   {% endif %}

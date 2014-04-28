@@ -628,6 +628,9 @@ class TAContract(models.Model):
         courses = TACourse.objects.filter(contract=self)
         return sum( [course.prep_bu for course in courses] )
 
+    def total_pay(self):
+        return decimal.Decimal(self.bu()) * self.pay_per_bu
+
 
 class CourseDescription(models.Model):
     """
@@ -713,7 +716,7 @@ class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication)
     course = models.ForeignKey(Course)
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
-    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False)
+    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False, verbose_name="Experience")
     rank = models.IntegerField(blank=False)
     #class Meta:
     #    unique_together = (('app', 'course'),)

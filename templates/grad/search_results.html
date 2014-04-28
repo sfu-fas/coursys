@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load getattribute %}
 
 {% block headextra %}
@@ -45,6 +45,7 @@ width: 120px;
 {% endblock %}
 
 {% block actions %}
+        {% comment %}
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
@@ -52,6 +53,7 @@ width: 120px;
 	<li><a href="{% url "grad.views.search" %}?{{query_string}}&amp;excel=yes" id="excellink">Export as Excel</a></li>
 	</ul>
 </div>
+        {% endcomment %}
 {% endblock %}
 
 {% block content %}
@@ -60,13 +62,17 @@ width: 120px;
 <p>
 {{ saveform.person }}{{ saveform.query }}{{ saveform.name.label }} {{ saveform.name }}
 
-<input id="submitbutton" type="submit" value="{% if saveform.instance.pk %}Save As{% else %}Save{% endif %}" />
+<input id="submitbutton" class="submit" type="submit" value="{% if saveform.instance.pk %}Save As{% else %}Save{% endif %}" />
 {% if saveform.instance.pk %}
-<input id="deletebutton" type="submit" value="Delete" formaction="{% url "grad.views.delete_savedsearch" %}" />
+<input id="deletebutton" class="submit" type="submit" value="Delete" formaction="{% url "grad.views.delete_savedsearch" %}" />
 {% endif %}
 </p>
 </form>
-<p><a href="{% url "grad.views.search" %}?{{query_string}}&amp;edit_search=yes" class="redbutton" id="editlink">Modify this search</a></p>
+<p>
+    <a href="{% url "grad.views.search" %}?{{query_string}}&amp;edit_search=yes" class="redbutton" id="editlink">Modify this search</a>
+    | <a href="{% url "grad.views.search" %}?{{query_string}}&amp;csv=yes" id="csvlink">Export as CSV</a>
+    | <a href="{% url "grad.views.search" %}?{{query_string}}&amp;excel=yes" id="excellink">Export as Excel</a>
+</p>
 
 <div class="datatable_container">
 	<table class="display" id="grads">

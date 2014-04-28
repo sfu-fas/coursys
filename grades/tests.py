@@ -4,7 +4,7 @@ from grades.models import Activity, NumericActivity, LetterActivity, CalNumericA
     NumericGrade, LetterGrade, GradeHistory, all_activities_filter, ACTIVITY_STATUS, sorted_letters, \
     median_letters
 from grades.utils import activities_dictionary, generate_grade_range_stat
-from coredata.models import Person, Member, CourseOffering
+from coredata.models import Person, Member, CourseOffering, Unit
 from dashboard.models import UserConfig
 from submission.models import StudentSubmission
 from coredata.tests import create_offering
@@ -606,14 +606,27 @@ class PagesTests(TestCase):
         
         # as instructor
         c.login_user(instr.person.userid)
+
+        # photo things should fail if no agreement
+        url = reverse('grades.views.photo_list', kwargs={'course_slug': crs.slug})
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+        url = reverse('grades.views.student_photo', kwargs={'emplid': student.person.emplid})
+        response = c.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        # get fake photoid data in the DB so we can at least see some proper failure
         UserConfig(user=instr.person, key='photo-agreement', value={'agree':True}).save()
+        u = Unit.objects.get(label='UNIV')
+        u.config['photopass'] = 'foo'
+        u.save()
         test_views(self, c, 'grades.views.', ['course_config', 'course_info', 'add_numeric_activity',
                 'add_cal_numeric_activity', 'add_letter_activity', 'add_cal_letter_activity', 'formula_tester',
                 'all_grades', 'class_list', 'photo_list', 'student_search', 'new_message'],
                 {'course_slug': crs.slug})
         test_views(self, c, 'grades.views.', ['student_info'],
                 {'course_slug': crs.slug, 'userid': student.person.userid})
-        
+
         # various combinations of activity type and view
         test_views(self, c, 'grades.views.', ['activity_info', 'activity_info_with_groups', 'activity_stat',
                 'edit_activity'],

@@ -7,16 +7,17 @@ import hashlib, string, datetime
 import urllib, urllib2, json, base64
 
 ACCOUNT_NAME = 'cs'
-TOKEN_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/Token'
-PHOTO_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Values/%s?includePhoto=true'
-PASSWORD_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/ChangePassword'
+
+URL_BASE = 'https://photos-api-stg.its.sfu.ca/'
+TOKEN_URL = URL_BASE + 'Account/Token'
+PHOTO_URL = URL_BASE + 'Values/%s?includePhoto=true'
+PASSWORD_URL = URL_BASE + 'Account/ChangePassword'
 DUMMY_IMAGE_FILE = os.path.join(settings.STATIC_ROOT, 'images', 'No_image.JPG') # from http://commons.wikimedia.org/wiki/File:No_image.JPG
 
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
 PHOTO_TIMEOUT = 10 # number of seconds the views will wait for the photo service
-
 
 
 # from http://docs.python.org/2/library/itertools.html
@@ -47,8 +48,9 @@ def fetch_photos(emplids):
         t = fetch_photos_task.delay(emplids=group)
 
         # record which task is fetching which photos
-        new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
-        task_map.update(new_map)
+        if t is not None: # returns None if no Celery available in devel environment: ignore the results then
+            new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
+            task_map.update(new_map)
 
     return task_map
 
@@ -68,7 +70,7 @@ def do_photo_fetch(emplids):
         for emplid in missing:
             cache.set('photo-image-'+unicode(emplid), data, 3600)
 
-    return set(photos.keys())
+    return list(set(photos.keys()))
 
 
 
@@ -98,14 +100,14 @@ def _get_photos(emplids):
     photo_url = PHOTO_URL % (emplid_str)
     headers = {'Authorization': 'Bearer ' + token}
     photo_request_obj = urllib2.Request(url=photo_url, headers=headers)
-    photo_request = urllib2.urlopen(photo_request_obj)
+    photo_request = urllib2.urlopen(photo_request_obj, timeout=30)
     photo_response = json.load(photo_request)
     photos = {}
     for data in photo_response:
-        if 'SFUID' not in data or 'STUDENT_PICTURE' not in data or not data['STUDENT_PICTURE']:
+        if 'SfuId' not in data or 'PictureIdentification' not in data or not data['PictureIdentification']:
             continue
-        key = data['SFUID']
-        jpg = base64.b64decode(data['STUDENT_PICTURE'])
+        key = data['SfuId']
+        jpg = base64.b64decode(data['PictureIdentification'])
         photos[key] = jpg
     return photos
 
