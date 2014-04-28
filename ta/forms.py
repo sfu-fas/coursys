@@ -176,7 +176,7 @@ class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     class Meta:
         model = TAApplication
-        exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created', 'config')
+        exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
                    'current_program': forms.TextInput(attrs={'size': 10}),
                    'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),

@@ -110,6 +110,59 @@ class ActivePlanQuery(DB2_Query):
 
     def result(self):
         return super(ActivePlanQuery, self).result().flatten("EMPLID")
+
+class SubplanQuery(DB2_Query):
+
+    title = "Subplan Query"
+    description = "Fetch a list of student-to-subplan mappings within a set of plans" 
+    # This is likely to produce duplicates - students that are enrolled in more than one subplan. 
+
+    query = string.Template("""
+    SELECT DISTINCT 
+        plan.emplid,
+        plan.acad_sub_plan
+    FROM 
+        ps_acad_subplan plan
+    INNER JOIN
+        ps_stdnt_car_term car_term 
+        ON
+        plan.emplid = car_term.emplid AND
+        plan.acad_career = car_term.acad_career AND
+        plan.stdnt_car_nbr = car_term.stdnt_car_nbr
+    INNER JOIN 
+        ps_acad_prog prog
+        ON
+        plan.emplid = prog.emplid AND
+        plan.acad_career = prog.acad_career AND
+        plan.stdnt_car_nbr = prog.stdnt_car_nbr
+    WHERE 
+        prog.prog_status = 'AC' 
+        AND car_term.withdraw_code = 'NWD'
+        AND car_term.strm < $registration_semester
+        AND car_term.strm >= $third_prior_semester
+        AND plan.effdt = (
+            SELECT MAX(temp_plan.effdt) 
+            FROM ps_acad_subplan temp_plan
+            WHERE plan.emplid = temp_plan.emplid AND
+                  plan.acad_career = temp_plan.acad_career AND 
+                  plan.acad_plan = temp_plan.acad_plan AND
+                  plan.acad_sub_plan = temp_plan.acad_sub_plan AND
+                  temp_plan.effdt < $effective_date)
+        AND plan.effseq = (
+            SELECT MAX(temp_plan_2.effseq)
+            FROM ps_acad_subplan temp_plan_2
+            WHERE plan.emplid = temp_plan_2.emplid AND
+                  plan.acad_career = temp_plan_2.acad_career AND 
+                  plan.acad_plan = temp_plan_2.acad_plan AND 
+                  plan.acad_sub_plan = temp_plan_2.acad_sub_plan AND
+                  plan.effdt = temp_plan_2.effdt AND
+                  temp_plan_2.effdt < $effective_date)
+        """)
+    default_arguments = {
+        'effective_date': datetime.datetime.now(), 
+        'registration_semester': registration_semester(),
+        'third_prior_semester': registration_semester().increment(-3)
+        }
         
 
 class ActiveInProgramOrPlanQuery(object):
