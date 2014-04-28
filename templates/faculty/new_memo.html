@@ -20,8 +20,10 @@
       'dateFormat' : 'yy-mm-dd'
     });
 
+    {% if not notemplate %}
     url = '{% url "faculty.views.get_memo_text" userid=person.userid_or_emplid event_slug=event.slug memo_template_id=template.id %}'
     getData(url);
+    {% endif %}
 
     $("#id_from_lines").html(subject);
   });
@@ -41,7 +43,7 @@
 
 {% block content %}
 <div class="form_container">
-  <form action="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=template.slug %}" method="post">
+  <form action="" method="post">
     {% csrf_token %}
     <fieldset>
       {{ form|as_dl }}

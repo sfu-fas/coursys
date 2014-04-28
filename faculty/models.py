@@ -463,7 +463,10 @@ class Memo(models.Model):
     use_sig = config_property('use_sig', default=True)
 
     def autoslug(self):
-        return make_slug(self.career_event.slug + "-" + self.template.label)
+        if self.template:
+            return make_slug(self.career_event.slug + "-" + self.template.label)
+        else:
+            return make_slug(self.career_event.slug + "-memo")
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('career_event',))
 
     def __unicode__(self):
