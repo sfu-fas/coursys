@@ -113,6 +113,10 @@ class MemoForm(forms.ModelForm):
         keys.extend([k for k in self.fields.keyOrder if k not in keys])
         self.fields.keyOrder = keys
 
+class MemoFormWithUnit(MemoForm):
+    class Meta(MemoForm.Meta):
+        exclude = ('from_person', 'created_by', 'config', 'template', 'career_event', 'hidden')
+
 
 class SearchForm(forms.Form):
     start_date = forms.DateField(label='Start Date', required=False,
