@@ -402,15 +402,15 @@ class MemoContents(LetterContents):
         # insert each paragraph
         for f in self.flowables:
             contents.append(f)
-            contents.append(Spacer(1, space_height))
+            #contents.append(Spacer(1, space_height))
 
         # the CC lines
         if self.cc_lines:
             data = []
             for cc in self.cc_lines:
-                data.append(['', self.make_flowable(cc)])
+                data.append(['', Paragraph(cc, self.content_style)])
 
-            cc = self.make_flowable('cc:')
+            cc = Paragraph('cc:', self.content_style)
             data[0][0] = cc
 
             cc_table = Table(data, colWidths=[0.3*inch, 5*inch])

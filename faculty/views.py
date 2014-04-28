@@ -33,7 +33,7 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
 from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
-from faculty.forms import MemoTemplateForm, MemoForm, AttachmentForm, TextAttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
+from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
@@ -1644,6 +1644,48 @@ def manage_memo_template(request, event_type, slug):
 # Creating and editing Memos
 
 @requires_role('ADMN')
+def new_memo_no_template(request, userid, event_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = _get_event_or_404(units=member_units, slug=event_slug, person=person)
+    author = get_object_or_404(Person, find_userid_or_emplid(request.user.username))
+    unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
+    in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
+
+    ls = instance.memo_info()
+
+    if request.method == 'POST':
+        form = MemoFormWithUnit(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.created_by = author
+            f.career_event = instance
+            f.config.update(ls)
+            f.template = None
+            f.save()
+            messages.success(request, "Created new memo.")
+            return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
+    else:
+        initial = {
+            'date': datetime.date.today(),
+            'subject': '',
+            'to_lines': person.letter_name(),
+            'from_lines': '',
+            'unit': in_unit,
+        }
+        form = MemoFormWithUnit(initial=initial)
+        form.fields['unit'].choices = unit_choices
+
+    context = {
+               'form': form,
+               'person': person,
+               'event': instance,
+               'notemplate': True,
+               }
+    return render(request, 'faculty/new_memo.html', context)
+
+
+@requires_role('ADMN')
 def new_memo(request, userid, event_slug, memo_template_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     template = get_object_or_404(MemoTemplate, slug=memo_template_slug, unit__in=Unit.sub_units(request.units))
@@ -1667,7 +1709,7 @@ def new_memo(request, userid, event_slug, memo_template_slug):
     else:
         initial = {
             'date': datetime.date.today(),
-            'subject': '%s %s\n%s ' % (person.get_title(), person.name(), template.subject),
+            'subject': '%s %s\n%s' % (person.get_title(), person.name(), template.subject),
             'to_lines': person.letter_name(),
             'from_lines': template.default_from,
         }
