@@ -16,6 +16,8 @@ class Migration(SchemaMigration):
             ('config', self.gf('jsonfield.fields.JSONField')(default={})),
             ('status', self.gf('django.db.models.fields.CharField')(default='ACTI', max_length=4)),
             ('scale', self.gf('django.db.models.fields.CharField')(default='DISC', max_length=4)),
+            ('lower_bound', self.gf('django.db.models.fields.DecimalField')(default='0.00', max_digits=8, decimal_places=2)),
+            ('upper_bound', self.gf('django.db.models.fields.DecimalField')(default='100.00', max_digits=8, decimal_places=2)),
             ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None)),
         ))
         db.send_create_signal(u'gpaconvert', ['GradeSource'])
@@ -39,8 +41,6 @@ class Migration(SchemaMigration):
         db.create_table(u'gpaconvert_continuousrule', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('grade_source', self.gf('django.db.models.fields.related.ForeignKey')(related_name='continuous_rules', to=orm['gpaconvert.GradeSource'])),
-            ('total_lbound', self.gf('django.db.models.fields.DecimalField')(default='0.00', max_digits=8, decimal_places=2)),
-            ('total_ubound', self.gf('django.db.models.fields.DecimalField')(default='100.00', max_digits=8, decimal_places=2)),
             ('lookup_lbound', self.gf('django.db.models.fields.DecimalField')(max_digits=8, decimal_places=2)),
             ('transfer_value', self.gf('django.db.models.fields.CharField')(max_length=2)),
         ))
@@ -52,6 +52,7 @@ class Migration(SchemaMigration):
         # Adding model 'UserArchive'
         db.create_table(u'gpaconvert_userarchive', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('grade_source', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gpaconvert.GradeSource'])),
             ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=64)),
             ('data', self.gf('jsonfield.fields.JSONField')(default={})),
         ))
@@ -87,8 +88,6 @@ class Migration(SchemaMigration):
             'grade_source': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'continuous_rules'", 'to': u"orm['gpaconvert.GradeSource']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'lookup_lbound': ('django.db.models.fields.DecimalField', [], {'max_digits': '8', 'decimal_places': '2'}),
-            'total_lbound': ('django.db.models.fields.DecimalField', [], {'default': "'0.00'", 'max_digits': '8', 'decimal_places': '2'}),
-            'total_ubound': ('django.db.models.fields.DecimalField', [], {'default': "'100.00'", 'max_digits': '8', 'decimal_places': '2'}),
             'transfer_value': ('django.db.models.fields.CharField', [], {'max_length': '2'})
         },
         u'gpaconvert.discreterule': {
@@ -99,18 +98,21 @@ class Migration(SchemaMigration):
             'transfer_value': ('django.db.models.fields.CharField', [], {'max_length': '2'})
         },
         u'gpaconvert.gradesource': {
-            'Meta': {'unique_together': "(('country', 'institution'),)", 'object_name': 'GradeSource'},
+            'Meta': {'ordering': "('institution', 'country')", 'unique_together': "(('country', 'institution'),)", 'object_name': 'GradeSource'},
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'country': ('django_countries.fields.CountryField', [], {'max_length': '2'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'institution': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'lower_bound': ('django.db.models.fields.DecimalField', [], {'default': "'0.00'", 'max_digits': '8', 'decimal_places': '2'}),
             'scale': ('django.db.models.fields.CharField', [], {'default': "'DISC'", 'max_length': '4'}),
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None'}),
-            'status': ('django.db.models.fields.CharField', [], {'default': "'ACTI'", 'max_length': '4'})
+            'status': ('django.db.models.fields.CharField', [], {'default': "'ACTI'", 'max_length': '4'}),
+            'upper_bound': ('django.db.models.fields.DecimalField', [], {'default': "'100.00'", 'max_digits': '8', 'decimal_places': '2'})
         },
         u'gpaconvert.userarchive': {
             'Meta': {'object_name': 'UserArchive'},
             'data': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
+            'grade_source': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gpaconvert.GradeSource']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '64'})
         }
