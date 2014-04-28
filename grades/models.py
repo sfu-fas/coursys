@@ -7,7 +7,7 @@ from django.db.models import Count
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 import decimal, json

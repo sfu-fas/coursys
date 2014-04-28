@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 import random, hashlib, os
 
 import textile

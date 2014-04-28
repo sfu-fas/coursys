@@ -1,6 +1,6 @@
 from django.db import models
 from coredata.models import Person, Unit, Semester
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug

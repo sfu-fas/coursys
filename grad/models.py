@@ -4,7 +4,7 @@ from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from courselib.text import normalize_newlines, many_newlines
 import itertools, datetime
 import coredata.queries

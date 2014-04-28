@@ -1,7 +1,7 @@
 from django.db import models
 from coredata.models import Role, Person, Unit, ROLE_CHOICES
 from alerts.models import AlertType, Alert
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from dashboard.models import NewsItem

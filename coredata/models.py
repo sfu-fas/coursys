@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
 from cache_utils.decorators import cached
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from django.utils.safestring import mark_safe
 from django.utils.html import escape

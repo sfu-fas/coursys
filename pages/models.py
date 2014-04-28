@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from coredata.models import CourseOffering, Member
 from grades.models import Activity
 
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from courselib.text import normalize_newlines
 import creoleparser, pytz

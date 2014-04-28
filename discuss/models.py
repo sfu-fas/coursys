@@ -6,7 +6,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.template.context import Context
 from django.conf import settings
-from jsonfield.fields import JSONField
+from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from pages.models import ParserFor, brushes_used
 from autoslug import AutoSlugField

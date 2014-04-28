@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from coredata.models import Person, Unit, Course, CourseOffering
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines
 from datetime import date

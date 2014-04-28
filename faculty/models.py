@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 
 from autoslug import AutoSlugField
 from bitfield import BitField
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 
 from coredata.models import Unit, Person, Semester, Role
 from courselib.json_fields import config_property

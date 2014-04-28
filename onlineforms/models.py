@@ -3,7 +3,7 @@ from django.db import models, transaction
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from coredata.models import Person, Unit
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
