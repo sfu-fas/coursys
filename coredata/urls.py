@@ -50,6 +50,6 @@ sysadmin_patterns = [ # prefix /sysadmin/
 ]
 
 browse_patterns = [ # prefix /browse/
-    url(r'^browse/$', 'coredata.views.browse_courses'),
-    url(r'^browse/info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),
+    url(r'^$', 'coredata.views.browse_courses'),
+    url(r'^info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),
 ]
