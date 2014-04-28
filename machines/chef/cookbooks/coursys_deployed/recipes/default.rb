@@ -93,7 +93,7 @@ end
 execute "kill_the_rabbit" do
     # sometimes the initial startup seems to not connect to the pid file
     cwd "/"
-    command "killall rabbitmq-server; killall beam"
+    command "killall rabbitmq-server; killall beam; killall beam.smp; killall epmd"
     ignore_failure true
 end
 service "rabbitmq-server" do
