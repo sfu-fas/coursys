@@ -43,7 +43,6 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig, NewsItem
-from dashboard.views import _get_memberships
 from dashboard.photos import fetch_photos
 from discuss import activity as discuss_activity
 import celery
@@ -1134,9 +1133,7 @@ def all_grades(request, course_slug):
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
 
-    memberships, excluded=_get_memberships(userid=request.user.username)
-    
-    context = {'course': course, 'students': students, 'activities': activities, 'grades': grades, 'memberships': memberships}
+    context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 
 
@@ -1211,9 +1208,7 @@ def class_list(request, course_slug):
         data = {'member': m, 'groups': groups.get(m.id, [])}
         rows.append(data)
 
-    memberships, excluded=_get_memberships(userid=request.user.username)
-    
-    context = {'course': course, 'rows': rows, 'memberships': memberships}
+    context = {'course': course, 'rows': rows}
     return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
 
 
