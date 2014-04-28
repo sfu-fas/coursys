@@ -87,6 +87,9 @@ class ExceptionIgnorer(object):
         elif OperationalError is not None and isinstance(exception, OperationalError) and "Lost connection to MySQL server at 'reading initial communication packet'" in format:
             # lost main DB
             return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
+        elif OperationalError is not None and isinstance(exception, OperationalError) and "MySQL server has gone away" in format:
+            # lost main DB
+            return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
         elif isinstance(exception, AssertionError) and "The Django CAS middleware requires authentication middleware" in format:
             # wacky authentication thing that means the database is missing, or something
             return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
