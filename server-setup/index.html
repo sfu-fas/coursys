@@ -34,6 +34,7 @@ code.file {
 sudo apt-get dist-upgrade
 sudo apt-get install git chef
 sudo adduser coursys
+sudo groupadd admin
 sudo gpasswd -a coursys admin
 sudo su coursys</pre></blockquote>
     </dd>
@@ -91,7 +92,11 @@ sudo ./manage.py install_secrets</pre></blockquote>
 <dl>
     <dt>Partition copy</dt>
     <dd>
-        <p>Something about how we handle <code class="file">/data</code>.</p>
+        <p>The files from <code class="file">/data</code> have to make their way across.</p>
+        <blockquote><pre>cd /data
+rsync -aP ggbaker@courses.cs.sfu.ca:/data/* .
+sudo chown -R www-data.www-data /data/submitted_files</pre></blockquote>
+
     </dd>
 </dl>
 
