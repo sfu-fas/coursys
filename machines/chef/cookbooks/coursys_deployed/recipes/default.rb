@@ -151,6 +151,7 @@ end
 
 #put supervisord in init.d
 cookbook_file "supervisor_init.d" do
+    owner "coursys"
     path "/etc/init.d/supervisord"
     mode "0755"
 end
@@ -173,6 +174,7 @@ end
 
 #start supervisord
 execute "supervisord" do
+    user "coursys"
     command "supervisord"
     ignore_failure true    
 end
