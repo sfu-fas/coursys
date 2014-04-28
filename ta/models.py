@@ -628,6 +628,9 @@ class TAContract(models.Model):
         courses = TACourse.objects.filter(contract=self)
         return sum( [course.prep_bu for course in courses] )
 
+    def total_pay(self):
+        return decimal.Decimal(self.bu()) * self.pay_per_bu
+
 
 class CourseDescription(models.Model):
     """

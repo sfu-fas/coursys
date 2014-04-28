@@ -756,8 +756,11 @@ class GradStudent(models.Model):
         """
         from ta.models import TAContract, TACourse, HOURS_PER_BU
         from ra.models import RAAppointment
+        
+        todays_date = datetime.date.today()
 
         # basic personal stuff
+        emplid = self.person.emplid
         gender = self.person.gender()
         title = self.person.get_title()
         
@@ -806,6 +809,15 @@ class GradStudent(models.Model):
                     tacrs.contract.posting.semester.label(), tacrs.contract.posting.semester.months(),
                     tacrs.course.subject, tacrs.course.number,
                     tacrs.pay(), tacrs.bu*HOURS_PER_BU)
+
+        last_ta_start_date = "?"
+        last_ta_end_date = "?"
+        last_ta_total_salary = "$?"
+        if tas:
+            last_ta = tas[0]
+            last_ta_start_date = last_ta.pay_start
+            last_ta_end_date = last_ta.pay_end
+            last_ta_total_salary = "$%.2f" % last_ta.total_pay()
         
         # RAing
         rafunding = ''
@@ -814,6 +826,17 @@ class GradStudent(models.Model):
         for ra in ras:
             rafunding += "||%s-%s|$%.2f|%i hours/week\n" % (
                     ra.start_date.strftime("%b %Y"), ra.end_date.strftime("%b %Y"), ra.lump_sum_pay, ra.hours/2)
+
+        last_ra_start_date = "?"
+        last_ra_end_date = "?"
+        last_ra_total_salary = "$?"
+        last_ra_biweekly_salary = "$?"
+        if ras:
+            last_ra = ras[0]
+            last_ra_start_date = last_ra.start_date
+            last_ra_end_date = last_ra.end_date
+            last_ra_total_salary = "$%.2f" % last_ra.lump_sum_pay
+            last_ra_biweekly_salary = "$%.2f" % last_ra.biweekly_pay
         
         # Scholarships
         scholarships = ''
@@ -830,34 +853,74 @@ class GradStudent(models.Model):
         else:
             startyear = 'UNKNOWN'
             startsem = 'UNKNOWN'
-        
-        potentials = Supervisor.objects.filter(student=self, supervisor_type='POT', removed=False).exclude(supervisor__isnull=True)
-        if potentials:
-            potsup = potentials[0]
-            supervisor_name = potsup.supervisor.name()
-            supervisor_email = potsup.supervisor.email()
-            sgender = potsup.supervisor.gender()
-            if sgender == "M" :
-                supervisor_hisher = "his"
-                supervisor_heshe = "he"
-                supervisor_himher = "him"
-            elif sgender == "F":
-                supervisor_hisher = "her"
-                supervisor_heshe = "she"
-                supervisor_himher = "her"
-            else:
-                supervisor_hisher = "his/her"
-                supervisor_heshe = "he/she"
-                supervisor_himher = "him/her"
-        else:
-            supervisor_name = 'UNKNOWN'
-            supervisor_email = 'UNKNOWN@sfu.ca'
+       
+        def supervisor_details( supervisor_type, ordinal=1 ):
+            # we default to selecting the first (ordinal=1) supervisor that matches the type
+            # if ordinal > 1, we select the 2nd, 3rd, et-al
+            supervisor_name = '?'
+            supervisor_email = '?'
             supervisor_hisher = 'his/her'
             supervisor_heshe = "he/she"
             supervisor_himher = "him/her"
+            potentials = Supervisor.objects.filter(student=self, supervisor_type=supervisor_type, removed=False)
+            if len(potentials) > ordinal-1:
+                potsup = potentials[ordinal-1]
+                if potsup.supervisor:
+                    supervisor_name = potsup.supervisor.name()
+                    supervisor_email = potsup.supervisor.email()
+                    sgender = potsup.supervisor.gender()
+                    if sgender == "M" :
+                        supervisor_hisher = "his"
+                        supervisor_heshe = "he"
+                        supervisor_himher = "him"
+                    elif sgender == "F":
+                        supervisor_hisher = "her"
+                        supervisor_heshe = "she"
+                        supervisor_himher = "her"
+                else:
+                    supervisor_name = potsup.external
+                    supervisor_email = ""
+            return supervisor_name, supervisor_email, supervisor_hisher, supervisor_heshe, supervisor_himher
         
+        supervisor_name, supervisor_email, supervisor_hisher, supervisor_heshe, supervisor_himher = supervisor_details("POT")
+        sr_supervisor_name, sr_supervisor_email, sr_supervisor_hisher, sr_supervisor_heshe, sr_supervisor_himher = supervisor_details("SEN")
+        defence_chair_name, defence_chair_email, x, y, z = supervisor_details('CHA')
+        sfu_examiner_name, sfu_examiner_email, x, y, z = supervisor_details('SFU')
+        external_examiner_name, external_examiner_email, x, y, z = supervisor_details('EXT')
+        co_sr_supervisor_name, co_sr_supervisor_email, x, y, z = supervisor_details('COS')
+        committee_1_name, committee_1_email, x, y, z = supervisor_details('COM', 1)
+        committee_2_name, committee_2_email, x, y, z = supervisor_details('COM', 2)
+        committee_3_name, committee_3_email, x, y, z = supervisor_details('COM', 3)
+
+        all_supervisors = [x for x in Supervisor.objects.filter(student=self, removed=False)]
+        all_supervisors.sort(cmp=lambda x,y: cmp(x.type_order(), y.type_order()))
+        committee = ""
+        for supervisor in all_supervisors:
+            if supervisor.supervisor:
+                name = supervisor.supervisor.name()
+            else:
+                name = supervisor.external
+            committee += supervisor.get_supervisor_type_display() + ": " + name + "\n"
+
+        sin = self.person.sin() 
+        
+        def config_or_unknown(key):
+            if key in self.config:
+                return self.config[key]
+            else:
+                return "?"
+        
+        thesis_title = config_or_unknown("work_title")
+        thesis_date = config_or_unknown("exam_date")
+        thesis_location = config_or_unknown("thesis_location")
+        research_area = self.research_area
+        
+        qualifying_exam_date = config_or_unknown("qualifying_exam_date")
+        qualifying_exam_location = config_or_unknown("qualifying_exam_location")
+
         ls = { # if changing, also update LETTER_TAGS below with docs!
                # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
+                'todays_date' : todays_date, 
                 'title' : title,
                 'his_her' : hisher,
                 'His_Her' : hisher.title(),
@@ -865,6 +928,7 @@ class GradStudent(models.Model):
                 'He_She' : heshe.title(),
                 'first_name': self.person.first_name,
                 'last_name': self.person.last_name,
+                'emplid': emplid, 
                 'promise': promise,
                 'start_semester': startsem,
                 'start_year': startyear,
@@ -874,10 +938,44 @@ class GradStudent(models.Model):
                 'supervisor_heshe': supervisor_heshe,
                 'supervisor_himher': supervisor_himher,
                 'supervisor_email': supervisor_email,
+                'committee': committee,
+                'sr_supervisor_name': sr_supervisor_name,
+                'sr_supervisor_hisher': sr_supervisor_hisher,
+                'sr_supervisor_heshe': sr_supervisor_heshe,
+                'sr_supervisor_himher': sr_supervisor_himher,
+                'sr_supervisor_email': sr_supervisor_email,
+                'defence_chair_name': defence_chair_name, 
+                'defence_chair_email': defence_chair_email,
+                'sfu_examiner_name': sfu_examiner_name, 
+                'sfu_examiner_email': sfu_examiner_email,
+                'external_examiner_name': external_examiner_name, 
+                'external_examiner_email': external_examiner_email,
+                'co_sr_supervisor_name': co_sr_supervisor_name, 
+                'co_sr_supervisor_email': co_sr_supervisor_email,
+                'committee_1_name': committee_1_name,
+                'committee_1_email': committee_1_email, 
+                'committee_2_name': committee_2_name,
+                'committee_2_email': committee_2_email, 
+                'committee_3_name': committee_3_name,
+                'committee_3_email': committee_3_email, 
                 'recent_empl': recent_empl,
                 'tafunding': tafunding,
+                'last_ta_start_date': last_ta_start_date, 
+                'last_ta_end_date': last_ta_end_date, 
+                'last_ta_total_salary': last_ta_total_salary, 
                 'rafunding': rafunding,
+                'last_ra_start_date': last_ra_start_date, 
+                'last_ra_end_date': last_ra_end_date, 
+                'last_ra_total_salary': last_ra_total_salary, 
+                'last_ra_biweekly_salary': last_ra_biweekly_salary,
                 'scholarships': scholarships,
+                'sin':sin, 
+                'thesis_title':thesis_title, 
+                'thesis_date':thesis_date,
+                'thesis_location':thesis_location,
+                'research_area':research_area,
+                'qualifying_exam_date':qualifying_exam_date,
+                'qualifying_exam_location':qualifying_exam_location
               }
         return ls
 
@@ -965,11 +1063,11 @@ class GradStudent(models.Model):
 
     def thesis_summary(self): 
         summary = ""
-        if 'work_title' in self.config:
+        if 'work_title' in self.config and self.config['work_title']:
             summary += self.config['work_title'] + " : "
-        if 'thesis_location' in self.config:
+        if 'thesis_location' in self.config and self.config['thesis_location']:
             summary += "(" + self.config['thesis_location'] + ") "
-        if 'exam_date' in self.config:
+        if 'exam_date' in self.config and self.config['exam_date']:
             summary += self.config['exam_date'] + " "
         return summary
 
@@ -1044,9 +1142,11 @@ class GradProgramHistory(models.Model):
 
 # documentation for the fields returned by GradStudent.letter_info
 LETTER_TAGS = {
+               'todays_date': 'today\'s date', 
                'title': '"Mr", "Miss", etc.',
                'first_name': 'student\'s first name',
                'last_name': 'student\'s last name',
+               'emplid': 'student\'s emplid',
                'his_her' : '"his" or "her" (or use His_Her for capitalized)',
                'he_she' : '"he" or "she" (or use He_She for capitalized)',
                'program': 'the program the student is enrolled in',
@@ -1057,11 +1157,45 @@ LETTER_TAGS = {
                'supervisor_hisher': 'pronoun for the potential supervisor ("his" or "her")',
                'supervisor_heshe': 'pronoun for the potential supervisor ("he" or "she")',
                'supervisor_himher': 'pronoun for the potential supervisor ("him" or "her")',
-               'supervisor_email': "potential supervisor's email address",
+               'supervisor_email': 'potential supervisor\'s email address',
+               'committee': 'display this student\'s entire committee',
+               'sr_supervisor_name': 'the name of the student\'s senior supervisor',
+               'sr_supervisor_hisher': 'pronoun for the senior supervisor ("his" or "her")',
+               'sr_supervisor_heshe': 'pronoun for the senior supervisor ("he" or "she")',
+               'sr_supervisor_himher': 'pronoun for the senior supervisor ("him" or "her")',
+               'sr_supervisor_email': 'potential supervisor\'s email address',
+               'defence_chair_name': 'the name of the student\'s defence chair', 
+               'defence_chair_email': 'the email address of the student\'s defence chair',
+               'sfu_examiner_name': 'the name of the student\'s internal (SFU) examiner', 
+               'sfu_examiner_email': 'the email of the student\'s internal (SFU) examiner',
+               'external_examiner_name': 'the name of the student\'s external examiner', 
+               'external_examiner_email': 'the email of the student\'s external examiner',
+               'co_sr_supervisor_name': 'the name of the student\'s co-senior supervisor', 
+               'co_sr_supervisor_email': 'the email of the student\'s co-senior supervisor',
+               'committee_1_name': 'the name of the student\'s first committee member',
+               'committee_1_email': 'the email of the student\'s first committee member', 
+               'committee_2_name': 'the name of the student\'s second committee member',
+               'committee_2_email': 'the email of the student\'s second committee member',
+               'committee_3_name': 'the name of the student\'s third committee member',
+               'committee_3_email': 'the email of the student\'s third committee member', 
                'recent_empl': 'most recent employment ("teaching assistant" or "research assistant")',
                'tafunding': 'List of funding as a TA',
+               'last_ta_start_date': 'the first day of the most recent TA contract granted to this student', 
+               'last_ta_end_date': 'the last day of the most recent TA contract granted to this student', 
+               'last_ta_total_salary': 'the total salary of the most recent TA contract granted to this student (Pay per BU * Total BU)', 
                'rafunding': 'List of funding as an RA',
+               'last_ra_start_date': 'the first day of the most recent RA granted to this student', 
+               'last_ra_end_date': 'the last day of the most recent RA granted to this student', 
+               'last_ra_total_salary': 'the lump sum amount paid for the most recent RA granted to this student', 
+               'last_ra_biweekly_salary': 'the biweekly pay for the most recent RA granted to this student',
                'scholarships': 'List of scholarships received',
+               'sin': 'Student\'s SIN number, if available',
+               'thesis_title': 'The title of the student\'s thesis, project, or extended essay',
+               'thesis_date': 'The date of the student\'s thesis, project, or extended essay',
+               'thesis_location': 'The location of the student\'s thesis, project, or extended essay',
+               'research_area': 'The student\'s area of research',
+               'qualifying_exam_date': 'The date of the student\'s qualifying exam',
+               'qualifying_exam_location': 'The location of the student\'s qualifying exam'
                }
 
 SUPERVISOR_TYPE_CHOICES = [

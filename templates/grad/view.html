@@ -78,7 +78,14 @@ $(document).ready(function() {
 <tr><th>Start/End Semesters</th><td>{% if grad.start_semester %}{{ grad.start_semester.name }}{% else %}???{% endif %}&ndash;{% if grad.end_semester %}{{ grad.end_semester.name }}{% else %}present{% endif %}</td></tr>
 <tr><th>Active/Total Semesters</th><td>{{grad.active_semesters_display}}</td></tr>
 {% if other_grad %}<tr><th>Other programs</th><td>{% for g in other_grad %}<a href="{% url "grad.views.view" grad_slug=g.slug %}">{{g}}</a><br />{% endfor %}</td></tr>{% endif %}
-{% if grad.thesis_type != "Defence" %}<tr><th>{{ grad.thesis_type}}</th><td>{{grad.thesis_summary}}</td></tr> {% endif %}
+<tr>
+    <th>{{ grad.thesis_type}}</th>
+    <td>{{grad.thesis_summary}}
+    {% if can_edit %}
+        <a class="editlink" href="{% url "grad.views.manage_defence" grad_slug=grad.slug %}">Update {{grad.thesis_type}}</a>
+    {% endif %}
+    </td>
+</tr>
 </tbody>
 </table>
 </div>
