@@ -274,6 +274,7 @@ if USE_CELERY:
 
 MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
+CAS_VERSION = '2'
 EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
