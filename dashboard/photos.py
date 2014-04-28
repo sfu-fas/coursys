@@ -82,10 +82,14 @@ def _get_photo_token():
     Get auth token from photo service
     """
     token_data = urllib.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()})
-    token_request = urllib2.urlopen(TOKEN_URL, data=token_data)
-    token_response = json.load(token_request)
-    token = token_response['ServiceToken']
-    return token
+    try:
+        token_request = urllib2.urlopen(TOKEN_URL, data=token_data)
+    except IOError:
+        return ''
+    else:
+        token_response = json.load(token_request)
+        token = token_response['ServiceToken']
+        return token
 
 def _get_photos(emplids):
     """
@@ -99,8 +103,12 @@ def _get_photos(emplids):
 
     photo_url = PHOTO_URL % (emplid_str)
     headers = {'Authorization': 'Bearer ' + token}
-    photo_request_obj = urllib2.Request(url=photo_url, headers=headers)
-    photo_request = urllib2.urlopen(photo_request_obj, timeout=30)
+    try:
+        photo_request_obj = urllib2.Request(url=photo_url, headers=headers)
+        photo_request = urllib2.urlopen(photo_request_obj, timeout=30)
+    except IOError:
+        return {}
+
     photo_response = json.load(photo_request)
     photos = {}
     for data in photo_response:
