@@ -36,6 +36,11 @@ class Command(BaseCommand):
         return s.split('.')[-1]
 
     def check_cert(self, filename):
+        """
+        Does this certificate file look okay?
+        
+        Returns error message, or None if okay
+        """
         try:
             st = os.stat(filename)
         except OSError:
@@ -47,6 +52,28 @@ class Command(BaseCommand):
             perm = st[stat.ST_MODE]
             if good_perm != perm:
                 return "expected permissions %o but found %o." % (good_perm, perm)
+
+    def check_file_create(self, directory):
+        """
+        Check that files can be created in the given directory.
+        
+        Returns error message, or None if okay
+        """
+        filename = os.path.join(directory, 'filewrite-' + str(os.getpid()) + '.tmp')
+        
+        if not os.path.isdir(directory):
+            return 'directory does not exist'
+
+        try:
+            fh = open(filename, 'w')
+        except IOError:
+            return 'could not write to a file'
+        else:
+            fh.write('test file: may safely delete')
+            fh.close()
+            os.unlink(filename)
+        
+
 
     def handle(self, *args, **options):
         if options['cache_subcall']:
@@ -160,11 +187,14 @@ class Command(BaseCommand):
 
         # Haystack searching
         from haystack.query import SearchQuerySet
-        res = SearchQuerySet().filter(text='cmpt')
-        if res:
-            passed.append(('Haystack search', 'okay'))
-        else:
-            failed.append(('Haystack search', 'nothing found: maybe update_index, or wait for search server to fully start'))
+        try:
+            res = SearchQuerySet().filter(text='cmpt')
+            if res:
+                passed.append(('Haystack search', 'okay'))
+            else:
+                failed.append(('Haystack search', 'nothing found: maybe update_index, or wait for search server to fully start'))
+        except IOError:
+            failed.append(('Haystack search', "can't read/write index"))
 
 
         # photo fetching
@@ -234,7 +264,22 @@ class Command(BaseCommand):
         else:
             failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
 
-        # TODO: www-data can create files in DB backup directory, submission directory, media/CACHE
+        
+        # file creation in the necessary places
+        dirs_to_check = [
+            (settings.DB_BACKUP_DIR, 'DB backup dir'),
+            (settings.SUBMISSION_PATH, 'submitted files path'),
+            (os.path.join(settings.COMPRESS_ROOT, 'CACHE'), 'compressed media root'),             
+        ]
+        for directory, label in dirs_to_check:
+            res = self.check_file_create(directory)
+            print label, res
+            if res is None:
+                passed.append(('File creation in ' + label, 'okay'))
+            else:
+                failed.append(('File creation in ' + label, res))
+
+
 
         # report results
         self._report('For information', info)
