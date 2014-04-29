@@ -16,6 +16,10 @@ execute "debconf_reconfigure" do
     cwd "/"
     command "rm /etc/postfix/main.cf /etc/postfix/master.cf ; dpkg-reconfigure -f noninteractive postfix"
 end
+execute "postfix_configure" do
+    cwd "/"
+    command "sudo /usr/sbin/postconf -e \"inet_interfaces = loopback-only\""
+end
 
 # reconfigure NGINX with end-user properties
 cookbook_file "nginx_default.conf" do

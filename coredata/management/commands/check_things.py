@@ -281,12 +281,14 @@ class Command(BaseCommand):
         # are any services listening publicly that shouldn't?
         hostname = socket.gethostname()
         ports = [
+            25, # mail server
             4369, # epmd, erlang port mapper daemon
             45130, # beam? rabbitmq something
             4000, # main DB stunnel
             50000, # reporting DB
             8000, # gunicorn
             11211, # memcached
+            9200, 9300, # elasticsearch
         ]
         connected = []
         for p in ports:
