@@ -1281,7 +1281,8 @@ def student_photo(request, emplid):
             task.get(timeout=PHOTO_TIMEOUT)
             data = cache.get(image_key, None)
         except celery.exceptions.TimeoutError:
-            pass
+            # try one last time to see if we missed the task, but the result got to the cache
+            data = cache.get(image_key, None)
 
     elif settings.USE_CELERY:
         # no cache warming: new task to get the photo
