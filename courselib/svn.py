@@ -152,7 +152,7 @@ def update_indiv_repository(offering, m, instr, repos):
         if m.role == "DROP" and _in_another_section(offering, m):
             # if student dropped this section, but is still in another, let that one win.
             return
-        update_repository_task.delay(reponame, rw, ro)
+        update_repository_task.delay(reponame, list(rw), list(ro))
 
 
 def update_group_repository(offering, g, instr=None, repos=None):
