@@ -288,8 +288,9 @@ class TAContractForm(forms.ModelForm):
     
     def clean_deadline(self):
         deadline = self.cleaned_data['deadline']
+        status = self.cleaned_data['status']
         today = datetime.date.today()
-        if deadline < today:
+        if status not in ['REJ', 'CAN'] and deadline < today:
             raise forms.ValidationError("Deadline for acceptance cannot be before today")
         return deadline
     
