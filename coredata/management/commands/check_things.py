@@ -279,6 +279,33 @@ class Command(BaseCommand):
             else:
                 failed.append(('File creation in ' + label, res))
 
+        # are any services listening publicly that shouldn't?
+        hostname = socket.gethostname()
+        ports = [
+            4369, # epmd, erlang port mapper daemon
+            45130, # beam? rabbitmq something
+            4000, # main DB stunnel
+            50000, # reporting DB
+            8000, # gunicorn
+            11211, # memcached
+        ]
+        connected = []
+        for p in ports:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.connect((hostname, p))
+            except socket.error:
+                # counldn't connect: good
+                pass
+            else:
+                connected.append(p)
+            finally:
+                s.close()
+
+        if connected:
+            failed.append(('Ports listening externally', 'got connections to port ' + ','.join(str(p) for p in connected)))
+        else:
+            passed.append(('Ports listening externally', 'okay'))
 
 
         # report results
