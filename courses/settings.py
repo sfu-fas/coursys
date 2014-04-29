@@ -304,6 +304,7 @@ FEATUREFLAGS_DISABLED_VIEW = 'courselib.auth.service_unavailable'
 FEATUREFLAGS_DISABLE = set([])
 FEATUREFLAGS_PANIC_DISABLE = set(['course_browser', 'sims', 'feeds'])
 
+LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_loggers': False})
 
 AUTOSLUG_SLUGIFY_FUNCTION = 'courselib.slugs.make_slug'
 

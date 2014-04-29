@@ -47,6 +47,7 @@ from dashboard.photos import fetch_photos
 from discuss import activity as discuss_activity
 import celery
 
+import logging
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -1214,6 +1215,8 @@ def class_list(request, course_slug):
 
 @requires_course_staff_by_slug
 def photo_list(request, course_slug):
+    logger = logging.getLogger('photo-view')
+
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     
@@ -1226,6 +1229,7 @@ def photo_list(request, course_slug):
     
     # fire off a task to fetch the photos, to warm the cache
     task_map = fetch_photos([m.person.emplid for m in members])
+    logger.debug('photo_list(request, %r) has task map: %r' % (course_slug, task_map))
     for emplid, task_id in task_map.iteritems():
         cache.set('photo-task-'+unicode(emplid), task_id, 60)
 
@@ -1235,6 +1239,8 @@ def photo_list(request, course_slug):
 
 @login_required
 def student_photo(request, emplid):
+    logger = logging.getLogger('photo-view')
+
     # confirm user's photo agreement
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
@@ -1255,7 +1261,6 @@ def student_photo(request, emplid):
     # get the photo
     from dashboard.tasks import fetch_photos_task
     from dashboard.photos import DUMMY_IMAGE_FILE, PHOTO_TIMEOUT
-    PRINT_STUFF = False
     task_key = 'photo-task-'+unicode(emplid)
     image_key = 'photo-image-'+unicode(emplid)
     task_id = cache.get(task_key, None)
@@ -1265,14 +1270,14 @@ def student_photo(request, emplid):
 
     if photo_data:
         # found image in cache: was fetched previously or task completed before we got here
-        if PRINT_STUFF: print "cache data", emplid
+        logger.debug('cached data for %s' % (emplid))
         data = photo_data
 
     elif task_id and settings.USE_CELERY:
         # found a task fetching the photo: wait for it to complete and get the data
         task = fetch_photos_task.AsyncResult(task_id)
         try:
-            if PRINT_STUFF: print "cache task", emplid
+            logger.debug('task in cache for %s' % (emplid))
             task.get(timeout=PHOTO_TIMEOUT)
             data = cache.get(image_key, None)
         except celery.exceptions.TimeoutError:
@@ -1280,7 +1285,7 @@ def student_photo(request, emplid):
 
     elif settings.USE_CELERY:
         # no cache warming: new task to get the photo
-        if PRINT_STUFF: print "no cache", emplid
+        logger.debug('no cache for %s' % (emplid))
         task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
         try:
             task.get(timeout=PHOTO_TIMEOUT)
@@ -1290,6 +1295,7 @@ def student_photo(request, emplid):
 
     if not data:
         # whatever happened above failed: use a no-photo placeholder
+        logger.debug('using dummy image for %s' % (emplid))
         data = open(DUMMY_IMAGE_FILE, 'r').read()
         status = 404
 

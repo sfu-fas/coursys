@@ -6,6 +6,9 @@ import itertools, os
 import hashlib, string, datetime
 import urllib, urllib2, json, base64
 
+import logging
+logger = logging.getLogger('photo-backend')
+
 ACCOUNT_NAME = 'cs'
 
 URL_BASE = 'https://photos-api.its.sfu.ca/'
@@ -70,7 +73,9 @@ def do_photo_fetch(emplids):
         for emplid in missing:
             cache.set('photo-image-'+unicode(emplid), data, 3600)
 
-    return list(set(photos.keys()))
+    result = list(set(photos.keys()))
+    logger.debug("do_photo_fetch(%r) returning %r" % (emplids, result))
+    return result
 
 
 
