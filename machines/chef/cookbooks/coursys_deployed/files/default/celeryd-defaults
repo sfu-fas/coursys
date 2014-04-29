@@ -13,11 +13,10 @@ CELERYD_CHDIR="/home/coursys/courses"
 
 # Extra command-line arguments to the worker
 BEAT_OPTS="-B:worker --schedule=/var/run/celery/celerybeat.schedule" # options for celerybeat
-WORKER_OPTS="-Q:fastworker fast -Q:photo photo -Q:sims sims -Q:worker batch,email,fast -c:photo 5 -E"
+WORKER_OPTS="-Q:fastworker fast -Q:photo photo -Q:sims sims -Q:worker batch,email,fast,celery -c 2 -c:photo 5 -E"
 CELERYD_OPTS="$BEAT_OPTS $WORKER_OPTS --loglevel=INFO" # actual command line options
 
 CELERYD_MAX_TASKS_PER_CHILD=100
-CELERYD_CONCURRENCY=2
 CELERYD_TASK_TIME_LIMIT=300
 
 # %N will be replaced with the first part of the nodename.
@@ -33,3 +32,6 @@ CELERYD_GROUP="coursys"
 # If enabled pid and log directories will be created if missing,
 # and owned by the userid/group configured.
 CELERY_CREATE_DIRS=1
+
+LANG="en_CA.UTF-8" # DB2 doesn't return UTF-8 strings otherwise
+export LANG
