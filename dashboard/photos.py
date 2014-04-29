@@ -5,6 +5,7 @@ from cache_utils.decorators import cached
 import itertools, os
 import hashlib, string, datetime
 import urllib, urllib2, json, base64
+import celery
 
 import logging
 logger = logging.getLogger('photo-backend')
@@ -32,6 +33,55 @@ def _grouper(iterable, n, fillvalue=None):
 
 
 # functions that should actually be called to do stuff
+
+def photo_for_view(emplid):
+    """
+    Get the photo, as needed by the view: check for cached JPEG, then cached task, else just fetch.
+
+    Returns photos data, HTTP status.
+    """
+    task_key = 'photo-task-'+unicode(emplid)
+    image_key = 'photo-image-'+unicode(emplid)
+    task_id = cache.get(task_key, None)
+    photo_data = cache.get(image_key, None)
+    data = None
+    status = 200
+
+    if photo_data:
+        # found image in cache: was fetched previously or task completed before we got here
+        logger.debug('cached data for %s' % (emplid))
+        data = photo_data
+
+    elif task_id and settings.USE_CELERY:
+        # found a task fetching the photo: wait for it to complete and get the data
+        from dashboard.tasks import fetch_photos_task
+        task = fetch_photos_task.AsyncResult(task_id)
+        try:
+            logger.debug('task in cache for %s' % (emplid))
+            task.get(timeout=PHOTO_TIMEOUT)
+            data = cache.get(image_key, None)
+        except celery.exceptions.TimeoutError:
+            # try one last time to see if we missed the task, but the result got to the cache
+            data = cache.get(image_key, None)
+
+    elif settings.USE_CELERY:
+        # no cache warming: new task to get the photo
+        logger.debug('no cache for %s' % (emplid))
+        task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
+        try:
+            task.get(timeout=PHOTO_TIMEOUT)
+            data = cache.get(image_key, None)
+        except celery.exceptions.TimeoutError:
+            pass
+
+    if not data:
+        # whatever happened above failed: use a no-photo placeholder
+        logger.debug('using dummy image for %s' % (emplid))
+        data = open(DUMMY_IMAGE_FILE, 'r').read()
+        status = 404
+
+    return data, status
+
 
 def fetch_photos(emplids):
     """
