@@ -273,7 +273,6 @@ class Command(BaseCommand):
         ]
         for directory, label in dirs_to_check:
             res = self.check_file_create(directory)
-            print label, res
             if res is None:
                 passed.append(('File creation in ' + label, 'okay'))
             else:

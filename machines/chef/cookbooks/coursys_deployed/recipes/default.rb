@@ -87,6 +87,9 @@ end
 cookbook_file "rabbitmq.conf" do
     path "/etc/rabbitmq/rabbitmq-env.conf"
 end
+cookbook_file "rabbit.conf" do
+    path "/etc/rabbitmq/rabbit.conf"
+end
 execute "dos2unix" do
     command "dos2unix /etc/rabbitmq/rabbitmq-env.conf"
 end
