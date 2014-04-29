@@ -110,6 +110,7 @@ def change_grade_source(request, slug):
 
 # user interface views
 
+@requires_global_role('GPA')
 @render_to('gpaconvert/grade_source_list.html')
 def list_grade_sources(request):
     form = GradeSourceListForm(request.GET)
@@ -151,6 +152,7 @@ def _get_transfer_rules(formset):
     return transfer_rules, transfer_grade_points, transfer_credits, secondary_grade_points, secondary_credits
 
 
+@requires_global_role('GPA')
 @render_to('gpaconvert/convert_grades_form.html')
 def convert_grades(request, grade_source_slug):
     grade_source = get_object_or_404(GradeSource, slug=grade_source_slug)
@@ -212,6 +214,7 @@ def convert_grades(request, grade_source_slug):
     }
 
 
+@requires_global_role('GPA')
 @render_to('gpaconvert/convert_grades_form.html')
 def view_saved(request, grade_source_slug, slug):
     arch = get_object_or_404(UserArchive, grade_source__slug=grade_source_slug, slug=slug)
