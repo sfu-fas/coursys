@@ -20,6 +20,10 @@ execute "postfix_configure" do
     cwd "/"
     command "sudo /usr/sbin/postconf -e \"inet_interfaces = loopback-only\""
 end
+service "postfix" do
+  action :restart
+end
+
 
 # reconfigure NGINX with end-user properties
 cookbook_file "nginx_default.conf" do

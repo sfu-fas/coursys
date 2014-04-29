@@ -10,6 +10,11 @@ group "admin" do
   members "coursys"
   append true
 end
+group "adm" do # nginx log dir is readable by adm
+  action :modify
+  members "coursys"
+  append true
+end
 directory "/home/coursys" do
     owner "coursys"
     mode "00755"
@@ -63,6 +68,14 @@ execute "install_pip_requirements" do
     command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
 end
 
+# database backup directory
+directory "/home/coursys/db_backup" do
+    owner "coursys"
+    group "coursys"
+    mode 00700
+    action :create
+end
+
 # elasticsearch
 package "openjdk-7-jre-headless"
 directory "/tmp/elasticsearch" do
@@ -107,6 +120,9 @@ end
 cookbook_file "stunnel.conf" do
     path "/etc/stunnel/stunnel.conf"
 end
+cookbook_file "stunnel-defaults" do
+    path "/etc/default/stunnel"
+end
 execute "deny_coursys_ssh" do
     cwd "/"
     command "grep -q 'DenyUsers coursys'  /etc/ssh/sshd_config || (echo '\nDenyUsers coursys\nDenyUsers www-data' >> /etc/ssh/sshd_config)"
@@ -128,10 +144,6 @@ execute "dos2unix" do
 end
 execute "update-rc.d" do
     command "update-rc.d celeryd defaults"
-end
-execute "wwwdata_shell" do
-    cwd "/"
-    command "chsh -s /bin/bash www-data"
 end
 service "celeryd" do
   action :restart

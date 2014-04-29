@@ -22,7 +22,7 @@ code.file {
 <body>
 <h1>CourSys Server Config</h1>
 
-<p>This describes the (proposed) method used to set up the production <code>courses.cs.sfu.ca</code> serverin May 2014.</p>
+<p>This describes the method used to set up the production <code>courses.cs.sfu.ca</code> server in April 2014.</p>
 
 <h2 id="base">Base System Setup</h2>
 <dl>
@@ -59,9 +59,7 @@ sudo chef-solo -c ~/courses/machines/chef/solo.rb -j ~/courses/machines/chef/run
     </dd>
     <dt>Fix stuff from the recipe</dt>
     <dd>
-        <p>Edit /etc/default/stunnel4, /etc/nginx/.../default</p>
-        <p>mkdir ../db_backup</p>
-        <blockquote><pre>sudo gpasswd -a coursys adm # for nginx log dir</pre></blockquote>
+        <p>Edit /etc/nginx/.../default</p>
     </dd>
 
 </dl>
