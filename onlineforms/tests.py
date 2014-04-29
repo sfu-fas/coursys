@@ -350,6 +350,10 @@ class ViewTestCase(TestCase):
                 'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
         self.run_basic_page_tests(views, args)
 
+        views = ['admin_return_sheet']
+        del args['sheet_slug']
+        self.run_basic_page_tests(views, args)
+
     def test_admin_submission(self):
         views = ['view_submission',]
         args = {'form_slug': self.slug_data["form_slug"], 'formsubmit_slug': self.slug_data["formsubmit_slug"]}
