@@ -1,7 +1,7 @@
 from pages.models import Page
 from haystack import indexes
 
-class PageIndex(indexes.SearchIndex, indexes.Indexable):
+class PageIndex: #(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     title = indexes.EdgeNgramField()
     url = indexes.CharField(indexed=False, null=False)
