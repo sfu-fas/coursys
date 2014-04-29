@@ -25,7 +25,7 @@ def _all_repositories(offering):
         return {}
     db = _db_conn()
     
-    db.execute('SELECT `repository`, `read`, `readandwrite` FROM '+SVN_TABLE+' WHERE `repository` LIKE %s', ('%' + offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-%'))
+    db.execute('SELECT `repository`, `read`, `readandwrite` FROM '+SVN_TABLE+' WHERE `repository` LIKE %s', ('%' + offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-%',))
     repos = {}
     for row in db:
         repo, ro, rw = row
@@ -54,7 +54,7 @@ def update_repository(reponame, rw_userids, ro_userids):
     rw = ','.join(rw_userids)
     ro = ','.join(ro_userids)
     
-    db.execute('SELECT count(*) FROM '+SVN_TABLE+' WHERE `repository`=%s', (reponame))
+    db.execute('SELECT count(*) FROM '+SVN_TABLE+' WHERE `repository`=%s', (reponame,))
     count = db.fetchone()[0]
     if count == 0:
         # doesn't exist: create
