@@ -53,6 +53,7 @@ offering_patterns = [ # prefix /COURSE_SLUG/
     url(r'^formula_tester$', 'grades.views.formula_tester'),
     url(r'^list$', 'grades.views.class_list'),
     url(r'^photolist$', 'grades.views.photo_list'),
+    url(r'^photolist-(?P<style>\w+)$', 'grades.views.photo_list'),
     url(r'^students/$', 'grades.views.student_search'),
     url(r'^students/' + USERID_SLUG + '$', 'grades.views.student_info'),
     url(r'^export', 'grades.views.export_all'),

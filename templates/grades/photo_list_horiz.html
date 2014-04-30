@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.name }} Class List{% endblock %}
+{% block h1 %}{{ course.name }} Class List{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+div.student {
+  display: inline-block;
+  text-align: center;
+  margin-bottom: 1em;
+  font-size: smaller;
+}
+.idphoto {
+  text-align: center;
+}
+.idphoto img {
+  max-width: 100px;
+  max-height: 100px;
+}
+</style>
+<script type="text/javascript">
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Photo List</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+    {% for member in members %}
+        <div class="student">
+        <div class="idphoto"><img src="{% url "grades.views.student_photo" emplid=member.person.emplid %}" alt="{{member.person.userid}}'s photo" /></div>
+        <span>{{ member.person.name }}<br/>{{ member.person.emplid }}<br/>{{ member.person.email }}</span>
+        </div>
+    {% endfor %}
+
+
+{% endblock %}

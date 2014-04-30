@@ -5,7 +5,7 @@ import os
 
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
@@ -1210,8 +1210,11 @@ def class_list(request, course_slug):
     return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
 
 
+PHOTO_LIST_STYLES = set(['table', 'horiz'])
 @requires_course_staff_by_slug
-def photo_list(request, course_slug):
+def photo_list(request, course_slug, style='table'):
+    if style not in PHOTO_LIST_STYLES:
+        raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     
@@ -1226,7 +1229,7 @@ def photo_list(request, course_slug):
     pre_fetch_photos([m.person.emplid for m in members])
 
     context = {'course': course, 'members': members}
-    return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/photo_list_%s.html' % (style), context)
 
 
 @login_required
