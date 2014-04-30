@@ -43,7 +43,7 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig, NewsItem
-from dashboard.photos import fetch_photos, photo_for_view
+from dashboard.photos import pre_fetch_photos, photo_for_view
 from discuss import activity as discuss_activity
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -1222,10 +1222,8 @@ def photo_list(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
     
-    # fire off a task to fetch the photos, to warm the cache
-    task_map = fetch_photos([m.person.emplid for m in members])
-    for emplid, task_id in task_map.iteritems():
-        cache.set('photo-task-'+unicode(emplid), task_id, 60)
+    # fire off a task to fetch the photos and warm the cache
+    pre_fetch_photos([m.person.emplid for m in members])
 
     context = {'course': course, 'members': members}
     return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
@@ -1257,9 +1255,7 @@ def student_photo(request, emplid):
     response = HttpResponse(data, content_type='image/jpeg')
     response.status_code = status
     response['Content-Disposition'] = 'inline; filename="%s.jpg"' % (emplid)
-    # TODO: be a little less heavy-handed with the caching if it can be done safely
-    response['Cache-Control'] = 'no-store'
-    response['Pragma'] = 'no-cache'
+    response['Cache-Control'] = 'private, max-age=300'
     return response
 
 
