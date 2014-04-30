@@ -166,3 +166,29 @@ def create_fake_semester(strm):
         mon -= datetime.timedelta(days=1)
     sw.monday = mon
     sw.save()
+
+    return s
+
+
+from coredata.models import CourseOffering, Unit, Person, Member
+def create_test_offering():
+    """
+    Create a CourseOffering (and related stuff) that can be used in tests with no fixtures
+    """
+    s = create_fake_semester('1144')
+    u = Unit(label='BABL', name="Department of Babbling")
+    u.save()
+    o = CourseOffering(subject='BABL', number='123', section='F104', semester=s, component='LEC', owner=u,
+                       title='Babbling for Baferad Ferzizzles', enrl_cap=100, enrl_tot=5, wait_tot=0)
+    o.save()
+
+    i = Person(first_name='Insley', last_name='Instructorberg', emplid=20000009, userid='instr')
+    i.save()
+    s = Person(first_name='Stanley', last_name='Studentson', emplid=20000010, userid='student')
+    s.save()
+
+    Member(offering=o, person=i, role='INST').save()
+    Member(offering=o, person=s, role='STUD').save()
+
+    return o
+
