@@ -3,9 +3,13 @@ from django.conf import settings
 from coredata.models import Unit
 from cache_utils.decorators import cached
 import itertools, os
-import hashlib, string, datetime
+import hashlib, string, datetime, StringIO
 import urllib, urllib2, json, base64
 import celery
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 import logging
 logger = logging.getLogger('photo-backend')
@@ -22,6 +26,7 @@ CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
 PHOTO_TIMEOUT = 10 # number of seconds the views will wait for the photo service
+MAX_PHOTO_SIZE = 200 # max (width and height) dimensions of an image we'll return
 
 
 # from http://docs.python.org/2/library/itertools.html
@@ -44,6 +49,7 @@ def photo_for_view(emplid):
 
     Returns photos data, HTTP status.
     """
+    from dashboard.tasks import fetch_photos_task
     task_key = _task_cache_key(emplid)
     image_key = _photo_cache_key(emplid)
     task_id = cache.get(task_key, None)
@@ -90,6 +96,7 @@ def photo_for_view(emplid):
         # whatever happened above failed: use a no-photo placeholder
         logger.debug('using dummy image for %s' % (emplid))
         data = open(DUMMY_IMAGE_FILE, 'r').read()
+        data = possibly_resize(data)
         status = 404
 
     return data, status
@@ -101,6 +108,9 @@ def pre_fetch_photos(emplids):
     Returns a dictionary of emplid -> celery task_id that is getting that photo.
     """
     # break the collection of emplids into right-sized chunks
+    if not settings.USE_CELERY:
+        return
+
     from dashboard.tasks import fetch_photos_task
     task_map = {}
     # ignore emplids where we already have a cached image
@@ -160,6 +170,29 @@ def _get_photo_token():
         token = token_response['ServiceToken']
         return token
 
+def possibly_resize(original):
+    """
+    Resize the jpeg to MAX_PHOTO_SIZE x MAX_PHOTO_SIZE if it's bigger. Otherwise, return as-is.
+    """
+    if Image is None:
+        return original
+
+    img = Image.open(StringIO.StringIO(original))
+    w,h = img.size
+    if w <= MAX_PHOTO_SIZE and h <= MAX_PHOTO_SIZE:
+        # original is reasonably-sized
+        return original
+
+    # resize
+    img.thumbnail((MAX_PHOTO_SIZE, MAX_PHOTO_SIZE), Image.ANTIALIAS)
+
+    resize = StringIO.StringIO()
+    img.save(resize, format='jpeg')
+    return resize.getvalue()
+
+
+
+
 def _get_photos(emplids):
     """
     Get actual photo data from photo service. Returns emplid -> JPEG data dict
@@ -184,7 +217,7 @@ def _get_photos(emplids):
         if 'SfuId' not in data or 'PictureIdentification' not in data or not data['PictureIdentification']:
             continue
         key = data['SfuId']
-        jpg = base64.b64decode(data['PictureIdentification'])
+        jpg = possibly_resize(base64.b64decode(data['PictureIdentification']))
         photos[key] = jpg
     return photos
 

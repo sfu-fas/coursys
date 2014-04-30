@@ -53,6 +53,11 @@ package "stunnel4"
 # Keep the time in sync
 package "ntp"
 
+# for pillow build
+package "libjpeg-dev"
+package "zlib1g-dev"
+package "libpng12-dev"
+
 # Dev tools
 package "make"
 package "vim"
