@@ -97,6 +97,12 @@ sudo ./manage.py install_secrets
         <blockquote><pre>def sanitize_memcached_key(key, max_length=245):</pre></blockquote>
 
     </dd>
+    <dt>Cron</dt>
+    <dd>
+        <p>Hopefully this will be replaced with a celery task soon, but for the moment, the coursys user needs a crontab to do the daily import:</p>
+        <blockquote><pre>0 8 * * * /home/coursys/courses/server-setup/do-import.sh</pre></blockquote>
+
+    </dd>
 </dl>
 
 <h2 id="data">Data Files</h2>
@@ -107,16 +113,40 @@ sudo ./manage.py install_secrets
             [This will take a while. Maybe run it in a <code>screen</code> session.]</p>
         <blockquote><pre>sudo mkdir /data/submitted_files
 sudo chown coursys /data/submitted_files
-rsync -aP ggbaker@courses.cs.sfu.ca:/data/submitted_files /data/
-sudo chown -R coursys.coursys /data/submitted_files</pre></blockquote>
+rsync -aP ggbaker@courses.cs.sfu.ca:/data/submitted_files /data/</pre></blockquote>
 
     </dd>
 </dl>
 
 
 
+<h2 id="running">Ongoing Things</h2>
+<dl>
+<dt>Reporting DB connection</dt>
+<dd>
+<p>I have been using GNU Screen to keep the SSH session with the port forward open. It seems to work well and says open indefinitely.</p>
+<blockquote><pre>screen -S reportingDB
+ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
+# ctrl-A D [to detach from screen session]</pre></blockquote>
+<p>To get back to the screen session:</p>
+<blockquote><pre>screen -r reportingDB</pre></blockquote>
+<p>It doesn't really matter which user connects (or runs the SSH process), as long as the port is forwarded.</p>
+</dd>
 
-<hr/>
+    <dt>Feature Flags</dt>
+<dd><p>The system contains some <a href="http://stackoverflow.com/questions/7707383/what-is-a-feature-flag">feature flags</a> that allow selective disabling of some non-critical features. This may be necessary if server load is high because of some underlying hardware problems, or just insanity.</p>
+<p>They can be set by adding to the <code class="python">DISABLED_FEATURES</code> setting, likely by by editing <code class="file">local_settings.py</code>.</p>
+<p>Available flags are: <code class="python">'course_browser'</code> (the course browse/search functionality), <code class="python">'feeds'</code> (for icalendar/atom feeds/JSON dumps),
+ <code class="python">'discuss'</code> (discussion forums), <code class="python">'marking'</code> (marking--editing only), <code class="python">'sims'</code> (all SIMS queries), <code class="python">'submit-get'</code> (downloading submissions).</p>
+<p>A reasonable &ldquo;something ain't right here&rdquo; setting is:</p>
+<blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote></dd>
+
+</dl>
+
+
+
+
+<hr style="margin-top: 10em;"/>
 
 <p>The below describes the setup of the <code>courses.cs.sfu.ca</code> server as done in April/May 2011 by Greg Baker, and modified thereafter to reflect reality as closely as possible.</p>
 
@@ -339,7 +369,7 @@ echo 'y' | ./manage.py rebuild_index
 
 
 
-<h2 id="elastic">ElasticSearch (not yet deployed)</h2>
+<h2 id="elastic">ElasticSearch</h2>
 <p><a href="https://gist.github.com/wingdspur/2026107">instructions adapted from this</a></p>
 <blockquote><pre>cd /tmp
 sudo apt-get install openjdk-7-jre-headless -y
