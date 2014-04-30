@@ -132,6 +132,16 @@ execute "deny_coursys_ssh" do
     cwd "/"
     command "grep -q 'DenyUsers coursys'  /etc/ssh/sshd_config || (echo '\nDenyUsers coursys\nDenyUsers www-data' >> /etc/ssh/sshd_config)"
 end
+cookbook_file "forward" do
+    path "/root/.forward"
+    owner "root"
+end
+cookbook_file "forward" do
+    path "/home/coursys/.forward"
+    owner "coursys"
+end
+
+
 
 # celery daemon
 cookbook_file "celeryd-init" do

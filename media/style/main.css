@@ -798,7 +798,7 @@ table.info span.letter {
   text-align: center;
   margin-bottom: 1em;
   font-size: smaller;
-  width: 110px;
+  width: 120px; /* experimentally, prints on fewest pages aroudn this width */
   vertical-align: top;
 }
 .idphoto {
