@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load highlight %}
+
+{% block title %}Search Results for &ldquo;{{ query }}&rdquo;{% endblock %}
+{% block h1 %}Search Results for &ldquo;{{ query }}&rdquo;{% endblock %}
+
+{% block subbreadcrumbs %}<li>Search Results</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block headextra %}
+<style>
+.highlighted {
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<form action="" method="get">
+<p>Search again: <input type="text" name="q" value="{{ query }}" />
+<input type="submit" value="Search" />
+</p>
+</form>
+
+{% if results %}
+<div class="datatable_container">
+<table id="resultstable">
+  <thead><tr>
+      <th scope="col">Result</th>
+      <th scope="col">Score</th>
+  </tr></thead>
+  <tbody>
+  {% for r in results %}
+  <tr>
+  <td scope="row">
+      {% if r.url %}
+      <a href="{{ r.url }}">{{ r.search_display }}</a>
+      {% else %}
+      {{ r.search_display }}
+      {% endif %}
+  </td>
+  <td>{{ r.score }}</td>
+  <td>{{ r.content_type }}</td>
+  <td>{% highlight r.text with query %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="empty">Sorry, no results.</p>
+{% endif %}
+
+
+{% endblock %}
