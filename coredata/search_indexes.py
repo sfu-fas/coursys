@@ -30,7 +30,7 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
         return "%s %s" % (o.name(), o.semester.label())
 
 
-class PersonIndex(): #(indexes.SearchIndex, indexes.Indexable):
+class PersonIndex(indexes.SearchIndex, indexes.Indexable):
     # used for autocompletes, not full-site search
     text = indexes.EdgeNgramField(document=True)
     emplid = indexes.CharField(model_attr='emplid')
@@ -54,7 +54,7 @@ class PersonIndex(): #(indexes.SearchIndex, indexes.Indexable):
         return o.search_label_value()
 
 
-class MemberIndex(): #(indexes.SearchIndex, indexes.Indexable):
+class MemberIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     offering_slug = indexes.CharField(null=False)
     url = indexes.CharField(indexed=False, null=False)

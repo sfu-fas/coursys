@@ -3,7 +3,7 @@ from haystack import indexes
 
 class PageIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
-    title = indexes.EdgeNgramField()
+    #title = indexes.EdgeNgramField()
     url = indexes.CharField(indexed=False, null=False)
     search_display = indexes.CharField(indexed=False)
     permission_key = indexes.CharField(indexed=True)
