@@ -271,7 +271,10 @@ def get_photo_password():
     # need to record the photo password somewhere in the DB so we can retrieve and update it as necessary.
     # This seems like the least-stupid place.
     u = Unit.objects.get(slug='univ')
-    return u.config['photopass']
+    try:
+        return u.config['photopass']
+    except KeyError:
+        return ''
 
 def set_photo_password(p):
     """

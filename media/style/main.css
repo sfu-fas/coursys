@@ -798,13 +798,15 @@ table.info span.letter {
   text-align: center;
   margin-bottom: 1em;
   font-size: smaller;
+  width: 110px;
+  vertical-align: top;
 }
 .idphoto {
   text-align: center;
 }
 .idphoto img {
-  max-width: 100px;
-  max-height: 100px;
+  max-width: 96px;
+  max-height: 96px;
 }
 
 
