@@ -31,6 +31,7 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
 
 
 class PersonIndex(): #(indexes.SearchIndex, indexes.Indexable):
+    # used for autocompletes, not full-site search
     text = indexes.EdgeNgramField(document=True)
     emplid = indexes.CharField(model_attr='emplid')
     search_display = indexes.CharField(indexed=False)
@@ -53,7 +54,7 @@ class PersonIndex(): #(indexes.SearchIndex, indexes.Indexable):
         return o.search_label_value()
 
 
-class MemberIndex: #(indexes.SearchIndex, indexes.Indexable):
+class MemberIndex(): #(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     offering_slug = indexes.CharField(null=False)
     url = indexes.CharField(indexed=False, null=False)
@@ -63,13 +64,15 @@ class MemberIndex: #(indexes.SearchIndex, indexes.Indexable):
         return Member
 
     def index_queryset(self, using=None):
+        # limiting to recent semesters is hopefully temporary
         return self.get_model().objects.exclude(offering__component='CAN') \
                 .filter(role='STUD') \
+                .filter(offering__semester__name__gte='1137') \
                 .select_related('person', 'offering__semester')
 
     def prepare_text(self, m):
         fields = [unicode(m.person.emplid), m.person.first_name, m.person.last_name]
-        if m.person.real_pref_first() != m.person.first_name:
+        if m.person.real_pref_first().lower() != m.person.first_name.lower():
             fields.append(m.person.real_pref_first())
         if m.person.userid:
             fields.append(m.person.userid)

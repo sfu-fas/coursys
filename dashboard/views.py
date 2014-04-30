@@ -947,19 +947,26 @@ import itertools
 from urllib import urlencode
 from pages.models import Page, ACL_ROLES
 SEARCH_URL = 'http://www.sfu.ca/search.html?'
-
+MAX_RESULTS = 50
 RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
-    'coredata.courseoffering': 'course offering'
+    'coredata.courseoffering': 'Course offering',
+    'coredata.member': 'Student in your class',
+    'pages.page': 'Class web page',
 }
 
 def _query_results(query, person):
+    """
+    Actually build the query results for this person.
+
+    Make sure any result.content_type values are reflected in RESULT_TYPE_DISPLAY for display to the user.
+    """
     if len(query) < 2:
         return []
 
-    #query = query.replace('@sfu.ca', '') # hack to make email addresses searchable like userids
+    query = query.replace('@sfu.ca', '') # hack to make email addresses searchable as userids
     query = Clean(query)
 
-    # offerings person was a member of
+    # offerings person was a member of (coredata.CourseOffering)
     if person:
         members = Member.objects.filter(person=person).exclude(role='DROP').select_related('offering')
         offering_slugs = set(m.offering.slug for m in members)
@@ -969,7 +976,7 @@ def _query_results(query, person):
         members = []
         offering_results = []
 
-    # pages this person can view
+    # pages this person can view (pages.Page)
     page_acl = set(['ALL'])
     for m in members:
         # builds a set of offering_slug+"_"+acl_value strings, which will match the permission_key field in the index
@@ -979,9 +986,9 @@ def _query_results(query, person):
     page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
     page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
 
-    # students taught by instructor
+    # students taught by instructor (coredata.Member)
     instr_members = Member.objects.filter(person=person, role='INST').select_related('offering')
-    if instr_members:
+    if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
         member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
         member_results = member_results.filter(offering_slug__in=offering_slugs) # ... and this person was the instructor for
@@ -989,8 +996,15 @@ def _query_results(query, person):
     else:
         member_results = []
 
-    results = itertools.chain(offering_results, page_results, member_results)
+    # combine and limit to best results
+    results = itertools.chain(
+        offering_results[:MAX_RESULTS],
+        page_results[:MAX_RESULTS],
+        member_results[:MAX_RESULTS],
+        )
     results = list(results)
+    results.sort(key=lambda result: -result.score)
+    results = results[:MAX_RESULTS] # (list before this could be n*MAX_RESULTS long)
 
     return results
 
