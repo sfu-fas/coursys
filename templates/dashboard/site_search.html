@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load search_display %}
+
+{% block title %}Search Results for &ldquo;{{ query }}&rdquo;{% endblock %}
+{% block h1 %}Search Results for &ldquo;{{ query }}&rdquo;{% endblock %}
+
+{% block subbreadcrumbs %}<li>Search Results</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block headextra %}
+<style>
+.highlighted {
+    font-weight: bold;
+}
+</style>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#resultstable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0,'desc']],
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+<form action="" method="get">
+<p>Search again: <input type="text" name="q" value="{{ query }}" />
+<input type="submit" class="inlinebutton" value="Search" />
+</p>
+</form>
+
+{% if results %}
+<table id="resultstable">
+  <thead><tr>
+      <th scope="col">Result</th>
+      <th scope="col">Type</th>
+  </tr></thead>
+  <tbody>
+  {% for r in results %}
+  <tr>
+  <td scope="row">
+      <span class="sort">{{ r.score|format_score }}</span>
+      {% if r.url %}
+      <a href="{{ r.url }}">{{ r.search_display }}</a>
+      {% else %}
+      {{ r.search_display }}
+      {% endif %}
+  </td>
+  <td>{{ r.content_type|display_type }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">Sorry, no results.</p>
+{% endif %}
+
+
+{% endblock %}

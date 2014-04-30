@@ -5,7 +5,7 @@ import os
 
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
@@ -43,11 +43,8 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig, NewsItem
-from dashboard.photos import fetch_photos
+from dashboard.photos import pre_fetch_photos, photo_for_view
 from discuss import activity as discuss_activity
-import celery
-
-import logging
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -1213,10 +1210,11 @@ def class_list(request, course_slug):
     return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
 
 
+PHOTO_LIST_STYLES = set(['table', 'horiz'])
 @requires_course_staff_by_slug
-def photo_list(request, course_slug):
-    logger = logging.getLogger('photo-view')
-
+def photo_list(request, course_slug, style='table'):
+    if style not in PHOTO_LIST_STYLES:
+        raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     
@@ -1227,20 +1225,15 @@ def photo_list(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
     
-    # fire off a task to fetch the photos, to warm the cache
-    task_map = fetch_photos([m.person.emplid for m in members])
-    logger.debug('photo_list(request, %r) has task map: %r' % (course_slug, task_map))
-    for emplid, task_id in task_map.iteritems():
-        cache.set('photo-task-'+unicode(emplid), task_id, 60)
+    # fire off a task to fetch the photos and warm the cache
+    pre_fetch_photos([m.person.emplid for m in members])
 
     context = {'course': course, 'members': members}
-    return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/photo_list_%s.html' % (style), context)
 
 
 @login_required
 def student_photo(request, emplid):
-    logger = logging.getLogger('photo-view')
-
     # confirm user's photo agreement
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
@@ -1259,54 +1252,13 @@ def student_photo(request, emplid):
         return ForbiddenResponse(request, 'You must be an instructor of this student.')
 
     # get the photo
-    from dashboard.tasks import fetch_photos_task
-    from dashboard.photos import DUMMY_IMAGE_FILE, PHOTO_TIMEOUT
-    task_key = 'photo-task-'+unicode(emplid)
-    image_key = 'photo-image-'+unicode(emplid)
-    task_id = cache.get(task_key, None)
-    photo_data = cache.get(image_key, None)
-    data = None
-    status = 200
-
-    if photo_data:
-        # found image in cache: was fetched previously or task completed before we got here
-        logger.debug('cached data for %s' % (emplid))
-        data = photo_data
-
-    elif task_id and settings.USE_CELERY:
-        # found a task fetching the photo: wait for it to complete and get the data
-        task = fetch_photos_task.AsyncResult(task_id)
-        try:
-            logger.debug('task in cache for %s' % (emplid))
-            task.get(timeout=PHOTO_TIMEOUT)
-            data = cache.get(image_key, None)
-        except celery.exceptions.TimeoutError:
-            # try one last time to see if we missed the task, but the result got to the cache
-            data = cache.get(image_key, None)
-
-    elif settings.USE_CELERY:
-        # no cache warming: new task to get the photo
-        logger.debug('no cache for %s' % (emplid))
-        task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
-        try:
-            task.get(timeout=PHOTO_TIMEOUT)
-            data = cache.get(image_key, None)
-        except celery.exceptions.TimeoutError:
-            pass
-
-    if not data:
-        # whatever happened above failed: use a no-photo placeholder
-        logger.debug('using dummy image for %s' % (emplid))
-        data = open(DUMMY_IMAGE_FILE, 'r').read()
-        status = 404
+    data, status = photo_for_view(emplid)
 
     # return the photo
     response = HttpResponse(data, content_type='image/jpeg')
     response.status_code = status
     response['Content-Disposition'] = 'inline; filename="%s.jpg"' % (emplid)
-    # TODO: be a little less heavy-handed with the caching if it can be done safely
-    response['Cache-Control'] = 'no-store'
-    response['Pragma'] = 'no-cache'
+    response['Cache-Control'] = 'private, max-age=300'
     return response
 
 

@@ -33,7 +33,7 @@ dt {
 form {
   overflow: hidden; /* keep the floating submit button contained http://stackoverflow.com/questions/7861276/clearboth-before-the-end-of-the-block */
 }
-label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
+label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button, input[type="submit"].inlinebutton {
   display: inline;
 }
 fieldset, label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
@@ -787,6 +787,27 @@ p.cutoffoffset {
 table.info span.letter {
   font-size: x-small;
   color: #777;
+}
+
+/* photo class lists */
+#photolist td {
+  vertical-align: middle;
+}
+#photolist div.student {
+  display: inline-block;
+  text-align: center;
+  margin-bottom: 1em;
+  font-size: smaller;
+  width: 120px; /* experimentally, prints on fewest pages around this width */
+  vertical-align: top;
+  line-height: 1.2em;
+}
+.idphoto {
+  text-align: center;
+}
+.idphoto img {
+  max-width: 100px;
+  max-height: 100px;
 }
 
 
