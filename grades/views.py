@@ -2,6 +2,7 @@ import unicodecsv as csv
 import pickle
 import datetime
 import os
+import urllib
 
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -1219,7 +1220,7 @@ def photo_list(request, course_slug, style='table'):
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     
     if not (configs and configs[0].value['agree']):
-        url = reverse('dashboard.views.photo_agreement')
+        url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
     
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1238,7 +1239,7 @@ def student_photo(request, emplid):
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     if not (configs and configs[0].value['agree']):
-        url = reverse('dashboard.views.photo_agreement')
+        url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
     # confirm user is an instructor of this student (within the last two years)

@@ -932,7 +932,11 @@ def photo_agreement(request):
                 config.value['from'] = request.META['REMOTE_ADDR']
             config.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your photo agreement status.')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            if 'return' in request.GET:
+                url = request.GET['return']
+            else:
+                url = reverse('dashboard.views.config')
+            return HttpResponseRedirect(url)
     else:
         form = PhotoAgreementForm({'agree': config.value['agree']})
         
