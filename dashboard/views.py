@@ -948,6 +948,10 @@ from urllib import urlencode
 from pages.models import Page, ACL_ROLES
 SEARCH_URL = 'http://www.sfu.ca/search.html?'
 
+RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
+    'coredata.courseoffering': 'course offering'
+}
+
 def _query_results(query, person):
     if len(query) < 2:
         return []

@@ -33,7 +33,7 @@ dt {
 form {
   overflow: hidden; /* keep the floating submit button contained http://stackoverflow.com/questions/7861276/clearboth-before-the-end-of-the-block */
 }
-label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
+label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button, input[type="submit"].inlinebutton {
   display: inline;
 }
 fieldset, label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
