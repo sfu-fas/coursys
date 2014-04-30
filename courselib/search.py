@@ -65,7 +65,7 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     Index changes in real time, but in the specific way we need them updated.
     """
     def handle_save(self, sender, instance, **kwargs):
-        if sender in [Page, CourseOffering]:
+        if sender == Page:
             # reindex object in the standard way
             super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
@@ -73,6 +73,14 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
             # reindex corresponding Page
             page = instance.page
             self.handle_save(sender=Page, instance=page)
+
+        elif sender == CourseOffering:
+            if instance.component == 'CAN':
+                # cancelling is our version of deleting
+                self.handle_delete(sender=sender, instance=instance)
+            else:
+                # reindex object in the standard way
+                super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
         elif sender == Member:
             if instance.role == 'DROP':
