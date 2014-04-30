@@ -33,7 +33,7 @@ dt {
 form {
   overflow: hidden; /* keep the floating submit button contained http://stackoverflow.com/questions/7861276/clearboth-before-the-end-of-the-block */
 }
-label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
+label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button, input[type="submit"].inlinebutton {
   display: inline;
 }
 fieldset, label, input, textarea, select, .date-datepicker-button, .datetime-local-datepicker-button {
@@ -123,7 +123,10 @@ table th[scope=row] {
 span.sort { /* content that fixes datatables sorting but isn't user-visible */
   display: none;
 }
-.hidden {
+span.rowdata { /* content used for calculating totals on data tables */
+  display: none;
+}
+.hidden, .printonly {
     display: none;
 }
 #ui-datepicker-div { /* shrink the datepicker to something more reasonable */
@@ -281,6 +284,9 @@ div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-stat
     }
     .subnav-wrapper li.newsec:before {
         content: " || ";
+    }
+    div.breadcrumb ul {
+      margin-right: 0;
     }
 }
 
@@ -470,10 +476,10 @@ tr.even {
   background-color: #eee;
   color: #999;
 }
-table.display td.center {
+table td.center {
     text-align: center;
 }
-table.display td.num {
+table td.num {
     text-align: right;
 }
 table td.hidden, table tr.hidden {
@@ -489,10 +495,14 @@ table.info th {
   font-weight: bold;
   width: 12em;
   background-color: #eee;
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
+  padding: .15em .5em;
+  line-height: 1.25em;
 }
 table.info td {
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
+  padding: .15em .5em;
+  line-height: 1.25em;
 }
 table.info p {
   padding: 0;
@@ -779,6 +789,27 @@ table.info span.letter {
   color: #777;
 }
 
+/* photo class lists */
+#photolist td {
+  vertical-align: middle;
+}
+#photolist div.student {
+  display: inline-block;
+  text-align: center;
+  margin-bottom: 1em;
+  font-size: smaller;
+  width: 120px; /* experimentally, prints on fewest pages around this width */
+  vertical-align: top;
+  line-height: 1.2em;
+}
+.idphoto {
+  text-align: center;
+}
+.idphoto img {
+  max-width: 100px;
+  max-height: 100px;
+}
+
 
 /* miniaction buttons in tables */
 td.miniaction, td.miniaction p {
@@ -991,4 +1022,19 @@ div#main .artifact-note p {
 }
 #browser_container div.table {
   overflow-x: visible;
+}
+
+
+/* faculty management */
+
+form#filter-form {
+  text-align: center;
+  padding: 0.5em;
+}
+form#filter-form label {
+  margin-top: 0;
+  padding-left: 0.33em;
+}
+form#filter-form span {
+  white-space: nowrap;
 }

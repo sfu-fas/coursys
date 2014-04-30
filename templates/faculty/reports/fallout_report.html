@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load static %}
+
+{% block title %}Fallout Report{% endblock %}
+{% block h1 %}Fallout Report{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    input[type="submit"] {
+      margin-left: 365px;
+      margin-top: -53px;
+    }
+</style>
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#fallout_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+
+  $('#id_start_date, #id_end_date').datepicker({
+      'dateFormat' : 'yy-mm-dd'
+    });
+
+  $('#filter-form').change( function() {
+    event_filter_update('fallout_table');
+    var sum = 0;
+    $('.rowdata').each(function() {
+        sum += Number($(this).text());
+    });
+    $('#fallout_sum').text("Total: $" + sum.toFixed(2))
+  });
+  event_filter_update('fallout_table');
+  var sum = 0;
+  $('.rowdata').each(function() {
+      sum += Number($(this).text());
+  });
+  $('#fallout_sum').text("Total: $" + sum.toFixed(2))
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.fallout_report_csv' %}?start_date={{ start_date.isoformat }}&amp;end_date={{ end_date.isoformat }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Fallout Report</li>
+{% endblock %}
+
+{% block content %}
+
+<form class="noprint" action="{% url 'faculty.views.fallout_report' %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form>
+
+<h3 class="printonly">{{ start_date }} - {{ end_date }}</h3>
+<div id='fallout_sum'></div>
+
+{% include 'faculty/_unit_form.html' %}
+<div class="datatable_container">
+<table id="fallout_table" class="display">
+  <thead><tr>
+    <th scope="col">Unit</th>
+    <th scope="col">Name</th>
+    <th scope="col">Event</th>
+    <th scope="col">Days</th>
+    <th scope="col">Base</th>
+    <th scope="col">Fraction</th>
+    <th scope="col">Fallout</th>
+  </tr></thead>
+  <tbody>
+  {% for units, person, event, days, salary, frac, fallout in table %}
+  <tr class="{{ units }}">
+  <td>{{ units }}</td>
+  <td><a href="{% url 'faculty.views.summary' userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
+  <td>{{ days }}</td>
+  <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">${{ salary }}</a></td>
+  <td>{{ frac }}</td>
+  <td><span class="rowdata">{{fallout}}</span> ${{ fallout }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

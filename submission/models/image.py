@@ -7,7 +7,7 @@ from django.http import HttpResponse
 
 class ImageComponent(SubmissionComponent):
     "An image submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the image file, in kB.", null=False, default=1000)
+    max_size = FileSizeField(help_text="Maximum size of the image file, in kB.", null=False, default=1000)
     allowed_types = {
             "PNG": [".png"],
             "GIF": [".gif"],

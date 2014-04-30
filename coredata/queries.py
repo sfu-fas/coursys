@@ -19,7 +19,6 @@ class DBConn(object):
     Implemented as a singleton to minimize number of times DB connection overhead occurs.
     Should only be created on-demand (in function) to minimize startup for other processes.
     """
-    dbpass_file = settings.DB_PASS_FILE
     _instance = None
     def __new__(cls):
         if not cls._instance:
@@ -71,8 +70,9 @@ class SIMSConn(DBConn):
     Singleton object representing SIMS DB connection
     """
     sims_user = settings.SIMS_USER
-    sims_db = "csrpt"
-    schema = "dbcsown"
+    sims_passwd = settings.SIMS_PASSWORD
+    sims_db = settings.SIMS_DB_NAME
+    schema = settings.SIMS_DB_SCHEMA
     
     DatabaseError = None
     DB2Error = None
@@ -83,19 +83,13 @@ class SIMSConn(DBConn):
         elif feature_disabled('sims'):
             raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
 
-        try:
-            passfile = open(self.dbpass_file)
-            _ = passfile.next()
-            _ = passfile.next()
-            _ = passfile.next()
-            simspasswd = passfile.next().strip()
-        except IOError:
-            simspasswd = ''
-        
         import DB2
         SIMSConn.DatabaseError = DB2.DatabaseError
         SIMSConn.DB2Error = DB2.Error
-        dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=simspasswd)
+        try:
+            dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=self.sims_passwd)
+        except DB2._db2.DatabaseError:
+            raise SIMSProblem, "Could not communicate with reporting database."
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
         return dbconn, cursor

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.name }} Class List{% endblock %}
+{% block h1 %}{{ course.name }} Class List{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	oTable = $('#photolist').dataTable({
+	    "bJQueryUI": true,
+	    "bPaginate": false,
+	    "aaSorting": [[1, "asc"], [2, "asc"]],
+	});
+    });</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Photo List</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug style='horiz' %}">View in horizontal &ldquo;yearbook&rdquo; display</a></li>
+  </ul>
+</div>{% endblock %}
+
+{% block content %}
+    <table class="display" id="photolist">
+        <thead>
+            <tr>
+		        <th scope="col">Photo</th>
+                <th scope="col">Last Name</th>
+                <th scope="col">First Name</th>
+		        <th scope="col">User ID</th>
+		        <th scope="col">Student #</th>
+                {% if course.labtut %}<th scope="col"><span class="wideonly">Lab/Tutorial</span><span class="narrowonly">Lab/Tut</span></th>{% endif %}
+            </tr>
+	</thead>
+        <tbody>
+        {% for member in members %}
+        <tr>
+            <td class="idphoto"><img src="{% url "grades.views.student_photo" emplid=member.person.emplid %}" alt="" /></td>
+            <td>{{member.person.last_name}}</td>
+            <td>{{member.person.first_with_pref}}</td>
+            <td>{{member.person.userid}}</td>
+            <td><a href="{{member.get_absolute_url}}">{{member.person.emplid}}</a></td>
+            {% if course.labtut %}<td>{{member.labtut_section}}</td>{% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

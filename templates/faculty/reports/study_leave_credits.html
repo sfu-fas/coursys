@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load event_display  %}
+{% block title %}Study Leave Credits: {{ person.name }}{% endblock %}
+{% block h1 %}Study Leave Credits: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    input[type="number"] {
+      width:70px;
+    }
+    #credits {
+      float: right;
+    }
+</style>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#study_credit_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.study_leave_credits_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Study Leave Credits</li>
+{% endblock %}
+
+{% block content %}
+<form class="noprint" action="{% url 'faculty.views.study_leave_credits' userid=person.userid_or_emplid %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form>
+
+<h3 class="printonly">{{ start_label }}{% if start_label != end_label %}
+   &ndash; {{ end_label  }}
+{% endif %}
+</h3>
+
+<div class="datatable_container">
+  <table id="study_credit_table" class="display">
+    <thead><tr class="th">
+      <th scope="col">Semester</th>
+      <th scope="col">Course/Event Type</th>
+      <th scope="col">Teaching Credits</th>
+      <th scope="col">Study Leave Credits</th>
+      <th scope="col">Study Leave Total</th>
+    </tr></thead>
+    <tbody>
+    {% for semester, course, tc, slc, slc_tot in events %}
+    <tr>
+      <td>{{ semester }}</td>
+      <td>{{ course }}</td>
+      <td>{{ tc }}</td>
+      <td>{{ slc }}</td>
+      <td>{{ slc_tot }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+</div>
+{% if events %}
+<h3 id="credits"> Study Leave Credits as of {{ finish_semester }} = {{ study_credits }}</h3>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}{% load staticfiles %}
+{% block title %}Add File Attachment{% endblock %}
+{% block h1 %}Add File Attachment{% endblock %}
+
+{% block headextra %}
+<script>
+var event_type = "{{ event_type|escapejs }}";
+</script>
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li><a href="{{ event.get_absolute_url }}">{{ event.handler_type_name }}</a></li>
+<li>Add File Attachment</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+    <form action="{{ event.get_attachment_form }}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            {{ attachment_form|as_dl }}
+            <p><input type="submit" class="submit" value="Create Attachment" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

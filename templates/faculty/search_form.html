@@ -1,0 +1,139 @@
+{% extends "base-wide.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Search Events by Type: {{ event_type }}{% endblock %}
+{% block h1 %}Search {{ event_type }} Events{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#results_table').dataTable({
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [
+      [3, 'desc'],
+      [4, 'desc']
+    ],
+    "bJQueryUI": true,
+  });
+
+  $('#form_collapse').click(function () {
+    var $form_collapse = $('#form_collapse');
+    var $form_fields = $('#form_fields');
+    var $form_message = $('#form_message');
+
+    if ($form_fields.is(':visible')) {
+      $form_collapse.html('show [+]');
+      $form_message.show();
+    }
+    else {
+      $form_collapse.html('collapse [-]');
+      $form_message.hide();
+    }
+
+    $form_fields.toggle();
+    $('#form_bottom_bar').toggle();
+  });
+
+  {% if results %}
+  $('#form_collapse').click();
+  {% endif %}
+
+  $('#filter-form').change( function() {
+    event_filter_update('results_table');
+  });
+  event_filter_update('results_table');
+
+});
+</script>
+
+<style type="text/css">
+#form_collapse {
+  float: right;
+}
+</style>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.search_index' %}">Event Search</a></li>
+<li>{{ event_type }}</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="form_container noprint">
+  <form action="" method="GET">
+    {% if results %}
+    <p id="form_top_bar">
+      <strong id="form_message">Your search results are below!</strong>
+      <a id="form_collapse" href="javascript:void(0)">collapse [-]</a>
+    </p>
+    {% endif %}
+
+    <fieldset id="form_fields">
+      {{ form|as_dl }}
+      {% for rule, rule_form in search_rules %}
+        <dt><label>{{ rule.pretty_field_name }}</label></dt>
+        <dd>
+          <div>
+          {% for field in rule_form %}
+            {{ field.errors }}
+          {% endfor %}
+          </div>
+          <div>
+          {% for field in rule_form %}
+            {{ field }}
+          {% endfor %}
+          </div>
+          <div>
+          {% for field in rule_form %}
+            <span class="helptext">{{ field.help_text }}</span>
+          {% endfor %}
+          </div>
+        </dd>
+      {% endfor %}
+    </fieldset>
+
+    <p id="form_bottom_bar">
+      <!-- XXX: Re-using the 'submit' class for the reset button so it's right-floated -->
+      <input type="submit" class="submit" value="Search" />
+    </p>
+  </form>
+</div>
+
+{% if results %}
+{% include 'faculty/_unit_form.html' %}
+<h3>Results</h3>
+<table id="results_table" class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Person</th>
+    <th scope="col">Unit</th>
+    <th scope="col">Start Date</th>
+    <th scope="col">End Date</th>
+    {% for column in results_columns %}
+    <th scope="col">{{ column }}</th>
+    {% endfor %}
+    <th scope="col">Status</th>
+  </tr></thead>
+  <tbody>
+  {% for handler in results %}
+  <tr class="{{ handler.event.unit.label }}">
+    <td><a href="{{ handler.event.get_absolute_url }}">{{ handler.short_summary }}</a></td>
+    <td>{{ handler.event.person }}</td>
+    <td>{{ handler.event.unit.label }}</td>
+    <td><span class="sort">{{ handler.event.start_date.isoformat }}</span>{{ handler.event.start_date }}</td>
+    <td><span class="sort">{{ handler.event.end_date.isoformat }}</span>{{ handler.event.end_date }}</td>
+    {% for value in handler.to_search_row %}
+    <td>{{ value }}</td>
+    {% endfor %}
+    <td>{{ handler.event.get_status_display }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

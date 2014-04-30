@@ -25,7 +25,7 @@ def _all_repositories(offering):
         return {}
     db = _db_conn()
     
-    db.execute('SELECT `repository`, `read`, `readandwrite` FROM '+SVN_TABLE+' WHERE `repository` LIKE %s', ('%' + offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-%'))
+    db.execute('SELECT `repository`, `read`, `readandwrite` FROM '+SVN_TABLE+' WHERE `repository` LIKE %s', ('%' + offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-%',))
     repos = {}
     for row in db:
         repo, ro, rw = row
@@ -54,7 +54,7 @@ def update_repository(reponame, rw_userids, ro_userids):
     rw = ','.join(rw_userids)
     ro = ','.join(ro_userids)
     
-    db.execute('SELECT count(*) FROM '+SVN_TABLE+' WHERE `repository`=%s', (reponame))
+    db.execute('SELECT count(*) FROM '+SVN_TABLE+' WHERE `repository`=%s', (reponame,))
     count = db.fetchone()[0]
     if count == 0:
         # doesn't exist: create
@@ -152,7 +152,7 @@ def update_indiv_repository(offering, m, instr, repos):
         if m.role == "DROP" and _in_another_section(offering, m):
             # if student dropped this section, but is still in another, let that one win.
             return
-        update_repository_task.delay(reponame, rw, ro)
+        update_repository_task.delay(reponame, list(rw), list(ro))
 
 
 def update_group_repository(offering, g, instr=None, repos=None):

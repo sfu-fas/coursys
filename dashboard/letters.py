@@ -6,7 +6,7 @@ even though they serve very different parts of the overall system.
 """
 
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
+from reportlab.platypus import Flowable, Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch, mm
 from reportlab.lib.utils import ImageReader
@@ -219,14 +219,12 @@ class LetterContents(object):
     to_addr_lines: the lines of the recipient's address (list of strings)
     from_name_lines: the sender's name (and title, etc) (list of strings)
     date: sending date of the letter (datetime.date object)
-    saluations: letter's salutation (string)
     closing: letter's closing (string)
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
-    def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern",
+    def __init__(self, to_addr_lines, from_name_lines, date=None,
                  closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True):
         self.date = date or datetime.date.today()
-        self.salutation = salutation
         self.closing = closing
         self.flowables = []
         self.to_addr_lines = to_addr_lines
@@ -252,23 +250,21 @@ class LetterContents(object):
                     ('TOPPADDING', (0,0), (-1,-1), 0),
                     ('BOTTOMPADDING', (0,0), (-1,-1), 0),
                     ])
-        
-    def make_flowable(self, text):
+    
+    def add_paragraph(self, text):
+        "Add a paragraph (represented as a string) to the letter: used by OfficialLetter.add_letter"
         if text.startswith('||'):
             # it's our table microformat
             lines = text.split('\n')
             cells = [line.split('|')[2:] for line in lines] # [2:] effectively strips the leading '||'
-            return Table(cells, style=self.table_style)
+            self.flowables.append(Table(cells, style=self.table_style))
         else:
-            return Paragraph(text, self.content_style)
-    
-    def add_paragraph(self, text):
-        "Add a paragraph (represented as a string) to the letter: used by OfficialLetter.add_letter"
-        self.flowables.append(self.make_flowable(text))
+            [self.flowables.append(Paragraph(line, self.content_style)) for line in text.split("\n")]
+        self.flowables.append(Spacer(1, self.line_height))
 
     def add_paragraphs(self, paragraphs):
         "Add a list of paragraphs (strings) to the letter"
-        self.flowables.extend([self.make_flowable(text) for text in paragraphs])
+        [self.add_paragraph(paragraph) for paragraph in paragraphs]
     
     def _contents(self, letter):
         "Builds of contents that can be added to a letter"
@@ -283,18 +279,14 @@ class LetterContents(object):
         for line in self.to_addr_lines:
             contents.append(Paragraph(line, style))
         contents.append(Spacer(1, 2*space_height))
-        if self.salutation:
-            contents.append(Paragraph(self.salutation+",", style))
-            contents.append(Spacer(1, space_height))
         
-        for f in self.flowables[:-1]:
+        for f in self.flowables[:-2]:
             # last paragraph is put in the KeepTogether below, to prevent bad page break
             contents.append(f)
-            contents.append(Spacer(1, space_height))
         
         # closing block (kept together on one page)
         close = []
-        close.append(self.flowables[-1])
+        close.append(self.flowables[-2])
         close.append(Spacer(1, 2*space_height))
         # signature
         signature = [Paragraph(self.closing+",", style)]
@@ -351,6 +343,90 @@ class LetterContents(object):
         contents.append(PageBreak())
         
         return contents
+
+class MemoHead(Flowable, SFUMediaMixin):
+    """
+    A flowable styled like a SFU memo header line
+    """
+    def __init__(self, xoffset=0, width=None, key='', value='', bold=False, keywidth=1*inch):
+        self.key = key
+        self.value = value
+        self.keyfont = 'DINPro-Bold' if bold else 'DINPro'
+        self.xoffset = xoffset
+        self.keywidth = keywidth
+        self.width = width
+        self.height = 24
+        self._media_setup()
+
+    def wrap(self, availWidth, availHeight):
+        if not self.width:
+            self.width = availWidth - self.xoffset - 1*inch
+        return (self.xoffset, self.height)
+
+    def draw(self):
+        c = self.canv
+        c.setLineWidth(0.5)
+        c.setStrokeColor(black)
+        p = c.beginPath()
+        p.moveTo(self.xoffset, 11)
+        p.lineTo(self.xoffset, 0)
+        p.lineTo(self.xoffset + self.width, 0)
+        c.drawPath(p)
+
+        c.setFont(self.keyfont, 8)
+        self._drawStringLeading(c, self.xoffset + 5, 4, self.key.upper(), charspace=1 )
+        c.setFont('BemboMTPro', 12)
+        c.drawString(self.xoffset + self.keywidth, 4, self.value)
+
+class MemoContents(LetterContents):
+    def __init__(self, subject, cc_lines, **kwargs):
+        self.subject = subject
+        self.cc_lines = [cc for cc in cc_lines if cc.strip()]
+        super(MemoContents, self).__init__(**kwargs)
+
+    def _contents(self, memo):
+        """
+        Produce a list of Flowables to form the body of the memo
+        """
+        contents = []
+        space_height = self.line_height
+        # the header block
+        contents.append(MemoHead(key='Attention', value=', '.join(self.to_addr_lines), bold=True))
+        contents.append(MemoHead(key='From', value=', '.join(self.from_name_lines)))
+        contents.append(MemoHead(key='Re', value=self.subject[0]))
+        for subjectline in self.subject[1:]:
+            contents.append(MemoHead(key='', value=subjectline))
+        contents.append(MemoHead(key='Date', value=self.date.strftime('%B %d, %Y').replace(' 0', ' ')))
+        contents.append(Spacer(1, 2*space_height))
+
+        # insert each paragraph
+        for f in self.flowables:
+            contents.append(f)
+            #contents.append(Spacer(1, space_height))
+
+        # the CC lines
+        if self.cc_lines:
+            data = []
+            for cc in self.cc_lines:
+                data.append(['', Paragraph(cc, self.content_style)])
+
+            cc = Paragraph('cc:', self.content_style)
+            data[0][0] = cc
+
+            cc_table = Table(data, colWidths=[0.3*inch, 5*inch])
+            cc_table.hAlign = "LEFT"
+            cc_table.setStyle(TableStyle(
+                    [('LEFTPADDING', (0,0), (-1,-1), 0),
+                     ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                     ('TOPPADDING', (0,0), (-1,-1), 0),
+                     ('BOTTOMPADDING', (0,0), (-1,-1), 0)]))
+
+            contents.append(cc_table)
+
+        return contents
+
+
+
 
 class RAForm(object, SFUMediaMixin):
     MAIN_WIDTH = 8*inch # size of the main box

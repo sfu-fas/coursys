@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 
 from autoslug import AutoSlugField
 from django_countries.fields import CountryField
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 
 from courselib.slugs import make_slug
 from grades.models import GPA_GRADE_CHOICES

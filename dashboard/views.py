@@ -139,22 +139,31 @@ def fake_logout(request):
 # copy of django_cas.views.login that doesn't do a message, but does a LogEntry
 from django_cas.views import _redirect_url, _service_url, _login_url, HttpResponseForbidden
 def login(request, next_page=None, required=False):
-    """Forwards to CAS login URL or verifies CAS ticket"""
+    """Forwards to CAS login URL or verifies CAS ticket
 
+    Modified locally: honour next=??? in query string, don't deliver a message, catch IOEror, generate LogEntry
+    """
     if not next_page and 'next' in request.GET:
         next_page = request.GET['next']
     if not next_page:
         next_page = _redirect_url(request)
-
     if request.user.is_authenticated():
         #message = "You are logged in as %s." % request.user.username
-        #request.user.message_set.create(message=message)
+        #messages.success(request, message)
         return HttpResponseRedirect(next_page)
     ticket = request.GET.get('ticket')
     service = _service_url(request, next_page)
     if ticket:
         from django.contrib import auth
-        user = auth.authenticate(ticket=ticket, service=service)
+        try:
+            user = auth.authenticate(ticket=ticket, service=service, request=request)
+        except IOError as e:
+            # Here we want to catch timeouts and only timeouts
+            if e.errno == 110:
+                user = None
+            else:
+                raise e
+
         if user is not None:
             auth.login(request, user)
             #LOG EVENT#
@@ -162,7 +171,6 @@ def login(request, next_page=None, required=False):
                   description=("logged in as %s from %s") % (user.username, request.META['REMOTE_ADDR']),
                   related_object=user)
             l.save()
-
             return HttpResponseRedirect(next_page)
         elif settings.CAS_RETRY_LOGIN or required:
             return HttpResponseRedirect(_login_url(service))
@@ -171,7 +179,9 @@ def login(request, next_page=None, required=False):
             return HttpResponseForbidden(error)
     else:
         return HttpResponseRedirect(_login_url(service))
-    
+
+
+
 
 @login_required
 def config(request):
@@ -931,22 +941,32 @@ def photo_agreement(request):
 
 
 
-
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery, Exact, Clean
 import itertools
 from urllib import urlencode
 from pages.models import Page, ACL_ROLES
 SEARCH_URL = 'http://www.sfu.ca/search.html?'
+MAX_RESULTS = 50
+RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
+    'coredata.courseoffering': 'Course offering',
+    'coredata.member': 'Student in your class',
+    'pages.page': 'Class web page',
+}
 
 def _query_results(query, person):
+    """
+    Actually build the query results for this person.
+
+    Make sure any result.content_type values are reflected in RESULT_TYPE_DISPLAY for display to the user.
+    """
     if len(query) < 2:
         return []
 
-    query = query.replace('@sfu.ca', '') # hack to make email addresses searchable like userids
+    query = query.replace('@sfu.ca', '') # hack to make email addresses searchable as userids
     query = Clean(query)
 
-    # offerings person was a member of
+    # offerings person was a member of (coredata.CourseOffering)
     if person:
         members = Member.objects.filter(person=person).exclude(role='DROP').select_related('offering')
         offering_slugs = set(m.offering.slug for m in members)
@@ -956,7 +976,7 @@ def _query_results(query, person):
         members = []
         offering_results = []
 
-    # pages this person can view
+    # pages this person can view (pages.Page)
     page_acl = set(['ALL'])
     for m in members:
         # builds a set of offering_slug+"_"+acl_value strings, which will match the permission_key field in the index
@@ -966,9 +986,9 @@ def _query_results(query, person):
     page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
     page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
 
-    # students taught by instructor
+    # students taught by instructor (coredata.Member)
     instr_members = Member.objects.filter(person=person, role='INST').select_related('offering')
-    if instr_members:
+    if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
         member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
         member_results = member_results.filter(offering_slug__in=offering_slugs) # ... and this person was the instructor for
@@ -976,8 +996,15 @@ def _query_results(query, person):
     else:
         member_results = []
 
-    results = itertools.chain(offering_results, page_results, member_results)
+    # combine and limit to best results
+    results = itertools.chain(
+        offering_results[:MAX_RESULTS],
+        page_results[:MAX_RESULTS],
+        member_results[:MAX_RESULTS],
+        )
     results = list(results)
+    results.sort(key=lambda result: -result.score)
+    results = results[:MAX_RESULTS] # (list before this could be n*MAX_RESULTS long)
 
     return results
 
@@ -998,7 +1025,7 @@ def site_search(request):
         person = None
 
     query = request.GET.get('q', '')
-    if True or ('search-scope' in request.GET and request.GET['search-scope'] == 'sfu'):
+    if 'really' not in request.GET and ('search-scope' in request.GET and request.GET['search-scope'] == 'sfu'):
         # redirect to SFU-wide search if appropriate
         url = SEARCH_URL + urlencode({'q': query, 'search-scope': 'sfu'})
         return HttpResponseRedirect(url)
@@ -1012,4 +1039,3 @@ def site_search(request):
 
     #print [r.text for r in results]
     return render(request, "dashboard/site_search.html", context)
-

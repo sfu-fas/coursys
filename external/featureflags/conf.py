@@ -6,6 +6,8 @@ class FlagsAppConf(AppConf):
     VIEW = 'featureflags.views.service_unavailable'
     DISABLED_TEMPLATE = '503.html'
     CACHE_TIMEOUT = 10
+    PANIC_TIMEOUT = 60
+    PANIC_DISABLE = None
 
     DISABLE = set() # for settings_loader
     FILENAME = 'disabled_features.json' # for file_loader

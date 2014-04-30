@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load event_display %}
+{% load form_display %}
+
+{% block title %}Grants{% endblock %}
+{% block h1 %}Grants{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#grants_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li>Grants</li>
+{% endblock %}
+
+{% block content %}
+<h2 id="all">All active grants</h2>
+<div class="datatable_container">
+<table id="grants_table" class="display">
+  <thead><tr><th scope="col">Unit</th><th scope="col">Grant</th><th scope="col">Start date</th><th scope="col">End date</th><th scope="col">Initial balance</th><th scope="col">Unit</th></tr></thead>
+  <tbody>
+  {% for grant in grants %}
+  <tr>
+    <td>{{ grant.unit.label }}</td>
+    <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
+    <td>{{ grant.start_date }}</td>
+    <td>{{ grant.expiry_date|default:'&mdash;' }}</td>
+    <td>${{ grant.initial }}</td>
+    <td>{{ grant.unit.informal_name }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<form action="{% url 'import_grants' %}" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ import_form|as_dl }}
+  <input type="submit" value="Import Grants CSV" />
+</form>
+
+<h2 id="new">Imported but not converted grants</h2>
+{% if temp_grants.exists %}
+<div class="datatable_container">
+<table id="temp_grants_table" class="display">
+  <thead><tr><th scope="col">Grant</th><th scope="col">Project Code</th><th scope="col">Creator</th><th scope="col">Initial</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for grant in temp_grants %}
+  <tr>
+    <td><a href="{{ grant.get_convert_url }}">{{ grant.label }}</a></td>
+    <td>{{ grant.project_code }}</td>
+    <td>{{ grant.creator }}</td>
+    <td>${{ grant.initial }}</td>
+    <td><a href="{{ grant.get_convert_url }}">Convert</a> | <a href="{{ grant.get_delete_url }}">Delete</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No grants imported</p>
+{% endif %}
+
+{% endblock %}

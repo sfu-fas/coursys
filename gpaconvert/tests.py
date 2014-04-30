@@ -80,7 +80,7 @@ class DiscreteRuleTest(TestCase):
 
     def test_delete(self):
         """
-        Tests that you are can to delete a rule.
+        Tests that you can to delete a rule.
         """
         self.rule.delete()
 

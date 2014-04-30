@@ -1,99 +1,115 @@
 {% extends "base.html" %}
+{% load event_display %}
+{% load staticfiles %}
 {% block title %}Faculty Summary: {{ person.name }}{% endblock %}
 {% block h1 %}Faculty Summary: {{ person.name }}{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#coursestable').dataTable( {
+  $('#career_event_table').dataTable( {
     'bPaginate': false,
     'bInfo': false,
-    "aaSorting": [[1, "desc"], [0, "asc"]],
+    "aaSorting": [[2, "desc"]],
     "bJQueryUI": true,
   } );
-  $('#supervisedtable').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[1, "asc"], [0, "asc"]],
-    "bJQueryUI": true,
-  } );
-  $('#ratable').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    "aaSorting": [[1, "desc"], [0, "asc"]],
-    "bJQueryUI": true,
-  } );
-} );
+
+  $('#filter-form').change( function() {
+    event_filter_update('career_event_table');
+  });
+  event_filter_update('career_event_table');
+
+});
 </script>
 {% endblock %}
 {% block subbreadcrumbs %}
-<li><a href="{% url "faculty.views.index" %}">Faculty Summaries</a></li>
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
 <li>{{ person.name }}</li>
 {% endblock %}
 
+
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    {% if career_events %}
+    <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-plus"></i> Create New Event</a></li>
+    {% else %}
+    <li><a href="{% url 'faculty_wizard' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-magic"></i>Faculty Setup Wizard</a></li>
+    {% endif %}
+  <li>
+    <a href="{% url 'faculty.views.faculty_member_info' userid=person.userid_or_emplid %}">
+      <i class="fa fa-li fa-user"></i> Contact Info
+    </a>
+  </li>
+    <li class="newsec"><a href="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-book"></i> Teaching Summary</a></li>
+    <li><a href="{% url 'faculty.views.study_leave_credits' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-rocket"></i> Study Leave Credits</a></li>
+    <li><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-money"></i> Salary Info</a></li>
+  <li><a href="{% url 'faculty_otherinfo' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-list"></i> View Other Info</a></li>
+    {% if career_events %}
+    <li class="newsec">
+      <a href="{% url 'faculty.views.timeline' person.userid_or_emplid %}">
+        <i class="fa fa-li fa-random"></i> Career Timeline
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endblock %}
+
 {% block content %}
-<h2 id="teaching">Teaching History</h2>
-<div class="datatable_container">
-<table id="coursestable" class="display">
-  <thead><tr><th scope="col">Course</th><th scope="col">Semester</th><th scope="col">Title</th>
-  <th scope="col">Enrollment</th><th scope="col">Teaching Credit</th></tr></thead>
-  <tbody>
-  {% for m in instructed %}
-  <tr>
-  <td scope="row">{{ m.offering.name }}</td>
-  <td>{{ m.offering.semester.name }}</td>
-  <td>{{ m.offering.title }}</td>
-  <td>{{ m.offering.enrl_tot }}</td>
-  <td>{% with m.teaching_credit_with_reason as tcr %}
-      <span class="sort">{{ tcr.0|floatformat:'3' }}</span>
-      {{ tcr.0 }}
-      {% if tcr.1 %}({{ tcr.1 }}){% endif %}
-      {% endwith %}
-  </td>
-  </tr>
+
+<form id="filter-form" action="">
+  {% for radio in filterform.category %}
+  {{ radio }}
   {% endfor %}
-  </tbody>
-</table>
-</div>
+</form>
 
-<h2 id="grad">Grad Supervision</h2>
-<div class="datatable_container">
-<table id="supervisedtable" class="display">
-  <thead><tr><th scope="col">Student</th><th scope="col">Role</th><th scope="col">Program</th><th scope="col">Status</th>
-  <th scope="col">Start</th><th scope="col">End</th></tr></thead>
-  <tbody>
-  {% for s in supervised %}
-  <tr>
-  <td scope="row">{{ s.student.person.sortname }}</td>
-  <td><span class="sort">{{s.type_order}}</span>{{ s.get_supervisor_type_display }}</td>
-  <td>{{ s.student.program.label }}</td>
-  <td>{{ s.student.get_current_status_display }}</td>
-  <td>{{ s.student.start_semester.name }}</td>
-  <td>{{ s.student.end_semester.name }}</td>
-  </tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
-
-
-<h2 id="ra">RA Supervision</h2>
-<div class="datatable_container">
-<table id="ratable" class="display">
-  <thead><tr><th scope="col">Hire</th><th scope="col">Start Date</th><th scope="col">End Date</th><th scope="col">Total Pay ($)</th>
+<table id="career_event_table">
+  <thead><tr class="th">
+    <th scope="col">Event</th>
+    <th scope="col">Event Type</th>
+    <th scope="col">Start Date</th>
+    <th scope="col">End Date</th>
+    <th scope="col">Status</th>
   </tr></thead>
   <tbody>
-  {% for ra in ras %}
+  {% for e in career_events %}
+  {% if editor|can_view:e %}
+  <tr class="{{ e.filter_classes }}">
+    <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
+    <td>{{ e.get_event_type_display }}</td>
+    <td><span class="sort">{{ e.start_date.isoformat }}</span>{{ e.start_date }}</td>
+    <td>{% if e.end_date %}<span class="sort">{{ e.end_date.isoformat }}</span>{{ e.end_date }}{% else %}&mdash;{% endif %}</td>
+    <td>{{ e.get_status_display }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+</tbody>
+</table>
+
+{% with grants=person.grant_set.all %}
+{% if grants %}
+<h2 id="grants">Grants Owned</h2>
+<table id="grants_table">
+  <thead><tr class="th">
+    <th scope="col">Grant</th>
+    <th scope="col">Start Date</th>
+    <th scope="col">End Date</th>
+  </tr></thead>
+  <tbody>
+  {% for grant in grants %}
   <tr>
-  <td scope="row">{{ ra.person.sortname }}</td>
-  <td><span class="sort">{{ra.start_date.isoformat}}</span>{{ ra.start_date }}</td>
-  <td><span class="sort">{{ra.end_date.isoformat}}</span>{{ ra.end_date }}</td>
-  <td>{{ ra.lump_sum_pay }}</td>
+    <td><a href="{{ grant.get_absolute_url }}">{{ grant }}</a></td>
+    <td><span class="sort">{{ grant.start_date.isoformat }}</span>{{ grant.start_date }}</td>
+    <td><span class="sort">{{ grant.end_date.isoformat }}</span>{{ grant.end_date }}</td>
   </tr>
   {% endfor %}
-  </tbody>
+</tbody>
 </table>
-</div>
-
+{% endif %}
+{% endwith %}
 
 {% endblock %}

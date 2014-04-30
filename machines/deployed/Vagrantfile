@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-Vagrant::Config.run do |config|
+Vagrant.configure("2") do |config|
   # All Vagrant configuration is done here. The most common configuration
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
@@ -12,7 +12,7 @@ Vagrant::Config.run do |config|
   # doesn't already exist on the user's system.
   config.vm.box = "trusty64"
   config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
-
+  
   # Boot with a GUI so you can see the screen. (Default is headless)
   # config.vm.boot_mode = :gui
 
@@ -29,19 +29,25 @@ Vagrant::Config.run do |config|
 
   # Forward a port from the guest to the host, which allows for outside
   # computers to access the VM, whereas host only networking does not.
-  config.vm.forward_port 80, 8000
-  config.vm.forward_port 8080, 8080
-  config.vm.forward_port 8983, 8983
+  config.vm.network "forwarded_port", guest: 443, host:8000
+  config.vm.network "forwarded_port", guest: 80, host:9001
+  config.vm.network "forwarded_port", guest:8000, host:9002
+  config.vm.network "forwarded_port", guest:8080, host:9003
+  config.vm.network "forwarded_port", guest:9000, host:9004
 
   # Share an additional folder to the guest VM. The first argument is
   # an identifier, the second is the path on the guest to mount the
   # folder, and the third is the path on the host to the actual folder.
-  config.vm.share_folder "coursys_root_directory", "/home/vagrant/courses", "../.."
+  config.vm.synced_folder "../..", "/home/vagrant/courses", 
+      id: "vagrant-root", 
+      owner: "coursys",
+      group: "www-data",
+      mount_options: ["dmode=777,fmode=777"]
 
-  # https://github.com/mitchellh/vagrant/issues/516#issuecomment-3998630
-  config.vm.customize(["modifyvm", :id, "--nictype1", "Am79C973",
-    "--memory", "1024"
-  ])
+  config.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--memory", "2048"]
+      v.customize ["modifyvm", :id, "--cpus", "1"]
+  end
 
   # Enable provisioning with chef solo, specifying a cookbooks path, roles
   # path, and data_bags path (all relative to this Vagrantfile), and adding 
@@ -52,13 +58,14 @@ Vagrant::Config.run do |config|
      chef.add_recipe "apt"
      chef.add_recipe "coursys"
      chef.add_recipe "coursys_deployed"
+     #only for prod-dev, not for production
+     chef.add_recipe "coursys_proddev"
+     #chef.add_recipe "coursys_true_production"
 
      chef.add_recipe "sfu-db2"
 
-
-  # 
   #   # You may also specify custom JSON attributes:
-  #   chef.json = { :mysql_password => "foo" }
+     chef.json = { :sfu_db2 => { :users => ['coursys']} }
   end
 
 end

@@ -1,11 +1,11 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
 
 REPORT_SLUG = '(?P<report>' + SLUG_RE + ')'
 RUN_SLUG = '(?P<run>' + SLUG_RE + ')'
 RESULT_SLUG = '(?P<result>' + SLUG_RE + ')'
 
-urlpatterns = patterns('',
+report_patterns = [
     url(r'^$', 'reports.views.view_reports'),
     url(r'^new$', 'reports.views.new_report'),
     url(r'^type/' + REPORT_SLUG + '$', 'reports.views.view_report'),
@@ -25,4 +25,4 @@ urlpatterns = patterns('',
     url(r'^type/' + REPORT_SLUG + '/run/delete/' + RUN_SLUG + '$', 'reports.views.delete_run'),
     url(r'^type/' + REPORT_SLUG + '/run/' + RUN_SLUG + '/' + RESULT_SLUG + "$", 'reports.views.view_result'),
     url(r'^type/' + REPORT_SLUG + '/run/' + RUN_SLUG + '/' + RESULT_SLUG + "/csv$", 'reports.views.csv_result'),
-)
+]

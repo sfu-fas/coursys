@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Sum
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES
 from ra.models import Account
-from jsonfield import JSONField
+from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
@@ -417,7 +417,7 @@ class TAApplication(models.Model):
         help_text='Describe the intended course load of the semester being applied for.')
     other_support = models.TextField(blank=True, null=True,
         verbose_name="Other financial support",
-        help_text='Describe any other funding you expect to receive this semester (grad students only).')
+        help_text='Do you have a merit based scholarship or fellowship (e.g. FAS Graduate Fellowship) in the semester that you are applying for? ')
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
@@ -627,6 +627,9 @@ class TAContract(models.Model):
     def prep_bu(self):
         courses = TACourse.objects.filter(contract=self)
         return sum( [course.prep_bu for course in courses] )
+
+    def total_pay(self):
+        return decimal.Decimal(self.bu()) * self.pay_per_bu
 
 
 class CourseDescription(models.Model):

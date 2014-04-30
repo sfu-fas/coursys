@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}New Event Flag{% endblock %}
+{% block h1 %}New Event Flag{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'faculty.views.manage_event_index' %}">Manage Event Types</a></li>
+<li><a href="{% url 'faculty.views.memo_templates' event_type=event_type_slug %}">{{ event_name }}</a></li>
+<li>New Flag</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static "js/faculty.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <form action="" method="post">
+    {% csrf_token %}
+    {{ form| as_dl }}
+    <p>
+      <input  class="submit"  type="submit" value="Save" />
+    </p>
+  </form>
+</div>
+{% endblock %}

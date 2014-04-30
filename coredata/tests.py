@@ -240,7 +240,8 @@ class CoredataTest(TestCase):
         self.assertTrue("could not import DB2 module" in response.content
                         or "could not connect to reporting database" in response.content
                         or "Could not find this emplid." in response.content
-                        or "Reporting database access has been disabled" in response.content)
+                        or "Reporting database access has been disabled" in response.content
+                        or "Could not communicate with reporting database" in response.content)
 
         response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id})
         self.assertEquals(response.status_code, 302)

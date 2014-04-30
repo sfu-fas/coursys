@@ -7,7 +7,7 @@ from django.http import HttpResponse
 
 class PDFComponent(SubmissionComponent):
     "A Acrobat (PDF) submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the PDF file, in kB.", null=False, default=5000)
+    max_size = FileSizeField(help_text="Maximum size of the PDF file, in kB.", null=False, default=5000)
     allowed_types = {
             "PDF": [".pdf"]
             }

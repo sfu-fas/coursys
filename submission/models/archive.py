@@ -7,7 +7,7 @@ from django.http import HttpResponse
 
 class ArchiveComponent(SubmissionComponent):
     "An archive file (TGZ/ZIP/RAR) submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in kB.", null=False, default=10000)
+    max_size = FileSizeField(help_text="Maximum size of the archive file, in kB.", null=False, default=5000)
     allowed_types = {
             "ZIP": [".zip"],
             "RAR": [".rar"],

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+
+{% block title %}{{ person.name }}: Salary {{ date.isoformat }}{% endblock %}
+{% block h1 %} {{ person.name }}: Salary {{ date.isoformat }}{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    .total-row {
+      font-weight: bold;
+      border-top: 1px solid #999;
+    }
+    #total-text {
+      text-align: right;
+    }
+    input[type="submit"] {
+      margin-left: 325px;
+      margin-top: -53px;
+    }
+</style>
+<script type="text/javascript">
+$(document).ready(function() {
+  $("#id_date").datepicker({
+      'dateFormat' : 'yy-mm-dd'
+    });
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Salary Info</li>
+{% endblock %}
+
+{% block content %}
+<form class="noprint" action="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+  <div>Total: ${{ pay_tot }}</div>
+</form>
+
+{% if add_salary_total %}
+<h3>Salary Events</h3>
+<table class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Type</th>
+    <th scope="col">Amount</th>
+  </tr></thead>
+  <tbody>
+  {% for e in salary_events %}
+  {% if e.add_salary %}
+  <tr>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
+  <td>{{ e.get_event_type_display }}</td>
+  <td>${{ e.add_salary }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  <tr>
+  <td class="total-row"></td>
+  <td class="total-row" id="total-text">Total:</td>
+  <td class="total-row">${{ add_salary_total }}</td>
+  </tr>
+  </tbody>
+</table>
+{% endif %}
+
+{% if salary_fraction_total != 1 %}
+<h3>Salary Multipliers</h3>
+<table class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Type</th>
+    <th scope="col">Multiplier</th>
+  </tr></thead>
+  <tbody>
+  {% for e in salary_events %}
+  {% if e.salary_fraction != 1 %}
+  <tr>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
+  <td>{{ e.get_event_type_display }}</td>
+  <td>{{ e.salary_fraction }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  <tr>
+  <td class="total-row"></td>
+  <td class="total-row" id="total-text">Total:</td>
+  <td class="total-row">{{ salary_fraction_total }}</td>
+  </tr>
+  </tbody>
+</table>
+{% endif %}
+
+{% if add_bonus_total %}
+<h3>Add Pay</h3>
+<table class="display">
+  <thead><tr>
+    <th scope="col">Title</th>
+    <th scope="col">Type</th>
+    <th scope="col">Amount</th>
+  </tr></thead>
+  <tbody>
+  {% for e in salary_events %}
+  {% if e.add_bonus %}
+  <tr>
+  <td><a href="{{ e.get_absolute_url }}">{{ e.get_handler.short_summary }}</a></td>
+  <td>{{ e.get_event_type_display }}</td>
+  <td>${{ e.add_bonus }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  <tr>
+  <td class="total-row"></td>
+  <td class="total-row" id="total-text">Total:</td>
+  <td class="total-row">${{ add_bonus_total }}</td>
+  </tr>
+  </tbody>
+</table>
+{% endif %}
+
+<h3> Total = ${{ add_salary_total }} &times; {{ salary_fraction_total }} + ${{ add_bonus_total }} = ${{ pay_tot }}</h3>
+{% endblock %}

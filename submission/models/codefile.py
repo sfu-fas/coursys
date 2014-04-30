@@ -18,8 +18,8 @@ FILENAME_TYPES = [ # type of filename checking: checked by Codefile.SubmissionFo
 
 class CodefileComponent(SubmissionComponent):
     "A Source Code submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the file, in kB.", null=False, default=200)
-    filename = models.CharField(max_length=500, null=False, help_text='Required filename for submitted files. Interpreted as specified in the filename type')
+    max_size = FileSizeField(help_text="Maximum size of the file, in kB.", null=False, default=500)
+    filename = models.CharField(max_length=500, null=False, blank=True, help_text='Required filename for submitted files. Interpreted as specified in the filename type')
     filename_type = models.CharField(choices=FILENAME_TYPES, max_length=3, blank=False, null=False, default='INS', help_text='How should your filename be interpreted?')
 
     class Meta:

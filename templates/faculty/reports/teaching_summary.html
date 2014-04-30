@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load event_display  %}
+{% block title %}Teaching Summary: {{ person.name }}{% endblock %}
+{% block h1 %}Teaching Summary: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    input[type="number"] {
+      width:70px;
+    }
+    #balance {
+      float: right;
+    }
+</style>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#teaching_event_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Teaching Summary</li>
+{% endblock %}
+
+{% block content %}
+<form class="noprint" action="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form>
+
+<h3 class="printonly">{{ start_label }}{% if start_label != end_label %}
+   - {{ end_label  }}
+{% endif %}
+</h3>
+
+<div class="datatable_container">
+  <table id="teaching_event_table" class="display">
+    <thead><tr class="th">
+      <th scope="col">Semester</th>
+      <th scope="col">Course/Event</th>
+      <th scope="col">Credits</th>
+    </tr></thead>
+    <tbody>
+    {% for semester, course, summary, credits, reason, event in events %}
+    <tr>
+      <td>{{ semester }}</td>
+      {% if event %}
+        <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
+        <td>{{ credits }}</td>
+      {% else %}
+        <td>{{ course.offering.name }} ({{summary}})</td>
+        <td><span class="sort">{{ credits|floatformat:'3' }}</span>
+          <a title='Edit' href="{% url 'faculty.views.teaching_credit_override' userid=person.userid_or_emplid course_slug=course.offering.slug %}">{{ credits }}</a>
+          {% if reason %}({{ reason }}){% endif %}
+        </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+</div>
+{% if events %}
+<h3 id="balance"> Teaching Credit Balance = {{ credit_balance }}</h3>
+{% endif %}
+{% endblock %}

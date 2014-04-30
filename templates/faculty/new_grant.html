@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
+{% endblock %}
+
+{% block title %}New Grant{% endblock %}
+{% block h1 %}New Grant{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li><a href="{% url 'grants_index' %}">Grants</a></li>
+<li>New Grant</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <form action="{% url 'new_grant' %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+      {{ grant_form|as_dl }}
+      <p>
+        <input class="submit"  type="submit" value="Submit" />
+      </p>
+    </fieldset>
+  </form>
+</div>
+{% endblock %}

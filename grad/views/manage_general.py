@@ -13,8 +13,8 @@ def manage_general(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
 
     sin = ''
-    if 'sin' in grad.config and grad.config['sin'] != "":
-        sin = grad.config['sin']
+    if grad.person.sin():
+        sin = grad.person.sin()
         
     extra_fields = [field for field, title in grad.tacked_on_fields]
 
@@ -34,7 +34,8 @@ def manage_general(request, grad_slug):
             [ optional_fields( field ) for field in extra_fields ] 
             gradF.modified_by = request.user.username
             if form.cleaned_data['sin'] != sin:
-                gradF.config['sin'] = form.cleaned_data['sin']
+                gradF.person.set_sin(form.cleaned_data['sin'])
+                gradF.person.save()
             gradF.save()
             for _, fform in flagforms:
                 if fform.is_valid():

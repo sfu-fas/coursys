@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% load event_display %}
+{% load form_display %}
+
+{% block title %}Contact Info: {{ person.name }}{% endblock %}
+{% block h1 %}Contact Info: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<style>
+#last-updated {
+  display: block;
+  text-align: right;
+  width: 100%;
+}
+</style>
+{% endblock %}
+
+{% block actions %}
+{% if can_modify %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.edit_faculty_member_info' userid=person.userid_or_emplid %}">
+        {% if info %}
+        <i class="fa fa-li fa-edit"></i> Edit Contact Info
+        {% else %}
+        <i class="fa fa-li fa-plus"></i> Set Contact Info
+        {% endif %}
+      </a>
+    </li>
+  </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Contact Info</li>
+{% endblock %}
+
+{% block content %}
+{% if info %}
+<dl>
+  <dt>Title + Name</dt>
+  <dd>{{ info.title }} {{ person.name }}</dd>
+
+  <dt>Birthday</dt>
+  <dd>{{ info.birthday }}</dd>
+
+  <dt>Office Number</dt>
+  <dd>{{ info.office_number }}</dd>
+
+  <dt>Local Phone Number</dt>
+  <dd>{{ info.phone_number }}</dd>
+
+  {% if can_view_emergency and info.emergency_contact %}
+  <dt>Emergency Contact</dt>
+  <dd>{{ info.emergency_contact|linebreaks }}</dd>
+  {% endif %}
+</dl>
+
+<span id="last-updated">last updated: {{ info.last_updated|naturaltime }}</span>
+{% else %}
+No contact information found.
+{% endif %}
+{% endblock %}

@@ -489,6 +489,12 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             if isinstance(new_submission_component, CodeComponent):
                 # upgrade Code to Codefile while migrating
                 new_submission_component = CodefileComponent.build_from_codecomponent(new_submission_component)
+            
+            # enforce tighter submission size limits
+            if hasattr(new_submission_component, 'max_size'):
+                if new_submission_component.max_size > settings.MAX_SUBMISSION_SIZE:
+                  new_submission_component.max_size = settings.MAX_SUBMISSION_SIZE
+            
             new_submission_component.save(force_insert=True)
     
     for activity in CalLetterActivity.objects.filter(offering=course_copy_to):

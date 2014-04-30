@@ -3,19 +3,30 @@ from django.conf import settings
 from coredata.models import Unit
 from cache_utils.decorators import cached
 import itertools, os
-import hashlib, string, datetime
+import hashlib, string, datetime, StringIO
 import urllib, urllib2, json, base64
+import celery
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+
+import logging
+logger = logging.getLogger('photo-backend')
 
 ACCOUNT_NAME = 'cs'
-TOKEN_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/Token'
-PHOTO_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Values/%s?includePhoto=true'
-PASSWORD_URL = 'https://at-dev.its.sfu.ca/photoservice/api/Account/ChangePassword'
+
+URL_BASE = 'https://photos-api.its.sfu.ca/'
+TOKEN_URL = URL_BASE + 'Account/Token'
+PHOTO_URL = URL_BASE + 'Values/%s?includePhoto=true'
+PASSWORD_URL = URL_BASE + 'Account/ChangePassword'
 DUMMY_IMAGE_FILE = os.path.join(settings.STATIC_ROOT, 'images', 'No_image.JPG') # from http://commons.wikimedia.org/wiki/File:No_image.JPG
 
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
 PHOTO_TIMEOUT = 10 # number of seconds the views will wait for the photo service
+MAX_PHOTO_SIZE = 360 # max (width and height) dimensions of an image we'll return
 
 
 # from http://docs.python.org/2/library/itertools.html
@@ -25,20 +36,86 @@ def _grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return itertools.izip_longest(fillvalue=fillvalue, *args)
 
+def _photo_cache_key(emplid):
+    return 'photo-image-'+unicode(emplid)
+def _task_cache_key(emplid):
+    return 'photo-task-'+unicode(emplid)
 
 # functions that should actually be called to do stuff
 
-def fetch_photos(emplids):
+def photo_for_view(emplid):
+    """
+    Get the photo, as needed by the view: check for cached JPEG, then cached task, else just fetch.
+
+    Returns photos data, HTTP status.
+    """
+    from dashboard.tasks import fetch_photos_task
+    task_key = _task_cache_key(emplid)
+    image_key = _photo_cache_key(emplid)
+    task_id = cache.get(task_key, None)
+    photo_data = cache.get(image_key, None)
+    data = None
+    status = 200
+
+    if photo_data:
+        # found image in cache: was fetched previously or task completed before we got here
+        logger.debug('cached data for %s' % (emplid))
+        data = photo_data
+
+    elif task_id and settings.USE_CELERY:
+        # found a task fetching the photo: wait for it to complete and get the data
+        from dashboard.tasks import fetch_photos_task
+        task = fetch_photos_task.AsyncResult(task_id)
+        logger.debug('task in cache for %s' % (emplid))
+        for timeout in [1,2,3,4]:
+            # Rationale for this: these seems to be an occasional race condition, something like we find above that the
+            # tasks exists but hasn't yet finished, but by the time we get here, it's done, so the task.get times out.
+            # That leaves us waiting a long time for an image that ws actually in the cache by the time we looked. This
+            # check-while-backing-off logic lets us find it fairly quickly, while still timing out reasonably on failure.
+            try:
+                task.get(timeout=timeout)
+                data = cache.get(image_key, None)
+            except celery.exceptions.TimeoutError:
+                # see if we missed the task, but the result got to the cache
+                data = cache.get(image_key, None)
+
+            if data:
+                break
+
+    elif settings.USE_CELERY:
+        # no cache warming: new task to get the photo
+        logger.debug('no cache for %s' % (emplid))
+        task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
+        try:
+            task.get(timeout=PHOTO_TIMEOUT)
+            data = cache.get(image_key, None)
+        except celery.exceptions.TimeoutError:
+            pass
+
+    if not data:
+        # whatever happened above failed: use a no-photo placeholder
+        logger.debug('using dummy image for %s' % (emplid))
+        data = open(DUMMY_IMAGE_FILE, 'r').read()
+        data = possibly_resize(data)
+        status = 404
+
+    return data, status
+
+
+def pre_fetch_photos(emplids):
     """
     Start the tasks to fetch photos for the list of emplids.
     Returns a dictionary of emplid -> celery task_id that is getting that photo.
     """
     # break the collection of emplids into right-sized chunks
+    if not settings.USE_CELERY:
+        return
+
     from dashboard.tasks import fetch_photos_task
     task_map = {}
     # ignore emplids where we already have a cached image
     # (It's possible that the cache expires between this and actual photo use, but I'll take that chance.)
-    emplids = [e for e in emplids if not cache.has_key('photo-image-'+unicode(e))]
+    emplids = [e for e in emplids if not cache.has_key(_photo_cache_key(e))]
 
     for group in _grouper(emplids, CHUNK_SIZE):
         # filter out the Nones introduced by grouper
@@ -50,7 +127,9 @@ def fetch_photos(emplids):
             new_map = dict(itertools.izip(group, itertools.repeat(t.task_id, CHUNK_SIZE)))
             task_map.update(new_map)
 
-    return task_map
+    for emplid, task_id in task_map.iteritems():
+        cache.set(_task_cache_key(emplid), task_id, 60)
+
 
 
 def do_photo_fetch(emplids):
@@ -59,16 +138,18 @@ def do_photo_fetch(emplids):
     """
     photos = _get_photos(emplids)
     for emplid in photos:
-        cache.set('photo-image-'+unicode(emplid), photos[emplid], 3600*24)
+        cache.set(_photo_cache_key(emplid), photos[emplid], 3600*24)
 
     missing = set(emplids) - set(photos.keys())
     if missing:
         # some images missing: cache the failure, but not for as long
         data = open(DUMMY_IMAGE_FILE, 'rb').read()
         for emplid in missing:
-            cache.set('photo-image-'+unicode(emplid), data, 3600)
+            cache.set(_photo_cache_key(emplid), data, 3600)
 
-    return set(photos.keys())
+    result = list(set(photos.keys()))
+    logger.debug("do_photo_fetch(%r) returning %r" % (emplids, result))
+    return result
 
 
 
@@ -80,10 +161,37 @@ def _get_photo_token():
     Get auth token from photo service
     """
     token_data = urllib.urlencode({'AccountName': ACCOUNT_NAME, 'Password': get_photo_password()})
-    token_request = urllib2.urlopen(TOKEN_URL, data=token_data)
-    token_response = json.load(token_request)
-    token = token_response['ServiceToken']
-    return token
+    try:
+        token_request = urllib2.urlopen(TOKEN_URL, data=token_data)
+    except IOError:
+        return ''
+    else:
+        token_response = json.load(token_request)
+        token = token_response['ServiceToken']
+        return token
+
+def possibly_resize(original):
+    """
+    Resize the jpeg to MAX_PHOTO_SIZE x MAX_PHOTO_SIZE if it's bigger. Otherwise, return as-is.
+    """
+    if Image is None:
+        return original
+
+    img = Image.open(StringIO.StringIO(original))
+    w,h = img.size
+    if w <= MAX_PHOTO_SIZE and h <= MAX_PHOTO_SIZE:
+        # original is reasonably-sized
+        return original
+
+    # resize
+    img.thumbnail((MAX_PHOTO_SIZE, MAX_PHOTO_SIZE), Image.ANTIALIAS)
+
+    resize = StringIO.StringIO()
+    img.save(resize, format='jpeg')
+    return resize.getvalue()
+
+
+
 
 def _get_photos(emplids):
     """
@@ -97,15 +205,19 @@ def _get_photos(emplids):
 
     photo_url = PHOTO_URL % (emplid_str)
     headers = {'Authorization': 'Bearer ' + token}
-    photo_request_obj = urllib2.Request(url=photo_url, headers=headers)
-    photo_request = urllib2.urlopen(photo_request_obj)
+    try:
+        photo_request_obj = urllib2.Request(url=photo_url, headers=headers)
+        photo_request = urllib2.urlopen(photo_request_obj, timeout=30)
+    except IOError:
+        return {}
+
     photo_response = json.load(photo_request)
     photos = {}
     for data in photo_response:
-        if 'SFUID' not in data or 'STUDENT_PICTURE' not in data or not data['STUDENT_PICTURE']:
+        if 'SfuId' not in data or 'PictureIdentification' not in data or not data['PictureIdentification']:
             continue
-        key = data['SFUID']
-        jpg = base64.b64decode(data['STUDENT_PICTURE'])
+        key = data['SfuId']
+        jpg = possibly_resize(base64.b64decode(data['PictureIdentification']))
         photos[key] = jpg
     return photos
 
@@ -159,7 +271,10 @@ def get_photo_password():
     # need to record the photo password somewhere in the DB so we can retrieve and update it as necessary.
     # This seems like the least-stupid place.
     u = Unit.objects.get(slug='univ')
-    return u.config['photopass']
+    try:
+        return u.config['photopass']
+    except KeyError:
+        return ''
 
 def set_photo_password(p):
     """

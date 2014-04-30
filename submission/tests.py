@@ -295,6 +295,7 @@ class SubmissionTest(TestCase):
         offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         activity = Activity.objects.get(offering=offering, slug='rep')
         activity.due_date = datetime.datetime.now() + datetime.timedelta(days=1) # make sure it's submittable
+        activity.save()
         client = Client()
 
         # instructor views

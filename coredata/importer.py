@@ -194,13 +194,11 @@ class AMAINTConn(MySQLConn):
     """
     db_user = "ggbaker"
     db_name = "amaint"
+    db_passwd = settings.AMAINT_DB_PASSWORD
 
     def get_connection(self):
-        passfile = open(self.dbpass_file)
-        pw = passfile.next().strip()
-
         conn = MySQLdb.connect(host=self.db_host, user=self.db_user,
-             passwd=pw, db=self.db_name, port=self.db_port)
+             passwd=self.db_passwd, db=self.db_name, port=self.db_port)
         return conn, conn.cursor()
 
 
@@ -825,7 +823,6 @@ def update_all_userids():
     """
     Make sure everybody's userid is right.
     """
-    db = AMAINTConn()
     accounts_by_emplid = dict((ca.emplid, ca) for ca in ComputingAccount.objects.all())
     
     for p in Person.objects.all():
@@ -899,6 +896,7 @@ def main():
     offerings = list(offerings)
     offerings.sort()
 
+    # note on doing this kind of thing in Celery when the time comes: http://stackoverflow.com/questions/13271056/how-to-chain-a-celery-task-that-returns-a-list-into-a-group
     print "importing course members"
     last = None
     for o in offerings:

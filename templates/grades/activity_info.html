@@ -160,15 +160,11 @@ Column logic:
         <tbody>
 	    <tr>
                 <th scope="row">Activity Type</th>
-                <td>{{ activity.type_long }}</td>
+                <td>{{ activity.type_long }}, {% if activity.group %}Group{% else %}Individual{% endif %}</td>
             </tr>
             <tr>
                 <th scope="row">Name</th>
-                <td>{{activity.name}}</td>
-            </tr>
-            <tr>
-                <th scope="row">Short name</th>
-                <td>{{activity.short_name}}</td>
+                <td>{{activity.name}} ({{activity.short_name}})</td>
             </tr>
             <tr>
                 <th scope="row">Status</th>
@@ -185,21 +181,11 @@ Column logic:
                 <td class="{{activity.due_class}}">{{activity.due_date}}</td>
             </tr>
             <tr>
-                <th scope="row">Percentage</th>
-                <td>{% if activity.percent == None %}&mdash;{% else %}{{activity.percent}}%{% endif %}</td>
+                <th scope="row">Grade</th>
+                <td>
+                	{% if activity.percent == None %}no percent of final grade specified{% else %}{{activity.percent}}% of final grade{% endif %}{% if activity.numericactivity %}; graded out of {{activity.max_grade}}{% endif %}
+                </td>
             </tr>
-            {% if not activity.is_calculated %}
-		<tr>
-                <th scope="row">Group Activity</th>
-                <td>{% if activity.group %}Yes{% else %}No{% endif %}</td>
-            </tr>
-            {% endif %}
-            {% if activity.numericactivity %}
-            <tr>
-                <th scope="row">Maximum grade</th>
-                <td>{{activity.max_grade}}</td>
-            </tr>
-            {% endif %}
 	    {% if activity.calnumericactivity %}
             <tr>
                 <th scope="row">Formula</th>

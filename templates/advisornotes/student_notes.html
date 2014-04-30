@@ -178,7 +178,7 @@
   {% if formsub.summary %}<p>Summary{% if formsub.closer %} by {{ formsub.closer.name }}{% endif %}: &ldquo;{{ formsub.summary }}&rdquo;
   {% if formsub.emailed %}<i class="fa fa-envelope-o" title="Summary emailed to the student"></i>{% endif %}
   </p>{% endif %}
-  <p><a href="{% url onlineforms.views.view_submission form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
+  <p><a href="{% url "onlineforms.views.view_submission" form_slug=formsub.form.slug formsubmit_slug=formsub.slug %}">
       &ldquo;{{formsub.form.title}}&rdquo; submission.</a></p>
   {% if formsub.status != 'DONE' %}<p>Note: form has not yet been completed.</p>{% endif %}
 </div>

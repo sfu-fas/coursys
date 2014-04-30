@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Faculty Salaries{% endblock %}
+{% block h1 %}Faculty Salaries{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+    input[type="submit"] {
+      margin-left: 325px;
+      margin-top: -53px;
+    }
+</style>
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#faculty_salary_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+  $("#id_date").datepicker({
+      'dateFormat' : 'yy-mm-dd'
+    });
+  $('#filter-form').change( function() {
+    event_filter_update('faculty_salary_table');
+    var sum = 0;
+    $('.rowdata').each(function() {
+        sum += Number($(this).text());
+    });
+    $('#salary_sum').text("Total: $" + sum.toFixed(2))
+  });
+  event_filter_update('faculty_salary_table');
+  var sum = 0;
+  $('.rowdata').each(function() {
+      sum += Number($(this).text());
+  });
+  $('#salary_sum').text("Total: $" + sum.toFixed(2))
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.salary_index_csv' %}?date={{ date.isoformat }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Salaries</li>
+{% endblock %}
+
+{% block content %}
+
+<form class="noprint" action="{% url 'faculty.views.salary_index' %}" method="GET">
+  {{ form.as_p }}
+  <input type="submit" value="Select" />
+</form>
+<h3 class="printonly">{{ date }}</h3>
+<div id="salary_sum"></div>
+
+{% include 'faculty/_unit_form.html' %}
+<div class="datatable_container">
+<table id="faculty_salary_table" class="display">
+  <thead><tr>
+    <th scope="col">Name</th>
+    <th scope="col">Unit</th>
+    <th scope="col">Total Salary</th>
+    <th scope="col">Multiplier</th>
+    <th scope="col">Bonus</th>
+    <th scope="col">Total Pay</th>
+  </tr></thead>
+  <tbody>
+  {% for person,units,pay,salary,fraction,bonus,step,rank in fac_roles_pay %}
+  <tr class="{{ units }}">
+  <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{ person.sortname }}</a></td>
+  <td>{{ units }}</td>
+  <td>${{ salary}}</td>
+  <td>{{ fraction}}</td>
+  <td>${{ bonus }}</td>
+  <td><span class="rowdata">{{ pay }}</span> ${{ pay }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

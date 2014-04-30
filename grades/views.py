@@ -5,7 +5,7 @@ import os
 
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
@@ -43,11 +43,8 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
 from dashboard.models import UserConfig, NewsItem
-from dashboard.views import _get_memberships
-from dashboard.photos import fetch_photos
+from dashboard.photos import pre_fetch_photos, photo_for_view
 from discuss import activity as discuss_activity
-import celery
-
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -1134,9 +1131,7 @@ def all_grades(request, course_slug):
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
 
-    memberships, excluded=_get_memberships(userid=request.user.username)
-    
-    context = {'course': course, 'students': students, 'activities': activities, 'grades': grades, 'memberships': memberships}
+    context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 
 
@@ -1211,14 +1206,15 @@ def class_list(request, course_slug):
         data = {'member': m, 'groups': groups.get(m.id, [])}
         rows.append(data)
 
-    memberships, excluded=_get_memberships(userid=request.user.username)
-    
-    context = {'course': course, 'rows': rows, 'memberships': memberships}
+    context = {'course': course, 'rows': rows}
     return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
 
 
+PHOTO_LIST_STYLES = set(['table', 'horiz'])
 @requires_course_staff_by_slug
-def photo_list(request, course_slug):
+def photo_list(request, course_slug, style='table'):
+    if style not in PHOTO_LIST_STYLES:
+        raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     
@@ -1229,13 +1225,11 @@ def photo_list(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
     
-    # fire off a task to fetch the photos, to warm the cache
-    task_map = fetch_photos([m.person.emplid for m in members])
-    for emplid, task_id in task_map.iteritems():
-        cache.set('photo-task-'+unicode(emplid), task_id, 60)
+    # fire off a task to fetch the photos and warm the cache
+    pre_fetch_photos([m.person.emplid for m in members])
 
     context = {'course': course, 'members': members}
-    return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
+    return render(request, 'grades/photo_list_%s.html' % (style), context)
 
 
 @login_required
@@ -1258,47 +1252,13 @@ def student_photo(request, emplid):
         return ForbiddenResponse(request, 'You must be an instructor of this student.')
 
     # get the photo
-    from dashboard.tasks import fetch_photos_task
-    from dashboard.photos import DUMMY_IMAGE_FILE, PHOTO_TIMEOUT
-    task_id = cache.get('photo-task-'+unicode(emplid), None)
-    photo_data = cache.get('photo-image-'+unicode(emplid), None)
-    data = None
-    status = 200
-
-    if photo_data:
-        # found image in cache: was fetched previously or task already completed before we got here
-        #print "cache data", emplid
-        data = photo_data
-    elif task_id and settings.USE_CELERY:
-        # found a task fetching the photo: wait for it to complete and get the data
-        task = fetch_photos_task.AsyncResult(task_id)
-        try:
-            #print "cache task", emplid
-            task.get(timeout=PHOTO_TIMEOUT)
-            data = cache.get('photo-image-'+unicode(emplid), None)
-        except celery.exceptions.TimeoutError:
-            pass
-    elif settings.USE_CELERY:
-        # no cache warming: new task to get the photo
-        #print "no cache", emplid
-        task = fetch_photos_task.apply([emplid])
-        try:
-            data = task.get(timeout=PHOTO_TIMEOUT)
-        except celery.exceptions.TimeoutError:
-            pass
-
-    if not data:
-        # whatever happened above failed: use a no-photo placeholder
-        data = open(DUMMY_IMAGE_FILE, 'r').read()
-        status = 404
+    data, status = photo_for_view(emplid)
 
     # return the photo
     response = HttpResponse(data, content_type='image/jpeg')
     response.status_code = status
-    response['Content-Disposition'] = 'inline; filename="%s.png"' % (emplid)
-    # TODO: be a little less heavy-handed with the caching if it can be done safely
-    response['Cache-Control'] = 'no-store'
-    response['Pragma'] = 'no-cache'
+    response['Content-Disposition'] = 'inline; filename="%s.jpg"' % (emplid)
+    response['Cache-Control'] = 'private, max-age=300'
     return response
 
 
@@ -1476,3 +1436,50 @@ def export_all(request, course_slug):
         pass
     return response
 
+
+def _git_repo_name(offering, slug, suffix=''):
+    return offering.slug + '-' + slug + suffix
+
+@requires_course_staff_by_slug
+def gitolite_config(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    staff = Member.objects.filter(offering=offering, role__in=['INST', 'TA', 'APPR']).exclude(person__userid__isnull=True).select_related('person')
+    from groups.models import Group
+
+    if 'suffix' in request.GET:
+        suffix = '-'+ request.GET['suffix']
+    else:
+        suffix = ''
+
+    staff_id = 'staffgroup'
+
+    config = []
+    staff_userids = [m.person.userid for m in staff]
+    config.append('@%s = %s' % (staff_id, ' '.join(staff_userids)))
+    config.append('\n')
+
+    if 'groups' in request.GET:
+        groups = Group.objects.filter(courseoffering=offering)
+    else:
+        groups = []
+
+    if 'indiv' in request.GET:
+        students = Member.objects.filter(offering=offering, role='STUD').exclude(person__userid__isnull=True).select_related('person')
+    else:
+        students = []
+
+    for g in groups:
+        config.append('\nrepo ' + _git_repo_name(offering, g.slug, suffix))
+        gms = g.groupmember_set.filter(confirmed=True).exclude(student__person__userid__isnull=True).select_related('student__person')
+        people = set(gm.student.person for gm in gms)
+        userids = ' '.join(p.userid for p in people)
+        config.append('\n    RW = %s %s' % (userids, staff_id))
+        config.append('\n')
+
+    for m in students:
+        userid = m.person.userid
+        config.append('\nrepo ' + _git_repo_name(offering, userid, suffix))
+        config.append('\n    RW = %s %s' % (userid, staff_id))
+        config.append('\n   ')
+
+    return HttpResponse(config, content_type='text/plain')

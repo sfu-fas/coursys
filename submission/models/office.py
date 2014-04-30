@@ -40,7 +40,7 @@ add_introspection_rules([], ["^submission\.models\.office\.JSONFieldFlexible"])
 
 class OfficeComponent(SubmissionComponent):
     "An office document submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the Office file, in kB.", null=False, default=10000)
+    max_size = FileSizeField(help_text="Maximum size of the Office file, in kB.", null=False, default=10000)
     allowed = JSONFieldFlexible(max_length=500, null=False, verbose_name='Allowed types',
                                 help_text='Accepted file extensions.')
 

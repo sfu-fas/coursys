@@ -3,7 +3,7 @@ from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE
 
 ALERT_TYPE_SLUG = '(?P<alert_type>' + SLUG_RE + ')'
 
-urlpatterns = patterns('',
+alerts_patterns = [
     url(r'^new_alerts/$', 'alerts.views.rest_alerts'),
     url(r'^$', 'alerts.views.view_alert_types'),
     url(r'^send/' + ALERT_TYPE_SLUG + '/$', 'alerts.views.send_emails'),
@@ -20,4 +20,4 @@ urlpatterns = patterns('',
     url(r'^type/' + ALERT_TYPE_SLUG + '/automation/new/$', 'alerts.views.new_automation'),
     url(r'^type/' + ALERT_TYPE_SLUG + '/automation/(?P<automation_id>\d+)/(?P<alert_id>\d+)/$', 'alerts.views.view_email_preview' ),    
     url(r'^type/' + ALERT_TYPE_SLUG + '/automation/(?P<automation_id>\d+)/delete/$', 'alerts.views.delete_automation' ),    
-)
+]

@@ -176,7 +176,7 @@ class TAApplicationForm(forms.ModelForm):
     sin_default = '000000000'
     class Meta:
         model = TAApplication
-        exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created', 'config')
+        exclude = ('posting', 'course_load', 'person','skills','campus_preferences','rank','late','admin_created', 'config')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
                    'current_program': forms.TextInput(attrs={'size': 10}),
                    'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
@@ -288,8 +288,9 @@ class TAContractForm(forms.ModelForm):
     
     def clean_deadline(self):
         deadline = self.cleaned_data['deadline']
+        status = self.cleaned_data['status']
         today = datetime.date.today()
-        if deadline < today:
+        if status not in ['REJ', 'CAN'] and deadline < today:
             raise forms.ValidationError("Deadline for acceptance cannot be before today")
         return deadline
     

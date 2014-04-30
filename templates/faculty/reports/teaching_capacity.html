@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+{% load event_display %}
+{% load form_display %}
+
+{% block title %}Teaching Capacity by Unit{% if semester %}: {{ semester }}{% endif %}{% endblock %}
+{% block h1 %}Teaching Capacity by Unit{% if semester %}: {{ semester }}{% endif %}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#capacity-table').dataTable({
+      bPaginate: false,
+      bInfo: false,
+      aaSorting: [
+        [0, 'desc'],
+        [1, 'asc']
+      ],
+      bJQueryUI: true
+  });
+
+  $('#filter-form').change(function() {
+    event_filter_update('capacity-table');
+
+    // XXX: Hacked together since event_filter_update isn't very extensible.
+    var cat = $('#filter-form input:radio[name=category]:checked').val();
+    $('#total-capacity-list dd').filter('.' + cat).show();
+    $('#total-capacity-list dd').not('.' + cat).hide();
+  }).change();
+});
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+    {% if form.is_valid %}
+      <a href="{% url 'faculty.views.teaching_capacity_csv' %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+      </a>
+    {% else %}
+      <del><i class="fa fa-li fa-download"></i> Download CSV</del>
+    {% endif %}
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li>Teaching Capacity by Unit</li>
+{% endblock %}
+
+{% block content %}
+<form action="" method="GET" class="noprint">
+  {{ form|as_dl }}
+  <input class="submit" type="submit" value="Select" />
+  <input class="submit" type="reset" value="Clear" />
+</form>
+
+{% include 'faculty/_unit_form.html' %}
+
+{% if units %}
+<dl id="total-capacity-list">
+  <dt>Total Available Capacity:</dt>
+  {% for unit, _, total_capacity in units %}
+  <dd class="all {{ unit.label }}">
+    <strong>{{ unit.label }}</strong>: {{ total_capacity|fraction_display }}
+  </dd>
+  {% endfor %}
+</dl>
+{% endif %}
+
+<table id='capacity-table'>
+  <thead><tr>
+    <th scope="col">Unit</th>
+    <th scope="col">Semester</th>
+    <th scope="col">Person</th>
+    <th scope="col">Expected Teaching Load</th>
+    <th scope="col">Teaching Credits</th>
+    <th scope="col">Available Capacity</th>
+  </tr></thead>
+  <tbody>
+  {% for unit, summaries, _ in units %}
+    {% for semester, person, credits, load_decrease, capacity in summaries %}
+    <tr class="{{ unit.label }}">
+        <td>{{ unit.label }}</td>
+        <td>{{ semester.code }}</td>
+        <td>
+          <a href="{% url 'faculty.views.teaching_summary' person.userid_or_emplid %}?start_semester={{ semester.code }}&amp;end_semester={{ semester.code }}">
+            {{ person }}
+          </a>
+        </td>
+        <td>{{ load_decrease|fraction_display }}</td>
+        <td>{{ credits|fraction_display }}</td>
+        <td>{{ capacity|fraction_display }}</td>
+      </tr>
+    {% endfor %}
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
