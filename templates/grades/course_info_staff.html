@@ -126,11 +126,12 @@
         	</a></li>
         {% endif %}
         <li class="newsec"><a href="{% url "grades.views.class_list" course_slug=course.slug %}"><i class="fa fa-li fa-list"></i>Display Class List</a></li>
+    {% if member.role == "INST" %}<li><a href="{% url "grades.views.photo_list" course_slug=course.slug %}"><i class="fa fa-li fa-picture-o"></i>Photo Class List</a></li>{% endif %}
         <li><a href="{% url "grades.views.all_grades" course_slug=course.slug %}"><i class="fa fa-li fa-table"></i>Display All Grades</a></li>
         <li><a href="{% url "grades.views.student_search" course_slug=course.slug %}"><i class="fa fa-li fa-search"></i>Student Search</a></li>
 	<li class="newsec"><a href="{% url "grades.views.new_message" course_slug=course.slug %}"><i class="fa fa-li fa-bullhorn"></i>Create News Item</a></li>
 	{% if any_group %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}"><i class="fa fa-li fa-group"></i>Manage Groups</a></li>{% endif %}
-        <li><a href="{% url "discipline.views.index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>
+    {% if member.role == "INST" %}<li><a href="{% url "discipline.views.index" course_slug=course.slug %}"><i class="fa fa-li fa-gavel"></i>Dishonesty Cases</a></li>{% endif %}
         <li><a href="{% url "pages.views.index_page" course_slug=course.slug %}"><i class="fa fa-li fa-edit"></i>Course Pages</a></li>
     {% if member.role == "TA" %}
         <li class="newsec"><a href="{% url "ta.views.view_tug" course_slug=course.slug userid=user.username %}"><i class="fa fa-li fa-clock-o"></i>Time Use Guideline</a></li>
