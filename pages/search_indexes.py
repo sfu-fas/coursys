@@ -1,6 +1,8 @@
 from pages.models import Page, PageVersion
 from haystack import indexes
 
+# Any additions here should be reflected in courselib.search.SelectiveRealtimeSignalProcessor so reindexing happens
+
 class PageIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     #title = indexes.EdgeNgramField()

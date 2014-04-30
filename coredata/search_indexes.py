@@ -1,6 +1,8 @@
 from coredata.models import CourseOffering, Person, Member
 from haystack import indexes
 
+# Any additions here should be reflected in courselib.search.SelectiveRealtimeSignalProcessor so reindexing happens
+
 class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     title = indexes.EdgeNgramField(model_attr='title')
