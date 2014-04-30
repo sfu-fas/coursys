@@ -627,6 +627,11 @@ class PagesTests(TestCase):
         test_views(self, c, 'grades.views.', ['student_info'],
                 {'course_slug': crs.slug, 'userid': student.person.userid})
 
+        # photo list styles
+        for style in ['table', 'horiz']:
+            test_views(self, c, 'grades.views.', ['photo_list'], {'course_slug': crs.slug, 'style': style})
+
+
         # various combinations of activity type and view
         test_views(self, c, 'grades.views.', ['activity_info', 'activity_info_with_groups', 'activity_stat',
                 'edit_activity'],

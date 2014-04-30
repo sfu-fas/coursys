@@ -789,6 +789,24 @@ table.info span.letter {
   color: #777;
 }
 
+/* photo class lists */
+#photolist td {
+  vertical-align: middle;
+}
+#photolist div.student {
+  display: inline-block;
+  text-align: center;
+  margin-bottom: 1em;
+  font-size: smaller;
+}
+.idphoto {
+  text-align: center;
+}
+.idphoto img {
+  max-width: 100px;
+  max-height: 100px;
+}
+
 
 /* miniaction buttons in tables */
 td.miniaction, td.miniaction p {
