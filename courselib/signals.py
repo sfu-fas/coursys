@@ -11,7 +11,6 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     Index changes in real time, but in the specific way we need them updated.
     """
     def handle_save(self, sender, instance, **kwargs):
-        logger.debug('Reindexing something')
         if sender == Page:
             # reindex object in the standard way
             logger.debug('Reindexing Page %s' % (instance))

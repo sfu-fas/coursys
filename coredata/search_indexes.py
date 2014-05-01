@@ -1,7 +1,7 @@
 from coredata.models import CourseOffering, Person, Member
 from haystack import indexes
 
-# Any additions here should be reflected in courselib.search.SelectiveRealtimeSignalProcessor so reindexing happens
+# Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
 
 class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
@@ -56,7 +56,7 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
         return o.search_label_value()
 
 
-class MemberIndex:#(indexes.SearchIndex, indexes.Indexable):
+class MemberIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     offering_slug = indexes.CharField(null=False)
     url = indexes.CharField(indexed=False, null=False)
