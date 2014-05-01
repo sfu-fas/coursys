@@ -1,0 +1,9 @@
+/var/log/celery/*.log {
+        weekly
+        size=10M
+        rotate 8
+        notifempty
+        copytruncate
+        compress
+        missingok
+}

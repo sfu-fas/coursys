@@ -163,6 +163,13 @@ end
 service "celeryd" do
   action :restart
 end
+cookbook_file "logrotate-celery" do
+    path "/etc/logrotate.d/celery"
+    owner "root"
+    mode "0644"
+    action :create
+end
+
 
 # configure NGINX
 cookbook_file "nginx_default.conf" do
@@ -190,9 +197,16 @@ end
 # directory "/var/log/gunicorn"
 directory "/var/log/gunicorn" do 
     owner "coursys"
-    mode "00766"
+    mode "00755"
     action :create
 end
+cookbook_file "logrotate-gunicorn" do
+    path "/etc/logrotate.d/gunicorn"
+    owner "root"
+    mode "0644"
+    action :create
+end
+
 
 # create a script to run and restart supervisord
 cookbook_file "Makefile" do
