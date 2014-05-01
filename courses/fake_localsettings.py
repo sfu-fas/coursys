@@ -23,7 +23,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'some.module': {
+        'coredata.models': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
