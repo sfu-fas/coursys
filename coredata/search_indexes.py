@@ -56,7 +56,7 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
         return o.search_label_value()
 
 
-class MemberIndex:#(indexes.SearchIndex, indexes.Indexable):
+class MemberIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     offering_slug = indexes.CharField(null=False)
     url = indexes.CharField(indexed=False, null=False)
