@@ -72,6 +72,7 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
                 ct = index.prepared_data['django_ct']
                 obj_id = index.prepared_data['id']
                 existing = SearchQuerySet().models(sender).filter(django_ct=ct, id=obj_id)
+
                 if existing.count() > 0:
                     index.remove_object(instance, using=using)
             except NotHandled:

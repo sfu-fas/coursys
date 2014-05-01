@@ -293,7 +293,12 @@ class FulltextTest(TestCase):
     def test_updating(self):
         """
         Test the way the full text index updates
+
+        The real-time indexing is disabled in the tests environments: slows things down too much. Disabled these tests
+        as a result, since they don't really match the deployed or devel behaviour.
         """
+        return
+
         res = SearchQuerySet().models(CourseOffering).filter(text='Babbling')
         self.assertEqual(len(res), 1)
         self.assertEquals(res[0].object, self.offering)
@@ -310,7 +315,6 @@ class FulltextTest(TestCase):
         self.assertEqual(len(res), 0)
         res = SearchQuerySet().models(CourseOffering).filter(text='Something')
         self.assertEqual(len(res), 1)
-
 
         # but we do update Pages in real time
         res = SearchQuerySet().models(Page).filter(text='fernwhizzles')
