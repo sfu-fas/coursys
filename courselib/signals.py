@@ -1,4 +1,6 @@
 from haystack.signals import RealtimeSignalProcessor
+from haystack.exceptions import NotHandled
+from haystack.query import SearchQuerySet
 
 from coredata.models import Person, CourseOffering, Member
 from pages.models import Page, PageVersion
@@ -26,6 +28,7 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
             logger.debug('Reindexing CourseOffering %s' % (instance))
             if instance.component == 'CAN':
                 # cancelling is our version of deleting
+                # TODO: should delete related Member[role=STUD] objects here as well.
                 self.handle_delete(sender=sender, instance=instance)
             else:
                 # reindex object in the standard way
@@ -55,5 +58,20 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
         #else:
         #    ignore everything else, since we don't care.
 
-    #def handle_delete(self, sender, instance, **kwargs):
-    #    return super(SelectiveRealtimeSignalProcessor, self).handle_delete(sender=sender, instance=instance, **kwargs)
+    def handle_delete(self, sender, instance, **kwargs):
+        # modified from BaseSignalProcessor.handle_delete to force checking existence before removing from the index
+        # (and getting an error message if it's not there).
+        using_backends = self.connection_router.for_write(instance=instance)
+
+        for using in using_backends:
+            try:
+                index = self.connections[using].get_unified_index().get_index(sender)
+
+                # check to see if the object is actually in the index before removing:
+                index.prepare(instance)
+                obj_id = index.prepared_data['id']
+                existing = SearchQuerySet().models(sender).filter(django_ct='coredata.courseoffering', id=obj_id)
+                if existing.count() > 0:
+                    index.remove_object(instance, using=using)
+            except NotHandled:
+                pass
