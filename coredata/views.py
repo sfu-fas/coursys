@@ -14,6 +14,8 @@ from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from haystack.query import SearchQuerySet
+from haystack.inputs import Exact
 import json, datetime
 
 @requires_global_role("SYSA")
@@ -476,27 +478,27 @@ def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
     allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA'])
-    if not(roles & allowed):
+    if not(roles & allowed) and not has_formgroup(request):
         # doesn't have any allowed roles
-        if not has_formgroup(request):
-            return ForbiddenResponse(request, "Not permitted to do student search.")
+        return ForbiddenResponse(request, "Not permitted to do student search.")
     
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
     response = HttpResponse(content_type='application/json')
 
+    # do the query with Haystack: doesn't find emplids with elasticsearch. Do it the old way unless we can work around.
+    #student_qs = SearchQuerySet().models(Person).filter(text=Exact(term))[:20]
+    #data = [{'value': r.emplid, 'label': r.search_display, 'score': r.score} for r in student_qs if r]
+
     studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
     students = Person.objects.filter(studentQuery)[:100]
+    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
-        nonStudents = NonStudent.objects.filter(nonStudentQuery)[:100]
-    else:
-        nonStudents = []
-
-    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
-    data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
+        nonStudents = NonStudent.objects.filter(nonStudentQuery)[:10]
+        data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
 
     data.sort(key = lambda x: x['label'])
 

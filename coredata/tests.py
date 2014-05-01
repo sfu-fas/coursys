@@ -2,6 +2,7 @@ from django.test import TestCase
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, Member, Role, Unit
 
 from django.core.urlresolvers import reverse
+from django.core.management import call_command
 
 from courselib.testing import basic_page_tests, validate_content, Client, TEST_COURSE_SLUG
 #from django.conf import settings
@@ -265,4 +266,24 @@ class CoredataTest(TestCase):
         # courseoffering detail page
         url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
         response = basic_page_tests(self, client, url)
+
+
+    def test_ajax(self):
+        client = Client()
+        #call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
+
+        # test person autocomplete
+        client.login_user("dzhao")
+        p = Person.objects.get(userid='ggbaker')
+        url = reverse('coredata.views.student_search')
+        response = client.get(url, {'term': 'ggba'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['content-type'], 'application/json')
+        # should find this person
+        data = json.loads(response.content)
+        emplids = [str(d['value']) for d in data]
+        self.assertIn(str(p.emplid), emplids)
+
+
+
 
