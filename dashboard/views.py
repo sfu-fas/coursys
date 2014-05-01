@@ -1029,7 +1029,7 @@ def site_search(request):
         person = None
 
     query = request.GET.get('q', '')
-    if 'really' not in request.GET and ('search-scope' in request.GET and request.GET['search-scope'] == 'sfu'):
+    if 'really' not in request.GET or ('search-scope' in request.GET and request.GET['search-scope'] == 'sfu'):
         # redirect to SFU-wide search if appropriate
         url = SEARCH_URL + urlencode({'q': query, 'search-scope': 'sfu'})
         return HttpResponseRedirect(url)
