@@ -69,8 +69,9 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
 
                 # check to see if the object is actually in the index before removing:
                 index.prepare(instance)
+                ct = index.prepared_data['django_ct']
                 obj_id = index.prepared_data['id']
-                existing = SearchQuerySet().models(sender).filter(django_ct='coredata.courseoffering', id=obj_id)
+                existing = SearchQuerySet().models(sender).filter(django_ct=ct, id=obj_id)
                 if existing.count() > 0:
                     index.remove_object(instance, using=using)
             except NotHandled:

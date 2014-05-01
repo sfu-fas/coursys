@@ -168,6 +168,8 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'com
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
 
+HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
+
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
@@ -183,7 +185,6 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'INDEX_NAME': 'haystack',
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
     USE_CELERY = True
     DB_BACKUP_DIR = '/home/coursys/db_backup'
 
