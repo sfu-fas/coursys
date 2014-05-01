@@ -97,11 +97,15 @@ end
 cookbook_file "elasticsearch.yml" do
     path "/etc/elasticsearch/elasticsearch.yml"
 end
+execute "install_elasticsearch-HQ" do
+    command "/usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ"
+    not_if do ::File.exists?('/usr/share/elasticsearch/plugins/HQ') end
+end
 service "elasticsearch" do
   action :restart
 end
 
-#Rabbit Configuration
+# Rabbit Configuration
 cookbook_file "rabbitmq.conf" do
     path "/etc/rabbitmq/rabbitmq-env.conf"
 end
