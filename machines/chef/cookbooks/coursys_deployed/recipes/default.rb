@@ -90,7 +90,7 @@ directory "/tmp/elasticsearch" do
     action :create
 end
 execute "install_elasticsearch" do
-    cwd "/tmp/elasticsearch"
+    cwd "/tmp"
     command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb"
     not_if do ::File.exists?('/var/lib/elasticsearch/') end
 end
