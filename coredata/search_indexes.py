@@ -17,6 +17,9 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         return self.get_model().objects.exclude(component='CAN').select_related('semester')
 
+    def should_update(self, o):
+        return o.component != 'CAN'
+
     def prepare_text(self, o):
         fields = [o.subject, o.number, o.section, o.title, o.instructors_str(), o.semester.name,
                   o.semester.label(), o.get_campus_display()]
@@ -71,6 +74,9 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
                 .filter(role='STUD') \
                 .filter(offering__semester__name__gte='1137') \
                 .select_related('person', 'offering__semester')
+
+    def should_update(self, m):
+        return m.offering.component != 'CAN' and m.role == 'STUD'
 
     def prepare_text(self, m):
         fields = [unicode(m.person.emplid), m.person.first_name, m.person.last_name]
