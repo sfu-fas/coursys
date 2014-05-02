@@ -1006,8 +1006,7 @@ def _query_results(query, person):
         page_results[:MAX_RESULTS],
         member_results[:MAX_RESULTS],
         )
-    # experimentally, score >= 1 seems to correspond to useful things
-    results = (r for r in results if r is not None and r.score >= 1)
+    results = (r for r in results if r is not None)
     results = list(results)
     results.sort(key=lambda result: -result.score)
     results = results[:MAX_RESULTS] # (list before this could be n*MAX_RESULTS long)
@@ -1037,10 +1036,14 @@ def site_search(request):
         return HttpResponseRedirect(url)
 
     results = _query_results(query, person)
+    maxscore = max(r.score for r in results)
+    # strip out the really bad results
+    #results = (r for r in results if r.score >= maxscore/10)
 
     context = {
         "query": query,
         "results": results,
+        "maxscore": maxscore,
     }
 
     #print [r.text for r in results]
