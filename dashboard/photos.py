@@ -82,15 +82,16 @@ def photo_for_view(emplid):
             if data:
                 break
 
-    elif settings.USE_CELERY:
-        # no cache warming: new task to get the photo
-        logger.debug('no cache for %s' % (emplid))
+    if not data and settings.USE_CELERY:
+        # no cache warming, or didn't find: new task to get this photo
+        logger.debug('no cache/task for %s' % (emplid))
         task = fetch_photos_task.apply(kwargs={'emplids': [emplid]})
         try:
             task.get(timeout=PHOTO_TIMEOUT)
-            data = cache.get(image_key, None)
         except celery.exceptions.TimeoutError:
             pass
+
+        data = cache.get(image_key, None)
 
     if not data:
         # whatever happened above failed: use a no-photo placeholder

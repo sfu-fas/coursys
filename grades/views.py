@@ -1227,7 +1227,7 @@ def photo_list(request, course_slug, style='table'):
     members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
     
     # fire off a task to fetch the photos and warm the cache
-    pre_fetch_photos([m.person.emplid for m in members])
+    pre_fetch_photos(m.person.emplid for m in members)
 
     context = {'course': course, 'members': members}
     return render(request, 'grades/photo_list_%s.html' % (style), context)
