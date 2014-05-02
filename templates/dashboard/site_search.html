@@ -45,7 +45,7 @@ $(document).ready(function() {
   {% for r in results %}
   <tr>
   <td scope="row">
-      <span class="sort">{{ r.score|format_score }}</span>
+      <span class="Xsort">{{ r.score|format_score }}</span>
       {% if r.url %}
       <a href="{{ r.url }}">{{ r.search_display }}</a>
       {% else %}

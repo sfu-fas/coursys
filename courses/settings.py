@@ -176,9 +176,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     } }
     HAYSTACK_CONNECTIONS = {
         'default': {
-            #'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
-            #'URL': 'http://localhost:8983/solr'
-            'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+            'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
             'URL': 'http://127.0.0.1:9200/',
             'INDEX_NAME': 'haystack',
         },
@@ -198,13 +196,14 @@ else:
         } }
     HAYSTACK_CONNECTIONS = {
         'default': {
-            #'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
             'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
             'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
-            #'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
-            #'URL': 'http://localhost:8983/solr'
         },
     }
+    if hasattr(localsettings, 'HAYSTACK_CONNECTIONS'):
+        HAYSTACK_CONNECTIONS = localsettings.HAYSTACK_CONNECTIONS
+        #HAYSTACK_SILENTLY_FAIL = False
+
     USE_CELERY = False
     DB_BACKUP_DIR = os.path.join(BASE_DIR, 'db_backup')
 

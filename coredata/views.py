@@ -487,20 +487,23 @@ def student_search(request):
     term = request.GET['term']
     response = HttpResponse(content_type='application/json')
 
-    # do the query with Haystack: doesn't find emplids with elasticsearch. Do it the old way unless we can work around.
-    #student_qs = SearchQuerySet().models(Person).filter(text=Exact(term))[:20]
-    #data = [{'value': r.emplid, 'label': r.search_display, 'score': r.score} for r in student_qs if r]
+    # do the query with Haystack
+    # experimentally, score >= 1 seems to correspond to useful things
+    student_qs = SearchQuerySet().models(Person).filter(text=Exact(term))[:20]
+    data = [{'value': r.emplid, 'label': r.search_display, 'score': r.score} for r in student_qs
+            if r and r.score >= 1 and unicode(r.emplid) not in EXCLUDE_EMPLIDS]
 
-    studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
-    students = Person.objects.filter(studentQuery)[:100]
-    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
+    # non-haystack version of the above query
+    #studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+    #students = Person.objects.filter(studentQuery)[:20]
+    #data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
         nonStudents = NonStudent.objects.filter(nonStudentQuery)[:10]
         data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
 
-    data.sort(key = lambda x: x['label'])
+    #data.sort(key = lambda x: x['label'])
 
     json.dump(data, response, indent=1)
     return response

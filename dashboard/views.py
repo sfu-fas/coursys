@@ -1006,7 +1006,8 @@ def _query_results(query, person):
         page_results[:MAX_RESULTS],
         member_results[:MAX_RESULTS],
         )
-    results = (r for r in results if r is not None)
+    # experimentally, score >= 1 seems to correspond to useful things
+    results = (r for r in results if r is not None and r.score >= 1)
     results = list(results)
     results.sort(key=lambda result: -result.score)
     results = results[:MAX_RESULTS] # (list before this could be n*MAX_RESULTS long)
