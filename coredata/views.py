@@ -15,7 +15,6 @@ from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from haystack.query import SearchQuerySet
-from haystack.inputs import Exact
 import json, datetime
 
 @requires_global_role("SYSA")
@@ -489,8 +488,8 @@ def student_search(request):
 
     # do the query with Haystack
     # experimentally, score >= 1 seems to correspond to useful things
-    student_qs = SearchQuerySet().models(Person).filter(text=Exact(term))[:20]
-    data = [{'value': r.emplid, 'label': r.search_display, 'score': r.score} for r in student_qs
+    student_qs = SearchQuerySet().models(Person).filter(text=term)[:20]
+    data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
             if r and r.score >= 1 and unicode(r.emplid) not in EXCLUDE_EMPLIDS]
 
     # non-haystack version of the above query
