@@ -20,11 +20,10 @@ def score_stars(score, maxscore):
     """
     Turn the results score into 5 stars out of the max
     """
-
     stars = 1.0 * STARS * score/maxscore
     wholestars = int(stars)
-    frac = stars - wholestars
 
+    frac = stars - wholestars
     if frac >= 0.5:
         halfstars = 1
     else:

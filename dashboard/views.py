@@ -1030,15 +1030,15 @@ def site_search(request):
         person = None
 
     query = request.GET.get('q', '')
-    if 'really' not in request.GET or ('search-scope' in request.GET and request.GET['search-scope'] == 'sfu'):
+    if 'search-scope' in request.GET and request.GET['search-scope'] == 'sfu':
         # redirect to SFU-wide search if appropriate
         url = SEARCH_URL + urlencode({'q': query, 'search-scope': 'sfu'})
         return HttpResponseRedirect(url)
 
     results = _query_results(query, person)
     maxscore = max(r.score for r in results)
-    # strip out the really bad results
-    #results = (r for r in results if r.score >= maxscore/10)
+    # strip out the really bad results: elasticsearch is pretty liberal
+    results = (r for r in results if r.score >= maxscore/10)
 
     context = {
         "query": query,
@@ -1046,5 +1046,4 @@ def site_search(request):
         "maxscore": maxscore,
     }
 
-    #print [r.text for r in results]
     return render(request, "dashboard/site_search.html", context)
