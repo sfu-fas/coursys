@@ -202,6 +202,7 @@ else:
     }
     if hasattr(localsettings, 'HAYSTACK_CONNECTIONS'):
         HAYSTACK_CONNECTIONS = localsettings.HAYSTACK_CONNECTIONS
+        #HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
         #HAYSTACK_SILENTLY_FAIL = False
 
     USE_CELERY = False

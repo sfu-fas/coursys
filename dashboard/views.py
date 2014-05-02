@@ -16,6 +16,7 @@ from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
+from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from log.models import LogEntry
 import datetime, json, urlparse
@@ -956,6 +957,7 @@ RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
     'coredata.courseoffering': 'Course offering',
     'coredata.member': 'Student in your class',
     'pages.page': 'Class web page',
+    'discuss.discussiontopic': 'Discussion topic',
 }
 
 def _query_results(query, person):
@@ -990,8 +992,16 @@ def _query_results(query, person):
     page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
     page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
 
+    # discussion this person can view (discussion.DiscussionTopic)
+    if person:
+        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text=query) # discussions that match the query
+        discuss_results = discuss_results.filter(slug__in=offering_slugs) # ... and this person was in
+    else:
+        discuss_results = []
+
     # students taught by instructor (coredata.Member)
-    instr_members = Member.objects.filter(person=person, role='INST').select_related('offering')
+    instr_members = Member.objects.filter(person=person, role='INST').exclude(offering__component='CAN') \
+        .select_related('offering')
     if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
         member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
@@ -1005,6 +1015,7 @@ def _query_results(query, person):
         offering_results[:MAX_RESULTS],
         page_results[:MAX_RESULTS],
         member_results[:MAX_RESULTS],
+        discuss_results[:MAX_RESULTS],
         )
     results = (r for r in results if r is not None)
     results = list(results)
@@ -1016,7 +1027,6 @@ def _query_results(query, person):
 def site_search(request):
     # Things that would be nice:
     # activities in your courses
-    # discussion in your courses
     # grad students you admin/supervise
     # advisors: students/advisornote content
     # marking comments
@@ -1036,7 +1046,10 @@ def site_search(request):
         return HttpResponseRedirect(url)
 
     results = _query_results(query, person)
-    maxscore = max(r.score for r in results)
+    if results:
+        maxscore = max(r.score for r in results)
+    else:
+        maxscore = 1
     # strip out the really bad results: elasticsearch is pretty liberal
     results = (r for r in results if r.score >= maxscore/10)
 

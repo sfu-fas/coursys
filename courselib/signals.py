@@ -4,6 +4,7 @@ from haystack.query import SearchQuerySet
 
 from coredata.models import Person, CourseOffering, Member
 from pages.models import Page, PageVersion
+from discuss.models import DiscussionTopic, DiscussionMessage
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,11 +25,23 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
             page = instance.page
             self.handle_save(sender=Page, instance=page)
 
+        elif sender == DiscussionTopic:
+            logger.debug('Reindexing DiscussionTopic %s' % (instance))
+            if instance.status == 'HID':
+                # hidden is deletion
+                self.handle_delete(sender=sender, instance=instance, **kwargs)
+            else:
+                super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
+
+        elif sender == DiscussionMessage:
+            # reindex the containing topic
+            logger.debug('Reindexing DiscussionMessage %s' % (instance))
+            self.handle_save(sender=DiscussionTopic, instance=instance.topic, **kwargs)
+
         elif sender == CourseOffering:
             logger.debug('Reindexing CourseOffering %s' % (instance))
             if instance.component == 'CAN':
                 # cancelling is our version of deleting
-                # TODO: should delete related Member[role=STUD] objects here as well.
                 self.handle_delete(sender=sender, instance=instance)
             else:
                 # reindex object in the standard way
