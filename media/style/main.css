@@ -810,6 +810,12 @@ table.info span.letter {
   max-height: 100px;
 }
 
+/* site search */
+#search-results td.stars {
+  white-space: nowrap;
+  text-align: center;
+}
+
 
 /* miniaction buttons in tables */
 td.miniaction, td.miniaction p {

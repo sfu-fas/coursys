@@ -20,7 +20,7 @@
 </style>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#resultstable').dataTable( {
+  $('#search-results').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': false,
@@ -39,7 +39,7 @@ $(document).ready(function() {
 </form>
 
 {% if results %}
-<table id="resultstable">
+<table id="search-results">
   <thead><tr>
       <th scope="col">Score</th>
       <th scope="col">Result</th>
@@ -48,7 +48,7 @@ $(document).ready(function() {
   <tbody>
   {% for r in results %}
   <tr>
-  <td>
+  <td class="stars">
       <span class="sort">{{ r.score|format_score }}</span>
       {{ r.score|score_stars:maxscore }}
   </td>
