@@ -289,6 +289,8 @@ def change_photo_password():
     """
     Change photo service password (passwords expire every 30 days, so must be automated).
     """
+    if not settings.DO_IMPORTING_HERE:
+        raise ValueError
     newpw = generate_password(datetime.date.today().isoformat())
     token_data = urllib.urlencode({
         'AccountName': ACCOUNT_NAME,
