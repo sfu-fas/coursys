@@ -40,8 +40,8 @@ sys.path.append( os.path.join(BASE_DIR, 'external') )
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
-#    ('Curtis Lassam', 'classam@sfu.ca'),
-#    ('sumo Kindersley', 'sumo@cs.sfu.ca'),
+    ('Curtis Lassam', 'classam@sfu.ca'),
+    ('sumo Kindersley', 'sumo@cs.sfu.ca'),
 )
 SERVER_EMAIL = 'ggbaker@sfu.ca'
 
