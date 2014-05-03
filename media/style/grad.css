@@ -43,3 +43,77 @@ p.manage_link {
   text-align: right;
   margin-top: -1.75em;
 }
+
+/* financial page */
+/* from W3 Dot Leaders */
+ul.leaders {
+    max-width: 100%;
+    overflow-x: hidden;
+    list-style: none
+    }
+ul.leaders li:before {
+    float: left;
+    width: 0;
+    white-space: nowrap;
+    content:
+ ". . . . . . . . . . . . . . . . . . . . "
+ ". . . . . . . . . . . . . . . . . . . . "
+ ". . . . . . . . . . . . . . . . . . . . "
+ ". . . . . . . . . . . . . . . . . . . . "
+ }
+ul.leaders li.comment:before{
+	content:"";
+}
+ul.leaders li.helptext{
+	padding-left: 2em;
+}
+ul.leaders span:first-child {
+    padding-right: 1em;
+    background: white
+}
+ul.leaders span + span {
+    float: right;
+    padding-left: 1em;
+    padding-right: 2em;
+    background: white;
+}
+
+div.hr{
+	border: 1px solid black;
+	width: 98%;
+}
+
+span.label {
+ 	font-weight: bold
+}
+
+table#financial {
+	width: 100%;
+}
+table#financial, table#financial td {
+  border: none;
+  padding: 0.5em;
+}
+table#financial thead {
+  display: none;
+}
+table#financial h2 {
+  margin-bottom: 1em;
+}
+table#financial td.prom {
+  text-align: right;
+  vertical-align: bottom;
+  background-color: #ddd;
+  border-bottom: solid white 0.5em;
+}
+table#financial td.rec {
+	width: 60%;
+}
+table#financial td.programchange {
+	border-bottom: 2px solid red;
+	background-color: #fcc;
+}
+
+table#financial-compact td.num {
+  text-align: right;
+}
