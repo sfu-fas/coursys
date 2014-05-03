@@ -270,7 +270,7 @@ class CoredataTest(TestCase):
 
     def test_ajax(self):
         client = Client()
-        #call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
+        call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
 
         # test person autocomplete
         client.login_user("dzhao")
