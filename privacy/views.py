@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from forms import PrivacyForm
 from courselib.auth import HttpResponseRedirect, requires_role
-from coredata.models import ROLE_CHOICES, Person
+from coredata.models import Person
 import datetime
 
-PRIVACY_VERSION = 1;
+PRIVACY_VERSION = 1
 
-# Who has to sign the Privacy statement? Anybody with a role. 
-RELEVANT_ROLES = [role for role, description in ROLE_CHOICES if role != "NONE"]
+# Who has to sign the Privacy statement?
+RELEVANT_ROLES = ['ADVS', 'ADMN', 'TAAD', 'GRAD', 'GRPD', 'FUND']
 
 @requires_role(RELEVANT_ROLES)
 def privacy(request, return_to="/"):
