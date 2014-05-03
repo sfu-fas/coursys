@@ -19,6 +19,7 @@ from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from log.models import LogEntry
+from privacy.decorators import check_privacy_signature
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
@@ -58,6 +59,7 @@ def _get_memberships(userid):
     return memberships, excluded
 
 @login_required
+@check_privacy_signature
 def index(request):
     userid = request.user.username
     memberships, excluded = _get_memberships(userid)
