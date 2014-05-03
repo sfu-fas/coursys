@@ -182,7 +182,6 @@ if DEPLOY_MODE in ['production', 'proddev']:
         },
     }
     HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
-    USE_CELERY = True
     DB_BACKUP_DIR = '/home/coursys/db_backup'
 
 else:
@@ -205,7 +204,6 @@ else:
         #HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
         #HAYSTACK_SILENTLY_FAIL = False
 
-    USE_CELERY = False
     DB_BACKUP_DIR = os.path.join(BASE_DIR, 'db_backup')
 
 
@@ -230,7 +228,7 @@ else:
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', USE_CELERY)
+USE_CELERY = getattr(localsettings, 'USE_CELERY', True)
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
