@@ -45,7 +45,7 @@ def financials(request, grad_slug):
                       (ph.start_semester for ph in program_history),
                     )
     all_semesters = itertools.ifilter(lambda x: isinstance(x, Semester), all_semesters)
-    all_semesters = list(all_semesters)
+    all_semesters = set(all_semesters)
     if len(all_semesters) == 0:
         all_semesters = [get_semester()]
     earliest_semester = min(all_semesters)
