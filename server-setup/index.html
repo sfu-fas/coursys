@@ -86,6 +86,12 @@ sudo ./manage.py install_secrets
         <blockquote><pre>LD_LIBRARY_PATH=/home/coursys/sqllib/lib64 ./manage.py check_things</pre></blockquote>
         <p>Check with <a href="http://www.digicert.com/help/">the Digicert SSL Certificate Checker</a> that the SSL is installed properly. Maybe also try <a href="https://www.ssllabs.com/ssltest/analyze.html?d=courses.cs.sfu.ca&hideResults=on">the SSL Labs test</a>.</p>
     </dd>
+    <dt>Enable importing</dt>
+    <dd>
+        <p>In <code class="file">~/courses/courses/localsettings.py</code>, add this line which enables the daily imports and photo password changing: things that should only be done on the One True Production Server.</p>
+        <blockquote><pre>DO_IMPORTING_HERE = True</pre></blockquote>
+
+    </dd>
     <dt>Bug fix</dt>
     <dd>
         <p>The django-cache-utils has <a href="https://bitbucket.org/kmike/django-cache-utils/issue/7/memcachedkeylengtherror-for-long-keys">a bug that affects us</a>.</p>
@@ -138,6 +144,29 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote></dd>
 
 </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

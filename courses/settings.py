@@ -296,6 +296,7 @@ LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
 DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
+DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
 
 # Feature flags to temporarily limit server load, aka "feature flags"
 # Possible values for the set documented in server-setup/index.html#flags
