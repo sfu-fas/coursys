@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from courselib.auth import ForbiddenResponse
+from courselib.auth import ForbiddenResponse, NotFoundResponse
 from django.shortcuts import render
 from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
         GradProgramHistory, FinancialComment, STATUS_ACTIVE
@@ -14,6 +14,9 @@ STYLES = ['complete', 'compact']
 
 @login_required
 def financials(request, grad_slug, style='complete'):
+    if style not in STYLES:
+        return NotFoundResponse(request)
+
     grad, _, units = _can_view_student(request, grad_slug, funding=True)
     if grad is None:
         return ForbiddenResponse(request)
@@ -61,8 +64,10 @@ def financials(request, grad_slug, style='complete'):
 
         # other funding
         other_funding = other_fundings.filter(semester=semester)
+        other_total = 0
         for other in other_funding:
             if other.eligible:
+                other_total += other.amount
                 semester_total += other.amount
         
         # scholarships
@@ -88,6 +93,7 @@ def financials(request, grad_slug, style='complete'):
         for s in GradStatus.objects.filter(student=grad):
             if s.start <= semester and (s.end == None or semester <= s.end) :
                 status = s.get_status_display()
+                status_short = s.get_short_status_display()
         
         # grad program
         program = None
@@ -102,23 +108,23 @@ def financials(request, grad_slug, style='complete'):
                 comments.append(c)
         
         # TAs
-        amount = 0
+        ta_total = 0
         courses = []
         for contract in contracts:
             if contract.posting.semester == semester:
                 for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
-                    amount += course.pay()
+                    ta_total += course.pay()
                     if contract.status == 'SGN':
                         text = "%s (%s BU)" % (course.course.name(), course.total_bu)
                     else:
                         text = "%s (%s BU, current status: %s)" \
                              % (course.course.name(), course.total_bu, contract.get_status_display().lower())
                     courses.append({'course': text,'amount': course.pay()})
-        ta = {'courses':courses,'amount':amount}
-        semester_total += amount
+        ta = {'courses':courses,'amount':ta_total}
+        semester_total += ta_total
 
         # RAs
-        amount = 0
+        ra_total = 0
         appt = []
         for appointment in appointments:
             app_start_sem = appointment.start_semester()
@@ -126,11 +132,11 @@ def financials(request, grad_slug, style='complete'):
             length = appointment.semester_length()
             if app_start_sem <= semester and app_end_sem >= semester:
                 sem_pay = appointment.lump_sum_pay/length
-                amount += sem_pay
+                ra_total += sem_pay
                 appt.append({'desc':"RA for %s - %s" % (appointment.hiring_faculty.name(), appointment.project),
                              'amount':sem_pay, 'semesters': appointment.semester_length() })
-        ra = {'appt':appt, 'amount':amount}        
-        semester_total += amount
+        ra = {'appt':appt, 'amount':ra_total}
+        semester_total += ra_total
         
         # promises (ending in this semester, so we display them in the right spot)
         try:
@@ -138,10 +144,11 @@ def financials(request, grad_slug, style='complete'):
         except Promise.DoesNotExist:
             promise = None
         
-        semester_data = {'semester':semester, 'status':status, 'scholarships': scholarships,
+        semester_data = {'semester':semester, 'status':status, 'status_short': status_short, 'scholarships': scholarships,
                          'promise': promise, 'semester_total': semester_total, 'comments': comments,
                          'ta': ta, 'ra': ra, 'other_funding': other_funding, 'program': program,
-                         'scholarship_total': scholarship_total}
+                         'other_total': other_total, 'scholarship_total': scholarship_total,
+                         'ta_total': ta_total, 'ra_total': ra_total,}
         semesters.append(semester_data)
 
     promises = []
