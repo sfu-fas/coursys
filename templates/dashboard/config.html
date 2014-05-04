@@ -22,6 +22,13 @@
 {% else %}
 <li><a href="{% url "dashboard.views.create_calendar_url" %}">Activate external calendar</a></li>
 {% endif %}
+{% if instructor %}
+<li class="newsec"><a href="{% url "dashboard.views.photo_agreement" %}">Display ID Photos</a></li>
+{% endif %}
+{% if privacy_visible %}
+<li><a href="{% url "privacy.views.privacy" %}"><i class="fa fa-li fa-lock"></i>Privacy Agreement</a></li>
+{% endif %}
+
 {% if advisor %}
     {% if advisortoken %}
         <li class="newsec"><a href="{% url "dashboard.views.disable_advisor_token" %}">Disable advisor notes API</a></li>
@@ -29,9 +36,6 @@
     {% else %}
         <li class="newsec"><a href="{% url "dashboard.views.enable_advisor_token" %}">Enable advisor notes API</a></li>
     {% endif %}
-{% endif %}
-{% if instructor %}
-    <!--<li class="newsec"><a href="{% url "dashboard.views.photo_agreement" %}">Display ID Photos</a></li>-->
 {% endif %}
 </ul>
 </div>

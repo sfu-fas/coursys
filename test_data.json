@@ -16361,7 +16361,7 @@
 },
 {
  "fields": {
-  "config": "{}", 
+  "config": "{\"privacy_date\": \"2014-05-03\", \"privacy_signed\": true, \"privacy_version\": 1}",
   "emplid": 200000674, 
   "first_name": "Danyu", 
   "last_name": "Zhao", 

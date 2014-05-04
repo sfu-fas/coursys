@@ -50,9 +50,6 @@ $(document).ready(function() {
     <li><a href="{% url "dashboard.views.student_info" %}"><i class="fa fa-li fa-search"></i> Student Search</a></li>
     <li><a href="{% url "dashboard.views.list_docs" %}"><i class="fa fa-li fa-question"></i> View Documentation</a></li>
     {% endif %}
-    {% if privacy_visible %}
-    <li><a href="{% url "privacy.views.privacy" %}"><i class="fa fa-li fa-lock"></i>Privacy Policy</a></li>
-    {% endif %}
     </ul>
 </div>
 {% endblock %}

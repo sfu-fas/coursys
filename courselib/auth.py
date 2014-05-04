@@ -61,24 +61,6 @@ def ForbiddenResponse(request, errormsg=None):
 def NotFoundResponse(request, errormsg=None):
     return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
 
-def is_advisor(request, **kwargs):
-    """
-    Return True is the given user is an advisor
-    """
-    perms = Role.objects.filter(person__userid=request.user.username, role='ADVS')
-    count = perms.count()
-    return count>0
-
-def requires_advisor(function=None, login_url=None):
-    """
-    Allows access if user is an advisor.
-    """
-    actual_decorator = user_passes_test(is_advisor, login_url=login_url)
-    if function:
-        return  actual_decorator(function)
-    else:
-        return actual_decorator
-
 def has_global_role(role, request, **kwargs):
     """
     Return True is the given user has the specified role

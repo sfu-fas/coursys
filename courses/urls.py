@@ -17,7 +17,6 @@ from grades.urls import offering_patterns
 from ra.urls import ra_patterns
 from reports.urls import report_patterns
 from ta.urls import ta_patterns, tug_patterns
-from privacy.urls import privacy_patterns
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
@@ -44,7 +43,6 @@ urlpatterns = [
     url(r'^news/', include(news_patterns)),
     url(r'^students/', include(studentsearch_patterns)),
     url(r'^sysadmin/', include(sysadmin_patterns)),
-    url(r'^privacy/', include(privacy_patterns)),
 
     # course offering URL hierarchy: many apps sub-included there
     # among them: discipline, discuss, groups, marking, pages, submission

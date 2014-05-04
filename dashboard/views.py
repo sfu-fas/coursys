@@ -241,9 +241,15 @@ def config(request):
         configs = UserConfig.objects.filter(user=user, key='photo-agreement')
         if len(configs) > 0:
             photo_agreement = configs[0].value['agree']
-    
+
+    # privacy config
+    roles = Role.all_roles(user.userid)
+    roles_with_privacy = [r for r in roles if r in PRIVACY_ROLES]
+    privacy_visible = len(roles_with_privacy) > 0
+
     context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 
-             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL,
+             'privacy_visible': privacy_visible}
     return render(request, "dashboard/config.html", context)
 
 

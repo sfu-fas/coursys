@@ -16,14 +16,11 @@ def needs_privacy_signature(request):
     try:
         you = Person.objects.get(userid=request.user.username)
     except Person.DoesNotExist:
-        return view_func(request, *args, **kwargs)
-
-    roles = Role.objects.filter(person__userid=request.user.username, 
-                                role__in=RELEVANT_ROLES)
+        return False # non-Person can't have a role to worry about
 
     if 'privacy_signed' in you.config and you.config['privacy_signed']:
         return False
-    elif len(roles) == 0:
-        return False
-    else:
-        return True
+
+    roles = Role.objects.filter(person__userid=request.user.username, 
+                                role__in=RELEVANT_ROLES)
+    return roles.exists()

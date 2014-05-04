@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib import messages
 from forms import PrivacyForm
 from courselib.auth import HttpResponseRedirect, requires_role
 from coredata.models import Person
@@ -32,6 +33,7 @@ def privacy(request):
         form = PrivacyForm(request.POST)
         if form.is_valid():
             set_privacy_signed(you)
+            messages.add_message(request, messages.SUCCESS, 'Privacy agreement recorded. Thank you.')
             return HttpResponseRedirect(next_page)
     else:
         form = PrivacyForm()
