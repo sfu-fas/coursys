@@ -138,7 +138,7 @@
   {% if semester.promiseowing == -1 %}
   <span class="label">Amount Owing: None</span>
   {% else %}
-  <span style="color: red" class="label">Amount Owing: (${{ semester.promiseowing|floatformat:2 }})</span> 
+  <span class="label promise-owing">Amount Owing: (${{ semester.promiseowing|floatformat:2 }})</span>
   {% endif %}
 </td>
 {% endif %}

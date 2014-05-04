@@ -5,6 +5,7 @@ from coredata.models import Person, Semester, Role
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment
+from grad.views.financials import STYLES
 from courselib.testing import basic_page_tests, test_auth, Client, test_views
 from grad.views.view import all_sections
 from django.http import QueryDict
@@ -165,6 +166,11 @@ class GradTest(TestCase):
             except:
                 print "with view==" + repr(view)
                 raise
+
+        for style in STYLES:
+            url = reverse('grad.views.financials', kwargs={'grad_slug': gs.slug, 'style': style})
+            response = basic_page_tests(self, client, url)
+            self.assertEqual(response.status_code, 200)
 
         url = reverse('grad.views.new_letter', kwargs={'grad_slug': gs.slug, 'letter_template_slug': lt.slug})
         response = basic_page_tests(self, client, url)
