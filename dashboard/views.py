@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
+from privacy.models import RELEVANT_ROLES as PRIVACY_ROLES
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role
 from courselib.search import find_userid_or_emplid
@@ -19,7 +20,6 @@ from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from log.models import LogEntry
-from privacy.decorators import check_privacy_signature
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
@@ -59,7 +59,6 @@ def _get_memberships(userid):
     return memberships, excluded
 
 @login_required
-@check_privacy_signature
 def index(request):
     userid = request.user.username
     memberships, excluded = _get_memberships(userid)
@@ -69,14 +68,24 @@ def index(request):
     is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).count() > 0
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
+    roles_with_privacy = [r for r in roles if r in PRIVACY_ROLES]
+    privacy_visible = len(roles_with_privacy) > 0
+    
 
     #messages.add_message(request, messages.SUCCESS, 'Success message.')
     #messages.add_message(request, messages.WARNING, 'Warning message.')
     #messages.add_message(request, messages.INFO, 'Info message.')
     #messages.add_message(request, messages.ERROR, 'Error message.')
 
-    context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad,
-               'has_grads': has_grads, 'excluded': excluded, 'form_groups': form_groups}
+    context = {'memberships': memberships, 
+                'staff_memberships': staff_memberships, 
+                'news_list': news_list, 
+                'roles': roles, 
+                'privacy_visible': privacy_visible,
+                'is_grad':is_grad,
+                'has_grads': has_grads, 
+                'excluded': excluded, 
+                'form_groups': form_groups}
     return render(request, "dashboard/index.html", context)
 
 @login_required

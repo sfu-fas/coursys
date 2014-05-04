@@ -125,7 +125,7 @@
 </div>
 
 <div class="form_container">
-    <form action="{% url "privacy.views.privacy" %}" method="post">
+    <form method="post">
         {% csrf_token %}
             {{ form|as_dl }}
             <p><input type="submit" class="submit" value="Continue" /></p>

@@ -2,20 +2,21 @@ from django.shortcuts import render
 from forms import PrivacyForm
 from courselib.auth import HttpResponseRedirect, requires_role
 from coredata.models import Person
-import datetime
+from models import set_privacy_signed, PRIVACY_VERSION
 
-PRIVACY_VERSION = 1
-
-# Who has to sign the Privacy statement?
-RELEVANT_ROLES = ['ADVS', 'ADMN', 'TAAD', 'GRAD', 'GRPD', 'FUND']
-
-@requires_role(RELEVANT_ROLES)
-def privacy(request, return_to="/"):
+def privacy(request):
     """
     View & sign the privacy statement.
     """
-    you = Person.objects.get(userid=request.user.username)
-
+    try:
+        you = Person.objects.get(userid=request.user.username)
+    except Person.DoesNotExist:
+        return HttpResponseRedirect("/")
+    
+    next_page = '/'
+    if 'next' in request.GET:
+        next_page = request.GET['next']
+    
     privacy_date = ""
     if 'privacy_date' in you.config:
         privacy_date = you.config['privacy_date']
@@ -30,11 +31,8 @@ def privacy(request, return_to="/"):
     if request.POST:
         form = PrivacyForm(request.POST)
         if form.is_valid():
-            you.config["privacy_signed"] = True
-            you.config["privacy_date"] = datetime.date.today()
-            you.config["privacy_version"] = PRIVACY_VERSION 
-            you.save()
-            return HttpResponseRedirect(return_to)
+            set_privacy_signed(you)
+            return HttpResponseRedirect(next_page)
     else:
         form = PrivacyForm()
     return render(request, 'privacy/privacy.html', {
