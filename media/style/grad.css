@@ -86,6 +86,9 @@ div.hr{
 span.label {
  	font-weight: bold
 }
+.promise-owing {
+  color: red;
+}
 
 table#financial {
 	width: 100%;
@@ -114,6 +117,9 @@ table#financial td.programchange {
 	background-color: #fcc;
 }
 
+table#financial-compact tr.newprogram {
+  border-bottom: 2px #fcc solid;
+}
 table#financial-compact td.num {
   text-align: right;
 }

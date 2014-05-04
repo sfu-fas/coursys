@@ -9,7 +9,6 @@ from courselib.text import normalize_newlines, many_newlines
 import itertools, datetime
 import coredata.queries
 from django.conf import settings
-#import json
 from collections import defaultdict
 
 IGNORE_CMPT_STUDENTS = True
@@ -446,6 +445,27 @@ STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE') # statuses we don't actually use anymore
+SHORT_STATUSES = dict([ # a shorter status description we can use in compact tables
+        ('INCO', 'Incomp App'),
+        ('COMP', 'Complete App'),
+        ('INRE', 'In-Review'),
+        ('HOLD', 'Hold'),
+        ('OFFO', 'Out'),
+        ('REJE', 'Reject'),
+        ('DECL', 'Declined'),
+        ('EXPI', 'Expired'),
+        ('CONF', 'Confirmed'),
+        ('CANC', 'Cancelled'),
+        ('ARIV', 'Arrive'),
+        ('ACTI', 'Active'),
+        ('PART', 'Part-Time'),
+        ('LEAV', 'On-Leave'),
+        ('WIDR', 'Withdrawn'),
+        ('GRAD', 'Grad'),
+        ('NOND', 'Non-deg'),
+        ('GONE', 'Gone'),
+        ('ARSP', 'Completed'), # Special Arrangements + GONE
+])
 
 GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
 
@@ -545,7 +565,7 @@ class GradStudent(models.Model):
         #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
-    
+
     def status_as_of(self, semester=None):
         """ Like 'current status', but for an arbitrary semester. 
         
@@ -1423,6 +1443,9 @@ class GradStatus(models.Model):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.status]
+
+    def get_short_status_display(self):
+        return SHORT_STATUSES[self.status]
 
     @classmethod
     def overrun(cls, student, statuses_to_save):
