@@ -4,6 +4,7 @@ from courselib.testing import create_fake_semester, TEST_COURSE_SLUG
 from faculty.models import CareerEvent, EventConfig, EVENT_TYPES
 from faculty.models import MemoTemplate, Memo
 from faculty.models import TempGrant, Grant, GrantBalance, GrantOwner
+from privacy.models import set_privacy_signed
 from datetime import date
 
 def event_get_or_create(**kwargs):
@@ -155,7 +156,9 @@ class Command(BaseCommand):
         Role.objects.get_or_create(person=farid, unit=mse, role='FAC')
         Role.objects.get_or_create(person=phillip, unit=phil, role='FAC')
         Role.objects.get_or_create(person=tony, unit=cmpt, role='ADMN')
+        set_privacy_signed(tony)
         Role.objects.get_or_create(person=danyu, unit=fas, role='ADMN')
+        set_privacy_signed(danyu)
 
         # create some events
 
