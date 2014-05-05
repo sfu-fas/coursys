@@ -678,11 +678,15 @@ class OfferingDataJson(BaseDatatableView):
                 continue # not in our list of flags: not safe to getattr
             qs = qs.filter(flags=getattr(CourseOffering.flags, f))
 
-        distance = GET.get('distance', None)
-        if distance == 'dist':
+        mode = GET.get('mode', None)
+        if mode == 'dist':
             qs = qs.filter(instr_mode='DE')
-        elif distance == 'on':
+        elif mode == 'on':
             qs = qs.exclude(instr_mode='DE')
+        elif mode == 'day':
+            qs = qs.exclude(instr_mode='DE').exclude(section__startswith='E')
+        elif mode == 'eve':
+            qs = qs.exclude(instr_mode='DE').filter(section__startswith='E')
 
         #print qs.query
         #qs = qs[:500] # ignore requests for crazy amounts of data

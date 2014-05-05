@@ -484,7 +484,7 @@ class OfferingFilterForm(forms.Form):
     crstitle = forms.CharField(widget=forms.TextInput(attrs={'size': '20'}), label='Title Contains')
     wqb = forms.MultipleChoiceField(choices=WQB_FLAGS, initial=[], label='WQB',
                                     widget=CheckboxSelectTerse())
-    distance = forms.ChoiceField(label='Distance Ed', choices=[('', 'all'), ('dist', 'Distance'), ('on', 'On-Campus')])
+    mode = forms.ChoiceField(label='Mode/Time', choices=[('', 'all'), ('dist', 'Distance'), ('on', 'On-Campus'), ('day', 'On-Campus, day'), ('eve', 'On-Campus, evening')])
     
     @classmethod
     @cached(24*3600)
