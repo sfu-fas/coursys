@@ -25,12 +25,12 @@
 <table id="financial-compact">
 <thead>
 <tr><th scope="col">Semester</th><th scope="col">Status</th>
-<th scope="col">TA</th><th scope="col">RA</th><th scope="col">Scholar.</th><th scope="col">Other</th>
-<th scope="col">Total</th><th scope="col">Promises</th></tr>
+<th scope="col">TA</th><th scope="col">RA</th><th scope="col">Schol.</th><th scope="col">Other</th>
+<th scope="col">Total</th><th scope="col">Prom. End</th><th scope="col">AY</th></tr>
 </thead>
 <tbody>
 {% for semester in semesters %}
-<tr{% if semester.program %} class="newprogram"{% endif %}>
+<tr class="{% if semester.program %}newprogram{% endif %} {% if semester.semester == semester.acad_year.endsem %}end-ay{% endif %}">
   <td scope="row">{{semester.semester.name}}</td>
   <td>{% if semester.status %}{{ semester.status_short }}{% endif %}</td>
   <td class="num">{% if semester.ta_total %}${{ semester.ta_total|floatformat:2 }}{% endif %}</td>
@@ -42,6 +42,11 @@
       ${{ semester.promise.amount|floatformat:2 }}
       (${{ semester.promisereceived|floatformat:2 }})
       {% endif %}</td>
+  {% if semester.semester == semester.acad_year.endsem %}
+  <td class="num acad-year" rowspan="{{ semester.acad_year.semcount }}">
+  {% if semester.acad_year.total %}<div class="value">${{ semester.acad_year.total|floatformat:2 }}</div>{% endif %}
+  </td>
+  {% endif %}
 </tr>
 {% endfor %}
 </tbody>

@@ -57,12 +57,16 @@ def financials(request, grad_slug, style='complete'):
 
     semesters = []
     semesters_qs = Semester.objects.filter(start__gte=earliest_semester.start, end__lte=latest_semester.end).order_by('-start')
+    current_acad_year = None
 
     # build data structure with funding for each semester
     for semester in semesters_qs:
         semester_total = decimal.Decimal(0)
 
-        # yearpos = (semester - grad.start_semester) % 3 # position in academic year: 0 is start of a new academic year for this student
+        yearpos = (semester - grad.start_semester) % 3 # position in academic year: 0 is start of a new academic year for this student
+        if not current_acad_year or yearpos == 2:
+            # keep this (mutable) structure that we can alias in each semester and keep running totals
+            current_acad_year = {'total': 0, 'semcount': 0, 'endsem': semester}
 
         # other funding
         other_funding = other_fundings.filter(semester=semester)
@@ -146,11 +150,13 @@ def financials(request, grad_slug, style='complete'):
         except Promise.DoesNotExist:
             promise = None
         
+        current_acad_year['total'] += semester_total
+        current_acad_year['semcount'] += 1
         semester_data = {'semester':semester, 'status':status, 'status_short': status_short, 'scholarships': scholarships,
                          'promise': promise, 'semester_total': semester_total, 'comments': comments,
                          'ta': ta, 'ra': ra, 'other_funding': other_funding, 'program': program,
                          'other_total': other_total, 'scholarship_total': scholarship_total,
-                         'ta_total': ta_total, 'ra_total': ra_total,}
+                         'ta_total': ta_total, 'ra_total': ra_total, 'acad_year': current_acad_year}
         semesters.append(semester_data)
 
     promises = []
