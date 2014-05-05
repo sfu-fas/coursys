@@ -519,7 +519,8 @@ class FormSubmission(models.Model):
         from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                                     from_email=from_email, to=[to], bcc=[admin.full_email()])
+                from_email=from_email, to=[to], bcc=[admin.full_email()],
+                headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
@@ -535,7 +536,8 @@ class FormSubmission(models.Model):
         from_email = FormFiller.form_full_email(admin)
         to = self.owner.notify_emails()
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                                     from_email=from_email, to=to, bcc=[admin.full_email()])
+                from_email=from_email, to=to, bcc=[admin.full_email()],
+                headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
@@ -653,12 +655,13 @@ class SheetSubmission(models.Model):
                 continue
             context = Context({'full_url': full_url,
                     'filler': filler, 'sheets': list(sheets)})
-            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()])
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()],
+                    headers={'X-coursys-topic': 'onlineforms'})
             msg.send()
     
     def _send_email(self, request, template_name, subject, mail_from, mail_to, context):
         """
-        Send email to user as required in various places below
+        Send email to user as required in various places below.
         """
         plaintext = get_template('onlineforms/emails/' + template_name + '.txt')
         html = get_template('onlineforms/emails/' + template_name + '.html')
@@ -666,14 +669,15 @@ class SheetSubmission(models.Model):
         sheeturl = request.build_absolute_uri(self.get_submission_url())
         context['sheeturl'] = sheeturl
         email_context = Context(context)
-        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), mail_from, mail_to)
+        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), mail_from, mail_to,
+                headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
 
     def email_assigned(self, request, admin, assignee):
         full_url = request.build_absolute_uri(self.get_submission_url())
-        context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self})
+        context = {'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self}
         subject = 'CourSys: You have been assigned a sheet.'
         self._send_email(request, 'sheet_assigned', subject, FormFiller.form_full_email(admin),
                          [assignee.full_email()], context)
@@ -681,7 +685,7 @@ class SheetSubmission(models.Model):
     
     def email_started(self, request):
         full_url = request.build_absolute_uri(self.get_submission_url())
-        context = Context({'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self})
+        context = {'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self}
         subject = '%s submission incomplete' % (self.sheet.form.title)
         self._send_email(request, 'nonsfu_sheet_started', subject,
                          settings.DEFAULT_FROM_EMAIL, [self.filler.full_email()], context)
@@ -690,8 +694,8 @@ class SheetSubmission(models.Model):
         full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
                                     kwargs={'form_slug': self.sheet.form.slug,
                                             'formsubmit_slug': self.form_submission.slug}))
-        context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
-                                 'rejected': rejected})
+        context = {'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
+                                 'rejected': rejected}
         subject = '%s submission' % (self.sheet.form.title)
         self._send_email(request, 'sheet_submitted', subject,
                          settings.DEFAULT_FROM_EMAIL, self.sheet.form.owner.notify_emails(), context)

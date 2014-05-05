@@ -221,7 +221,7 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
         if not assign_to_sfu_account:
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
-        if formFiller.full_email() != admin.full_email():
+        if formFiller.email() != admin.email():
             sheet_submission.email_assigned(request, admin, formFiller)
 
         #LOG EVENT#
@@ -292,7 +292,7 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
         if not assign_to_sfu_account:
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
-        if formFiller.full_email() != admin.full_email():
+        if formFiller.email() != admin.email():
             sheet_submission.email_assigned(request, admin, formFiller)
         #LOG EVENT#
         l = LogEntry(userid=request.user.username,
