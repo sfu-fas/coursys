@@ -62,6 +62,8 @@ def financials(request, grad_slug, style='complete'):
     for semester in semesters_qs:
         semester_total = decimal.Decimal(0)
 
+        # yearpos = (semester - grad.start_semester) % 3 # position in academic year: 0 is start of a new academic year for this student
+
         # other funding
         other_funding = other_fundings.filter(semester=semester)
         other_total = 0

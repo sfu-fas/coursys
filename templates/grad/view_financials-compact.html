@@ -4,20 +4,28 @@
 {% block h1 %}Financial Summary for {{grad.person.name}}{% endblock %}
 
 {% block actions %}
+<div id="actions">
+	<h2>Actions</h2>
+	<ul>
+	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">View complete format</a></li>
+	</ul>
+</div>
 {% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "grad.views.index" %}">Grad</a></li>
 <li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>Financial Summary</li>
+<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">Financial Summary</a></li>
+<li>Compact</li>
 {% endblock %}
+
 
 {% block content %}
 
 <table id="financial-compact">
 <thead>
 <tr><th scope="col">Semester</th><th scope="col">Status</th>
-<th scope="col">TA</th><th scope="col">RA</th><th scope="col">Scholarships</th><th scope="col">Other</th>
+<th scope="col">TA</th><th scope="col">RA</th><th scope="col">Scholar.</th><th scope="col">Other</th>
 <th scope="col">Total</th><th scope="col">Promises</th></tr>
 </thead>
 <tbody>
