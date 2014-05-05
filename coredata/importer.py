@@ -931,7 +931,7 @@ def main():
         TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
 
     # run any Report reports
-    schedule_ping()
+    #schedule_ping() # moved to celery periodic_task
 
     print "People:", len(imported_people)
     print "Course Offerings:", len(offerings)

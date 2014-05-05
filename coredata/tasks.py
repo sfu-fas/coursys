@@ -24,7 +24,7 @@ def backup_database():
 def check_sims_connection():
     from coredata.queries import SIMSConn, SIMSProblem
     db = SIMSConn()
-    db.execute("SELECT * FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
+    db.execute("SELECT descr FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
     if len(list(db)) == 0:
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 
@@ -64,13 +64,16 @@ def _grouper(iterable, n):
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-#@periodic_task(run_every=crontab(minute=0, hour='*/3'))
+#@periodic_task(run_every=crontab(minute=0, hour='8'))
 def daily_import():
     """
     Start the daily import work.
     """
     # This is a separate task because periodic tasks run in the worker queue. We want all SIMS access running in the
-    # sims queue. This task essentially start and bounces the work into the other queue.
+    # sims queue. This task essentially starts and bounces the work into the other queue.
+    if not settings.DO_IMPORTING_HERE:
+        return
+
     importer.apply_async()
 
 
@@ -84,6 +87,7 @@ def importer():
     """
     if not settings.DO_IMPORTING_HERE:
         return
+
     tasks = [
         get_amaint_userids.si(),
         fix_unknown_emplids.si(),
