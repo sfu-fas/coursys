@@ -68,9 +68,7 @@ def index(request):
     is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).count() > 0
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
-    roles_with_privacy = [r for r in roles if r in PRIVACY_ROLES]
-    privacy_visible = len(roles_with_privacy) > 0
-    
+
 
     #messages.add_message(request, messages.SUCCESS, 'Success message.')
     #messages.add_message(request, messages.WARNING, 'Warning message.')
@@ -81,7 +79,6 @@ def index(request):
                 'staff_memberships': staff_memberships, 
                 'news_list': news_list, 
                 'roles': roles, 
-                'privacy_visible': privacy_visible,
                 'is_grad':is_grad,
                 'has_grads': has_grads, 
                 'excluded': excluded, 
