@@ -244,7 +244,7 @@ def run(request, report):
     
     if not _has_access(request, report):
         return ForbiddenResponse(request)
-   
+
     runs = report.run()
     if len(runs) > 0: 
         for run in runs: 

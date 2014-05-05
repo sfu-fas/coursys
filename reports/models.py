@@ -80,7 +80,14 @@ class Report(models.Model):
             self.failure_notification(failed_runs[0])
 
         return runs
-    
+
+    def enqueue(self):
+        """
+        Run by passing into celery queue
+        """
+        from reports.tasks import run_report
+        return run_report.apply_async(args=(self.id,))
+
     def failure_notification(self, failed_run):
         every_sysadmin = [role.person for role in Role.objects.filter(role='SYSA')]
         for sysadmin in every_sysadmin:
