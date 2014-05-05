@@ -35,6 +35,19 @@ def backup_database():
     backup_db.Command().handle(clean_old=True)
 
 
+@periodic_task(queue='sims', run_every=crontab(minute=0, hour='*/3'))
+def check_sims_connection():
+    from coredata.queries import SIMSConn, SIMSProblem
+    db = SIMSConn()
+    db.execute("SELECT * FROM dbcsown.PS_TERM_TBL WHERE strm='1111'", ())
+    if len(list(db)) == 0:
+        raise SIMSProblem("Didn't get any data back from SIMS query.")
+
+
+
+
+
+
 
 
 
