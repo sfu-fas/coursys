@@ -764,12 +764,12 @@ def student_info(request, userid=None):
 
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     user = Person.objects.get(userid=request.user.username)
-    all_instr = [m.offering for m in Member.objects.filter(person=user, role='INST').select_related('offering')]
-    all_ta = [m.offering for m in Member.objects.filter(person=user, role='TA').select_related('offering')]
+    all_instr = [m.offering for m in Member.objects.exclude(offering__component='CAN').filter(person=user, role='INST').select_related('offering')]
+    all_ta = [m.offering for m in Member.objects.exclude(offering__component='CAN').filter(person=user, role='TA').select_related('offering')]
     
-    student_instr = Member.objects.filter(person=student, role='STUD', offering__in=all_instr).select_related('offering', 'person')
-    student_ta = Member.objects.filter(person=student, role='STUD', offering__in=all_ta).select_related('offering', 'person')
-    ta_instr = Member.objects.filter(person=student, role='TA', offering__in=all_instr).select_related('offering', 'person')
+    student_instr = Member.objects.exclude(offering__component='CAN').filter(person=student, role='STUD', offering__in=all_instr).select_related('offering', 'person')
+    student_ta = Member.objects.exclude(offering__component='CAN').filter(person=student, role='STUD', offering__in=all_ta).select_related('offering', 'person')
+    ta_instr = Member.objects.exclude(offering__component='CAN').filter(person=student, role='TA', offering__in=all_instr).select_related('offering', 'person')
     supervisors = Supervisor.objects.filter(student__person=student, supervisor=user, removed=False)
     
     anything = student_instr or student_ta or ta_instr or supervisors

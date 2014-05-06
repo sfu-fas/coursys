@@ -111,6 +111,7 @@ def all_tugs_admin(request, semester_name=None):
 
 
 @requires_course_instr_or_dept_admn_by_slug
+@transaction.atomic
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
