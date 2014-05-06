@@ -41,6 +41,12 @@ cookbook_file "secrets.py" do
     path "/home/coursys/courses/courses/secrets.py"
     action :create
 end
+directory "/home/coursys/courses/submitted_files" do
+    owner "coursys"
+    group "coursys"
+    mode 00755
+    action :create
+end
 
 # set rabbitmq password
 execute "rabbit add_user" do 
