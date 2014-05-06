@@ -542,7 +542,9 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             week, wkday = course_copy_from.semester.week_weekday(new_p.editdate())
             new_date = course_copy_to.semester.duedate(week, wkday, None)
             new_p.set_editdate(new_date)
-        
+
+        new_p.save()
+
         v = p.current_version()
         new_v = copy.deepcopy(v)
         new_v.id = None
