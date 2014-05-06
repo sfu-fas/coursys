@@ -4,6 +4,12 @@
 {% block h1 %}Financial Summary for {{grad.person.name}}{% endblock %}
 
 {% block actions %}
+<div id="actions">
+	<h2>Actions</h2>
+	<ul>
+	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug style="compact" %}">View compact format</a></li>
+	</ul>
+</div>
 {% endblock %}
 
 {% block gradheadextra %}
@@ -39,8 +45,6 @@
 <li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>Financial Summary</li>
 {% endblock %}
-
-
 
 {% block content %}
 

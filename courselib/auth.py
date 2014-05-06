@@ -4,8 +4,10 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.http import urlquote
+from django.core.urlresolvers import reverse
 from coredata.models import Role, CourseOffering, Member
 from onlineforms.models import FormGroup, Form
+from privacy.models import needs_privacy_signature
 
 try:
     from functools import wraps
@@ -26,7 +28,13 @@ def user_passes_test(test_func, login_url=None,
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
             if test_func(request, **kwargs):
-                return view_func(request, *args, **kwargs)
+                if needs_privacy_signature(request):
+                    privacy_url = reverse('privacy.views.privacy')
+                    path = '%s?%s=%s' % (privacy_url, redirect_field_name,
+                                         urlquote(request.get_full_path()))
+                    return HttpResponseRedirect(path)
+                else:
+                    return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated():
                 return ForbiddenResponse(request)
             else:
@@ -52,24 +60,6 @@ def ForbiddenResponse(request, errormsg=None):
 
 def NotFoundResponse(request, errormsg=None):
     return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
-
-def is_advisor(request, **kwargs):
-    """
-    Return True is the given user is an advisor
-    """
-    perms = Role.objects.filter(person__userid=request.user.username, role='ADVS')
-    count = perms.count()
-    return count>0
-
-def requires_advisor(function=None, login_url=None):
-    """
-    Allows access if user is an advisor.
-    """
-    actual_decorator = user_passes_test(is_advisor, login_url=login_url)
-    if function:
-        return  actual_decorator(function)
-    else:
-        return actual_decorator
 
 def has_global_role(role, request, **kwargs):
     """

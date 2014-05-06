@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
+from privacy.models import RELEVANT_ROLES as PRIVACY_ROLES
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role
 from courselib.search import find_userid_or_emplid
@@ -68,13 +69,20 @@ def index(request):
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
 
+
     #messages.add_message(request, messages.SUCCESS, 'Success message.')
     #messages.add_message(request, messages.WARNING, 'Warning message.')
     #messages.add_message(request, messages.INFO, 'Info message.')
     #messages.add_message(request, messages.ERROR, 'Error message.')
 
-    context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad,
-               'has_grads': has_grads, 'excluded': excluded, 'form_groups': form_groups}
+    context = {'memberships': memberships, 
+                'staff_memberships': staff_memberships, 
+                'news_list': news_list, 
+                'roles': roles, 
+                'is_grad':is_grad,
+                'has_grads': has_grads, 
+                'excluded': excluded, 
+                'form_groups': form_groups}
     return render(request, "dashboard/index.html", context)
 
 @login_required
@@ -230,9 +238,15 @@ def config(request):
         configs = UserConfig.objects.filter(user=user, key='photo-agreement')
         if len(configs) > 0:
             photo_agreement = configs[0].value['agree']
-    
+
+    # privacy config
+    roles = Role.all_roles(user.userid)
+    roles_with_privacy = [r for r in roles if r in PRIVACY_ROLES]
+    privacy_visible = len(roles_with_privacy) > 0
+
     context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 
-             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL,
+             'privacy_visible': privacy_visible}
     return render(request, "dashboard/config.html", context)
 
 

@@ -1,6 +1,7 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.generic import RedirectView
 from courselib.urlparts import USERID_SLUG, COURSE_SLUG, SLUG_RE, USERID_OR_EMPLID
+from privacy.urls import privacy_patterns
 
 config_patterns = [ # prefix /config/
     url(r'^$', 'dashboard.views.config'),
@@ -13,6 +14,7 @@ config_patterns = [ # prefix /config/
     url(r'^advisor-api/change$', 'dashboard.views.change_advisor_token'),
     url(r'^news$', 'dashboard.views.news_config'),
     url(r'^photos$', 'dashboard.views.photo_agreement'),
+    url(r'^privacy/', include(privacy_patterns)),
 ]
 
 news_patterns = [ # prefix /news/

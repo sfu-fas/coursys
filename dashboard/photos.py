@@ -1,5 +1,6 @@
 from django.core.cache import cache
 from django.conf import settings
+from django.db import transaction
 from coredata.models import Unit
 from cache_utils.decorators import cached
 import itertools, os
@@ -285,6 +286,7 @@ def set_photo_password(p):
     u.config['photopass'] = p
     u.save()
 
+@transaction.atomic
 def change_photo_password():
     """
     Change photo service password (passwords expire every 30 days, so must be automated).

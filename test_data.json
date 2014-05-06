@@ -8311,7 +8311,7 @@
 },
 {
  "fields": {
-  "config": "{\"lastimport\":1388174390}", 
+  "config": "{\"lastimport\":1388174390, \"privacy_date\": \"2014-05-03\", \"privacy_signed\": true, \"privacy_version\": 1}",
   "emplid": 200000101, 
   "first_name": "Gregory", 
   "last_name": "Baker", 
@@ -8395,7 +8395,7 @@
 },
 {
  "fields": {
-  "config": "{\"lastimport\":1388174351}", 
+  "config": "{\"lastimport\":1388174351, \"privacy_date\": \"2014-05-03\", \"privacy_signed\": true, \"privacy_version\": 1}",
   "emplid": 200000107, 
   "first_name": "Anthony", 
   "last_name": "Dixon", 
@@ -16361,7 +16361,7 @@
 },
 {
  "fields": {
-  "config": "{}", 
+  "config": "{\"privacy_date\": \"2014-05-03\", \"privacy_signed\": true, \"privacy_version\": 1}",
   "emplid": 200000674, 
   "first_name": "Danyu", 
   "last_name": "Zhao", 
