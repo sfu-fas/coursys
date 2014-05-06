@@ -274,6 +274,27 @@ class GradTest(TestCase):
         high_gpa = form.search_results(units)
         self.assertNotIn(gs, high_gpa)
 
+    def test_grad_status(self):
+        client = Client()
+        test_auth(client, 'ggbaker')
+        this_sem = Semester.current()
+
+        # clear the deck on this student's statuses
+        gs = self.__make_test_grad()
+        gs.gradstatus_set.all().delete()
+
+        s1 = GradStatus(student=gs, status='COMP', start=this_sem.offset(-4))
+        s1.save()
+        s2 = GradStatus(student=gs, status='ACTI', start=this_sem.offset(-3))
+        s2.save()
+        s3 = GradStatus(student=gs, status='LEAV', start=this_sem.offset(2))
+        s3.save()
+
+        gs = GradStudent.objects.get(id=gs.id) # make sure we get what's in the database now
+        self.assertEqual(gs.current_status, 'ACTI')
+
+        # grad.tasks.update_statuses_to_current will put this student on LEAV on the first day of that future semester
+
 
 
 

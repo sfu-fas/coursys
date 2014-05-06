@@ -608,6 +608,9 @@ class GradStudent(models.Model):
     def update_status_fields(self):
         """
         Update the self.start_semester, self.end_semester, self.current_status fields.
+
+        Called by updates to statuses, and also by grad.tasks.update_statuses_to_current to reflect future statuses
+        when the future actually comes.
         """
         old = (self.start_semester_id, self.end_semester_id, self.current_status)
         self.start_semester = None
