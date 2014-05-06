@@ -101,6 +101,10 @@ execute "install_elasticsearch-HQ" do
     command "/usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ"
     not_if do ::File.exists?('/usr/share/elasticsearch/plugins/HQ') end
 end
+execute "elasticsearch-update-rc.d" do
+    command "update-rc.d elasticsearch defaults"
+end
+
 service "elasticsearch" do
   action :restart
 end
@@ -161,7 +165,7 @@ end
 execute "dos2unix" do
     command "dos2unix /etc/default/celeryd"
 end
-execute "update-rc.d" do
+execute "celery-update-rc.d" do
     command "update-rc.d celeryd defaults"
 end
 service "celeryd" do
