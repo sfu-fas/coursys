@@ -86,7 +86,7 @@ class URL:
 
             if self.component.check:
                 # instructor asked to check that URLs really exist: do it.
-                validator = QuickURLValidator(verify_exists=True)
+                validator = QuickURLValidator()
                 try:
                     validator(url) # throws ValidationError if there's a problem
                 except forms.ValidationError:
