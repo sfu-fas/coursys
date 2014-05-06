@@ -187,5 +187,5 @@ def update_group_repository(offering, g, instr=None, repos=None):
         ro = instr
 
     if _repo_needs_updating(repos, reponame, rw, ro):
-        update_repository_task.delay(reponame, rw, ro)
+        update_repository_task.delay(reponame, list(rw), list(ro))
 
