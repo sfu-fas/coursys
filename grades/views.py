@@ -1213,7 +1213,7 @@ def class_list(request, course_slug):
 
 PHOTO_LIST_STYLES = set(['table', 'horiz'])
 @requires_course_staff_by_slug
-def photo_list(request, course_slug, style='table'):
+def photo_list(request, course_slug, style='horiz'):
     if style not in PHOTO_LIST_STYLES:
         raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
