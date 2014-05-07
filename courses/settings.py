@@ -181,7 +181,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'INDEX_NAME': 'haystack',
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
+    HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', 'courselib.signals.SelectiveRealtimeSignalProcessor')
     DB_BACKUP_DIR = '/home/coursys/db_backup'
 
 else:
