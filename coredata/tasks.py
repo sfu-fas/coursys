@@ -1,3 +1,4 @@
+from django.conf import settings
 from courselib.svn import update_repository
 from coredata.management.commands import backup_db
 from celery.task import task, periodic_task
@@ -18,7 +19,9 @@ def ping(): # used to check that celery is alive
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def backup_database():
-    backup_db.Command().handle(clean_old=True)
+    if settings.DO_IMPORTING_HERE:
+        # if we're not on the "real" database, then don't bother with regular backups
+        backup_db.Command().handle(clean_old=True)
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def check_sims_connection():
