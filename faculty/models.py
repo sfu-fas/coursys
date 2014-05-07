@@ -208,7 +208,7 @@ class CareerEvent(models.Model):
     person = models.ForeignKey(Person, related_name="career_events")
     unit = models.ForeignKey(Unit)
 
-    slug = AutoSlugField(populate_from='slug_string', unique_with=('person', 'unit'),
+    slug = AutoSlugField(populate_from='slug_string', unique_with=('person',),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -231,6 +231,7 @@ class CareerEvent(models.Model):
             '-end_date',
             'event_type',
         )
+        unique_together = (("person", "slug"),)
 
     def __unicode__(self):
         return u"%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
