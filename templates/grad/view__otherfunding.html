@@ -24,7 +24,7 @@
                         {{ f.description }}
                     {% if f.removed %}</del>{% endif %}
                     {% if f.comments %} 
-                        <img src="{{STATIC_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" />
+                        <i class="fa fa-info-circle collapsiblecomment"></i>
                         <p class="hiddencomment">{{f.comments}}</p> 
                     {% endif %}
 				</td>

@@ -60,9 +60,9 @@ $(document).ready(function(){
     <h3>{{activity.0.name}} ({{activity.0.short_name}})</h3>
     <p>{{form.selected}} {{form.selected.label_tag}}<br/>
 		{{form.name.label_tag}}&nbsp;{{form.name}}
-		{% if form.name.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{form.name.errors.0}}</span>{% endif %}
+		{% if form.name.errors %}<span class="errortext">{{form.name.errors.0}}</span>{% endif %}
 		{{form.short_name.label_tag}}&nbsp;{{form.short_name}}
-		{% if form.short_name.errors %}<span class="errortext"><img src="{{STATIC_URL}}icons/error.png" alt="error"/> {{form.short_name.errors.0}}</span>{% endif %}		
+		{% if form.short_name.errors %}<span class="errortext">{{form.short_name.errors.0}}</span>{% endif %}
 	</p>
 	{% endwith %}
 {% endfor %}
