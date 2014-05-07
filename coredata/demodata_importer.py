@@ -10,7 +10,7 @@ from courselib.testing import create_fake_semester
 import datetime, itertools
 
 NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157]
-IMPORT_SEMESTERS = ('1141', '1144')
+IMPORT_SEMESTERS = ('1144', '1147')
 TEST_SEMESTER = 1141 # semester for TA/RA demo data
 
 fakes = {}
@@ -688,8 +688,7 @@ def import_semesters():
 def main():
     for strm in NEEDED_SEMESTERS:
         create_fake_semester(strm)
-    create_semesters()
-    Unit(label='UNIV', name='Simon Fraser University').save()
+    #Unit(label='UNIV', name='Simon Fraser University').save()
 
     print "getting emplid/userid mapping"
     update_amaint_userids()
