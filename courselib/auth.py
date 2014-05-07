@@ -4,10 +4,12 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.http import urlquote
+from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 from coredata.models import Role, CourseOffering, Member
 from onlineforms.models import FormGroup, Form
 from privacy.models import needs_privacy_signature
+import urllib
 
 try:
     from functools import wraps
@@ -56,7 +58,11 @@ def HttpError(request, status=404, title="Not Found", error="The requested resou
     return resp
 
 def ForbiddenResponse(request, errormsg=None):
-    return HttpError(request, status=403, title="Forbidden", error="You do not have permission to access this resource.", errormsg=errormsg)
+    error = mark_safe("You do not have permission to access this resource.")
+    if not request.user.is_authenticated():
+        login_url = settings.LOGIN_URL + '?' + urllib.urlencode({'next': request.get_full_path()})
+        error += mark_safe(' You are <strong>not logged in</strong>, so maybe <a href="%s">logging in</a> would help.' % (login_url))
+    return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)
 
 def NotFoundResponse(request, errormsg=None):
     return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
