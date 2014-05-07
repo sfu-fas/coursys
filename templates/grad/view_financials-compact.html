@@ -31,7 +31,7 @@
 <tbody>
 {% for semester in semesters %}
 <tr class="{% if semester.program %}newprogram{% endif %} {% if semester.semester == semester.acad_year.endsem %}end-ay{% endif %}">
-  <td scope="row">{{semester.semester.name}}</td>
+  <th scope="row">{{semester.semester.name}}</th>
   <td>{% if semester.status %}{{ semester.status_short }}{% endif %}</td>
   <td class="num">{% if semester.ta_total %}${{ semester.ta_total|floatformat:2 }}{% endif %}</td>
   <td class="num">{% if semester.ra_total %}${{ semester.ra_total|floatformat:2 }}{% endif %}</td>
@@ -50,6 +50,18 @@
 </tr>
 {% endfor %}
 </tbody>
+<tfoot>
+<tr>
+    <th scope="row">Total</th>
+    <td></td>
+    <td class="num">${{ totals.ta|floatformat:2 }}</td>
+    <td class="num">${{ totals.ra|floatformat:2 }}</td>
+    <td class="num">${{ totals.scholarship|floatformat:2 }}</td>
+    <td class="num">${{ totals.other|floatformat:2 }}</td>
+    <td class="num">${{ totals.total|floatformat:2 }}</td>
+    <td></td>
+</tr>
+</tfoot>
 </table>
 
 

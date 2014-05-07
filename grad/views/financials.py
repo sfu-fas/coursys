@@ -180,6 +180,14 @@ def financials(request, grad_slug, style='complete'):
                 semester['promisereceived'] = received
                 semester['promiseowing'] = owing
 
+    totals = {'ta': 0, 'ra': 0, 'scholarship': 0, 'other': 0, 'total': 0}
+    for s in semesters:
+        totals['ta'] += s['ta_total']
+        totals['ra'] += s['ra_total']
+        totals['scholarship'] += s['scholarship_total']
+        totals['other'] += s['other_total']
+        totals['total'] += s['semester_total']
+
 
     context = {
                'semesters': semesters,
@@ -187,5 +195,6 @@ def financials(request, grad_slug, style='complete'):
                'grad':grad,
                'status': current_status,
                'unit': units,
+               'totals': totals,
                }
     return render(request, 'grad/view_financials-%s.html' % (style), context)
