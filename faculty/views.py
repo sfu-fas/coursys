@@ -1297,7 +1297,7 @@ def change_event_status(request, userid, event_slug):
     form = ApprovalForm(request.POST, instance=instance)
     if form.is_valid():
         event = form.save(commit=False)
-        event.save(editor)
+        event.get_handler().save(editor)
         return HttpResponseRedirect(event.get_absolute_url())
 
 @requires_role('ADMN')
