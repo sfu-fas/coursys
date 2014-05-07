@@ -195,10 +195,16 @@ cookbook_file "supervisord.conf" do
 end
 
 #put supervisord in init.d
-cookbook_file "supervisor_init.d" do
-    owner "coursys"
-    path "/etc/init.d/supervisord"
+#cookbook_file "supervisor_init.d" do
+#    owner "coursys"
+#    path "/etc/init.d/supervisord"
+#    mode "0755"
+#end
+cookbook_file "rc.local" do
+    path "/etc/rc.local"
+    owner "root"
     mode "0755"
+    action :create
 end
 
 # create a directory for the gunicorn log files
