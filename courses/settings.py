@@ -181,7 +181,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'INDEX_NAME': 'haystack',
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', 'courselib.signals.SelectiveRealtimeSignalProcessor')
+    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
     DB_BACKUP_DIR = '/home/coursys/db_backup'
 
 else:
@@ -199,13 +199,12 @@ else:
             'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
         },
     }
-    if hasattr(localsettings, 'HAYSTACK_CONNECTIONS'):
-        HAYSTACK_CONNECTIONS = localsettings.HAYSTACK_CONNECTIONS
-        #HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
-        #HAYSTACK_SILENTLY_FAIL = False
-
+    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
     DB_BACKUP_DIR = os.path.join(BASE_DIR, 'db_backup')
 
+HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', HAYSTACK_SIGNAL_PROCESSOR)
+HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_CONNECTIONS)
+#HAYSTACK_SILENTLY_FAIL = False
 
 # things only relevant to the true production environment
 if DEPLOY_MODE == 'production':

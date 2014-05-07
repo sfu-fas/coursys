@@ -688,7 +688,7 @@ def import_semesters():
 def main():
     for strm in NEEDED_SEMESTERS:
         create_fake_semester(strm)
-    #Unit(label='UNIV', name='Simon Fraser University').save()
+    Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University')
 
     print "getting emplid/userid mapping"
     update_amaint_userids()
