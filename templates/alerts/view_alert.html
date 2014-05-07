@@ -28,30 +28,30 @@
     <table class="info">
         <tbody>
             <tr>
-                <th class="ui-state-default">Name</th>
+                <th scope="col">Name</th>
                 <td>{{ alert.person.name }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Student Number</th>
+                <th scope="col">Student Number</th>
                 <td>
                     {{ alert.person.emplid }}
                     [<a href='{% url "advisornotes.views.student_notes" userid=alert.person.userid %}'>Advising Record</a>]
                 </td>
             </tr>
             <tr>
-                <th class="ui-state-default">Email Address</th>
+                <th scope="col">Email Address</th>
                 <td>{{ alert.person.email_mailto }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Last Updated</th>
+                <th scope="col">Last Updated</th>
                 <td><abbr title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></td>
             </tr>
             <tr>
-                <th class="ui-state-default">Created</th>
+                <th scope="col">Created</th>
                 <td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>
             </tr>
             <tr>
-                <th class="ui-state-default">Description</th>
+                <th scope="col">Description</th>
                 <td>{{ alert.description }}</td>
             </tr>
             {% for key, value in alert.details.items %}
