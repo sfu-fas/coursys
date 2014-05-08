@@ -14,7 +14,7 @@ from django.contrib import messages
 from django.template import Template, Context
 from django.forms.util import ErrorList
 import unicodecsv as csv
-import datetime
+import json
 
 
 def view_reports(request):
@@ -70,7 +70,7 @@ def view_report(request, report):
     schedule_rules = ScheduleRule.objects.filter(report=report)
     components = HardcodedReport.objects.filter(report=report)
     queries = Query.objects.filter(report=report)
-    runs = Run.objects.filter(report=report).order_by("created_at")
+    runs = Run.objects.filter(report=report).order_by("-created_at")
 
     return render(request, 'reports/view_report.html', {'readonly':readonly,
                                                         'report':report,
@@ -81,7 +81,7 @@ def view_report(request, report):
                                                         'runs':runs, 
                                                         'components':components})
 
-def console(request, report):
+def OFFconsole(request, report):
     report = get_object_or_404(Report, slug=report) 
     
     if not _has_access(request, report):
@@ -245,7 +245,11 @@ def run(request, report):
     if not _has_access(request, report):
         return ForbiddenResponse(request)
 
-    runs = report.run()
+    task = report.enqueue()
+    return render(request, 'reports/running.html', {'report':report, 'task': task})
+
+
+    """
     if len(runs) > 0: 
         for run in runs: 
             if( run.success ):
@@ -258,6 +262,27 @@ def run(request, report):
     else:
         messages.error(request, "You haven't added any queries or reports to run, yet!")
         return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
+        """
+
+def console(request, report):
+    report = get_object_or_404(Report, slug=report)
+
+    if not _has_access(request, report):
+        return ForbiddenResponse(request)
+
+    data = {'done': True}
+    runs = Run.objects.filter(report=report).order_by("-created_at")
+    if len(runs) > 0:
+        last_run = runs[0]
+        runlines = last_run.getLines()
+        log_lines = [line[1] for line in runlines]
+        data['log'] = log_lines
+        data['done'] = last_run.success
+        if last_run.success:
+            data['url'] = reverse(view_run, kwargs={'report': report.slug, 'run': last_run.slug})
+            clear_cache()
+
+    return HttpResponse(json.dumps(data), content_type="application/json")
 
 
 def view_run(request, report, run):

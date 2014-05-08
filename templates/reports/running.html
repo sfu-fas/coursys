@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Report: {{report.name}}, Running&hellip;{% endblock %}
+{% block h1 %}Report: {{report.name}}, Running&hellip;{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    var console_url = '{% url "reports.views.console" report=report.slug %}';
+
+    var reload = function(){
+        $.ajax( console_url, {
+                success: function(data){
+                    if (data.url) {
+                      window.location = data.url;
+                    }
+                    $("#console").html("<pre>"+data.log+"</pre>");
+                }});
+    };
+setInterval(reload, 1000);
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "reports.views.view_reports" %}">Reports</a></li>
+<li><a href="{% url "reports.views.view_report" report=report.slug %}">{{report.name}}</a> </li>
+<li>Running&hellip;</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<div id="console">
+        Now running your report!
+</div>
+
+{% endblock %}
