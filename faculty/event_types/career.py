@@ -201,40 +201,37 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     Tenure Application Career event
     """
-
     EVENT_TYPE = 'TENUREAPP'
     NAME = "Tenure Application"
+    IS_INSTANT = False
 
-    IS_INSTANT = True
+    TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}'''
 
-    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
+    class EntryForm(BaseEntryForm):
+        RESULT_CHOICES = Choices(
+            ('PEND', 'Decision Pending'),
+            ('RECI', 'Tenure Received'),
+            ('DENI', 'Tenure Denied'),
+        )
 
-    @classmethod
-    def default_title(cls):
-        return 'Applied for Tenure'
-
-    def short_summary(self):
-        return 'Applied for Tenure'
+        result = forms.ChoiceField(label='Result', choices=RESULT_CHOICES,
+                                   help_text='The end date of this event is assumed to be when this decision is effective.')
 
 
-class TenureReceivedEventHandler(CareerEventHandlerBase):
-    """
-    Received Tenure Career event
-    """
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+    ]
 
-    EVENT_TYPE = 'TENUREREC'
-    NAME = "Tenure Received"
-
-    IS_INSTANT = True
-
-    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
-
-    @classmethod
-    def default_title(cls):
-        return 'Tenure Received'
+    def get_result_display(self):
+        return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
 
     def short_summary(self):
-        return 'Tenure Received'
+        return "Tenure application: {0}".format(self.get_result_display(),)
 
 
 class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):

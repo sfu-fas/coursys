@@ -28,7 +28,6 @@ from faculty.event_types.career import OnLeaveEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
-from faculty.event_types.career import TenureReceivedEventHandler
 from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
@@ -64,7 +63,6 @@ HANDLERS = [
     StudyLeaveEventHandler,
     TeachingCreditEventHandler,
     TenureApplicationEventHandler,
-    TenureReceivedEventHandler,
     AccreditationFlagEventHandler,
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
