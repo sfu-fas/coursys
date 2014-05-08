@@ -210,12 +210,13 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
             nonSFUFormFiller = form.save()  # in this case the form is a model form
             formFiller = FormFiller.objects.create(nonSFUFormFiller=nonSFUFormFiller)
 
-        sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
+        sheet_submission = SheetSubmission(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=formFiller)
         if 'note' in form.cleaned_data and form.cleaned_data['note']:
             sheet_submission.set_assign_note(form.cleaned_data['note'])
-            sheet_submission.save()
+
+        sheet_submission.save()
 
         # create an alternate URL, if necessary
         if not assign_to_sfu_account:
