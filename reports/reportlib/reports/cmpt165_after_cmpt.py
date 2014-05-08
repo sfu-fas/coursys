@@ -20,9 +20,13 @@ class CMPT165_after_CMPT_Query(DB2_Query):
           AND ct.class_type='E'
           AND se.emplid in (SELECT se.emplid FROM ps_class_tbl ct
             INNER JOIN ps_stdnt_enrl se ON ct.class_nbr=se.class_nbr and ct.strm=se.strm and se.enrl_status_reason IN ('ENRL','EWAT')
-            WHERE ct.strm>='1141' AND ct.subject='CMPT' AND ct.catalog_nbr LIKE '%165%')
+            WHERE ct.strm=$strm AND ct.subject='CMPT' AND ct.catalog_nbr LIKE '%165%')
           ORDER BY se.emplid, ct.strm, ct.subject, ct.catalog_nbr
     """)
+    default_arguments = {
+        'semester': current_semester()
+        }
+
 
 
 

@@ -49,10 +49,8 @@ def new_report(request):
 def _has_access(request, report):
     try:
         return (has_role('SYSA', request) or 
-                len(AccessRule.objects.get(report=report, 
-                                           person__userid=request.user.username)
-                   )
-                )
+                AccessRule.objects.filter(report=report, person__userid=request.user.username).exists()
+               )
     except AccessRule.DoesNotExist:
         return False
 
