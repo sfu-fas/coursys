@@ -11,6 +11,7 @@ from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 RANK_CHOICES = Choices(
+    ('LLEC', 'Limited-Term Lecturer'),
     ('LABI', 'Laboratory Instructor'),
     ('LECT', 'Lecturer'),
     ('SLEC', 'Senior Lecturer'),

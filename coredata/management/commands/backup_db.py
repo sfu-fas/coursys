@@ -23,7 +23,7 @@ class Command(BaseCommand):
         now = datetime.datetime.now().replace(microsecond=0)
         filename = now.strftime(filename_format)
 
-        dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip')
+        dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip', raw_args='')
 
         if options['clean_old']:
             dates_covered = set()
