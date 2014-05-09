@@ -96,6 +96,12 @@ def _get_event_types():
 def index(request):
     sub_units = Unit.sub_units(request.units)
     fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit').order_by('person')
+
+    fac_roles_gone = [r for r in fac_roles if r.gone]
+    fac_roles_gone = itertools.groupby(fac_roles_gone, key=lambda r: r.person)
+    fac_roles_gone = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles_gone]
+
+    fac_roles = [r for r in fac_roles if not r.gone]
     fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
     fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles]
 
@@ -107,6 +113,7 @@ def index(request):
 
     context = {
         'fac_roles': fac_roles,
+        'fac_roles_gone': fac_roles_gone,
         'queued_events': len(events),
         'filterform': filterform,
     }
