@@ -246,19 +246,51 @@ class TeachingCreditField(FractionField):
     def __init__(self, **kwargs):
         defaults = {
             'initial': 0,
-            'widget': forms.TextInput(attrs={'size': 6}),
+            'widget': forms.TextInput(attrs={'size': 5}),
             'help_text': mark_safe('Teaching credit <strong>per semester</strong> associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
         }
         defaults.update(kwargs)
         super(TeachingCreditField, self).__init__(**defaults)
 
 
+
 class TeachingReductionField(FractionField):
     def __init__(self, **kwargs):
         defaults = {
             'initial': 0,
-            'widget': forms.TextInput(attrs={'size': 6}),
+            'widget': forms.TextInput(attrs={'size': 5}),
             'help_text': mark_safe('<strong>Per semester</strong> decrease in teaching load associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
         }
         defaults.update(kwargs)
         super(TeachingReductionField, self).__init__(**defaults)
+
+
+
+
+# Annual field to allow entering per-year teaching credits while storing per-semester values.
+# Adapted from https://djangosnippets.org/snippets/1914/
+
+class AnnualInput(forms.widgets.TextInput):
+    def _format_value(self, value):
+        if value is None:
+            return ''
+        try:
+            f = Fraction(value).limit_denominator(50)
+        except ValueError:
+            return unicode(value)
+
+        return str(f*3)
+
+class AnnualTeachingCreditField(TeachingCreditField):
+    def __init__(self, **kwargs):
+        defaults = {
+            'widget': AnnualInput(attrs={'size': 5}),
+        }
+        defaults.update(kwargs)
+        super(AnnualTeachingCreditField, self).__init__(**defaults)
+
+    def clean(self, value):
+        v = super(AnnualTeachingCreditField, self).clean(value)
+        if not v:
+            return v
+        return v/3
