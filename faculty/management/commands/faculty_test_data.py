@@ -118,7 +118,7 @@ class Command(BaseCommand):
         ec, _ = EventConfig.objects.get_or_create(unit=cmpt, event_type='FELLOW')
         ec.config = {'fellowships': [
             ('LEEF', 'Leef Chair', 'ACTIVE'),
-            ('BBYM', 'Burnaby Mountain Chair', 'ACTIVE'),
+            ('BBYM', 'Burnaby Mountain Chair', 'INACTIVE'),
             ('UNIR', 'University Research Chair', 'ACTIVE')
         ]}
         ec.save()
@@ -127,6 +127,11 @@ class Command(BaseCommand):
             ('PENG', 'P.Eng.'),
             ('PHD', 'PhD (or equivalent)'),
             ('TALL', 'Is Extremely Tall')
+        ]}
+        ec.save()
+        ec, _ = EventConfig.objects.get_or_create(unit=Unit.objects.get(slug='fas'), event_type='FELLOW')
+        ec.config = {'fellowships': [
+            ('FAS', 'FAS Research Chair', 'ACTIVE'),
         ]}
         ec.save()
 

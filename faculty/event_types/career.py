@@ -342,6 +342,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
             ('MEDICAL', 'Medical'),
             ('PARENTAL', 'Parental'),
             ('ADMIN', 'Admin'),
+            ('LOA', 'Leave of Absence'),
             ('SECONDMENT', 'Secondment'),
         )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
