@@ -2,6 +2,7 @@ import fractions
 import itertools
 
 from django import forms
+from django.utils.safestring import mark_safe
 
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
@@ -244,8 +245,10 @@ class PromotionApplicationEventHandler(CareerEventHandlerBase):
     IS_INSTANT = False
 
     TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Rank applied for</dt><dd>{{ handler|get_display:"rank" }}</dd>
         <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
-        <dt>Steps Granted</dt><dd>{{ handler|get_display:"steps" }}</dd>
+        <dt>Steps Year One</dt><dd>{{ handler|get_display:"steps" }} <span class="helptext">(step increase in the first year after promotion)</span></dd>
+        <dt>Steps Year Two</dt><dd>{{ handler|get_display:"steps2" }} <span class="helptext">(step increase in the second year after promotion)</span></dd>
         {% endblock %}'''
 
     class EntryForm(BaseEntryForm):
@@ -255,7 +258,7 @@ class PromotionApplicationEventHandler(CareerEventHandlerBase):
             ('DENI', 'Denied'),
         )
         STEPS_CHOICES = Choices(
-            ('', 'Pending'),
+            ('-', 'Pending'),
             ('0.0', '0.0'),
             ('0.5', '0.5'),
             ('1.0', '1.0'),
@@ -263,25 +266,38 @@ class PromotionApplicationEventHandler(CareerEventHandlerBase):
             ('2.0', '2.0'),
         )
 
+        rank = forms.ChoiceField(choices=RANK_CHOICES, required=True, help_text='Rank being applied for (promoted to if successful)')
         result = forms.ChoiceField(label='Result', choices=RESULT_CHOICES,
                                    help_text='The end date of this event is assumed to be when this decision is effective.')
-        steps = forms.ChoiceField(label='Steps', choices=STEPS_CHOICES,
-                                   help_text='Annual step increase given')
+        steps = forms.ChoiceField(label='Steps Year One', choices=STEPS_CHOICES,
+                                   help_text=mark_safe('Annual step increase given for the <strong>first</strong> year after promotion'))
+        steps2 = forms.ChoiceField(label='Steps Year Two', choices=STEPS_CHOICES,
+                                   help_text=mark_safe('Annual step increase given for the <strong>second</strong> year after promotion'))
 
 
     SEARCH_RULES = {
         'result': search.ChoiceSearchRule,
         'steps': search.ComparableSearchRule,
+        'steps2': search.ComparableSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'result',
         'steps',
+        'steps2',
     ]
+    SEARCH_FIELD_NAMES = {
+        'steps': 'Steps Year One',
+        'steps2': 'Steps Year Two',
+    }
 
+    def get_rank_display(self):
+        return RANK_CHOICES.get(self.get_config('rank'), 'unknown rank')
     def get_result_display(self):
         return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
     def get_steps_display(self):
         return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
+    def get_steps2_display(self):
+        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps2'), 'unknown outcome')
 
     def short_summary(self):
         return "Promotion application: {0}".format(self.get_result_display(),)

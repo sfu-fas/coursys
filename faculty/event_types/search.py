@@ -13,7 +13,12 @@ class SearchRule(object):
         self.field_name = name
         self.field = field
         self.Handler = Handler
-        self.pretty_field_name = pretty_name(self.field_name)
+
+        if hasattr(Handler, 'SEARCH_FIELD_NAMES') and name in Handler.SEARCH_FIELD_NAMES:
+            prettyname = Handler.SEARCH_FIELD_NAMES[name]
+        else:
+            prettyname = pretty_name(self.field_name)
+        self.pretty_field_name = prettyname
 
     def make_operator_field(self, viewer, member_units):
         return forms.ChoiceField(choices=self.OPERATOR_CHOICES, label='', required=False)
