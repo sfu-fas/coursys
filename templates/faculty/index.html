@@ -16,6 +16,7 @@ $(document).ready(function() {
   } );
   $('#filter-form').change( function() {
           event_filter_update('facultytable');
+          event_filter_update('formerfaculty');
         }).change();
 } );
 </script>
@@ -61,7 +62,7 @@ $(document).ready(function() {
 
 {% include 'faculty/_unit_form.html' %}
 
-<table class="facultytable display">
+<table id="facultytable" class="facultytable display">
   <thead><tr><th scope="col">Name</th><th scope="col">Rank</th><th scope="col">Unit</th></tr></thead>
   <tbody>
   {% for person,units,ranks in fac_roles %}
@@ -78,7 +79,7 @@ $(document).ready(function() {
 
 
 <h2 id="gone">Former Faculty Members</h2>
-<table class="facultytable display">
+<table id="formerfaculty" class="facultytable display">
   <thead><tr><th scope="col">Name</th><th scope="col">Rank</th><th scope="col">Unit</th></tr></thead>
   <tbody>
   {% for person,units,ranks in fac_roles_gone %}
