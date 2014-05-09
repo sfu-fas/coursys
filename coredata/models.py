@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.cache import cache
 from cache_utils.decorators import cached
 from courselib.json_fields import JSONField
-from courselib.json_fields import getter_setter
+from courselib.json_fields import getter_setter, config_property
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from bitfield import BitField
@@ -1142,6 +1142,10 @@ class Role(models.Model):
     person = models.ForeignKey(Person)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
     unit = models.ForeignKey(Unit)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+        # 'gone': used with role='FAC' to indicate this person has left/retired/whatever
+
+    gone = config_property('gone', False)
 
     def __unicode__(self):
         return "%s (%s, %s)" % (self.person, self.ROLES[str(self.role)], self.unit.label)

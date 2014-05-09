@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from coredata.models import Unit, Role, Person, CourseOffering, Semester, Member
 from courselib.testing import create_fake_semester, TEST_COURSE_SLUG
 from faculty.models import CareerEvent, EventConfig, EVENT_TYPES
@@ -31,6 +32,7 @@ class Command(BaseCommand):
     help = 'Build some test data for development.'
 
     def handle(self, *args, **options):
+        assert not settings.DO_IMPORTING_HERE
         self.global_data()
         self.department_data()
         self.personal_data()
@@ -150,7 +152,9 @@ class Command(BaseCommand):
         # create basic roles
         Role.objects.get_or_create(person=greg, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=brad, unit=cmpt, role='FAC')
-        Role.objects.get_or_create(person=diana, unit=cmpt, role='FAC')
+        r,_ = Role.objects.get_or_create(person=diana, unit=cmpt, role='FAC')
+        r.gone = True
+        r.save()
         Role.objects.get_or_create(person=tony, unit=cmpt, role='FAC')
         Role.objects.get_or_create(person=tony, unit=ensc, role='FAC')
         Role.objects.get_or_create(person=farid, unit=mse, role='FAC')
