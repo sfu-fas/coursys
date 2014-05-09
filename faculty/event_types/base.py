@@ -191,6 +191,11 @@ class CareerEventHandlerBase(object):
                 previous_event.save(editor, call_from_handler=True)
 
         self.event.save(editor, call_from_handler=True)
+
+        if self.event.event_type == 'SALARY':
+            # invalidate cache of rank
+            CareerEvent.current_ranks.invalidate(self.event.person)
+
         self.post_save()
 
     def get_config(self, name, default=None):
