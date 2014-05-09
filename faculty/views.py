@@ -34,7 +34,7 @@ from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, Faculty
 from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
-from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm
+from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm, NewRoleForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -185,6 +185,45 @@ def search_events(request, event_type):
         'filterform': filterform,
     }
     return render(request, 'faculty/search_form.html', context)
+
+@requires_role('ADMN')
+@transaction.atomic
+def manage_faculty_roles(request):
+    units = Unit.sub_units(request.units)
+    unit_choices = [(u.id, u.name) for u in units]
+    roles = Role.objects.filter(role='FAC', unit__in=units).select_related('person', 'unit')
+
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
+        # submission to create new faculty member
+        form = NewRoleForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            role = form.save(commit=False)
+            role.role = 'FAC'
+            role.save()
+            messages.success(request, 'New faculty role added.')
+            return HttpResponseRedirect(reverse(manage_faculty_roles))
+
+    elif request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
+        # submission to delete faculty member
+        form = NewRoleForm()
+        form.fields['unit'].choices = unit_choices
+        roleid = request.POST.get('role_id', None)
+        role = get_object_or_404(Role, id=roleid)
+        role.gone = True
+        role.save()
+        messages.success(request, 'Faculty member marked as "gone".')
+        return HttpResponseRedirect(reverse(manage_faculty_roles))
+
+    else:
+        form = NewRoleForm()
+        form.fields['unit'].choices = unit_choices
+
+    context = {
+        'roles': roles,
+        'form': form,
+    }
+    return render(request, 'faculty/manage_faculty_roles.html', context)
 
 
 @requires_role('ADMN')

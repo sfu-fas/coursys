@@ -3,7 +3,8 @@ from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 from django.utils.translation import ugettext as _
 
-from coredata.models import Semester, Unit, Person
+from coredata.models import Semester, Unit, Person, Role
+from coredata.forms import PersonField
 
 from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput
 from faculty.models import CareerEvent
@@ -31,6 +32,24 @@ class ApprovalForm(forms.ModelForm):
     class Meta:
         model = CareerEvent
         fields = ("status",)
+
+class NewRoleForm(forms.ModelForm):
+    person = PersonField(label="Emplid", help_text="or type to search")
+    class Meta:
+        model = Role
+        exclude = ("config", "role")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(NewRoleForm, self).is_valid(*args, **kwargs)
+
+    def clean(self):
+        data = self.cleaned_data
+        person = data['person']
+        unit = data['unit']
+        if Role.objects.filter(person=person, unit=unit, role='FAC').exists():
+            raise forms.ValidationError('This person already has a faculty role in that unit.')
+        return super(NewRoleForm, self).clean()
 
 
 class GetSalaryForm(forms.Form):

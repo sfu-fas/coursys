@@ -228,7 +228,7 @@ class PagesTest(TestCase):
         c.login_user('dzhao')
 
         test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
-                'teaching_capacity', 'fallout_report', 'course_accreditation'],
+                'teaching_capacity', 'fallout_report', 'course_accreditation', 'manage_faculty_roles'],
                 {})
         test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
                 'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',
