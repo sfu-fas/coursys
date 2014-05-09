@@ -115,7 +115,11 @@ class CareerEventHandlerBaseTest(TestCase):
             def short_summary(self):
                 return 'foobar'
 
+        class FoobarHandlerInstant(FoobarHandler):
+            IS_INSTANT = True
+
         self.Handler = FoobarHandler
+        self.HandlerInstant = FoobarHandlerInstant
         self.person = Person.objects.get(userid='ggbaker')
         self.unit = Unit.objects.get(id=1)
 
@@ -126,8 +130,7 @@ class CareerEventHandlerBaseTest(TestCase):
         del EVENT_TYPES['FOOBAR']
 
     def test_is_instant(self):
-        self.Handler.IS_INSTANT = True
-        handler = self.Handler(CareerEvent(person=self.person,
+        handler = self.HandlerInstant(CareerEvent(person=self.person,
                                            unit=self.unit))
 
         # Ensure the 'end_date' field is successfully removed

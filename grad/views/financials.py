@@ -96,6 +96,7 @@ def financials(request, grad_slug, style='complete'):
 
         # grad status        
         status = None
+        status_short = None
         for s in GradStatus.objects.filter(student=grad):
             if s.start <= semester and (s.end == None or semester <= s.end) :
                 status = s.get_status_display()
