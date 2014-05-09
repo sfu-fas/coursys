@@ -201,41 +201,124 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     Tenure Application Career event
     """
-
     EVENT_TYPE = 'TENUREAPP'
     NAME = "Tenure Application"
+    IS_INSTANT = False
 
-    IS_INSTANT = True
+    TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}'''
 
-    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
+    class EntryForm(BaseEntryForm):
+        RESULT_CHOICES = Choices(
+            ('PEND', 'Pending'),
+            ('RECI', 'Tenured'),
+            ('DENI', 'Denied'),
+        )
 
-    @classmethod
-    def default_title(cls):
-        return 'Applied for Tenure'
-
-    def short_summary(self):
-        return 'Applied for Tenure'
+        result = forms.ChoiceField(label='Result', choices=RESULT_CHOICES,
+                                   help_text='The end date of this event is assumed to be when this decision is effective.')
 
 
-class TenureReceivedEventHandler(CareerEventHandlerBase):
-    """
-    Received Tenure Career event
-    """
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+    ]
 
-    EVENT_TYPE = 'TENUREREC'
-    NAME = "Tenure Received"
-
-    IS_INSTANT = True
-
-    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
-
-    @classmethod
-    def default_title(cls):
-        return 'Tenure Received'
+    def get_result_display(self):
+        return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
 
     def short_summary(self):
-        return 'Tenure Received'
+        return "Tenure application: {0}".format(self.get_result_display(),)
 
+
+class PromotionApplicationEventHandler(CareerEventHandlerBase):
+    """
+    Promotion Application Career event
+    """
+    EVENT_TYPE = 'PROMOTION'
+    NAME = "Promotion Application"
+    IS_INSTANT = False
+
+    TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        <dt>Steps Granted</dt><dd>{{ handler|get_display:"steps" }}</dd>
+        {% endblock %}'''
+
+    class EntryForm(BaseEntryForm):
+        RESULT_CHOICES = Choices(
+            ('PEND', 'Pending'),
+            ('RECI', 'Promoted'),
+            ('DENI', 'Denied'),
+        )
+        STEPS_CHOICES = Choices(
+            ('', 'Pending'),
+            ('0.0', '0.0'),
+            ('0.5', '0.5'),
+            ('1.0', '1.0'),
+            ('1.5', '1.5'),
+            ('2.0', '2.0'),
+        )
+
+        result = forms.ChoiceField(label='Result', choices=RESULT_CHOICES,
+                                   help_text='The end date of this event is assumed to be when this decision is effective.')
+        steps = forms.ChoiceField(label='Steps', choices=STEPS_CHOICES,
+                                   help_text='Annual step increase given')
+
+
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+        'steps': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+        'steps',
+    ]
+
+    def get_result_display(self):
+        return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    def get_steps_display(self):
+        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
+
+    def short_summary(self):
+        return "Promotion application: {0}".format(self.get_result_display(),)
+
+
+class SalaryReviewEventHandler(CareerEventHandlerBase):
+    EVENT_TYPE = 'SALARYREV'
+    NAME = "Salary Review"
+    IS_INSTANT = False
+
+    TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Steps Granted</dt><dd>{{ handler|get_display:"steps" }}</dd>
+        {% endblock %}'''
+
+    class EntryForm(BaseEntryForm):
+        STEPS_CHOICES = Choices(
+            ('', 'Pending'),
+            ('0.0', '0.0'),
+            ('0.5', '0.5'),
+            ('1.0', '1.0'),
+            ('1.5', '1.5'),
+            ('2.0', '2.0'),
+        )
+        steps = forms.ChoiceField(label='Steps', choices=STEPS_CHOICES,
+                                   help_text='Annual step increase given')
+
+
+    SEARCH_RULES = {
+        'steps': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'steps',
+    ]
+
+    def get_steps_display(self):
+        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
+    def short_summary(self):
+        return "Salary Review: {0}".format(self.get_steps_display(),)
 
 class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
@@ -259,6 +342,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
             ('MEDICAL', 'Medical'),
             ('PARENTAL', 'Parental'),
             ('ADMIN', 'Admin'),
+            ('LOA', 'Leave of Absence'),
             ('SECONDMENT', 'Secondment'),
         )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
