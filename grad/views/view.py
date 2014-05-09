@@ -42,7 +42,7 @@ def _can_view_student(request, grad_slug, funding=False):
     if request.method=='GET' and students:
         return students[0], 'student', [students[0].program.unit]
         
-    return None, None
+    return None, None, None
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
                 'scholarships', 'otherfunding', 'promises', 'financialcomments', 'letters']
