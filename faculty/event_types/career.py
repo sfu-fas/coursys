@@ -420,7 +420,12 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     """
 
     class EntryForm(BaseEntryForm):
-        pay_fraction = fields.FractionField(help_text="eg. 2/3")
+        PAY_FRACTION_CHOICES = [
+            ('4/5', '80%'),
+            ('9/10', '90%'),
+            ('1', '100%'),
+        ]
+        pay_fraction = fields.FractionField(choices=PAY_FRACTION_CHOICES)
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
         teaching_decrease = fields.TeachingReductionField()
@@ -459,12 +464,15 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def default_title(cls):
         return 'Study Leave'
 
-    def short_summary(self):
+    def get_pay_fraction_display(self):
         try:
             frac = fractions.Fraction(self.get_config('pay_fraction'))
         except TypeError:
             frac = 0
-        return 'Study Leave @ %.0f%%' % (frac*100)
+        return '%.0f%%' % (frac*100)
+
+    def short_summary(self):
+        return 'Study Leave @ ' + self.get_pay_fraction_display()
 
     def salary_adjust_annually(self):
         pay_fraction = self.get_config('pay_fraction')

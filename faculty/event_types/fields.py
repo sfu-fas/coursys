@@ -212,9 +212,12 @@ class FractionField(forms.Field):
         'min_value': _(u'Ensure this value is greater than or equal to %(limit_value)s.'),
     }
 
-    def __init__(self, max_value=None, min_value=None, *args, **kwargs):
+    def __init__(self, max_value=None, min_value=None, choices=None, *args, **kwargs):
         self.max_value, self.min_value = max_value, min_value
-        forms.Field.__init__(self, *args, **kwargs)
+        if choices:
+            forms.Field.__init__(self, widget=forms.widgets.RadioSelect(choices=choices), *args, **kwargs)
+        else:
+            forms.Field.__init__(self, *args, **kwargs)
 
         if max_value is not None:
             self.validators.append(forms.validators.MaxValueValidator(max_value))

@@ -390,7 +390,7 @@ class DocumentAttachment(models.Model):
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
 
     def __unicode__(self):
-        return self.contents.filename
+        return self.contents.name
 
     class Meta:
         ordering = ("created_at",)
