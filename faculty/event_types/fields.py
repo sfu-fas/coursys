@@ -244,13 +244,17 @@ class FractionField(forms.Field):
             return
         return value
 
+class SemesterTeachingInput(forms.widgets.TextInput):
+    def render(self, *args, **kwargs):
+        return mark_safe(conditional_escape(super(SemesterTeachingInput, self).render(*args, **kwargs)) + " courses per <strong>semester</strong>")
+
 
 class TeachingCreditField(FractionField):
     def __init__(self, **kwargs):
         defaults = {
             'initial': 0,
-            'widget': forms.TextInput(attrs={'size': 5}),
-            'help_text': mark_safe('Teaching credit <strong>per semester</strong> associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
+            'widget': SemesterTeachingInput(attrs={'size': 5}),
+            'help_text': mark_safe('Teaching credit per semester associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
         }
         defaults.update(kwargs)
         super(TeachingCreditField, self).__init__(**defaults)
@@ -261,8 +265,8 @@ class TeachingReductionField(FractionField):
     def __init__(self, **kwargs):
         defaults = {
             'initial': 0,
-            'widget': forms.TextInput(attrs={'size': 5}),
-            'help_text': mark_safe('<strong>Per semester</strong> decrease in teaching load associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
+            'widget': SemesterTeachingInput(attrs={'size': 5}),
+            'help_text': mark_safe('Per semester decrease in teaching load associated with this event. May be a fraction like &ldquo;1/3&rdquo;.'),
         }
         defaults.update(kwargs)
         super(TeachingReductionField, self).__init__(**defaults)
@@ -273,7 +277,7 @@ class TeachingReductionField(FractionField):
 # Annual field to allow entering per-year teaching credits while storing per-semester values.
 # Adapted from https://djangosnippets.org/snippets/1914/
 
-class AnnualInput(forms.widgets.TextInput):
+class AnnualTeachingInput(forms.widgets.TextInput):
     def _format_value(self, value):
         if value is None:
             return ''
@@ -284,10 +288,14 @@ class AnnualInput(forms.widgets.TextInput):
 
         return str(f*3)
 
+    def render(self, *args, **kwargs):
+        return mark_safe(conditional_escape(super(AnnualTeachingInput, self).render(*args, **kwargs)) + " courses per <strong>year</strong>")
+
+
 class AnnualTeachingCreditField(TeachingCreditField):
     def __init__(self, **kwargs):
         defaults = {
-            'widget': AnnualInput(attrs={'size': 5}),
+            'widget': AnnualTeachingInput(attrs={'size': 5}),
         }
         defaults.update(kwargs)
         super(AnnualTeachingCreditField, self).__init__(**defaults)

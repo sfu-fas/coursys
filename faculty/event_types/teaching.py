@@ -26,7 +26,7 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
     """
 
     class EntryForm(BaseEntryForm):
-        load = AnnualTeachingCreditField(label='Teaching Load', help_text=mark_safe('Expected teaching load <strong>per year</strong>. May be a fraction like 5/2.'))
+        load = AnnualTeachingCreditField(label='Teaching Load', help_text=mark_safe('Expected teaching load per year. May be a fraction like 5/2.'))
 
     SEARCH_RULES = {
         'load': search.ComparableSearchRule,
