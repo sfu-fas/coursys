@@ -386,7 +386,7 @@ class DocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('career_event',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to)
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
 
     def __unicode__(self):

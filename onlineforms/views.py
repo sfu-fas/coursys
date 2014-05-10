@@ -13,6 +13,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
+from courselib.db import retry_transaction
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
@@ -1012,6 +1013,7 @@ def sheet_submission_subsequent(request, form_slug, formsubmit_slug, sheet_slug,
     return _sheet_submission(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug,
                              sheet_slug=sheet_slug, sheetsubmit_slug=sheetsubmit_slug)
 
+@retry_transaction()
 @transaction.atomic
 def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)
