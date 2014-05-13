@@ -59,7 +59,7 @@ $(document).ready(function() {
       {{ r.search_display }}
       {% endif %}
   </td>
-  <td>{{ r.content_type|display_type }}</td>
+  <td>{% if r.content_type == 'coredata.member' and r.role == 'TA' %}TA in your class{% else %}{{ r.content_type|display_type }}{% endif %}</td>
   </tr>
   {% endfor %}
   </tbody>

@@ -970,6 +970,7 @@ MAX_RESULTS = 50
 RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
     'coredata.courseoffering': 'Course offering',
     'coredata.member': 'Student in your class',
+    #'coredata.member': 'TA in your class', # handled in template where we know which role
     'pages.page': 'Class web page',
     'discuss.discussiontopic': 'Discussion topic',
 }

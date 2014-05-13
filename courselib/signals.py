@@ -52,8 +52,8 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
             if instance.role == 'DROP':
                 # dropping is our version of deleting
                 self.handle_delete(sender=sender, instance=instance)
-            elif instance.role == 'STUD':
-                # only students get indexed as Members
+            elif instance.role in ['STUD', 'TA']:
+                # only students and TAs get indexed as Members
                 super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
             elif instance.role == 'INST':
                 # instructor names are part of the CourseOffering index
