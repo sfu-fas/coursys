@@ -73,8 +73,8 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
         # limiting to recent semesters is hopefully temporary
         return self.get_model().objects.exclude(offering__component='CAN') \
                 .filter(role__in=['STUD', 'TA']) \
-                .filter(offering__semester__name__gte='1124') \
                 .select_related('person', 'offering__semester')
+                #.filter(offering__semester__name__gte='1124') \
 
     def should_update(self, m):
         return m.offering.component != 'CAN' and m.role in ['STUD', 'TA']
