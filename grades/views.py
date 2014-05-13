@@ -1331,6 +1331,7 @@ def student_search(request, course_slug):
 def student_info(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+    requestor = get_object_or_404(Member, person__userid=request.user.username, offering__slug=course_slug)
     activities = all_activities_filter(offering=course)
     
     if member.role != "STUD":
@@ -1367,12 +1368,17 @@ def student_info(request, course_slug, userid):
             if GroupActivityMark.objects.filter(activity=a, group=gm.group):
                 info['marked'] = True
 
+    dishonesty_cases = []
+    if requestor.role in ['INST', 'APPR']:
+        from discipline.models import DisciplineCaseInstrStudent
+        dishonesty_cases = DisciplineCaseInstrStudent.objects.filter(offering=course, student=member.person)
+
     group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
     grade_history = GradeHistory.objects.filter(member=member, status_change=False).select_related('entered_by', 'activity', 'group', 'mark')
     #grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity', 'group', 'mark')
 
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
-               'grade_history': grade_history}
+               'grade_history': grade_history, 'dishonesty_cases': dishonesty_cases}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 
 

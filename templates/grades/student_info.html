@@ -119,6 +119,18 @@
 {% endif %}
 
 
+{% if dishonesty_cases %}
+        <h2 id="dishonesty">Dishonesty Cases</h2>
+        <ul>
+            {% for case in dishonesty_cases %}
+            <li><a href="{{ case.get_absolute_url }}">Dishonesty case for {{ member.person.name }}</a>
+                {% if not case.done %}[Next step: {{ case.next_step_short.1 }}]{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+{% endif %}
+
+
 {% if grade_history %}
 <h2 id="history">Grading History</h2>
 <div class="datatable_container">
