@@ -17,9 +17,6 @@ class PageIndex(indexes.SearchIndex, indexes.Indexable):
         return self.get_model().objects.exclude(can_read='NONE').select_related('offering')
 
     def should_update(self, p):
-        if p.can_read == 'NONE':
-            return False
-
         # no PageVersion yet? Still mid-save, so ignore.
         try:
             p.current_version()

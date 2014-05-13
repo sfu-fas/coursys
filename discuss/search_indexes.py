@@ -15,9 +15,6 @@ class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         return self.get_model().objects.exclude(status='HID').prefetch_related('discussionmessage_set')
 
-    def should_update(self, d):
-        return d.status != 'HID'
-
     def prepare_text(self, d):
         pieces = [d.title, d.content]
         replies = d.discussionmessage_set.exclude(status='HID')
