@@ -1,6 +1,6 @@
 # do the import with fake data for development
 # suggestion execution:
-#   rm db.sqlite; echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/testdata_importer.py
+#   rm db.sqlite; echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/devdata_importer.py
 
 import sys, os
 sys.path.append(".")
@@ -32,7 +32,7 @@ from courselib.testing import TEST_COURSE_SLUG
 
 FULL_TEST_DATA = TEST_COURSE_SLUG
 NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157] # at least two years in past and one in future
-TEST_SEMESTER = 1141
+TEST_SEMESTER = 1144
 
 def get_combined():
     combined_sections = [
@@ -244,7 +244,7 @@ def import_semesters():
     return tuple(s.name for s in sems)
 
 def create_units():
-    univ = Unit.objects.get(label='UNIV')
+    univ, _ = Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University')
     fas = Unit(label='FAS', name='Faculty of Applied Sciences', parent=univ).save()
     ensc = Unit(label='ENSC', name='School of Engineering Science', parent=fas, acad_org='ENG SCI').save()
     cmpt = Unit(label='CMPT', name='School of Computing Science', parent=fas, acad_org='COMP SCI')
