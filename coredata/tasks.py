@@ -81,7 +81,7 @@ def daily_import():
 
 
 @task(queue='sims')
-def importer():
+def import_task():
     """
     Enter all of the daily import tasks into the queue, where they can grind away from there.
 
@@ -98,6 +98,7 @@ def importer():
         get_update_grads_task(),
         get_import_offerings_task(),
         import_combined_sections.si(),
+        send_report.si()
     ]
 
     chain(*tasks).apply_async()
@@ -197,3 +198,21 @@ def daily_cleanup():
     TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
 
 
+
+class ReportSender(object):
+    def __init__(self):
+        from courselib.amqp_log import Consumer
+        self.messages = []
+        self.consumer = None
+        self.consumer = Consumer(self.collect_msg)
+
+    def consume(self):
+        self.consumer.consume_forever()
+
+    def collect_msg(self, msg):
+        print msg
+
+
+@task(queue='sims')
+def send_report():
+    sender = ReportSender()

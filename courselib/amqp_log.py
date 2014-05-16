@@ -4,12 +4,13 @@
 # adapted from http://notes.variogr.am/post/143623387/broadcasting-your-logs-with-rabbitmq-and-python
 
 from django.conf import settings
-import logging, pickle
+import logging, pickle, uuid
 from amqplib import client_0_8 as amqp
 import kombu
 
 my_exchange = ''
 queue_name = 'log_messages'
+consumer_tag = uuid.uuid1().hex
 
 def setup_amqp():
     assert settings.BROKER_URL.startswith('amqp://')
@@ -40,12 +41,15 @@ class Consumer():
             self.callback_function(message)
 
     def consume_forever(self):
-        self.ch.basic_consume(queue_name, callback=self.callback, no_ack=True)
+        self.ch.basic_consume(queue_name, callback=self.callback, no_ack=True, consumer_tag=consumer_tag)
         while self.ch.callbacks:
             self.ch.wait()
 
     def close(self):
         self.ch.close()
+
+    def cancel(self):
+        self.ch.basic_cancel(consumer_tag)
 
 
 class AmqpLogHandler(logging.Handler):
