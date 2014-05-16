@@ -26,8 +26,9 @@ DUMMY_IMAGE_FILE = os.path.join(settings.STATIC_ROOT, 'images', 'No_image.JPG') 
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)
 
-PHOTO_TIMEOUT = 10 # number of seconds the views will wait for the photo service
+PHOTO_TIMEOUT = 20 # number of seconds the views will wait for the photo service
 MAX_PHOTO_SIZE = 360 # max (width and height) dimensions of an image we'll return
+TASK_BACKOFF = [1,2,3,4,5,6] # times to wait for photo fetching tasks
 
 
 # from http://docs.python.org/2/library/itertools.html
@@ -68,7 +69,7 @@ def photo_for_view(emplid):
         from dashboard.tasks import fetch_photos_task
         task = fetch_photos_task.AsyncResult(task_id)
         logger.debug('task in cache for %s' % (emplid))
-        for timeout in [1,2,3,4]:
+        for timeout in TASK_BACKOFF:
             # Rationale for this: these seems to be an occasional race condition, something like we find above that the
             # tasks exists but hasn't yet finished, but by the time we get here, it's done, so the task.get times out.
             # That leaves us waiting a long time for an image that ws actually in the cache by the time we looked. This
@@ -140,7 +141,7 @@ def do_photo_fetch(emplids):
     """
     photos = _get_photos(emplids)
     for emplid in photos:
-        cache.set(_photo_cache_key(emplid), photos[emplid], 3600*24)
+        cache.set(_photo_cache_key(emplid), photos[emplid], 3600*24*7)
 
     missing = set(emplids) - set(photos.keys())
     if missing:
