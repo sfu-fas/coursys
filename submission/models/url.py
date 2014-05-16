@@ -1,9 +1,11 @@
-from base import *
+from django.db import models
+from base import SubmissionComponent, SubmittedComponent
 import submission.forms
 from django.forms.widgets import Textarea, TextInput
 from django import forms
 from django.http import HttpResponse
 from django.utils.html import escape
+import os
 
 
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
@@ -92,7 +94,7 @@ class URL:
                 except forms.ValidationError:
                     # re-throw to produce a better error message
                     raise forms.ValidationError("The submitted URL doesn't seem to exist: please check the URL and resubmit.")
-            return url;
+            return url
 
 SubmittedURL.Type = URL
 URLComponent.Type = URL

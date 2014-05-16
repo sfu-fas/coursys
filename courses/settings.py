@@ -267,6 +267,8 @@ if USE_CELERY:
         'serializer': 'pickle', # email objects aren't JSON serializable
     }
 
+if hasattr(localsettings, 'BROKER_URL'):
+    BROKER_URL = localsettings.BROKER_URL
 
 
 MAX_SUBMISSION_SIZE = 30000 # kB
