@@ -267,6 +267,9 @@ $(document).ready(function(){
   var error = $('ul.errorlist').first().each(function(i, e) {
     $('html, body').animate({
 	  scrollTop: $(e).offset().top - 100
-    }, 1000)
+    }, 1000, function(){
+        /* once complete, wiggle the error at the user */
+        $('ul.errorlist').effect('shake', {times:1, distance:3}, 75);
+    })
   });
 });
