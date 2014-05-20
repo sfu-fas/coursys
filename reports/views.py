@@ -5,6 +5,7 @@ from forms import ReportForm, HardcodedReportForm, QueryForm, \
 from cache import clear_cache
 from alerts.models import AlertType
 from alerts.forms import AlertTypeForm
+from privacy.models import needs_privacy_signature, privacy_redirect
 from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
                     ForbiddenResponse
 from django.http import HttpResponse
@@ -15,6 +16,36 @@ from django.template import Template, Context
 from django.forms.util import ErrorList
 import unicodecsv as csv
 import json
+
+def _has_access(request, report):
+    try:
+        return (has_role('SYSA', request) or
+                AccessRule.objects.filter(report=report, person__userid=request.user.username).exists()
+               )
+    except AccessRule.DoesNotExist:
+        return False
+
+def requires_report_access():
+    """
+    Decorator to check for being allowed access to the report
+    """
+    def actual_decorator(view_func):
+        def can_access_report(request, report, **kwargs):
+            rep = get_object_or_404(Report, slug=report)
+            if not _has_access(request, rep):
+                return ForbiddenResponse(request)
+            if needs_privacy_signature(request):
+                return privacy_redirect(request)
+
+            request.report = rep # no need to re-fetch it later
+            return view_func(request=request, report=report, **kwargs)
+
+        return can_access_report
+
+    return actual_decorator
+
+
+
 
 
 def view_reports(request):
@@ -46,21 +77,12 @@ def new_report(request):
     return render(request, 'reports/new_report.html', {'form': form })
 
 
-def _has_access(request, report):
-    try:
-        return (has_role('SYSA', request) or 
-                AccessRule.objects.filter(report=report, person__userid=request.user.username).exists()
-               )
-    except AccessRule.DoesNotExist:
-        return False
 
-
+@requires_report_access()
 def view_report(request, report):
-    report = get_object_or_404(Report, slug=report) 
+    report = request.report
     readonly = True
     
-    if not _has_access(request, report):
-        return ForbiddenResponse(request)
     if has_role('SYSA', request):
         readonly = False
   
@@ -79,11 +101,9 @@ def view_report(request, report):
                                                         'runs':runs, 
                                                         'components':components})
 
+@requires_report_access()
 def OFFconsole(request, report):
-    report = get_object_or_404(Report, slug=report) 
-    
-    if not _has_access(request, report):
-        return ForbiddenResponse(request)
+    report = request.report
 
     runs = Run.objects.filter(report=report).order_by("-created_at")
     if len(runs) == 0:
@@ -236,22 +256,18 @@ def delete_query(request, report, query_id):
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
 
+@requires_report_access()
 def run(request, report):
     """ Actually execute the report. """
-    report = get_object_or_404(Report, slug=report)
-    
-    if not _has_access(request, report):
-        return ForbiddenResponse(request)
+    report = request.report
 
     task = report.enqueue(manual=True)
     return render(request, 'reports/running.html', {'report':report, 'task': task})
 
 
+@requires_report_access()
 def console(request, report):
-    report = get_object_or_404(Report, slug=report)
-
-    if not _has_access(request, report):
-        return ForbiddenResponse(request)
+    report = request.report
 
     data = {'done': True}
     runs = Run.objects.filter(report=report).order_by("-created_at")
@@ -268,12 +284,10 @@ def console(request, report):
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
+@requires_report_access()
 def view_run(request, report, run):
-    run = get_object_or_404(Run, slug=run)
+    run = get_object_or_404(Run, slug=run, report__slug=report)
     report = run.report
-    
-    if not _has_access(request, report):
-        return ForbiddenResponse(request)
     
     runlines = run.getLines()
     results = Result.objects.filter( run=run )
@@ -298,28 +312,21 @@ def delete_run(request, report, run):
     return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
 
 
+@requires_report_access()
 def view_result(request, report, run, result):
-    run = get_object_or_404(Run, slug=run)
+    run = get_object_or_404(Run, slug=run, report__slug=report)
     report = run.report
-    
-    if not _has_access(request, report):
-        return ForbiddenResponse(request)
-    
-    result = get_object_or_404(Result, slug=result)
+    result = get_object_or_404(Result, slug=result, run=run)
     
     return render(request, 'reports/view_result.html', {'report':report, 'run': run, 'result':result})
 
 
+@requires_report_access()
 def csv_result(request, report, run, result):
-    run = get_object_or_404(Run, slug=run)
+    run = get_object_or_404(Run, slug=run, report__slug=report)
     report = run.report
-    
-    if not _has_access(request, report):
-        return ForbiddenResponse(request)
-    
-    result = get_object_or_404(Result, slug=result)
+    result = get_object_or_404(Result, slug=result, run=run)
 
-    print result.autoslug()
     filename = str(report.slug) + '-' + result.autoslug() + '.csv'
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'inline; filename=%s'% filename
