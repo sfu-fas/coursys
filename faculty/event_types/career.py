@@ -108,6 +108,15 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         add_salary = fields.AddSalaryField()
         add_pay = fields.AddPayField()
 
+        def post_init(self):
+            # find the last-known rank as a default
+            if self.person:
+                from faculty.models import CareerEvent
+                event = CareerEvent.objects.filter(person=self.person, event_type='SALARY').effective_now().last()
+                if event:
+                    self.fields['rank'].initial = event.config['rank']
+
+
     SEARCH_RULES = {
         'rank': search.ChoiceSearchRule,
         'base_salary': search.ComparableSearchRule,

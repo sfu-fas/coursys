@@ -1,3 +1,6 @@
+reload:
+	killall -USR2 gunicorn
+
 restart:
 	supervisorctl restart gunicorn
 
