@@ -824,6 +824,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
         # advisors can access relevant completed forms
         advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
         units = set(r.unit for r in advisor_roles)
+        units = Unit.sub_units(units)
         form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
                                         form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
