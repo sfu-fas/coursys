@@ -122,9 +122,6 @@ def remove_group_member(request, formgroup_slug, userid):
     person = get_object_or_404(Person, emplid=userid)
     member = get_object_or_404(FormGroupMember, person=person, formgroup=group)
 
-    if group.unit not in request.units:
-        return ForbiddenResponse(request)
-
     # remove m2m relationship
     if request.method == 'POST':
         if 'action' in request.POST:
@@ -137,7 +134,7 @@ def remove_group_member(request, formgroup_slug, userid):
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
     
-    groups = FormGroup.objects.filter(unit__in=request.units)
+    groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
