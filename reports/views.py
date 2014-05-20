@@ -243,24 +243,9 @@ def run(request, report):
     if not _has_access(request, report):
         return ForbiddenResponse(request)
 
-    task = report.enqueue()
+    task = report.enqueue(manual=True)
     return render(request, 'reports/running.html', {'report':report, 'task': task})
 
-
-    """
-    if len(runs) > 0: 
-        for run in runs: 
-            if( run.success ):
-                messages.success(request, "Run Succeeded!")
-            else: 
-                messages.error(request, "Run Failed!")
-        run = runs[0]
-        clear_cache()
-        return HttpResponseRedirect(reverse('reports.views.view_run', kwargs={'report':report.slug, 'run':run.slug}))
-    else:
-        messages.error(request, "You haven't added any queries or reports to run, yet!")
-        return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
-        """
 
 def console(request, report):
     report = get_object_or_404(Report, slug=report)

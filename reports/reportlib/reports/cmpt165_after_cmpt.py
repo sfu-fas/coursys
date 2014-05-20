@@ -24,7 +24,7 @@ class CMPT165_after_CMPT_Query(DB2_Query):
           ORDER BY se.emplid, ct.strm, ct.subject, ct.catalog_nbr
     """)
     default_arguments = {
-        'semester': current_semester()
+        'strm': current_semester()
         }
 
 
