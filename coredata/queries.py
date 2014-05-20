@@ -401,7 +401,26 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
             label = transcript or descr
             prog = "%s (%s)" % (label, acad_plan)
             programs.append(prog)
-    
+
+        # also add academic subplans
+        db.execute("""
+            SELECT plantbl.acad_sub_plan, plantbl.descr, plantbl.trnscr_descr
+            FROM ps_acad_prog prog, ps_acad_subplan plan, ps_acad_subpln_tbl AS plantbl
+            WHERE prog.emplid=plan.emplid AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
+              AND plantbl.acad_plan=plan.acad_plan AND plantbl.acad_sub_plan=plan.acad_sub_plan
+              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
+              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
+              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
+              AND prog.prog_status='AC' AND plantbl.eff_status='A'
+              AND prog.emplid=%s""", (str(emplid),))
+        #  AND apt.trnscr_print_fl='Y'
+        for subplan, descr, transcript in db:
+            label = transcript or descr
+            prog = "%s (%s subplan)" % (label, subplan)
+            programs.append(prog)
+
+
+
     # GPA and credit count
     if (needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed) and 'ccredits' not in exclude:
         db.execute('SELECT cum_gpa, tot_cumulative FROM ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
