@@ -168,32 +168,38 @@ class CareerEventHandlerBase(object):
         self.event.flags.affects_teaching = ('affects_teaching' in self.FLAGS
                                              and TeachingAdjustIdentity != self.teaching_adjust_per_semester())
 
+    def neaten_exclusive_end_dates(self, editor):
+        """
+        Tidy up the end dates of exclusive events: at least closes and previous open events, but also handles
+        the case of events being entered out-of-order.
+        """
+        assert self.IS_EXCLUSIVE and not self.IS_INSTANT
+        from faculty.models import CareerEvent
+
+        similar_events = CareerEvent.objects.filter(person=self.event.person,
+                unit=self.event.unit, event_type=self.EVENT_TYPE).order_by('start_date')
+        similar_events = list(similar_events)
+        for event, next_event in zip(similar_events, similar_events[1:]):
+            event.end_date = next_event.start_date - datetime.timedelta(days=1)
+            event.save(editor, call_from_handler=True)
+
+
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
-
         self.set_handler_specific_data()
 
         if self.IS_INSTANT:
             self.event.end_date = self.event.start_date
 
         self.pre_save()
+        self.event.save(editor, call_from_handler=True)
 
         if self.IS_EXCLUSIVE:
-            from faculty.models import CareerEvent
-            previous_event = (CareerEvent.objects.filter(person=self.event.person,
-                                                         unit=self.event.unit,
-                                                         event_type=self.EVENT_TYPE,
-                                                         start_date__lte=self.event.start_date,
-                                                         end_date=None)
-                                                 .order_by('start_date').last())
-            if previous_event:
-                previous_event.end_date = self.event.start_date - datetime.timedelta(days=1)
-                previous_event.save(editor, call_from_handler=True)
-
-        self.event.save(editor, call_from_handler=True)
+            self.neaten_exclusive_end_dates(editor)
 
         if self.event.event_type == 'SALARY':
             # invalidate cache of rank
+            from faculty.models import CareerEvent
             CareerEvent.current_ranks.invalidate(self.event.person)
 
         self.post_save()
