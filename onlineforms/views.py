@@ -33,7 +33,7 @@ import os
 
 @requires_role('ADMN')
 def manage_groups(request):
-    groups = FormGroup.objects.filter(unit__in=request.units)
+    groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
@@ -41,7 +41,7 @@ def manage_groups(request):
 @transaction.atomic
 @requires_role('ADMN')
 def new_group(request):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, unicode(u)) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = GroupForm(request.POST)
         form.fields['unit'].choices = unit_choices
@@ -67,7 +67,7 @@ def new_group(request):
 @transaction.atomic
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
-    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
     groupmembers = FormGroupMember.objects.filter(formgroup=group).order_by('person__last_name')
 
     # for editting group name
@@ -93,7 +93,7 @@ def manage_group(request, formgroup_slug):
 @transaction.atomic
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
-    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
     if request.method == 'POST':
         if 'action' in request.POST:
             if request.POST['action'] == 'add':
@@ -120,7 +120,7 @@ def add_group_member(request, formgroup_slug):
 @transaction.atomic
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
-    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
     person = get_object_or_404(Person, emplid=userid)
     member = get_object_or_404(FormGroupMember, person=person, formgroup=group)
 
