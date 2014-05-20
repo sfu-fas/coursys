@@ -338,6 +338,47 @@ class Form(models.Model, _FormCoherenceMixin):
     def get_initiators_display_short(self):
         return INITIATOR_SHORT[self.initiators]
 
+    @transaction.atomic
+    def duplicate(self):
+        """
+        Make a independent duplicate of this form.
+
+        Not called from the UI anywhere, but can be used to duplicate a form for another unit, without the pain of
+        re-creating everything:
+            newform = oldform.duplicate()
+            newform.owner = ...
+            newform.unit = ...
+            newform.initiators = ...
+            newform.slug = None
+            newform.save()
+        """
+        newform = self.clone()
+        newform.original = None
+        newform.slug = None
+        newform.active = True
+        newform.initiators = 'NON'
+        newform.save()
+
+        sheets = Sheet.objects.filter(form=self)
+        for s in sheets:
+            newsheet = s.clone()
+            newsheet.form = newform
+            newsheet.original = None
+            newsheet.slug = None
+            newsheet.save()
+
+            fields = Field.objects.filter(sheet=s)
+            for f in fields:
+                newfield = f.clone()
+                newfield.sheet = newsheet
+                newfield.original = None
+                newfield.slug = None
+                newfield.save()
+
+        return newform
+
+
+
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     # the form this sheet is a part of

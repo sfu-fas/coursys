@@ -95,24 +95,22 @@ def manage_group(request, formgroup_slug):
 def add_group_member(request, formgroup_slug):
     group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
     if request.method == 'POST':
-        if 'action' in request.POST:
-            if request.POST['action'] == 'add':
-                if request.POST['search'] != '':
-                    search_form = EmployeeSearchForm(request.POST)
-                    if search_form.is_valid(): 
-                        # search returns Person object
-                        person = search_form.cleaned_data['search']
-                        email = search_form.cleaned_data['email']
-                        member = FormGroupMember(person=person, formgroup=group)
-                        member.set_email(email)
-                        member.save()
-                        l = LogEntry(userid=request.user.username,
-                             description=("added %s to form group %s") % (person.userid_or_emplid(), group),
-                              related_object=member)
-                        l.save()
-                        return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
-                else: # if accidentally don't search for anybody
-                    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
+        if request.POST['search'] != '':
+            search_form = EmployeeSearchForm(request.POST)
+            if search_form.is_valid():
+                # search returns Person object
+                person = search_form.cleaned_data['search']
+                email = search_form.cleaned_data['email']
+                member = FormGroupMember(person=person, formgroup=group)
+                member.set_email(email)
+                member.save()
+                l = LogEntry(userid=request.user.username,
+                     description=("added %s to form group %s") % (person.userid_or_emplid(), group),
+                     related_object=member)
+                l.save()
+                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+        else: # if accidentally don't search for anybody
+            return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))
     
     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
