@@ -1,6 +1,6 @@
 from django.db import models
 from base import SubmissionComponent, SubmittedComponent
-import submission.forms
+from submission import forms as submission_forms
 from django.forms.widgets import Textarea, TextInput
 from django import forms
 from django.http import HttpResponse
@@ -57,7 +57,7 @@ class URL:
     Component = URLComponent
     SubmittedComponent = SubmittedURL
 
-    class ComponentForm(submission.forms.ComponentForm):
+    class ComponentForm(submission_forms.ComponentForm):
         class Meta:
             model = URLComponent
             fields = ['title', 'description', 'check', 'prefix', 'deleted']
@@ -69,7 +69,7 @@ class URL:
             self.fields.__delitem__('specified_filename')
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
 
-    class SubmissionForm(submission.forms.SubmissionForm):
+    class SubmissionForm(submission_forms.SubmissionForm):
         class Meta:
             model = SubmittedURL
             fields = ['url']
