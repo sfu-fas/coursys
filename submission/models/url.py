@@ -1,6 +1,5 @@
 from django.db import models
 from base import SubmissionComponent, SubmittedComponent
-from submission import forms as submission_forms
 from django.forms.widgets import Textarea, TextInput
 from django import forms
 from django.http import HttpResponse
@@ -51,6 +50,7 @@ class SubmittedURL(SubmittedComponent):
 from submission.models.url_validator import QuickURLValidator
 # class containing all pieces for this submission type
 class URL:
+    from submission import forms as submission_forms
     label = "url"
     name = "URL"
     descr = "a web page address"

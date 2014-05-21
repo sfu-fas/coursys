@@ -1,5 +1,4 @@
 from django import forms
-from submission.models import SubmittedComponent
 from django.forms import ModelForm
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -88,6 +87,7 @@ class SubmissionForm(ModelForm):
     component = None
     
     class Meta:
+        from submission.models import SubmittedComponent
         model = SubmittedComponent
         fields = []
         widgets = {}
