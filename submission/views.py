@@ -280,7 +280,7 @@ def edit_single(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def add_component(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
 
     #default, Archive
     typelabel = request.GET.get('type')

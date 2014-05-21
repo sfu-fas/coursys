@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from submission.models import URL, Archive, Code, StudentSubmission, select_all_components
+from submission.models import URL, Archive, Code, StudentSubmission, select_all_components, ALL_TYPE_CLASSES
 from submission.models.code import SubmittedCode
 from submission.forms import filetype
 from grades.models import NumericActivity, Activity
@@ -345,6 +345,26 @@ class SubmissionTest(TestCase):
                 # some problems: expect a page reporting that
                 self.assertEqual(response.status_code, 200)
                 validate_content(self, response.content, url)
+
+    def test_submission_types(self):
+        "Minimally test each submission type"
+        offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        activity = Activity.objects.get(offering=offering, slug='rep')
+        activity.due_date = datetime.datetime.now() + datetime.timedelta(days=1) # make sure it's submittable
+        activity.save()
+        client = Client()
+
+        # instructor views
+        client.login_user("ggbaker")
+
+        for Type in ALL_TYPE_CLASSES:
+            label = Type.label
+            test_views(self, client, 'submission.views.', ['add_component'],
+                   {'course_slug': offering.slug, 'activity_slug': activity.slug}, qs='type='+label)
+
+
+
+
 
 
 

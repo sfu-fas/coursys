@@ -4,6 +4,7 @@ from django.forms.widgets import Textarea, TextInput
 from django import forms
 from django.http import HttpResponse
 from django.utils.html import escape
+from submission.forms import ComponentForm as BaseComponentForm, SubmissionForm as BaseSubmissionForm
 import os
 
 
@@ -50,14 +51,13 @@ class SubmittedURL(SubmittedComponent):
 from submission.models.url_validator import QuickURLValidator
 # class containing all pieces for this submission type
 class URL:
-    from ..forms import ComponentForm, SubmissionForm
     label = "url"
     name = "URL"
     descr = "a web page address"
     Component = URLComponent
     SubmittedComponent = SubmittedURL
 
-    class ComponentForm(ComponentForm):
+    class ComponentForm(BaseComponentForm):
         class Meta:
             model = URLComponent
             fields = ['title', 'description', 'check', 'prefix', 'deleted']
@@ -69,7 +69,7 @@ class URL:
             self.fields.__delitem__('specified_filename')
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
 
-    class SubmissionForm(SubmissionForm):
+    class SubmissionForm(BaseSubmissionForm):
         class Meta:
             model = SubmittedURL
             fields = ['url']
