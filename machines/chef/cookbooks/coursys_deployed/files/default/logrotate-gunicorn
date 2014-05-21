@@ -1,6 +1,6 @@
 /var/log/gunicorn/*.log {
-        weekly
-        size=10M
+        daily
+        #size=10M
         rotate 8
         notifempty
         copytruncate
