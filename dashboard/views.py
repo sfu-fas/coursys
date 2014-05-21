@@ -69,7 +69,6 @@ def index(request):
     has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
     form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
 
-
     #messages.add_message(request, messages.SUCCESS, 'Success message.')
     #messages.add_message(request, messages.WARNING, 'Warning message.')
     #messages.add_message(request, messages.INFO, 'Info message.')
@@ -251,7 +250,7 @@ def config(request):
 
 
 def _get_news_list(userid, count):
-    past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
+    past_1mo = datetime.datetime.today() - datetime.timedelta(days=20)
     return NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:count]
 
 
