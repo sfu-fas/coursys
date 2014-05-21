@@ -50,14 +50,14 @@ class SubmittedURL(SubmittedComponent):
 from submission.models.url_validator import QuickURLValidator
 # class containing all pieces for this submission type
 class URL:
-    from submission import forms as submission_forms
+    from ..forms import ComponentForm, SubmissionForm
     label = "url"
     name = "URL"
     descr = "a web page address"
     Component = URLComponent
     SubmittedComponent = SubmittedURL
 
-    class ComponentForm(submission_forms.ComponentForm):
+    class ComponentForm(ComponentForm):
         class Meta:
             model = URLComponent
             fields = ['title', 'description', 'check', 'prefix', 'deleted']
@@ -69,7 +69,7 @@ class URL:
             self.fields.__delitem__('specified_filename')
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
 
-    class SubmissionForm(submission_forms.SubmissionForm):
+    class SubmissionForm(SubmissionForm):
         class Meta:
             model = SubmittedURL
             fields = ['url']
