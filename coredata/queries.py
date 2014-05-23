@@ -4,7 +4,7 @@ from django.db import transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
-import re, hashlib, datetime
+import re, hashlib, datetime, string
 
 
 multiple_breaks = re.compile(r'\n\n+')
@@ -101,7 +101,7 @@ class SIMSConn(DBConn):
         # Based on description of PHP's db2_escape_string
         if type(a) in (int,long):
             return str(a)
-        if type(a) in (tuple, list):
+        if type(a) in (tuple, list, set):
             return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
         
         # assume it's a string if we don't know any better
@@ -294,6 +294,31 @@ def grad_student_info(emplid):
     "The info we want in Person.config for all GradStudents"
     return more_personal_info(emplid, needed=GRADFIELDS)
 
+
+PLAN_QUERY = string.Template("""
+            SELECT prog.emplid, plantbl.acad_plan, plantbl.descr, plantbl.trnscr_descr
+            FROM ps_acad_prog prog, ps_acad_plan plan, ps_acad_plan_tbl AS plantbl
+            WHERE prog.emplid=plan.emplid AND prog.acad_career=plan.acad_career AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
+              AND plantbl.acad_plan=plan.acad_plan
+              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
+              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
+              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
+              AND prog.prog_status='AC' AND plantbl.eff_status='A'
+              AND $where
+            ORDER BY prog.emplid, plan.plan_sequence""")
+
+SUBPLAN_QUERY = string.Template("""
+            SELECT prog.emplid, plantbl.acad_sub_plan, plantbl.descr, plantbl.trnscr_descr
+            FROM ps_acad_prog prog, ps_acad_subplan plan, ps_acad_subpln_tbl AS plantbl
+            WHERE prog.emplid=plan.emplid AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
+              AND plantbl.acad_plan=plan.acad_plan AND plantbl.acad_sub_plan=plan.acad_sub_plan
+              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
+              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
+              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
+              AND prog.prog_status='AC' AND plantbl.eff_status='A'
+              AND $where
+            ORDER BY prog.emplid""")
+
 ALLFIELDS = 'alldata'
 @cache_by_args
 @SIMS_problem_handler
@@ -385,36 +410,16 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     if (needed == ALLFIELDS or 'programs' in needed) and 'programs' not in exclude:
         programs = []
         data['programs'] = programs
-        db.execute("""
-            SELECT plantbl.acad_plan, plantbl.descr, plantbl.trnscr_descr
-            FROM ps_acad_prog prog, ps_acad_plan plan, ps_acad_plan_tbl AS plantbl
-            WHERE prog.emplid=plan.emplid AND prog.acad_career=plan.acad_career AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
-              AND plantbl.acad_plan=plan.acad_plan
-              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
-              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
-              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
-              AND prog.prog_status='AC' AND plantbl.eff_status='A'
-              AND prog.emplid=%s
-            ORDER BY plan.plan_sequence""", (str(emplid),))
+        db.execute(PLAN_QUERY.substitute({'where': 'prog.emplid=%s'}), (str(emplid),))
         #  AND apt.trnscr_print_fl='Y'
-        for acad_plan, descr, transcript in db:
+        for emplid, acad_plan, descr, transcript in db:
             label = transcript or descr
             prog = "%s (%s)" % (label, acad_plan)
             programs.append(prog)
 
         # also add academic subplans
-        db.execute("""
-            SELECT plantbl.acad_sub_plan, plantbl.descr, plantbl.trnscr_descr
-            FROM ps_acad_prog prog, ps_acad_subplan plan, ps_acad_subpln_tbl AS plantbl
-            WHERE prog.emplid=plan.emplid AND prog.stdnt_car_nbr=plan.stdnt_car_nbr AND prog.effdt=plan.effdt AND prog.effseq=plan.effseq
-              AND plantbl.acad_plan=plan.acad_plan AND plantbl.acad_sub_plan=plan.acad_sub_plan
-              AND prog.effdt=(SELECT MAX(effdt) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt <= current date)
-              AND prog.effseq=(SELECT MAX(effseq) FROM ps_acad_prog WHERE emplid=prog.emplid AND acad_career=prog.acad_career AND stdnt_car_nbr=prog.stdnt_car_nbr AND effdt=prog.effdt)
-              AND plantbl.effdt=(SELECT MAX(effdt) FROM ps_acad_plan_tbl WHERE acad_plan=plantbl.acad_plan AND eff_status='A' and effdt<=current date)
-              AND prog.prog_status='AC' AND plantbl.eff_status='A'
-              AND prog.emplid=%s""", (str(emplid),))
-        #  AND apt.trnscr_print_fl='Y'
-        for subplan, descr, transcript in db:
+        db.execute(SUBPLAN_QUERY.substitute({'where': 'prog.emplid=%s'}), (str(emplid),))
+        for emplid, subplan, descr, transcript in db:
             label = transcript or descr
             prog = "%s (%s subplan)" % (label, subplan)
             programs.append(prog)

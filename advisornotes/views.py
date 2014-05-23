@@ -82,7 +82,7 @@ def sims_search(request):
             try:
                 data = find_person(emplid)
             except SIMSProblem as e:
-                data = {'error': e.message}
+                data = {'error': unicode(e)}
         except ValueError:
             # not an integer, so not an emplid to search for
             data = None
@@ -349,7 +349,7 @@ def student_more_info(request, userid):
     try:
         data = more_personal_info(student.emplid)
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': unicode(e)}
 
     response = HttpResponse(content_type='application/json')
     json.dump(data, response)
@@ -377,7 +377,7 @@ def student_courses_data(request, userid):
     try:
         data = course_data(student.emplid)
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': unicode(e)}
 
     #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(content_type='application/json;charset=utf-8')
@@ -585,7 +585,7 @@ def course_more_info(request, unit_course_slug):
         if not data:
             data = {'error': 'Could not find course to fetch more info.'}
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': unicode(e)}
 
     response = HttpResponse(content_type='application/json')
     json.dump(data, response)
