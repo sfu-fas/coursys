@@ -77,7 +77,7 @@ def daily_import():
     if not settings.DO_IMPORTING_HERE:
         return
 
-    importer.apply_async()
+    import_task.apply_async()
 
 
 @task(queue='sims')
@@ -98,7 +98,7 @@ def import_task():
         get_update_grads_task(),
         get_import_offerings_task(),
         import_combined_sections.si(),
-        send_report.si()
+        #send_report.si()
     ]
 
     chain(*tasks).apply_async()
@@ -149,7 +149,8 @@ def get_import_offerings_task():
 
     Doesn't actually call the jobs: just returns a celery task to be called.
     """
-    offerings = importer.import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 383', ' 470')")
+    #offerings = importer.import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 383', ' 470')")
+    offerings = importer.import_offerings()
     #offerings = import_offerings(cancel_missing=True)
     offerings = list(offerings)
     offerings.sort()
@@ -215,4 +216,5 @@ class ReportSender(object):
 
 @task(queue='sims')
 def send_report():
-    sender = ReportSender()
+    #sender = ReportSender()
+    pass
