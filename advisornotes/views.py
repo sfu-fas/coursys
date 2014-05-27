@@ -1,9 +1,9 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
     EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit
 from alerts.models import Alert
-from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member
+from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, \
     SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, \
@@ -14,11 +14,11 @@ from django.core.exceptions import ValidationError
 from django.core.mail.message import EmailMessage
 from django.core.urlresolvers import reverse
 from django.db import transaction
-from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.text import wrap
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
 import datetime
@@ -82,7 +82,7 @@ def sims_search(request):
             try:
                 data = find_person(emplid)
             except SIMSProblem as e:
-                data = {'error': e.message}
+                data = {'error': unicode(e)}
         except ValueError:
             # not an integer, so not an emplid to search for
             data = None
@@ -318,7 +318,7 @@ def student_notes(request, userid):
     if 'compact' in request.GET:
         template = 'advisornotes/student_notes_compact.html'
     context = {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent,
-               'show_transcript': show_transcript}
+               'show_transcript': show_transcript, 'units': request.units}
     return render(request, template, context)
 
 
@@ -349,7 +349,7 @@ def student_more_info(request, userid):
     try:
         data = more_personal_info(student.emplid)
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': unicode(e)}
 
     response = HttpResponse(content_type='application/json')
     json.dump(data, response)
@@ -377,13 +377,38 @@ def student_courses_data(request, userid):
     try:
         data = course_data(student.emplid)
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': unicode(e)}
 
     #data = {'error': 'Feature temporarily disabled.'} # disable while privacy concerns are worked out
     response = HttpResponse(content_type='application/json;charset=utf-8')
     json.dump(data, response, encoding='utf-8', indent=1)
     return response
 
+
+@requires_role('ADVS')
+@require_POST
+def record_advisor_visit(request, userid, unit_slug):
+    unit = get_object_or_404(Unit, slug=unit_slug, id__in=(u.id for u in request.units))
+    advisor = get_object_or_404(Person, userid=request.user.username)
+    try:
+        student = Person.objects.get(find_userid_or_emplid(userid))
+        nonstudent = None
+    except Person.DoesNotExist:
+        nonstudent = get_object_or_404(NonStudent, slug=userid)
+        student = None
+
+    av = AdvisorVisit(student=student, nonstudent=nonstudent, program=None, advisor=advisor, unit=unit)
+    av.save()
+
+    messages.add_message(request, messages.SUCCESS, u'%s advisor visit recorded on %s.' % (unit.informal_name(), datetime.date.today()))
+    return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': userid}))
+
+
+@requires_role('ADVS')
+def all_visits(request):
+    visits = AdvisorVisit.objects.filter(unit__in=request.units).select_related('student', 'nonstudent', 'advisor')
+    context = {'visits': visits}
+    return render(request, 'advisornotes/all_visits.html', context)
 
 
 @requires_role('ADVS')
@@ -560,7 +585,7 @@ def course_more_info(request, unit_course_slug):
         if not data:
             data = {'error': 'Could not find course to fetch more info.'}
     except SIMSProblem as e:
-        data = {'error': e.message}
+        data = {'error': unicode(e)}
 
     response = HttpResponse(content_type='application/json')
     json.dump(data, response)

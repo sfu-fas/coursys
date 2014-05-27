@@ -1,5 +1,6 @@
 from django.conf.urls import url
-from courselib.urlparts import UNIT_COURSE_SLUG, NOTE_ID, SEMESTER, COURSE_SLUG, ARTIFACT_SLUG, USERID_OR_EMPLID, NONSTUDENT_SLUG
+from courselib.urlparts import UNIT_COURSE_SLUG, NOTE_ID, SEMESTER, COURSE_SLUG, ARTIFACT_SLUG, USERID_OR_EMPLID, \
+    NONSTUDENT_SLUG, UNIT_SLUG
 
 advisornotes_patterns = [ # prefix /advising/
     url(r'^$', 'advisornotes.views.advising'),
@@ -8,6 +9,7 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^note_search$', 'advisornotes.views.note_search'),
     url(r'^sims_search$', 'advisornotes.views.sims_search'),
     url(r'^sims_add$', 'advisornotes.views.sims_add_person'),
+    url(r'^visits', 'advisornotes.views.all_visits'),
 
     url(r'^courses/$', 'advisornotes.views.view_courses'),
     url(r'^courses/' + UNIT_COURSE_SLUG + '/new$', 'advisornotes.views.new_artifact_note'),
@@ -35,6 +37,7 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', 'advisornotes.views.download_file'),
     url(r'^students/' + USERID_OR_EMPLID + '/moreinfo$', 'advisornotes.views.student_more_info'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses$', 'advisornotes.views.student_courses'),
+    url(r'^students/' + USERID_OR_EMPLID + '/visited/' + UNIT_SLUG, 'advisornotes.views.record_advisor_visit'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses-data$', 'advisornotes.views.student_courses_data'),
     url(r'^new_prospective_student', 'advisornotes.views.new_nonstudent'),
     #url(r'^problems/$', 'advisornotes.views.view_problems'),
