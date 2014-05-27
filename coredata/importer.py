@@ -450,7 +450,7 @@ def get_person(emplid, commit=True, force=False):
 
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if random.random() < 0.95 and not force and 'lastimport' in p.config \
+    if random.random() < 0.99 and not force and 'lastimport' in p.config \
             and time.time() - p.config['lastimport'] < IMPORT_THRESHOLD:
         return p
     
