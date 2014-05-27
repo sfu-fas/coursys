@@ -9,6 +9,7 @@ from django.core.cache import cache
 from cache_utils.decorators import cached
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter, config_property
+from courselib.conditional_save import ConditionalSaveMixin
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from bitfield import BitField
@@ -37,7 +38,7 @@ VISA_STATUSES = (
         ('No Visa St', 'Non-Canadian, No Visa Status'), # Non-Canadian, No Visa Status (student is studying outside Canada)
         )
 
-class Person(models.Model):
+class Person(models.Model, ConditionalSaveMixin):
     """
     A person in the system (students, instuctors, etc.).
     """
@@ -448,7 +449,7 @@ class Holiday(models.Model):
         ordering = ['date']
 
 
-class Course(models.Model):
+class Course(models.Model, ConditionalSaveMixin):
     """
     More abstract model for a course.
     
@@ -540,7 +541,7 @@ INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
     ]
 INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
-class CourseOffering(models.Model):
+class CourseOffering(models.Model, ConditionalSaveMixin):
     subject = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN".')
     number = models.CharField(max_length=4, null=False, db_index=True,
@@ -742,7 +743,7 @@ class CourseOffering(models.Model):
         return "%s (%s)" % (self.name(), self.semester.label())
         
 
-class Member(models.Model):
+class Member(models.Model, ConditionalSaveMixin):
     """
     "Members" of the course.  Role indicates instructor/student/TA/etc.
 
