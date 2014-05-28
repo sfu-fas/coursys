@@ -150,8 +150,8 @@ def get_import_offerings_task():
     Doesn't actually call the jobs: just returns a celery task to be called.
     """
     #offerings = importer.import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 383', ' 470')")
-    offerings = importer.import_offerings()
-    #offerings = import_offerings(cancel_missing=True)
+    #offerings = importer.import_offerings()
+    offerings = import_offerings(cancel_missing=True)
     offerings = list(offerings)
     offerings.sort()
 
