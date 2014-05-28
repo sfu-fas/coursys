@@ -67,7 +67,7 @@ def _grouper(iterable, n):
     return ((v for v in grp if v is not None) for grp in groups)
 
 
-#@periodic_task(run_every=crontab(minute=0, hour='8'))
+@periodic_task(run_every=crontab(minute='0', hour='8'))
 def daily_import():
     """
     Start the daily import work.
