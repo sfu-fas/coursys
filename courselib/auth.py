@@ -17,7 +17,7 @@ except ImportError:
 
 # adapted from django_cas.decorators: returns 403 on failure, and passes **kwargs to test_func.
 def user_passes_test(test_func, login_url=None,
-                     redirect_field_name=REDIRECT_FIELD_NAME):
+                     redirect_field_name=REDIRECT_FIELD_NAME, force_privacy=False):
     """Replacement for django.contrib.auth.decorators.user_passes_test that
     returns 403 Forbidden if the user is already logged in.
     """
@@ -29,7 +29,9 @@ def user_passes_test(test_func, login_url=None,
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
             if test_func(request, **kwargs):
-                if needs_privacy_signature(request, only_relevant_roles=True):
+                if needs_privacy_signature(request, only_relevant_roles=not force_privacy):
+                    # logic there: usually only check for the admin roles we know have a privacy implication. If we're
+                    # passed force_privacy, then views must have the privacy agreement.
                     return privacy_redirect(request)
                 else:
                     return view_func(request, *args, **kwargs)
@@ -197,7 +199,7 @@ def requires_form_admin_by_slug(function=None, login_url=None):
     """
     Allows access if user is an admin of the form indicated by the 'form_slug' keyword.
     """
-    actual_decorator = user_passes_test(is_form_admin_by_slug, login_url=login_url)
+    actual_decorator = user_passes_test(is_form_admin_by_slug, login_url=login_url, force_privacy=True)
     if function:
         return actual_decorator(function)
     else:
@@ -215,7 +217,7 @@ def requires_formgroup(login_url=None):
     """
     Allows access if user has the given role in ANY FormGroup
     """
-    actual_decorator = user_passes_test(has_formgroup, login_url=login_url)
+    actual_decorator = user_passes_test(has_formgroup, login_url=login_url, force_privacy=True)
     return actual_decorator
 
 def is_dept_admn_by_slug(request, course_slug, **kwargs):

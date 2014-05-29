@@ -214,11 +214,10 @@ def fix_emplid():
     """
     people = Person.objects.filter(emplid__lt=100000)
     for p in people:
-        #print " ", p.userid
         cas = ComputingAccount.objects.filter(userid=p.userid)
         for ca in cas:
             p.emplid = ca.emplid
-            p.save()
+            p.save_if_dirty()
 
 
 def import_semester(sems):
@@ -338,7 +337,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     for pos, key in enumerate(c.flags.keys()):
         c.flags.set_bit(pos, key in flags)
 
-    c.save()
+    c.save_if_dirty()
     
     crs = c.course
     if crs.title != c.title:
@@ -418,7 +417,7 @@ def _person_save(p):
     Save this person object, dealing with duplicate userid as appropriate
     """
     try:
-        p.save()
+        p.save_if_dirty()
     except IntegrityError:
         print "    Changed userid: " + p.userid
         # other account with this userid must have been deactivated: update
@@ -451,7 +450,7 @@ def get_person(emplid, commit=True, force=False):
 
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if random.random() < 0.95 and not force and 'lastimport' in p.config \
+    if random.random() < 0.99 and not force and 'lastimport' in p.config \
             and time.time() - p.config['lastimport'] < IMPORT_THRESHOLD:
         return p
     
@@ -643,9 +642,9 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     # there must be some way to detect this in ps_class_tbl, but I can't see it.
     if labtut_section and not offering.labtut():
         offering.set_labtut(True)
-        offering.save()
+        offering.save_if_dirty()
     
-    m.save()
+    m.save_if_dirty()
     return m
 
 @transaction.atomic
