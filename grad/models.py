@@ -1,4 +1,4 @@
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
 from autoslug import AutoSlugField
@@ -12,43 +12,67 @@ from django.conf import settings
 from collections import defaultdict
 
 IGNORE_CMPT_STUDENTS = True
-def create_or_update_student( emplid, dryrun=False ):
+def create_or_update_student( emplid, dryrun=False, verbose=False ):
     """
         Given an emplid, create (or update) a GradStudent record.
         If dryrun is true, do not call any .save() calls. 
     """
-    print "Create/Update Student: ", emplid
+    if verbose:
+        print "Create/Update Student: ", emplid
 
+    # First we generate a person to tie all of the generated records to. 
     person = coredata.queries.find_or_generate_person( emplid )
-    #print "\t", person
-
+    if verbose:
+        print "\t", person
+    
     prog_map = program_map()
+    
+    # This bit is really important: a combined query which makes a bunch of
+    #  guesses as to what the student's actually been doing all this time. 
     timeline = coredata.queries.get_timeline(emplid)
-    #print json.dumps( timeline, indent=2 )
-    # strip any programs from the timeline that aren't our grad programs
+    if verbose:
+        import json
+        print "--- Timeline ---"
+        print json.dumps( timeline, indent=2 )
+
+    # Strip any programs from the timeline that aren't our grad programs
     timeline = [x for x in timeline if x['program_code'] in prog_map.keys()]
-    # split the programs into groups based on completion status
+    # Split the programs into groups based on completion status
+    #  groups are important, especially because we're bad about detecting
+    #  program changes. If a student is in ESMSC one semester and ESPHD the 
+    #  next, without a withdrawal or completion between the two, we're going
+    #  assume it is part of the same grad career.
     groups = split_timeline_into_groups(timeline)
 
+    # keep track of which adm_appl_nbrs we've encountered
+    #  if you're reading along from home, 'adm_appl_nbr' is a unique identifier
+    #  for a single admission application. There should probably be about 
     adm_appl_nbrs = [] 
+    
+    # For each group, and then each program in each group, try
+    #  to reconcile this group with a GradStudent record that exists.
     for group_no, group in groups.iteritems(): 
-        #print "\tGroup: ", group_no
+        if verbose:
+            print "\tGroup: ", group_no
 
         # ignore empty groups 
         if len(group) < 1:
             continue
-
+        
         first_program = group[0]
         last_program = group[-1]
         all_previous_programs = group[:-1]
 
-        if IGNORE_CMPT_STUDENTS and first_program['program_code'].startswith("CP"):
-            #print "\tIgnoring CMPT data"
-            continue
-
+        # if this program has an adm_appl_nbr, write down that we've seen it
         for program in group:
             if 'adm_appl_nbr' in program and program['adm_appl_nbr']:
                 adm_appl_nbrs.append(str(program['adm_appl_nbr']))
+        
+        # this is a special case for CMPT. 
+        if IGNORE_CMPT_STUDENTS and first_program['program_code'].startswith("CP"):
+            if verbose:
+                print "\tIgnoring CMPT data"
+            continue
 
         last_program_object = prog_map[last_program['program_code']]
         
@@ -56,40 +80,58 @@ def create_or_update_student( emplid, dryrun=False ):
         gradstudents = GradStudent.objects.filter(person=person, program=last_program_object)
        
         if len(gradstudents) < 1:
-            print "\tGrad student not found, creating"
+            if verbose:
+                print "\tGrad student not found, creating"
             student = GradStudent.create( person, last_program_object )
+
             if not dryrun:
+                if verbose:
+                    print "saving GradStudent"
                 student.save()
-            # create a new GradStudent
+            else:
+                if verbose:
+                    print "dry run: not saving GradStudent."
         elif len(gradstudents) > 1:
-            #print "\tRECOVERABLE ERROR: Found more than one GradStudent record"
+            if verbose:
+                print "\tRECOVERABLE ERROR: Somehow we found more than one GradStudent record for", last_program_object
+
+            # try to use the adm_appl_nbr to reconcile things. 
             if 'adm_appl_nbr' in first_program: 
                 with_adm_appl = [x for x in gradstudents if 
                                     'adm_appl_nbr' in x.config 
                                     and x.config['adm_appl_nbr'] == first_program['adm_appl_nbr'] ]
                 if len(with_adm_appl) > 0: 
                     student = with_adm_appl[0]
-                    print "\t picking the one with adm_appl_nbr match: ", first_program['adm_appl_nbr']
+                    if verbose:
+                        print "\t picking the one with adm_appl_nbr match: ", first_program['adm_appl_nbr']
                 else:
                     student = gradstudents[0] 
-                    print "\t no matching adm_appl_nbr found, going with ", student
+                    if verbose:
+                        print "\t no matching adm_appl_nbr found, going with the first grad student record ", student
             else:
                 student = gradstudents[0]
-                print "\t no matching adm_appl_nbr found, going with ", student
+                if verbose:
+                    print "\t no matching adm_appl_nbr found, going with ", student
         else: 
-            print "\tGrad student found"
+            if verbose:
+                print "\tGrad student found"
             student = gradstudents[0]
 
+        # If we have an adm_appl_nbr, use it to build an admission history
         statuses_to_save = []
         if 'adm_appl_nbr' in first_program:
             student.config['adm_appl_nbr'] = first_program['adm_appl_nbr']
             if not dryrun:
                 student.save()
-        if 'admission_records' in first_program:
-            admission_records = first_program['admission_records']
-            admission_statuses = admission_records_to_grad_statuses( admission_records, student )
-            for status in admission_statuses:
-                statuses_to_save.append(status)
+        for program in group:
+            if 'admission_records' in program:
+                admission_records = program['admission_records']
+                if verbose:
+                    print "Admission Records:"
+                    print admission_records
+                admission_statuses = admission_records_to_grad_statuses( admission_records, student )
+                for status in admission_statuses:
+                    statuses_to_save.append(status)
 
         # create a GradProgramHistory for every previous program
         for program in all_previous_programs: 
@@ -100,15 +142,22 @@ def create_or_update_student( emplid, dryrun=False ):
                     student = student, 
                     program = program_object,
                     start_semester = start_semester )
-                #print "\tFound Program History:", gph
+                if verbose:
+                    print "\tFound Program History:", gph
             except GradProgramHistory.DoesNotExist:
                 gph = GradProgramHistory(
                     student = student, 
                     program = program_object,
                     start_semester = start_semester )
-                #print "\tCreating Program History:", gph
+                if verbose:
+                    print "\tCreating Program History:", gph
                 if not dryrun:
+                    if verbose:
+                        print "saving GradProgramHistory."
                     gph.save()
+                else:
+                    if verbose:
+                        print "dry run: not saving GradProgramHistory."
 
         # find/create a GradStatus "Active" at the first semester
         active_status = find_or_create_status( student, 'ACTI', Semester.objects.get(name=first_program['start']))
@@ -143,8 +192,15 @@ def create_or_update_student( emplid, dryrun=False ):
             statuses_to_save.append(created_status)
         
         if not dryrun:
+            if verbose: 
+                print "saving GradStatus objects"
             GradStatus.overrun(student, statuses_to_save)
-
+        else:
+            if verbose:
+                print "dry run, not saving GradStatus"
+        
+        # We need the very startest of start dates and the very endest of end dates
+        #  for this student to run the Supervisor query
         first_day_of_first_semester = Semester.objects.get( name=first_program['start'] ).start
         last_day_of_last_semester = Semester.objects.get( name=last_program['end'] ).end
 
@@ -153,7 +209,12 @@ def create_or_update_student( emplid, dryrun=False ):
 
         supervisors_to_add = []
         for supervisor_sims, supervisor_emplid, supervisor_date in supervisory_committee:
-            supervisor = coredata.queries.find_or_generate_person( supervisor_emplid )
+            try:
+                supervisor = coredata.queries.find_or_generate_person( supervisor_emplid )
+            except IntegrityError as e:
+                if verbose:
+                    print e
+                continue
             supervisor_type = supervisor_sims_to_supervisor_type( supervisor_sims )
             if not supervisor_type:
                 continue
@@ -164,22 +225,26 @@ def create_or_update_student( emplid, dryrun=False ):
             for supervisor in supervisors_to_add:
                 supervisor.save()
     
-    #create records for any spare adm_appl_nbrs
+    # Create records for any spare adm_appl_nbrs
     all_adm_appl_nbrs = coredata.queries.get_adm_appl_nbrs(emplid)
-    #print "\t All Adm Appl Nbrs: ", all_adm_appl_nbrs
-    #print "\t Adm Appl Nbrs: ", adm_appl_nbrs
     remaining_adm_appl_nbrs = [a for a in all_adm_appl_nbrs if str(a[0]) not in adm_appl_nbrs]
-    #print "\t Remaining Adm Appl Nbrs: ", remaining_adm_appl_nbrs
+    if verbose:
+        print "\t All Adm Appl Nbrs: ", all_adm_appl_nbrs
+        print "\t Adm Appl Nbrs: ", adm_appl_nbrs
+        print "\t Remaining Adm Appl Nbrs: ", remaining_adm_appl_nbrs
 
     for adm_appl_nbr, program_code in remaining_adm_appl_nbrs:
-        #print "\tAdm Appl Nbr: ", adm_appl_nbr
+        if verbose:
+            print "\tAdm Appl Nbr: ", adm_appl_nbr
         
         if IGNORE_CMPT_STUDENTS and program_code.startswith("CP"):
-            #print "\tIgnoring CMPT data"
+            if verbose:
+                print "\tIgnoring CMPT data"
             continue
 
         if program_code not in prog_map.keys():
-            #print "\t", program_code, " is not a grad program."
+            if verbose:
+                print "\t", program_code, " is not a grad program."
             continue
 
         program = prog_map[program_code] 
@@ -189,17 +254,23 @@ def create_or_update_student( emplid, dryrun=False ):
         with_adm_appl = [s for s in gradstudents if 'adm_appl_nbr' in s.config and 
                                                     s.config['adm_appl_nbr'] == adm_appl_nbr ]
 
+        admission_records = coredata.queries.get_admission_records( emplid, adm_appl_nbr )
+        if verbose:
+            print "\tAdmission Records:"
+            print "\t", admission_records
+
         if len(with_adm_appl) == 0:
-            #print "\tNot found."
+            if verbose:
+                print "\tNot found."
             student = GradStudent.create( person, program )
             student.config['adm_appl_nbr'] = adm_appl_nbr
             if not dryrun:
                 student.save()
         else:
             student = with_adm_appl[0]
-            #print "\t Found."
+            if verbose:
+                print "\t Found."
 
-        admission_records = coredata.queries.get_admission_records( emplid, adm_appl_nbr )
         admission_statuses = admission_records_to_grad_statuses( admission_records, student )
         
         if not dryrun:
@@ -232,9 +303,9 @@ def program_map():
     i.e.:
         { 'CPPHD': GradProgram.objects.get(label='PhD'... ) }
     """
-    if settings.DEBUG:
+    if settings.DEPLOY_MODE != 'production':
         cmptunit = Unit.objects.get(label="CMPT")
-        engunit = Unit.objects.get(label="ENG")
+        engunit = Unit.objects.get(label="ENSC")
         program_map = {
             'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
             'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
@@ -244,9 +315,11 @@ def program_map():
             'CPGND': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
             'CPGQL': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
             
-            'ESMEN': GradProgram.objects.get(label="M.Eng.", unit=engunit),
-            'ESMAS': GradProgram.objects.get(label="M.A.Sc.", unit=engunit),
-            'ESPHD': GradProgram.objects.get(label="Ph.D.", unit=engunit)
+            'ESMEN': GradProgram.objects.get(label="MEng", unit=engunit),
+            'ESMAS': GradProgram.objects.get(label="MEng", unit=engunit),
+            'ESPHD': GradProgram.objects.get(label="PhD", unit=engunit),
+            'MSEPH': GradProgram.objects.get(label="PhD", unit=engunit),
+            'MSEMS': GradProgram.objects.get(label="MEng", unit=engunit)
         }
     else:
         cmptunit = Unit.objects.get(label="CMPT")
@@ -318,7 +391,7 @@ def admission_records_to_grad_statuses( admission_records, student ):
         return_list.append(gs)
     return return_list 
 
-def find_or_create_status( student, status, semester): 
+def find_or_create_status( student, status, semester):
     active_statuses = GradStatus.objects.filter(
         student = student,
         status = status, 
@@ -326,13 +399,11 @@ def find_or_create_status( student, status, semester):
     if len(active_statuses) > 0: 
         active_status = active_statuses[0]
         active_status.hidden = False
-        #print "\tFound Status: ", status, active_status.start
     else:
         active_status = GradStatus(
             student = student,
             status = status, 
             start = semester)
-        #print "\tCreated Status: ", status, active_status.start
     return active_status
 
 def supervisor_sims_to_supervisor_type( supervisor_sims ):
@@ -368,14 +439,12 @@ def find_or_create_supervisor( student, supervisor_type, supervisor, date ):
                                     supervisor=supervisor,
                                     supervisor_type=supervisor_type )
     if len(s) > 0:
-        #print "\tFound Supervisor:", s[0]
         return s[0]
     else:
         s = Supervisor(student=student,
                         supervisor=supervisor, 
                         supervisor_type=supervisor_type, 
                         updated_at=date)
-        #print "\tCreated Supervisor:", s
         return s
 
 class GradProgram(models.Model):
@@ -1134,6 +1203,7 @@ class GradStudent(models.Model):
         emplid = person.emplid 
         mother_tongue = coredata.queries.get_mother_tongue( emplid )
         passport_issued_by = coredata.queries.get_passport_issued_by( emplid )
+        passport_issued_by = passport_issued_by[0:25]
 
         if passport_issued_by == "Canada":
             is_canadian = True
@@ -1460,7 +1530,6 @@ class GradStatus(models.Model):
         statuses_to_remove = []
         for existing_status in existing_statuses:
             if (existing_status.status, str(existing_status.start.name)) not in statuses_to_save_tuple:
-                #print "Removing Status:", existing_status, existing_status.start
                 existing_status.hidden = True
                 existing_status.save()
         for status in statuses_to_save:
