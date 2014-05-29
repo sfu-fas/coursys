@@ -759,7 +759,10 @@ def grad_student_gpas(emplid):
 
 # helper functions
 def lazy_next_semester(semester):
-    return str(Semester.objects.get(name=semester).offset(1).name)
+    return offset_semester_string(semester, 1)
+
+def offset_semester_string(semester, offset=1):
+    return str(Semester.objects.get(name=semester).offset(offset).name)
 
 def pairs( lst ):
     if len(lst) > 1:
@@ -768,7 +771,7 @@ def pairs( lst ):
 
 #@cache_by_args
 @SIMS_problem_handler
-def get_timeline(emplid):
+def get_timeline(emplid, verbose=False):
     """
         For the student with emplid, 
         Get a list of programs, start and end semester
@@ -777,6 +780,11 @@ def get_timeline(emplid):
         * will include an 'adm_appl_nbr' if an admission record can be found with that program
     """
     programs = get_student_programs(emplid) 
+    
+    if verbose:
+        print "----------"
+        for program in programs:
+            print program
 
     # calculate start and end date for programs
     prog_dict = {}
@@ -789,6 +797,11 @@ def get_timeline(emplid):
             prog_dict[program_code]['end'] = strm
         if float(unt_taken) >= 0.1: 
             prog_dict[program_code]['not_on_leave'].append(strm)
+
+    if verbose:
+        print "----------"
+        for key, val in prog_dict.iteritems():
+            print key, val
 
     # calculate on-leave semesters
     on_leave_semesters = [strm for strm, reason in get_on_leave_semesters(emplid)]
@@ -815,9 +828,14 @@ def get_timeline(emplid):
         programs.append(program_object) 
     programs = sorted( programs, key= lambda x : int(x['start']) )
 
+    if verbose: 
+        print "----------"
+        for program in programs:
+            print program
+
     # how did it end?
     for program in programs:
-        hdie = get_end_of_degree(emplid, program['program_code']) 
+        hdie = get_end_of_degree(emplid, program['program_code'], program['start'])
         if hdie: 
             program['how_did_it_end'] = { 'code':hdie[0], 
                                           'reason':hdie[1],
@@ -863,7 +881,12 @@ def get_timeline(emplid):
             program['adm_appl_nbr'] = str(adm_appl_nbrs[0])
             program['admission_records'] = get_admission_records(emplid, program['adm_appl_nbr'])
         else:
-            program['adm_appl_nbr'] = None 
+            adm_appl_nbrs = guess_harder_at_adm_appl_nbr(emplid, program['program_code'], program['start'], program['end'] )
+            if len(adm_appl_nbrs) > 0:
+                program['adm_appl_nbr'] = str(adm_appl_nbrs[0])
+                program['admission_records'] = get_admission_records(emplid, program['adm_appl_nbr'])
+            else: 
+                program['adm_appl_nbr'] = None 
 
     return programs 
 
@@ -922,9 +945,9 @@ def get_on_leave_semesters(emplid):
 
 #@cache_by_args
 @SIMS_problem_handler
-def get_end_of_degree(emplid, acad_prog):
+def get_end_of_degree(emplid, acad_prog, start_semester):
     """ 
-        How did this end? 
+        How did this acad_prog (e.g. "ESPHD") end? 
             DISC -> discontinued
             COMP -> completed
     """ 
@@ -938,6 +961,7 @@ def get_end_of_degree(emplid, acad_prog):
             prog_action in ('DISC', 'COMP')
             AND emplid=%s 
             AND acad_prog=%s
+            AND req_term >= %s
             AND prog.effdt = ( SELECT MAX(tmp.effdt) 
                                 FROM ps_acad_prog tmp
                                 WHERE tmp.emplid = prog.emplid
@@ -954,7 +978,7 @@ def get_end_of_degree(emplid, acad_prog):
         ORDER BY action_dt
         FETCH FIRST 1 ROWS ONLY
             """ 
-    db.execute(query, (str(emplid),str(acad_prog)))
+    db.execute(query, (str(emplid),str(acad_prog),str(start_semester)))
     result = [(x[0], x[1], x[2]) for x in list(db)]
     if len(result) > 1:
         print "\t Recoverable Error: More than one end of degree ", result
@@ -969,7 +993,7 @@ def get_end_of_degree(emplid, acad_prog):
 def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
     """
     Given an acad_prog, find any adm_appl_nbr records between start_semester
-    and end_semester that resulted in an Offer Out. 
+    and end_semester that didn't result in a rejection
     """
     db = SIMSConn()
     query = """
@@ -984,12 +1008,60 @@ def guess_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
             AND ( data.appl_fee_status in ('REC', 'WVD')
                   OR data.adm_appl_ctr in ('GRAW') )
             AND prog.acad_prog = %s
-            AND prog.prog_action in ('ADMT', 'COND') 
+            AND prog.prog_action in ('ADMT', 'ACTV', 'COND', 'MATR') 
             AND prog.admit_term >= %s
             AND prog.admit_term <= %s
         """
     db.execute(query, (str(emplid), str(acad_prog), str(start_semester), str(end_semester)))
     return [x[0] for x in list(db)]
+
+@SIMS_problem_handler
+def guess_harder_at_adm_appl_nbr( emplid, acad_prog, start_semester, end_semester ):
+    """
+    Okay, so the first guess didn't turn up anything. Let's try being a little bit looser
+    about our criteria - 
+    a wider time slot
+     AND 
+    any adm_appl record that didn't end in rejection.
+    """
+    year_before_start_semester = offset_semester_string(start_semester, -3)
+    db = SIMSConn()
+    query = """
+        SELECT DISTINCT 
+            prog.adm_appl_nbr 
+        FROM ps_adm_appl_prog prog
+        LEFT JOIN ps_adm_appl_data data
+            ON prog.adm_appl_nbr = data.adm_appl_nbr
+        WHERE 
+            prog.emplid = %s
+                AND prog.prog_status NOT IN ('DC') 
+            AND ( data.appl_fee_status in ('REC', 'WVD')
+                  OR data.adm_appl_ctr in ('GRAW') )
+            AND prog.acad_prog = %s
+            AND prog.admit_term >= %s
+            AND prog.admit_term <= %s
+        """
+    db.execute(query, (str(emplid), str(acad_prog), str(year_before_start_semester), str(end_semester)))
+    adm_appls = [x[0] for x in list(db)]
+
+    query2 = """
+        SELECT DISTINCT 
+            prog.adm_appl_nbr 
+        FROM ps_adm_appl_prog prog
+        LEFT JOIN ps_adm_appl_data data
+            ON prog.adm_appl_nbr = data.adm_appl_nbr
+        WHERE 
+            prog.emplid = %s
+                AND prog.prog_status NOT IN ('DC') 
+            AND ( data.appl_fee_status in ('REC', 'WVD')
+                  OR data.adm_appl_ctr in ('GRAW') )
+            AND prog.acad_prog = %s
+            AND prog.prog_action in ('DDEF', 'DEFR', 'DENY', 'WAIT') 
+    """
+
+    db.execute(query2, (str(emplid), str(acad_prog)))
+    rejected = [x[0] for x in list(db)]
+    return [x for x in adm_appls if x not in rejected]
 
 @SIMS_problem_handler
 def get_adm_appl_nbrs( emplid ):
