@@ -1051,8 +1051,8 @@ class Unit(models.Model):
     @classmethod
     def sub_unit_ids(cls, units, by_id=False):
         """
-        Get the Unit.id values for all decendants of the given list of unit.id values.
-        
+        Get the Unit.id values for all descendants of the given list of unit.id values.
+
         Cached so we can avoid the work when possible.
         """
         # sort unit.id values for consistent cache keys

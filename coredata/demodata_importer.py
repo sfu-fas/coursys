@@ -640,7 +640,7 @@ def create_more_data():
     instr = set(m.person for m in members)
     faculty = random.sample(instr, 10)
     for p in faculty:
-        Role(person=p, role='FAC', unit=cmpt).save()
+        Role.objects.get_or_create(person=p, role='FAC', unit=cmpt)
 
 
 

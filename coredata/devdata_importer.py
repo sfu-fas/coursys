@@ -28,10 +28,11 @@ from discipline.models import DisciplineTemplate
 from ta.models import CourseDescription, TAPosting, TAApplication, CoursePreference, TAContract, TACourse, TAKEN_CHOICES, EXPER_CHOICES
 from ra.models import Account, RAAppointment, Project, SemesterConfig, HIRING_CATEGORY_CHOICES, HIRING_CATEGORY_DISABLED
 from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field, FormSubmission, SheetSubmission, FieldSubmission
+from privacy.models import set_privacy_signed
 from courselib.testing import TEST_COURSE_SLUG
 
 FULL_TEST_DATA = TEST_COURSE_SLUG
-NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157] # at least two years in past and one in future
+NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157, 1161,1164,1167] # at least two years in past and one in future
 TEST_SEMESTER = 1144
 
 def get_combined():
@@ -50,7 +51,7 @@ def test_class_1(slug):
     crs.set_url("http://www.cs.sfu.ca/CC/165/common/")
     crs.set_taemail("cmpt-165-contact@sfu.ca")
     crs.save()
-    for i in range(20):
+    for i in range(10):
         lab = "D1%02i" % (random.randint(1,4))
         p = Person.objects.get(userid="0aaa%i"%(i))
         if Member.objects.filter(person=p, offering=crs, role="STUD"):
@@ -115,13 +116,13 @@ def test_class_1(slug):
     # create some groups
     g = Group(name="SomeGroup", courseoffering=crs, manager=Member.objects.get(offering=crs, person__userid="0aaa0", role='STUD'))
     g.save()
-    for userid in ['0aaa0', '0aaa1', '0aaa5', '0aaa10']:
+    for userid in ['0aaa0', '0aaa1', '0aaa5', '0aaa8']:
         gm = GroupMember(group=g, student=Member.objects.get(offering=crs, person__userid=userid), confirmed=True, activity=a2)
         gm.save()
     
     g = Group(name="AnotherGroup", courseoffering=crs, manager=Member.objects.get(offering=crs, person__userid="0aaa4"))
     g.save()
-    for userid in ['0aaa4', '0aaa6', '0aaa7', '0aaa14']:
+    for userid in ['0aaa4', '0aaa6', '0aaa7', '0aaa2']:
         gm = GroupMember(group=g, student=Member.objects.get(offering=crs, person__userid=userid), confirmed=True, activity=a2)
         gm.save()
         gm = GroupMember(group=g, student=Member.objects.get(offering=crs, person__userid=userid), confirmed=True, activity=pr)
@@ -146,6 +147,7 @@ def create_others():
     r.save()
     p = Person(emplid=fake_emplid(), first_name="Danyu", last_name="Zhao", pref_first_name="Danyu", userid="dzhao")
     p.save()
+    set_privacy_signed(p)
     r = Role(person=p, role="ADVS", unit=Unit.objects.get(slug='cmpt'))
     r.save()
     r = Role(person=Person.objects.get(userid='dixon'), role="PLAN", unit=Unit.objects.get(slug='cmpt'))
@@ -158,6 +160,7 @@ def create_others():
     r.save()
 
     p = Person.objects.get(userid='ggbaker')
+    set_privacy_signed(p)
     r = Role(person=p, role="GRAD", unit=Unit.objects.get(slug='cmpt'))
     r.save()
     r = Role(person=p, role="ADMN", unit=Unit.objects.get(slug='cmpt'))

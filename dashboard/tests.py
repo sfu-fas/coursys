@@ -131,7 +131,7 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, 'Logged in as ggbaker')
         # try to impersonate non-student: not allowed
-        response = client.get(url, {"__impersonate": "0bbb0"})
+        response = client.get(url, {"__impersonate": "dzhao"})
         self.assertEquals(response.status_code, 403)
         # try to impersonate student: should be them
         response = client.get(url, {"__impersonate": "0aaa0"})

@@ -238,7 +238,7 @@ class GradTest(TestCase):
         search_res_2 = form.search_results(units)
         self.assertEqual(set(search_res_1), set(search_res_2))
 
-        form = SearchForm(QueryDict('columns=person.emplid'))
+        form = SearchForm(QueryDict('student_status=ACTI&columns=person.emplid'))
         all_grads = form.search_results(units)
         gs = all_grads[0]
 
