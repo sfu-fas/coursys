@@ -638,7 +638,14 @@ class OfferingDataJson(BaseDatatableView):
         
         srch = GET.get('sSearch', None)
         if srch:
-            qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch)) 
+            # non-haystack version:
+            #qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
+
+            # get offering set from haystack, and use it to limit our query
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(text=srch)[:500]
+            offering_pks = (r.pk for r in offering_qs if r is not None)
+            qs = qs.filter(pk__in=offering_pks)
+
 
         subject = GET.get('subject', None)
         if subject:
@@ -670,7 +677,14 @@ class OfferingDataJson(BaseDatatableView):
 
         title = GET.get('crstitle', None)
         if title:
-            qs = qs.filter(title__icontains=title)
+            # non-haystack version:
+            #qs = qs.filter(title__icontains=title)
+
+            # get offering set from haystack, and use it to limit our query
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(title=title)[:500]
+            offering_pks = (r.pk for r in offering_qs if r is not None)
+            qs = qs.filter(pk__in=offering_pks)
+
 
         wqb = GET.getlist('wqb')
         for f in wqb:
@@ -717,6 +731,8 @@ def _instructor_autocomplete(request):
         return ForbiddenResponse(request, "Must provide 'term' query.")
 
     response = HttpResponse(content_type='application/json')
+
+    """ # non-haystack version
     query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
     # matching person.id values who have actually taught a course
     person_ids = Member.objects.filter(query).filter(role='INST') \
@@ -725,6 +741,22 @@ def _instructor_autocomplete(request):
     person_ids = list(person_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
     # get the Person objects: is there no way to do this in one query?
     people = Person.objects.filter(id__in=person_ids)
+    """
+
+    term = request.GET['term']
+    # strip any digits from the query, so users can't probe emplids with the search (emplid is the only digit-containing
+    # thing in the Person text index)
+    term = ''.join(c for c in term if not c.isdigit())
+    # query with haystack
+    person_qs = SearchQuerySet().models(Person).filter(text=term)[:100]
+    person_pks = (r.pk for r in person_qs if r is not None)
+    # go back to the database to limit to only instructors
+    instr_ids = Member.objects.filter(person_id__in=person_pks).filter(role='INST') \
+                 .exclude(person__userid=None).order_by() \
+                 .values_list('person', flat=True).distinct()[:20]
+    instr_ids = list(instr_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
+    people = Person.objects.filter(id__in=instr_ids)
+
     data = [{'value': p.userid, 'label': p.name()} for p in people]
     json.dump(data, response, indent=1)
     return response
