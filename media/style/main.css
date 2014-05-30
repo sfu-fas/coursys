@@ -1052,3 +1052,12 @@ form#filter-form label {
 form#filter-form span {
   white-space: nowrap;
 }
+
+/* groups */
+
+table#groups ul {
+  margin-top: 0;
+}
+.groupaction {
+  font-size: smaller;
+}
