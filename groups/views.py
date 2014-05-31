@@ -28,6 +28,7 @@ def groupmanage(request, course_slug, activity_slug=None):
 
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    group_min = course.group_min()
 
     groups = Group.objects.filter(courseoffering=course, groupmember__student__person__userid=request.user.username)
     groups = set(groups) # all groups student is a member of
@@ -48,9 +49,28 @@ def _groupmanage_student(request, course_slug):
             missing.sort()
             unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
 
+        # check minimum size problems
+        size_message = ''
+        headcount = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
+        if group_min and headcount < group_min:
+            # total size too small
+            size_message = 'Groups in this course must have at least %i members.' % (group_min)
+        #elif group_max and headcount > group_max:
+        #    # total size too large
+        #    size_message = 'Groups in this course must have at most %i members.' % (group_max)
+        else:
+            # check size for each activity
+            act_count = defaultdict(int)
+            for m in members:
+                act_count[m.activity] += 1
+            bad_act = [act.name for act,count in act_count.items() if count < group_min]
+            if bad_act:
+                size_message = 'Groups in this course must have at least %i members: this group doesn\'t for %s.' % (group_min, ', '.join(bad_act))
+
         all_act = list(all_act)
         all_act.sort()
-        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'need_conf': need_conf})
+        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
+                          'need_conf': need_conf, 'size_message': size_message})
 
     return render_to_response('groups/student.html', {'course':course, 'groupList':groupList}, context_instance = RequestContext(request))
 
@@ -58,6 +78,8 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     groups = Group.objects.filter(courseoffering=course)
     activities = Activity.objects.filter(offering=course, group=True, deleted=False)
+    group_min = course.group_min()
+    group_max = course.group_max()
 
     allmembers = GroupMember.objects.filter(group__courseoffering=course).select_related('group', 'student', 'student__person', 'activity')
     if activity_slug:
@@ -104,12 +126,30 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
         # other attributes for easy display
         email = ",".join(["%s <%s>" % (m['member'].person.name(), m['member'].person.email()) for m in unique_members])
         userids = ",".join([m['member'].person.userid for m in unique_members if m['member'].person.userid])
-        
-        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'email': email, 'userids': userids})
 
-    return render_to_response('groups/instructor.html', \
+        size_message = ''
+        headcount = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
+        if group_min and headcount < group_min:
+            # total size too small
+            size_message = 'Only %i members.' % (headcount)
+        elif group_max and headcount > group_max:
+            # total size too large
+            size_message = 'Has %i members.' % (headcount)
+        else:
+            # check size for each activity
+            act_count = defaultdict(int)
+            for m in group.groupmember_set.all().select_related('activity'):
+                act_count[m.activity] += 1
+            bad_act = [act.name for act,count in act_count.items() if count < group_min]
+            if bad_act:
+                size_message = 'Too small for %s.' % (', '.join(bad_act))
+
+        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
+                          'email': email, 'userids': userids, 'size_message': size_message})
+
+    return render_to_response('groups/instructor.html',
                               {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup,
-                              'activity':activity, 'activities':activities}, \
+                              'activity':activity, 'activities':activities},
                               context_instance = RequestContext(request))
 
 @requires_course_by_slug
@@ -359,6 +399,7 @@ def invite(request, course_slug, group_slug):
     person = get_object_or_404(Person, userid = request.user.username)
     invitor = get_object_or_404(Member, person = person, offering=course)
     error_info=None
+    group_max = course.group_max()
     from django import forms
     class StudentReceiverForm(forms.Form):
         name = forms.CharField()
@@ -368,6 +409,12 @@ def invite(request, course_slug, group_slug):
         #student_receiver_form.activate_addform_validation(course_slug,group_slug)
         if student_receiver_form.is_valid():
             name = student_receiver_form.cleaned_data['name']
+
+            existing = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
+            if group_max and existing >= group_max:
+                messages.add_message(request, messages.ERROR, 'Group already has %s members, which is the maximum.' % (group_max))
+                return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+
             members = Member.objects.filter(person__userid = name, offering = course, role="STUD")
             if not members:
                 messages.add_message(request, messages.ERROR, 'Could not find userid "%s".' % (name))
@@ -387,7 +434,7 @@ def invite(request, course_slug, group_slug):
             else:
                 #member = Member.objects.get(person = member.person, offering = course)
                 for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
-                    newGroupMember = GroupMember(group = group, student = member, \
+                    newGroupMember = GroupMember(group = group, student = member,
                                           activity = invitorMembership.activity, confirmed = False)
                     newGroupMember.save(member.person)
 

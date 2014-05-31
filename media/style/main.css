@@ -1058,6 +1058,10 @@ form#filter-form span {
 table#groups ul {
   margin-top: 0;
 }
-.groupaction {
+table#groups .groupaction {
   font-size: smaller;
+  line-height: 1.25em;
+}
+table#groups .groupaction ul li {
+  margin-top: 0.25em;
 }
