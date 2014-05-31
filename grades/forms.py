@@ -339,6 +339,18 @@ class CourseConfigForm(forms.Form):
             help_text="Should the student/TA/instructor discussion forum be activated for this course?")
     indiv_svn = forms.BooleanField(required=False, label="Individual SVN access",
             help_text="Can the instructor and TAs access students' indivdual Subversion repositories? Set only if they are being used explicitly for grading.")
+    group_min = forms.IntegerField(required=False, label="Minimum Group Size", initial=1, min_value=1, max_value=50,
+            help_text="Smallest possible group. Entering 1 here implies students can work alone on group activities.")
+    group_max = forms.IntegerField(required=False, label="Maximum Group Size", initial=10, min_value=2, max_value=50,
+            help_text="Largest possible group. Instructors can form larger groups, but students cannot.")
+
+    def clean(self):
+        if 'group_min' in self.cleaned_data and 'group_max' in self.cleaned_data:
+            gmin =  self.cleaned_data['group_min']
+            gmax =  self.cleaned_data['group_max']
+            if gmin > gmax:
+                raise forms.ValidationError("Minimum group size can't be larger than maximum size.")
+        return self.cleaned_data
 
 
 class CutoffForm(forms.Form):
