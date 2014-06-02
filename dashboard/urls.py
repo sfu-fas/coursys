@@ -25,15 +25,15 @@ news_patterns = [ # prefix /news/
 ]
 
 calendar_patterns = [ # prefix /calendar/
-    url(r'^calendar/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '(?:~*)$', 'dashboard.views.calendar_ical'),
-    url(r'^calendar/$', 'dashboard.views.calendar'),
-    url(r'^calendar/data$', 'dashboard.views.calendar_data'),
+    url(r'^(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '(?:~*)$', 'dashboard.views.calendar_ical'),
+    url(r'^$', 'dashboard.views.calendar'),
+    url(r'^data$', 'dashboard.views.calendar_data'),
 
 ]
 
 docs_patterns = [ # prefix /docs/
-    url(r'^docs/$', 'dashboard.views.list_docs'),
-    url(r'^docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
+    url(r'^$', 'dashboard.views.list_docs'),
+    url(r'^(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
 ]
 
 studentsearch_patterns = [ # prefix /students/
