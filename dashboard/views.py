@@ -10,12 +10,14 @@ from django.conf import settings
 from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
+from privacy.models import RELEVANT_ROLES as PRIVACY_ROLES
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
+from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from log.models import LogEntry
 import datetime, json, urlparse
@@ -72,8 +74,14 @@ def index(request):
     #messages.add_message(request, messages.INFO, 'Info message.')
     #messages.add_message(request, messages.ERROR, 'Error message.')
 
-    context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad,
-               'has_grads': has_grads, 'excluded': excluded, 'form_groups': form_groups}
+    context = {'memberships': memberships, 
+                'staff_memberships': staff_memberships, 
+                'news_list': news_list, 
+                'roles': roles, 
+                'is_grad':is_grad,
+                'has_grads': has_grads, 
+                'excluded': excluded, 
+                'form_groups': form_groups}
     return render(request, "dashboard/index.html", context)
 
 @login_required
@@ -229,14 +237,20 @@ def config(request):
         configs = UserConfig.objects.filter(user=user, key='photo-agreement')
         if len(configs) > 0:
             photo_agreement = configs[0].value['agree']
-    
+
+    # privacy config
+    roles = Role.all_roles(user.userid)
+    roles_with_privacy = [r for r in roles if r in PRIVACY_ROLES]
+    privacy_visible = len(roles_with_privacy) > 0
+
     context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 
-             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL,
+             'privacy_visible': privacy_visible}
     return render(request, "dashboard/config.html", context)
 
 
 def _get_news_list(userid, count):
-    past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
+    past_1mo = datetime.datetime.today() - datetime.timedelta(days=20)
     return NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:count]
 
 
@@ -749,12 +763,12 @@ def student_info(request, userid=None):
 
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     user = Person.objects.get(userid=request.user.username)
-    all_instr = [m.offering for m in Member.objects.filter(person=user, role='INST').select_related('offering')]
-    all_ta = [m.offering for m in Member.objects.filter(person=user, role='TA').select_related('offering')]
+    all_instr = [m.offering for m in Member.objects.exclude(offering__component='CAN').filter(person=user, role='INST').select_related('offering')]
+    all_ta = [m.offering for m in Member.objects.exclude(offering__component='CAN').filter(person=user, role='TA').select_related('offering')]
     
-    student_instr = Member.objects.filter(person=student, role='STUD', offering__in=all_instr).select_related('offering', 'person')
-    student_ta = Member.objects.filter(person=student, role='STUD', offering__in=all_ta).select_related('offering', 'person')
-    ta_instr = Member.objects.filter(person=student, role='TA', offering__in=all_instr).select_related('offering', 'person')
+    student_instr = Member.objects.exclude(offering__component='CAN').filter(person=student, role='STUD', offering__in=all_instr).select_related('offering', 'person')
+    student_ta = Member.objects.exclude(offering__component='CAN').filter(person=student, role='STUD', offering__in=all_ta).select_related('offering', 'person')
+    ta_instr = Member.objects.exclude(offering__component='CAN').filter(person=student, role='TA', offering__in=all_instr).select_related('offering', 'person')
     supervisors = Supervisor.objects.filter(student__person=student, supervisor=user, removed=False)
     
     anything = student_instr or student_ta or ta_instr or supervisors
@@ -932,7 +946,11 @@ def photo_agreement(request):
                 config.value['from'] = request.META['REMOTE_ADDR']
             config.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your photo agreement status.')
-            return HttpResponseRedirect(reverse('dashboard.views.config'))
+            if 'return' in request.GET:
+                url = request.GET['return']
+            else:
+                url = reverse('dashboard.views.config')
+            return HttpResponseRedirect(url)
     else:
         form = PhotoAgreementForm({'agree': config.value['agree']})
         
@@ -951,7 +969,9 @@ MAX_RESULTS = 50
 RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
     'coredata.courseoffering': 'Course offering',
     'coredata.member': 'Student in your class',
+    #'coredata.member': 'TA in your class', # handled in template where we know which role
     'pages.page': 'Class web page',
+    'discuss.discussiontopic': 'Discussion topic',
 }
 
 def _query_results(query, person):
@@ -986,8 +1006,16 @@ def _query_results(query, person):
     page_results = SearchQuerySet().models(Page).filter(text=query) # pages that match the query
     page_results = page_results.filter(permission_key__in=page_acl) # ... and are visible to this user
 
+    # discussion this person can view (discussion.DiscussionTopic)
+    if person:
+        discuss_results = SearchQuerySet().models(DiscussionTopic).filter(text=query) # discussions that match the query
+        discuss_results = discuss_results.filter(slug__in=offering_slugs) # ... and this person was in
+    else:
+        discuss_results = []
+
     # students taught by instructor (coredata.Member)
-    instr_members = Member.objects.filter(person=person, role='INST').select_related('offering')
+    instr_members = Member.objects.filter(person=person, role='INST').exclude(offering__component='CAN') \
+        .select_related('offering')
     if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
         member_results = SearchQuerySet().models(Member).filter(text=query) # members that match the query
@@ -1001,7 +1029,9 @@ def _query_results(query, person):
         offering_results[:MAX_RESULTS],
         page_results[:MAX_RESULTS],
         member_results[:MAX_RESULTS],
+        discuss_results[:MAX_RESULTS],
         )
+    results = (r for r in results if r is not None)
     results = list(results)
     results.sort(key=lambda result: -result.score)
     results = results[:MAX_RESULTS] # (list before this could be n*MAX_RESULTS long)
@@ -1011,7 +1041,6 @@ def _query_results(query, person):
 def site_search(request):
     # Things that would be nice:
     # activities in your courses
-    # discussion in your courses
     # grad students you admin/supervise
     # advisors: students/advisornote content
     # marking comments
@@ -1025,17 +1054,23 @@ def site_search(request):
         person = None
 
     query = request.GET.get('q', '')
-    if 'really' not in request.GET and ('search-scope' in request.GET and request.GET['search-scope'] == 'sfu'):
+    if 'search-scope' in request.GET and request.GET['search-scope'] == 'sfu':
         # redirect to SFU-wide search if appropriate
         url = SEARCH_URL + urlencode({'q': query, 'search-scope': 'sfu'})
         return HttpResponseRedirect(url)
 
     results = _query_results(query, person)
+    if results:
+        maxscore = max(r.score for r in results)
+    else:
+        maxscore = 1
+    # strip out the really bad results: elasticsearch is pretty liberal
+    results = (r for r in results if r.score >= maxscore/10)
 
     context = {
         "query": query,
         "results": results,
+        "maxscore": maxscore,
     }
 
-    #print [r.text for r in results]
     return render(request, "dashboard/site_search.html", context)

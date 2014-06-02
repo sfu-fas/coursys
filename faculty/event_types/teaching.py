@@ -7,7 +7,7 @@ from faculty.event_types import search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import TeachingAdjust
-from faculty.event_types.fields import TeachingCreditField
+from faculty.event_types.fields import TeachingCreditField, AnnualTeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent
 
 
@@ -21,12 +21,12 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
-        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }} course{{ handler|get_display:'load'|pluralize }} per semester</dd>
+        <dt>Required Load</dt><dd>{{ handler|get_display:'load' }} course{{ handler|get_display:'load'|pluralize }} per year</dd>
         {% endblock %}
     """
 
     class EntryForm(BaseEntryForm):
-        load = TeachingCreditField(label='Teaching Load', help_text=mark_safe('Expected teaching load <strong>per semester</strong>. May be a fraction like 3/2.'))
+        load = AnnualTeachingCreditField(label='Teaching Load', help_text=mark_safe('Expected teaching load per year. May be a fraction like 5/2.'))
 
     SEARCH_RULES = {
         'load': search.ComparableSearchRule,
@@ -38,6 +38,10 @@ class NormalTeachingLoadHandler(CareerEventHandlerBase, TeachingCareerEvent):
     def short_summary(self):
         load = self.get_config('load')
         return "Teaching load: {}/year".format(load*3)
+
+    def get_load_display(self):
+        # display as an annual value, while storing as semesterly
+        return unicode(self.get_config('load', 0)*3)
 
     def teaching_adjust_per_semester(self):
         load = self.get_config('load')

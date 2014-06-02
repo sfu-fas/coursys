@@ -1,5 +1,4 @@
 from django import forms
-from submission.models import SubmittedComponent
 from django.forms import ModelForm
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -7,7 +6,6 @@ import gzip, zipfile
 
 
 class ComponentForm(ModelForm):
-    #override title to have 'required star'
     title = forms.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
     specified_filename = forms.CharField(max_length=200, help_text="Specify the name of the file to be submitted.  Leave blank to accept any file name.", label="File name", required=False)
 
@@ -86,11 +84,12 @@ class SubmissionForm(ModelForm):
     # e.g. "thisform.component = URLComponent.objects...."
     # This is automatically handled by make_form_from_list
     component = None
-    
+
     class Meta:
-        model = SubmittedComponent
-        fields = []
-        widgets = {}
+        pass
+        #model = a subclass of SubmittedComponent
+        #fields = []
+        #widgets = {}
 
     def check_size(self, upfile):
         """
@@ -106,14 +105,14 @@ class SubmissionForm(ModelForm):
         """
         upfile.mode = "r" # not set in UploadedFile, so monkey-patch it in.
         ftype = filetype(upfile)
-        
+
         # check that real file type is allowed
         allowed_types = self.instance.Type.Component.allowed_types
         if not ftype:
             raise forms.ValidationError('Unable to determine file type.  Allowed file types are: %s.' % (", ".join(allowed_types.keys())))
         if ftype not in allowed_types:
             raise forms.ValidationError('Incorrect file type.  File contents appear to be %s.  Allowed file types are: %s.' % (ftype, ", ".join(allowed_types.keys())))
-        
+
         # check that extension matches
         extensions = allowed_types[ftype]
         if True not in [upfile.name.lower().endswith( e ) for e in extensions]:

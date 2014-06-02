@@ -197,9 +197,13 @@ div.breadcrumb ul li:first-child:before {
   padding-right: 0.25em;
   content: '\00f196';
 }
-div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status, h2.note .collapsible-heading-status {
+div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status,
+h2.note .collapsible-heading-status, .collapsiblecomment .collapsible-heading-status {
   /* hide the "show/hide" messages where appropriate */
   display: none;
+}
+.collapsiblecomment {
+  color: #075fa3;
 }
 
 /* big/small screen alternatives */
@@ -796,7 +800,7 @@ table.info span.letter {
 #photolist div.student {
   display: inline-block;
   text-align: center;
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
   font-size: smaller;
   width: 120px; /* experimentally, prints on fewest pages around this width */
   vertical-align: top;
@@ -804,10 +808,20 @@ table.info span.letter {
 }
 .idphoto {
   text-align: center;
+  margin: 1px;
 }
 .idphoto img {
   max-width: 100px;
   max-height: 100px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* site search */
+#search-results td.stars {
+  white-space: nowrap;
+  text-align: center;
 }
 
 

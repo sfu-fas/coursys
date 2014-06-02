@@ -5,6 +5,7 @@ from coredata.models import Person, Semester, Role
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment
+from grad.views.financials import STYLES
 from courselib.testing import basic_page_tests, test_auth, Client, test_views
 from grad.views.view import all_sections
 from django.http import QueryDict
@@ -166,6 +167,11 @@ class GradTest(TestCase):
                 print "with view==" + repr(view)
                 raise
 
+        for style in STYLES:
+            url = reverse('grad.views.financials', kwargs={'grad_slug': gs.slug, 'style': style})
+            response = basic_page_tests(self, client, url)
+            self.assertEqual(response.status_code, 200)
+
         url = reverse('grad.views.new_letter', kwargs={'grad_slug': gs.slug, 'letter_template_slug': lt.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
@@ -232,7 +238,7 @@ class GradTest(TestCase):
         search_res_2 = form.search_results(units)
         self.assertEqual(set(search_res_1), set(search_res_2))
 
-        form = SearchForm(QueryDict('columns=person.emplid'))
+        form = SearchForm(QueryDict('student_status=ACTI&columns=person.emplid'))
         all_grads = form.search_results(units)
         gs = all_grads[0]
 
@@ -267,6 +273,27 @@ class GradTest(TestCase):
         form = SearchForm(QueryDict('gpa_min=4.1&columns=person.emplid'))
         high_gpa = form.search_results(units)
         self.assertNotIn(gs, high_gpa)
+
+    def test_grad_status(self):
+        client = Client()
+        test_auth(client, 'ggbaker')
+        this_sem = Semester.current()
+
+        # clear the deck on this student's statuses
+        gs = self.__make_test_grad()
+        gs.gradstatus_set.all().delete()
+
+        s1 = GradStatus(student=gs, status='COMP', start=this_sem.offset(-4))
+        s1.save()
+        s2 = GradStatus(student=gs, status='ACTI', start=this_sem.offset(-3))
+        s2.save()
+        s3 = GradStatus(student=gs, status='LEAV', start=this_sem.offset(2))
+        s3.save()
+
+        gs = GradStudent.objects.get(id=gs.id) # make sure we get what's in the database now
+        self.assertEqual(gs.current_status, 'ACTI')
+
+        # grad.tasks.update_statuses_to_current will put this student on LEAV on the first day of that future semester
 
 
 

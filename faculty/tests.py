@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import safestring
+from django.core.urlresolvers import reverse
 from courselib.testing import Client, test_views, TEST_COURSE_SLUG
 
 from coredata.models import Semester
@@ -102,6 +103,42 @@ class EventTypesTest(TestCase):
                 print "failure with Handler==%s" % (Handler)
                 raise
 
+    def test_annual_teaching(self):
+        """
+        Test the annual teaching value entry field
+        """
+        person = Person.objects.get(userid='ggbaker')
+        unit = Unit.objects.get(slug='cmpt')
+        editor = Person.objects.get(userid='dzhao')
+        etype = 'NORM_TEACH'
+        event = CareerEvent.objects.filter(unit=unit, person=person, event_type=etype)[0]
+        event.config['load'] = 2 # 2 courses/semester in database should be 6/year to the user
+        event.get_handler().save(editor)
+
+        c = Client()
+        c.login_user(editor.userid)
+
+        # make sure the form renders with value="6"
+        url = reverse('faculty.views.change_event', kwargs={'userid': person.userid, 'event_slug': event.slug})
+        resp = c.get(url)
+        inputs = [l for l in resp.content.split('\n') if 'name="load"' in l]
+        inputs_correct_value = [l for l in inputs if 'value="6"' in l]
+        self.assertEquals(len(inputs_correct_value), 1)
+
+        # POST a change and make sure the right value ends up in the DB
+        data = {
+            'start_date_0': '2000-09-01',
+            'end_date_0': '',
+            'unit': str(unit.id),
+            'load': '5',
+            'comments': '',
+        }
+        c.post(url, data)
+        new_ce = CareerEvent.objects.filter(unit=unit, person=person, event_type=etype)[0]
+        self.assertEquals(new_ce.config['load'], '5/3')
+
+
+
 
 class CareerEventHandlerBaseTest(TestCase):
     def setUp(self):
@@ -115,7 +152,11 @@ class CareerEventHandlerBaseTest(TestCase):
             def short_summary(self):
                 return 'foobar'
 
+        class FoobarHandlerInstant(FoobarHandler):
+            IS_INSTANT = True
+
         self.Handler = FoobarHandler
+        self.HandlerInstant = FoobarHandlerInstant
         self.person = Person.objects.get(userid='ggbaker')
         self.unit = Unit.objects.get(id=1)
 
@@ -126,8 +167,7 @@ class CareerEventHandlerBaseTest(TestCase):
         del EVENT_TYPES['FOOBAR']
 
     def test_is_instant(self):
-        self.Handler.IS_INSTANT = True
-        handler = self.Handler(CareerEvent(person=self.person,
+        handler = self.HandlerInstant(CareerEvent(person=self.person,
                                            unit=self.unit))
 
         # Ensure the 'end_date' field is successfully removed
@@ -225,7 +265,7 @@ class PagesTest(TestCase):
         c.login_user('dzhao')
 
         test_views(self, c, 'faculty.views.', ['index', 'search_index', 'salary_index', 'status_index', 'manage_event_index',
-                'teaching_capacity', 'fallout_report', 'course_accreditation'],
+                'teaching_capacity', 'fallout_report', 'course_accreditation', 'manage_faculty_roles'],
                 {})
         test_views(self, c, 'faculty.views.', ['summary', 'teaching_summary', 'salary_summary', 'otherinfo',
                 'event_type_list', 'study_leave_credits', 'timeline', 'faculty_member_info', 'edit_faculty_member_info',

@@ -39,6 +39,7 @@ grad_patterns = [ # prefix /grad/
     url(r'^' + GRAD_SLUG + '/otherfunding$', 'grad.views.manage_otherfunding'),
     url(r'^' + GRAD_SLUG + '/otherfunding/(?P<o_id>\d+)/remove$', 'grad.views.remove_otherfunding'),
     url(r'^' + GRAD_SLUG + '/financial$', 'grad.views.financials'),
+    url(r'^' + GRAD_SLUG + '/financial-(?P<style>\w+)$', 'grad.views.financials'),
     url(r'^' + GRAD_SLUG + '/financialcomments$', 'grad.views.manage_financialcomments'),
     url(r'^' + GRAD_SLUG + '/financialcomments/(?P<f_id>\d+)/remove$', 'grad.views.remove_financialcomment'),
     url(r'^' + GRAD_SLUG + '/promises$', 'grad.views.manage_promises'),

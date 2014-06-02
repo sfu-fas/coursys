@@ -51,15 +51,15 @@ class Report(models.Model):
         """
         return len(self.expired_schedule_rules()) > 0
     
-    def run(self):
+    def run(self, manual=False):
         hardcoded_reports = HardcodedReport.objects.filter(report=self)
         queries = Query.objects.filter(report=self)
 
         runs = []
         for report in hardcoded_reports:
-            runs.append(report.run())
+            runs.append(report.run(manual=manual))
         for query in queries:
-            runs.append(query.run())
+            runs.append(query.run(manual=manual))
         
         if self.alert:
             for run in runs: 
@@ -80,8 +80,17 @@ class Report(models.Model):
             self.failure_notification(failed_runs[0])
 
         return runs
-    
+
+    def enqueue(self, manual=False):
+        """
+        Run by passing into celery queue
+        """
+        from reports.tasks import run_report
+        return run_report.apply_async(args=(self.id,), kwargs={'manual': manual})
+
     def failure_notification(self, failed_run):
+        if failed_run.manual:
+            return
         every_sysadmin = [role.person for role in Role.objects.filter(role='SYSA')]
         for sysadmin in every_sysadmin:
             n = NewsItem( user=sysadmin,
@@ -139,9 +148,9 @@ class HardcodedReport(models.Model):
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def run(self):
+    def run(self, manual=False):
         """ execute the code in this file """ 
-        r = Run(report=self.report, name=self.file_location)
+        r = Run(report=self.report, name=self.file_location, manual=manual)
         r.save()
         logger = RunLineLogger(r)
         try:
@@ -173,8 +182,8 @@ class Query(models.Model):
     config = JSONField(null=False, blank=False, default={})
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def run(self):
-        r = Run(report=self.report, name=self.name)
+    def run(self, manual=False):
+        r = Run(report=self.report, name=self.name, manual=manual)
         r.save()
         logger = RunLineLogger(r)
         try:
@@ -323,6 +332,7 @@ class Run(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=150, null=False)
     success = models.BooleanField(default=False)
+    manual = models.BooleanField(default=False, help_text="Was this run requested manually (as opposed to scheduled)?")
     def autoslug(self):
         return make_slug( self.created_at )
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
@@ -337,7 +347,7 @@ class Run(models.Model):
     def save(self, *args, **kwargs):
         super(Run, self).save(*args, **kwargs)
         #TODO: should we send these on failure too? 
-        if self.success: 
+        if self.success and not self.manual:
             notify_targets = AccessRule.objects.filter(report=self.report, notify=True)
             for target in notify_targets:
                 target.send_notification(self)

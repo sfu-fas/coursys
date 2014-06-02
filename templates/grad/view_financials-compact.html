@@ -1,0 +1,68 @@
+{% extends "grad/base.html" %}
+
+{% block title %}Financial Summary for {{grad.person.name}}{% endblock %}
+{% block h1 %}Financial Summary for {{grad.person.name}}{% endblock %}
+
+{% block actions %}
+<div id="actions">
+	<h2>Actions</h2>
+	<ul>
+	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">View complete format</a></li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">Financial Summary</a></li>
+<li>Compact</li>
+{% endblock %}
+
+
+{% block content %}
+
+<table id="financial-compact">
+<thead>
+<tr><th scope="col">Semester</th><th scope="col">Status</th>
+<th scope="col">TA</th><th scope="col">RA</th><th scope="col">Schol.</th><th scope="col">Other</th>
+<th scope="col">Total</th><th scope="col">Prom. End</th><th scope="col">AY</th></tr>
+</thead>
+<tbody>
+{% for semester in semesters %}
+<tr class="{% if semester.program %}newprogram{% endif %} {% if semester.semester == semester.acad_year.endsem %}end-ay{% endif %}">
+  <th scope="row">{{semester.semester.name}}</th>
+  <td>{% if semester.status %}{{ semester.status_short }}{% endif %}</td>
+  <td class="num">{% if semester.ta_total %}${{ semester.ta_total|floatformat:2 }}{% endif %}</td>
+  <td class="num">{% if semester.ra_total %}${{ semester.ra_total|floatformat:2 }}{% endif %}</td>
+  <td class="num">{% if semester.scholarship_total %}${{ semester.scholarship_total|floatformat:2 }}{% endif %}</td>
+  <td class="num">{% if semester.other_total %}${{ semester.other_total|floatformat:2 }}{% endif %}</td>
+  <td class="num">${{ semester.semester_total|floatformat:2 }}</td>
+  <td{% if semester.promise and semester.promiseowing != -1 %} class="promise-owing"{% endif %}>{% if semester.promise %}
+      ${{ semester.promise.amount|floatformat:2 }}
+      (${{ semester.promisereceived|floatformat:2 }})
+      {% endif %}</td>
+  {% if semester.semester == semester.acad_year.endsem %}
+  <td class="num acad-year" rowspan="{{ semester.acad_year.semcount }}">
+  {% if semester.acad_year.total %}<div class="value">${{ semester.acad_year.total|floatformat:2 }}</div>{% endif %}
+  </td>
+  {% endif %}
+</tr>
+{% endfor %}
+</tbody>
+<tfoot>
+<tr>
+    <th scope="row">Total</th>
+    <td></td>
+    <td class="num">${{ totals.ta|floatformat:2 }}</td>
+    <td class="num">${{ totals.ra|floatformat:2 }}</td>
+    <td class="num">${{ totals.scholarship|floatformat:2 }}</td>
+    <td class="num">${{ totals.other|floatformat:2 }}</td>
+    <td class="num">${{ totals.total|floatformat:2 }}</td>
+    <td></td>
+</tr>
+</tfoot>
+</table>
+
+
+{% endblock %} 

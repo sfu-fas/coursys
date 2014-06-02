@@ -1,9 +1,11 @@
-from base import *
-import submission.forms
+from django.db import models
+from base import SubmissionComponent, SubmittedComponent
 from django.forms.widgets import Textarea, TextInput
 from django import forms
 from django.http import HttpResponse
 from django.utils.html import escape
+from submission.forms import ComponentForm as BaseComponentForm, SubmissionForm as BaseSubmissionForm
+import os
 
 
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
@@ -55,7 +57,7 @@ class URL:
     Component = URLComponent
     SubmittedComponent = SubmittedURL
 
-    class ComponentForm(submission.forms.ComponentForm):
+    class ComponentForm(BaseComponentForm):
         class Meta:
             model = URLComponent
             fields = ['title', 'description', 'check', 'prefix', 'deleted']
@@ -67,7 +69,7 @@ class URL:
             self.fields.__delitem__('specified_filename')
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
 
-    class SubmissionForm(submission.forms.SubmissionForm):
+    class SubmissionForm(BaseSubmissionForm):
         class Meta:
             model = SubmittedURL
             fields = ['url']
@@ -86,13 +88,13 @@ class URL:
 
             if self.component.check:
                 # instructor asked to check that URLs really exist: do it.
-                validator = QuickURLValidator(verify_exists=True)
+                validator = QuickURLValidator()
                 try:
                     validator(url) # throws ValidationError if there's a problem
                 except forms.ValidationError:
                     # re-throw to produce a better error message
                     raise forms.ValidationError("The submitted URL doesn't seem to exist: please check the URL and resubmit.")
-            return url;
+            return url
 
 SubmittedURL.Type = URL
 URLComponent.Type = URL

@@ -2,6 +2,7 @@ import unicodecsv as csv
 import pickle
 import datetime
 import os
+import urllib
 
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -1212,21 +1213,21 @@ def class_list(request, course_slug):
 
 PHOTO_LIST_STYLES = set(['table', 'horiz'])
 @requires_course_staff_by_slug
-def photo_list(request, course_slug, style='table'):
+def photo_list(request, course_slug, style='horiz'):
     if style not in PHOTO_LIST_STYLES:
         raise Http404
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     
     if not (configs and configs[0].value['agree']):
-        url = reverse('dashboard.views.photo_agreement')
+        url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
     
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
     
     # fire off a task to fetch the photos and warm the cache
-    pre_fetch_photos([m.person.emplid for m in members])
+    pre_fetch_photos(m.person.emplid for m in members)
 
     context = {'course': course, 'members': members}
     return render(request, 'grades/photo_list_%s.html' % (style), context)
@@ -1238,7 +1239,7 @@ def student_photo(request, emplid):
     user = get_object_or_404(Person, userid=request.user.username)
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     if not (configs and configs[0].value['agree']):
-        url = reverse('dashboard.views.photo_agreement')
+        url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
         return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
     # confirm user is an instructor of this student (within the last two years)
@@ -1330,6 +1331,7 @@ def student_search(request, course_slug):
 def student_info(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+    requestor = get_object_or_404(Member, person__userid=request.user.username, offering__slug=course_slug)
     activities = all_activities_filter(offering=course)
     
     if member.role != "STUD":
@@ -1366,12 +1368,17 @@ def student_info(request, course_slug, userid):
             if GroupActivityMark.objects.filter(activity=a, group=gm.group):
                 info['marked'] = True
 
+    dishonesty_cases = []
+    if requestor.role in ['INST', 'APPR']:
+        from discipline.models import DisciplineCaseInstrStudent
+        dishonesty_cases = DisciplineCaseInstrStudent.objects.filter(offering=course, student=member.person)
+
     group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
     grade_history = GradeHistory.objects.filter(member=member, status_change=False).select_related('entered_by', 'activity', 'group', 'mark')
     #grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity', 'group', 'mark')
 
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships,
-               'grade_history': grade_history}
+               'grade_history': grade_history, 'dishonesty_cases': dishonesty_cases}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 
 

@@ -262,17 +262,14 @@ function enable_disable_ordering(oSettings) {
   }
 }
 
-
-function fix_actions() {
-  var actions = $('div#actions');
-  var ul = $('div#actions>ul');
-  ul.detach();
-  ul.attr('id', 'actions');
-  actions.after(ul);
-  actions.remove();
-}
-/*
 $(document).ready(function(){
-  fix_actions();
+  /* if there are any errors on a form, scroll down to the first one, so the user notices */
+  var error = $('ul.errorlist').first().each(function(i, e) {
+    $('html, body').animate({
+	  scrollTop: $(e).offset().top - 100
+    }, 1000, function(){
+        /* once complete, wiggle the error at the user */
+        $('ul.errorlist').effect('shake', {times:1, distance:3}, 75);
+    })
+  });
 });
-*/

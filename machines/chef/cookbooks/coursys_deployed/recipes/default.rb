@@ -90,18 +90,26 @@ directory "/tmp/elasticsearch" do
     action :create
 end
 execute "install_elasticsearch" do
-    cwd "/tmp/elasticsearch"
+    cwd "/tmp"
     command "wget -nc https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb && dpkg -i elasticsearch-1.1.0.deb"
     not_if do ::File.exists?('/var/lib/elasticsearch/') end
 end
 cookbook_file "elasticsearch.yml" do
     path "/etc/elasticsearch/elasticsearch.yml"
 end
+execute "install_elasticsearch-HQ" do
+    command "/usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ"
+    not_if do ::File.exists?('/usr/share/elasticsearch/plugins/HQ') end
+end
+execute "elasticsearch-update-rc.d" do
+    command "update-rc.d elasticsearch defaults"
+end
+
 service "elasticsearch" do
   action :restart
 end
 
-#Rabbit Configuration
+# Rabbit Configuration
 cookbook_file "rabbitmq.conf" do
     path "/etc/rabbitmq/rabbitmq-env.conf"
 end
@@ -157,12 +165,19 @@ end
 execute "dos2unix" do
     command "dos2unix /etc/default/celeryd"
 end
-execute "update-rc.d" do
+execute "celery-update-rc.d" do
     command "update-rc.d celeryd defaults"
 end
 service "celeryd" do
   action :restart
 end
+cookbook_file "logrotate-celery" do
+    path "/etc/logrotate.d/celery"
+    owner "root"
+    mode "0644"
+    action :create
+end
+
 
 # configure NGINX
 cookbook_file "nginx_default.conf" do
@@ -180,19 +195,32 @@ cookbook_file "supervisord.conf" do
 end
 
 #put supervisord in init.d
-cookbook_file "supervisor_init.d" do
-    owner "coursys"
-    path "/etc/init.d/supervisord"
+#cookbook_file "supervisor_init.d" do
+#    owner "coursys"
+#    path "/etc/init.d/supervisord"
+#    mode "0755"
+#end
+cookbook_file "rc.local" do
+    path "/etc/rc.local"
+    owner "root"
     mode "0755"
+    action :create
 end
 
 # create a directory for the gunicorn log files
 # directory "/var/log/gunicorn"
 directory "/var/log/gunicorn" do 
     owner "coursys"
-    mode "00766"
+    mode "00755"
     action :create
 end
+cookbook_file "logrotate-gunicorn" do
+    path "/etc/logrotate.d/gunicorn"
+    owner "root"
+    mode "0644"
+    action :create
+end
+
 
 # create a script to run and restart supervisord
 cookbook_file "Makefile" do

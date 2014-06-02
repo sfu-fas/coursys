@@ -193,12 +193,12 @@
 	<table class="info">
         <tbody>
 	    <tr>
-	    	<th>Posting</th>
+	    	<th scope="row">Posting</th>
             <td>{{ posting }}</td>
         </tr>
 {% if editing %}
 	    <tr>
-            <th>TA</th>
+            <th scope="row">TA</th>
             <td>{{ contract.application.person }} ({{ contract.application.person.email_mailto }}, {{ contract.application.person.emplid}})</td>
         </tr>
 {% endif %}
@@ -270,13 +270,13 @@
         </thead>  
         <tbody>
         	<tr> 
-        		<th class="ui-state-default">Salary</th>
+        		<th scope="row">Salary</th>
 				<td> {{ form.pay_per_bu }} </td>	
         		<td><input id="salary_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="salary_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         	<tr>
-        		<th class="ui-state-default">Scholarship</th>
+        		<th scope="row">Scholarship</th>
 				<td>{{ form.scholarship_per_bu }} </td>
         		<td><input id="schol_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="schol_sem" type=text readonly="readonly" value="" /></td>

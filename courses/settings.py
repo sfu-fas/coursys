@@ -122,7 +122,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'CONN_MAX_AGE': 3600,
+            'CONN_MAX_AGE': 360,
             'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # actually needed only for initial table creation
         }
     }
@@ -168,7 +168,6 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'com
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
 
-
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:
     CACHES = { 'default': {
@@ -177,14 +176,12 @@ if DEPLOY_MODE in ['production', 'proddev']:
     } }
     HAYSTACK_CONNECTIONS = {
         'default': {
-            #'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
-            #'URL': 'http://localhost:8983/solr'
-            'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+            'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
             'URL': 'http://127.0.0.1:9200/',
             'INDEX_NAME': 'haystack',
         },
     }
-    USE_CELERY = True
+    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
     DB_BACKUP_DIR = '/home/coursys/db_backup'
 
 else:
@@ -198,16 +195,16 @@ else:
         } }
     HAYSTACK_CONNECTIONS = {
         'default': {
-            #'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
             'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
             'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
-            #'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
-            #'URL': 'http://localhost:8983/solr'
         },
     }
-    USE_CELERY = False
+    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'
     DB_BACKUP_DIR = os.path.join(BASE_DIR, 'db_backup')
 
+HAYSTACK_SIGNAL_PROCESSOR = getattr(localsettings, 'HAYSTACK_SIGNAL_PROCESSOR', HAYSTACK_SIGNAL_PROCESSOR)
+HAYSTACK_CONNECTIONS = getattr(localsettings, 'HAYSTACK_CONNECTIONS', HAYSTACK_CONNECTIONS)
+#HAYSTACK_SILENTLY_FAIL = False
 
 # things only relevant to the true production environment
 if DEPLOY_MODE == 'production':
@@ -222,7 +219,7 @@ if DEPLOY_MODE == 'production':
 
 else:
     SUBMISSION_PATH = "submitted_files"
-    BASE_ABS_URL = "http://localhost:8000"
+    BASE_ABS_URL = getattr(localsettings, 'BASE_ABS_URL', "http://localhost:8000")
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # todo: could use Malm or something
     SVN_DB_CONNECT = None
 
@@ -230,7 +227,7 @@ else:
 
 
 # should we use the Celery task queue (for sending email, etc)?  Must have celeryd running to process jobs.
-USE_CELERY = getattr(localsettings, 'USE_CELERY', USE_CELERY)
+USE_CELERY = getattr(localsettings, 'USE_CELERY', True)
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     if DEPLOY_MODE != 'devel':
@@ -270,6 +267,8 @@ if USE_CELERY:
         'serializer': 'pickle', # email objects aren't JSON serializable
     }
 
+if hasattr(localsettings, 'BROKER_URL'):
+    BROKER_URL = localsettings.BROKER_URL
 
 
 MAX_SUBMISSION_SIZE = 30000 # kB
@@ -296,6 +295,7 @@ LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
 DISABLE_REPORTING_DB = getattr(localsettings, 'DISABLE_REPORTING_DB', False)
+DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
 
 # Feature flags to temporarily limit server load, aka "feature flags"
 # Possible values for the set documented in server-setup/index.html#flags

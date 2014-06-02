@@ -100,12 +100,12 @@
 		  <tr>
 		  <td id="arrow{{forloop.counter}}">
           {% if not forloop.first %} 
-             <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
+             <span class="arrow_up"><i class="fa fa-arrow-circle-up"></i></span>
  	      {% else %}
  	       	 <span class="position_placeholder"></span>
  	      {% endif %}
  	      {% if not forloop.last %}
- 	         <span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
+ 	         <span class="arrow_down"><i class="fa fa-arrow-circle-down"></i></span>
  	      {% endif %}
  	      </td>
 	      <td>

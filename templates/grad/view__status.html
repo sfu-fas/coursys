@@ -18,8 +18,8 @@
                     {% if s.hidden %}<del>{% endif %}
                         {{ s.get_status_display }}
                     {% if s.hidden %}</del>{% endif %}
-				    {% if s.notes %} 
-                        <img src="{{STATIC_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" />
+				    {% if s.notes %}
+                        <i class="fa fa-info-circle collapsiblecomment"></i>
                         <p class="hiddencomment">
                             {{s.notes}}
                         </p> 

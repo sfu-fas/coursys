@@ -9,7 +9,7 @@
 <div id="actions">
   <h2>Actions</h2>
   <ul>
-  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug %}">View in table display</a></li>
+  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug style='table' %}">View in table display</a></li>
   </ul>
 </div>{% endblock %}
 
@@ -18,7 +18,7 @@
     {% for member in members %}
         <div class="student">
         <div class="idphoto"><img src="{% url "grades.views.student_photo" emplid=member.person.emplid %}" alt="" /></div>
-        <span>{{ member.person.name }}, {{ member.person.emplid }}, {{ member.person.userid }}</span>
+        <span>{{ member.person.name_with_pref }}, <a href="{{member.get_absolute_url}}">{{ member.person.emplid }}</a>, {{ member.person.userid }}</span>
         </div>
     {% endfor %}
     </div>

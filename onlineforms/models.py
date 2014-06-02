@@ -110,21 +110,12 @@ class NonSFUFormFiller(models.Model):
         return "%s, %s" % (self.last_name, self.first_name)
     def initials(self):
         return "%s%s" % (self.first_name[0], self.last_name[0])
-    def full_email(self):
-        return "%s <%s>" % (self.name(), self.email())
     def email(self):
         return self.email_address
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError("This object cannot be deleted because it is used as a foreign key.")
-    
-    def email_mailto(self):
-        "A mailto: URL for this person's email address: handles the case where we don't know an email for them."
-        email = self.email()
-        if email:
-            return mark_safe('<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
-        else:
-            return "None"
+
 
 class FormFiller(models.Model):
     """
@@ -134,13 +125,31 @@ class FormFiller(models.Model):
     nonSFUFormFiller = models.ForeignKey(NonSFUFormFiller, null=True)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
+    @classmethod
+    def form_email(cls, person):
+        """
+        Return the email address to use for this Person: honours the form_email config option to let users send
+        all form-related email to somewhere else (a role account, probably) while still logging in as the real them.
+        """
+        assert(isinstance(person, Person))
+        if 'form_email' in person.config and person.config['form_email']:
+            return person.config['form_email']
+        else:
+            return person.email()
+
+    @classmethod
+    def form_full_email(cls, person):
+        email = FormFiller.form_email(person)
+        return "%s <%s>" % (person.name(), email)
+
+
     def getFormFiller(self):
         if self.sfuFormFiller:
             return self.sfuFormFiller
         elif self.nonSFUFormFiller:
             return self.nonSFUFormFiller
         else:
-            raise Exception, "This form filler object is in an invalid state."
+            raise ValueError, "This form filler object is in an invalid state."
 
     def isSFUPerson(self):
         return bool(self.sfuFormFiller)
@@ -159,12 +168,17 @@ class FormFiller(models.Model):
     def initials(self):
         formFiller = self.getFormFiller()
         return formFiller.initials()
-    def full_email(self):
-        formFiller = self.getFormFiller()
-        return formFiller.full_email()
+
     def email(self):
         formFiller = self.getFormFiller()
-        return formFiller.email()
+        if self.sfuFormFiller:
+            return FormFiller.form_email(formFiller)
+        else:
+            return formFiller.email()
+
+    def full_email(self):
+        return "%s <%s>" % (self.name(), self.email())
+
     def identifier(self):
         """
         Identifying string that can be used for slugs
@@ -179,8 +193,12 @@ class FormFiller(models.Model):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
     def email_mailto(self):
-        formFiller = self.getFormFiller()
-        return formFiller.email_mailto()
+        "A mailto: URL for this person's email address: handles the case where we don't know an email for them."
+        email = self.email()
+        if email:
+            return mark_safe('<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
+        else:
+            return "None"
 
 class FormGroup(models.Model):
     """
@@ -201,6 +219,15 @@ class FormGroup(models.Model):
         return "%s, %s" % (self.name, self.unit.label)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+
+    def notify_emails(self):
+        """
+        Collection of emails to notify about something in this group
+        """
+        return [FormFiller.form_full_email(m.person)
+              for m
+              in self.formgroupmember_set.all()
+              if m.email()]
 
 class FormGroupMember(models.Model):
     """
@@ -310,6 +337,47 @@ class Form(models.Model, _FormCoherenceMixin):
 
     def get_initiators_display_short(self):
         return INITIATOR_SHORT[self.initiators]
+
+    @transaction.atomic
+    def duplicate(self):
+        """
+        Make a independent duplicate of this form.
+
+        Not called from the UI anywhere, but can be used to duplicate a form for another unit, without the pain of
+        re-creating everything:
+            newform = oldform.duplicate()
+            newform.owner = ...
+            newform.unit = ...
+            newform.initiators = ...
+            newform.slug = None
+            newform.save()
+        """
+        newform = self.clone()
+        newform.original = None
+        newform.slug = None
+        newform.active = True
+        newform.initiators = 'NON'
+        newform.save()
+
+        sheets = Sheet.objects.filter(form=self)
+        for s in sheets:
+            newsheet = s.clone()
+            newsheet.form = newform
+            newsheet.original = None
+            newsheet.slug = None
+            newsheet.save()
+
+            fields = Field.objects.filter(sheet=s)
+            for f in fields:
+                newfield = f.clone()
+                newfield.sheet = newsheet
+                newfield.original = None
+                newfield.slug = None
+                newfield.save()
+
+        return newform
+
+
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
@@ -489,10 +557,11 @@ class FormSubmission(models.Model):
 
         email_context = Context({'formsub': self, 'admin': admin})
         subject = '%s submission complete' % (self.form.title)
-        from_email = admin.full_email()
+        from_email = FormFiller.form_full_email(admin)
         to = self.initiator.full_email()
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                                     from_email=from_email, to=[to], bcc=[admin.full_email()])
+                from_email=from_email, to=[to], bcc=[admin.full_email()],
+                headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
@@ -505,13 +574,11 @@ class FormSubmission(models.Model):
                                             'formsubmit_slug': self.slug}))
         email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
         subject = '%s submission transferred' % (self.form.title)
-        from_email = admin.full_email()
-        to = [m.person.full_email()
-              for m
-              in self.owner.formgroupmember_set.all()
-              if m.email()]
+        from_email = FormFiller.form_full_email(admin)
+        to = self.owner.notify_emails()
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
-                                     from_email=from_email, to=to, bcc=[admin.full_email()])
+                from_email=from_email, to=to, bcc=[admin.full_email()],
+                headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
@@ -625,18 +692,15 @@ class SheetSubmission(models.Model):
         template = get_template('onlineforms/emails/reminder.txt')
         
         for filler, sheets in filler_ss:
-            if filler.isSFUPerson() and filler.getFormFiller().userid == 'lshannon':
-                continue
             context = Context({'full_url': full_url,
                     'filler': filler, 'sheets': list(sheets)})
-            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()])
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()],
+                    headers={'X-coursys-topic': 'onlineforms'})
             msg.send()
     
     def _send_email(self, request, template_name, subject, mail_from, mail_to, context):
         """
-        Send email to user as required in various places below
-
-        TODO: refactor out of the below functions
+        Send email to user as required in various places below.
         """
         plaintext = get_template('onlineforms/emails/' + template_name + '.txt')
         html = get_template('onlineforms/emails/' + template_name + '.html')
@@ -644,63 +708,42 @@ class SheetSubmission(models.Model):
         sheeturl = request.build_absolute_uri(self.get_submission_url())
         context['sheeturl'] = sheeturl
         email_context = Context(context)
-        from_email = mail_from.full_email()
-        to_email = mail_to.full_email()
-        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to_email])
+        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), mail_from, mail_to,
+                headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
 
     def email_assigned(self, request, admin, assignee):
-        plaintext = get_template('onlineforms/emails/sheet_assigned.txt')
-        html = get_template('onlineforms/emails/sheet_assigned.html')
-
         full_url = request.build_absolute_uri(self.get_submission_url())
-        email_context = Context({'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self})
-        subject, from_email, to = 'CourSys: You have been assigned a sheet.', admin.full_email(), assignee.full_email()
-        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
-        msg.attach_alternative(html.render(email_context), "text/html")
-        msg.send()
+        context = {'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self}
+        subject = 'CourSys: You have been assigned a sheet.'
+        self._send_email(request, 'sheet_assigned', subject, FormFiller.form_full_email(admin),
+                         [assignee.full_email()], context)
 
     
     def email_started(self, request):
-        plaintext = get_template('onlineforms/emails/nonsfu_sheet_started.txt')
-        html = get_template('onlineforms/emails/nonsfu_sheet_started.html')
-    
         full_url = request.build_absolute_uri(self.get_submission_url())
-        email_context = Context({'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self})
+        context = {'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self}
         subject = '%s submission incomplete' % (self.sheet.form.title)
-        from_email = "nobody@courses.cs.sfu.ca"
-        to = self.filler.full_email()
-        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, [to])
-        msg.attach_alternative(html.render(email_context), "text/html")
-        msg.send()
+        self._send_email(request, 'nonsfu_sheet_started', subject,
+                         settings.DEFAULT_FROM_EMAIL, [self.filler.full_email()], context)
 
     def email_submitted(self, request, rejected=False):
-        plaintext = get_template('onlineforms/emails/sheet_submitted.txt')
-        html = get_template('onlineforms/emails/sheet_submitted.html')
-    
         full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
                                     kwargs={'form_slug': self.sheet.form.slug,
                                             'formsubmit_slug': self.form_submission.slug}))
-        email_context = Context({'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
-                                 'rejected': rejected})
+        context = {'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
+                                 'rejected': rejected}
         subject = '%s submission' % (self.sheet.form.title)
-        #from_email = self.filler.full_email()
-        from_email = "nobody@courses.cs.sfu.ca"
-        to = [m.person.full_email()
-              for m
-              in self.sheet.form.owner.formgroupmember_set.all()
-              if m.email()]
-        msg = EmailMultiAlternatives(subject, plaintext.render(email_context), from_email, to)
-        msg.attach_alternative(html.render(email_context), "text/html")
-        msg.send()
+        self._send_email(request, 'sheet_submitted', subject,
+                         settings.DEFAULT_FROM_EMAIL, self.sheet.form.owner.notify_emails(), context)
 
 
     def email_returned(self, request, admin):
         context = {'admin': admin, 'sheetsub': self}
         self._send_email(request, 'sheet_returned', '%s submission returned' % (self.sheet.title),
-                         admin, self.filler, context)
+                         FormFiller.form_full_email(admin), [self.filler.full_email()], context)
 
 
 

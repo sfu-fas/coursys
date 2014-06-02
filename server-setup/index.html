@@ -57,10 +57,6 @@ sudo mkdir -p /home/vagrant
 sudo ln -s /home/coursys/courses /home/vagrant/courses # why fight it?
 sudo chef-solo -c ~/courses/machines/chef/solo.rb -j ~/courses/machines/chef/run-list.json</pre></blockquote>
     </dd>
-    <dt>Fix stuff from the recipe</dt>
-    <dd>
-        <p>Edit /etc/nginx/.../default</p>
-    </dd>
 
 </dl>
 
@@ -89,6 +85,12 @@ sudo ./manage.py install_secrets
         <p>Run the environment tests to see if everything is functional.</p>
         <blockquote><pre>LD_LIBRARY_PATH=/home/coursys/sqllib/lib64 ./manage.py check_things</pre></blockquote>
         <p>Check with <a href="http://www.digicert.com/help/">the Digicert SSL Certificate Checker</a> that the SSL is installed properly. Maybe also try <a href="https://www.ssllabs.com/ssltest/analyze.html?d=courses.cs.sfu.ca&hideResults=on">the SSL Labs test</a>.</p>
+    </dd>
+    <dt>Enable importing</dt>
+    <dd>
+        <p>In <code class="file">~/courses/courses/localsettings.py</code>, add this line which enables the daily imports and photo password changing: things that should only be done on the One True Production Server.</p>
+        <blockquote><pre>DO_IMPORTING_HERE = True</pre></blockquote>
+
     </dd>
     <dt>Bug fix</dt>
     <dd>
@@ -142,6 +144,29 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote></dd>
 
 </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -13,6 +13,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup
+from courselib.db import retry_transaction
 from django.core.exceptions import ObjectDoesNotExist
 
 from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, DynamicForm, GroupForm, \
@@ -32,7 +33,7 @@ import os
 
 @requires_role('ADMN')
 def manage_groups(request):
-    groups = FormGroup.objects.filter(unit__in=request.units)
+    groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
@@ -40,7 +41,7 @@ def manage_groups(request):
 @transaction.atomic
 @requires_role('ADMN')
 def new_group(request):
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, unicode(u)) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = GroupForm(request.POST)
         form.fields['unit'].choices = unit_choices
@@ -66,7 +67,7 @@ def new_group(request):
 @transaction.atomic
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
-    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
     groupmembers = FormGroupMember.objects.filter(formgroup=group).order_by('person__last_name')
 
     # for editting group name
@@ -92,26 +93,24 @@ def manage_group(request, formgroup_slug):
 @transaction.atomic
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
-    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
     if request.method == 'POST':
-        if 'action' in request.POST:
-            if request.POST['action'] == 'add':
-                if request.POST['search'] != '':
-                    search_form = EmployeeSearchForm(request.POST)
-                    if search_form.is_valid(): 
-                        # search returns Person object
-                        person = search_form.cleaned_data['search']
-                        email = search_form.cleaned_data['email']
-                        member = FormGroupMember(person=person, formgroup=group)
-                        member.set_email(email)
-                        member.save()
-                        l = LogEntry(userid=request.user.username,
-                             description=("added %s to form group %s") % (person.userid_or_emplid(), group),
-                              related_object=member)
-                        l.save()
-                        return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
-                else: # if accidentally don't search for anybody
-                    return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))     
+        if request.POST['search'] != '':
+            search_form = EmployeeSearchForm(request.POST)
+            if search_form.is_valid():
+                # search returns Person object
+                person = search_form.cleaned_data['search']
+                email = search_form.cleaned_data['email']
+                member = FormGroupMember(person=person, formgroup=group)
+                member.set_email(email)
+                member.save()
+                l = LogEntry(userid=request.user.username,
+                     description=("added %s to form group %s") % (person.userid_or_emplid(), group),
+                     related_object=member)
+                l.save()
+                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
+        else: # if accidentally don't search for anybody
+            return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))
     
     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
@@ -119,12 +118,9 @@ def add_group_member(request, formgroup_slug):
 @transaction.atomic
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
-    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=request.units)
+    group = get_object_or_404(FormGroup, slug=formgroup_slug, unit__in=Unit.sub_units(request.units))
     person = get_object_or_404(Person, emplid=userid)
     member = get_object_or_404(FormGroupMember, person=person, formgroup=group)
-
-    if group.unit not in request.units:
-        return ForbiddenResponse(request)
 
     # remove m2m relationship
     if request.method == 'POST':
@@ -138,7 +134,7 @@ def remove_group_member(request, formgroup_slug, userid):
                 l.save()
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
     
-    groups = FormGroup.objects.filter(unit__in=request.units)
+    groups = FormGroup.objects.filter(unit__in=Unit.sub_units(request.units))
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
@@ -210,18 +206,19 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
             nonSFUFormFiller = form.save()  # in this case the form is a model form
             formFiller = FormFiller.objects.create(nonSFUFormFiller=nonSFUFormFiller)
 
-        sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
+        sheet_submission = SheetSubmission(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=formFiller)
         if 'note' in form.cleaned_data and form.cleaned_data['note']:
             sheet_submission.set_assign_note(form.cleaned_data['note'])
-            sheet_submission.save()
+
+        sheet_submission.save()
 
         # create an alternate URL, if necessary
         if not assign_to_sfu_account:
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
-        if formFiller.full_email() != admin.full_email():
+        if formFiller.email() != admin.email():
             sheet_submission.email_assigned(request, admin, formFiller)
 
         #LOG EVENT#
@@ -292,7 +289,7 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
         if not assign_to_sfu_account:
             SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
         # send email
-        if formFiller.full_email() != admin.full_email():
+        if formFiller.email() != admin.email():
             sheet_submission.email_assigned(request, admin, formFiller)
         #LOG EVENT#
         l = LogEntry(userid=request.user.username,
@@ -822,6 +819,7 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
         # advisors can access relevant completed forms
         advisor_roles = Role.objects.filter(person__userid=request.user.username, role='ADVS')
         units = set(r.unit for r in advisor_roles)
+        units = Unit.sub_units(units)
         form_submissions = FormSubmission.objects.filter(form__slug=form_slug, slug=formsubmit_slug,
                                         form__unit__in=units, form__advisor_visible=True)
         is_advisor = True
@@ -1011,6 +1009,7 @@ def sheet_submission_subsequent(request, form_slug, formsubmit_slug, sheet_slug,
     return _sheet_submission(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug,
                              sheet_slug=sheet_slug, sheetsubmit_slug=sheetsubmit_slug)
 
+@retry_transaction()
 @transaction.atomic
 def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, sheetsubmit_slug=None, alternate_url=None):
     owner_form = get_object_or_404(Form, slug=form_slug)

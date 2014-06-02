@@ -296,7 +296,7 @@ class Command(BaseCommand):
             try:
                 s.connect((hostname, p))
             except socket.error:
-                # counldn't connect: good
+                # couldn't connect: good
                 pass
             else:
                 connected.append(p)

@@ -11,13 +11,16 @@
 
 {% block headextra %}
 <style>
+#resultstable col.resultscore {
+    text-align: center;
+}
 .highlighted {
     font-weight: bold;
 }
 </style>
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#resultstable').dataTable( {
+  $('#search-results').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': false,
@@ -36,23 +39,27 @@ $(document).ready(function() {
 </form>
 
 {% if results %}
-<table id="resultstable">
+<table id="search-results">
   <thead><tr>
+      <th scope="col">Score</th>
       <th scope="col">Result</th>
       <th scope="col">Type</th>
   </tr></thead>
   <tbody>
   {% for r in results %}
   <tr>
-  <td scope="row">
+  <td class="stars">
       <span class="sort">{{ r.score|format_score }}</span>
+      {{ r.score|score_stars:maxscore }}
+  </td>
+  <td>
       {% if r.url %}
       <a href="{{ r.url }}">{{ r.search_display }}</a>
       {% else %}
       {{ r.search_display }}
       {% endif %}
   </td>
-  <td>{{ r.content_type|display_type }}</td>
+  <td>{% if r.content_type == 'coredata.member' and r.role == 'TA' %}TA in your class{% else %}{{ r.content_type|display_type }}{% endif %}</td>
   </tr>
   {% endfor %}
   </tbody>

@@ -55,6 +55,7 @@ faculty_patterns = [ # prefix: /faculty/
     # Top Level Stuff
     url(r'^$', 'faculty.views.index'),
     url(r'^queue$', 'faculty.views.status_index', name="status_index"),
+    url(r'^members$', 'faculty.views.manage_faculty_roles'),
 
     # Event Searching
     url(r'^search/$', 'faculty.views.search_index'),

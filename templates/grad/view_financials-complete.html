@@ -1,0 +1,160 @@
+{% extends "grad/base.html" %}
+
+{% block title %}Financial Summary for {{grad.person.name}}{% endblock %}
+{% block h1 %}Financial Summary for {{grad.person.name}}{% endblock %}
+
+{% block actions %}
+<div id="actions">
+	<h2>Actions</h2>
+	<ul>
+	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug style="compact" %}">View compact format</a></li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block gradheadextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		{% for semester in semesters %}{% for scholarship in semester.scholarship_details.scholarships %}
+		$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();
+		{% endfor %}{% endfor %}
+		{% for semester in semesters %}
+		$('#comments-btn-{{semester.semester.name}}').click(function(){
+			{% for scholarship in semester.scholarship_details.scholarships %}
+			if ($('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').is(':hidden')){
+				$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').show();
+			}else {
+				$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();
+			}
+			{% for other_funding in semester.scholarship_details.other_funding %}
+			if ($('#comment-{{semester.semester.name}}-{{other_funding.id}}').is(':hidden')){
+				$('#comment-{{semester.semester.name}}-{{other_funding.id}}').show();
+			}else {
+				$('#comment-{{semester.semester.name}}-{{other_funding.id}}').hide();
+			}			
+			{% endfor %}{% endfor %}			
+		});
+
+		{% endfor %}
+	});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>Financial Summary</li>
+{% endblock %}
+
+{% block content %}
+
+<table id="financial">
+<thead><tr><th scope="col">Received</th><th scope="col">Promised</th></tr></thead>
+<tbody>
+{% for semester in semesters %}
+<tr>
+<td class="rec">
+  <h2 id="sem-{{semester.semester.name}}">{{semester.semester.name}} ({{semester.semester.label}}{% if semester.status %}, {{ semester.status }}{% endif %})</h2>
+  {% if semester.comments %}
+  <span class="label">Financial Comments:</span>
+  <ul>
+    {% for c in semester.comments %}
+     <li>{{ c.comment|linebreaksbr }} [{{ c.created_by}}, {{ c.created_at|date:GRAD_DATE_FORMAT }}] </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if semester.scholarships %}
+    <span class="label">Scholarships:</span> 
+    <div style="float: right" id="comments-btn-{{semester.semester.name}}"><a>[View Comments]</a></div>
+    <ul class="leaders">
+    {% for scholarship in semester.scholarships %}
+    <li>
+      {% if scholarship.scholarship.scholarship_type.eligible %}
+      <span>{{scholarship.scholarship.scholarship_type.name}}</span>
+      <span>${{ scholarship.semester_amount|floatformat:2 }}</span>
+      {% else %}
+      <span>{{scholarship.scholarship.scholarship_type.name}} (${{ scholarship.semester_amount|floatformat:2 }})</span>
+      <span>Not Eligible</span>
+      {% endif %}
+    </li>
+    {% if scholarship.scholarship.comments %}
+      <li class="helptext comment" id="comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}">{{ scholarship.scholarship.comments }}</li>
+    {% endif %}
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if semester.ta.courses %}
+      <span class="label">TA Details:</span>
+      <ul class="leaders">
+      {% for course in semester.ta.courses %}
+        <li><span>{{ course.course }}</span> <span>${{ course.amount|floatformat:2 }}</span></li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if semester.ra.appt %}
+      <span class="label">RA Details:</span>
+      <ul class="leaders">
+      {% for appt in semester.ra.appt %}
+        <li><span>{{ appt.desc }}
+        	{% if appt.semesters > 1 %}[1 of {{appt.semesters}} semesters]{% endif %}</span>
+        	<span>${{ appt.amount|floatformat:2 }}</span></li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if semester.other_funding %}
+    <span class="label">Other Funding:</span>
+    <ul class="leaders">
+    {% for other_funding in semester.other_funding %}
+      <li>
+      {% if other_funding.eligible %}
+      <span>{{ other_funding.description}}</span>
+      <span>${{ other_funding.amount|floatformat:2}} </span>
+      {% else %}
+      <span>{{ other_funding.description}} (${{ other_funding.amount|floatformat:2 }})</span>
+      <span>Not Eligible</span>
+      {% endif %}
+      </li>
+      {% if other_funding.comment %}
+      <li class="helptext comment" id="comment-{{semester.semester.name}}-{{other_funding.id}}">{{ other_funding.comment }}</li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if semester.semester_total %}
+    <div class="hr"></div>
+    <span style="float: left;" class="label">Semester Sub-Total</span>
+    <span style="float: right; padding-right: 2em;">
+    ${{ semester.semester_total|floatformat:2 }}
+    </span>
+    {% endif %}
+
+  
+</td>
+{% if semester.promise %}
+<td class="prom" rowspan="{{semester.promise.semester_length}}">
+  <span class="label"> Promised Amount: </span> ${{ semester.promise.amount|floatformat:2 }} <br />
+  <span class="label"> Received Amount: </span> ${{ semester.promisereceived|floatformat:2 }} <br />
+  <div class="hr"></div>
+  {% if semester.promiseowing == -1 %}
+  <span class="label">Amount Owing: None</span>
+  {% else %}
+  <span class="label promise-owing">Amount Owing: (${{ semester.promiseowing|floatformat:2 }})</span>
+  {% endif %}
+</td>
+{% endif %}
+</tr>
+{% if semester.program %}
+<tr><td class="programchange">
+Entered program {{ semester.program.program.label }} in {{ semester.program.start_semester.name }}.
+</td></tr>
+{% endif %}
+{% endfor %}
+</tbody>
+
+</table>
+
+{% endblock %} 

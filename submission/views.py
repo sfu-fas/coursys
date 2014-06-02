@@ -13,6 +13,8 @@ from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
 from django.forms.util import ErrorList
+from django.db import transaction
+from courselib.db import retry_transaction
 from featureflags.flags import uses_feature
 
 
@@ -30,6 +32,8 @@ def show_components(request, course_slug, activity_slug):
     
 #student submission main page
 #may be viewed by a staff
+@retry_transaction()
+@transaction.atomic
 def _show_components_student(request, course_slug, activity_slug, userid=None, template="dashboard_student.html", staff=False):
     """
     Show all the component submission history of this activity
@@ -239,6 +243,7 @@ def _show_components_staff(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
+@transaction.atomic
 def edit_single(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
@@ -278,9 +283,10 @@ def edit_single(request, course_slug, activity_slug):
             {"course":course, "activity":activity, "component":component, "edit_id":edit_id, "form":form})
 
 @requires_course_staff_by_slug
+@transaction.atomic
 def add_component(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
 
     #default, Archive
     typelabel = request.GET.get('type')
@@ -393,6 +399,7 @@ def show_student_history_staff(request, course_slug, activity_slug, userid):
     return show_components_submission_history(request, course_slug, activity_slug, userid)
 
 @requires_course_staff_by_slug
+@transaction.atomic
 def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, group_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)

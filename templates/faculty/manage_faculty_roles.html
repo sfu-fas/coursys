@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load event_display %}
+{% load form_display %}
+
+{% block title %}Manage Faculty Members{% endblock %}
+{% block h1 %}Manage Faculty Members{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('table.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    "aaSorting": [[0, "asc"]],
+    "bJQueryUI": true,
+  } );
+
+      $('#id_person').each(function() {
+        $(this).autocomplete({
+          source: '/data/students',
+          minLength: 2,
+          select: function(event, ui){
+            $(this).data("val", ui.item.value);
+          }
+        });
+      });
+
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty</a></li>
+<li>Manage Faculty Members</li>
+{% endblock %}
+
+{% block content %}
+<table id="roles_table" class="display">
+  <thead><tr><th scope="col">Person</th><th scope="col">Unit</th><th scope="col">Status</th></tr></thead>
+  <tbody>
+  {% for r in roles %}
+  {% if not r.gone %}
+  <tr>
+    <td>{{ r.person.name }}</td>
+    <td>{{ r.unit.informal_name }}</td>
+    <td class="miniaction">
+        <form action="" method="post">{% csrf_token %}
+            <p>
+                <input type="hidden" name="action" value="del" />
+                <input type="hidden" name="role_id" value="{{r.id}}" />
+                <input type="submit" value="Remove" onclick="return confirmSubmit('mark this person as gone')" />
+            </p>
+        </form>
+    </td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2 id="add">Add Faculty Member</h2>
+<form action="" method="post" enctype="multipart/form-data">
+  {% csrf_token %}<input type="hidden" name="action" value="add" />
+  {{ form|as_dl }}
+  <input type="submit" value="Add Faculty Member" />
+</form>
+
+<h2 id="gone">Former Faculty Members</h2>
+<table id="gone_roles" class="display">
+  <thead><tr><th scope="col">Person</th><th scope="col">Unit</th></tr></thead>
+  <tbody>
+  {% for r in roles %}
+  {% if r.gone %}
+  <tr>
+    <td>{{ r.person.name }}</td>
+    <td>{{ r.unit.informal_name }}</td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from courselib.auth import ForbiddenResponse
+from courselib.auth import ForbiddenResponse, NotFoundResponse
 from django.shortcuts import render
 from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
         GradProgramHistory, FinancialComment, STATUS_ACTIVE
@@ -10,9 +10,13 @@ import itertools, decimal
 from grad.views.view import _can_view_student
 
 get_semester = Semester.get_semester
+STYLES = ['complete', 'compact']
 
 @login_required
-def financials(request, grad_slug):
+def financials(request, grad_slug, style='complete'):
+    if style not in STYLES:
+        return NotFoundResponse(request)
+
     grad, _, units = _can_view_student(request, grad_slug, funding=True)
     if grad is None:
         return ForbiddenResponse(request)
@@ -45,7 +49,7 @@ def financials(request, grad_slug):
                       (ph.start_semester for ph in program_history),
                     )
     all_semesters = itertools.ifilter(lambda x: isinstance(x, Semester), all_semesters)
-    all_semesters = list(all_semesters)
+    all_semesters = set(all_semesters)
     if len(all_semesters) == 0:
         all_semesters = [get_semester()]
     earliest_semester = min(all_semesters)
@@ -53,25 +57,36 @@ def financials(request, grad_slug):
 
     semesters = []
     semesters_qs = Semester.objects.filter(start__gte=earliest_semester.start, end__lte=latest_semester.end).order_by('-start')
+    current_acad_year = None
 
     # build data structure with funding for each semester
     for semester in semesters_qs:
         semester_total = decimal.Decimal(0)
 
+        yearpos = (semester - grad.start_semester) % 3 # position in academic year: 0 is start of a new academic year for this student
+        if not current_acad_year or yearpos == 2:
+            # keep this (mutable) structure that we can alias in each semester and keep running totals
+            current_acad_year = {'total': 0, 'semcount': 0, 'endsem': semester}
+
         # other funding
         other_funding = other_fundings.filter(semester=semester)
+        other_total = 0
         for other in other_funding:
             if other.eligible:
+                other_total += other.amount
                 semester_total += other.amount
         
         # scholarships
         semester_scholarships = scholarships_qs.filter(start_semester__name__lte=semester.name, end_semester__name__gte=semester.name)
         semester_eligible_scholarships = semester_scholarships.filter(scholarship_type__eligible=True)
         scholarships = []
-        
+
+        scholarship_total = 0
         for ss in semester_scholarships:
-            scholarships.append({'scholarship':ss, 'semester_amount':ss.amount/(ss.end_semester-ss.start_semester+1)})
-        
+            amt = ss.amount/(ss.end_semester-ss.start_semester+1)
+            scholarship_total += amt
+            scholarships.append({'scholarship': ss, 'semester_amount': amt})
+
         for semester_eligible_scholarship in semester_eligible_scholarships:
             if(semester_eligible_scholarship.start_semester != semester_eligible_scholarship.end_semester):
                 semester_span = semester_eligible_scholarship.end_semester - semester_eligible_scholarship.start_semester + 1
@@ -81,9 +96,11 @@ def financials(request, grad_slug):
 
         # grad status        
         status = None
+        status_short = None
         for s in GradStatus.objects.filter(student=grad):
             if s.start <= semester and (s.end == None or semester <= s.end) :
                 status = s.get_status_display()
+                status_short = s.get_short_status_display()
         
         # grad program
         program = None
@@ -98,23 +115,23 @@ def financials(request, grad_slug):
                 comments.append(c)
         
         # TAs
-        amount = 0
+        ta_total = 0
         courses = []
         for contract in contracts:
             if contract.posting.semester == semester:
                 for course in TACourse.objects.filter(contract=contract).exclude(bu=0).select_related('course'):
-                    amount += course.pay()
+                    ta_total += course.pay()
                     if contract.status == 'SGN':
                         text = "%s (%s BU)" % (course.course.name(), course.total_bu)
                     else:
                         text = "%s (%s BU, current status: %s)" \
                              % (course.course.name(), course.total_bu, contract.get_status_display().lower())
                     courses.append({'course': text,'amount': course.pay()})
-        ta = {'courses':courses,'amount':amount}
-        semester_total += amount
+        ta = {'courses':courses,'amount':ta_total}
+        semester_total += ta_total
 
         # RAs
-        amount = 0
+        ra_total = 0
         appt = []
         for appointment in appointments:
             app_start_sem = appointment.start_semester()
@@ -122,11 +139,11 @@ def financials(request, grad_slug):
             length = appointment.semester_length()
             if app_start_sem <= semester and app_end_sem >= semester:
                 sem_pay = appointment.lump_sum_pay/length
-                amount += sem_pay
+                ra_total += sem_pay
                 appt.append({'desc':"RA for %s - %s" % (appointment.hiring_faculty.name(), appointment.project),
                              'amount':sem_pay, 'semesters': appointment.semester_length() })
-        ra = {'appt':appt, 'amount':amount}        
-        semester_total += amount
+        ra = {'appt':appt, 'amount':ra_total}
+        semester_total += ra_total
         
         # promises (ending in this semester, so we display them in the right spot)
         try:
@@ -134,23 +151,17 @@ def financials(request, grad_slug):
         except Promise.DoesNotExist:
             promise = None
         
-        semester_data = {'semester':semester, 'status':status, 'scholarships': scholarships,
+        current_acad_year['total'] += semester_total
+        current_acad_year['semcount'] += 1
+        semester_data = {'semester':semester, 'status':status, 'status_short': status_short, 'scholarships': scholarships,
                          'promise': promise, 'semester_total': semester_total, 'comments': comments,
-                         'ta': ta, 'ra': ra, 'other_funding': other_funding, 'program': program}
+                         'ta': ta, 'ra': ra, 'other_funding': other_funding, 'program': program,
+                         'other_total': other_total, 'scholarship_total': scholarship_total,
+                         'ta_total': ta_total, 'ra_total': ra_total, 'acad_year': current_acad_year}
         semesters.append(semester_data)
 
     promises = []
     for promise in promises_qs:
-        #data = promise.contributions_to()
-        #total = 0
-        #for sem in data:
-        #    for key in data[sem]:
-        #        for fund in data[sem][key]:
-        #            if fund.promiseeligible:
-        #                total += fund.semvalue
-        #print total
-        
-        
         received = decimal.Decimal(0)
         for semester in semesters:
             if semester['semester'] < promise.start_semester or semester['semester'] > promise.end_semester:
@@ -170,17 +181,21 @@ def financials(request, grad_slug):
                 semester['promisereceived'] = received
                 semester['promiseowing'] = owing
 
-    # set frontend defaults
-    page_title = "%s's Financial Summary" % (grad.person.first_name)
-    crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
+    totals = {'ta': 0, 'ra': 0, 'scholarship': 0, 'other': 0, 'total': 0}
+    for s in semesters:
+        totals['ta'] += s['ta_total']
+        totals['ra'] += s['ra_total']
+        totals['scholarship'] += s['scholarship_total']
+        totals['other'] += s['other_total']
+        totals['total'] += s['semester_total']
+
 
     context = {
                'semesters': semesters,
                'promises': promises,
-               'page_title':page_title,
-               'crumb':crumb,
                'grad':grad,
                'status': current_status,
                'unit': units,
+               'totals': totals,
                }
-    return render(request, 'grad/view_financials.html', context)
+    return render(request, 'grad/view_financials-%s.html' % (style), context)

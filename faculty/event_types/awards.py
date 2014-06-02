@@ -1,6 +1,7 @@
 import itertools
 
 from django import forms
+from cache_utils.decorators import cached
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
@@ -16,16 +17,7 @@ class FellowshipPositionSearchRule(ChoiceSearchRule):
 
     def make_value_field(self, viewer, member_units):
         field = super(FellowshipPositionSearchRule, self).make_value_field(viewer, member_units)
-
-        # TODO: Refactor this to reduce code duplication
-        from faculty.models import EventConfig
-        ecs = EventConfig.objects.filter(unit__in=member_units,
-                                         event_type=FellowshipEventHandler.EVENT_TYPE)
-        choices = itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs])
-        for i, (flag_short, flag_long, status) in enumerate(choices):
-            if status == 'ACTIVE':
-                field.choices += ((flag_short, flag_long),)
-
+        field.choices = FellowshipEventHandler.get_fellowship_choices(member_units, only_active=False)
         return field
 
 
@@ -46,6 +38,25 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         {% endblock %}
     """
 
+    @classmethod
+    def get_fellowship_choices(cls, units, only_active=False):
+        """
+        Get the fellowship choices from EventConfig in these units, or superunits of them.
+
+        Since we look at superunits, we should be ensuring that the key is globally-unique.
+        """
+        from faculty.models import EventConfig
+        superunits = [u.super_units() for u in units] + [units]
+        superunits =  set(u for sublist in superunits for u in sublist) # flatten list of lists
+        ecs = EventConfig.objects.filter(unit__in=superunits,
+                                         event_type=FellowshipEventHandler.EVENT_TYPE)
+        choices = itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs])
+        if only_active:
+            choices = ((short,long) for short,long,status in choices if status == 'ACTIVE')
+        else:
+            choices = ((short,long) for short,long,status in choices)
+        return choices
+
     class EntryForm(BaseEntryForm):
         position = forms.ChoiceField(required=True, choices=[])
         add_salary = AddSalaryField(required=False)
@@ -54,33 +65,17 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
         def post_init(self):
             # set the allowed position choices from the config from allowed units
-            from faculty.models import EventConfig
-            ecs = EventConfig.objects.filter(unit__in=self.units,
-                                             event_type=FellowshipEventHandler.EVENT_TYPE)
-            choices = itertools.chain(*[ec.config.get('fellowships', []) for ec in ecs])
-            end_choices = []
-            for i, (flag_short, flag_long, status) in enumerate(choices):
-                if status == 'ACTIVE':
-                    end_choices = end_choices + [(flag_short, flag_long)]
-            self.fields['position'].choices = end_choices
+            choices = FellowshipEventHandler.get_fellowship_choices(self.units, only_active=True)
+            self.fields['position'].choices = choices
 
         def clean(self):
-            from faculty.models import EventConfig
             data = self.cleaned_data
             if 'unit' not in data:
                 raise forms.ValidationError("Couldn't check unit for fellowship ownership.")
 
-            found = False
-            try:
-                ec = EventConfig.objects.get(unit=data['unit'],
-                                             event_type=FellowshipEventHandler.EVENT_TYPE)
-                fellowships = ec.config['fellowships']
-                for i, (flag_short, flag_long, status) in enumerate(fellowships):
-                    if flag_short == data['position']:
-                         found = True
-            except EventConfig.DoesNotExist:
-                pass
+            choices = FellowshipEventHandler.get_fellowship_choices([data['unit']], only_active=True)
 
+            found = [short for short,long in choices if short == data['position']]
             if not found:
                 raise forms.ValidationError("That fellowship is not owned by the selected unit.")
 
@@ -96,21 +91,18 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def get_position_display(self):
         """
         Get the name of this fellowship/chair, for display to the user
-
         """
-        from faculty.models import EventConfig
-        try:
-            ec = EventConfig.objects.get(unit=self.event.unit, event_type=self.EVENT_TYPE)
-            fellowships = ec.config['fellowships']
-        except EventConfig.DoesNotExist:
-            fellowships = {}
+        @cached(3600)
+        def get_long_position_name(key, unit):
+            "A cacheable version: seems like a lot of work for a frequently-used string"
+            choices = FellowshipEventHandler.get_fellowship_choices([unit], only_active=False)
+            found = [long for short,long in choices if short == key]
+            if found:
+                return found[0]
+            else:
+                return '???'
 
-        pos = self.event.config.get('position', '???')
-        pos_ret = ""
-        for i, (flag_short, flag_long, status) in enumerate(fellowships):
-            if flag_short == pos:
-                pos_ret = flag_long
-        return pos_ret
+        return get_long_position_name(self.event.config.get('position', '???'), self.event.unit)
 
     @classmethod
     def default_title(cls):

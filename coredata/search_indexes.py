@@ -1,6 +1,8 @@
 from coredata.models import CourseOffering, Person, Member
 from haystack import indexes
 
+# Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
+
 class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     title = indexes.EdgeNgramField(model_attr='title')
@@ -30,7 +32,7 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
         return "%s %s" % (o.name(), o.semester.label())
 
 
-class PersonIndex(): #(indexes.SearchIndex, indexes.Indexable):
+class PersonIndex(indexes.SearchIndex, indexes.Indexable):
     # used for autocompletes, not full-site search
     text = indexes.EdgeNgramField(document=True)
     emplid = indexes.CharField(model_attr='emplid')
@@ -54,11 +56,12 @@ class PersonIndex(): #(indexes.SearchIndex, indexes.Indexable):
         return o.search_label_value()
 
 
-class MemberIndex(): #(indexes.SearchIndex, indexes.Indexable):
+class MemberIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     offering_slug = indexes.CharField(null=False)
     url = indexes.CharField(indexed=False, null=False)
     search_display = indexes.CharField(indexed=False)
+    role = indexes.CharField(indexed=False, model_attr='role') # student or TA?
 
     def get_model(self):
         return Member
@@ -66,9 +69,9 @@ class MemberIndex(): #(indexes.SearchIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         # limiting to recent semesters is hopefully temporary
         return self.get_model().objects.exclude(offering__component='CAN') \
-                .filter(role='STUD') \
-                .filter(offering__semester__name__gte='1137') \
+                .filter(role__in=['STUD', 'TA']) \
                 .select_related('person', 'offering__semester')
+                #.filter(offering__semester__name__gte='1124') \
 
     def prepare_text(self, m):
         fields = [unicode(m.person.emplid), m.person.first_name, m.person.last_name]
@@ -84,8 +87,10 @@ class MemberIndex(): #(indexes.SearchIndex, indexes.Indexable):
     def prepare_url(self, m):
         if m.role == 'STUD':
             return m.get_absolute_url()
+        elif m.role == 'TA':
+            return m.offering.get_absolute_url()
         else:
             return None
 
     def prepare_search_display(self, m):
-        return " %s (%s) in %s" % (m.person.name(), m.person.userid_or_emplid(), m.offering.name())
+        return " %s (%s) in %s (%s)" % (m.person.name(), m.person.userid_or_emplid(), m.offering.name(), m.offering.semester.label())

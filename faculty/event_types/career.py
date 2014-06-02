@@ -2,6 +2,7 @@ import fractions
 import itertools
 
 from django import forms
+from django.utils.safestring import mark_safe
 
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
@@ -11,6 +12,7 @@ from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
 RANK_CHOICES = Choices(
+    ('LLEC', 'Limited-Term Lecturer'),
     ('LABI', 'Laboratory Instructor'),
     ('LECT', 'Lecturer'),
     ('SLEC', 'Senior Lecturer'),
@@ -105,6 +107,15 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
         base_salary = fields.AddSalaryField(help_text="Base annual salary for this rank + step.")
         add_salary = fields.AddSalaryField()
         add_pay = fields.AddPayField()
+
+        def post_init(self):
+            # find the last-known rank as a default
+            if self.person:
+                from faculty.models import CareerEvent
+                event = CareerEvent.objects.filter(person=self.person, event_type='SALARY').effective_now().last()
+                if event:
+                    self.fields['rank'].initial = event.config['rank']
+
 
     SEARCH_RULES = {
         'rank': search.ChoiceSearchRule,
@@ -201,41 +212,139 @@ class TenureApplicationEventHandler(CareerEventHandlerBase):
     """
     Tenure Application Career event
     """
-
     EVENT_TYPE = 'TENUREAPP'
     NAME = "Tenure Application"
+    IS_INSTANT = False
 
-    IS_INSTANT = True
+    TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}'''
 
-    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
+    class EntryForm(BaseEntryForm):
+        RESULT_CHOICES = Choices(
+            ('PEND', 'Pending'),
+            ('RECI', 'Tenured'),
+            ('DENI', 'Denied'),
+        )
 
-    @classmethod
-    def default_title(cls):
-        return 'Applied for Tenure'
-
-    def short_summary(self):
-        return 'Applied for Tenure'
+        result = forms.ChoiceField(label='Result', choices=RESULT_CHOICES,
+                                   help_text='The end date of this event is assumed to be when this decision is effective.')
 
 
-class TenureReceivedEventHandler(CareerEventHandlerBase):
-    """
-    Received Tenure Career event
-    """
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+    ]
 
-    EVENT_TYPE = 'TENUREREC'
-    NAME = "Tenure Received"
-
-    IS_INSTANT = True
-
-    TO_HTML_TEMPLATE = '{% extends "faculty/event_base.html" %}'
-
-    @classmethod
-    def default_title(cls):
-        return 'Tenure Received'
+    def get_result_display(self):
+        return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
 
     def short_summary(self):
-        return 'Tenure Received'
+        return "Tenure application: {0}".format(self.get_result_display(),)
 
+
+class PromotionApplicationEventHandler(CareerEventHandlerBase):
+    """
+    Promotion Application Career event
+    """
+    EVENT_TYPE = 'PROMOTION'
+    NAME = "Promotion Application"
+    IS_INSTANT = False
+
+    TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Rank applied for</dt><dd>{{ handler|get_display:"rank" }}</dd>
+        <dt>Result</dt><dd>{{ handler|get_display:"result" }}</dd>
+        <dt>Steps Year One</dt><dd>{{ handler|get_display:"steps" }} <span class="helptext">(step increase in the first year after promotion)</span></dd>
+        <dt>Steps Year Two</dt><dd>{{ handler|get_display:"steps2" }} <span class="helptext">(step increase in the second year after promotion)</span></dd>
+        {% endblock %}'''
+
+    class EntryForm(BaseEntryForm):
+        RESULT_CHOICES = Choices(
+            ('PEND', 'Pending'),
+            ('RECI', 'Promoted'),
+            ('DENI', 'Denied'),
+        )
+        STEPS_CHOICES = Choices(
+            ('-', 'Pending'),
+            ('0.0', '0.0'),
+            ('0.5', '0.5'),
+            ('1.0', '1.0'),
+            ('1.5', '1.5'),
+            ('2.0', '2.0'),
+        )
+
+        rank = forms.ChoiceField(choices=RANK_CHOICES, required=True, help_text='Rank being applied for (promoted to if successful)')
+        result = forms.ChoiceField(label='Result', choices=RESULT_CHOICES,
+                                   help_text='The end date of this event is assumed to be when this decision is effective.')
+        steps = forms.ChoiceField(label='Steps Year One', choices=STEPS_CHOICES,
+                                   help_text=mark_safe('Annual step increase given for the <strong>first</strong> year after promotion'))
+        steps2 = forms.ChoiceField(label='Steps Year Two', choices=STEPS_CHOICES,
+                                   help_text=mark_safe('Annual step increase given for the <strong>second</strong> year after promotion'))
+
+
+    SEARCH_RULES = {
+        'result': search.ChoiceSearchRule,
+        'steps': search.ComparableSearchRule,
+        'steps2': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+        'steps',
+        'steps2',
+    ]
+    SEARCH_FIELD_NAMES = {
+        'steps': 'Steps Year One',
+        'steps2': 'Steps Year Two',
+    }
+
+    def get_rank_display(self):
+        return RANK_CHOICES.get(self.get_config('rank'), 'unknown rank')
+    def get_result_display(self):
+        return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    def get_steps_display(self):
+        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
+    def get_steps2_display(self):
+        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps2'), 'unknown outcome')
+
+    def short_summary(self):
+        return "Promotion application: {0}".format(self.get_result_display(),)
+
+
+class SalaryReviewEventHandler(CareerEventHandlerBase):
+    EVENT_TYPE = 'SALARYREV'
+    NAME = "Salary Review"
+    IS_INSTANT = False
+
+    TO_HTML_TEMPLATE = '''{% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Steps Granted</dt><dd>{{ handler|get_display:"steps" }}</dd>
+        {% endblock %}'''
+
+    class EntryForm(BaseEntryForm):
+        STEPS_CHOICES = Choices(
+            ('', 'Pending'),
+            ('0.0', '0.0'),
+            ('0.5', '0.5'),
+            ('1.0', '1.0'),
+            ('1.5', '1.5'),
+            ('2.0', '2.0'),
+        )
+        steps = forms.ChoiceField(label='Steps', choices=STEPS_CHOICES,
+                                   help_text='Annual step increase given')
+
+
+    SEARCH_RULES = {
+        'steps': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'steps',
+    ]
+
+    def get_steps_display(self):
+        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
+    def short_summary(self):
+        return "Salary Review: {0}".format(self.get_steps_display(),)
 
 class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCareerEvent):
     """
@@ -259,6 +368,7 @@ class OnLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, TeachingCar
             ('MEDICAL', 'Medical'),
             ('PARENTAL', 'Parental'),
             ('ADMIN', 'Admin'),
+            ('LOA', 'Leave of Absence'),
             ('SECONDMENT', 'Secondment'),
         )
         reason = forms.ChoiceField(label='Type', choices=REASONS)
@@ -319,7 +429,12 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     """
 
     class EntryForm(BaseEntryForm):
-        pay_fraction = fields.FractionField(help_text="eg. 2/3")
+        PAY_FRACTION_CHOICES = [
+            ('4/5', '80%'),
+            ('9/10', '90%'),
+            ('1', '100%'),
+        ]
+        pay_fraction = fields.FractionField(choices=PAY_FRACTION_CHOICES)
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
         teaching_decrease = fields.TeachingReductionField()
@@ -358,12 +473,15 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def default_title(cls):
         return 'Study Leave'
 
-    def short_summary(self):
+    def get_pay_fraction_display(self):
         try:
             frac = fractions.Fraction(self.get_config('pay_fraction'))
         except TypeError:
             frac = 0
-        return 'Study Leave @ %.0f%%' % (frac*100)
+        return '%.0f%%' % (frac*100)
+
+    def short_summary(self):
+        return 'Study Leave @ ' + self.get_pay_fraction_display()
 
     def salary_adjust_annually(self):
         pay_fraction = self.get_config('pay_fraction')

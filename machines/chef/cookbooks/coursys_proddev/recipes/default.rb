@@ -13,9 +13,9 @@ execute "grant privileges" do
 end
 
 # remove mail server if installed by a previous version of recipes
-execute "remove_postfix" do
-    command "dpkg --purge postfix"
-end
+#execute "remove_postfix" do
+#    command "dpkg --purge postfix"
+#end
 
 # put in the fake https certification
 cookbook_file "self-ssl.key" do 
@@ -41,6 +41,12 @@ cookbook_file "secrets.py" do
     path "/home/coursys/courses/courses/secrets.py"
     action :create
 end
+directory "/home/coursys/courses/submitted_files" do
+    owner "coursys"
+    group "coursys"
+    mode 00755
+    action :create
+end
 
 # set rabbitmq password
 execute "rabbit add_user" do 
@@ -63,10 +69,10 @@ execute "rabbit set_permissions" do
     command "rabbitmqctl set_permissions -p myvhost coursys \".*\" \".*\" \".*\""
 end
 
-execute "create DB" do
-    cwd "/home/coursys/courses"
-    command "make create_db"
-end
+#execute "create DB" do
+#    cwd "/home/coursys/courses"
+#    command "make create_db"
+#end
 
 execute "restart gunicorns" do
     cwd "/home/coursys/courses"

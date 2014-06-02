@@ -28,9 +28,10 @@ from faculty.event_types.career import OnLeaveEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 from faculty.event_types.career import SalaryModificationEventHandler
 from faculty.event_types.career import TenureApplicationEventHandler
-from faculty.event_types.career import TenureReceivedEventHandler
 from faculty.event_types.career import StudyLeaveEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
+from faculty.event_types.career import PromotionApplicationEventHandler
+from faculty.event_types.career import SalaryReviewEventHandler
 from faculty.event_types.constants import EVENT_FLAGS
 from faculty.event_types.info import CommitteeMemberHandler
 from faculty.event_types.info import ExternalAffiliationHandler
@@ -64,8 +65,9 @@ HANDLERS = [
     StudyLeaveEventHandler,
     TeachingCreditEventHandler,
     TenureApplicationEventHandler,
-    TenureReceivedEventHandler,
     AccreditationFlagEventHandler,
+    PromotionApplicationEventHandler,
+    SalaryReviewEventHandler,
 ]
 EVENT_TYPES = {handler.EVENT_TYPE: handler for handler in HANDLERS}
 EVENT_TYPE_CHOICES = [(handler.EVENT_TYPE, handler) for handler in HANDLERS]
@@ -208,7 +210,7 @@ class CareerEvent(models.Model):
     person = models.ForeignKey(Person, related_name="career_events")
     unit = models.ForeignKey(Unit)
 
-    slug = AutoSlugField(populate_from='slug_string', unique_with=('person', 'unit'),
+    slug = AutoSlugField(populate_from='slug_string', unique_with=('person',),
                          slugify=make_slug, null=False, editable=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=True, blank=True)
@@ -231,6 +233,7 @@ class CareerEvent(models.Model):
             '-end_date',
             'event_type',
         )
+        unique_together = (("person", "slug"),)
 
     def __unicode__(self):
         return u"%s from %s to %s" % (self.get_event_type_display(), self.start_date, self.end_date)
@@ -383,11 +386,11 @@ class DocumentAttachment(models.Model):
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('career_event',))
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
-    contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to)
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
 
     def __unicode__(self):
-        return self.contents.filename
+        return self.contents.name
 
     class Meta:
         ordering = ("created_at",)

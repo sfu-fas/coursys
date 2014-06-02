@@ -1,6 +1,7 @@
 # do the import with fake data for development
 # suggested execution:
 #   echo "select 'drop table \"' || tablename || '\" cascade;' from pg_tables where schemaname = 'public';" | ./manage.py dbshell | grep 'drop table' | ./manage.py dbshell
+#   drop database coursys_db; create database coursys_db;
 #   echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, random
@@ -10,7 +11,7 @@ from courselib.testing import create_fake_semester
 import datetime, itertools
 
 NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157]
-IMPORT_SEMESTERS = ('1141', '1144')
+IMPORT_SEMESTERS = ('1144', '1147')
 TEST_SEMESTER = 1141 # semester for TA/RA demo data
 
 fakes = {}
@@ -54,8 +55,8 @@ def create_fake_students():
     """
     global all_students
     for lett in string.ascii_lowercase:
-        for i in range(21):
-            if i==20:
+        for i in range(11):
+            if i==10:
                 userid = "0%sgrad" % (lett*3)
                 fname = randname(8)
                 lname = "Grad"
@@ -69,12 +70,12 @@ def create_fake_students():
 
 def fill_courses():
     """
-    Put 20 students and a TA in each course.
+    Put 10 students and a TA in each course.
     """
     global all_students
     for crs in CourseOffering.objects.exclude(component="CAN"):
         lett = random.choice(string.ascii_lowercase)
-        for i in range(20):
+        for i in range(10):
             userid = "0%s%i" % (lett*3, i)
             m = Member(person=all_students[userid], offering=crs, role="STUD", credits=3, career="UGRD", added_reason="AUTO")
             m.save()
@@ -639,7 +640,7 @@ def create_more_data():
     instr = set(m.person for m in members)
     faculty = random.sample(instr, 10)
     for p in faculty:
-        Role(person=p, role='FAC', unit=cmpt).save()
+        Role.objects.get_or_create(person=p, role='FAC', unit=cmpt)
 
 
 
@@ -688,8 +689,7 @@ def import_semesters():
 def main():
     for strm in NEEDED_SEMESTERS:
         create_fake_semester(strm)
-    create_semesters()
-    Unit(label='UNIV', name='Simon Fraser University').save()
+    Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University')
 
     print "getting emplid/userid mapping"
     update_amaint_userids()

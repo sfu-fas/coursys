@@ -8,7 +8,7 @@ from dashboard.models import UserConfig
 from django.test.testcases import TransactionTestCase
 import datetime
 
-class AdvistorNotestest(TestCase):
+class AdvisorNotestest(TestCase):
     fixtures = ['test_data']
 
     def test_pages(self):
@@ -291,10 +291,10 @@ class AdvistorNotesAPITest(TransactionTestCase):
         f = open('advisornotes/testfiles/rest_notes_valid.json')
         data = f.read()
         f.close()
-        before_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        before_count = len(AdvisorNote.objects.filter(student__emplid=200000341))
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         self.assertEqual(response.status_code, 200)
-        after_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        after_count = len(AdvisorNote.objects.filter(student__emplid=200000341))
         self.assertEqual(before_count + 2, after_count, "There should be two more notes for the student")
 
     def test_rest_notes_filename_not_string(self):
@@ -329,9 +329,9 @@ class AdvistorNotesAPITest(TransactionTestCase):
         f = open('advisornotes/testfiles/rest_notes_valid_file.json')
         data = f.read()
         f.close()
-        before_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        before_count = len(AdvisorNote.objects.filter(student__emplid=200000341))
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
-        after_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        after_count = len(AdvisorNote.objects.filter(student__emplid=200000341))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(before_count + 1, after_count, "Should be one more advisor note for student")
 

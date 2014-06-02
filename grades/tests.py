@@ -416,7 +416,7 @@ class GradesTest(TestCase):
         a.save()
 
         ms = []
-        for i in range(20):
+        for i in range(10):
             p = Person.objects.get(userid="0aaa%i"%i)
             m = Member(person=p, offering=c, role="STUD", added_reason="UNK")
             m.save()
@@ -430,9 +430,9 @@ class GradesTest(TestCase):
         g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[3], letter_grade="B-", flag="GRAD")
         g.save(entered_by='ggbaker')
-        g = LetterGrade(activity=a, member=ms[4], letter_grade="B", flag="GRAD")
+        g = LetterGrade(activity=a, member=ms[4], letter_grade="P", flag="GRAD")
         g.save(entered_by='ggbaker')
-        g = LetterGrade(activity=a, member=ms[5], letter_grade="A+", flag="GRAD")
+        g = LetterGrade(activity=a, member=ms[5], letter_grade="GN", flag="GRAD")
         g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[6], letter_grade="F", flag="GRAD")
         g.save(entered_by='ggbaker')
@@ -442,21 +442,11 @@ class GradesTest(TestCase):
         g.save(entered_by='ggbaker')
         g = LetterGrade(activity=a, member=ms[9], letter_grade="N", flag="GRAD")
         g.save(entered_by='ggbaker')
-        g = LetterGrade(activity=a, member=ms[10], letter_grade="N", flag="GRAD")
-        g.save(entered_by='ggbaker')
-        g = LetterGrade(activity=a, member=ms[11], letter_grade="P", flag="GRAD")
-        g.save(entered_by='ggbaker')
-        g = LetterGrade(activity=a, member=ms[12], letter_grade="GN", flag="GRAD")
-        g.save(entered_by='ggbaker')
-        g = LetterGrade(activity=a, member=ms[13], letter_grade="N", flag="GRAD")
-        g.save(entered_by='ggbaker')
-        g = LetterGrade(activity=a, member=ms[14], letter_grade="A", flag="GRAD")
-        g.save(entered_by='ggbaker')
         
         g_objs = LetterGrade.objects.filter(activity=a)
         gs = [g.letter_grade for g in g_objs]
         gs_sort = sorted_letters(gs)
-        self.assertEquals(gs_sort, ['A+', 'A', 'A', 'B+', 'B', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'N', 'N', 'GN'])
+        self.assertEquals(gs_sort, ['A', 'B+', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'GN'])
         
         # pre-sort by userid for median testing (so we know which subsets we're grabbing)
         gs = [(int(g.member.person.userid[4:]), g.letter_grade) for g in g_objs]
@@ -464,12 +454,9 @@ class GradesTest(TestCase):
         gs = [g for u,g in gs]
 
         # odd-length case
-        self.assertEquals(median_letters(sorted_letters(gs[0:5])), "B")
+        self.assertEquals(median_letters(sorted_letters(gs[0:5])), "B-")
         # even length with median at boundary
-        self.assertEquals(median_letters(sorted_letters(gs[0:6])), "B+/B")
-        # even length with median not at boundary
-        grades = [gs[1], gs[2], gs[5], gs[14]] # [A, C-, A+, A]
-        self.assertEquals(median_letters(sorted_letters(grades)), "A")
+        self.assertEquals(median_letters(sorted_letters(gs[0:6])), "B-/D")
         # empty list
         self.assertEquals(median_letters([]), u"\u2014")
 

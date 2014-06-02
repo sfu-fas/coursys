@@ -14,6 +14,7 @@ from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from haystack.query import SearchQuerySet
 import json, datetime
 
 @requires_global_role("SYSA")
@@ -476,29 +477,32 @@ def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
     allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND', 'SYSA'])
-    if not(roles & allowed):
+    if not(roles & allowed) and not has_formgroup(request):
         # doesn't have any allowed roles
-        if not has_formgroup(request):
-            return ForbiddenResponse(request, "Not permitted to do student search.")
+        return ForbiddenResponse(request, "Not permitted to do student search.")
     
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
     response = HttpResponse(content_type='application/json')
 
-    studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
-    students = Person.objects.filter(studentQuery)[:100]
+    # do the query with Haystack
+    # experimentally, score >= 1 seems to correspond to useful things
+    student_qs = SearchQuerySet().models(Person).filter(text=term)[:20]
+    data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
+            if r and r.score >= 1 and unicode(r.emplid) not in EXCLUDE_EMPLIDS]
+
+    # non-haystack version of the above query
+    #studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+    #students = Person.objects.filter(studentQuery)[:20]
+    #data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
-        nonStudents = NonStudent.objects.filter(nonStudentQuery)[:100]
-    else:
-        nonStudents = []
+        nonStudents = NonStudent.objects.filter(nonStudentQuery)[:10]
+        data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
 
-    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
-    data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
-
-    data.sort(key = lambda x: x['label'])
+    #data.sort(key = lambda x: x['label'])
 
     json.dump(data, response, indent=1)
     return response
@@ -634,7 +638,14 @@ class OfferingDataJson(BaseDatatableView):
         
         srch = GET.get('sSearch', None)
         if srch:
-            qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch)) 
+            # non-haystack version:
+            #qs = qs.filter(Q(title__icontains=srch) | Q(number__icontains=srch) | Q(subject__icontains=srch) | Q(section__icontains=srch))
+
+            # get offering set from haystack, and use it to limit our query
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(text=srch)[:500]
+            offering_pks = (r.pk for r in offering_qs if r is not None)
+            qs = qs.filter(pk__in=offering_pks)
+
 
         subject = GET.get('subject', None)
         if subject:
@@ -666,7 +677,14 @@ class OfferingDataJson(BaseDatatableView):
 
         title = GET.get('crstitle', None)
         if title:
-            qs = qs.filter(title__icontains=title)
+            # non-haystack version:
+            #qs = qs.filter(title__icontains=title)
+
+            # get offering set from haystack, and use it to limit our query
+            offering_qs = SearchQuerySet().models(CourseOffering).filter(title=title)[:500]
+            offering_pks = (r.pk for r in offering_qs if r is not None)
+            qs = qs.filter(pk__in=offering_pks)
+
 
         wqb = GET.getlist('wqb')
         for f in wqb:
@@ -674,11 +692,15 @@ class OfferingDataJson(BaseDatatableView):
                 continue # not in our list of flags: not safe to getattr
             qs = qs.filter(flags=getattr(CourseOffering.flags, f))
 
-        distance = GET.get('distance', None)
-        if distance == 'dist':
+        mode = GET.get('mode', None)
+        if mode == 'dist':
             qs = qs.filter(instr_mode='DE')
-        elif distance == 'on':
+        elif mode == 'on':
             qs = qs.exclude(instr_mode='DE')
+        elif mode == 'day':
+            qs = qs.exclude(instr_mode='DE').exclude(section__startswith='E')
+        elif mode == 'eve':
+            qs = qs.exclude(instr_mode='DE').filter(section__startswith='E')
 
         #print qs.query
         #qs = qs[:500] # ignore requests for crazy amounts of data
@@ -709,6 +731,8 @@ def _instructor_autocomplete(request):
         return ForbiddenResponse(request, "Must provide 'term' query.")
 
     response = HttpResponse(content_type='application/json')
+
+    """ # non-haystack version
     query = get_query(request.GET['term'], ['person__first_name', 'person__last_name', 'person__userid', 'person__middle_name'])
     # matching person.id values who have actually taught a course
     person_ids = Member.objects.filter(query).filter(role='INST') \
@@ -717,6 +741,22 @@ def _instructor_autocomplete(request):
     person_ids = list(person_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
     # get the Person objects: is there no way to do this in one query?
     people = Person.objects.filter(id__in=person_ids)
+    """
+
+    term = request.GET['term']
+    # strip any digits from the query, so users can't probe emplids with the search (emplid is the only digit-containing
+    # thing in the Person text index)
+    term = ''.join(c for c in term if not c.isdigit())
+    # query with haystack
+    person_qs = SearchQuerySet().models(Person).filter(text=term)[:100]
+    person_pks = (r.pk for r in person_qs if r is not None)
+    # go back to the database to limit to only instructors
+    instr_ids = Member.objects.filter(person_id__in=person_pks).filter(role='INST') \
+                 .exclude(person__userid=None).order_by() \
+                 .values_list('person', flat=True).distinct()[:20]
+    instr_ids = list(instr_ids) # shouldn't be necessary, but production mySQL can't do IN + LIMIT
+    people = Person.objects.filter(id__in=instr_ids)
+
     data = [{'value': p.userid, 'label': p.name()} for p in people]
     json.dump(data, response, indent=1)
     return response

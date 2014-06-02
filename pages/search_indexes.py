@@ -1,9 +1,11 @@
-from pages.models import Page
+from pages.models import Page, PageVersion
 from haystack import indexes
+
+# Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
 
 class PageIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
-    title = indexes.EdgeNgramField()
+    #title = indexes.EdgeNgramField()
     url = indexes.CharField(indexed=False, null=False)
     search_display = indexes.CharField(indexed=False)
     permission_key = indexes.CharField(indexed=True)
@@ -14,10 +16,18 @@ class PageIndex(indexes.SearchIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         return self.get_model().objects.exclude(can_read='NONE').select_related('offering')
 
+    def should_update(self, p):
+        # no PageVersion yet? Still mid-save, so ignore.
+        try:
+            p.current_version()
+            return True
+        except PageVersion.DoesNotExist:
+            return False
+
     def prepare_text(self, p):
         v = p.current_version()
         title = v.title
-        wikitext = v.get_wikitext()
+        wikitext = v.get_wikitext()[:10000]
         return title + '\n' + wikitext
 
     def prepare_title(self, p):

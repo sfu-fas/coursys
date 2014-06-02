@@ -52,3 +52,4 @@ def get_query(query_string, search_fields, startonly=False):
         else:
             query = query & or_query
     return query
+

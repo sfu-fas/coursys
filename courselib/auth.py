@@ -4,8 +4,11 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.http import urlquote
+from django.utils.safestring import mark_safe
 from coredata.models import Role, CourseOffering, Member
 from onlineforms.models import FormGroup, Form
+from privacy.models import needs_privacy_signature, privacy_redirect
+import urllib
 
 try:
     from functools import wraps
@@ -14,7 +17,7 @@ except ImportError:
 
 # adapted from django_cas.decorators: returns 403 on failure, and passes **kwargs to test_func.
 def user_passes_test(test_func, login_url=None,
-                     redirect_field_name=REDIRECT_FIELD_NAME):
+                     redirect_field_name=REDIRECT_FIELD_NAME, force_privacy=False):
     """Replacement for django.contrib.auth.decorators.user_passes_test that
     returns 403 Forbidden if the user is already logged in.
     """
@@ -26,7 +29,12 @@ def user_passes_test(test_func, login_url=None,
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
             if test_func(request, **kwargs):
-                return view_func(request, *args, **kwargs)
+                if needs_privacy_signature(request, only_relevant_roles=not force_privacy):
+                    # logic there: usually only check for the admin roles we know have a privacy implication. If we're
+                    # passed force_privacy, then views must have the privacy agreement.
+                    return privacy_redirect(request)
+                else:
+                    return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated():
                 return ForbiddenResponse(request)
             else:
@@ -48,28 +56,14 @@ def HttpError(request, status=404, title="Not Found", error="The requested resou
     return resp
 
 def ForbiddenResponse(request, errormsg=None):
-    return HttpError(request, status=403, title="Forbidden", error="You do not have permission to access this resource.", errormsg=errormsg)
+    error = mark_safe("You do not have permission to access this resource.")
+    if not request.user.is_authenticated():
+        login_url = settings.LOGIN_URL + '?' + urllib.urlencode({'next': request.get_full_path()})
+        error += mark_safe(' You are <strong>not logged in</strong>, so maybe <a href="%s">logging in</a> would help.' % (login_url))
+    return HttpError(request, status=403, title="Forbidden", error=error, errormsg=errormsg)
 
 def NotFoundResponse(request, errormsg=None):
     return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
-
-def is_advisor(request, **kwargs):
-    """
-    Return True is the given user is an advisor
-    """
-    perms = Role.objects.filter(person__userid=request.user.username, role='ADVS')
-    count = perms.count()
-    return count>0
-
-def requires_advisor(function=None, login_url=None):
-    """
-    Allows access if user is an advisor.
-    """
-    actual_decorator = user_passes_test(is_advisor, login_url=login_url)
-    if function:
-        return  actual_decorator(function)
-    else:
-        return actual_decorator
 
 def has_global_role(role, request, **kwargs):
     """
@@ -205,7 +199,7 @@ def requires_form_admin_by_slug(function=None, login_url=None):
     """
     Allows access if user is an admin of the form indicated by the 'form_slug' keyword.
     """
-    actual_decorator = user_passes_test(is_form_admin_by_slug, login_url=login_url)
+    actual_decorator = user_passes_test(is_form_admin_by_slug, login_url=login_url, force_privacy=True)
     if function:
         return actual_decorator(function)
     else:
@@ -223,7 +217,7 @@ def requires_formgroup(login_url=None):
     """
     Allows access if user has the given role in ANY FormGroup
     """
-    actual_decorator = user_passes_test(has_formgroup, login_url=login_url)
+    actual_decorator = user_passes_test(has_formgroup, login_url=login_url, force_privacy=True)
     return actual_decorator
 
 def is_dept_admn_by_slug(request, course_slug, **kwargs):
