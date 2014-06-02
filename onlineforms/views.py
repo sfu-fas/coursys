@@ -504,10 +504,24 @@ def new_sheet(request, form_slug):
     return render(request, "onlineforms/new_sheet.html", context)
 
 @requires_form_admin_by_slug()
+def preview_form(request, form_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    sheet_forms = []
+
+    for owner_sheet in Sheet.objects.filter(form=owner_form, active=True):
+        form = DynamicForm(owner_sheet.title)
+        fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
+        form.fromFields(fields)
+        sheet_forms.append(form)
+
+    context = {'form': form, 'owner_form': owner_form, 'sheet_forms': sheet_forms}
+    return render(request, "onlineforms/preview_form.html", context)
+
+@requires_form_admin_by_slug()
 def preview_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug, form=owner_form)
-    
+
     form = DynamicForm(owner_sheet.title)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
     form.fromFields(fields)
