@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Preview {{owner_form.title }} sheets{% endblock %}
+{% block h1 %}Preview {{owner_form.title }} sheets{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'both'});
+});
+//]]></script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "onlineforms.views.index" %}">Forms</a></li>
+<li><a href="{% url "onlineforms.views.list_all" %}">Manage Forms</a></li>
+<li><a href="{% url "onlineforms.views.view_form" form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>Preview</li>
+{% endblock %}
+
+{% block content %}
+    <p>What follows is a preview of all of the sheets on this form: nobody would ever see more than one of these at a time, but it may be useful to see everything all together like this.</p>
+    {% for form in sheet_forms %}
+    <form action="#" method="post">{% csrf_token %}
+        <fieldset>
+            <legend>{{form.title}}</legend>
+            {{form|as_dl_onlineforms}}
+        </fieldset>
+    </form>
+    {% endfor %}
+{% endblock %}
