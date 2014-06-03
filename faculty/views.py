@@ -744,6 +744,7 @@ def summary(request, userid):
         'editor': editor,
         'career_events': career_events,
         'filterform': filterform,
+        'can_wizard': not career_events.exclude(event_type='GRANTAPP').exists(),
     }
     return render(request, 'faculty/summary.html', context)
 
