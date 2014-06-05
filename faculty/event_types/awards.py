@@ -6,7 +6,7 @@ from cache_utils.decorators import cached
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.fields import DollarInput, AddSalaryField, AddPayField, TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 from faculty.event_types.search import ChoiceSearchRule, ComparableSearchRule, StringSearchRule

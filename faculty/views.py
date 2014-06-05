@@ -40,7 +40,7 @@ from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
