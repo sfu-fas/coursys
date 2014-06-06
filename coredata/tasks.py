@@ -147,7 +147,8 @@ def import_grad_group(emplids):
 @task(queue='sims')
 def import_offerings(continue_import=False):
     tasks = get_import_offerings_task()
-    tasks.apply_async()
+    for t in tasks:
+        t.apply_async()
 
     if continue_import:
         import_combined_sections.apply_async()
@@ -168,8 +169,11 @@ def get_import_offerings_task():
     offering_groups = _grouper(offerings, 20)
     slug_groups = ([o.slug for o in offerings] for offerings in offering_groups)
 
-    offering_import_chain = chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
-    return offering_import_chain
+    #offering_import_chain = chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
+    #return offering_import_chain
+    tasks = [import_offering_group.si(slugs) for slugs in slug_groups]
+    return tasks
+
 
 @task(queue='sims')
 def import_offering_group(slugs):
