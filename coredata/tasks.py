@@ -96,8 +96,9 @@ def import_task():
         fix_unknown_emplids.si(),
         update_all_userids.si(),
         get_update_grads_task(),
-        get_import_offerings_task(),
-        import_combined_sections.si(),
+        import_offerings.si(continue_import=True),
+        #get_import_offerings_task(),
+        #import_combined_sections.si(),
         #send_report.si()
     ]
 
@@ -141,6 +142,15 @@ def import_grad_group(emplids):
     for emplid in emplids:
         logger.debug('Importing grad %s' % (emplid,))
         importer.get_person_grad(emplid)
+
+
+@task(queue='sims')
+def import_offerings(continue_import=False):
+    tasks = get_import_offerings_task()
+    tasks.apply_async()
+
+    if continue_import:
+        import_combined_sections.apply_async()
 
 
 def get_import_offerings_task():
