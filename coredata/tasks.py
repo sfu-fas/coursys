@@ -146,19 +146,27 @@ def import_grad_group(emplids):
 
 @task(queue='sims')
 def import_offerings(continue_import=False):
-    tasks = get_import_offerings_task()
-    for t in tasks:
-        t.apply_async()
+    logger.info('Fetching offerings')
+    #tasks = get_import_offerings_tasks()
+    #logger.info('Starting offering subtasks')
+    #for t in tasks:
+    #    t.apply_async()
+
+    tasks = get_import_offerings_tasks()
 
     if continue_import:
-        import_combined_sections.apply_async()
+        #import_combined_sections.apply_async()
+        tasks = tasks | import_combined_sections.si()
+
+    logger.info('Starting offering subtasks')
+    tasks.apply_async()
 
 
-def get_import_offerings_task():
+def get_import_offerings_tasks():
     """
     Get all of the offerings to import, and build tasks (in groups) to do the work.
 
-    Doesn't actually call the jobs: just returns a celery task to be called.
+    Doesn't actually call the jobs: just returns celery tasks to be called.
     """
     #offerings = importer.import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 383', ' 470')")
     #offerings = importer.import_offerings()
@@ -166,13 +174,14 @@ def get_import_offerings_task():
     offerings = list(offerings)
     offerings.sort()
 
-    offering_groups = _grouper(offerings, 20)
+    offering_groups = _grouper(offerings, 50)
     slug_groups = ([o.slug for o in offerings] for offerings in offering_groups)
 
-    #offering_import_chain = chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
-    #return offering_import_chain
-    tasks = [import_offering_group.si(slugs) for slugs in slug_groups]
-    return tasks
+    #tasks = [import_offering_group.si(slugs) for slugs in slug_groups]
+    #return tasks
+
+    offering_import_chain = chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
+    return offering_import_chain
 
 
 @task(queue='sims')
