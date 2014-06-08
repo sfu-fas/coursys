@@ -7,9 +7,10 @@ from django.utils.safestring import mark_safe
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
+from faculty.event_types.constants import SALARY_STEPS_CHOICES
 
 RANK_CHOICES = Choices(
     ('LLEC', 'Limited-Term Lecturer'),
@@ -266,22 +267,15 @@ class PromotionApplicationEventHandler(CareerEventHandlerBase):
             ('RECI', 'Promoted'),
             ('DENI', 'Denied'),
         )
-        STEPS_CHOICES = Choices(
-            ('-', 'Pending'),
-            ('0.0', '0.0'),
-            ('0.5', '0.5'),
-            ('1.0', '1.0'),
-            ('1.5', '1.5'),
-            ('2.0', '2.0'),
-        )
 
-        rank = forms.ChoiceField(choices=RANK_CHOICES, required=True, help_text='Rank being applied for (promoted to if successful)')
+        rank = forms.ChoiceField(choices=RANK_CHOICES, required=True, 
+                help_text='Rank being applied for (promoted to if successful)')
         result = forms.ChoiceField(label='Result', choices=RESULT_CHOICES,
-                                   help_text='The end date of this event is assumed to be when this decision is effective.')
-        steps = forms.ChoiceField(label='Steps Year One', choices=STEPS_CHOICES,
-                                   help_text=mark_safe('Annual step increase given for the <strong>first</strong> year after promotion'))
-        steps2 = forms.ChoiceField(label='Steps Year Two', choices=STEPS_CHOICES,
-                                   help_text=mark_safe('Annual step increase given for the <strong>second</strong> year after promotion'))
+                help_text='The end date of this event is assumed to be when this decision is effective.')
+        steps = forms.ChoiceField(label='Steps Year One', choices=SALARY_STEPS_CHOICES,
+                help_text=mark_safe('Annual step increase given for the <strong>first</strong> year after promotion'))
+        steps2 = forms.ChoiceField(label='Steps Year Two', choices=SALARY_STEPS_CHOICES,
+                help_text=mark_safe('Annual step increase given for the <strong>second</strong> year after promotion'))
 
 
     SEARCH_RULES = {
@@ -304,9 +298,9 @@ class PromotionApplicationEventHandler(CareerEventHandlerBase):
     def get_result_display(self):
         return self.EntryForm.RESULT_CHOICES.get(self.get_config('result'), 'unknown outcome')
     def get_steps_display(self):
-        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
+        return SALARY_STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
     def get_steps2_display(self):
-        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps2'), 'unknown outcome')
+        return SALARY_STEPS_CHOICES.get(self.get_config('steps2'), 'unknown outcome')
 
     def short_summary(self):
         return "Promotion application: {0}".format(self.get_result_display(),)
@@ -322,15 +316,8 @@ class SalaryReviewEventHandler(CareerEventHandlerBase):
         {% endblock %}'''
 
     class EntryForm(BaseEntryForm):
-        STEPS_CHOICES = Choices(
-            ('', 'Pending'),
-            ('0.0', '0.0'),
-            ('0.5', '0.5'),
-            ('1.0', '1.0'),
-            ('1.5', '1.5'),
-            ('2.0', '2.0'),
-        )
-        steps = forms.ChoiceField(label='Steps', choices=STEPS_CHOICES,
+
+        steps = forms.ChoiceField(label='Steps', choices=SALARY_STEPS_CHOICES,
                                    help_text='Annual step increase given')
 
 
@@ -342,7 +329,7 @@ class SalaryReviewEventHandler(CareerEventHandlerBase):
     ]
 
     def get_steps_display(self):
-        return self.EntryForm.STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
+        return SALARY_STEPS_CHOICES.get(self.get_config('steps'), 'unknown outcome')
     def short_summary(self):
         return "Salary Review: {0}".format(self.get_steps_display(),)
 

@@ -2,7 +2,7 @@ from django import forms
 
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.base import TeachingAdjust
 from faculty.event_types.fields import TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent

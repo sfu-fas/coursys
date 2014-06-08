@@ -18,21 +18,27 @@ class FiveRetakeReport( Report ):
         students = student_query.result()
         students_of_interest = students.column_as_list("EMPLID")
         
-        def student_of_interest( row_map ):
+        def student_of_interest(row_map):
             return row_map['EMPLID'] in students_of_interest
         
-        def subject_in_fas( row_map ):
+        def subject_in_fas(row_map):
             """ Discards courses that aren't in CMPT, MACM, or ENSC """
             return row_map["SUBJECT"] in ["CMPT", "MACM", "MSE", "ENSC"]
+
+        def xx_in_number(row_map):
+            """ Discards courses that have a number like XX1 or 1XX """
+            return "XX" not in row_map["CATALOG_NBR"]
         
-        def ignore_repeatable_courses( row_map ):
+        def ignore_repeatable_courses(row_map):
             """ Discards courses that are flagged as 'repeatable' """
             return not repeatable_courses.contains( "CRSE_ID", row_map["CRSE_ID"] )
         
-        def compound_filter( row_map):
-            return student_of_interest( row_map ) 
+        def compound_filter(row_map):
+            return (student_of_interest(row_map) and 
+                    ignore_repeatable_courses(row_map) and
+                    xx_in_number(row_map))
         
-        def create_course_join_column( row_map ):
+        def create_course_join_column(row_map):
             if row_map['EQUIV_CRSE_ID'] != "":
                 return row_map["EQUIV_CRSE_ID"]
             else:
@@ -58,7 +64,8 @@ class FiveRetakeReport( Report ):
                 if course in student_courses[emplid]:
                     if not emplid in student_retakes:
                         student_retakes[emplid] = []
-                    student_retakes[emplid].append(row["SUBJECT"] + "-" + row["CATALOG_NBR"])
+                    course_descriptor = row["SUBJECT"] + "-" + row["CATALOG_NBR"] + " (" + str(semester) + ")"
+                    student_retakes[emplid].append(course_descriptor)
                 else: 
                     student_courses[emplid].append(course)
         
@@ -86,6 +93,7 @@ class FiveRetakeReport( Report ):
         
         output_table.left_join( names, "EMPLID" )
         output_table.left_join( email, "EMPLID" )
-        output_table = output_table.subset( ['EMPLID', 'N_RETAKES', 'RETAKES', 'NAME_DISPLAY', 'EMAIL_ADDR'] )
+        output_table.compute_column("RETAKE", lambda x: ", ".join(x['RETAKES']))
+        output_table = output_table.subset( ['EMPLID', 'N_RETAKES', 'RETAKE', 'NAME_DISPLAY', 'EMAIL_ADDR'] )
 
         self.artifacts.append(output_table)

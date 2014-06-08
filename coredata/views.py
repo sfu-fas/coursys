@@ -310,20 +310,20 @@ def unit_admin(request):
     """
     Unit admin front page
     """
-    return render(request, 'coredata/unit_admin.html', {'units': request.units})
+    return render(request, 'coredata/unit_admin.html', {'units': Unit.sub_units(request.units)})
 
 @requires_role("ADMN")
 def unit_role_list(request):
     """
     Display list of who has what role (for department admins)
     """
-    roles = Role.objects.filter(unit__in=request.units, role__in=UNIT_ROLES)
+    roles = Role.objects.filter(unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
     return render(request, 'coredata/unit_roles.html', {'roles': roles})
 
 @requires_role("ADMN")
 def new_unit_role(request, role=None):
     role_choices = [(r,ROLES[r]) for r in UNIT_ROLES]
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, unicode(u)) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = UnitRoleForm(request.POST)
         form.fields['role'].choices = role_choices
@@ -347,7 +347,7 @@ def new_unit_role(request, role=None):
 
 @requires_role("ADMN")
 def delete_unit_role(request, role_id):
-    role = get_object_or_404(Role, pk=role_id, unit__in=request.units, role__in=UNIT_ROLES)
+    role = get_object_or_404(Role, pk=role_id, unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
     messages.success(request, 'Deleted role %s for %s.' % (role.get_role_display(), role.person.name()))
     #LOG EVENT#
     l = LogEntry(userid=request.user.username,
@@ -362,7 +362,7 @@ def delete_unit_role(request, role_id):
 @requires_role('ADMN')
 def unit_address(request, unit_slug):
     unit = get_object_or_404(Unit, slug=unit_slug)
-    if unit not in request.units:
+    if unit not in Unit.sub_units(request.units):
         return ForbiddenResponse(request, "Not an admin for this unit")
     
     if request.method == 'POST':
@@ -387,7 +387,7 @@ def unit_address(request, unit_slug):
 @requires_role('ADMN')
 def missing_instructors(request, unit_slug):
     unit = get_object_or_404(Unit, slug=unit_slug)
-    if unit not in request.units:
+    if unit not in Unit.sub_units(request.units):
         return ForbiddenResponse(request, "Not an admin for this unit")
 
     # build a set of all instructors that don't have an instructor-appropriate role

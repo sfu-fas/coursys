@@ -59,6 +59,9 @@ class Table():
         Jonathan | Lassam | Jonathan Lassam
        
         """
+        if column_name in self.headers:
+            self.remove_column(column_name)
+
         for i in xrange( 0, len(self.rows) ):
             self.rows[i].append( column_function( self.row_map(i) ) )
 

@@ -7,7 +7,7 @@ from coredata.models import Unit
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 
