@@ -8,8 +8,8 @@
     $.widget("custom.alteredcomplete", $.ui.autocomplete, {
         _renderItem: function(ul, item) {
         var cls="quicksearch-"+item.label.split(",")[2].trim().toLowerCase().replace(/\s/g, "-");
-        return $("<li class='quicksearch'>")
-            .attr("data-value", item.value )
+        return $("<li>")
+            .data( 'item.autocomplete', item )
             .append( $("<a>")
                 .attr( "class", cls )
                 .text( item.label ) )
