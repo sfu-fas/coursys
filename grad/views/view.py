@@ -154,8 +154,8 @@ def view(request, grad_slug, section=None):
     other_grad = GradStudent.objects \
                  .filter(program__unit__in=units, person=grad.person) \
                  .exclude(id=grad.id)
-    other_applicant = [x for x in other_grad if x.is_applicant]
-    other_grad = [x for x in other_grad if not x.is_applicant]
+    other_applicant = [x for x in other_grad if x.is_applicant()]
+    other_grad = [x for x in other_grad if not x.is_applicant()]
     context['other_grad'] = other_grad
     context['other_applicant'] = other_applicant
 
