@@ -2,8 +2,10 @@ from courselib.auth import has_role, NotFoundResponse, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
-from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
-        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory, FinancialComment
+from grad.models import GradStudent, Supervisor, GradStatus, \
+        CompletedRequirement, GradRequirement, Scholarship, \
+        OtherFunding, Promise, Letter, GradProgramHistory, \
+        FinancialComment
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -152,7 +154,10 @@ def view(request, grad_slug, section=None):
     other_grad = GradStudent.objects \
                  .filter(program__unit__in=units, person=grad.person) \
                  .exclude(id=grad.id)
+    other_applicant = [x for x in other_grad if x.is_applicant]
+    other_grad = [x for x in other_grad if not x.is_applicant]
     context['other_grad'] = other_grad
+    context['other_applicant'] = other_applicant
 
     return render(request, 'grad/view.html', context)
 
