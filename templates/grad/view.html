@@ -22,8 +22,12 @@
 	<ul>
 	{% if authtype != 'supervisor' %}
 	<li id="moreinfo">
-        <a href="javascript:get_more_info('{% url "grad.views.grad_more_info" 
-            grad_slug=grad.slug %}')">Fetch more info</a>
+    <a href="javascript:void(0)"
+        onclick="
+        //<![CDATA[
+        get_more_info('{% url "grad.views.grad_more_info" grad_slug=grad.slug %}')
+        //]]>
+        ">Fetch more info</a>
         <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i>
     </li>
 	{% endif %}
@@ -73,12 +77,13 @@ $(document).ready(function() {
 <tbody>
 <tr>
     <th>Student #</th>
-        <td>{{grad.person.emplid}}
-            {# [<a href="https://go.sfu.ca/psp/paprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>] #}
-        {% if grad.config.cortezid %}
-            [<a href="{% url "grad.views.view" grad_slug=grad.slug %}?cortez-bounce=yes">OLD cortez record</a>]
-        {% endif %}
-  </td>
+    <td>
+    {{grad.person.emplid}}
+        {# [<a href="https://go.sfu.ca/psp/paprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>] #}
+    {% if grad.config.cortezid %}
+        [<a href="{% url "grad.views.view" grad_slug=grad.slug %}?cortez-bounce=yes">OLD cortez record</a>]
+    {% endif %}
+    </td>
 </tr>
 <tr>
     <th>Name</th>
