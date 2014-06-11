@@ -1,16 +1,31 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block headextra %}
+  <link rel="stylesheet" href="{% static "style/grad_quicksearch.css" %}" />
+
 <script type="text/javascript">
+    $.widget("custom.alteredcomplete", $.ui.autocomplete, {
+        _renderItem: function(ul, item) {
+        var cls="quicksearch-"+item.label.split(",")[2].trim().toLowerCase().replace(/\s/g, "-");
+        return $("<li>")
+            .data( 'item.autocomplete', item )
+            .append( $("<a>")
+                .attr( "class", cls )
+                .text( item.label ) )
+            .appendTo( ul );
+        }
+    });
     
 	$(document).ready(function() {
-	    $("id_search").focus();
-	    $("#id_search").autocomplete({
+	    $("#id_search").focus();
+	    $("#id_search").alteredcomplete({
             source: '{% url "grad.views.quick_search" %}',
-            minLength: 2,
+            minLength: 2
         });
 	});
 </script>
+
 {% endblock %}
 
 {% block title %}Graduate Student Records{% endblock %}
@@ -43,14 +58,6 @@
 
 <form action="{% url "grad.views.quick_search" %}" method="get">
 <p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
-{% comment %}
-<p>Include who?
-{{form.incl_active}} Active
-{{form.incl_appl}} Applicants
-{{form.incl_grad}} Graduated
-{{form.incl_oldappl}} Old Applicants
-</p>
-{% endcomment %}
 <p><input class="submit" type="submit" class="submit" value="Go" /></p>
 </form>
 

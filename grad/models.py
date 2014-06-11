@@ -1163,6 +1163,9 @@ class GradStudent(models.Model):
             summary += self.config['exam_date'] + " "
         return summary
 
+    def is_applicant(self):
+        return self.current_status in STATUS_APPLICANT
+
     @classmethod
     def get_canonical(cls, person, semester=None):
         """ 
