@@ -8,8 +8,16 @@ execute "create database" do
     command "echo \"create database if not exists coursys_db;\" | mysql"
 end
 
+execute "create database" do 
+    command "echo \"create database if not exists test_coursys_db;\" | mysql"
+end
+
 execute "grant privileges" do 
     command "echo \"grant all on coursys_db.* to 'coursys_user'@'localhost' identified by 'coursys_password';\" | mysql"
+end
+
+execute "grant privileges" do 
+    command "echo \"grant all on test_coursys_db.* to 'coursys_user'@'localhost' identified by 'coursys_password';\" | mysql"
 end
 
 # remove mail server if installed by a previous version of recipes
