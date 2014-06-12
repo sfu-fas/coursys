@@ -11,6 +11,10 @@ class Ensc150And250ButNot215StudentReport( Report ):
     I was asked this morning for the number of students who have taken ENSC 150 and (ENSC 250 or CMPT 250) but
     not ENSC 215.
 
+    and 
+
+    have taken (ENSC 150 or CMPT 150) but whom have not taken ENSC 215 or (ENSC 250 or CMPT 250)
+
     """
 
     def run( self ):
@@ -65,8 +69,7 @@ class Ensc150And250ButNot215StudentReport( Report ):
         target_students_2 = copy.deepcopy(students)
         target_students_2.title = "Students with (ENSC 150 or CMPT 150) and no (ENSC 215 or ENSC 250)"
         target_students_2.filter( lambda x: ((x['HAS_ENSC_150'] or x['HAS_CMPT_150']) and 
-                                    not (x['HAS_ENSC_215'] or x['HAS_ENSC_250'])) )
-        target_students_2.remove_column("HAS_CMPT_250")
+                                    not (x['HAS_ENSC_215'] or x['HAS_ENSC_250'] or x['HAS_ENSC_250'])) )
 
         students.flatten("EMPLID")
         target_students.flatten("EMPLID")
