@@ -55,7 +55,6 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
 
-
     # uses of the cortez link routed through here to see if they're actually being used
     if 'cortez-bounce' in request.GET and 'cortezid' in grad.config:
         from log.models import LogEntry
