@@ -185,7 +185,7 @@ $(document).ready(function() {
 </table>
 </div>
 
-{% if can_edit and not grad.is_applicant %}
+{% if can_edit %}
 <p><strong>Manage:</strong>
 <a href="{% url "grad.views.manage_general" grad_slug=grad.slug  %}">General Info</a>
 | <a href="{% url "grad.views.manage_requirements" grad_slug=grad.slug  %}">Requirements</a>
