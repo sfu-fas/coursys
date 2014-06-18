@@ -2,6 +2,7 @@ from django.db import models, transaction, IntegrityError
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
 from autoslug import AutoSlugField
+from cache_utils.decorators import cached
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from courselib.json_fields import JSONField
@@ -733,19 +734,29 @@ class GradStudent(models.Model):
                 self.end_semester = None
         
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
-            key = 'grad-activesem-%i' % (self.id)
-            cache.delete(key)
+            self.active_semesters.invalidate()
+            self.active_semesters_display.invalidate()
             self.save()
 
-    def _active_semesters(self):
+
+    @cached(24*3600)
+    def active_semesters(self, program=None):
         """
-        Number of active and total semesters
+        Number of active and total semesters.
+
+        If present, program should be a GradProgramHistory object for the program we're interested in: will return the
+        number of semesters since the start of that program.
+
+        Cache is invalidated by self.update_status_fields.
         """
         # actually flips through every relevant semester and checks to see
         # their (final) status in that semester. The data is messy enough
         # that I don't see any better way.
         next_sem = Semester.current().offset(1)
-        start = self.start_semester or next_sem
+        if program:
+            start = program.start_semester
+        else:
+            start = self.start_semester or next_sem
         end = self.end_semester or next_sem
 
         statuses_that_indicate_a_change_in_state = STATUS_ACTIVE + STATUS_INACTIVE
@@ -770,23 +781,6 @@ class GradStudent(models.Model):
         
         return active, total
 
-
-    def active_semesters(self):
-        """
-        Number of active and total semesters (caches self._active_semesters).
-        
-        Invalidated by self.update_status_fields.
-        """
-        key = 'grad-activesem-%i' % (self.id)
-        res = cache.get(key)
-        if res:
-            return res
-        else:
-            res = self._active_semesters()
-            cache.set(key, res, 24*3600)
-            return res
-
-
     def _has_committee(self):
         senior_sups = Supervisor.objects.filter(student=self, supervisor_type='SEN', removed=False).count()
         return senior_sups > 0
@@ -808,12 +802,23 @@ class GradStudent(models.Model):
 
         return bool(res)
 
+    @cached(24*3600)
     def active_semesters_display(self):
         """
         Format self.active_semesters_display for display
+
+        Cache is invalidated by self.update_status_fields.
         """
         active, total = self.active_semesters()
-        return u"%i/%i" % (active, total)
+        res = u"%i/%i" % (active, total)
+
+        history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related('program')
+        if history.count() > 1:
+            currentprog = history.first()
+            active, total = self.active_semesters(program=currentprog)
+            res += ' (%i/%i in %s)' % (active, total, currentprog.program.label)
+
+        return res
     
     def flags_and_values(self):
         """
