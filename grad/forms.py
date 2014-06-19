@@ -823,8 +823,8 @@ class SearchForm(forms.Form):
                 and
 
                 (
-                    self.cleaned_data.get('program_asof', None) and self.cleaned_data.get('program', None)
-                    and gradstudent.program_as_of(self.cleaned_data.get('program_asof', None)) in self.cleaned_data.get('program', None)
+                    not self.cleaned_data.get('program_asof', None) or not self.cleaned_data.get('program', None)
+                    or gradstudent.program_as_of(self.cleaned_data.get('program_asof', None)) in self.cleaned_data.get('program', None)
                 )
 
                 )
