@@ -819,7 +819,18 @@ class GradStudent(models.Model):
             res += ' (%i/%i in %s)' % (active, total, currentprog.program.label)
 
         return res
-    
+
+    def program_as_of(self, semester=None):
+        if semester == None:
+            semester = Semester.current()
+
+        gph = GradProgramHistory.objects.filter(student=self, start_semester__lte=semester) \
+            .order_by('-start_semester', '-starting').select_related('program').first()
+        if gph:
+            return gph.program
+        else:
+            return None
+
     def flags_and_values(self):
         """
         Pairs fo GradFlag objects and GradFlagValue objects for this student
