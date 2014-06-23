@@ -581,7 +581,7 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
 
 class ContractReviewEventHandler(CareerEventHandlerBase):
     EVENT_TYPE = 'CONTRACTRV'
-    NAME = "Contract Review"
+    NAME = "Contract Renewal"
     IS_INSTANT = False
 
     TO_HTML_TEMPLATE = '''
@@ -605,4 +605,4 @@ class ContractReviewEventHandler(CareerEventHandlerBase):
     def get_result_display(self):
         return CONTRACT_REVIEW_CHOICES.get(self.get_config('result'), 'unknown outcome')
     def short_summary(self):
-        return "Contract Review: {0}".format(self.get_result_display(),)
+        return "Contract Renewal: {0}".format(self.get_result_display(),)
