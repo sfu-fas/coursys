@@ -27,7 +27,7 @@ RANK_CHOICES = Choices(
 
 CONTRACT_REVIEW_CHOICES = Choices(
     ('PEND', 'Pending'),
-    ('PROM', 'Promoted'),
+    ('PROM', 'Renewed'),
     ('DENY', 'Denied'),
 )
 
