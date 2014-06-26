@@ -19,12 +19,17 @@ from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoA
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
+from pages.models import Page, ACL_ROLES
 from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
 from featureflags.flags import uses_feature
+from haystack.query import SearchQuerySet
+from haystack.inputs import AutoQuery, Exact, Clean
 import pytz
+import itertools
+from urllib import urlencode
 
 
 def _get_memberships(userid):
@@ -959,11 +964,6 @@ def photo_agreement(request):
 
 
 
-from haystack.query import SearchQuerySet
-from haystack.inputs import AutoQuery, Exact, Clean
-import itertools
-from urllib import urlencode
-from pages.models import Page, ACL_ROLES
 SEARCH_URL = 'http://www.sfu.ca/search.html?'
 MAX_RESULTS = 50
 RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type

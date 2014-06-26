@@ -74,7 +74,7 @@ class MemberIndex(indexes.SearchIndex, indexes.Indexable):
                 #.filter(offering__semester__name__gte='1124') \
 
     def prepare_text(self, m):
-        fields = [m.offering.semester.label(), m.offering.semester.name,
+        fields = [m.offering.semester.label(), m.offering.semester.name, m.offering.name(),
                   unicode(m.person.emplid), m.person.first_name, m.person.last_name]
         if m.person.real_pref_first().lower() != m.person.first_name.lower():
             fields.append(m.person.real_pref_first())
