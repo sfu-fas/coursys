@@ -817,6 +817,9 @@ table.info span.letter {
   margin-left: auto;
   margin-right: auto;
 }
+.idphoto.studentinfo img {
+  float: right;
+}
 
 /* site search */
 #search-results td.stars {
