@@ -29,6 +29,8 @@
 {% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>Details for {{member.person.name}}</li>{% endblock %}
 
 {% block content %}
+
+{% if can_photo %}<div class="idphoto studentinfo"><img src="{% url 'grades.views.student_photo' emplid=member.person.emplid %}" alt="" /></div>{% endif %}
 <div class="table_container">
     <table class="info">
         <tbody>
