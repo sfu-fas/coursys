@@ -819,6 +819,8 @@ table.info span.letter {
 }
 .idphoto.studentinfo img {
   float: right;
+  padding-left: 0.5em;
+  padding-top: 0.5em;
 }
 
 /* site search */
