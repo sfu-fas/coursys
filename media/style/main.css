@@ -817,6 +817,13 @@ table.info span.letter {
   margin-left: auto;
   margin-right: auto;
 }
+.idphoto.studentinfo img {
+  float: right;
+  padding-left: 0.5em;
+  padding-top: 0.5em;
+  max-width: 150px;
+  max-height: 150px;
+}
 
 /* site search */
 #search-results td.stars {

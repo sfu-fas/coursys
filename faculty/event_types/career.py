@@ -25,6 +25,12 @@ RANK_CHOICES = Choices(
     #('UNIR', 'University Research Professor'),
 )
 
+CONTRACT_REVIEW_CHOICES = Choices(
+    ('PEND', 'Pending'),
+    ('PROM', 'Renewed'),
+    ('DENY', 'Denied'),
+)
+
 
 class AppointmentEventHandler(CareerEventHandlerBase):
     """
@@ -572,3 +578,31 @@ class AccreditationFlagEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return "Has {0}".format(self.get_flag_display())
+
+class ContractReviewEventHandler(CareerEventHandlerBase):
+    EVENT_TYPE = 'CONTRACTRV'
+    NAME = "Contract Renewal"
+    IS_INSTANT = False
+
+    TO_HTML_TEMPLATE = '''
+        {% extends "faculty/event_base.html" %}
+            {% load event_display %}
+            {% block dl %}
+            <dt>Result</dt>
+            <dd>{{ handler|get_display:"result" }}</dd>
+        {% endblock %}'''
+
+    class EntryForm(BaseEntryForm):
+        result = forms.ChoiceField(label='Result', choices=CONTRACT_REVIEW_CHOICES)
+
+    SEARCH_RULES = {
+        'result': search.ComparableSearchRule,
+    }
+    SEARCH_RESULT_FIELDS = [
+        'result',
+    ]
+
+    def get_result_display(self):
+        return CONTRACT_REVIEW_CHOICES.get(self.get_config('result'), 'unknown outcome')
+    def short_summary(self):
+        return "Contract Renewal: {0}".format(self.get_result_display(),)
