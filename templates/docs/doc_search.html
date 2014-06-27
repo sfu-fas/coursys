@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}CourSys: Search{% endblock %}
+{% block h1 %}CourSys: Search{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "dashboard.views.list_docs" %}">Docs</a></li><li>Search</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<h2 id="overview">Overview</h2>
+<p>The &ldquo;search&rdquo; box at the top-right of every page in CourSys is usually ignored because users have come to assume it's useless.</p>
+
+<h2 id="fields">Things Searched</h2>
+<p>The search will automatically search for any of these things that seem relevant:</p>
+<ul class="bulleted">
+    <li>Courses you were in: students, TAs, and instructors can search for things like &ldquo;cmpt 120&rdquo; or &ldquo;programming&rdquo; to find course offerings.</li>
+    <li>Course pages: anybody can search for content on course pages that are visible to them, e.g. &ldquo;software help&rdquo;.</li>
+    <li>Discussion: anybody can search for course discussion content, e.g. &ldquo;uploading problem&rdquo;.</li>
+    <li>Students in courses: instructors and TAs can search for students in their courses. This is likely the most useful search feature&hellip;</li>
+</ul>
+
+<h2 id="student">Student Search</h2>
+<p>The search for students in your courses is very powerful when trying to find a relevant student. For example:</p>
+<ul class="bulleted">
+    <li>The student who just emailed me from example@sfu.ca: search &ldquo;example&rdquo; or &ldquo;example@sfu.ca&rdquo;.</li>
+    <li>The student with a Gmail address but whose name is John Doe (or maybe Jonathan?): search &ldquo;John Doe&rdquo;.</li>
+    <li>The student who goes by &ldquo;Tony Chan&rdquo; but has an official Chinese name I don't remember: search &ldquo;Tony Chan&rdquo; (if SIMS knows the preferred name).</li>
+    <li>Um&hellip; his name is Frank and he is in CMPT&nbsp;120: search &ldquo;Frank 120&rdquo;.</li>
+    <li>Er&hellip; that girl named Sarah (or maybe it was Sara) who was in my class about two years ago: search &ldquo;Sarah {{ two_years }}&rdquo;.</li>
+</ul>
+
+
+{% endblock %}
