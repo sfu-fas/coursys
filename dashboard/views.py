@@ -862,6 +862,9 @@ def view_doc(request, doc_slug):
             context['act1'] = None
             context['act2'] = None
 
+    elif doc_slug == "search":
+        context['two_years'] = datetime.date.today().year - 2
+
     try:
         res = render(request, "docs/doc_" + doc_slug + ".html", context)
     except TemplateDoesNotExist:
@@ -1014,7 +1017,7 @@ def _query_results(query, person):
         discuss_results = []
 
     # students taught by instructor (coredata.Member)
-    instr_members = Member.objects.filter(person=person, role='INST').exclude(offering__component='CAN') \
+    instr_members = Member.objects.filter(person=person, role__in=['INST','TA']).exclude(offering__component='CAN') \
         .select_related('offering')
     if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)
