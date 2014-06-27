@@ -221,7 +221,7 @@ def _get_photos(emplids):
             continue
         key = data['SfuId']
         jpg = possibly_resize(base64.b64decode(data['PictureIdentification']))
-        photos[key] = jpg
+        photos[key.strip()] = jpg
     return photos
 
 
