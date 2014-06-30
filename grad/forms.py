@@ -603,7 +603,8 @@ class SearchForm(forms.Form):
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
             required=False, help_text="Student's current status"
             )
-    
+    status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
+
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
     program_asof = StaffSemesterField(label='Program as of', required=False, initial='')
     grad_flags = forms.MultipleChoiceField(choices=[],
@@ -675,6 +676,7 @@ class SearchForm(forms.Form):
     
     status_fields = [
             'student_status',
+            'status_asof',
             ]
                       
     financial_fields = [
@@ -718,7 +720,6 @@ class SearchForm(forms.Form):
                 #('end_semester_end', 'end_semester__lte'),
                 ('first_name_contains', 'person__first_name__icontains' ),
                 ('last_name_contains', 'person__last_name__icontains' ),
-                ('student_status', 'current_status__in'),
                 ('application_status', 'application_status__in'),
 #                ('requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
@@ -732,6 +733,11 @@ class SearchForm(forms.Form):
         if not self.cleaned_data.get('program_asof', None):
             # current program: is in table
             auto_queries.append(('program','program__in'))
+        # else:  selected semester so must calculate. Handled in secondary_filter
+
+        if not self.cleaned_data.get('status_asof', None):
+            # current status: is in table
+            auto_queries.append(('student_status', 'current_status__in'))
         # else:  selected semester so must calculate. Handled in secondary_filter
 
         if self.cleaned_data.get('start_semester_start', None) is not None:
@@ -825,6 +831,11 @@ class SearchForm(forms.Form):
                 (
                     not self.cleaned_data.get('program_asof', None) or not self.cleaned_data.get('program', None)
                     or gradstudent.program_as_of(self.cleaned_data.get('program_asof', None)) in self.cleaned_data.get('program', None)
+                )
+                and
+                (
+                    not self.cleaned_data.get('status_asof', None) or not self.cleaned_data.get('student_status', None)
+                    or gradstudent.status_as_of(self.cleaned_data.get('status_asof', None)) in self.cleaned_data.get('student_status', None)
                 )
 
                 )

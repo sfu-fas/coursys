@@ -637,6 +637,32 @@ class GradStudent(models.Model):
         super(GradStudent, self).save(*args, **kwargs)
 
     def status_as_of(self, semester=None):
+        """ Like 'current status', but for an arbitrary semester.
+
+            We want to filter out any statuses that occur after the  semester,
+            because - if a student is active this semester (assuming that we are 1134)
+            and on-leave next semester (1137) their current status is active.
+
+            Active statuses have precedence over Applicant statuses.
+            if a student is Active in 1134 but Complete Application in 1137, they are Active.
+        """
+        if semester == None:
+            semester = Semester.current()
+
+        statuses = GradStatus.objects.filter(student=self, hidden=False, start__name__lte=semester.name) \
+                    .order_by('-start', '-start_date').select_related('start')
+
+        if not statuses:
+            return None
+
+        # find all statuses in the most-recent semester: the one that sorts last wins.
+        status_sem = statuses[0].start
+        semester_statuses = [(-STATUS_ORDER[st.status], st) for st in statuses if st.start == status_sem]
+        semester_statuses.sort()
+        return semester_statuses[0][1].status
+
+
+    def status_as_of_old(self, semester=None):
         """ Like 'current status', but for an arbitrary semester. 
         
             We want to filter out any statuses that occur after the  semester,
@@ -653,15 +679,15 @@ class GradStudent(models.Model):
         """
 
         filter_future_statuses = True
-        if semester == None: 
-            semester = Semester.current() 
+        if semester == None:
+            semester = Semester.current()
             filter_future_statuses = False
 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
         all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
 
         filtered_nonapplicant_statuses = [status for status in all_gs if 
-                status.start <= semester 
+                status.start <= semester
                 and status.status not in STATUS_APPLICANT ]
         filtered_applicant_statuses = [status for status in all_gs_by_date if
                 status.status in STATUS_APPLICANT 
