@@ -322,8 +322,8 @@ class GradTest(TestCase):
 
         # clear the deck on this student's statuses
         gs = self.__make_test_grad()
-        gs.gradstatus_set.all().delete()
 
+        gs.gradstatus_set.all().delete()
         s1 = GradStatus(student=gs, status='COMP', start=this_sem.offset(-4))
         s1.save()
         s2 = GradStatus(student=gs, status='ACTI', start=this_sem.offset(-3))
@@ -349,6 +349,15 @@ class GradTest(TestCase):
         s4.save()
         self.assertEqual(gs.status_as_of(this_sem.offset(-3)), 'ACTI')
 
+        # because of insanity that makes strange sense, application-decision statuses propagate back a semester
+        gs.gradstatus_set.all().delete()
+        s1 = GradStatus(student=gs, status='COMP', start=this_sem)
+        s1.save()
+        s2 = GradStatus(student=gs, status='REJE', start=this_sem.offset(1))
+        s2.save()
+        self.assertEqual(gs.status_as_of(this_sem.offset(-1)), None)
+        self.assertEqual(gs.status_as_of(this_sem), 'REJE')
+        self.assertEqual(gs.status_as_of(this_sem.offset(1)), 'REJE')
 
 
 

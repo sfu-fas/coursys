@@ -511,6 +511,7 @@ STATUS_CHOICES = (
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'CONF', 'ARIV') # statuses that mean "currently applying"
+STATUS_DECIDEDAPPLICANT = set(STATUS_APPLICANT) - set(STATUS_CURRENTAPPLICANT)
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
@@ -649,7 +650,11 @@ class GradStudent(models.Model):
         if semester == None:
             semester = Semester.current()
 
-        statuses = GradStatus.objects.filter(student=self, hidden=False, start__name__lte=semester.name) \
+        timely_status = models.Q(start__name__lte=semester.name)
+        application_status = models.Q(start__name__lte=semester.offset_name(1), status__in=STATUS_DECIDEDAPPLICANT)
+
+        statuses = GradStatus.objects.filter(student=self, hidden=False) \
+                    .filter(timely_status | application_status) \
                     .order_by('-start', '-start_date').select_related('start')
 
         if not statuses:
@@ -657,9 +662,9 @@ class GradStudent(models.Model):
 
         # find all statuses in the most-recent semester: the one that sorts last wins.
         status_sem = statuses[0].start
-        semester_statuses = [(-STATUS_ORDER[st.status], st) for st in statuses if st.start == status_sem]
+        semester_statuses = [(st.start.name, STATUS_ORDER[st.status], st) for st in statuses if st.start == status_sem]
         semester_statuses.sort()
-        return semester_statuses[0][1].status
+        return semester_statuses[-1][2].status
 
 
     def status_as_of_old(self, semester=None):
