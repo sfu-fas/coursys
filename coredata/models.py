@@ -200,7 +200,7 @@ class Semester(models.Model):
     def __cmp__(self, other):
         return cmp(self.name, other.name)
     def sem_number(self):
-        "sumber of semesters since spring 1900 (for subtraction)"
+        "number of semesters since spring 1900 (for subtraction)"
         yr = int(self.name[0:3])
         sm = int(self.name[3])
         if sm == 1:
@@ -329,6 +329,32 @@ class Semester(models.Model):
                 return None
         else:
             return self
+
+    def offset_name(self, n):
+        "as offset() but only calculate the semester.name, without querying the DB"
+        OFFSET_LOOKUP = { # key: (current semester, sem offset), value: (year offset, new semester)
+            (1, 0): (0, 1),
+            (1, 1): (0, 4),
+            (1, 2): (0, 7),
+            (4, 0): (0, 4),
+            (4, 1): (0, 7),
+            (4, 2): (1, 1),
+            (7, 0): (0, 7),
+            (7, 1): (1, 1),
+            (7, 2): (1, 4),
+        }
+
+        yrs, sems = divmod(n, 3)
+
+        name = self.name
+        year = 1900 + int(name[0:3])
+        sem = int(name[3])
+
+        yroff, newsem = OFFSET_LOOKUP[sem, sems]
+        year += yrs + yroff
+
+        return "%03i%s" % (year-1900, newsem)
+
     
     @classmethod
     def current(cls):
