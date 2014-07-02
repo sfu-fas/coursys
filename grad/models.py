@@ -720,7 +720,7 @@ class GradStudent(models.Model):
 
         # status and program
         self.current_status = self.status_as_of()
-        prog = self.program_as_of()
+        prog = self.program_as_of(future_if_necessary=True)
         if prog:
             self.program = prog
 
@@ -856,13 +856,18 @@ class GradStudent(models.Model):
 
         return res
 
-    def program_as_of(self, semester=None):
+    def program_as_of(self, semester=None, future_if_necessary=False):
         if semester == None:
             semester = Semester.current()
 
         gph = GradProgramHistory.objects.filter(student=self, start_semester__lte=semester) \
             .order_by('-start_semester', '-starting').select_related('program').first()
         if gph:
+            return gph.program
+        elif future_if_necessary:
+            # look into the future for the program the *will* be in: that's how we'll set gs.program earlier.
+            gph = GradProgramHistory.objects.filter(student=self) \
+            .order_by('start_semester', 'starting').select_related('program').first()
             return gph.program
         else:
             return None
