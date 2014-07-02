@@ -249,6 +249,8 @@ def get_unit(acad_org, create=False):
         acad_org = 'BUS ADMIN'
     elif acad_org == 'HUM':
         acad_org = 'HUMANITIES'
+    elif acad_org == 'EVSC':
+        acad_org = 'ENVIRO SCI'
 
     try:
         unit = Unit.objects.get(acad_org=acad_org)
