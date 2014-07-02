@@ -26,8 +26,6 @@ def manage_program(request, grad_slug):
             gph = form.save(commit=False)
             gph.student = grad
             gph.save()
-            grad.program = gph.program
-            grad.save()
             grad.update_status_fields()
 
             messages.success(request, "Updated program info for %s." % (grad.person))
