@@ -860,14 +860,15 @@ class GradStudent(models.Model):
         if semester == None:
             semester = Semester.current()
 
-        gph = GradProgramHistory.objects.filter(student=self, start_semester__lte=semester) \
+        gph = GradProgramHistory.objects.filter(student=self, start_semester__name__lte=semester.name) \
             .order_by('-start_semester', '-starting').select_related('program').first()
-        if gph:
-            return gph.program
-        elif future_if_necessary:
+
+        if not gph and future_if_necessary:
             # look into the future for the program the *will* be in: that's how we'll set gs.program earlier.
             gph = GradProgramHistory.objects.filter(student=self) \
             .order_by('start_semester', 'starting').select_related('program').first()
+
+        if gph:
             return gph.program
         else:
             return None
