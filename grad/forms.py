@@ -6,7 +6,7 @@ import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
     ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment, GRAD_CAMPUS_CHOICES, \
-    THESIS_TYPE_CHOICES, THESIS_OUTCOME_CHOICES
+    THESIS_TYPE_CHOICES, THESIS_OUTCOME_CHOICES, ProgressReport
 from courselib.forms import StaffSemesterField
 from coredata.models import Person, Semester, Role, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
@@ -368,7 +368,10 @@ class GradSemesterForm(forms.Form):
     #ignore = forms.BooleanField(initial=False, required=False,
     #                            help_text="Ignore the values here and revert to the default values based on the student's statuses.")
 
-
+class ProgressReportForm(ModelForm):
+    class Meta:
+        model = ProgressReport
+        exclude = ('student','removed', 'config')
 
 # creates an 'atom' to represent 'Unknown' (but it's not None) 
 Unknown = type('Unknown', (object,), {'__repr__':lambda self:'Unknown'})()
