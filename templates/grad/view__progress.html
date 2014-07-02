@@ -1,0 +1,51 @@
+{% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_progress" grad_slug=grad.slug  %}">Manage Progress Reports</a></p>{% endif %}
+<div class="datatable_container datatable">
+	<table class="display">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th>Result</th>
+
+				{% if not index %}
+                    <th>Actions</th>
+                {% endif %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for p in progress_reports %}
+			<tr>
+				<td> 
+                    {% if p.removed %}<del>{% endif %}
+                        {{ p.date }}
+                    {% if p.removed %}</del>{% endif %}
+                </td>
+				<td> 
+                    {% if p.removed %}<del>{% endif %}
+                        {{ p.get_result_display }}
+                    {% if p.removed %}</del>{% endif %}
+				    
+                    {% if p.comments %} 
+                        <i class="fa fa-info-circle collapsiblecomment"></i>
+                        <p class="hiddencomment">
+                            {{p.comments}}
+                        </p> 
+                    {% endif %}
+                </td>
+
+				{% if not index %}
+                <td class='miniaction'>
+                    {% if not p.removed %}
+                        <form action="{% url "grad.views.remove_progress" grad_slug=grad.slug p_id=p.id %}" method="post">
+                            {% csrf_token %}
+                                <p class="actionbutton">
+                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this progress report?')" />
+                                </p>
+                        </form>
+                    {% endif %}
+                </td>
+                {% endif %}
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

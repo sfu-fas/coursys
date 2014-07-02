@@ -44,6 +44,8 @@ grad_patterns = [ # prefix /grad/
     url(r'^' + GRAD_SLUG + '/financialcomments/(?P<f_id>\d+)/remove$', 'grad.views.remove_financialcomment'),
     url(r'^' + GRAD_SLUG + '/promises$', 'grad.views.manage_promises'),
     url(r'^' + GRAD_SLUG + '/promises/(?P<p_id>\d+)/remove$', 'grad.views.remove_promise'),
+    url(r'^' + GRAD_SLUG + '/progress_reports$', 'grad.views.manage_progress'),
+    url(r'^' + GRAD_SLUG + '/progress_reports/(?P<p_id>\d+)/remove$', 'grad.views.remove_progress'),
     url(r'^' + GRAD_SLUG + '/scholarship$', 'grad.views.manage_scholarships'),
     url(r'^' + GRAD_SLUG + '/scholarship/(?P<s_id>\d+)/remove$', 'grad.views.remove_scholarship'),
     url(r'^' + GRAD_SLUG + '/letters$', 'grad.views.manage_letters'),

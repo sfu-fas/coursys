@@ -552,6 +552,12 @@ THESIS_OUTCOME_CHOICES = (
     ('DEFR', "Defer (Major Changes)"),
     ('FAIL', "Fail"))
 
+PROGRESS_REPORT_CHOICES = (
+    ('GOOD', "Good"),
+    ('SATI', "Satisfactory"),
+    ('CONC', "Satisfactory with Concerns"),
+    ('UNST',  "Unsatisfactory"))
+
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
@@ -1772,3 +1778,14 @@ class SavedSearch(models.Model):
     defaults = {'name': ''}
     name, set_name = getter_setter('name')
 
+
+class ProgressReport(models.Model):
+    student = models.ForeignKey(GradStudent)
+    result = models.CharField(max_length=5, choices=PROGRESS_REPORT_CHOICES, db_index=True)
+    removed = models.BooleanField(default=False)
+    date = models.DateField(default=datetime.date.today)
+    config = JSONField(null=False, blank=False, default={})
+    comments = models.TextField(blank=True, null=True)
+
+    def __unicode__(self):
+        return u"(%s) %s Progress Report" % (str(self.date), self.get_result_display())

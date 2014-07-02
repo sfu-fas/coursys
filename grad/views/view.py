@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, \
         CompletedRequirement, GradRequirement, Scholarship, \
         OtherFunding, Promise, Letter, GradProgramHistory, \
-        FinancialComment
+        FinancialComment, ProgressReport
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -47,7 +47,7 @@ def _can_view_student(request, grad_slug, funding=False):
     return None, None, None
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
-                'scholarships', 'otherfunding', 'promises', 'financialcomments', 'letters']
+                'scholarships', 'otherfunding', 'promises', 'progressreports', 'financialcomments', 'letters']
 
 @login_required
 def view(request, grad_slug, section=None):
@@ -138,6 +138,11 @@ def view(request, grad_slug, section=None):
             letters = Letter.objects.filter(student=grad).select_related('template').order_by('date')
             context['letters'] = letters
             return render(request, 'grad/view__letters.html', context)
+        
+        elif section == 'progressreports':
+            progressreports = ProgressReport.objects.filter(student=grad, removed=False).order_by('date')
+            context['progress_reports'] = progressreports
+            return render(request, 'grad/view__progress.html', context)
 
         else:
             raise ValueError, "Not all sections handled by view code: " + repr(section)
