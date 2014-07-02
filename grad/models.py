@@ -643,7 +643,7 @@ class GradStudent(models.Model):
 
         super(GradStudent, self).save(*args, **kwargs)
 
-    def status_as_of(self, semester=None):
+    def status_as_of_beta(self, semester=None):
         """ Like 'current status', but for an arbitrary semester.
 
             We want to filter out any statuses that occur after the  semester,
@@ -673,7 +673,7 @@ class GradStudent(models.Model):
         return semester_statuses[-1][2].status
 
 
-    def status_as_of_old(self, semester=None):
+    def status_as_of(self, semester=None):
         """ Like 'current status', but for an arbitrary semester. 
         
             We want to filter out any statuses that occur after the  semester,
@@ -714,17 +714,21 @@ class GradStudent(models.Model):
 
     def update_status_fields(self):
         """
-        Update the self.start_semester, self.end_semester, self.current_status fields.
+        Update the self.start_semester, self.end_semester, self.current_status, self.program fields.
 
         Called by updates to statuses, and also by grad.tasks.update_statuses_to_current to reflect future statuses
         when the future actually comes.
         """
-        old = (self.start_semester_id, self.end_semester_id, self.current_status)
+        old = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
         self.start_semester = None
         self.end_semester = None
         self.current_status = None
 
+        # status and program
         self.current_status = self.status_as_of()
+        prog = self.program_as_of(future_if_necessary=True)
+        if prog:
+            self.program = prog
 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
 
@@ -769,11 +773,12 @@ class GradStudent(models.Model):
                     self.end_semester = end_status.start
             else:
                 self.end_semester = None
-        
-        if old != (self.start_semester_id, self.end_semester_id, self.current_status):
+
+        current = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
+        if old != current:
+            self.save()
             self.active_semesters.invalidate()
             self.active_semesters_display.invalidate()
-            self.save()
 
 
     @cached(24*3600)
@@ -857,13 +862,18 @@ class GradStudent(models.Model):
 
         return res
 
-    def program_as_of(self, semester=None):
+    def program_as_of(self, semester=None, future_if_necessary=False):
         if semester == None:
             semester = Semester.current()
 
         gph = GradProgramHistory.objects.filter(student=self, start_semester__lte=semester) \
             .order_by('-start_semester', '-starting').select_related('program').first()
         if gph:
+            return gph.program
+        elif future_if_necessary:
+            # look into the future for the program the *will* be in: that's how we'll set gs.program earlier.
+            gph = GradProgramHistory.objects.filter(student=self) \
+            .order_by('start_semester', 'starting').select_related('program').first()
             return gph.program
         else:
             return None
