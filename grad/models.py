@@ -872,7 +872,7 @@ class GradStudent(models.Model):
         if not gph and future_if_necessary:
             # look into the future for the program the *will* be in: that's how we'll set gs.program earlier.
             gph = GradProgramHistory.objects.filter(student=self) \
-            .order_by('start_semester', 'starting').select_related('program').first()
+            .order_by('start_semester', '-starting').select_related('program').first()
 
         if gph:
             return gph.program
