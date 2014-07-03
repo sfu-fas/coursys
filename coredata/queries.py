@@ -479,7 +479,7 @@ def more_offering_info(offering, browse_data=False, offering_effdt=False):
         data['descrlong'] = e(descrlong)
         #data['rqmnt_designtn'] = e(req_map.get(rqmnt_designtn, 'none'))
 
-    if browse_data:
+    if browse_data and 'shorttitle' in data:
         del data['shorttitle']
     
     if not data:
