@@ -82,8 +82,10 @@ class GradTest(TestCase):
         lt.save()
 
         test_views(self, client, 'grad.views.',
-                ['programs', 'new_program', 'requirements', 'new_requirement', 'letter_templates',
-                 'new_letter_template', 'manage_scholarshipType', 'search', 'funding_report', 'all_promises'],
+                ['programs', 'new_program', 'requirements', 'new_requirement', 
+                    'letter_templates', 'new_letter_template', 
+                    'manage_scholarshipType', 'search', 'funding_report', 
+                    'all_promises'],
                 {})
         test_views(self, client, 'grad.views.', ['manage_letter_template'], {'letter_template_slug': lt.slug})
         test_views(self, client, 'grad.views.', ['not_found'], {}, qs='search=grad')
@@ -156,9 +158,21 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships',
-                      'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
-                      'manage_program', 'manage_start_end_semesters', 'manage_financialcomments', 'manage_defence']:
+        for view in ['financials', 
+                     'manage_general',
+                     'manage_requirements',
+                     'manage_scholarships',
+                     'manage_otherfunding',
+                     'manage_promises',
+                     'manage_letters',
+                     'manage_status',
+                     'manage_supervisors',
+                     'manage_program',
+                     'manage_start_end_semesters',
+                     'manage_financialcomments',
+                     'manage_defence',
+                     'manage_progress',
+                     'manage_documents']:
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)
