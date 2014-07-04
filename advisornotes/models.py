@@ -15,7 +15,9 @@ NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_ur
 
 def attachment_upload_to(instance, filename):
     """
-    callback to avoid path in the filename(that we have append folder structure to) being striped
+    Take the filename, encode it in ascii, ignoring characters that don't
+    translate, then create a path for it, like: 
+    advisornotes/2011-01-04-12-30-88_advisorid/<filename>
     """
     fullpath = os.path.join(
             'advisornotes',
