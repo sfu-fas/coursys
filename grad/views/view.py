@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, \
         CompletedRequirement, GradRequirement, Scholarship, \
         OtherFunding, Promise, Letter, GradProgramHistory, \
-        FinancialComment, ProgressReport
+        FinancialComment, ProgressReport, ExternalDocument
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -47,7 +47,8 @@ def _can_view_student(request, grad_slug, funding=False):
     return None, None, None
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
-                'scholarships', 'otherfunding', 'promises', 'progressreports', 'financialcomments', 'letters']
+                'scholarships', 'otherfunding', 'promises', 'progressreports',
+                'financialcomments', 'letters', 'documents']
 
 @login_required
 def view(request, grad_slug, section=None):
@@ -140,9 +141,18 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__letters.html', context)
         
         elif section == 'progressreports':
-            progressreports = ProgressReport.objects.filter(student=grad, removed=False).order_by('date')
+            progressreports = ProgressReport.objects.filter(student=grad, 
+                                                            removed=False)\
+                                                            .order_by('date')
             context['progress_reports'] = progressreports
             return render(request, 'grad/view__progress.html', context)
+        
+        elif section == 'documents':
+            documents = ExternalDocument.objects.filter(student=grad, 
+                                                        removed=False)\
+                                                        .order_by('date')
+            context['documents'] = documents
+            return render(request, 'grad/view__documents.html', context)
 
         else:
             raise ValueError, "Not all sections handled by view code: " + repr(section)

@@ -1,13 +1,14 @@
 from django.db import models, transaction, IntegrityError
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
+from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from cache_utils.decorators import cached
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from courselib.json_fields import JSONField
 from courselib.text import normalize_newlines, many_newlines
-import itertools, datetime
+import itertools, datetime, os
 import coredata.queries
 from django.conf import settings
 from collections import defaultdict
@@ -1792,11 +1793,58 @@ class SavedSearch(models.Model):
 
 class ProgressReport(models.Model):
     student = models.ForeignKey(GradStudent)
-    result = models.CharField(max_length=5, choices=PROGRESS_REPORT_CHOICES, db_index=True)
+    result = models.CharField(max_length=5, 
+                              choices=PROGRESS_REPORT_CHOICES, 
+                              db_index=True)
     removed = models.BooleanField(default=False)
     date = models.DateField(default=datetime.date.today)
     config = JSONField(null=False, blank=False, default={})
     comments = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
-        return u"(%s) %s Progress Report" % (str(self.date), self.get_result_display())
+        return u"(%s) %s Progress Report" % (str(self.date), 
+                                             self.get_result_display())
+
+
+GradSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, 
+                                      base_url=None)
+
+
+def attachment_upload_to(instance, filename):
+    """
+    Take the filename, encode it in ascii, ignoring characters that don't
+    translate, then create a path for it, like: 
+    gradnotes/2011-01-04/<filename>
+    """
+    fullpath = os.path.join(
+            'gradnotes',
+            datetime.datetime.now().strftime("%Y-%m-%d"),
+                                             filename.encode('ascii', 'ignore'))
+    return fullpath
+
+
+class ExternalDocument(models.Model):
+    student = models.ForeignKey(GradStudent)
+    name = models.CharField(max_length=100, null=False,
+                            help_text="A short description of what this file contains.")
+    file_attachment = models.FileField(storage=GradSystemStorage, 
+                                       upload_to=attachment_upload_to,
+                                       max_length=500)
+    file_mediatype = models.CharField(max_length=200, 
+                                      editable=False)
+    removed = models.BooleanField(default=False)
+    date = models.DateField(default=datetime.date.today)
+    config = JSONField(null=False, blank=False, default={})
+    comments = models.TextField(blank=True, null=True)
+    
+    def __unicode__(self):
+        return u"(%s) %s" % (str(self.date), self.name)
+    
+    def attachment_filename(self):
+        """
+        Return the filename only (no path) for the attachment.
+        """
+        _, filename = os.path.split(self.file_attachment.name)
+        print "FILENAME:", filename
+        return filename
+

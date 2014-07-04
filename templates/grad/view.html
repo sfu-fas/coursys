@@ -197,6 +197,7 @@ $(document).ready(function() {
 | <a href="{% url "grad.views.manage_promises" grad_slug=grad.slug  %}">Promises</a>
 | <a href="{% url "grad.views.manage_financialcomments" grad_slug=grad.slug  %}">Financial Comments</a>
 | <a href="{% url "grad.views.manage_progress" grad_slug=grad.slug  %}">Progress Reports</a>
+| <a href="{% url "grad.views.manage_documents" grad_slug=grad.slug  %}">Documents</a>
 | <a href="{% url "grad.views.manage_defence" grad_slug=grad.slug  %}">{{ grad.thesis_type }}</a>
 </p>
 {% endif %}
@@ -232,5 +233,8 @@ $(document).ready(function() {
 
 <h3 id="progressreports" class="collapsed"><a href="#!progressreports">Progress Reports</a></h3>
 <div id="progressreports_content">{{progressreports_content}}</div>
+
+<h3 id="documents" class="collapsed"><a href="#!documents">Documents</a></h3>
+<div id="documents_content">{{documents_content}}</div>
 
 {% endblock %} 
