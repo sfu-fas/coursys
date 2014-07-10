@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}TA Contracts{% endblock %}
+{% block h1 %}TA Contracts : New Contract Category{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "tacontracts.views.list_all_contracts" %}">TA Contracts</a></li>
+<li>New Contract Category</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<form action="{% url "tacontracts.views.new_category" %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Submit" />
+    </p>
+    </fieldset>
+</form>
+{% endblock %}

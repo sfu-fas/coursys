@@ -82,6 +82,7 @@ INSTALLED_APPS = (
     'onlineforms',
     'faculty',
     'gpaconvert',
+    'tacontracts',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

@@ -271,7 +271,7 @@ def delete_ra(request, ra_slug):
 
 
 #Methods relating to Account creation. These are all straight forward.
-@requires_role("FUND")
+@requires_role(["FUND", "TAAD", "GRAD"])
 def new_account(request):
     accountform = AccountForm(request.POST or None)
     #This restricts a user to only creating account for a unit to which they belong.

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Taco N-Tracts{% endblock %}
+{% block h1 %}TA Contracts : New {{category.code}} Contract{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "tacontracts.views.list_all_contracts" %}">TA Contracts</a></li>
+<li>New {{category.code}} Contract</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<form action="{% url "tacontracts.views.new_contract" category_slug=category.slug %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Create Contract" />
+    </p>
+    </fieldset>
+</form>
+{% endblock %}

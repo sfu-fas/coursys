@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}TA Contracts{% endblock %}
+{% block h1 %}TA Contracts{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>TA Contracts</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "tacontracts.views.new_category" %}">New Category</a></li>
+    </ul>
+    {% if categories %}
+    <ul>
+    {% for category in categories %}
+        <li>
+            <a href="{% url "tacontracts.views.new_contract" category_slug=category.slug %}">
+                Create New {{category.code}} Contract
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if contracts %}
+    <table>
+        <thead>
+            <tr>
+                <th>Contract</th>
+            <tr>
+        </thead>
+        <tbody>
+    {% for contract in contracts %}
+            <tr>
+                <td>
+                    {{contract}}
+                </td>
+            </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% endblock %}
