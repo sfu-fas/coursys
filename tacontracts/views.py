@@ -13,6 +13,9 @@ from .forms import TACategoryForm, TAContractForm, TACourseForm
 def _home_redirect():
     return HttpResponseRedirect(reverse('tacontracts.views.list_all_contracts'))
 
+def _contract_redirect(contract):
+    return HttpResponseRedirect(reverse('tacontracts.views.view_contract'), kwargs={'contract_slug':contract.slug } )
+
 @requires_role(["TAAD", "GRAD"])
 def list_all_contracts(request):
     print request.units
@@ -76,20 +79,26 @@ def new_contract(request, category_slug):
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Contract %s created.' % str(contract))
-            return _home_redirect()
+            return _contract_redirect(contract)
     else:
         form = TAContractForm()
     return render(request, 'tacontracts/new_contract.html', {
                   'category':category,
                   'form':form})
-    pass
 
 @requires_role(["TAAD", "GRAD"])
 def view_contract(request, category_slug, contract_slug):
     category = get_object_or_404(TACategory, 
                                  slug=category_slug, 
                                  account__unit__in=request.units)
-    pass
+    contract = get_object_or_404(TAContract,
+                                 slug=contract_slug,
+                                 category__account__unit__in=request.units)
+    courses = TACourse.objects.filter(contract=contract)
+    return render(request, 'tacontracts/view_contract.html', {
+                   'category': category, 
+                   'contract': contract, 
+                   'courses': courses })
 
 @requires_role(["TAAD", "GRAD"])
 def update_contract(request, category_slug, contract_slug):

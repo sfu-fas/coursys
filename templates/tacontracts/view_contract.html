@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}TA Contract : {{contract}}{% endblock %}
+{% block h1 %}TA Contract : {{contract}}{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "tacontracts.views.list_all_contracts" %}">TA Contracts</a></li>
+<li>{{contract}}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="#">Edit Contract</a></li>
+        <li><a href="#">Add a Course</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}

@@ -44,7 +44,7 @@
     {% for contract in contracts %}
             <tr>
                 <td>
-                    {{contract}}
+                    <a href="{% url "tacontracts.views.view_contract" category_slug=contract.category.slug contract_slug=contract.slug %}">{{contract}}</a>
                 </td>
             </tr>
     {% endfor %}
