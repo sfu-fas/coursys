@@ -263,7 +263,7 @@ class CareerEvent(models.Model):
         return self.get_handler().NAME
 
     @classmethod
-    @cached(24*3600)
+    @cached(6*3600)
     def current_ranks(cls, person):
         """
         Return a string representing the current rank(s) for this person
