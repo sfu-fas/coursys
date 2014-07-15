@@ -1,5 +1,6 @@
 # Python
 import datetime
+import decimal
 # Django
 from django.db import models
 from django.db.models.query import QuerySet
@@ -53,16 +54,16 @@ class TACategoryQuerySet(QuerySet):
         return self.filter(account__unit__in=units, hidden=False)
 
 class TAContractQuerySet(QuerySet):
-    def contracts(self, units):
+    def visible(self, units):
         return self.filter(category__account__unit__in=units)\
                     .select_related('category')\
                     .prefetch_related('course')
     def draft(self, units):
-        return self.contracts(units).filter(status='NEW')
+        return self.visible(units).filter(status='NEW')
     def signed(self, units):
-        return self.contracts(units).filter(status='SGN')
+        return self.visible(units).filter(status='SGN')
     def cancelled(self, units):
-        return self.contracts(units).filter(status='CAN')
+        return self.visible(units).filter(status='CAN')
 
 
 class TACategory(models.Model):
@@ -85,10 +86,9 @@ class TACategory(models.Model):
                                        verbose_name="Bonus BUs awarded to a "+\
                                                     "course with a lab.")
 
-    # ensc-gta2-2014-01-01
+    # ensc-gta2
     def autoslug(self):
-        return make_slug(self.account.unit.label + '-' + unicode(self.code) + \
-                         '-' + unicode(self.created.date()))
+        return make_slug(self.account.unit.label + '-' + unicode(self.code))
     slug = AutoSlugField(populate_from=autoslug, 
                          null=False, 
                          editable=False, 
@@ -102,17 +102,14 @@ class TACategory(models.Model):
     def __unicode__(self):
         return "%s %s %s" % (self.account.unit.label, unicode(self.code), 
                              unicode(self.created))
-    @property
-    def contracts(self):
-        return TAContract.objects.filter(category=self)
-    
+
     @property
     def frozen(self):
         """
         If any of the contracts in this category are SGN or CAN, this
         category can never be changed, only hidden. 
         """
-        bools = [contract.frozen for contract in self.contracts]
+        bools = [contract.frozen for contract in self.contract.all()]
         return True in bools
 
     def save(self, always_allow=False, *args, **kwargs):
@@ -120,6 +117,12 @@ class TACategory(models.Model):
             raise ContractFrozen()
         else:
             super(TACategory, self).save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        if self.frozen:
+            raise ContractFrozen()
+        else:
+            super(TACategory, self).delete(*args, **kwargs)
 
     def hide(self):
         self.hidden = True
@@ -163,7 +166,7 @@ class TAContract(models.Model):
     objects = PassThroughManager.for_queryset_class(TAContractQuerySet)()
    
     def __unicode__(self):
-        return "Contract %s - %s" % (self.person, str(self.pay_start))
+        return "%s" % (self.person,)
 
     @property
     def frozen(self):
@@ -197,13 +200,7 @@ class TAContract(models.Model):
             self.save(always_allow=True)
         else:
             self.delete()
-
-    def delete(self, *args, **kwargs):
-        if self.frozen:
-            raise ContractFrozen()
-        else:
-            super(TAContract, self).delete(*args, **kwargs)
-
+    
     def set_grad_student_sin(self):
         for gs in GradStudent.objects.filter(person=self.person):
             if (('sin' not in gs.config 
@@ -212,17 +209,73 @@ class TAContract(models.Model):
                 gs.person.set_sin(self.sin)
                 gs.person.save()
 
-    def bu(self):
-        return sum( [course.bu for course in self.course_set] )
+    def delete(self, *args, **kwargs):
+        if self.frozen:
+            raise ContractFrozen()
+        else:
+            for course in self.course.all():
+                course.delete()
+            super(TAContract, self).delete(*args, **kwargs)
+
+    def copy(self):
+        """
+            Return a copy of this contract, but with status="NEW"
+        """
+        newcontract = TAContract(person=self.person,
+                                 category=self.category,
+                                 sin=self.sin,
+                                 pay_start=self.pay_start,
+                                 pay_end=self.pay_end,
+                                 appointment=self.appointment,
+                                 conditional_appointment=self.conditional_appointment,
+                                 tssu_appointment=self.tssu_appointment,
+                                 comments = self.comments)
+        newcontract.save()
+        for course in self.course.all():
+            newcourse = TACourse(course=course.course, 
+                                 contract=newcontract,
+                                 bu=course.bu, 
+                                 labtut=course.labtut)
+            newcourse.save()
+        return newcontract
+
     
-    def prep_bu(self):
-        return sum( [course.prep_bu for course in self.course_set] )
+    @property
+    def pay_per_bu(self):
+        return self.category.pay_per_bu
+    
+    @property
+    def scholarship_per_bu(self):
+        return self.category.scholarship_per_bu
 
+    @property
+    def bu_lab_bonus(self):
+        return self.category.bu_lab_bonus
+    
+    @property
     def total_bu(self):
-        return sum( [course.total_bu for course in self.course_set] )
-
+        if len(self.course.all()) == 0:
+            return decimal.Decimal(0)
+        else:
+            return sum( [course.total_bu for course in self.course.all()] )
+    
+    @property
     def total_pay(self):
-        return decimal.Decimal(self.total_bu()) * self.pay_per_bu
+        if len(self.course.all()) == 0:
+            return decimal.Decimal(0)
+        else:
+            return self.total_bu * self.pay_per_bu
+
+    @property
+    def scholarship_pay(self):
+        if len(self.course.all()) == 0:
+            return decimal.Decimal(0)
+        else:
+            return self.total_bu * self.scholarship_per_bu
+
+    @property
+    def total(self):
+        return self.total_pay + self.scholarship_pay
 
 
 class TACourse(models.Model):
@@ -233,12 +286,23 @@ class TACourse(models.Model):
     contract = models.ForeignKey(TAContract, 
                                  blank=False, 
                                  null=False, 
+                                 editable=False,
                                  related_name="course")
-    bu = models.DecimalField(max_digits=4, decimal_places=2)
+    bu = models.DecimalField(max_digits=4, 
+                             decimal_places=2,
+                             verbose_name="BUs",
+                             help_text="The number of Base Units for this course.")
     labtut = models.BooleanField(default=False, 
                                  verbose_name="Lab/Tutorial?", 
                                  help_text="Does this course have a lab or tutorial?")
-    config = JSONField(null=False, blank=False, default={})
+    # curtis-lassam-2014-09-01 
+    def autoslug(self):
+        return make_slug(self.course.slug)
+    slug = AutoSlugField(populate_from=autoslug, 
+                         null=False, 
+                         editable=False, 
+                         unique=False)
+    config = JSONField(null=False, blank=False, editable=False, default={})
     
     class Meta:
         unique_together = (('contract', 'course'),)
@@ -247,12 +311,28 @@ class TACourse(models.Model):
         return "Course: %s  TA: %s" % (self.course, self.contract)
 
     @property
+    def frozen(self):
+        return self.contract.frozen
+    
+    def save(self, *args, **kwargs):
+        if self.frozen:
+            raise ContractFrozen()
+        else:
+            super(TACourse, self).save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        if self.frozen:
+            raise ContractFrozen()
+        else:
+            super(TACourse, self).delete(*args, **kwargs)
+
+    @property
     def prep_bu(self):
         """
         Return the prep BUs for this assignment
         """
         if self.labtut:
-            return contract.category.bu_lab_bonus 
+            return self.contract.bu_lab_bonus 
         else:
             return 0
 

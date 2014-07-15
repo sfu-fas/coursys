@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load currency %}
+{% load bu %}
 
 {% block title %}TA Contracts{% endblock %}
 {% block h1 %}TA Contracts{% endblock %}
@@ -38,13 +40,39 @@
         <thead>
             <tr>
                 <th>Contract</th>
-            <tr>
+                <th>Start Date</th>
+                <th>BUs</th>
+                <th>Total Pay</th>
+                <th>Scholarship</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody>
     {% for contract in contracts %}
             <tr>
                 <td>
-                    <a href="{% url "tacontracts.views.view_contract" category_slug=contract.category.slug contract_slug=contract.slug %}">{{contract}}</a>
+                    <a href="{% url "tacontracts.views.view_contract" contract_slug=contract.slug %}">{{contract}}</a>
+                </td>
+                <td>
+                    {{contract.pay_start}}
+                </td>
+                <td>
+                    {{contract.total_bu|bu}}
+                </td>
+                <td>
+                    {{contract.total_pay|currency}}
+                </td>
+                <td>
+                    {{contract.scholarship_pay|currency}}
+                </td>
+                <td>
+                    {{contract.get_status_display}}
+                </td>
+                <td>
+                    <a href="#">Sign</a>
+                    <a href="#">Delete</a>
+                    <a href="#">Print</a>
                 </td>
             </tr>
     {% endfor %}

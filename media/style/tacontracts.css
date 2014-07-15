@@ -1,0 +1,10 @@
+
+.collapsible-heading-status{
+    display: none;
+}
+
+
+.collapse_menu ul li{
+    float: right;
+    margin-right: 10px;
+}
