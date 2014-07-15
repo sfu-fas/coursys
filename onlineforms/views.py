@@ -175,6 +175,7 @@ def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
 def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=True)
 
+@retry_transaction()
 @transaction.atomic
 def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     """
