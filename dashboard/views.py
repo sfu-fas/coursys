@@ -171,10 +171,11 @@ def login(request, next_page=None, required=False):
         try:
             user = auth.authenticate(ticket=ticket, service=service, request=request)
         except IOError as e:
-            # Here we want to catch only: name unknown, timeouts
-            if e.errno in [-2, 110]:
+            # Here we want to catch only: connection reset, timeouts, name or service unknown
+            if e.errno in [104, 110, 'socket error']:
                 user = None
             else:
+                raise IOError, "The errno is %r: %s." % (e.errno, unicode(e))
                 raise e
 
         if user is not None:
