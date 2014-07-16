@@ -12,7 +12,7 @@ from django.db.models import Q, Count
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
-    requires_formgroup
+    requires_formgroup, login_redirect
 from courselib.db import retry_transaction
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -1044,7 +1044,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         sheet = owner_form.initial_sheet
 
     # get their info if they are logged in
-    if(request.user.is_authenticated()):
+    if request.user.is_authenticated():
         try:
             loggedin_user = Person.objects.get(userid=request.user.username)
         except Person.DoesNotExist:
@@ -1076,7 +1076,11 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         formFiller = sheet_submission.filler
         if sheet_submission.filler.isSFUPerson():
             if not(formFiller.sfuFormFiller) or loggedin_user != formFiller.sfuFormFiller:
-                return ForbiddenResponse(request)
+                if request.user.is_authenticated():
+                    return ForbiddenResponse(request)
+                else:
+                    # not logged in: maybe they really are the filler and we need to know.
+                    return login_redirect(request.path)
         # do we do need to do any checking for non sfu form fillers?
 
         form = DynamicForm(sheet.title)

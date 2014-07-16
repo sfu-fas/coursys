@@ -3,7 +3,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.utils.http import urlquote
+from django.utils.http import urlquote, urlencode
 from django.utils.safestring import mark_safe
 from coredata.models import Role, CourseOffering, Member
 from onlineforms.models import FormGroup, Form
@@ -316,3 +316,9 @@ def requires_instructor(function=None, login_url=None):
 def service_unavailable(request, *args, **kwargs):
     # view called by featureflags when something is disabled
     return HttpError(request, status=503, title="Service Unavailable", error="This feature has been temporarily disabled due to server maintenance or load.", errormsg=None, simple=False)
+
+def login_redirect(next_url):
+    """
+    Send the user to log in, and then to next_url
+    """
+    return HttpResponseRedirect(settings.LOGIN_URL + '?' + urlencode({'next': next_url}))
