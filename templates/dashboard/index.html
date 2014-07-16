@@ -34,6 +34,7 @@ $(document).ready(function() {
 
     {% if form_groups %}<li class='newsec'><a href="{% url "onlineforms.views.index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>{% endif %}
     {% if 'TAAD' in roles %}<li><a href="{% url "ta.views.view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
+    {% if 'TAAD' in roles %}<li><a href="{% url "tacontracts.views.list_all_contracts" %}"><i class="fa fa-li fa-file-zip-o"></i> TA Contracts</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url "faculty.views.index" %}"><i class="fa fa-li fa-files-o"></i> Faculty Management</a></li>
     <li><a href="{% url "coredata.views.unit_admin" %}"><i class="fa fa-li fa-gears"></i> Department Management</a></li>{% endif %}
     

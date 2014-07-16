@@ -8,7 +8,7 @@ from django.db.models.query import QuerySet
 from model_utils.managers import PassThroughManager
 from autoslug import AutoSlugField
 # Local
-from coredata.models import Unit, Person, CourseOffering
+from coredata.models import Unit, Person, CourseOffering, Semester
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
 from grad.models import GradStudent
@@ -17,7 +17,7 @@ from ra.models import Account
 
 CONTRACT_STATUS_CHOICES = (
         ("NEW","Draft"),
-        ("SGN","Contract Signed"),
+        ("SGN","Signed"),
         ("CAN","Cancelled"),
 )
 
@@ -100,8 +100,8 @@ class TACategory(models.Model):
     objects = PassThroughManager.for_queryset_class(TACategoryQuerySet)()
     
     def __unicode__(self):
-        return "%s %s %s" % (self.account.unit.label, unicode(self.code), 
-                             unicode(self.created))
+        return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), unicode(self.title), unicode(self.account))
+
 
     @property
     def frozen(self):
@@ -135,8 +135,7 @@ class TAContract(models.Model):
     """
     person = models.ForeignKey(Person)
     category = models.ForeignKey(TACategory, 
-                                 related_name="contract",
-                                 editable=False)
+                                 related_name="contract")
     status = models.CharField(max_length=4,
                               choices=CONTRACT_STATUS_CHOICES,
                               default="NEW",
@@ -144,8 +143,12 @@ class TAContract(models.Model):
     sin = models.CharField(max_length=30, 
                            verbose_name="SIN",
                            help_text="Social Insurance Number - 000000000 if unknown")
+    start_semester = models.ForeignKey(Semester, editable=False)
+    deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
+    payperiods = models.PositiveIntegerField(
+                  help_text="During the contract, how many bi-weekly pay periods?")
     appointment = models.CharField(max_length=4, 
                             choices=APPOINTMENT_CHOICES, 
                             default="INIT")
@@ -161,12 +164,18 @@ class TAContract(models.Model):
                          editable=False, 
                          unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
+    created_by = models.CharField(max_length=20, null=False, blank=False, \
+                                  editable=False)
     config = JSONField(null=False, blank=False, editable=False, default={})
     
     objects = PassThroughManager.for_queryset_class(TAContractQuerySet)()
    
     def __unicode__(self):
         return "%s" % (self.person,)
+
+    @property
+    def middle_of_contract(self):
+        return self.pay_start + ((self.pay_end - self.pay_start)//2)
 
     @property
     def frozen(self):
@@ -179,6 +188,7 @@ class TAContract(models.Model):
         if not always_allow and self.frozen:
             raise ContractFrozen()
         else:
+            self.start_semester = Semester.get_semester(self.middle_of_contract)
             super(TAContract, self).save(*args, **kwargs)
             self.set_grad_student_sin()
 
@@ -217,15 +227,18 @@ class TAContract(models.Model):
                 course.delete()
             super(TAContract, self).delete(*args, **kwargs)
 
-    def copy(self):
+    def copy(self, created_by):
         """
             Return a copy of this contract, but with status="NEW"
         """
         newcontract = TAContract(person=self.person,
                                  category=self.category,
                                  sin=self.sin,
+                                 deadline_for_acceptance=self.deadline_for_acceptance,
                                  pay_start=self.pay_start,
                                  pay_end=self.pay_end,
+                                 payperiods=self.payperiods,
+                                 created_by=created_by,
                                  appointment=self.appointment,
                                  conditional_appointment=self.conditional_appointment,
                                  tssu_appointment=self.tssu_appointment,
@@ -253,6 +266,13 @@ class TAContract(models.Model):
         return self.category.bu_lab_bonus
     
     @property
+    def bu(self):
+        if len(self.course.all()) == 0:
+            return decimal.Decimal(0)
+        else:
+            return sum( [course.bu for course in self.course.all()] )
+
+    @property
     def total_bu(self):
         if len(self.course.all()) == 0:
             return decimal.Decimal(0)
@@ -267,11 +287,19 @@ class TAContract(models.Model):
             return self.total_bu * self.pay_per_bu
 
     @property
+    def biweekly_pay(self):
+        return self.total_pay / self.payperiods
+
+    @property
     def scholarship_pay(self):
         if len(self.course.all()) == 0:
             return decimal.Decimal(0)
         else:
-            return self.total_bu * self.scholarship_per_bu
+            return self.bu * self.scholarship_per_bu
+
+    @property
+    def biweekly_scholarship(self):
+        return self.scholarship_pay / self.payperiods
 
     @property
     def total(self):

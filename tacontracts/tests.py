@@ -75,10 +75,13 @@ class TAContractTestCase(TestCase):
                               person=person,
                               status="NEW",
                               sin="123456789",
+                              deadline_for_acceptance=datetime.date.today(),
                               pay_start=datetime.date.today(),
-                              pay_end=datetime.date.today(),
+                              pay_end=datetime.date.today() + datetime.timedelta(days=10),
+                              payperiods=1,
                               appointment="INIT",
                               conditional_appointment=True,
+                              created_by="classam",
                               tssu_appointment=True)
         contract.save()
         tacourse = TACourse(course=courseoffering1,
@@ -141,11 +144,11 @@ class TAContractTestCase(TestCase):
 
     def test_scholarship_pay(self):
         """
-        5.17 * 25/BU = $129.25
+        5.00 (no Bonus BU for scholarship pay, according to Tracy) * 25/BU = $125
         """
         contract = TAContract.objects.all()[0]
         contract = self.get_contract()
-        self.assertEqual(contract.scholarship_pay, decimal.Decimal("129.25"))
+        self.assertEqual(contract.scholarship_pay, decimal.Decimal("125"))
     
     def test_tacourse_exists(self):
         course = TACourse.objects.all()
@@ -335,8 +338,14 @@ class TAContractTestCase(TestCase):
     def test_copy(self):
         contract = self.get_contract()
         self.sign_contract()
-        newcontract = contract.copy()
+        newcontract = contract.copy("username")
         newcourses = TACourse.objects.filter(contract=newcontract)
         self.assertEqual(newcontract.status, "NEW")
         self.assertEqual(len(newcourses), 2)
+        self.assertEqual(newcontract.created_by, "username")
         self.assertEqual(newcourses[0].total_bu, decimal.Decimal('3.17'))
+
+    def test_middle_of_contract(self):
+        contract = self.get_contract()
+        self.assertEqual(contract.middle_of_contract, 
+                         datetime.date.today()+datetime.timedelta(days=5))

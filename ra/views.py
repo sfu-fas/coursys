@@ -284,13 +284,13 @@ def new_account(request):
     return render(request, 'ra/new_account.html', {'accountform': accountform})
 
 
-@requires_role("FUND")
+@requires_role(["FUND", "TAAD", "GRAD"])
 def accounts_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
     accounts = Account.objects.filter(unit__id__in=depts, hidden=False).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts})
 
-@requires_role("FUND")
+@requires_role(["FUND", "TAAD", "GRAD"])
 def edit_account(request, account_slug):
     account = get_object_or_404(Account, slug=account_slug)
     if request.method == 'POST':

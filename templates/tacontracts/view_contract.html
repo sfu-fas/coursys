@@ -26,14 +26,16 @@ $(document).ready(function() {
 {% block actions %}
 <div id="actions">
     <h2>Actions</h2>
-    {% if editable %}
     <ul>
+    {% if editable %}
         <li><a href="{% url "tacontracts.views.edit_contract" contract_slug=contract.slug %}">
             Edit Contract Details</a></li>
         <li><a href="{% url "tacontracts.views.new_course" contract_slug=contract.slug %}">
             Add a Course</a></li>
-    </ul>
     {% endif %}
+    <li><a href="{% url "tacontracts.views.print_contract" contract_slug=contract.slug %}">
+        Print Contract</a></li>
+    </ul>
 </div>
 {% endblock %}
 
@@ -64,14 +66,6 @@ $(document).ready(function() {
             <td>{{contract.sin}}</td>
         </tr>
         <tr>
-            <th>Pay Start</th>
-            <td>{{contract.pay_start|date:"M d, Y"}}</td>
-        </tr>
-        <tr>
-            <th>Pay End </th>
-            <td>{{contract.pay_end|date:"M d, Y"}}</td>
-        </tr>
-        <tr>
             <th>Appointment</th>
             <td>{{contract.get_appointment_display}}</td>
         </tr>
@@ -85,7 +79,7 @@ $(document).ready(function() {
         </tr>
         <tr>
             <th>Comments</th>
-            <td>{{contract.comments}}</td>
+            <td>{{contract.comments|linebreaks}}</td>
         </tr>
     </table>
 </div>
@@ -107,7 +101,12 @@ $(document).ready(function() {
     <p>
     Signing the contract will lock it, disallowing any further changes.
     </p>
-    <input type="submit" class="submit" value="Sign The Contract" />
+    <button type="submit" class="btn" style="float:right;">
+        <i class="fa fa-lock"></i>
+        &nbsp;
+        Sign the Contract
+    </button>
+    <div style="clear:both;"></div>
 </form>
 {% endif %}
 {% if contract.status == "SGN" %}
@@ -121,7 +120,12 @@ $(document).ready(function() {
     If you need to make changes to this contract, you can cancel it, then copy it, 
     then make changes to the copy.
     </p>
-    <input type="submit" class="submit" value="Cancel The Contract" />
+    <button type="submit" class="btn" style="float:right;">
+        <i class="fa fa-minus"></i>
+        &nbsp;
+        Cancel the Contract
+    </button>
+    <div style="clear:both;"></div>
 </form>
 {% endif %}
 {% if contract.status == "CAN" %}
@@ -134,43 +138,54 @@ $(document).ready(function() {
     <p>
     If you want to make changes to this contract, you must make a copy of it.
     </p>
-    <input type="submit" class="submit" value="Copy The Contract" />
+    <button type="submit" class="btn" style="float:right;">
+        <i class="fa fa-copy"></i>
+        &nbsp;
+        Copy the Contract
+    </button>
+    <div style="clear:both;"></div>
 </form>
 {% endif %}
 </div>
 
-<h2 class='contract_heading'>Account - {{contract.category.code}} - {{contract.category.title}} : {{contract.category.account}}</h2>
+<h2 class="contract_heading">Account - {{contract.category.code}} - {{contract.category.title}} : {{contract.category.account}}</h2>
 <div>
-    <div class='collapse_menu'>
+    {% if editable %}
+    <div class="collapse_menu">
         <ul>
             <li><a href="{% url "tacontracts.views.edit_contract" contract_slug=contract.slug %}">
-                <i class='fa fa-exchange'></i>
+                <i class="fa fa-exchange"></i>
                 Use Different Account</a>
             </li>
             {% if not contract.category.frozen %}
             <li><a href="{% url "tacontracts.views.edit_category" category_slug=contract.category.slug %}">
-                <i class='fa fa-edit'></i>
+                <i class="fa fa-edit"></i>
                 Edit Account </a>
             {% endif %}
         </ul>
     </div>
+    {% endif %}
     <div style='clear:both;'></div>
     <table>
         <thead>
-            <th>Account</th>
-            <th>Code</th>
-            <th>Title</th>
-            <th>Pay Per BU</th>
-            <th>Scholarship Per BU</th>
-            <th>BU Lab Bonus</th>
+            <tr>
+                <th>Account</th>
+                <th>Code</th>
+                <th>Title</th>
+                <th>Pay Per BU</th>
+                <th>Scholarship Per BU</th>
+                <th>BU Lab Bonus</th>
+            </tr>
         </thead>
         <tbody>
-            <td>{{contract.category.account}}</td>
-            <td>{{contract.category.code}}</td>
-            <td>{{contract.category.title}}</td>
-            <td>{{contract.category.pay_per_bu|currency}}</td>
-            <td>{{contract.category.scholarship_per_bu|currency}}</td>
-            <td>{{contract.category.bu_lab_bonus|bu}}</td>
+            <tr>
+                <td>{{contract.category.account}}</td>
+                <td>{{contract.category.code}}</td>
+                <td>{{contract.category.title}}</td>
+                <td>{{contract.category.pay_per_bu|currency}}</td>
+                <td>{{contract.category.scholarship_per_bu|currency}}</td>
+                <td>{{contract.category.bu_lab_bonus|bu}}</td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -184,12 +199,13 @@ $(document).ready(function() {
             <th>Lab/Tutorial</th>
             <th>Lab BUs</th>
             <th>Total BUs</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
     {% if not courses %}
         <tr>
-            <td colspan="5">
+            <td colspan="6">
                 This contract doesn't have any courses assigned to it. 
             </td>
         </tr>
@@ -209,6 +225,17 @@ $(document).ready(function() {
             <td>
                 {{ course.total_bu|bu }}
             </td>
+            <td>
+                {% if editable %}
+                <form class="lineform" method="POST"
+                      action="{% url "tacontracts.views.delete_course" course_slug=course.slug contract_slug=contract.slug %}">
+                    {% csrf_token %}
+                      <button type="submit" class="btn" title="Delete Course">
+                          <i class="fa fa-trash-o"></i>
+                      </button>
+                </form>
+                {% endif %}
+            </td>
         </tr>
     {% endfor %}
     </tbody>
@@ -218,8 +245,9 @@ $(document).ready(function() {
             <th>Total BUs</th>
             <td>{{ contract.total_bu|bu }}</td>
         </tr>
+        {% if editable %}
         <tr>
-            <td colspan="5">
+            <td colspan="6">
                 <h4 id="add_a_course">Add a Course</h4>
                 <form action="{% url "tacontracts.views.new_course" contract_slug=contract.slug %}" method="post">
                     {% csrf_token %}
@@ -233,33 +261,74 @@ $(document).ready(function() {
 
             </td>
         </tr>
+        {% endif %}
     </tfoot>
 
 </table>
 
 
 <h2 class='contract_heading total'>Total - {{contract.total|currency}}</h2>
+<div>
+<h3>Pay Schedule</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Pay Start</th>
+            <th>Pay End</th>
+            <th>Biweekly Payperiods</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{contract.pay_start|date:"M d, Y"}}</td>
+            <td>{{contract.pay_end|date:"M d, Y"}}</td>
+            <td>{{contract.payperiods}}</td>
+        </tr>
+    </tbody>
+</table>
+<h3>Scholarship Pay</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Scholarship BUs</th>
+            <th>Scholarship Per BU</th>
+            <th>Total Scholarship</th>
+            <th>Payperiods</th>
+            <th>Biweekly Scholarship</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{contract.bu|bu}}</td>
+            <td>{{contract.scholarship_per_bu|currency}}</td>
+            <td>{{contract.scholarship_pay|currency}}</td>
+            <td>{{contract.payperiods}}</td>
+            <td>{{contract.biweekly_scholarship|currency}}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Pay</h3>
 <table>
     <thead>
         <tr>
             <th>Total BUs</th>
             <th>Pay Per BU</th>
             <th>Total Pay</th>
-            <th>Scholarship Per BU</th>
-            <th>Total Scholarship</th>
-            <th>Total</th>
-    </tr>
+            <th>Payperiods</th>
+            <th>Biweekly Pay</th>
+        </tr>
     </thead>
     <tbody>
         <tr>
             <td>{{contract.total_bu|bu}}</td>
             <td>{{contract.pay_per_bu|currency}}</td>
             <td>{{contract.total_pay|currency}}</td>
-            <td>{{contract.scholarship_per_bu|currency}}</td>
-            <td>{{contract.scholarship_pay|currency}}</td>
-            <td>{{contract.total|currency}}</td>
+            <td>{{contract.payperiods}}</td>
+            <td>{{contract.biweekly_pay|currency}}</td>
         </tr>
     </tbody>
 </table>
 
+</div>
 {% endblock %}

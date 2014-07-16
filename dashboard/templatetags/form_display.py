@@ -53,6 +53,8 @@ def as_dl(form, safe=False, excludefields=[], includefields=None, formclass='dlf
     Output a Form as a nice <dl>
     """
     out = []
+    # if the form has any widgets that have Media elements, include this
+    out.append(unicode(form.media))
     out.append(unicode(form.non_field_errors()))
     if form.hidden_fields():
         out.append('<div style="display:none">')

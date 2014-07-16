@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url "tacontracts.views.new_contract" category_slug=category.slug %}" method="post">
+<form action="{% url "tacontracts.views.new_contract" %}" method="post">
     {% csrf_token %}
     <fieldset>
     {{ form|as_dl }}
