@@ -1031,7 +1031,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
     this_path = request.get_full_path()
     
     # if no one can fill out this form, stop right now
-    if owner_form.initiators == "NON":
+    if owner_form.initiators == "NON" and not formsubmit_slug:
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
         return render(request, 'onlineforms/submissions/sheet_submission.html', context)
 
