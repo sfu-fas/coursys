@@ -152,7 +152,7 @@ def admin_list_all(request):
         #Waiting submissions
         wait_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='WAIT')
         for wait_sub in wait_submissions:
-            last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
+            last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub, status='WAIT').latest('given_at')
             wait_sub.assigned_to = last_sheet_assigned
         
         # Completed submissions
