@@ -778,14 +778,14 @@ def index(request):
     sheet_submissions = None
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
-        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name')
+        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
         other_forms = []
         sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
                 .exclude(status='DONE').exclude(status='REJE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
-        forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name')
+        forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
         other_forms = Form.objects.filter(active=True, initiators='LOG')
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
