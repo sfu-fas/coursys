@@ -115,15 +115,15 @@ class TACategory(models.Model):
     pay_per_bu = models.DecimalField(max_digits=8,
                                      decimal_places=2, 
                                      verbose_name="Default pay, "+\
-                                                  "per base unit.")
+                                                  "per base unit")
     scholarship_per_bu = models.DecimalField(max_digits=8, 
                                              decimal_places=2, 
                                              verbose_name="Scholarship pay, "+\
-                                                          "per base unit.",)
+                                                          "per base unit",)
     bu_lab_bonus = models.DecimalField(max_digits=8,
                                        decimal_places=2, 
                                        verbose_name="Bonus BUs awarded to a "+\
-                                                    "course with a lab.")
+                                                    "course with a lab")
 
     # ensc-gta2
     def autoslug(self):
