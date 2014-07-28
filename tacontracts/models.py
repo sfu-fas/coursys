@@ -38,6 +38,13 @@ class ContractFrozen(Exception):
     """
     pass
 
+class NoPreviousSemesterException(Exception):
+    """
+    This is thrown when you try to copy the TACategory objects
+    from a previous TASemester, but no such TASemester can be 
+    found. 
+    """
+    pass
 
 APPOINTMENT_CHOICES = (
         ("INIT","Initial appointment to this position"),
@@ -65,10 +72,42 @@ class TAContractQuerySet(QuerySet):
     def cancelled(self, units):
         return self.visible(units).filter(status='CAN')
 
+class HiringSemester(models.Model):
+    """
+    TA Appointments tend to be a semesterly affair, and each Contract in 
+    a Semester is likely to share a single pay_start, pay_end, and set
+    of payperiods. 
+    Of course, this is subject to change on a contract-by-contract basis, 
+    so these are only defaults. 
+    """
+    semester = models.ForeignKey(Semester)
+    default_pay_start = models.DateField()
+    default_pay_end = models.DateField()
+    default_payperiods = models.PositiveIntegerField(
+                  help_text="During the contract, how many bi-weekly pay periods?")
+    config = JSONField(null=False, blank=False, editable=False, default={})
+
+    def copy_categories_from_previous_semester(self):
+        prev_semester = self.semester.previous_semester()
+        if prev_semester == None:
+            raise NoPreviousSemesterException()
+        try:
+            hiring_semester = HiringSemester.objects.get(semester=prev_semester)
+        except HiringSemester.DoesNotExist:
+            raise NoPreviousSemesterException()
+
+        for category in hiring_semester.tacategory_set.objects():
+            category.copy_to_new_semester(self)
 
 class TACategory(models.Model):
+    """
+    A TACategory details a pay category.
+    It's only valid for a single semester, but we offer the ability 
+    to copy all of the TACategories from the last semester to the next semester.
+    """
     account = models.ForeignKey(Account)
     # the account already FKs to a Unit, so we don't need one. 
+    hiring_semester = models.ForeignKey(HiringSemester)
     code = models.CharField(max_length=5, 
                         help_text="Category Choice Code - for example 'GTA2'")
     title = models.CharField(max_length=50,
@@ -128,6 +167,15 @@ class TACategory(models.Model):
         self.hidden = True
         self.save(always_allow=True)
 
+    def copy_to_new_semester(self, new_hiring_semester):
+        cat = TACategory(account=self.account,
+                         hiring_semester=new_hiring_semester,
+                         code=self.code,
+                         title=self.title,
+                         pay_per_bu=self.pay_per_bu,
+                         scholarship_per_bu=self.scholarship_per_bu,
+                         bu_lab_bonus=self.bu_lab_bonus)
+        cat.save()
 
 class TAContract(models.Model):
     """    
@@ -136,6 +184,8 @@ class TAContract(models.Model):
     person = models.ForeignKey(Person)
     category = models.ForeignKey(TACategory, 
                                  related_name="contract")
+    semester = models.ForeignKey(HiringSemester, 
+                                 related_name="contract")
     status = models.CharField(max_length=4,
                               choices=CONTRACT_STATUS_CHOICES,
                               default="NEW",
@@ -143,7 +193,6 @@ class TAContract(models.Model):
     sin = models.CharField(max_length=30, 
                            verbose_name="SIN",
                            help_text="Social Insurance Number - 000000000 if unknown")
-    start_semester = models.ForeignKey(Semester, editable=False)
     deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
