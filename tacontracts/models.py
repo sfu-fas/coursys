@@ -137,6 +137,20 @@ class HiringSemester(models.Model):
         return sum([contract.total_bu for contract in self.contracts])
     
     objects = PassThroughManager.for_queryset_class(HiringSemesterQuerySet)()
+    
+    def next_export_seq(self):
+        """
+        For the CSV, 
+        we keep track of which batch of exports we're currently on.
+        """
+        if 'export_seq' in self.config:
+            current = self.config['export_seq']
+        else:
+            current = 0
+        
+        self.config['export_seq'] = current + 1
+        self.save()
+        return self.config['export_seq']
 
 
 class TACategory(models.Model):

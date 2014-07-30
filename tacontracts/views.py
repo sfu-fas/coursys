@@ -1,3 +1,7 @@
+# Python
+import datetime
+# Third-Party
+import unicodecsv as csv
 # Django
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
@@ -487,3 +491,113 @@ def delete_course(request, semester, contract_slug, course_slug):
         return _contract_redirect(semester, contract_slug)
     else:
         return _contract_redirect(semester, contract_slug)
+
+
+@requires_role(["TAAD", "GRAD"])
+def contracts_csv(request, semester):
+    hiring_semester = get_object_or_404(HiringSemester, 
+                                        semester__name=semester, 
+                                        unit__in=request.units)
+
+    contracts = TAContract.objects.signed(hiring_semester)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s.csv"' % (hiring_semester.semester.name)
+    writer = csv.writer(response)
+    writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 
+                     'Benefits Indicator', 'EmplID', 'SIN',
+                     'Last Name', 'First Name 1', 'First Name 2', 
+                     'Payroll Start Date', 'Payroll End Date',
+                     'Action', 'Action Reason', 'Position Number', 
+                     'Job Code', 'Full_Part time', 'Pay Group',
+                     'Employee Class', 'Category', 'Fund', 
+                     'Dept ID (cost center)', 'Project', 'Account',
+                     'Prep Units', 'Base Units', 'Appt Comp Freq', 
+                     'Semester Base Salary Rate',
+                     'Biweekly Base Salary Pay Rate', 
+                     'Hourly Rate', 'Standard Hours', 'Scholarship Rate Code',
+                     'Semester Scholarship Salary Pay Rate', 
+                     'Biweekly Scholarship Salary Pay Rate', 'Lump Sum Amount',
+                     'Lump Sum Hours', 'Scholarship Lump Sum'])
+    
+    seq = hiring_semester.next_export_seq()
+    batchid = '%s_%s_%02i' % (hiring_semester.unit.label, 
+                              datetime.date.today().strftime("%Y%m%d"), seq)
+
+    for c in contracts:
+        bu = c.bu
+        total_bu = c.total_bu
+        prep_units = c.total_bu - c.bu
+        
+        signed = 'Y'
+        benefits = 'Y'
+        schol_rate = 'TSCH' if c.scholarship_per_bu > 0 else ''
+        salary_total = c.total_pay 
+        schol_total = c.scholarship_pay
+        if prep_units == 0:
+            prep_units = ''
+        
+        row = []
+        #Batch ID
+        row.append(batchid)
+        #Term ID
+        row.append(hiring_semester.semester.name)
+        #Signed
+        row.append(signed)
+        #Benefits Indicator
+        row.append(benefits)
+        #Emplid
+        row.append(c.person.emplid)
+        #SIN
+        row.append(c.sin)
+        #Name
+        row.extend([c.person.last_name, 
+                    c.person.first_name, 
+                    c.person.middle_name])
+        #Payroll Start Date, Payroll End Date
+        row.append(c.pay_start.strftime("%Y%m%d"))
+        row.append(c.pay_end.strftime("%Y%m%d"))
+        #Action, Action Reason
+        row.append('REH')
+        row.append('REH')
+        #Position Number
+        row.append("%08i" % c.category.account.position_number)
+        #Job Code
+        row.append('')
+        #Full_Part time
+        row.append('')
+        #Pay Group
+        row.append('TSU')
+        #Employee Class
+        row.append('')
+        #Category
+        row.append(c.category.code)
+        #Fund
+        row.append(11)
+        #Dept ID(cost center)
+        row.append(hiring_semester.unit.deptid())
+        #Project
+        row.append('')
+        #Account
+        row.append(c.category.account.account_number)
+        #Prep Units
+        row.append(prep_units)
+        #Base Units
+        row.append(bu)
+        #Appt Comp Freq
+        row.append('T')
+        #Semester Base Salary Rate
+        row.append("%2f"%(salary_total,))
+        #Biweekly Base Salary Rate, Hourly Rate, Standard Hours
+        row.extend(['','',''])
+        #Scholarhip Rate Code
+        row.append(schol_rate)
+        #Semester Scholarship Salary Pay Rate
+        row.append(schol_total)
+        #Biweekly Scholarship Salary Pay Rate, Lump Sum Amount
+        #Lump Sum Hours, Scholarship Lump Sum
+        row.extend(['','','',''])
+
+        writer.writerow(row)
+    
+    return response

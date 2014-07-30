@@ -42,7 +42,8 @@ $(function() {
             Previous Semester</a></li>
         {% endif %}
         {% if categories %}
-        <li><a href="{% url "tacontracts.views.new_contract" semester=semester %}">New Contract</a></li>
+        <li><a href="{% url "tacontracts.views.new_contract" semester=semester  %}">New Contract</a></li>
+        <li><a href="{% url "tacontracts.views.contracts_csv" semester=semester %}">Generate CSV</a></li>
         {% endif %}
     </ul>
 </div>
