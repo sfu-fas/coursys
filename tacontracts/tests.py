@@ -7,7 +7,8 @@ from django.test import TestCase
 from coredata.models import Unit, Person, Semester, Course, CourseOffering
 from ra.models import Account
 # App
-from .models import ContractFrozen, TACategory, TAContract, TACourse
+from .models import ContractFrozen, HiringSemester, TACategory, TAContract, \
+                    TACourse
 
 class TAContractTestCase(TestCase):
     def setUp(self):
@@ -64,7 +65,15 @@ class TAContractTestCase(TestCase):
                           position_number=5,
                           title="A Fake Account for Testing")
         account.save()
+        four_weeks_later = datetime.date.today() + datetime.timedelta(days=28)
+        hiring_semester = HiringSemester(semester=semester,
+                                  unit=unit,
+                                  pay_start=datetime.date.today(),
+                                  pay_end=four_weeks_later,
+                                  payperiods=2)
+        hiring_semester.save()
         category = TACategory(account=account,
+                              hiring_semester=hiring_semester,
                               code="TST",
                               title="Test Contract Category",
                               pay_per_bu=decimal.Decimal("100.00"),
@@ -95,6 +104,9 @@ class TAContractTestCase(TestCase):
                              labtut=False)
         tacourse2.save()
     
+    def get_semester(self):
+        return HiringSemester.objects.all()[0]
+
     def get_contract(self):
         return TAContract.objects.all()[0]
     
@@ -109,22 +121,18 @@ class TAContractTestCase(TestCase):
         self.assertEqual(len(category), 1)
 
     def test_visible_categories(self):
-        units = Unit.objects.filter(label="TEST")
-        visible = TACategory.objects.visible(units)
-        invisible = TACategory.objects.visible([])
+        semester = self.get_semester()
+        visible = TACategory.objects.visible(semester)
         self.assertEqual(len(visible), 1)
-        self.assertEqual(len(invisible), 0)
     
     def test_tacontract_exists(self):
         contract = TAContract.objects.all()
         self.assertEqual(len(contract), 1)
 
     def test_visible_contracts(self):
-        units = Unit.objects.filter(label="TEST")
-        visible = TAContract.objects.visible(units)
-        invisible = TAContract.objects.visible([])
+        semester = self.get_semester()
+        visible = TAContract.objects.visible(semester)
         self.assertEqual(len(visible), 1)
-        self.assertEqual(len(invisible), 0)
 
     def test_total_bu(self):
         """
@@ -231,8 +239,8 @@ class TAContractTestCase(TestCase):
         category = self.get_category()
         category.hide()
 
-        units = Unit.objects.filter(label="TEST")
-        visible = TACategory.objects.visible(units)
+        semester = self.get_semester()
+        visible = TACategory.objects.visible(semester)
         self.assertEqual(len(visible), 0)
 
     def test_cant_edit_signed_course(self):
@@ -310,27 +318,27 @@ class TAContractTestCase(TestCase):
             course.delete()
     
     def test_query_helpers(self):
-        units = Unit.objects.filter(label="TEST")
+        semester = self.get_semester()
         
-        draft = TAContract.objects.draft(units)
-        signed = TAContract.objects.signed(units)
-        cancelled = TAContract.objects.cancelled(units)
+        draft = TAContract.objects.draft(semester)
+        signed = TAContract.objects.signed(semester)
+        cancelled = TAContract.objects.cancelled(semester)
         self.assertEqual(len(draft), 1)
         self.assertEqual(len(signed), 0)
         self.assertEqual(len(cancelled), 0)
 
         self.sign_contract()
-        draft = TAContract.objects.draft(units)
-        signed = TAContract.objects.signed(units)
-        cancelled = TAContract.objects.cancelled(units)
+        draft = TAContract.objects.draft(semester)
+        signed = TAContract.objects.signed(semester)
+        cancelled = TAContract.objects.cancelled(semester)
         self.assertEqual(len(draft), 0)
         self.assertEqual(len(signed), 1)
         self.assertEqual(len(cancelled), 0)
 
         self.cancel_contract()
-        draft = TAContract.objects.draft(units)
-        signed = TAContract.objects.signed(units)
-        cancelled = TAContract.objects.cancelled(units)
+        draft = TAContract.objects.draft(semester)
+        signed = TAContract.objects.signed(semester)
+        cancelled = TAContract.objects.cancelled(semester)
         self.assertEqual(len(draft), 0)
         self.assertEqual(len(signed), 0)
         self.assertEqual(len(cancelled), 1)
@@ -344,8 +352,3 @@ class TAContractTestCase(TestCase):
         self.assertEqual(len(newcourses), 2)
         self.assertEqual(newcontract.created_by, "username")
         self.assertEqual(newcourses[0].total_bu, decimal.Decimal('3.17'))
-
-    def test_middle_of_contract(self):
-        contract = self.get_contract()
-        self.assertEqual(contract.middle_of_contract, 
-                         datetime.date.today()+datetime.timedelta(days=5))

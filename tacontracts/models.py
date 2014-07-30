@@ -38,6 +38,7 @@ class ContractFrozen(Exception):
     """
     pass
 
+
 class NoPreviousSemesterException(Exception):
     """
     This is thrown when you try to copy the TACategory objects
@@ -46,9 +47,10 @@ class NoPreviousSemesterException(Exception):
     """
     pass
 
+
 APPOINTMENT_CHOICES = (
         ("INIT","Initial appointment to this position"),
-        ("REAP","Reappointment to same position or revision to appointment"),       
+        ("REAP","Reappointment to same position or revision to appointment"),
 )
 
 
@@ -56,36 +58,53 @@ APPOINTMENT_CHOICES = (
 DUMMY_SINS = ['999999999', '000000000', '123456789']
 
 
-class TACategoryQuerySet(QuerySet):
+class HiringSemesterQuerySet(QuerySet):
     def visible(self, units):
-        return self.filter(account__unit__in=units, hidden=False)
+        return self.filter(unit__in=units)
+    def semester(self, semester_name, units):
+        return self.filter(unit__in=units, 
+                           semester=Semester.objects.get(name=semester_name))
+
+
+class TACategoryQuerySet(QuerySet):
+    def visible(self, hiring_semester):
+        return self.filter(hiring_semester=hiring_semester, hidden=False)
+
 
 class TAContractQuerySet(QuerySet):
-    def visible(self, units):
-        return self.filter(category__account__unit__in=units)\
+    def visible(self, hiring_semester):
+        return self.filter(category__hiring_semester=hiring_semester)\
                     .select_related('category')\
                     .prefetch_related('course')
-    def draft(self, units):
-        return self.visible(units).filter(status='NEW')
-    def signed(self, units):
-        return self.visible(units).filter(status='SGN')
-    def cancelled(self, units):
-        return self.visible(units).filter(status='CAN')
+    def draft(self, hiring_semester):
+        return self.visible(hiring_semester).filter(status='NEW')
+    def signed(self, hiring_semester):
+        return self.visible(hiring_semester).filter(status='SGN')
+    def cancelled(self, hiring_semester):
+        return self.visible(hiring_semester).filter(status='CAN')
+
 
 class HiringSemester(models.Model):
     """
     TA Appointments tend to be a semesterly affair, and each Contract in 
     a Semester is likely to share a single pay_start, pay_end, and set
     of payperiods. 
-    Of course, this is subject to change on a contract-by-contract basis, 
+    This is subject to change on a contract-by-contract basis, 
     so these are only defaults. 
     """
     semester = models.ForeignKey(Semester)
-    default_pay_start = models.DateField()
-    default_pay_end = models.DateField()
-    default_payperiods = models.PositiveIntegerField(
-                  help_text="During the contract, how many bi-weekly pay periods?")
+    unit = models.ForeignKey(Unit)
+    pay_start = models.DateField()
+    pay_end = models.DateField()
+    payperiods = models.PositiveIntegerField(
+               help_text="During the contract, how many bi-weekly pay periods?")
     config = JSONField(null=False, blank=False, editable=False, default={})
+    
+    class Meta:
+        unique_together = (('semester', 'unit'),)
+    
+    def __unicode__(self):
+        return unicode(self.semester.name)
 
     def copy_categories_from_previous_semester(self):
         prev_semester = self.semester.previous_semester()
@@ -98,6 +117,27 @@ class HiringSemester(models.Model):
 
         for category in hiring_semester.tacategory_set.objects():
             category.copy_to_new_semester(self)
+        
+    @property
+    def contracts(self):
+        return TAContract.objects.visible(self)
+
+    @property
+    def number_of_contracts(self):
+        return len(self.contracts)
+
+    @property
+    def number_of_incomplete_contracts(self):
+        incomplete_contracts = [contract for contract in self.contracts 
+                                if contract.status == 'NEW']
+        return len(incomplete_contracts)
+
+    @property
+    def total_bu(self):
+        return sum([contract.total_bu for contract in self.contracts])
+    
+    objects = PassThroughManager.for_queryset_class(HiringSemesterQuerySet)()
+
 
 class TACategory(models.Model):
     """
@@ -107,7 +147,7 @@ class TACategory(models.Model):
     """
     account = models.ForeignKey(Account)
     # the account already FKs to a Unit, so we don't need one. 
-    hiring_semester = models.ForeignKey(HiringSemester)
+    hiring_semester = models.ForeignKey(HiringSemester, editable=False)
     code = models.CharField(max_length=5, 
                         help_text="Category Choice Code - for example 'GTA2'")
     title = models.CharField(max_length=50,
@@ -132,14 +172,16 @@ class TACategory(models.Model):
                          null=False, 
                          editable=False, 
                          unique=True)
-    created = models.DateTimeField(default=datetime.datetime.now(), editable=False)
+    created = models.DateTimeField(default=datetime.datetime.now(), 
+                                   editable=False)
     hidden = models.BooleanField(default=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default={})
 
     objects = PassThroughManager.for_queryset_class(TACategoryQuerySet)()
     
     def __unicode__(self):
-        return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), unicode(self.title), unicode(self.account))
+        return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), 
+                                  unicode(self.title), unicode(self.account))
 
 
     @property
@@ -176,6 +218,8 @@ class TACategory(models.Model):
                          scholarship_per_bu=self.scholarship_per_bu,
                          bu_lab_bonus=self.bu_lab_bonus)
         cat.save()
+        return cat
+
 
 class TAContract(models.Model):
     """    
@@ -183,8 +227,6 @@ class TAContract(models.Model):
     """
     person = models.ForeignKey(Person)
     category = models.ForeignKey(TACategory, 
-                                 related_name="contract")
-    semester = models.ForeignKey(HiringSemester, 
                                  related_name="contract")
     status = models.CharField(max_length=4,
                               choices=CONTRACT_STATUS_CHOICES,
@@ -223,10 +265,6 @@ class TAContract(models.Model):
         return "%s" % (self.person,)
 
     @property
-    def middle_of_contract(self):
-        return self.pay_start + ((self.pay_end - self.pay_start)//2)
-
-    @property
     def frozen(self):
         """
         Returns True when this contract is uneditable. 
@@ -237,7 +275,6 @@ class TAContract(models.Model):
         if not always_allow and self.frozen:
             raise ContractFrozen()
         else:
-            self.start_semester = Semester.get_semester(self.middle_of_contract)
             super(TAContract, self).save(*args, **kwargs)
             self.set_grad_student_sin()
 
@@ -261,6 +298,10 @@ class TAContract(models.Model):
             self.delete()
     
     def set_grad_student_sin(self):
+        """
+        Sets the SIN of the GradStudent object, if it exists and hasn't
+        already been set. 
+        """
         for gs in GradStudent.objects.filter(person=self.person):
             if (('sin' not in gs.config 
                 or ('sin' in gs.config and gs.config['sin'] in DUMMY_SINS)) 
@@ -283,13 +324,15 @@ class TAContract(models.Model):
         newcontract = TAContract(person=self.person,
                                  category=self.category,
                                  sin=self.sin,
-                                 deadline_for_acceptance=self.deadline_for_acceptance,
+                                 deadline_for_acceptance= \
+                                        self.deadline_for_acceptance,
                                  pay_start=self.pay_start,
                                  pay_end=self.pay_end,
                                  payperiods=self.payperiods,
                                  created_by=created_by,
                                  appointment=self.appointment,
-                                 conditional_appointment=self.conditional_appointment,
+                                 conditional_appointment= \
+                                         self.conditional_appointment,
                                  tssu_appointment=self.tssu_appointment,
                                  comments = self.comments)
         newcontract.save()
@@ -372,8 +415,10 @@ class TACourse(models.Model):
     labtut = models.BooleanField(default=False, 
                                  verbose_name="Lab/Tutorial?", 
                                  help_text="Does this course have a lab or tutorial?")
-    # curtis-lassam-2014-09-01 
     def autoslug(self):
+        """
+        curtis-lassam-2014-09-01 
+        """
         return make_slug(self.course.slug)
     slug = AutoSlugField(populate_from=autoslug, 
                          null=False, 

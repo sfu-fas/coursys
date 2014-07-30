@@ -12,15 +12,16 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "tacontracts.views.list_all_contracts" %}">TA Contracts</a></li>
-<li>TA Contract Categories</li>
+<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester%}">{{semester}}</a></li>
+<li>Contract Categories</li>
 {% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "tacontracts.views.new_category" %}">New Category</a></li>
+        <li><a href="{% url "tacontracts.views.new_category" semester=semester %}">New Category</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -51,7 +52,7 @@
                 <td>{{category.bu_lab_bonus|bu}}</td>
                 <td>
                     <form class="lineform" method="POST"
-                        action="{% url "tacontracts.views.hide_category" category_slug=category.slug %}">
+                        action="{% url "tacontracts.views.hide_category" category_slug=category.slug semester=semester %}">
                         {% csrf_token %}
                         <button type='submit' class='btn' title="Hide Category">
                             <i class='fa fa-trash-o'></i>
@@ -59,7 +60,7 @@
                     </form>
                     {% if not category.frozen %}
                     <form class="lineform" method="GET" 
-                        action="{% url "tacontracts.views.edit_category" category_slug=category.slug %}">
+                        action="{% url "tacontracts.views.edit_category" category_slug=category.slug semester=semester %}">
                         <button type='submit' class='btn' title="Edit Category">
                             <i class='fa fa-edit'></i>
                         </button>

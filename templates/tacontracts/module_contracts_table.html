@@ -6,7 +6,6 @@
             <tr>
                 <th>Contract</th>
                 <th>Start Date</th>
-                <th>Semester</th>
                 <th>BUs</th>
                 <th>Category</th>
                 <th>Total</th>
@@ -17,15 +16,12 @@
     {% for contract in contracts %}
     <tr>
                 <td>
-                    <a href="{% url "tacontracts.views.view_contract" contract_slug=contract.slug %}">
+                    <a href="{% url "tacontracts.views.view_contract" semester=semester contract_slug=contract.slug %}">
                         {{contract}}</a>
                 </td>
                 <td>
                     <span class="sort">{{ contract.pay_start.isoformat }}</span>
                     {{contract.pay_start|date:"M d, Y"}}
-                </td>
-                <td>
-                    {{contract.start_semester.name}}
                 </td>
                 <td>
                     {{contract.total_bu|bu}}
@@ -38,14 +34,14 @@
                 </td>
                 <td>
                     <form class="lineform" method="POST"
-                          action="{% url "tacontracts.views.copy_contract" contract_slug=contract.slug %}">
+                          action="{% url "tacontracts.views.copy_contract" semester=semester contract_slug=contract.slug %}">
                         {% csrf_token %}
                           <button type="submit" class="btn" title="Copy Contract">
                               <i class="fa fa-copy"></i>
                           </button>
                     </form>
                     <form class="lineform" method="GET"
-                          action="{% url "tacontracts.views.print_contract" contract_slug=contract.slug %}">
+                          action="{% url "tacontracts.views.print_contract" semester=semester contract_slug=contract.slug %}">
                         {% csrf_token %}
                           <button type="submit" class="btn" title="Print Contract">
                               <i class="fa fa-print"></i>
@@ -53,14 +49,14 @@
                     </form>
                     {% if contract.status == "NEW" %}
                     <form class="lineform" method="POST"
-                          action="{% url "tacontracts.views.sign_contract" contract_slug=contract.slug %}">
+                          action="{% url "tacontracts.views.sign_contract" semester=semester contract_slug=contract.slug %}">
                         {% csrf_token %}
                           <button type="submit" class="btn" title="Sign Contract">
                               <i class="fa fa-lock"></i>
                           </button>
                     </form>
                     <form class="lineform" method="POST"
-                          action="{% url "tacontracts.views.cancel_contract" contract_slug=contract.slug %}">
+                          action="{% url "tacontracts.views.cancel_contract" semester=semester contract_slug=contract.slug %}">
                         {% csrf_token %}
                           <button type="submit" class="btn" title="Delete Contract">
                               <i class="fa fa-trash-o"></i>
@@ -70,7 +66,7 @@
                     {% else %}
                     {% if contract.status == "SGN" %}
                     <form class="lineform" method="POST"
-                          action="{% url "tacontracts.views.cancel_contract" contract_slug=contract.slug %}">
+                          action="{% url "tacontracts.views.cancel_contract" semester=semester contract_slug=contract.slug %}">
                         {% csrf_token %}
                           <button type="submit" class="btn" title="Cancel Contract">
                               <i class="fa fa-times"></i>

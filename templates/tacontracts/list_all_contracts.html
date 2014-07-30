@@ -1,11 +1,11 @@
-{% extends "base-wide.html" %}
+{% extends "base.html" %}
 {% load form_display %}
 {% load staticfiles %}
 {% load currency %}
 {% load bu %}
 
-{% block title %}TA Contracts{% endblock %}
-{% block h1 %}TA Contracts{% endblock %}
+{% block title %}TA Contracts - {{semester}}{% endblock %}
+{% block h1 %}TA Contracts - {{semester}}{% endblock %}
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
@@ -27,17 +27,22 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>TA Contracts</li>
+<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
+<li>{{semester}}</li>
 {% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "tacontracts.views.new_category" %}">New Category</a></li>
-        <li><a href="{% url "tacontracts.views.view_categories" %}">View Categories</a></li>
+        <li><a href="{% url "tacontracts.views.new_category" semester=semester %}">New Category</a></li>
+        <li><a href="{% url "tacontracts.views.view_categories" semester=semester %}">View Categories</a></li>
+        {% if show_copy_categories %}
+        <li><a href="{% url "tacontracts.views.copy_categories" semester=semester %}">Copy Categories From
+            Previous Semester</a></li>
+        {% endif %}
         {% if categories %}
-        <li><a href="{% url "tacontracts.views.new_contract" %}">New Contract</a></li>
+        <li><a href="{% url "tacontracts.views.new_contract" semester=semester %}">New Contract</a></li>
         {% endif %}
     </ul>
 </div>
@@ -47,15 +52,23 @@ $(function() {
 
 {% if not categories %}
     <p>
-        You don't have any contract categories yet. Would you like to 
-        <a href="{% url "tacontracts.views.new_category" %}"><i class='fa fa-plus'></i> 
-            Create A Contract Category</a>?
+        You don't have any contract categories yet.
+    </p>
+    <p>
+        Would you like to 
+        <a href="{% url "tacontracts.views.new_category" semester=semester %}">
+            Create A Contract Category</a>
+        {% if show_copy_categories %}
+            or perhaps 
+            <a href="{% url "tacontracts.views.copy_categories" semester=semester %}">
+            Copy The Categories From The Previous Semester</a>
+        {% endif %}?
     </p>
 {% else %}
     {% if not contracts %}
     <p>
         You don't have any contracts yet. Would you like to 
-        <a href="{% url "tacontracts.views.new_contract" %}"><i class='fa fa-plus'></i> 
+        <a href="{% url "tacontracts.views.new_contract" semester=semester %}"><i class='fa fa-plus'></i> 
             Create A Contract</a>?
     </p>
     {% else %}

@@ -19,7 +19,8 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url "tacontracts.views.list_all_contracts" %}">TA Contracts</a></li>
+<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester %}">{{semester}}</a></li>
 <li>{{contract}}</li>
 {% endblock %}
 
@@ -28,12 +29,12 @@ $(document).ready(function() {
     <h2>Actions</h2>
     <ul>
     {% if editable %}
-        <li><a href="{% url "tacontracts.views.edit_contract" contract_slug=contract.slug %}">
+        <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
             Edit Contract Details</a></li>
-        <li><a href="{% url "tacontracts.views.new_course" contract_slug=contract.slug %}">
+        <li><a href="{% url "tacontracts.views.new_course" semester=semester contract_slug=contract.slug %}">
             Add a Course</a></li>
     {% endif %}
-    <li><a href="{% url "tacontracts.views.print_contract" contract_slug=contract.slug %}">
+    <li><a href="{% url "tacontracts.views.print_contract" semester=semester contract_slug=contract.slug %}">
         Print Contract</a></li>
     </ul>
 </div>
@@ -47,7 +48,7 @@ $(document).ready(function() {
     {% if editable %}
     <div class='collapse_menu'>
         <ul>
-            <li><a href="{% url "tacontracts.views.edit_contract" contract_slug=contract.slug %}">
+            <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
                 <i class='fa fa-edit'></i>
                 Edit Contract Details</a>
             </li>
@@ -65,6 +66,9 @@ $(document).ready(function() {
             <th>SIN</th>
             <td>{{contract.sin}}</td>
         </tr>
+        <tr>
+            <th>Deadline for Acceptance</th>
+            <td>{{contract.deadline_for_acceptance}}</td>
         <tr>
             <th>Appointment</th>
             <td>{{contract.get_appointment_display}}</td>
@@ -92,7 +96,7 @@ $(document).ready(function() {
 </h2>
 <div class='{{contract.status}}'>
 {% if contract.status == "NEW" %}
-<form method="post" action="{% url "tacontracts.views.sign_contract" contract_slug=contract.slug %}">
+<form method="post" action="{% url "tacontracts.views.sign_contract" semester=semester contract_slug=contract.slug %}">
     {% csrf_token %}
     <p>
     This contract is in {{contract.get_status_display}} status, which means
@@ -110,7 +114,7 @@ $(document).ready(function() {
 </form>
 {% endif %}
 {% if contract.status == "SGN" %}
-<form method="post" action="{% url "tacontracts.views.cancel_contract" contract_slug=contract.slug %}">
+<form method="post" action="{% url "tacontracts.views.cancel_contract" semester=semester contract_slug=contract.slug %}">
     {% csrf_token %}
     <p>
     This contract is in {{contract.get_status_display}} status, which means
@@ -129,7 +133,7 @@ $(document).ready(function() {
 </form>
 {% endif %}
 {% if contract.status == "CAN" %}
-<form method="post" action="{% url "tacontracts.views.copy_contract" contract_slug=contract.slug %}">
+<form method="post" action="{% url "tacontracts.views.copy_contract" semester=semester contract_slug=contract.slug %}">
     {% csrf_token %}
     <p>
     This contract is in {{contract.get_status_display}} status, which means
@@ -153,12 +157,12 @@ $(document).ready(function() {
     {% if editable %}
     <div class="collapse_menu">
         <ul>
-            <li><a href="{% url "tacontracts.views.edit_contract" contract_slug=contract.slug %}">
+            <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
                 <i class="fa fa-exchange"></i>
                 Use Different Account</a>
             </li>
             {% if not contract.category.frozen %}
-            <li><a href="{% url "tacontracts.views.edit_category" category_slug=contract.category.slug %}">
+            <li><a href="{% url "tacontracts.views.edit_category" semester=semester category_slug=contract.category.slug %}">
                 <i class="fa fa-edit"></i>
                 Edit Account </a>
             {% endif %}
@@ -228,7 +232,7 @@ $(document).ready(function() {
             <td>
                 {% if editable %}
                 <form class="lineform" method="POST"
-                      action="{% url "tacontracts.views.delete_course" course_slug=course.slug contract_slug=contract.slug %}">
+                      action="{% url "tacontracts.views.delete_course" semester=semester course_slug=course.slug contract_slug=contract.slug %}">
                     {% csrf_token %}
                       <button type="submit" class="btn" title="Delete Course">
                           <i class="fa fa-trash-o"></i>
@@ -249,7 +253,7 @@ $(document).ready(function() {
         <tr>
             <td colspan="6">
                 <h4 id="add_a_course">Add a Course</h4>
-                <form action="{% url "tacontracts.views.new_course" contract_slug=contract.slug %}" method="post">
+                <form action="{% url "tacontracts.views.new_course" semester=semester contract_slug=contract.slug %}" method="post">
                     {% csrf_token %}
                     <fieldset>
                     {{ courseform|as_dl }}
