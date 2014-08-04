@@ -454,7 +454,7 @@ def offerings_search(request):
     return response
 
 # AJAX/JSON for course offering selector autocomplete with slugs
-def offerings_slug_search(request):
+def offerings_slug_search(request, semester=None):
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
@@ -462,6 +462,8 @@ def offerings_slug_search(request):
     data = []
     query = get_query(term, ['subject', 'number', 'section', 'semester__name', 'title'])
     offerings = CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
+    if semester:
+        offerings = offerings.filter(semester__name=semester)
     for o in offerings:
         label = o.search_label_value()
         d = {'value': o.slug, 'label': label}

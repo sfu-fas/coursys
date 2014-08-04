@@ -70,6 +70,7 @@ class AutocompleteOfferingWidget(forms.TextInput):
     """
     A widget to allow searching for a CourseOffering
     """
+
     def render(self, name, value, attrs=None):
         if not attrs:
             attrs={'class':'autocomplete_courseoffering'}
@@ -77,11 +78,16 @@ class AutocompleteOfferingWidget(forms.TextInput):
             attrs['class'] = 'autocomplete_courseoffering'
         else:
             attrs['class'] = attrs['class'] + " autocomplete_person"
+        
+
         html = super(AutocompleteOfferingWidget, self).render(name, value, attrs)
         html += "<script type='application/javascript'>"
         html += "$('.autocomplete_courseoffering').each(function(){"
         html += "  $(this).autocomplete({"
-        html += "    source: '/data/offerings_slug',"
+        try:
+            html += "    source: '/data/offerings_slug/"+self.semester+"',"
+        except AttributeError:
+            html += "    source: '/data/offerings_slug',"
         html += "    minLength: 2,"
         html += "    select: function(event, ui){"
         html += "      $(this).data('val', ui.item.value);"

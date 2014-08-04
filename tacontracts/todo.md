@@ -1,5 +1,8 @@
 
- * Add a status: "Accepted"
- * Use the HiringSemester to filter the CourseOffering field. 
- * Email
+ --
  * CSV
+  - seriously, just tell the users to set 'comma' rather than 'space'
+    as the delimiter. 
+ --
+ * Add a status: "Accepted"
+ * Email

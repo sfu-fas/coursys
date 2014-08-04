@@ -321,7 +321,7 @@ def view_contract(request, semester, contract_slug):
                                  category__account__unit__in=request.units)
     category = contract.category
     courses = contract.course.all()
-    courseform = TACourseForm()
+    courseform = TACourseForm(semester)
     return render(request, 'tacontracts/view_contract.html', {
                    'semester': semester,
                    'editable': not contract.frozen,
@@ -449,7 +449,7 @@ def new_course(request, semester, contract_slug):
                                  category__account__unit__in=request.units)
     category = contract.category
     if request.method == 'POST':
-        form = TACourseForm(request.POST)
+        form = TACourseForm(semester, request.POST)
         if form.is_valid():
             course = form.save(commit=False)
             course.contract = contract
@@ -465,7 +465,7 @@ def new_course(request, semester, contract_slug):
                                  u'Course %s created.' % str(course))
             return _contract_redirect(semester, contract.slug)
     else:
-        form = TACourseForm()
+        form = TACourseForm(semester)
     return render(request, 'tacontracts/new_course.html', {
                   'semester':semester,
                   'category':category,

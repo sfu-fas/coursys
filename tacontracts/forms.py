@@ -54,6 +54,10 @@ class TAContractForm(forms.ModelForm):
         }
 
 class TACourseForm(forms.ModelForm):
+    def __init__(self, semester, *args, **kwargs):
+        super(TACourseForm, self).__init__(*args, **kwargs)
+        self.fields['course'].widget.semester = semester
+    
     course = OfferingField()
     class Meta:
         model = TACourse
