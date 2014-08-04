@@ -259,6 +259,9 @@ class TAContract(models.Model):
                             default="INIT")
     conditional_appointment = models.BooleanField(default=False)
     tssu_appointment = models.BooleanField(default=True)
+    
+    accepted_by_student = models.BooleanField(default=False, editable=False)
+
     comments = models.TextField(blank=True)
     # curtis-lassam-2014-09-01 
     def autoslug(self):
