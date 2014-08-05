@@ -126,14 +126,14 @@ $(document).ready(function() {
         </tr>
     </thead>
     <tbody>
-    {% if not courses %}
+    {% if not contract.course.all %}
         <tr>
             <td colspan="6">
                 This contract doesn't have any courses assigned to it. 
             </td>
         </tr>
     {% endif %}
-    {% for course in courses %}
+    {% for course in contract.course.all %}
         <tr>
             <td>{{course.course}}</td>
             <td>{{course.bu|bu}}</td>
