@@ -1,0 +1,77 @@
+{% load currency %}
+{% load bu %}
+
+<div class="datatable_container datatable">
+	<table class="display">
+        <thead>
+            <tr>
+                <th>Contract</th>
+                <th>Semester</th>
+                <th>Start Date</th>
+                <th>BUs</th>
+                <th>Category</th>
+                <th>Total</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for contract in tacontracts %}
+    <tr>
+                <td>
+                    <a href="{% url "tacontracts.views.view_contract" semester=contract.category.hiring_semester.semester.name contract_slug=contract.slug %}">
+                        {{contract}}</a>
+                </td>
+                <td>
+                    {{contract.category.hiring_semester.semester.name}}
+                </td>
+                <td>
+                    <span class="sort">{{ contract.pay_start.isoformat }}</span>
+                    {{contract.pay_start|date:"M d, Y"}}
+                </td>
+                <td>
+                    {{contract.total_bu|bu}}
+                </td>
+                <td>
+                    {{contract.category.code}}
+                </td>
+                <td class='total_pay'>
+                    {{contract.total|currency}}
+                </td>
+                <td>
+                    {{contract.get_status_display}}
+                    {% if contract.status == 'NEW' and contract.accepted_by_student %}
+                        <i class='fa fa-check'></i>
+                    {% endif %}
+                </td>
+            </tr>
+    {% endfor %}
+    {% for contract in oldcontracts %}
+    <tr>
+                <td>
+  		            <a href="{% url "ta.views.view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">
+                        {{contract}}</a>
+                </td>
+                <td>
+                    {{contract.posting.semester.name}}
+                </td>
+                <td>
+                    <span class="sort">{{ contract.pay_start.isoformat }}</span>
+                    {{contract.pay_start|date:"M d, Y"}}
+                </td>
+                <td>
+                    {{contract.total_bu|bu}}
+                </td>
+                <td>
+                    {{contract.appt_category}}
+                </td>
+                <td class='total_pay'>
+                    {{contract.total|currency}}
+                </td>
+                <td>
+                    {{contract.get_status_display}}
+                </td>
+            </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+</div>

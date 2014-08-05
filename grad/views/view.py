@@ -6,6 +6,8 @@ from grad.models import GradStudent, Supervisor, GradStatus, \
         CompletedRequirement, GradRequirement, Scholarship, \
         OtherFunding, Promise, Letter, GradProgramHistory, \
         FinancialComment, ProgressReport, ExternalDocument
+from tacontracts.models import TAContract
+from ta.models import TAContract as OldTAContract
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -48,6 +50,7 @@ def _can_view_student(request, grad_slug, funding=False):
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
                 'scholarships', 'otherfunding', 'promises', 'progressreports',
+                'tacontracts',
                 'financialcomments', 'letters', 'documents']
 
 @login_required
@@ -129,6 +132,13 @@ def view(request, grad_slug, section=None):
             promises = Promise.objects.filter(student=grad, removed=False).order_by('start_semester__name')
             context['promises'] = promises
             return render(request, 'grad/view__promises.html', context)
+
+        elif section == 'tacontracts':
+            tacontracts = TAContract.objects.filter(person=grad.person, status__in=['NEW', 'SGN'])
+            oldcontracts = OldTAContract.objects.filter(application__person=grad.person)
+            context['tacontracts'] = tacontracts
+            context['oldcontracts'] = oldcontracts
+            return render(request, 'grad/view__tacontracts.html', context)
         
         elif section == 'financialcomments':
             comments = FinancialComment.objects.filter(student=grad, removed=False).order_by('created_at')
