@@ -335,12 +335,29 @@ $(document).ready(function() {
 </table>
 </div>
 
-<h2 class='contract_heading total'>Emails - {{contract.number_of_emails}}</h2>
+<h2 class='contract_heading emails'>Emails - {{contract.number_of_emails}}</h2>
 <div>
 {% for email in emails %}
 <h3><i class='fa fa-envelope-o'></i> {{email.content.published|date:"M d, Y"}} : {{email.content.title}}</h3>
 <div>{{email.content.content}}</div>
 {% endfor %}
+</div>
+
+{% if contract.grad_students %}
+<h2 class='contract_heading gradstudent'>Grad Student Record</h2>
+<div>
+<ul>
+    {% for student in contract.grad_students %}
+    <li>
+        <a href="{% url "grad.views.view" grad_slug=student.slug %}">
+        <i class='fa fa-mortar-board'></i> 
+        {{student}}</a>
+    </li>
+    {% endfor %}
+</ul>
+</div>
+{% endif %}
+
 </div>
 
 {% endblock %}

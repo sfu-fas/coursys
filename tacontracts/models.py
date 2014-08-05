@@ -425,6 +425,15 @@ class TAContract(models.Model):
         return len(self.email_receipt.all())
 
 
+    def grad_students(self):
+        """ 
+        Fetch the GradStudent record associated with this student in this
+        semester.
+        """
+        students = GradStudent.get_canonical(self.person, self.category.hiring_semester.semester)
+        return students
+
+
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering,
                                blank=False, 
@@ -491,6 +500,18 @@ class TACourse(models.Model):
         Return the total BUs for this assignment
         """
         return self.bu + self.prep_bu
+    
+    @property
+    def total_pay(self):
+        return self.total_bu * self.contract.pay_per_bu
+
+    @property
+    def scholarship_pay(self):
+        return self.total_bu * self.contract.scholarship_per_bu
+
+    @property
+    def total(self):
+        return self.total_pay + self.scholarship_pay
 
 
 class EmailReceipt(models.Model):
