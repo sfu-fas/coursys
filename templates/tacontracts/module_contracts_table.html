@@ -9,6 +9,8 @@
                 <th>BUs</th>
                 <th>Category</th>
                 <th>Total</th>
+                <th>Accepted</th>
+                <th>Emails</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -27,10 +29,16 @@
                     {{contract.total_bu|bu}}
                 </td>
                 <td>
-                    {{contract.category.code}} - {{contract.category.title}}
+                    {{contract.category.code}}
                 </td>
                 <td class='total_pay'>
                     {{contract.total|currency}}
+                </td>
+                <td class='accepted'>
+                    {{contract.accepted_by_student|yesno}} 
+                </td>
+                <td class='number_of_emails'>
+                    {{contract.number_of_emails}}
                 </td>
                 <td>
                     <form class="lineform" method="POST"

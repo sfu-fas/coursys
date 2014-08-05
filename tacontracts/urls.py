@@ -8,13 +8,18 @@ COURSE_SLUG = '(?P<course_slug>' + SLUG_RE + ')'
 tacontract_patterns = [ # prefix /tacontract/
     url(r'^$', 'tacontracts.views.list_all_semesters'),
     url(r'^new_semester$', 'tacontracts.views.new_semester'),
-    url(r'^'+SEMESTER+'/setup', 'tacontracts.views.setup_semester'),
-    url(r'^'+SEMESTER+'/edit', 'tacontracts.views.edit_semester'),
+
+    url(r'^student/'+SEMESTER+'$', 'tacontracts.views.student_contract'),
+    url(r'^student/'+SEMESTER+'/'+CONTRACT_SLUG+'$', 'tacontracts.views.accept_contract'),
+
+    url(r'^'+SEMESTER+'/setup$', 'tacontracts.views.setup_semester'),
+    url(r'^'+SEMESTER+'/edit$', 'tacontracts.views.edit_semester'),
     url(r'^'+SEMESTER+'$', 'tacontracts.views.list_all_contracts'),
     url(r'^'+SEMESTER+'/new_category$', 'tacontracts.views.new_category'),
     url(r'^'+SEMESTER+'/category$', 'tacontracts.views.view_categories'),
     url(r'^'+SEMESTER+'/copy_categories$', 'tacontracts.views.copy_categories'),
     url(r'^'+SEMESTER+'/csv$', 'tacontracts.views.contracts_csv'),
+    url(r'^'+SEMESTER+'/bulk_email$', 'tacontracts.views.bulk_email'),
     url(r'^'+SEMESTER+'/category/'+CATEGORY_SLUG+'/edit$', 'tacontracts.views.edit_category'),
     url(r'^'+SEMESTER+'/category/'+CATEGORY_SLUG+'/delete$', 'tacontracts.views.hide_category'),
     url(r'^'+SEMESTER+'/new_contract$', 'tacontracts.views.new_contract'),

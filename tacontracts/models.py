@@ -75,6 +75,7 @@ class TAContractQuerySet(QuerySet):
     def visible(self, hiring_semester):
         return self.filter(category__hiring_semester=hiring_semester)\
                     .select_related('category')\
+                    .select_related('email_receipt')\
                     .prefetch_related('course')
     def draft(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='NEW')
@@ -260,7 +261,11 @@ class TAContract(models.Model):
     conditional_appointment = models.BooleanField(default=False)
     tssu_appointment = models.BooleanField(default=True)
     
-    accepted_by_student = models.BooleanField(default=False, editable=False)
+    # this is really only important if the contract is in Draft status
+    # if Signed, the student's acceptance is implied. 
+    # if Cancelled, the student's acceptance doesn't matter. 
+    accepted_by_student = models.BooleanField(default=False, 
+                  help_text="Has the student accepted the contract?")
 
     comments = models.TextField(blank=True)
     # curtis-lassam-2014-09-01 
@@ -414,6 +419,10 @@ class TAContract(models.Model):
     def total(self):
         return self.total_pay + self.scholarship_pay
 
+    @property
+    def number_of_emails(self):
+        return len(self.email_receipt.all())
+
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering,
@@ -483,4 +492,12 @@ class TACourse(models.Model):
         return self.bu + self.prep_bu
 
 
-
+class EmailReceipt(models.Model):
+    contract = models.ForeignKey(TAContract, 
+                                 blank=False, 
+                                 null=False, 
+                                 editable=False,
+                                 related_name="email_receipt")
+    created = models.DateTimeField(default=datetime.datetime.now(), 
+                                   editable=False)
+    content = models.TextField(blank=False, null=False)

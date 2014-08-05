@@ -8,13 +8,16 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from django.db import transaction, IntegrityError
+from django.contrib.auth.decorators import login_required
 # Local
 from courselib.auth import requires_role
 from coredata.models import Semester, Unit
+from dashboard.models import NewsItem
 # App
-from .models import HiringSemester, TACategory, TAContract, TACourse
+from .models import HiringSemester, TACategory, TAContract, TACourse, \
+                    EmailReceipt
 from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
-                    TACourseForm
+                    TACourseForm, EmailForm
 from .pdfs import ta_pdf
 
 
@@ -321,6 +324,7 @@ def view_contract(request, semester, contract_slug):
                                  category__account__unit__in=request.units)
     category = contract.category
     courses = contract.course.all()
+    emails = contract.email_receipt.all()
     courseform = TACourseForm(semester)
     return render(request, 'tacontracts/view_contract.html', {
                    'semester': semester,
@@ -328,6 +332,7 @@ def view_contract(request, semester, contract_slug):
                    'category': category, 
                    'contract': contract, 
                    'courseform': courseform,
+                   'emails': emails,
                    'courses': courses })
 
 
@@ -491,6 +496,71 @@ def delete_course(request, semester, contract_slug, course_slug):
         return _contract_redirect(semester, contract_slug)
     else:
         return _contract_redirect(semester, contract_slug)
+
+
+@requires_role(["TAAD", "GRAD"])
+def bulk_email(request, semester):
+    hiring_semester = get_object_or_404(HiringSemester, 
+                                        semester__name=semester, 
+                                        unit__in=request.units)
+    contracts = TAContract.objects.draft(hiring_semester)
+    if request.method == 'POST':
+        form = EmailForm(request.POST)
+        if form.is_valid():
+            subject = form.cleaned_data['subject']
+            message = form.cleaned_data['message']
+            sender = form.cleaned_data['sender']
+            url = reverse('tacontracts.views.student_contract', 
+                                                  kwargs={'semester':semester})
+            contract_ids = [int(x) for x in request.POST.getlist('contracts[]')]
+            contracts = TAContract.objects.visible(hiring_semester)\
+                                          .filter(id__in=contract_ids)
+            for contract in contracts:
+                n = NewsItem(user=contract.person, 
+                             source_app="tacontracts", 
+                             title=subject,
+                             url=url, 
+                             author=sender, 
+                             content=message)
+                n.save()
+                e = EmailReceipt(contract=contract, 
+                                 content=subject + "\n\n" + message)
+                e.save()
+            messages.add_message(request, messages.SUCCESS, u'Email sent.')
+            return _contracts_redirect(semester)
+    else:
+        form = EmailForm()
+    return render(request, 'tacontracts/bulk_email.html', {
+                  'semester':semester,
+                  'contracts':contracts,
+                  'form':form,
+                  })
+
+
+@login_required
+def student_contract(request, semester):
+    contracts = TAContract.objects.filter(category__hiring_semester__semester__name=semester, 
+                                          status__in=["NEW", "SGN"],
+                                          person__userid=request.user.username) 
+    return render(request, 'tacontracts/student_contract.html', {
+                  'semester':semester,
+                  'contracts':contracts,
+                  })
+
+@login_required
+def accept_contract(request, semester, contract_slug):
+    contract = get_object_or_404(TAContract,
+                                          category__hiring_semester__semester__name=semester, 
+                                          person__userid=request.user.username, 
+                                          slug=contract_slug) 
+    if request.POST:
+        contract.accepted_by_student = True
+        contract.save()
+        messages.add_message(request, 
+                             messages.SUCCESS, 
+                             u'Contract Accepted.')
+    return HttpResponseRedirect(reverse('tacontracts.views.student_contract', 
+                                        kwargs={'semester':semester}))
 
 
 @requires_role(["TAAD", "GRAD"])

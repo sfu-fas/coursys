@@ -1,48 +1,35 @@
-{% extends "base.html" %}
+{% extends "base-wide.html" %}
 {% load currency %}
 {% load bu %}
 {% load form_display %}
 {% load staticfiles %}
 
-{% block title %}TA Contract : {{contract}}{% endblock %}
-{% block h1 %}TA Contract : {{contract}}{% endblock %}
+{% block title %}TA Contracts for {{semester}}{% endblock %}
+{% block h1 %}TA Contracts for {{semester}}{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
 <script type="text/javascript">
 $(document).ready(function() {
-  $("h4#add_a_course").collapsible();
-  $("h2.contract_heading").collapsible();
-  $("h2.details").trigger('expand');
+  $("h2").collapsible();
 });
 </script>
+<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
-<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester %}">{{semester}}</a></li>
-<li>{{contract}}</li>
 {% endblock %}
 
 {% block actions %}
 <div id="actions">
-    <h2>Actions</h2>
-    <ul>
-    {% if editable %}
-        <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
-            Edit Contract Details</a></li>
-        <li><a href="{% url "tacontracts.views.new_course" semester=semester contract_slug=contract.slug %}">
-            Add a Course</a></li>
-    {% endif %}
-    <li><a href="{% url "tacontracts.views.print_contract" semester=semester contract_slug=contract.slug %}">
-        Print Contract</a></li>
-    </ul>
 </div>
 {% endblock %}
 
 {% block content %}
 
-<h2 class='contract_heading details'>Contract Details</h2>
+{% for contract in contracts %}
+<h2 class='contract'>Contract Details</h2>
+<div>
+<h3 class='contract_heading details'>Contract Details</h3>
 <div>
 
     {% if editable %}
@@ -81,78 +68,10 @@ $(document).ready(function() {
             <th>TSSU</th>
             <td>{{contract.tssu_appointment|yesno|capfirst}}</td>
         </tr>
-        <tr>
-            <th>Comments</th>
-            <td>{{contract.comments|linebreaks}}</td>
-        </tr>
     </table>
 </div>
 
-
-<h2 class='contract_heading'>{{contract.get_status_display}} - 
-    {% if contract.status == "NEW" %}<i class='fa fa-unlock'></i>{% endif %}
-    {% if contract.status == "SGN" %}<i class='fa fa-lock'></i>{% endif %}
-    {% if contract.status == "CAN" %}<i class='fa fa-times'></i>{% endif %}
-</h2>
-<div class='{{contract.status}}'>
-{% if contract.status == "NEW" %}
-<form method="post" action="{% url "tacontracts.views.sign_contract" semester=semester contract_slug=contract.slug %}">
-    {% csrf_token %}
-    <p>
-    This contract is in {{contract.get_status_display}} status, which means
-    that you can edit it and make changes to it.
-    </p>
-    <p>
-    Signing the contract will lock it, disallowing any further changes.
-    </p>
-    <button type="submit" class="btn" style="float:right;">
-        <i class="fa fa-lock"></i>
-        &nbsp;
-        Sign the Contract
-    </button>
-    <div style="clear:both;"></div>
-</form>
-{% endif %}
-{% if contract.status == "SGN" %}
-<form method="post" action="{% url "tacontracts.views.cancel_contract" semester=semester contract_slug=contract.slug %}">
-    {% csrf_token %}
-    <p>
-    This contract is in {{contract.get_status_display}} status, which means
-    that you <em>cannot edit it</em> it or make changes to it.
-    </p>
-    <p>
-    If you need to make changes to this contract, you can cancel it, then copy it, 
-    then make changes to the copy.
-    </p>
-    <button type="submit" class="btn" style="float:right;">
-        <i class="fa fa-minus"></i>
-        &nbsp;
-        Cancel the Contract
-    </button>
-    <div style="clear:both;"></div>
-</form>
-{% endif %}
-{% if contract.status == "CAN" %}
-<form method="post" action="{% url "tacontracts.views.copy_contract" semester=semester contract_slug=contract.slug %}">
-    {% csrf_token %}
-    <p>
-    This contract is in {{contract.get_status_display}} status, which means
-    that you <em>cannot edit it</em> it or make changes to it.
-    </p>
-    <p>
-    If you want to make changes to this contract, you must make a copy of it.
-    </p>
-    <button type="submit" class="btn" style="float:right;">
-        <i class="fa fa-copy"></i>
-        &nbsp;
-        Copy the Contract
-    </button>
-    <div style="clear:both;"></div>
-</form>
-{% endif %}
-</div>
-
-<h2 class="contract_heading">Account - {{contract.category.code}} - {{contract.category.title}} : {{contract.category.account}}</h2>
+<h3 class="contract_heading">Account - {{contract.category.code}} - {{contract.category.title}} : {{contract.category.account}}</h3>
 <div>
     {% if editable %}
     <div class="collapse_menu">
@@ -194,7 +113,7 @@ $(document).ready(function() {
     </table>
 </div>
 
-<h2 class='contract_heading courses'>Courses - {{contract.total_bu|bu}} BU</h2>
+<h3 class='contract_heading courses'>Courses - {{contract.total_bu|bu}} BU</h3>
 <table>
     <thead>
         <tr>
@@ -271,9 +190,9 @@ $(document).ready(function() {
 </table>
 
 
-<h2 class='contract_heading total'>Total - {{contract.total|currency}}</h2>
+<h3 class='contract_heading total'>Compensation</h3>
 <div>
-<h3>Pay Schedule</h3>
+<h4>Pay Schedule</h4>
 <table>
     <thead>
         <tr>
@@ -290,7 +209,7 @@ $(document).ready(function() {
         </tr>
     </tbody>
 </table>
-<h3>Scholarship Pay</h3>
+<h4>Scholarship Pay</h4>
 <table>
     <thead>
         <tr>
@@ -312,7 +231,7 @@ $(document).ready(function() {
     </tbody>
 </table>
 
-<h3>Pay</h3>
+<h4>Pay</h4>
 <table>
     <thead>
         <tr>
@@ -333,14 +252,36 @@ $(document).ready(function() {
         </tr>
     </tbody>
 </table>
-</div>
 
-<h2 class='contract_heading total'>Emails - {{contract.number_of_emails}}</h2>
-<div>
-{% for email in emails %}
-<h3>{{email.created|date:"M d, Y"}}</h3>
-<div>{{email.content}}</div>
+</div>
+</div>
+{% if contract.status == "SGN" %}
+<form>
+    <p> You've signed this contract. </p>
+</form>
+{% else %}
+    {% if not contract.accepted_by_student %}
+    <form method="post" action="{% url "tacontracts.views.accept_contract" semester=semester contract_slug=contract.slug %}">
+        {% csrf_token %}
+        <p>
+        </p>
+        <button type="submit" class="btn" style="float:right;">
+            <i class="fa fa-thumbs-o-up"></i>
+            &nbsp;
+            Accept the Contract
+        </button>
+        <div style="clear:both;"></div>
+    </form>
+    {% else %}
+    <form>
+        <p>
+            You've accepted this contract.
+        </p>
+        <p>
+            You will still need to sign a printed copy of the contract.
+        </p>
+    </form>
+    {% endif %}
+{% endif %}
 {% endfor %}
-</div>
-
 {% endblock %}
