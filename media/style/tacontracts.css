@@ -9,6 +9,8 @@
     margin-right: 10px;
 }
 
+/* If you want to make something look like a SFU red button, 
+   this style is what you're looking for. */
 .btn{
     -webkit-backface-visibility: hidden;
     -webkit-appearance: none;
@@ -30,6 +32,7 @@
     cursor: pointer;
 }
 
+/* You can make a line of small buttons by building lineforms side-by-side. */
 .lineform{
     display: inline;
     float:right;
@@ -45,4 +48,16 @@
     padding: 0 4px;
     display: inline;
     width: 30px;
+}
+
+.contract_not_accepted{
+    background-color: #a6192e;
+    color: white;
+    font-weight: bold;
+}
+
+.contract_accepted{
+    background-color: green;
+    color: white;
+    font-weight: bold;
 }

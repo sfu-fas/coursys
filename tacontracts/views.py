@@ -524,7 +524,7 @@ def bulk_email(request, semester):
                              content=message)
                 n.save()
                 e = EmailReceipt(contract=contract, 
-                                 content=subject + "\n\n" + message)
+                                 content=n)
                 e.save()
             messages.add_message(request, messages.SUCCESS, u'Email sent.')
             return _contracts_redirect(semester)

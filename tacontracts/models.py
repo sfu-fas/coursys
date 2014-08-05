@@ -13,6 +13,7 @@ from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
 from grad.models import GradStudent
 from ra.models import Account
+from dashboard.models import NewsItem
 
 
 CONTRACT_STATUS_CHOICES = (
@@ -498,6 +499,7 @@ class EmailReceipt(models.Model):
                                  null=False, 
                                  editable=False,
                                  related_name="email_receipt")
-    created = models.DateTimeField(default=datetime.datetime.now(), 
-                                   editable=False)
-    content = models.TextField(blank=False, null=False)
+    content = models.ForeignKey(NewsItem,
+                                 blank=False,
+                                 null=False,
+                                 editable=False)

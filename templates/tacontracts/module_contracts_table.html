@@ -9,8 +9,10 @@
                 <th>BUs</th>
                 <th>Category</th>
                 <th>Total</th>
-                <th>Accepted</th>
-                <th>Emails</th>
+                {% if contracts.0.status == "NEW" %}
+                    <th><i class="fa fa-check" title="Has the student accepted this contract?"></i></th>
+                {% endif %}
+                <th><i class="fa fa-envelope-o" title="How many emails have we sent the student?"></i></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -34,9 +36,11 @@
                 <td class='total_pay'>
                     {{contract.total|currency}}
                 </td>
-                <td class='accepted'>
+                {% if contract.status == "NEW" %}
+                <td class='{{contract.accepted_by_student|yesno:"contract_accepted, contract_not_accepted"}}'>
                     {{contract.accepted_by_student|yesno}} 
                 </td>
+                {% endif %}
                 <td class='number_of_emails'>
                     {{contract.number_of_emails}}
                 </td>

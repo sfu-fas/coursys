@@ -338,8 +338,8 @@ $(document).ready(function() {
 <h2 class='contract_heading total'>Emails - {{contract.number_of_emails}}</h2>
 <div>
 {% for email in emails %}
-<h3>{{email.created|date:"M d, Y"}}</h3>
-<div>{{email.content}}</div>
+<h3><i class='fa fa-envelope-o'></i> {{email.content.published|date:"M d, Y"}} : {{email.content.title}}</h3>
+<div>{{email.content.content}}</div>
 {% endfor %}
 </div>
 
