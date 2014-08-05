@@ -117,7 +117,7 @@ class HiringSemester(models.Model):
         except HiringSemester.DoesNotExist:
             raise NoPreviousSemesterException()
 
-        for category in hiring_semester.tacategory_set.objects():
+        for category in hiring_semester.tacategory_set.all():
             category.copy_to_new_semester(self)
         
     @property

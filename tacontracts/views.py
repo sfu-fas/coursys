@@ -15,7 +15,7 @@ from coredata.models import Semester, Unit
 from dashboard.models import NewsItem
 # App
 from .models import HiringSemester, TACategory, TAContract, TACourse, \
-                    EmailReceipt
+                    EmailReceipt, NoPreviousSemesterException
 from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
                     TACourseForm, EmailForm
 from .pdfs import ta_pdf
@@ -207,7 +207,7 @@ def copy_categories(request, semester):
                              messages.ERROR,
                              u'No previous semester to copy from.')
 
-    _category_redirect(hiring_semester.semester.name)
+    return _category_redirect(hiring_semester.semester.name)
 
 
 @requires_role(["TAAD", "GRAD"])
