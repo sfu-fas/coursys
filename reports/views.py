@@ -1,21 +1,30 @@
-from models import Report, HardcodedReport, Result, Run, RunLine, \
-                    Query, AccessRule, ScheduleRule
-from forms import ReportForm, HardcodedReportForm, QueryForm, \
-                    AccessRuleForm, ScheduleRuleForm
-from cache import clear_cache
-from alerts.models import AlertType
-from alerts.forms import AlertTypeForm
-from privacy.models import needs_privacy_signature, privacy_redirect
-from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
-                    ForbiddenResponse
+# Python
+import json
+
+# Django
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.template import Template, Context
 from django.forms.util import ErrorList
+
+# Third-Party
 import unicodecsv as csv
-import json
+
+# Local
+from alerts.models import AlertType
+from alerts.forms import AlertTypeForm
+from privacy.models import needs_privacy_signature, privacy_redirect
+from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
+                    ForbiddenResponse
+
+# App
+from models import Report, HardcodedReport, Result, Run, RunLine, \
+                    Query, AccessRule, ScheduleRule
+from forms import ReportForm, HardcodedReportForm, QueryForm, \
+                    AccessRuleForm, ScheduleRuleForm
+from cache import clear_cache
 
 def _has_access(request, report):
     try:

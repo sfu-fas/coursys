@@ -1,0 +1,287 @@
+{% extends "base-wide.html" %}
+{% load currency %}
+{% load bu %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}TA Contracts for {{semester}}{% endblock %}
+{% block h1 %}TA Contracts for {{semester}}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $("h2").collapsible();
+});
+</script>
+<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
+{% endblock %}
+
+{% block subbreadcrumbs %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% for contract in contracts %}
+<h2 class='contract'>Contract Details</h2>
+<div>
+<h3 class='contract_heading details'>Contract Details</h3>
+<div>
+
+    {% if editable %}
+    <div class='collapse_menu'>
+        <ul>
+            <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
+                <i class='fa fa-edit'></i>
+                Edit Contract Details</a>
+            </li>
+        </ul>
+    </div>
+    <div style="clear:both;"></div>
+    {% endif %}
+
+    <table class="info">
+        <tr>
+            <th>Person</th>
+            <td>{{contract.person.name}} ({{contract.person.emplid}}, {{contract.person.userid}})</td>
+        </tr>
+        <tr>
+            <th>SIN</th>
+            <td>{{contract.sin}}</td>
+        </tr>
+        <tr>
+            <th>Deadline for Acceptance</th>
+            <td>{{contract.deadline_for_acceptance}}</td>
+        <tr>
+            <th>Appointment</th>
+            <td>{{contract.get_appointment_display}}</td>
+        </tr>
+        <tr>
+            <th>Conditional</th>
+            <td>{{contract.conditional_appointment|yesno|capfirst}}</td>
+        </tr>
+        <tr>
+            <th>TSSU</th>
+            <td>{{contract.tssu_appointment|yesno|capfirst}}</td>
+        </tr>
+    </table>
+</div>
+
+<h3 class="contract_heading">Account - {{contract.category.code}} - {{contract.category.title}} : {{contract.category.account}}</h3>
+<div>
+    {% if editable %}
+    <div class="collapse_menu">
+        <ul>
+            <li><a href="{% url "tacontracts.views.edit_contract" semester=semester contract_slug=contract.slug %}">
+                <i class="fa fa-exchange"></i>
+                Use Different Account</a>
+            </li>
+            {% if not contract.category.frozen %}
+            <li><a href="{% url "tacontracts.views.edit_category" semester=semester category_slug=contract.category.slug %}">
+                <i class="fa fa-edit"></i>
+                Edit Account </a>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+    <div style='clear:both;'></div>
+    <table>
+        <thead>
+            <tr>
+                <th>Account</th>
+                <th>Code</th>
+                <th>Title</th>
+                <th>Pay Per BU</th>
+                <th>Scholarship Per BU</th>
+                <th>BU Lab Bonus</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{contract.category.account}}</td>
+                <td>{{contract.category.code}}</td>
+                <td>{{contract.category.title}}</td>
+                <td>{{contract.category.pay_per_bu|currency}}</td>
+                <td>{{contract.category.scholarship_per_bu|currency}}</td>
+                <td>{{contract.category.bu_lab_bonus|bu}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h3 class='contract_heading courses'>Courses - {{contract.total_bu|bu}} BU</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Course Offering</th>
+            <th>BUs</th>
+            <th>Lab/Tutorial</th>
+            <th>Lab BUs</th>
+            <th>Total BUs</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% if not contract.course.all %}
+        <tr>
+            <td colspan="6">
+                This contract doesn't have any courses assigned to it. 
+            </td>
+        </tr>
+    {% endif %}
+    {% for course in contract.course.all %}
+        <tr>
+            <td>{{course.course}}</td>
+            <td>{{course.bu|bu}}</td>
+            <td>{{course.labtut|yesno}}</td>
+            <td>
+                {% if course.labtut %}
+                    {{ contract.category.bu_lab_bonus|bu }}
+                {% else %}
+                    0.00
+                {% endif %}
+            </td>
+            <td>
+                {{ course.total_bu|bu }}
+            </td>
+            <td>
+                {% if editable %}
+                <form class="lineform" method="POST"
+                      action="{% url "tacontracts.views.delete_course" semester=semester course_slug=course.slug contract_slug=contract.slug %}">
+                    {% csrf_token %}
+                      <button type="submit" class="btn" title="Delete Course">
+                          <i class="fa fa-trash-o"></i>
+                      </button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="3"></th>
+            <th>Total BUs</th>
+            <td>{{ contract.total_bu|bu }}</td>
+        </tr>
+        {% if editable %}
+        <tr>
+            <td colspan="6">
+                <h4 id="add_a_course">Add a Course</h4>
+                <form action="{% url "tacontracts.views.new_course" semester=semester contract_slug=contract.slug %}" method="post">
+                    {% csrf_token %}
+                    <fieldset>
+                    {{ courseform|as_dl }}
+                    <p>
+                        <input type="submit" class="submit" value="Add Course" />
+                    </p>
+                    </fieldset>
+                </form>
+
+            </td>
+        </tr>
+        {% endif %}
+    </tfoot>
+
+</table>
+
+
+<h3 class='contract_heading total'>Compensation</h3>
+<div>
+<h4>Pay Schedule</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Pay Start</th>
+            <th>Pay End</th>
+            <th>Biweekly Payperiods</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{contract.pay_start|date:"M d, Y"}}</td>
+            <td>{{contract.pay_end|date:"M d, Y"}}</td>
+            <td>{{contract.payperiods}}</td>
+        </tr>
+    </tbody>
+</table>
+<h4>Scholarship Pay</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Scholarship BUs</th>
+            <th>Scholarship Per BU</th>
+            <th>Total Scholarship</th>
+            <th>Payperiods</th>
+            <th>Biweekly Scholarship</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{contract.bu|bu}}</td>
+            <td>{{contract.scholarship_per_bu|currency}}</td>
+            <td>{{contract.scholarship_pay|currency}}</td>
+            <td>{{contract.payperiods}}</td>
+            <td>{{contract.biweekly_scholarship|currency}}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h4>Pay</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Total BUs</th>
+            <th>Pay Per BU</th>
+            <th>Total Pay</th>
+            <th>Payperiods</th>
+            <th>Biweekly Pay</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{contract.total_bu|bu}}</td>
+            <td>{{contract.pay_per_bu|currency}}</td>
+            <td>{{contract.total_pay|currency}}</td>
+            <td>{{contract.payperiods}}</td>
+            <td>{{contract.biweekly_pay|currency}}</td>
+        </tr>
+    </tbody>
+</table>
+
+</div>
+</div>
+{% if contract.status == "SGN" %}
+<form>
+    <p> You've signed this contract. </p>
+</form>
+{% else %}
+    {% if not contract.accepted_by_student %}
+    <form method="post" action="{% url "tacontracts.views.accept_contract" semester=semester contract_slug=contract.slug %}">
+        {% csrf_token %}
+        <p>
+        </p>
+        <button type="submit" class="btn" style="float:right;">
+            <i class="fa fa-thumbs-o-up"></i>
+            &nbsp;
+            Accept the Contract
+        </button>
+        <div style="clear:both;"></div>
+    </form>
+    {% else %}
+    <form>
+        <p>
+            You've accepted this contract.
+        </p>
+        <p>
+            You will still need to sign a printed copy of the contract.
+        </p>
+    </form>
+    {% endif %}
+{% endif %}
+{% endfor %}
+{% endblock %}

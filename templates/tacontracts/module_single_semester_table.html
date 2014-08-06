@@ -1,0 +1,36 @@
+{% load currency %}
+{% load bu %}
+
+{% if semester %}
+<h2> {{semester.label}} </h2>
+    {% if hiring_semester %}
+        <table class='info'>
+            <thead>
+                <tr>
+                    <th>Semester</th>
+                    <th>Number of Contracts</th>
+                    <th>Incomplete Contracts</th>
+                    <th>Total BU</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% include "tacontracts/module_semester_row.html" with semester=hiring_semester display_units=display_units %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>
+        There's no Hiring Semester for {{semester.name}} yet. 
+        </p>
+        <p>
+        Would you like to <a href="{% url "tacontracts.views.new_semester" %}">
+            Create One</a>?
+        </p>
+    {% endif %}
+{% else %}
+    <div class='warning'>
+        <p>The data for this semester doesn't seem to exist yet.</p>
+        <p>If you're seeing this message, please contact support. </p> 
+    </div>
+{% endif %}
+

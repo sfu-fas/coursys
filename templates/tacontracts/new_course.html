@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Ta Contracts : Add Course to Contract{% endblock %}
+{% block h1 %}TA Contracts : Add Course to Contract {{contract}}{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester %}">{{semester}}</a></li>
+<li><a href="{% url "tacontracts.views.view_contract" semester=semester contract_slug=contract.slug %}">{{contract}}</a></li>
+<li>Add Course</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<form action="{% url "tacontracts.views.new_course" semester=semester contract_slug=contract.slug %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Course" />
+    </p>
+    </fieldset>
+</form>
+{% endblock %}

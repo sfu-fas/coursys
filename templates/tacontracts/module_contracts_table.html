@@ -1,0 +1,96 @@
+{% load currency %}
+{% load bu %}
+
+    <table class='contracts_table'>
+        <thead>
+            <tr>
+                <th>Contract</th>
+                <th>Start Date</th>
+                <th>BUs</th>
+                <th>Category</th>
+                <th>Total</th>
+                {% if contracts.0.status == "NEW" %}
+                    <th><i class="fa fa-check" title="Has the student accepted this contract?"></i></th>
+                {% endif %}
+                <th><i class="fa fa-envelope-o" title="How many emails have we sent the student?"></i></th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for contract in contracts %}
+    <tr>
+                <td>
+                    <a href="{% url "tacontracts.views.view_contract" semester=semester contract_slug=contract.slug %}">
+                        {{contract}}</a>
+                </td>
+                <td>
+                    <span class="sort">{{ contract.pay_start.isoformat }}</span>
+                    {{contract.pay_start|date:"M d, Y"}}
+                </td>
+                <td>
+                    {{contract.total_bu|bu}}
+                </td>
+                <td>
+                    {{contract.category.code}}
+                </td>
+                <td class='total_pay'>
+                    {{contract.total|currency}}
+                </td>
+                {% if contract.status == "NEW" %}
+                <td class='{{contract.accepted_by_student|yesno:"contract_accepted, contract_not_accepted"}}'>
+                    {{contract.accepted_by_student|yesno}} 
+                </td>
+                {% endif %}
+                <td class='number_of_emails'>
+                    {{contract.number_of_emails}}
+                </td>
+                <td>
+                    <form class="lineform" method="POST"
+                          action="{% url "tacontracts.views.copy_contract" semester=semester contract_slug=contract.slug %}">
+                        {% csrf_token %}
+                          <button type="submit" class="btn" title="Copy Contract">
+                              <i class="fa fa-copy"></i>
+                          </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                          action="{% url "tacontracts.views.print_contract" semester=semester contract_slug=contract.slug %}">
+                        {% csrf_token %}
+                          <button type="submit" class="btn" title="Print Contract">
+                              <i class="fa fa-print"></i>
+                          </button>
+                    </form>
+                    {% if contract.status == "NEW" %}
+                    <form class="lineform" method="POST"
+                          action="{% url "tacontracts.views.sign_contract" semester=semester contract_slug=contract.slug %}">
+                        {% csrf_token %}
+                          <button type="submit" class="btn" title="Sign Contract">
+                              <i class="fa fa-lock"></i>
+                          </button>
+                    </form>
+                    <form class="lineform" method="POST"
+                          action="{% url "tacontracts.views.cancel_contract" semester=semester contract_slug=contract.slug %}">
+                        {% csrf_token %}
+                          <button type="submit" class="btn" title="Delete Contract">
+                              <i class="fa fa-trash-o"></i>
+                          </button>
+                    </form>
+
+                    {% else %}
+                    {% if contract.status == "SGN" %}
+                    <form class="lineform" method="POST"
+                          action="{% url "tacontracts.views.cancel_contract" semester=semester contract_slug=contract.slug %}">
+                        {% csrf_token %}
+                          <button type="submit" class="btn" title="Cancel Contract">
+                              <i class="fa fa-times"></i>
+                          </button>
+                    </form>
+
+                    {% else %}
+
+                    {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+    {% endfor %}
+        </tbody>
+    </table>

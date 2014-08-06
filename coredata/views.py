@@ -453,6 +453,24 @@ def offerings_search(request):
     json.dump(data, response, indent=1)
     return response
 
+# AJAX/JSON for course offering selector autocomplete with slugs
+def offerings_slug_search(request, semester=None):
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
+    term = request.GET['term']
+    response = HttpResponse(content_type='application/json')
+    data = []
+    query = get_query(term, ['subject', 'number', 'section', 'semester__name', 'title'])
+    offerings = CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
+    if semester:
+        offerings = offerings.filter(semester__name=semester)
+    for o in offerings:
+        label = o.search_label_value()
+        d = {'value': o.slug, 'label': label}
+        data.append(d)
+    json.dump(data, response, indent=1)
+    return response
+
 # AJAX/JSON for course selector autocomplete
 def course_search(request):
     if 'term' not in request.GET:
@@ -491,11 +509,12 @@ def student_search(request):
     student_qs = SearchQuerySet().models(Person).filter(text=term)[:20]
     data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
             if r and r.score >= 1 and unicode(r.emplid) not in EXCLUDE_EMPLIDS]
-
+    
     # non-haystack version of the above query
-    #studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
-    #students = Person.objects.filter(studentQuery)[:20]
-    #data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
+    if len(student_qs) == 0:
+        studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+        students = Person.objects.filter(studentQuery)[:20]
+        data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
