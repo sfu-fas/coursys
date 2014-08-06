@@ -4,7 +4,7 @@ from django.db import transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
-import re, hashlib, datetime, string
+import re, hashlib, datetime, string, urllib2
 
 
 multiple_breaks = re.compile(r'\n\n+')
@@ -1211,3 +1211,31 @@ def get_passport_issued_by( emplid ):
     for result in db:
         return str(result[0])
     return "Unknown"
+
+
+
+##############################################################################3
+# Course outlines API functions
+# as documented here: http://www.sfu.ca/outlines/help/api.html
+
+def outlines_api_url(offering):
+    """
+    The URL for info in the API.
+    """
+    from urllib import quote_plus as q
+    BASE_URL = 'http://www.sfu.ca/bin/wcm/course-outlines'
+
+    args = {
+        'year': q(str(int(offering.semester.name[0:3]) + 1900)),
+        'term': q(Semester.label_lookup[offering.semester.name[3]].lower()),
+        'dept': q(offering.subject.lower()),
+        'number': q(offering.number.lower()),
+        'section': q(offering.section.lower()),
+    }
+    qs = 'year={year}&term={term}&dept={dept}&number={number}&section={section}'.format(**args)
+    return BASE_URL + '?' + qs
+
+def outlines_data_json(offering):
+    url = outlines_api_url(offering)
+    req = urllib2.urlopen(url, timeout=30)
+    return req.read()

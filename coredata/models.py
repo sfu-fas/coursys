@@ -683,7 +683,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
             return ', '.join(flags)
         else:
             return 'none'
-    
+
     def extra_bu(self):
         return decimal.Decimal(self.extra_bu_str())
     def set_extra_bu(self, v):

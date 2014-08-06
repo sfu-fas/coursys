@@ -122,3 +122,12 @@ function more_course_info(url) {
 	});
 }
         			
+function course_outline_info(url) {
+    // fetch course outline from outlines API
+    $.ajax({
+		url: url,
+		success: function(data){
+			console.log(data);
+		},
+	});
+}

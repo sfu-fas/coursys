@@ -154,7 +154,7 @@ from django_cas.views import _redirect_url, _service_url, _login_url, HttpRespon
 def login(request, next_page=None, required=False):
     """Forwards to CAS login URL or verifies CAS ticket
 
-    Modified locally: honour next=??? in query string, don't deliver a message, catch IOEror, generate LogEntry
+    Modified locally: honour next=??? in query string, don't deliver a message, catch IOError, generate LogEntry
     """
     if not next_page and 'next' in request.GET:
         next_page = request.GET['next']
@@ -171,10 +171,11 @@ def login(request, next_page=None, required=False):
         try:
             user = auth.authenticate(ticket=ticket, service=service, request=request)
         except IOError as e:
-            # Here we want to catch timeouts and only timeouts
-            if e.errno == 110:
+            # Here we want to catch only: connection reset, timeouts, name or service unknown
+            if e.errno in [104, 110, 'socket error']:
                 user = None
             else:
+                raise IOError, "The errno is %r: %s." % (e.errno, unicode(e))
                 raise e
 
         if user is not None:

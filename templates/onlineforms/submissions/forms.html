@@ -67,20 +67,21 @@
 {% endif %}
 
 
-
 <h2 id="new">Available forms</h2>
- 	<p>These forms can be filled out and submitted online:</p>
-    {% if forms %}
+ 	<p>These forms can be filled out and submitted online.</p>
+
+    {% regroup forms by unit as unit_list %}
+    {% for data in unit_list %}
+        <h3 id="forms-{{data.grouper.slug}}">{{ data.grouper.name }}</h3>
         <ul>
-            {% for form in forms %}
-            <li><a href="{% url "onlineforms.views.sheet_submission_initial" form_slug=form.slug %}">{{ form.title }}</a> ({{ form.unit.name }}) <span class="helptext">{{ form.description }}</span></li>
-            {% endfor %}
+        {% for f in data.list %}
+        <li><a href="{% url "onlineforms.views.sheet_submission_initial" form_slug=f.slug %}">{{ f.title }}</a>: {{ f.description }}</li>
+        {% endfor %}
         </ul>
-    {% else %}
-            <p class="empty">There are currently no forms.</p>
-    {% endif %}
+    {% endfor %}
 
     {% if other_forms %}
+    <h2 id="other">Forms for Logged-In Users</h2>
  	<p>These forms are also available if you log in with your SFU account:</p>
     <ul>
         {% for form in other_forms %}

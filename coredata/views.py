@@ -598,7 +598,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse
 from coredata.forms import OfferingFilterForm, UNIVERSAL_COLUMNS, DEFAULT_COLUMNS, COLUMN_NAMES, FLAG_DICT
-from coredata.queries import more_offering_info, SIMSProblem
+from coredata.queries import more_offering_info, outlines_data_json, SIMSProblem
 from dashboard.views import _offerings_calendar_data
 
 COLUMN_ORDERING = { # column -> ordering info for datatable_view
@@ -797,10 +797,18 @@ def browse_courses_info(request, course_slug):
             data = {'error': e.message}
         json.dump(data, response, indent=1)
         return response
-    if 'caldata' in request.GET:
+
+    elif 'caldata' in request.GET:
         # calendar data requested
         return _offering_meeting_time_data(request, offering)
-        
+
+    elif 'outline' in request.GET:
+        # course outline data requested
+        response = HttpResponse(content_type='application/json')
+        data = outlines_data_json(offering)
+        response.write(data)
+        return response
+
     # the page itself (with most data assembled by AJAX requests to the above)
     context = {
         'offering': offering,
