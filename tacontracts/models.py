@@ -96,6 +96,7 @@ class HiringSemester(models.Model):
     """
     semester = models.ForeignKey(Semester)
     unit = models.ForeignKey(Unit)
+    deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
     payperiods = models.PositiveIntegerField(

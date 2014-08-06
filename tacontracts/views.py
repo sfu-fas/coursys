@@ -105,7 +105,6 @@ def new_semester(request):
     else:
         form = HiringSemesterForm(request)
 
-
     return render(request, 'tacontracts/new_semester.html', {
                   'form':form})
 
@@ -304,6 +303,7 @@ def new_contract(request, semester):
             return _contract_redirect(semester, contract.slug)
     else:
         form = TAContractForm(hiring_semester, initial={
+            'deadline_for_acceptance':hiring_semester.deadline_for_acceptance,
             'pay_start':hiring_semester.pay_start,
             'pay_end':hiring_semester.pay_end,
             'payperiods':hiring_semester.payperiods
