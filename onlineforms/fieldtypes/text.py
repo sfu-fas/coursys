@@ -36,7 +36,7 @@ class SmallTextField(FieldBase):
 
         c = forms.CharField(required=self.config['required'],
             widget=forms.TextInput(attrs=
-                {'size': min(60, int(self.config['max_length'])),
+                {'size': min(self.config.get('size', 60), int(self.config['max_length'])),
                  'maxlength': int(self.config['max_length'])}),
             label=self.config['label'],
             help_text=self.config['help_text'],
@@ -85,7 +85,7 @@ class MediumTextField(FieldBase):
             self.max_length = int(self.config['max_length'])
 
         c = forms.CharField(required=self.config['required'],
-            widget=forms.Textarea(attrs={'cols': '60', 'rows': '3'}),
+            widget=forms.Textarea(attrs={'cols': '60', 'rows': self.config.get('rows', '3')}),
             label=self.config['label'],
             help_text=self.config['help_text'],
             min_length=self.min_length,
@@ -134,7 +134,7 @@ class LargeTextField(FieldBase):
             self.max_length = int(self.config['max_length'])
 
         c = forms.CharField(required=self.config['required'],
-            widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
+            widget=forms.Textarea(attrs={'cols': '60', 'rows': self.config.get('rows', '15')}),
             label=self.config['label'],
             help_text=self.config['help_text'],
             min_length=self.min_length,

@@ -326,11 +326,13 @@ if DEPLOY_MODE == 'production':
     REPORT_CACHE_CLEAR = True
 
 
-#INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-#MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-#DEBUG_TOOLBAR_CONFIG = {
-#    'INTERCEPT_REDIRECTS': False,
-#}
+if False:
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    STATICFILES_FINDERS = STATICFILES_FINDERS + ('django.contrib.staticfiles.finders.AppDirectoriesFinder',)
+    #DEBUG_TOOLBAR_CONFIG = {
+    #    'INTERCEPT_REDIRECTS': False,
+    #}
 
 #try:
 #    from local_settings import *
