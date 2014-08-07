@@ -96,17 +96,28 @@ def all_tugs_admin(request, semester_name=None):
         # allow all instructors to see the page, but only populate with current semester's TAs
         instr_members = instr_members.filter(offering__semester=semester)
         offerings = set(m.offering for m in instr_members)
-        instr_tas = Member.objects.filter(offering__in=offerings, role='TA')
+        instr_tas = Member.objects.filter(offering__in=offerings, role='TA').select_related('offering')
         instr_tas = set(instr_tas)
 
-    tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta), 'is_instr': ta in instr_tas} for ta in admin_tas | instr_tas]
+    all_tas = admin_tas | instr_tas
+
+    # build list of all instructors here, to save two queries per course later
+    offering_ids = set(m.offering_id for m in all_tas)
+    all_instr = Member.objects.filter(role='INST', offering_id__in=offering_ids).select_related('person', 'offering')
+    for inst in all_instr:
+        for ta in (m for m in all_tas if m.offering_id == inst.offering_id):
+            if not hasattr(ta, 'instructors'):
+                ta.instructors = []
+            ta.instructors.append(inst)
+
+    tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta), 'is_instr': ta in instr_tas} for ta in all_tas]
 
     context = {
             'admin': admin,
             'semester': semester,
             'tas_with_tugs': tas_with_tugs,
             }
-    
+
     return render(request, 'ta/all_tugs_admin.html', context)
 
 
