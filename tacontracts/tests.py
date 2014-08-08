@@ -71,7 +71,7 @@ class TAContractTestCase(TestCase):
                                   deadline_for_acceptance=datetime.date.today(),
                                   pay_start=datetime.date.today(),
                                   pay_end=four_weeks_later,
-                                  payperiods=2)
+                                  payperiods=2.5)
         hiring_semester.save()
         category = TACategory(account=account,
                               hiring_semester=hiring_semester,
@@ -88,7 +88,7 @@ class TAContractTestCase(TestCase):
                               deadline_for_acceptance=datetime.date.today(),
                               pay_start=datetime.date.today(),
                               pay_end=datetime.date.today() + datetime.timedelta(days=10),
-                              payperiods=1,
+                              payperiods=2.5,
                               appointment="INIT",
                               conditional_appointment=True,
                               created_by="classam",
@@ -157,7 +157,17 @@ class TAContractTestCase(TestCase):
         """
         contract = TAContract.objects.all()[0]
         contract = self.get_contract()
+        self.assertEqual(type(contract.scholarship_pay), type(decimal.Decimal("0")))
         self.assertEqual(contract.scholarship_pay, decimal.Decimal("125"))
+
+    def test_payperiods_and_biweekly(self):
+        """
+        Okay, so, $517 total_pay divided across 2.5 payperiods should be...
+        """
+        contract = self.get_contract()
+        self.assertEqual(contract.payperiods, decimal.Decimal("2.5"))
+        self.assertEqual(contract.biweekly_pay, decimal.Decimal("206.80"))
+        self.assertEqual(contract.biweekly_scholarship, decimal.Decimal("50"))
     
     def test_tacourse_exists(self):
         course = TACourse.objects.all()

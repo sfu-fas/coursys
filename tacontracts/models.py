@@ -99,8 +99,8 @@ class HiringSemester(models.Model):
     deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
-    payperiods = models.PositiveIntegerField(
-               help_text="During the contract, how many bi-weekly pay periods?")
+    payperiods = models.DecimalField(max_digits=4, decimal_places=2,
+                                     verbose_name= "During the contract, how many bi-weekly pay periods?")
     config = JSONField(null=False, blank=False, editable=False, default={})
     
     class Meta:
@@ -255,8 +255,8 @@ class TAContract(models.Model):
     deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
-    payperiods = models.PositiveIntegerField(
-                  help_text="During the contract, how many bi-weekly pay periods?")
+    payperiods = models.DecimalField(max_digits=4, decimal_places=2,
+                                     verbose_name= "During the contract, how many bi-weekly pay periods?")
     appointment = models.CharField(max_length=4, 
                             choices=APPOINTMENT_CHOICES, 
                             default="INIT")
@@ -400,11 +400,11 @@ class TAContract(models.Model):
         if len(self.course.all()) == 0:
             return decimal.Decimal(0)
         else:
-            return self.total_bu * self.pay_per_bu
+            return decimal.Decimal(self.total_bu * self.pay_per_bu)
 
     @property
     def biweekly_pay(self):
-        return self.total_pay / self.payperiods
+        return self.total_pay / decimal.Decimal(self.payperiods)
 
     @property
     def scholarship_pay(self):
@@ -415,7 +415,7 @@ class TAContract(models.Model):
 
     @property
     def biweekly_scholarship(self):
-        return self.scholarship_pay / self.payperiods
+        return self.scholarship_pay / decimal.Decimal(self.payperiods)
 
     @property
     def total(self):
