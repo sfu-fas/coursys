@@ -68,6 +68,7 @@ class TAContractTestCase(TestCase):
         four_weeks_later = datetime.date.today() + datetime.timedelta(days=28)
         hiring_semester = HiringSemester(semester=semester,
                                   unit=unit,
+                                  deadline_for_acceptance=datetime.date.today(),
                                   pay_start=datetime.date.today(),
                                   pay_end=four_weeks_later,
                                   payperiods=2)
