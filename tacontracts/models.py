@@ -8,7 +8,7 @@ from django.db.models.query import QuerySet
 from model_utils.managers import PassThroughManager
 from autoslug import AutoSlugField
 # Local
-from coredata.models import Unit, Person, CourseOffering, Semester
+from coredata.models import Unit, Person, CourseOffering, Semester, Member
 from courselib.slugs import make_slug
 from courselib.json_fields import JSONField
 from grad.models import GradStudent
@@ -179,8 +179,18 @@ class TACategory(models.Model):
                                                           "per base unit",)
     bu_lab_bonus = models.DecimalField(max_digits=8,
                                        decimal_places=2, 
+                                       default=decimal.Decimal('0.17'),
                                        verbose_name="Bonus BUs awarded to a "+\
                                                     "course with a lab")
+    hours_per_bu = models.DecimalField(max_digits=6,
+                                       decimal_places=2, 
+                                       default=decimal.Decimal('42'),
+                                       verbose_name="Hours per BU")
+
+    holiday_hours_per_bu = models.DecimalField(max_digits=4,
+                                               decimal_places=2, 
+                                               default=decimal.Decimal('1.1'),
+                                               verbose_name="Holiday hours per BU")
 
     # ensc-gta2
     def autoslug(self):
@@ -301,6 +311,7 @@ class TAContract(models.Model):
         else:
             super(TAContract, self).save(*args, **kwargs)
             self.set_grad_student_sin()
+            self.sync_course_member()
 
     def sign(self):
         """
@@ -434,6 +445,96 @@ class TAContract(models.Model):
         students = GradStudent.get_canonical(self.person, self.category.hiring_semester.semester)
         return students
 
+    @property
+    def should_be_added_to_the_course(self):
+        return (self.status == "SGN" or self.accepted_by_student == True)
+
+    def sync_course_member(self):
+        """
+        Once a contract is Signed, we should create a Member object for them.
+        If a contract is Cancelled, we should DROP the Member object. 
+
+        This operation should be idempotent - run it as many times as you
+        want, the result should always be the same. 
+        """
+        # if signed, create the Member objects so they have access to the courses.
+        courses = self.course.all()
+        for crs in courses:
+            members = Member.objects.filter(person=self.person, 
+                                            role='TA',
+                                            offering=crs.course)
+            # the student should either be in the course (1) or not (0)
+            # any other number of responses is unacceptable. 
+            assert( len(members) == 1 or len(members) == 0 )
+
+
+            dropped_members = Member.objects.filter(person=self.person, 
+                                                    offering=crs.course, 
+                                                    role='DROP')
+            
+            assert( len(dropped_members) == 1 or len(dropped_members) == 0)
+
+            # this shouldn't be. 
+            if members and dropped_members:
+                d = dropped_members[0]
+                d.delete()
+                dropped_members = []
+           
+            # the student must be in one of these three states
+            exists_and_is_in_the_course = len(members) > 0
+            exists_and_is_dropped = len(dropped_members) > 0
+            does_not_exist = len(members) == 0 and len(dropped_members) == 0
+            
+            assert(exists_and_is_in_the_course or exists_and_is_dropped or does_not_exist)            
+            assert(not(exists_and_is_in_the_course and exists_and_is_dropped))
+            assert(not(exists_and_is_dropped and does_not_exist))
+            assert(not(exists_and_is_in_the_course and does_not_exist))
+
+            if self.should_be_added_to_the_course:
+                if exists_and_is_dropped:
+                    m = dropped_members[0]
+                elif exists_and_is_in_the_course:
+                    m = members[0]
+                elif does_not_exist:
+                    m = Member(person=self.person, 
+                               offering=crs.course, 
+                               role='TA',
+                               added_reason='CTA', 
+                               credits=0, 
+                               career='NONS')
+                else:
+                    assert(False)
+                m.added_reason='CTA'
+                m.config['bu'] = crs.total_bu
+                m.save()
+                crs.member = m
+                crs.save(always_allow=True)
+            else:
+                if exists_and_is_dropped:
+                    pass
+                elif exists_and_is_in_the_course:
+                    m = members[0]
+                    if m.added_reason == 'CTA':
+                        m.role = 'DROP'
+                        m.save()
+                    crs.member = None
+                    crs.save(always_allow=True)
+                elif does_not_exist:
+                    pass
+
+        # If they are CTA-added members of any other course this semester, 
+        #    they probably shouldn't be.
+        members = Member.objects.filter(person=self.person, 
+                                        role='TA', 
+                                        added_reason='CTA', 
+                                        offering__semester=self.category.hiring_semester.semester)
+        
+        courseofferings = [crs.course for crs in courses]
+        for member in members:
+            if member.offering not in courseofferings:
+                member.role = 'DROP'
+                member.save()
+
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering,
@@ -452,6 +553,8 @@ class TACourse(models.Model):
     labtut = models.BooleanField(default=False, 
                                  verbose_name="Lab/Tutorial?", 
                                  help_text="Does this course have a lab or tutorial?")
+    member = models.ForeignKey(Member, null=True, editable=False, related_name="tacourse")
+
     def autoslug(self):
         """
         curtis-lassam-2014-09-01 
@@ -473,8 +576,8 @@ class TACourse(models.Model):
     def frozen(self):
         return self.contract.frozen
     
-    def save(self, *args, **kwargs):
-        if self.frozen:
+    def save(self, always_allow=False, *args, **kwargs):
+        if not always_allow and self.frozen:
             raise ContractFrozen()
         else:
             super(TACourse, self).save(*args, **kwargs)
@@ -513,6 +616,14 @@ class TACourse(models.Model):
     @property
     def total(self):
         return self.total_pay + self.scholarship_pay
+
+    @property
+    def holiday_hours(self):
+        return self.bu * self.contract.category.holiday_hours_per_bu
+    
+    @property
+    def hours(self):
+        return self.bu * self.contract.category.hours_per_bu
 
 
 class EmailReceipt(models.Model):
