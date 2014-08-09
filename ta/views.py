@@ -61,14 +61,6 @@ def _create_news(person, url, from_user, accept_deadline):
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
 
-# helps zip tas and tugs together
-# basically performs a left outer join between tas and tugs
-def _tryget(member):
-    try:
-        return TUG.objects.get(member=member)
-    except TUG.DoesNotExist:
-        return None
-
 @login_required
 def all_tugs_admin(request, semester_name=None):
     """
@@ -89,14 +81,14 @@ def all_tugs_admin(request, semester_name=None):
     instr_tas = set()
     if admin:
         courses = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
-        admin_tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering', 'person')
+        admin_tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering__semester', 'person')
         admin_tas = set(admin_tas)
 
     if instr_members:
         # allow all instructors to see the page, but only populate with current semester's TAs
         instr_members = instr_members.filter(offering__semester=semester)
         offerings = set(m.offering for m in instr_members)
-        instr_tas = Member.objects.filter(offering__in=offerings, role='TA').select_related('offering')
+        instr_tas = Member.objects.filter(offering__in=offerings, role='TA').select_related('offering__semester')
         instr_tas = set(instr_tas)
 
     all_tas = admin_tas | instr_tas
@@ -110,7 +102,16 @@ def all_tugs_admin(request, semester_name=None):
                 ta.instructors = []
             ta.instructors.append(inst)
 
-    tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta), 'is_instr': ta in instr_tas} for ta in all_tas]
+    all_tugs = TUG.objects.filter(member__in=all_tas).select_related('member__person')
+    tug_dict = dict((tug.member_id, tug) for tug in all_tugs)
+
+    tas_with_tugs = [
+        {
+            'ta': ta,
+            'tug': tug_dict.get(ta.id, None),
+            'is_instr': ta in instr_tas
+        }
+        for ta in all_tas]
 
     context = {
             'admin': admin,
