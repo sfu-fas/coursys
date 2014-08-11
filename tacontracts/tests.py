@@ -4,7 +4,8 @@ import datetime
 # Django
 from django.test import TestCase
 # Local
-from coredata.models import Unit, Person, Semester, Course, CourseOffering
+from coredata.models import Unit, Person, Semester, Course, CourseOffering, \
+                            Member
 from ra.models import Account
 # App
 from .models import ContractFrozen, HiringSemester, TACategory, TAContract, \
@@ -71,12 +72,14 @@ class TAContractTestCase(TestCase):
                                   deadline_for_acceptance=datetime.date.today(),
                                   pay_start=datetime.date.today(),
                                   pay_end=four_weeks_later,
-                                  payperiods=2)
+                                  payperiods=2.5)
         hiring_semester.save()
         category = TACategory(account=account,
                               hiring_semester=hiring_semester,
                               code="TST",
                               title="Test Contract Category",
+                              hours_per_bu=decimal.Decimal("42"),
+                              holiday_hours_per_bu=decimal.Decimal("1.1"),
                               pay_per_bu=decimal.Decimal("100.00"),
                               scholarship_per_bu=decimal.Decimal("25.00"),
                               bu_lab_bonus=decimal.Decimal("0.17"))
@@ -88,7 +91,7 @@ class TAContractTestCase(TestCase):
                               deadline_for_acceptance=datetime.date.today(),
                               pay_start=datetime.date.today(),
                               pay_end=datetime.date.today() + datetime.timedelta(days=10),
-                              payperiods=1,
+                              payperiods=2.5,
                               appointment="INIT",
                               conditional_appointment=True,
                               created_by="classam",
@@ -157,7 +160,17 @@ class TAContractTestCase(TestCase):
         """
         contract = TAContract.objects.all()[0]
         contract = self.get_contract()
+        self.assertEqual(type(contract.scholarship_pay), type(decimal.Decimal("0")))
         self.assertEqual(contract.scholarship_pay, decimal.Decimal("125"))
+
+    def test_payperiods_and_biweekly(self):
+        """
+        Okay, so, $517 total_pay divided across 2.5 payperiods should be...
+        """
+        contract = self.get_contract()
+        self.assertEqual(contract.payperiods, decimal.Decimal("2.5"))
+        self.assertEqual(contract.biweekly_pay, decimal.Decimal("206.80"))
+        self.assertEqual(contract.biweekly_scholarship, decimal.Decimal("50"))
     
     def test_tacourse_exists(self):
         course = TACourse.objects.all()
@@ -353,3 +366,37 @@ class TAContractTestCase(TestCase):
         self.assertEqual(len(newcourses), 2)
         self.assertEqual(newcontract.created_by, "username")
         self.assertEqual(newcourses[0].total_bu, decimal.Decimal('3.17'))
+
+    def test_member_creation(self):
+        offering = self.get_courseoffering()
+        contract = self.get_contract()
+        members = Member.objects.filter(person=contract.person, 
+                                        role='TA',
+                                        offering=offering)
+        self.assertEqual(len(members), 0)
+
+        self.sign_contract()
+        members = Member.objects.filter(person=contract.person, 
+                                        role='TA',
+                                        offering=offering)
+        self.assertEqual(len(members), 1)
+        self.assertEqual(members[0].added_reason, 'CTA') 
+        self.assertEqual(len(members[0].tacourse.all()), 1)
+
+        self.cancel_contract()
+        members = Member.objects.filter(person=contract.person, 
+                                        role='TA',
+                                        offering=offering)
+        dropped_members = Member.objects.filter(person=contract.person, 
+                                                offering=offering, 
+                                                role='DROP')
+        self.assertEqual(len(members), 0)
+        self.assertEqual(len(dropped_members), 1)
+
+
+    def test_hours(self):
+        contract = self.get_contract()
+        course = contract.course.all()[0]
+        self.assertEqual(course.holiday_hours, decimal.Decimal('3.3'))
+        self.assertEqual(course.hours, decimal.Decimal('126'))
+

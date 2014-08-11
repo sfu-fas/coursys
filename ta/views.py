@@ -61,14 +61,6 @@ def _create_news(person, url, from_user, accept_deadline):
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
 
-# helps zip tas and tugs together
-# basically performs a left outer join between tas and tugs
-def _tryget(member):
-    try:
-        return TUG.objects.get(member=member)
-    except TUG.DoesNotExist:
-        return None
-
 @login_required
 def all_tugs_admin(request, semester_name=None):
     """
@@ -89,14 +81,14 @@ def all_tugs_admin(request, semester_name=None):
     instr_tas = set()
     if admin:
         courses = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
-        admin_tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering', 'person')
+        admin_tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering__semester', 'person')
         admin_tas = set(admin_tas)
 
     if instr_members:
         # allow all instructors to see the page, but only populate with current semester's TAs
         instr_members = instr_members.filter(offering__semester=semester)
         offerings = set(m.offering for m in instr_members)
-        instr_tas = Member.objects.filter(offering__in=offerings, role='TA').select_related('offering')
+        instr_tas = Member.objects.filter(offering__in=offerings, role='TA').select_related('offering__semester')
         instr_tas = set(instr_tas)
 
     all_tas = admin_tas | instr_tas
@@ -110,7 +102,16 @@ def all_tugs_admin(request, semester_name=None):
                 ta.instructors = []
             ta.instructors.append(inst)
 
-    tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta), 'is_instr': ta in instr_tas} for ta in all_tas]
+    all_tugs = TUG.objects.filter(member__in=all_tas).select_related('member__person')
+    tug_dict = dict((tug.member_id, tug) for tug in all_tugs)
+
+    tas_with_tugs = [
+        {
+            'ta': ta,
+            'tug': tug_dict.get(ta.id, None),
+            'is_instr': ta in instr_tas
+        }
+        for ta in all_tas]
 
     context = {
             'admin': admin,
@@ -128,6 +129,16 @@ def new_tug(request, course_slug, userid):
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
     bu = member.bu()
     has_lab_or_tut = course.labtas()
+   
+    contract_information = False
+    lab_bonus_decimal = LAB_BONUS_DECIMAL
+    hours_per_bu = HOURS_PER_BU
+    
+    contract_information_list = member.tacourse.all()
+    if len(contract_information_list) > 0:
+        contract_information = contract_information_list[0]
+        lab_bonus_decimal = contract_information.contract.category.bu_lab_bonus
+        hours_per_bu = contract_information.contract.category.hours_per_bu
         
     if request.method == "POST":
         form = TUGForm(data=request.POST, offering=course,userid=userid)
@@ -136,19 +147,28 @@ def new_tug(request, course_slug, userid):
             tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
-        if not member.bu():
-            form = TUGForm(offering=course,userid=userid, initial=
-                    {'holiday':{'total': 0},
-                     'base_units': 0})
-        elif has_lab_or_tut:
-            holiday = (bu-LAB_BONUS_DECIMAL) * HOLIDAY_HOURS_PER_BU
-            form = TUGForm(offering=course,userid=userid, initial=
-                    {'holiday':{'total':holiday},
-                     'base_units': bu-LAB_BONUS_DECIMAL})
-            form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS_DECIMAL)
+        if contract_information:
+            form = TUGForm(offering=course, userid=userid, initial={
+                'holiday':{'total': contract_information.holiday_hours},
+                'base_units':contract_information.bu})
+            if contract_information.labtut:
+                form.fields['base_units'].help_text = \
+                    ('%s base units not assignable because of labs/tutorials'%\
+                        (contract_information.prep_bu,))
         else:
-            holiday = bu * HOLIDAY_HOURS_PER_BU
-            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':holiday}, 'base_units': bu})
+            if not member.bu():
+                form = TUGForm(offering=course,userid=userid, initial=
+                        {'holiday':{'total': 0},
+                         'base_units': 0})
+            elif has_lab_or_tut:
+                holiday = (bu-LAB_BONUS_DECIMAL) * HOLIDAY_HOURS_PER_BU
+                form = TUGForm(offering=course,userid=userid, initial=
+                        {'holiday':{'total':holiday},
+                         'base_units': bu-LAB_BONUS_DECIMAL})
+                form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS_DECIMAL)
+            else:
+                holiday = bu * HOLIDAY_HOURS_PER_BU
+                form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':holiday}, 'base_units': bu})
     
     if member.bu():
         # we know BUs from the TA application: don't allow editing
@@ -160,8 +180,9 @@ def new_tug(request, course_slug, userid):
                'course':course,
                'form':form,
                'userid':userid,
-               'LAB_BONUS': LAB_BONUS_DECIMAL,
-               'LAB_BONUS_4': LAB_BONUS_DECIMAL+4, # used in the help text
+               'LAB_BONUS': lab_bonus_decimal,
+               'LAB_BONUS_4': lab_bonus_decimal+4, # used in the help text
+               'HOURS_PER_BU': hours_per_bu,
                }
     return render(request,'ta/new_tug.html',context)
 
@@ -186,6 +207,20 @@ def view_tug(request, course_slug, userid):
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
         has_lab_or_tut = course.labtas()
         expired = tug.expired()
+
+        contract_information = False
+        lab_bonus_decimal = LAB_BONUS_DECIMAL
+        holiday_hours_per_bu = HOLIDAY_HOURS_PER_BU
+        hours_per_bu = HOURS_PER_BU
+        
+        contract_information_list = member.tacourse.all()
+        if len(contract_information_list) > 0:
+            contract_information = contract_information_list[0]
+            has_lab_or_tut = contract_information.labtut
+            lab_bonus_decimal = contract_information.contract.category.bu_lab_bonus
+            holiday_hours_per_bu = contract_information.contract.category.holiday_hours_per_bu
+            hours_per_bu = contract_information.contract.category.hours_per_bu
+            expired = False
         
         context = {'tug': tug, 
                 'ta':member, 
@@ -194,8 +229,12 @@ def view_tug(request, course_slug, userid):
                 'max_hours': max_hours, 
                 'total_hours':total_hours,
                 'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut,
-                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
-                'LAB_BONUS': LAB_BONUS_DECIMAL, 'LAB_BONUS_4': LAB_BONUS_DECIMAL+4, 'HOURS_PER_BU': HOURS_PER_BU, 'LAB_BONUS_HOURS': LAB_BONUS_DECIMAL*HOURS_PER_BU, 'HOURS_PER_BU': HOURS_PER_BU,}
+                'HOLIDAY_HOURS_PER_BU': holiday_hours_per_bu,
+                'LAB_BONUS': lab_bonus_decimal, 
+                'LAB_BONUS_4': lab_bonus_decimal+4, 
+                'HOURS_PER_BU': hours_per_bu, 
+                'LAB_BONUS_HOURS': lab_bonus_decimal*hours_per_bu, 
+                'HOURS_PER_BU': hours_per_bu,}
         return render(request, 'ta/view_tug.html',context)
 
 @requires_course_instr_or_dept_admn_by_slug
@@ -205,7 +244,25 @@ def edit_tug(request, course_slug, userid):
     tug = get_object_or_404(TUG, member=member)
     has_lab_or_tut = course.labtas()
     
-    if member.bu():
+    contract_information = False
+    lab_bonus_decimal = LAB_BONUS_DECIMAL
+    hours_per_bu = HOURS_PER_BU
+    
+    contract_information_list = member.tacourse.all()
+    if len(contract_information_list) > 0:
+        contract_information = contract_information_list[0]
+        lab_bonus_decimal = contract_information.contract.category.bu_lab_bonus
+        hours_per_bu = contract_information.contract.category.hours_per_bu
+    
+    if contract_information:
+        form = TUGForm(offering=course, userid=userid, initial={
+            'holiday':{'total': contract_information.holiday_hours},
+            'base_units':contract_information.bu})
+        if contract_information.labtut:
+            form.fields['base_units'].help_text = \
+                ('%s base units not assignable because of labs/tutorials'%\
+                    (contract_information.prep_bu,))
+    elif member.bu():
         bu = member.bu()
         if has_lab_or_tut:
             bu = member.bu() - LAB_BONUS_DECIMAL

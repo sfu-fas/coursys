@@ -1,4 +1,6 @@
 var WEEKS_PER_SEMESTER = 13;
+/* Ideally, we're overriding HOURS_PER_SEMESTER with something canonical -
+   this should be happening in templates that load ta.js */
 var HOURS_PER_BU = 42;
 
 $(function(){

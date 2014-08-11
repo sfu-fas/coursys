@@ -139,6 +139,9 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
             n.save()
 
     def expired( self ):
+        if len(self.member.tacourse.all()) > 0:
+            # new TA contract rules
+            return False
         if self.member.offering.labtut():
             return 'bu' in self.member.config and self.base_units != self.member.bu() - LAB_BONUS_DECIMAL
         else:
