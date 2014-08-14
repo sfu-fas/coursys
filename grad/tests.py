@@ -349,8 +349,8 @@ class GradTest(TestCase):
         self.assertEqual(gs.current_status, 'ACTI')
 
         # check status in a particular semester results
-        self.assertEqual(gs.status_as_of(this_sem.offset(-5)), None)
-        #self.assertEqual(gs.status_as_of(this_sem.offset(-4)), 'COMP')
+        self.assertEqual(gs.status_as_of(this_sem.offset(-6)), None)
+        self.assertEqual(gs.status_as_of(this_sem.offset(-4)), 'COMP')
         self.assertEqual(gs.status_as_of(this_sem.offset(-3)), 'ACTI')
         self.assertEqual(gs.status_as_of(this_sem), 'ACTI')
         self.assertEqual(gs.status_as_of(this_sem.offset(1)), 'ACTI')
