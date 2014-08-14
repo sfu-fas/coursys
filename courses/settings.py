@@ -339,3 +339,4 @@ if getattr(localsettings, 'DEBUG_TOOLBAR', False):
 #except ImportError:
 #    pass
 
+#DEBUG=False

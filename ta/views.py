@@ -70,6 +70,7 @@ def all_tugs_admin(request, semester_name=None):
     import pprint
     import logging
     logger = logging.getLogger('testing.stuff')
+    logger.debug('all_tugs_admin position 1')
 
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
@@ -82,6 +83,7 @@ def all_tugs_admin(request, semester_name=None):
     if not admin and not instr_members:
         return ForbiddenResponse(request)
 
+    logger.debug('all_tugs_admin position 2')
     admin_tas = set()
     instr_tas = set()
     if admin:
@@ -98,6 +100,7 @@ def all_tugs_admin(request, semester_name=None):
 
     all_tas = admin_tas | instr_tas
 
+    logger.debug('all_tugs_admin position 3')
     # build list of all instructors here, to save two queries per course later
     offering_ids = set(m.offering_id for m in all_tas)
     all_instr = Member.objects.filter(role='INST', offering_id__in=offering_ids).select_related('person', 'offering')
@@ -110,6 +113,7 @@ def all_tugs_admin(request, semester_name=None):
     all_tugs = TUG.objects.filter(member__in=all_tas).select_related('member__person')
     tug_dict = dict((tug.member_id, tug) for tug in all_tugs)
 
+    logger.debug('all_tugs_admin position 4')
     tas_with_tugs = [
         {
             'ta': ta,
@@ -124,9 +128,7 @@ def all_tugs_admin(request, semester_name=None):
             'tas_with_tugs': tas_with_tugs,
             }
 
-    logger.debug('='*80)
-    logger.debug(pprint.pformat(connection.queries))
-
+    logger.debug('all_tugs_admin position 5')
     return render(request, 'ta/all_tugs_admin.html', context)
 
 
