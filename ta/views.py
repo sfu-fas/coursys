@@ -87,15 +87,22 @@ def all_tugs_admin(request, semester_name=None):
     admin_tas = set()
     instr_tas = set()
     if admin:
+        logger.debug('all_tugs_admin position 2.1')
         courses = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
+        logger.debug('all_tugs_admin position 2.2')
         admin_tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering__semester', 'person')
+        logger.debug('all_tugs_admin position 2.3')
         admin_tas = set(admin_tas)
 
     if instr_members:
         # allow all instructors to see the page, but only populate with current semester's TAs
+        logger.debug('all_tugs_admin position 2.4')
         instr_members = instr_members.filter(offering__semester=semester)
+        logger.debug('all_tugs_admin position 2.5')
         offerings = set(m.offering for m in instr_members)
+        logger.debug('all_tugs_admin position 2.6')
         instr_tas = Member.objects.filter(offering__in=offerings, role='TA').select_related('offering__semester')
+        logger.debug('all_tugs_admin position 2.7')
         instr_tas = set(instr_tas)
 
     all_tas = admin_tas | instr_tas
