@@ -66,6 +66,11 @@ def all_tugs_admin(request, semester_name=None):
     """
     View for admins to see all TUGS and instructors to manage theirs
     """
+    from django.db import connection
+    import pprint
+    import logging
+    logger = logging.getLogger('testing.stuff')
+
     if semester_name:
         semester = get_object_or_404(Semester, name=semester_name)
     else:
@@ -118,6 +123,9 @@ def all_tugs_admin(request, semester_name=None):
             'semester': semester,
             'tas_with_tugs': tas_with_tugs,
             }
+
+    logger.debug('='*80)
+    logger.debug(pprint.pformat(connection.queries))
 
     return render(request, 'ta/all_tugs_admin.html', context)
 
