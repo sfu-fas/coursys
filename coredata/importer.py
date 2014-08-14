@@ -247,6 +247,10 @@ def get_unit(acad_org, create=False):
         acad_org = 'GEOGRAPH'
     elif acad_org == 'BUS':
         acad_org = 'BUS ADMIN'
+    elif acad_org == 'HUM':
+        acad_org = 'HUMANITIES'
+    elif acad_org == 'EVSC':
+        acad_org = 'ENVIRO SCI'
 
     try:
         unit = Unit.objects.get(acad_org=acad_org)
@@ -300,7 +304,10 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     if cancel_dt is not None:
         # mark cancelled sections
         component = "CAN"
-    
+
+    if section == 'G':
+        section = 'G100' # fix broken data somebody entered
+
     owner = get_unit(acad_org, create=create_units)
 
     # search for existing offerings both possible ways and make sure we're consistent

@@ -19,12 +19,17 @@ from dashboard.forms import FeedSetupForm, NewsConfigForm, SignatureForm, PhotoA
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
+from pages.models import Page, ACL_ROLES
 from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
 from featureflags.flags import uses_feature
+from haystack.query import SearchQuerySet
+from haystack.inputs import AutoQuery, Exact, Clean
 import pytz
+import itertools
+from urllib import urlencode
 
 
 def _get_memberships(userid):
@@ -149,7 +154,7 @@ from django_cas.views import _redirect_url, _service_url, _login_url, HttpRespon
 def login(request, next_page=None, required=False):
     """Forwards to CAS login URL or verifies CAS ticket
 
-    Modified locally: honour next=??? in query string, don't deliver a message, catch IOEror, generate LogEntry
+    Modified locally: honour next=??? in query string, don't deliver a message, catch IOError, generate LogEntry
     """
     if not next_page and 'next' in request.GET:
         next_page = request.GET['next']
@@ -166,10 +171,11 @@ def login(request, next_page=None, required=False):
         try:
             user = auth.authenticate(ticket=ticket, service=service, request=request)
         except IOError as e:
-            # Here we want to catch timeouts and only timeouts
-            if e.errno == 110:
+            # Here we want to catch only: connection reset, timeouts, name or service unknown
+            if e.errno in [104, 110, 'socket error']:
                 user = None
             else:
+                raise IOError, "The errno is %r: %s." % (e.errno, unicode(e))
                 raise e
 
         if user is not None:
@@ -857,6 +863,9 @@ def view_doc(request, doc_slug):
             context['act1'] = None
             context['act2'] = None
 
+    elif doc_slug == "search":
+        context['two_years'] = datetime.date.today().year - 2
+
     try:
         res = render(request, "docs/doc_" + doc_slug + ".html", context)
     except TemplateDoesNotExist:
@@ -959,11 +968,6 @@ def photo_agreement(request):
 
 
 
-from haystack.query import SearchQuerySet
-from haystack.inputs import AutoQuery, Exact, Clean
-import itertools
-from urllib import urlencode
-from pages.models import Page, ACL_ROLES
 SEARCH_URL = 'http://www.sfu.ca/search.html?'
 MAX_RESULTS = 50
 RESULT_TYPE_DISPLAY = { # human-friendly map for result.content_type
@@ -1014,7 +1018,7 @@ def _query_results(query, person):
         discuss_results = []
 
     # students taught by instructor (coredata.Member)
-    instr_members = Member.objects.filter(person=person, role='INST').exclude(offering__component='CAN') \
+    instr_members = Member.objects.filter(person=person, role__in=['INST','TA']).exclude(offering__component='CAN') \
         .select_related('offering')
     if person and instr_members:
         offering_slugs = set(m.offering.slug for m in instr_members)

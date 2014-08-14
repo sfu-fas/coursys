@@ -316,7 +316,7 @@ class ViewTestCase(TestCase):
         self.run_basic_page_tests(views, args)
 
     def test_form_pages(self):
-        views = ['view_form', 'edit_form', 'new_sheet', 'sheet_submission_initial']
+        views = ['view_form', 'edit_form', 'preview_form', 'new_sheet', 'sheet_submission_initial']
         args = {'form_slug': self.slug_data["form_slug"]}
         self.run_basic_page_tests(views, args)
 

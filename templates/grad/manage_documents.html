@@ -1,0 +1,28 @@
+{% extends "grad/base.html" %}
+{% load form_display %}
+
+{% block title %}{{grad.person.name}}: Documents{% endblock %}
+{% block h1 %}{{grad.person.name}}: Documents{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grad.views.index" %}">Grad</a></li>
+<li><a href="{% url "grad.views.view" grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>Documents</li>
+{% endblock %}
+
+{% block content %}
+{% include "grad/view__documents.html" %}
+
+<div class="form_container">
+    <form action="" method="post" enctype="multipart/form-data">
+    	{% csrf_token %}
+    	<fieldset>
+    	<legend>Add Documents</legend>
+        {{ form|as_dl }}
+        <p><input  class="submit"  type="submit" value="Add Documents" /></p>
+        </fieldset>
+    </form>
+</div>
+<p class="gradback"><a class="button" href="{% url "grad.views.view" grad_slug=grad.slug %}">Return to Profile</a></p>
+{% endblock %} 
+

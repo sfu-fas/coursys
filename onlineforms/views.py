@@ -12,7 +12,7 @@ from django.db.models import Q, Count
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
-    requires_formgroup
+    requires_formgroup, login_redirect
 from courselib.db import retry_transaction
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -152,7 +152,7 @@ def admin_list_all(request):
         #Waiting submissions
         wait_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='WAIT')
         for wait_sub in wait_submissions:
-            last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
+            last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub, status='WAIT').latest('given_at')
             wait_sub.assigned_to = last_sheet_assigned
         
         # Completed submissions
@@ -175,6 +175,7 @@ def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
 def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=True)
 
+@retry_transaction()
 @transaction.atomic
 def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     """
@@ -504,10 +505,24 @@ def new_sheet(request, form_slug):
     return render(request, "onlineforms/new_sheet.html", context)
 
 @requires_form_admin_by_slug()
+def preview_form(request, form_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    sheet_forms = []
+
+    for owner_sheet in Sheet.objects.filter(form=owner_form, active=True):
+        form = DynamicForm(owner_sheet.title)
+        fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
+        form.fromFields(fields)
+        sheet_forms.append(form)
+
+    context = {'form': form, 'owner_form': owner_form, 'sheet_forms': sheet_forms}
+    return render(request, "onlineforms/preview_form.html", context)
+
+@requires_form_admin_by_slug()
 def preview_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug, form=owner_form)
-    
+
     form = DynamicForm(owner_sheet.title)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
     form.fromFields(fields)
@@ -763,14 +778,14 @@ def index(request):
     sheet_submissions = None
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
-        forms = Form.objects.filter(active=True).exclude(initiators='NON')
+        forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
         other_forms = []
         sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
                 .exclude(status='DONE').exclude(status='REJE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
-        forms = Form.objects.filter(active=True, initiators='ANY')
+        forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
         other_forms = Form.objects.filter(active=True, initiators='LOG')
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
@@ -1016,7 +1031,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
     this_path = request.get_full_path()
     
     # if no one can fill out this form, stop right now
-    if owner_form.initiators == "NON":
+    if owner_form.initiators == "NON" and not formsubmit_slug:
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
         return render(request, 'onlineforms/submissions/sheet_submission.html', context)
 
@@ -1029,7 +1044,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         sheet = owner_form.initial_sheet
 
     # get their info if they are logged in
-    if(request.user.is_authenticated()):
+    if request.user.is_authenticated():
         try:
             loggedin_user = Person.objects.get(userid=request.user.username)
         except Person.DoesNotExist:
@@ -1061,7 +1076,11 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         formFiller = sheet_submission.filler
         if sheet_submission.filler.isSFUPerson():
             if not(formFiller.sfuFormFiller) or loggedin_user != formFiller.sfuFormFiller:
-                return ForbiddenResponse(request)
+                if request.user.is_authenticated():
+                    return ForbiddenResponse(request)
+                else:
+                    # not logged in: maybe they really are the filler and we need to know.
+                    return login_redirect(request.path)
         # do we do need to do any checking for non sfu form fillers?
 
         form = DynamicForm(sheet.title)

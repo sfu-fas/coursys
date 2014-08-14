@@ -153,7 +153,7 @@ class AdminReturnForm(forms.Form):
 class CloseFormForm(forms.Form):
     summary = forms.CharField(required=True,
                 help_text="Summary of the form, for advisors (and emailing to student if you select below).",
-                widget=forms.TextInput(attrs={'size': '70'})
+                widget=forms.Textarea(attrs={'rows': '5', 'cols': '70'})
                 )
     email = forms.BooleanField(initial=False, required=False, help_text="Would you like to email the summary to the student?")
     

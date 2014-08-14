@@ -6,7 +6,7 @@ from cache_utils.decorators import cached
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.fields import DollarInput, AddSalaryField, AddPayField, TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 from faculty.event_types.search import ChoiceSearchRule, ComparableSearchRule, StringSearchRule
@@ -244,6 +244,12 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         <dt>Funding Agency</dt><dd>{{ handler|get_display:"funding_agency"}}</dd>
         <dt>Grant Name</dt><dd>{{ handler|get_display:"grant_name" }}</dd>
         <dt>Amount</dt><dd>${{ handler|get_display:"amount" }}</dd>
+        <dt>Overhead</dt><dd>${{ handler|get_display:"overhead" }}</dd>
+        <dt>Primary Use of Funds</dt><dd>{{ handler|get_display:"primary_use_of_funds" }}</dd>
+        <dt>Title of Project</dt><dd>{{ handler|get_display:"title_of_project" }}</dd>
+        <dt>Co-Investigator</dt><dd>{{ handler|get_display:"co_investigator" }}</dd>
+        <dt>Funding Program</dt><dd>{{ handler|get_display:"funding_program" }}</dd>
+
         {% endblock %}
     """
 
@@ -251,11 +257,20 @@ class GrantApplicationEventHandler(CareerEventHandlerBase):
         funding_agency = forms.CharField(label='Funding Agency', max_length=255)
         grant_name = forms.CharField(label='Grant Name', max_length=255)
         amount = forms.DecimalField(widget=DollarInput, decimal_places=2, initial=0)
+        overhead = forms.DecimalField(widget=DollarInput, required=False, decimal_places=2, initial=0)
+        primary_use_of_funds = forms.CharField(label='Primary Use of Funds', required=False, max_length=255)
+        title_of_project = forms.CharField(label='Title of Project', required=False, max_length=255)
+        co_investigator = forms.CharField(label='Co-investigator', required=False, max_length=255)
+        funding_program = forms.CharField(label='Funding Program', required=False, max_length=255)
 
     SEARCH_RULES = {
         'funding_agency': StringSearchRule,
-        'grand_name': StringSearchRule,
+        'grant_name': StringSearchRule,
         'amount': ComparableSearchRule,
+        'overhead': ComparableSearchRule, 
+        'primary_use_of_funds': StringSearchRule, 
+        'title_of_project': StringSearchRule,
+        'funding_program': StringSearchRule
     }
     SEARCH_RESULT_FIELDS = [
         'funding_agency',

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}TA Contracts : Edit Semester {{hiring_semester.semester.name}}{% endblock %}
+{% block h1 %}TA Contracts : Edit Semester {{hiring_semester.semester.name}}{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "tacontracts.views.list_all_semesters" %}">Hiring Semesters</a></li>
+<li>Edit Semester {{hiring_semester.semester.name}}</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<form action="{% url "tacontracts.views.edit_semester" semester=hiring_semester.semester.name%}" method="post">
+    {% csrf_token %}
+    <fieldset>
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Edit Semester" />
+    </p>
+    </fieldset>
+</form>
+{% endblock %}

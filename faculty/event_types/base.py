@@ -176,7 +176,7 @@ class CareerEventHandlerBase(object):
         assert self.IS_EXCLUSIVE and not self.IS_INSTANT
         from faculty.models import CareerEvent
 
-        similar_events = CareerEvent.objects.filter(person=self.event.person,
+        similar_events = CareerEvent.objects.not_deleted().filter(person=self.event.person,
                 unit=self.event.unit, event_type=self.EVENT_TYPE).order_by('start_date')
         similar_events = list(similar_events)
         for event, next_event in zip(similar_events, similar_events[1:]):
@@ -471,16 +471,3 @@ class CareerEventHandlerBase(object):
         pass
 
 
-class Choices(collections.OrderedDict):
-    '''
-    An ordered dictionary that also acts as an iterable of (key, value) pairs.
-    '''
-
-    def __init__(self, *choices):
-        super(Choices, self).__init__(choices)
-
-    def __iter__(self):
-        # XXX: Can't call super(Choices, self).iteritems() here because it will call our
-        #      __iter__ and recurse infinitely.
-        for key in super(Choices, self).__iter__():
-            yield (key, self[key])

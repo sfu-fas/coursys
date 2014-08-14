@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}TA Contract Hiring Semesters{% endblock %}
+{% block h1 %}TA Contract Hiring Semesters{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Hiring Semesters</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "tacontracts.views.new_semester" %}">New Hiring Semester</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<h2> Next Semester</h2>
+{% if next_semester %}
+    {% if next_hiring_semesters %}
+        {% include "tacontracts/module_semester_table.html" with semesters=next_hiring_semesters display_units=display_units only %}
+    {% else %}
+        <p> Semester {{next_semester.name}} hasn't been 
+            <a href="{% url "tacontracts.views.setup_semester" semester=next_semester.name %}">created</a>, 
+            yet. 
+        </p>
+    {% endif %}
+{% else %}
+    <div class='warning'>
+        This Semester hasn't been set up in the data yet. 
+        Please contact Support and alert them to this issue. 
+    </div>
+{% endif %}
+
+<h2> Current Semester </h2>
+{% if current_semester %}
+    {% if current_hiring_semesters %}
+        {% include "tacontracts/module_semester_table.html" with semesters=current_hiring_semesters display_units=display_units only %}
+    {% else %}
+        <p> Semester {{current_semester.name}} hasn't been 
+            <a href="{% url "tacontracts.views.setup_semester" semester=current_semester.name %}">created</a>, 
+            yet. 
+        </p>
+    {% endif %}
+{% else %}
+    <div class='warning'>
+        This Semester hasn't been set up in the data yet. 
+        Please contact Support and alert them to this issue. 
+    </div>
+{% endif %}
+
+<h2> All Semesters </h2>
+{% include "tacontracts/module_semester_table.html" with semesters=semesters display_units=display_units only %}
+
+{% endblock %}

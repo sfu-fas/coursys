@@ -1,9 +1,12 @@
 from django.conf.urls import url
-from courselib.urlparts import COURSE_SLUG, USERID_OR_EMPLID, USERID_SLUG, EMPLID_SLUG
+from courselib.urlparts import COURSE_SLUG, USERID_OR_EMPLID, USERID_SLUG, \
+                               EMPLID_SLUG, SEMESTER
 
 data_patterns = [ # prefix /data/
     url(r'^courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
     url(r'^offerings$', 'coredata.views.offerings_search'),
+    url(r'^offerings_slug$', 'coredata.views.offerings_slug_search'),
+    url(r'^offerings_slug/'+SEMESTER+'$', 'coredata.views.offerings_slug_search'),
     url(r'^courses$', 'coredata.views.course_search'),
     url(r'^offering$', 'coredata.views.offering_by_id'),
     url(r'^students$', 'coredata.views.student_search'),

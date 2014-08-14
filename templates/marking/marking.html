@@ -30,7 +30,7 @@ function append_problem(n, penalty, content, outof) {
 {% endblock%}
 
 {% block title %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
-{% block h1 %}Marking: {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}, {{activity.name}}{% endblock %}
+{% block h1 %}Marking: {% if student %}<a href="{% url 'grades.views.student_info' course_slug=course.slug userid=student.userid_or_emplid %}">{{student.name}}</a>{% else %}<a href="{{ group.get_absolute_url }}">{{ group.name }}</a>{% endif %}, {{activity.name}}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>
 <li><a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li>

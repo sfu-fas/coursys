@@ -5,6 +5,7 @@ from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
         GradProgramHistory, FinancialComment, STATUS_ACTIVE
 from coredata.models import Semester
 from ta.models import TAContract, TACourse, STATUSES_NOT_TAING
+from tacontracts.models import TAContract as NewTAContract
 from ra.models import RAAppointment
 import itertools, decimal
 from grad.views.view import _can_view_student
@@ -28,6 +29,10 @@ def financials(request, grad_slug, style='complete'):
     other_fundings = OtherFunding.objects.filter(student=grad, removed=False).select_related('semester')
     
     contracts = TAContract.objects.filter(application__person=grad.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
+    other_contracts = NewTAContract.objects.filter(person=grad.person, status__in=['NEW', 'SGN'])\
+                    .select_related('category')\
+                    .select_related('email_receipt')\
+                    .prefetch_related('course')
     appointments = RAAppointment.objects.filter(person=grad.person, deleted=False)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
     financial_comments = FinancialComment.objects.filter(student=grad, removed=False).select_related('semester')
@@ -127,6 +132,17 @@ def financials(request, grad_slug, style='complete'):
                         text = "%s (%s BU, current status: %s)" \
                              % (course.course.name(), course.total_bu, contract.get_status_display().lower())
                     courses.append({'course': text,'amount': course.pay()})
+        for contract in other_contracts:
+            if contract.category.hiring_semester.semester == semester:
+                if contract.status == 'SGN':
+                    for course in contract.course.all():
+                        ta_total += course.total
+                        courses.append({'course': "%s (%s BU)" % (course.course.name(), course.total_bu),
+                                        'amount': course.total })
+                else:
+                    for course in contract.course.all():
+                        courses.append({'course': "%s (%s BU - $%.02f) - Draft" % (course.course.name(), course.total_bu, course.total),
+                                        'amount': 0 })
         ta = {'courses':courses,'amount':ta_total}
         semester_total += ta_total
 

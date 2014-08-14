@@ -114,7 +114,16 @@ class CoredataTest(TestCase):
         self.assertEqual(s.offset(-2).name, '1124')
         self.assertEqual(s - s.offset(-2), 2)
         self.assertEqual(s.offset(-2) - s, -2)
-        
+
+        self.assertEqual(s.offset_name(1), '1134')
+        self.assertEqual(s.offset_name(-1), '1127')
+        self.assertEqual(s.offset_name(2), '1137')
+        self.assertEqual(s.offset_name(-2), '1124')
+        self.assertEqual(s.offset_name(3), '1141')
+        self.assertEqual(s.offset_name(-3), '1121')
+        self.assertEqual(s.offset_name(4), '1144')
+        self.assertEqual(s.offset_name(-4), '1117')
+
         s2 = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
         self.assertRaises(IntegrityError, s2.save)
         

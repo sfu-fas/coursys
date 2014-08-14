@@ -82,8 +82,10 @@ class GradTest(TestCase):
         lt.save()
 
         test_views(self, client, 'grad.views.',
-                ['programs', 'new_program', 'requirements', 'new_requirement', 'letter_templates',
-                 'new_letter_template', 'manage_scholarshipType', 'search', 'funding_report', 'all_promises'],
+                ['programs', 'new_program', 'requirements', 'new_requirement', 
+                    'letter_templates', 'new_letter_template', 
+                    'manage_scholarshipType', 'search', 'funding_report', 
+                    'all_promises'],
                 {})
         test_views(self, client, 'grad.views.', ['manage_letter_template'], {'letter_template_slug': lt.slug})
         test_views(self, client, 'grad.views.', ['not_found'], {}, qs='search=grad')
@@ -156,9 +158,21 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships',
-                      'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
-                      'manage_program', 'manage_start_end_semesters', 'manage_financialcomments', 'manage_defence']:
+        for view in ['financials', 
+                     'manage_general',
+                     'manage_requirements',
+                     'manage_scholarships',
+                     'manage_otherfunding',
+                     'manage_promises',
+                     'manage_letters',
+                     'manage_status',
+                     'manage_supervisors',
+                     'manage_program',
+                     'manage_start_end_semesters',
+                     'manage_financialcomments',
+                     'manage_defence',
+                     'manage_progress',
+                     'manage_documents']:
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)
@@ -274,12 +288,12 @@ class GradTest(TestCase):
         high_gpa = form.search_results(units)
         self.assertNotIn(gs, high_gpa)
 
-    def test_grad_status(self):
+    def test_advanced_search_3(self):
         client = Client()
         test_auth(client, 'ggbaker')
         this_sem = Semester.current()
+        units = [r.unit for r in Role.objects.filter(person__userid='ggbaker', role='GRAD')]
 
-        # clear the deck on this student's statuses
         gs = self.__make_test_grad()
         gs.gradstatus_set.all().delete()
 
@@ -290,10 +304,74 @@ class GradTest(TestCase):
         s3 = GradStatus(student=gs, status='LEAV', start=this_sem.offset(2))
         s3.save()
 
+        # test current-status searching
+        form = SearchForm(QueryDict('student_status=ACTI&columns=person.emplid'))
+        active_now = form.search_results(units)
+        self.assertIn(gs, active_now)
+        form = SearchForm(QueryDict('student_status=LEAV&columns=person.emplid'))
+        leave_now = form.search_results(units)
+        self.assertNotIn(gs, leave_now)
+
+        # test status-as-of searching
+        form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
+        active_past = form.search_results(units)
+        self.assertNotIn(gs, active_past)
+        form = SearchForm(QueryDict('student_status=COMP&status_asof=%s&columns=person.emplid' % (this_sem.offset(-4).name)))
+        applic_past = form.search_results(units)
+        #self.assertIn(gs, applic_past)
+
+        form = SearchForm(QueryDict('student_status=ACTI&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
+        active_later = form.search_results(units)
+        self.assertNotIn(gs, active_later)
+        form = SearchForm(QueryDict('student_status=LEAV&status_asof=%s&columns=person.emplid' % (this_sem.offset(3).name)))
+        leave_later = form.search_results(units)
+        self.assertIn(gs, leave_later)
+
+
+
+    def test_grad_status(self):
+        client = Client()
+        test_auth(client, 'ggbaker')
+        this_sem = Semester.current()
+
+        # clear the deck on this student's statuses
+        gs = self.__make_test_grad()
+
+        gs.gradstatus_set.all().delete()
+        s1 = GradStatus(student=gs, status='COMP', start=this_sem.offset(-4))
+        s1.save()
+        s2 = GradStatus(student=gs, status='ACTI', start=this_sem.offset(-3))
+        s2.save()
+        s3 = GradStatus(student=gs, status='LEAV', start=this_sem.offset(2))
+        s3.save()
+
         gs = GradStudent.objects.get(id=gs.id) # make sure we get what's in the database now
         self.assertEqual(gs.current_status, 'ACTI')
 
+        # check status in a particular semester results
+        self.assertEqual(gs.status_as_of(this_sem.offset(-5)), None)
+        #self.assertEqual(gs.status_as_of(this_sem.offset(-4)), 'COMP')
+        self.assertEqual(gs.status_as_of(this_sem.offset(-3)), 'ACTI')
+        self.assertEqual(gs.status_as_of(this_sem), 'ACTI')
+        self.assertEqual(gs.status_as_of(this_sem.offset(1)), 'ACTI')
+        self.assertEqual(gs.status_as_of(this_sem.offset(2)), 'LEAV')
+        self.assertEqual(gs.status_as_of(this_sem.offset(3)), 'LEAV')
         # grad.tasks.update_statuses_to_current will put this student on LEAV on the first day of that future semester
+
+        # check that "active" statuses are preferred over "applicant" statuses in status calcs
+        s4 = GradStatus(student=gs, status='COMP', start=this_sem.offset(-3))
+        s4.save()
+        self.assertEqual(gs.status_as_of(this_sem.offset(-3)), 'ACTI')
+
+        # because of insanity that makes strange sense, application-decision statuses propagate back a semester
+        gs.gradstatus_set.all().delete()
+        s1 = GradStatus(student=gs, status='COMP', start=this_sem)
+        s1.save()
+        s2 = GradStatus(student=gs, status='REJE', start=this_sem.offset(1))
+        s2.save()
+        self.assertEqual(gs.status_as_of(this_sem.offset(-1)), None)
+        self.assertEqual(gs.status_as_of(this_sem), 'REJE')
+        self.assertEqual(gs.status_as_of(this_sem.offset(1)), 'REJE')
 
 
 

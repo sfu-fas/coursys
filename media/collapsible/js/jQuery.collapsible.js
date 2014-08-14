@@ -14,9 +14,12 @@ $.fn.collapsible = function(){
 		var collapsibleContent = collapsibleHeading.next();
 		
 		//modify markup & attributes
+        // classam - href="#" can cause the document to jump to the top
+        //           in some browsers,
+        //           so I've replaced it with #hi-there, which doesn't do this
 		collapsibleHeading.addClass('collapsible-heading')
 			.prepend('<span class="collapsible-heading-status"></span>')
-			.wrapInner('<a href="#" class="collapsible-heading-toggle"></a>');
+			.wrapInner('<a href="#hi-there" class="collapsible-heading-toggle"></a>');
 			
 		collapsibleContent.addClass('collapsible-content');
 		

@@ -1,7 +1,15 @@
 {% extends "grad/base.html" %}
 
-{% block title %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
-{% block h1 %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
+{% block title %}
+    {{grad.person.name}}, 
+    {% if grad.is_applicant %}Application: {% endif %}
+    {{grad.program.description}}
+{% endblock %}
+{% block h1 %}
+    {{grad.person.name}}, 
+    {% if grad.is_applicant %}Application: {% endif %}
+    {{grad.program.description}}
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li><a href="{% url "grad.views.index" %}">Grad</a></li>
@@ -13,7 +21,15 @@
 	<h2>Actions</h2>
 	<ul>
 	{% if authtype != 'supervisor' %}
-	<li id="moreinfo"><a href="javascript:get_more_info('{% url "grad.views.grad_more_info" grad_slug=grad.slug %}')">Fetch more info</a> <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></li>
+	<li id="moreinfo">
+    <a href="javascript:void(0)"
+        onclick="
+        //<![CDATA[
+        get_more_info('{% url "grad.views.grad_more_info" grad_slug=grad.slug %}')
+        //]]>
+        ">Fetch more info</a>
+        <i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i>
+    </li>
 	{% endif %}
 	<li><a href="{% url "grad.views.financials" grad_slug=grad.slug %}">View Financial Summary</a></li>
 	{% if can_edit %}
@@ -60,74 +76,180 @@ $(document).ready(function() {
 <table class="info">
 <tbody>
 <tr>
-  <th>Student #</th>
-  <td>{{grad.person.emplid}}
-      {# [<a href="https://go.sfu.ca/psp/paprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>] #}
-      {% if grad.config.cortezid %}[<a href="{% url "grad.views.view" grad_slug=grad.slug %}?cortez-bounce=yes">OLD cortez record</a>]{% endif %}
-  </td>
-</tr>
-<tr><th>Name</th><td>{{grad.person.sortname_pref}}</td></tr>
-<tr><th>Email</th><td>{{grad.person.email_mailto}}
-{% if grad.applic_email %}(application email: {{grad.applic_email}}){% endif %}	
-</td></tr>
-<tr><th>Current Status</th><td>{{grad.get_current_status_display}}
-    {% if can_edit %}<a class="editlink" href="{% url "grad.views.manage_status" grad_slug=grad.slug %}">Update status</a>{% endif %}</td></tr>
-<tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
-<tr><th>CGPA</th><td>{% if grad.person.gpa %}{{grad.person.gpa}} ({{grad.person.ccredits}} credits){% endif %} {% if grad.config.masters_cgpa %} {{grad.config.masters_cgpa}} {% endif %}</td></tr>
-<tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
-<tr><th>Start/End Semesters</th><td>{% if grad.start_semester %}{{ grad.start_semester.name }}{% else %}???{% endif %}&ndash;{% if grad.end_semester %}{{ grad.end_semester.name }}{% else %}present{% endif %}</td></tr>
-<tr><th>Active/Total Semesters</th><td>{{grad.active_semesters_display}}</td></tr>
-{% if other_grad %}<tr><th>Other programs</th><td>{% for g in other_grad %}<a href="{% url "grad.views.view" grad_slug=g.slug %}">{{g}}</a><br />{% endfor %}</td></tr>{% endif %}
-<tr>
-    <th>{{ grad.thesis_type}}</th>
-    <td>{{grad.thesis_summary}}
-    {% if can_edit %}
-        <a class="editlink" href="{% url "grad.views.manage_defence" grad_slug=grad.slug %}">Update {{grad.thesis_type}}</a>
+    <th>Student #</th>
+    <td>
+    {{grad.person.emplid}}
+        {# [<a href="https://go.sfu.ca/psp/paprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{grad.person.emplid }}">SIMS record</a>] #}
+    {% if grad.config.cortezid %}
+        [<a href="{% url "grad.views.view" grad_slug=grad.slug %}?cortez-bounce=yes">OLD cortez record</a>]
     {% endif %}
     </td>
 </tr>
+<tr>
+    <th>Name</th>
+    <td>{{grad.person.sortname_pref}}</td>
+</tr>
+<tr>
+    <th>Email</th>
+    <td>{{grad.person.email_mailto}}
+        {% if grad.applic_email %}
+            (application email: {{grad.applic_email}})
+        {% endif %}	
+    </td>
+</tr>
+<tr>
+    <th>Current Status</th>
+    <td>{{grad.get_current_status_display}}
+        {% if can_edit %}
+            <a class="editlink" href="{% url "grad.views.manage_status" grad_slug=grad.slug %}">Update status</a>
+        {% endif %}
+    </td>
+</tr>
+<tr>
+    <th>Citizenship</th>
+    <td>{{ grad.person.citizen|default_if_none:"unknown" }}
+        (visa status: {{ grad.person.visa|default_if_none:"unknown" }})
+    </td>
+</tr>
+<tr>
+    <th>CGPA</th>
+    <td>
+        {% if grad.person.gpa %}
+            {{grad.person.gpa}} 
+            ({{grad.person.ccredits}} credits)
+        {% endif %} 
+        {% if grad.config.masters_cgpa %} 
+            {{grad.config.masters_cgpa}} 
+        {% endif %}
+    </td>
+</tr>
+<tr>
+    <th>Gender</th>
+    <td>{{grad.person.gender}}</td>
+</tr>
+{% if not grad.is_applicant %}
+    <tr>
+        <th>Start/End Semesters</th>
+        <td>
+            {% if grad.start_semester %}
+                {{ grad.start_semester.name }}
+            {% else %}
+                ???
+            {% endif %}
+            &ndash;
+            {% if grad.end_semester %}
+                {{ grad.end_semester.name }}
+            {% else %}
+                present
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>Active/Total Semesters</th>
+        <td>{{grad.active_semesters_display}}</td>
+    </tr>
+{% endif %}
+{% if other_grad %}
+    <tr>
+        <th>Other Programs</th>
+        <td>
+            {% for g in other_grad %}
+            <a href="{% url "grad.views.view" grad_slug=g.slug %}">{{g}} - {{g.get_current_status_display}}</a>
+                <br />
+            {% endfor %}
+        </td>
+    </tr>
+{% endif %}
+{% if other_applicant %}
+    <tr>
+        <th>Grad Applications</th>
+        <td>
+            {% for g in other_applicant %}
+            <a href="{% url "grad.views.view" grad_slug=g.slug %}">{{g}} - {{g.get_current_status_display}}</a>
+                <br />
+            {% endfor %}
+        </td>
+    </tr>
+{% endif %}
+{% if not grad.is_applicant %}
+    <tr>
+        <th>{{grad.thesis_type}}</th>
+        <td>{{grad.thesis_summary}}
+        {% if can_edit %}
+            <a class="editlink" href="{% url "grad.views.manage_defence" grad_slug=grad.slug %}">Update {{grad.thesis_type}}</a>
+        {% endif %}
+        </td>
+    </tr>
+{% endif %}
 </tbody>
 </table>
 </div>
 
 {% if can_edit %}
-<p><strong>Manage:</strong>
-<a href="{% url "grad.views.manage_general" grad_slug=grad.slug  %}">General Info</a>
+<p>
+<a href="{% url "grad.views.manage_general" grad_slug=grad.slug  %}">General</a>
+| <a href="{% url "grad.views.manage_status" grad_slug=grad.slug  %}">Status</a>
+| <a href="{% url "grad.views.manage_letters" grad_slug=grad.slug  %}">Letters</a>
 | <a href="{% url "grad.views.manage_requirements" grad_slug=grad.slug  %}">Requirements</a>
 | <a href="{% url "grad.views.manage_supervisors" grad_slug=grad.slug  %}">Committee</a>
-| <a href="{% url "grad.views.manage_status" grad_slug=grad.slug  %}">Status</a>
 | <a href="{% url "grad.views.manage_scholarships" grad_slug=grad.slug  %}">Scholarships</a>
 | <a href="{% url "grad.views.manage_otherfunding" grad_slug=grad.slug  %}">Other Funding</a>
+| <a href="{% url "grad.views.manage_promises" grad_slug=grad.slug  %}">Promises</a>
 | <a href="{% url "grad.views.manage_financialcomments" grad_slug=grad.slug  %}">Financial Comments</a>
-| <a href="{% url "grad.views.manage_letters" grad_slug=grad.slug  %}">Letters</a>
+| <a href="{% url "grad.views.manage_progress" grad_slug=grad.slug  %}">Progress Reports</a>
+| <a href="{% url "grad.views.manage_documents" grad_slug=grad.slug  %}">Documents</a>
 | <a href="{% url "grad.views.manage_defence" grad_slug=grad.slug  %}">{{ grad.thesis_type }}</a>
 </p>
 {% endif %}
 
-<h2 id="general" class="collapsed"><a href="#!general">General</a></h2>
+<h2 id="general" class="collapsed"><a href="#!general">
+        <i class="fa fa-user"></i> General</a></h2>
 <div id="general_content">{{general_content}}</div>
 
-<h2 id="requirements" class="collapsed"><a href="#!requirements">Requirements</a></h2>
-<div id="requirements_content">{{requirements_content}}</div>
-
-<h2 id="supervisors" class="collapsed"><a href="#!supervisors">Committee</a></h2>
-<div id="supervisors_content">{{supervisors_content}}</div>
-
-<h2 id="status" class="collapsed"><a href="#!status">Status</a></h2>
+<h2 id="status" class="collapsed"><a href="#!status">
+        <i class="fa fa-university"></i> Status</a></h2>
 <div id="status_content">{{status_content}}</div>
 
-<h2 id="scholarships" class="collapsed"><a href="#!scholarships">Scholarships</a></h2>
+<h2 id="letters" class="collapsed"><a href="#!letters">
+        <i class="fa fa-envelope"></i> Letters</a></h2>
+<div id="letters_content">{{letters_content}}</div>
+
+{% if not grad.is_applicant %}
+<h2 id="requirements" class="collapsed"><a href="#!requirements">
+        <i class="fa fa-mortar-board"></i> Requirements</a></h2>
+<div id="requirements_content">{{requirements_content}}</div>
+{% endif %}
+
+<h2 id="supervisors" class="collapsed"><a href="#!supervisors">
+        <i class="fa fa-group"></i> Committee</a></h2>
+<div id="supervisors_content">{{supervisors_content}}</div>
+
+<h2 id="scholarships" class="collapsed"><a href="#!scholarships">
+        <i class="fa fa-money"></i> Scholarships</a></h2>
 <div id="scholarships_content">{{scholarships_content}}</div>
 
-<h2 id="otherfunding" class="collapsed"><a href="#!otherfunding">Other Funding</a></h2>
+<h2 id="otherfunding" class="collapsed"><a href="#!otherfunding">
+        <i class="fa fa-money"></i> Other Funding</a></h2>
 <div id="otherfunding_content">{{otherfunding_content}}</div>
 
-<h2 id="promises" class="collapsed"><a href="#!promises">Promises</a></h2>
+<h2 id="promises" class="collapsed"><a href="#!promises">
+        <i class="fa fa-money"></i> Promises</a></h2>
 <div id="promises_content">{{promises_content}}</div>
 
-<h2 id="financialcomments" class="collapsed"><a href="#!financialcomments">Financial Comments</a></h2>
+<h2 id="tacontracts" class="collapsed"><a href="#!tacontracts">
+        <i class="fa fa-money"></i> TA Contracts</a></h2>
+<div id="tacontracts_content">{{tacontracts_content}}</div>
+
+<h2 id="financialcomments" class="collapsed"><a href="#!financialcomments">
+        <i class="fa fa-money"></i> Financial Comments</a></h2>
 <div id="financialcomments_content">{{financialcomments_content}}</div>
 
-<h2 id="letters" class="collapsed"><a href="#!letters">Letters</a></h2>
-<div id="letters_content">{{letters_content}}</div>
+<h2 id="progressreports" class="collapsed"><a href="#!progressreports">
+        <i class="fa fa-check"></i> Progress Reports</a></h2>
+<div id="progressreports_content">{{progressreports_content}}</div>
+
+<h2 id="documents" class="collapsed"><a href="#!documents">
+        <i class="fa fa-download"></i> Documents</a></h2>
+<div id="documents_content">{{documents_content}}</div>
+
 {% endblock %} 

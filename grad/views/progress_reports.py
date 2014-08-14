@@ -6,6 +6,11 @@ from ta.models import TACourse
 from ra.models import RAAppointment
 from coredata.queries import grad_student_courses, grad_student_gpas
 
+# This view is for generating the SQL queries needed to push our data
+#   into the CMPT Progress Reports system.
+#   It doesn't have anything to do with the management of the 
+#   Progress Reports objects. 
+
 def escape(s):
     if s is None:
         return 'null'

@@ -1,12 +1,14 @@
 from django.db import models, transaction, IntegrityError
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
+from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
+from cache_utils.decorators import cached
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from courselib.json_fields import JSONField
 from courselib.text import normalize_newlines, many_newlines
-import itertools, datetime
+import itertools, datetime, os
 import coredata.queries
 from django.conf import settings
 from collections import defaultdict
@@ -510,6 +512,7 @@ STATUS_CHOICES = (
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'CONF', 'ARIV') # statuses that mean "currently applying"
+STATUS_DECIDEDAPPLICANT = set(STATUS_APPLICANT) - set(STATUS_CURRENTAPPLICANT)
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
@@ -549,6 +552,12 @@ THESIS_OUTCOME_CHOICES = (
     ('MINR', "Pass (Minor Changes)"),
     ('DEFR', "Defer (Major Changes)"),
     ('FAIL', "Fail"))
+
+PROGRESS_REPORT_CHOICES = (
+    ('GOOD', "Good"),
+    ('SATI', "Satisfactory"),
+    ('CONC', "Satisfactory with Concerns"),
+    ('UNST',  "Unsatisfactory"))
 
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
@@ -635,6 +644,36 @@ class GradStudent(models.Model):
 
         super(GradStudent, self).save(*args, **kwargs)
 
+    def status_as_of_beta(self, semester=None):
+        """ Like 'current status', but for an arbitrary semester.
+
+            We want to filter out any statuses that occur after the  semester,
+            because - if a student is active this semester (assuming that we are 1134)
+            and on-leave next semester (1137) their current status is active.
+
+            Active statuses have precedence over Applicant statuses.
+            if a student is Active in 1134 but Complete Application in 1137, they are Active.
+        """
+        if semester == None:
+            semester = Semester.current()
+
+        timely_status = models.Q(start__name__lte=semester.name)
+        application_status = models.Q(start__name__lte=semester.offset_name(1), status__in=STATUS_DECIDEDAPPLICANT)
+
+        statuses = GradStatus.objects.filter(student=self, hidden=False) \
+                    .filter(timely_status | application_status) \
+                    .order_by('-start', '-start_date').select_related('start')
+
+        if not statuses:
+            return None
+
+        # find all statuses in the most-recent semester: the one that sorts last wins.
+        status_sem = statuses[0].start
+        semester_statuses = [(st.start.name, STATUS_ORDER[st.status], st) for st in statuses if st.start == status_sem]
+        semester_statuses.sort()
+        return semester_statuses[-1][2].status
+
+
     def status_as_of(self, semester=None):
         """ Like 'current status', but for an arbitrary semester. 
         
@@ -652,15 +691,15 @@ class GradStudent(models.Model):
         """
 
         filter_future_statuses = True
-        if semester == None: 
-            semester = Semester.current() 
+        if semester == None:
+            semester = Semester.current()
             filter_future_statuses = False
 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
         all_gs_by_date = GradStatus.objects.filter(student=self, hidden=False).order_by('start_date')
 
         filtered_nonapplicant_statuses = [status for status in all_gs if 
-                status.start <= semester 
+                status.start <= semester
                 and status.status not in STATUS_APPLICANT ]
         filtered_applicant_statuses = [status for status in all_gs_by_date if
                 status.status in STATUS_APPLICANT 
@@ -676,17 +715,21 @@ class GradStudent(models.Model):
 
     def update_status_fields(self):
         """
-        Update the self.start_semester, self.end_semester, self.current_status fields.
+        Update the self.start_semester, self.end_semester, self.current_status, self.program fields.
 
         Called by updates to statuses, and also by grad.tasks.update_statuses_to_current to reflect future statuses
         when the future actually comes.
         """
-        old = (self.start_semester_id, self.end_semester_id, self.current_status)
+        old = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
         self.start_semester = None
         self.end_semester = None
         self.current_status = None
 
+        # status and program
         self.current_status = self.status_as_of()
+        prog = self.program_as_of(future_if_necessary=True)
+        if prog:
+            self.program = prog
 
         all_gs = GradStatus.objects.filter(student=self, hidden=False).order_by('start')
 
@@ -731,21 +774,32 @@ class GradStudent(models.Model):
                     self.end_semester = end_status.start
             else:
                 self.end_semester = None
-        
-        if old != (self.start_semester_id, self.end_semester_id, self.current_status):
-            key = 'grad-activesem-%i' % (self.id)
-            cache.delete(key)
-            self.save()
 
-    def _active_semesters(self):
+        current = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
+        if old != current:
+            self.save()
+            self.active_semesters.invalidate()
+            self.active_semesters_display.invalidate()
+
+
+    @cached(24*3600)
+    def active_semesters(self, program=None):
         """
-        Number of active and total semesters
+        Number of active and total semesters.
+
+        If present, program should be a GradProgramHistory object for the program we're interested in: will return the
+        number of semesters since the start of that program.
+
+        Cache is invalidated by self.update_status_fields.
         """
         # actually flips through every relevant semester and checks to see
         # their (final) status in that semester. The data is messy enough
         # that I don't see any better way.
         next_sem = Semester.current().offset(1)
-        start = self.start_semester or next_sem
+        if program:
+            start = program.start_semester
+        else:
+            start = self.start_semester or next_sem
         end = self.end_semester or next_sem
 
         statuses_that_indicate_a_change_in_state = STATUS_ACTIVE + STATUS_INACTIVE
@@ -770,23 +824,6 @@ class GradStudent(models.Model):
         
         return active, total
 
-
-    def active_semesters(self):
-        """
-        Number of active and total semesters (caches self._active_semesters).
-        
-        Invalidated by self.update_status_fields.
-        """
-        key = 'grad-activesem-%i' % (self.id)
-        res = cache.get(key)
-        if res:
-            return res
-        else:
-            res = self._active_semesters()
-            cache.set(key, res, 24*3600)
-            return res
-
-
     def _has_committee(self):
         senior_sups = Supervisor.objects.filter(student=self, supervisor_type='SEN', removed=False).count()
         return senior_sups > 0
@@ -808,13 +845,41 @@ class GradStudent(models.Model):
 
         return bool(res)
 
+    @cached(24*3600)
     def active_semesters_display(self):
         """
         Format self.active_semesters_display for display
+
+        Cache is invalidated by self.update_status_fields.
         """
         active, total = self.active_semesters()
-        return u"%i/%i" % (active, total)
-    
+        res = u"%i/%i" % (active, total)
+
+        history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related('program')
+        if history.count() > 1:
+            currentprog = history.first()
+            active, total = self.active_semesters(program=currentprog)
+            res += ' (%i/%i in %s)' % (active, total, currentprog.program.label)
+
+        return res
+
+    def program_as_of(self, semester=None, future_if_necessary=False):
+        if semester == None:
+            semester = Semester.current()
+
+        gph = GradProgramHistory.objects.filter(student=self, start_semester__name__lte=semester.name) \
+            .order_by('-start_semester', '-starting').select_related('program').first()
+
+        if not gph and future_if_necessary:
+            # look into the future for the program the *will* be in: that's how we'll set gs.program earlier.
+            gph = GradProgramHistory.objects.filter(student=self) \
+            .order_by('start_semester', '-starting').select_related('program').first()
+
+        if gph:
+            return gph.program
+        else:
+            return None
+
     def flags_and_values(self):
         """
         Pairs fo GradFlag objects and GradFlagValue objects for this student
@@ -1162,6 +1227,9 @@ class GradStudent(models.Model):
         if 'exam_date' in self.config and self.config['exam_date']:
             summary += self.config['exam_date'] + " "
         return summary
+
+    def is_applicant(self):
+        return self.current_status in STATUS_APPLICANT
 
     @classmethod
     def get_canonical(cls, person, semester=None):
@@ -1721,4 +1789,62 @@ class SavedSearch(models.Model):
         
     defaults = {'name': ''}
     name, set_name = getter_setter('name')
+
+
+class ProgressReport(models.Model):
+    student = models.ForeignKey(GradStudent)
+    result = models.CharField(max_length=5, 
+                              choices=PROGRESS_REPORT_CHOICES, 
+                              db_index=True)
+    removed = models.BooleanField(default=False)
+    date = models.DateField(default=datetime.date.today)
+    config = JSONField(null=False, blank=False, default={})
+    comments = models.TextField(blank=True, null=True)
+
+    def __unicode__(self):
+        return u"(%s) %s Progress Report" % (str(self.date), 
+                                             self.get_result_display())
+
+
+GradSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, 
+                                      base_url=None)
+
+
+def attachment_upload_to(instance, filename):
+    """
+    Take the filename, encode it in ascii, ignoring characters that don't
+    translate, then create a path for it, like: 
+    gradnotes/2011-01-04/<filename>
+    """
+    fullpath = os.path.join(
+            'gradnotes',
+            datetime.datetime.now().strftime("%Y-%m-%d"),
+                                             filename.encode('ascii', 'ignore'))
+    return fullpath
+
+
+class ExternalDocument(models.Model):
+    student = models.ForeignKey(GradStudent)
+    name = models.CharField(max_length=100, null=False,
+                            help_text="A short description of what this file contains.")
+    file_attachment = models.FileField(storage=GradSystemStorage, 
+                                       upload_to=attachment_upload_to,
+                                       max_length=500)
+    file_mediatype = models.CharField(max_length=200, 
+                                      editable=False)
+    removed = models.BooleanField(default=False)
+    date = models.DateField(default=datetime.date.today)
+    config = JSONField(null=False, blank=False, default={})
+    comments = models.TextField(blank=True, null=True)
+    
+    def __unicode__(self):
+        return u"(%s) %s" % (str(self.date), self.name)
+    
+    def attachment_filename(self):
+        """
+        Return the filename only (no path) for the attachment.
+        """
+        _, filename = os.path.split(self.file_attachment.name)
+        print "FILENAME:", filename
+        return filename
 

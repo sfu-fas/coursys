@@ -2,7 +2,7 @@ from django import forms
 
 from faculty.event_types.base import BaseEntryForm
 from faculty.event_types.base import CareerEventHandlerBase
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.base import TeachingAdjust
 from faculty.event_types.fields import TeachingCreditField
 from faculty.event_types.mixins import TeachingCareerEvent
@@ -31,8 +31,8 @@ class AdminPositionEventHandler(CareerEventHandlerBase, TeachingCareerEvent):
             ('UGRAD_DIRECTOR', 'Undergrad Program Director'),
             ('GRAD_DIRECTOR', 'Graduate Program Director'),
             ('DDP_DIRECTOR', 'Dual-Degree Program Director'),
-            ('ASSOC_DIRECTOR', 'Associate Director'),
-            ('DIRECTOR', 'School Director'),
+            ('ASSOC_DIRECTOR', 'Associate Director/Chair'),
+            ('DIRECTOR', 'School Director/Chair'),
             ('ASSOC_DEAN', 'Associate Dean'),
             ('DEAN', 'Dean'),
             ('OTHER', 'Other Admin Position'),

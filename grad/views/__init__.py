@@ -48,3 +48,8 @@ from financials import financials
 from manage_scholarships import manage_scholarships
 from remove_scholarship import remove_scholarship
 from manage_scholarshipType import manage_scholarshipType
+from manage_progress import manage_progress
+from remove_progress import remove_progress
+from manage_documents import manage_documents
+from remove_document import remove_document
+from download_file import download_file

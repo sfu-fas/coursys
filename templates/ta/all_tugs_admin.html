@@ -58,7 +58,7 @@
   <tr>
   <td>{% if data.is_instr %}<strong>{% endif %}{{data.ta.offering.name}}{% if data.is_instr %}</strong>{% endif %}</td>
   {% if admin %}
-      <td>{% for instructor in data.ta.offering.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+      <td>{% for instructor in data.ta.instructors %}<a href="mailto:{{ instructor.person.email }}">{{ instructor.person.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
   {% endif %}
   <td><a href="mailto:{{ data.ta.person.email }}">{{data.ta.person}}</a></td>
   <td>

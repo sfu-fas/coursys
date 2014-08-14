@@ -17,6 +17,7 @@ from grades.urls import offering_patterns
 from ra.urls import ra_patterns
 from reports.urls import report_patterns
 from ta.urls import ta_patterns, tug_patterns
+from tacontracts.urls import tacontract_patterns
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
@@ -61,6 +62,7 @@ urlpatterns = [
     url(r'^grad/', include(grad_patterns)),
     url(r'^ra/', include(ra_patterns)),
     url(r'^ta/', include(ta_patterns)),
+    url(r'^tacontracts/', include(tacontract_patterns)),
     url(r'^tugs/', include(tug_patterns)),
     url(r'^my_grads/$', 'grad.views.supervisor_index'),
 

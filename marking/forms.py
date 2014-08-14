@@ -10,7 +10,7 @@ import json
 class OutOfInput(forms.widgets.NumberInput):
     "A NumberInput, but with an 'out of n' suffix"
     def __init__(self, **kwargs):
-        defaults = {'attrs': {'size': 4}}
+        defaults = {'attrs': {'size': 4, 'class': 'gradeinput'}}
         defaults.update(**kwargs)
         super(OutOfInput, self).__init__(**defaults)
 
@@ -92,6 +92,7 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
             form.fields['description'].widget.attrs['rows'] = 3
             form.fields['description'].widget.attrs['cols'] = 40
             form.fields['max_mark'].widget.attrs['size'] = 4
+            form.fields['max_mark'].widget.attrs['class'] = 'gradeinput'
 
     def clean(self):
         """Checks the following:

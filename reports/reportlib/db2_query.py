@@ -35,9 +35,6 @@ class DB2_Query(Query):
         """ Connect to a DB2 database.
 
             All subclasses of DB2_Query will use this database for queries. 
-            
-            options is expected to act like a dictionary, containing
-            'database', 'username', 'password', and 'schema'. 
 
         """
         

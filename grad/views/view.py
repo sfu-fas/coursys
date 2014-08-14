@@ -2,8 +2,12 @@ from courselib.auth import has_role, NotFoundResponse, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
-from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
-        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory, FinancialComment
+from grad.models import GradStudent, Supervisor, GradStatus, \
+        CompletedRequirement, GradRequirement, Scholarship, \
+        OtherFunding, Promise, Letter, GradProgramHistory, \
+        FinancialComment, ProgressReport, ExternalDocument
+from tacontracts.models import TAContract
+from ta.models import TAContract as OldTAContract
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -45,14 +49,15 @@ def _can_view_student(request, grad_slug, funding=False):
     return None, None, None
 
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
-                'scholarships', 'otherfunding', 'promises', 'financialcomments', 'letters']
+                'scholarships', 'otherfunding', 'promises', 'progressreports',
+                'tacontracts',
+                'financialcomments', 'letters', 'documents']
 
 @login_required
 def view(request, grad_slug, section=None):
     grad, authtype, units = _can_view_student(request, grad_slug)
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
-
 
     # uses of the cortez link routed through here to see if they're actually being used
     if 'cortez-bounce' in request.GET and 'cortezid' in grad.config:
@@ -127,6 +132,13 @@ def view(request, grad_slug, section=None):
             promises = Promise.objects.filter(student=grad, removed=False).order_by('start_semester__name')
             context['promises'] = promises
             return render(request, 'grad/view__promises.html', context)
+
+        elif section == 'tacontracts':
+            tacontracts = TAContract.objects.filter(person=grad.person, status__in=['NEW', 'SGN'])
+            oldcontracts = OldTAContract.objects.filter(application__person=grad.person)
+            context['tacontracts'] = tacontracts
+            context['oldcontracts'] = oldcontracts
+            return render(request, 'grad/view__tacontracts.html', context)
         
         elif section == 'financialcomments':
             comments = FinancialComment.objects.filter(student=grad, removed=False).order_by('created_at')
@@ -137,6 +149,20 @@ def view(request, grad_slug, section=None):
             letters = Letter.objects.filter(student=grad).select_related('template').order_by('date')
             context['letters'] = letters
             return render(request, 'grad/view__letters.html', context)
+        
+        elif section == 'progressreports':
+            progressreports = ProgressReport.objects.filter(student=grad, 
+                                                            removed=False)\
+                                                            .order_by('date')
+            context['progress_reports'] = progressreports
+            return render(request, 'grad/view__progress.html', context)
+        
+        elif section == 'documents':
+            documents = ExternalDocument.objects.filter(student=grad, 
+                                                        removed=False)\
+                                                        .order_by('date')
+            context['documents'] = documents
+            return render(request, 'grad/view__documents.html', context)
 
         else:
             raise ValueError, "Not all sections handled by view code: " + repr(section)
@@ -152,7 +178,10 @@ def view(request, grad_slug, section=None):
     other_grad = GradStudent.objects \
                  .filter(program__unit__in=units, person=grad.person) \
                  .exclude(id=grad.id)
+    other_applicant = [x for x in other_grad if x.is_applicant()]
+    other_grad = [x for x in other_grad if not x.is_applicant()]
     context['other_grad'] = other_grad
+    context['other_applicant'] = other_applicant
 
     return render(request, 'grad/view.html', context)
 

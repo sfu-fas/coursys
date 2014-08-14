@@ -14,7 +14,7 @@ class SimpleTest(TestCase):
         self.offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         self.offering.set_discussion(True)
         self.offering.save()
-        members = Member.objects.filter(offering=self.offering).exclude(role='DROP')
+        members = Member.objects.filter(offering=self.offering).exclude(role='DROP').exclude(person__userid__isnull=True)
         members = list(members)
         
         # create a bunch of discussion

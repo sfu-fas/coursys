@@ -47,7 +47,7 @@ input[type="radio"], input[type="checkbox"] {
   margin: inherit;
   padding: inherit;
 }
-input[type="email"], input[type="number"] { /* other text-like input types not covered in head.styles.css */
+input[type="email"], input[type="number"], input[type="url"] { /* other text-like input types not covered in head.styles.css */
   height:2.25em;
   padding:0 0 0 .4em;
   margin-top: 0.5em;
@@ -640,6 +640,9 @@ legend {
 
 /* marking styles */
 
+.gradeinput {
+  width: 6em;
+}
 #mark_details {
   margin-bottom: 2em;
 }
@@ -816,6 +819,13 @@ table.info span.letter {
   display: block;
   margin-left: auto;
   margin-right: auto;
+}
+.idphoto.studentinfo img {
+  float: right;
+  padding-left: 0.5em;
+  padding-top: 0.5em;
+  max-width: 150px;
+  max-height: 150px;
 }
 
 /* site search */

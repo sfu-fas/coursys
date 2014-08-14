@@ -345,7 +345,13 @@ class EditAttachFileForm(forms.ModelForm):
         if self.cleaned_data['case'] != self.case:
             raise forms.ValidationError("Wrong case.")
         return self.cleaned_data['case']
-    
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if CaseAttachment.objects.filter(name=name, case_id=self.instance.case_id).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError("Another attachment exists with this name.")
+        return name
+
     class Meta:
         model = CaseAttachment
         exclude = ['case', 'attachment', 'mediatype']

@@ -3,10 +3,12 @@ from django import forms
 from django.db.models import Q
 from django.db.models.query import QuerySet
 import grad.models as gradmodels
-from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
-    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
-    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment, GRAD_CAMPUS_CHOICES, \
-    THESIS_TYPE_CHOICES, THESIS_OUTCOME_CHOICES
+from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, \
+        GradProgramHistory, GradRequirement, CompletedRequirement, \
+        LetterTemplate, Letter, Promise, Scholarship, ScholarshipType, \
+        SavedSearch, OtherFunding, GradFlagValue, FinancialComment, \
+        ProgressReport, ExternalDocument, \
+        GRAD_CAMPUS_CHOICES, THESIS_TYPE_CHOICES, THESIS_OUTCOME_CHOICES
 from courselib.forms import StaffSemesterField
 from coredata.models import Person, Semester, Role, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
@@ -368,7 +370,15 @@ class GradSemesterForm(forms.Form):
     #ignore = forms.BooleanField(initial=False, required=False,
     #                            help_text="Ignore the values here and revert to the default values based on the student's statuses.")
 
+class ProgressReportForm(ModelForm):
+    class Meta:
+        model = ProgressReport
+        exclude = ('student','removed', 'config')
 
+class ExternalDocumentForm(ModelForm):
+    class Meta:
+        model = ExternalDocument
+        exclude = ('student', 'removed', 'config') 
 
 # creates an 'atom' to represent 'Unknown' (but it's not None) 
 Unknown = type('Unknown', (object,), {'__repr__':lambda self:'Unknown'})()
@@ -603,8 +613,10 @@ class SearchForm(forms.Form):
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
             required=False, help_text="Student's current status"
             )
-    
+    status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
+
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
+    program_asof = StaffSemesterField(label='Program as of', required=False, initial='')
     grad_flags = forms.MultipleChoiceField(choices=[],
             label='Program Options', required=False)
     campus = forms.MultipleChoiceField(GRAD_CAMPUS_CHOICES, required=False)
@@ -661,6 +673,7 @@ class SearchForm(forms.Form):
             ]
     program_fields = [
             'program',
+            'program_asof',
             'grad_flags',
             'campus',
             'supervisor',
@@ -673,6 +686,7 @@ class SearchForm(forms.Form):
     
     status_fields = [
             'student_status',
+            'status_asof',
             ]
                       
     financial_fields = [
@@ -716,17 +730,26 @@ class SearchForm(forms.Form):
                 #('end_semester_end', 'end_semester__lte'),
                 ('first_name_contains', 'person__first_name__icontains' ),
                 ('last_name_contains', 'person__last_name__icontains' ),
-                ('student_status', 'current_status__in'),
                 ('application_status', 'application_status__in'),
-                ('program','program__in'),
 #                ('requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
                 ('campus','campus__in'),
                 ('scholarship_sem', 'scholarship__start_semester__in'),
                 ('scholarshiptype', 'scholarship__scholarship_type__in'),
                 ]
+
         manual_queries = []
-        
+
+        if not self.cleaned_data.get('program_asof', None):
+            # current program: is in table
+            auto_queries.append(('program','program__in'))
+        # else:  selected semester so must calculate. Handled in secondary_filter
+
+        if not self.cleaned_data.get('status_asof', None):
+            # current status: is in table
+            auto_queries.append(('student_status', 'current_status__in'))
+        # else:  selected semester so must calculate. Handled in secondary_filter
+
         if self.cleaned_data.get('start_semester_start', None) is not None:
             manual_queries.append( Q(start_semester__name__gte=self.cleaned_data['start_semester_start'].name) )
         if self.cleaned_data.get('start_semester_end', None) is not None:
@@ -813,6 +836,18 @@ class SearchForm(forms.Form):
                 (gradstudent.person.visa() in self.cleaned_data['visa']
                 if _is_not_empty(self.cleaned_data.get('visa', None))
                 else True)
+                and
+
+                (
+                    not self.cleaned_data.get('program_asof', None) or not self.cleaned_data.get('program', None)
+                    or gradstudent.program_as_of(self.cleaned_data.get('program_asof', None)) in self.cleaned_data.get('program', None)
+                )
+                and
+                (
+                    not self.cleaned_data.get('status_asof', None) or not self.cleaned_data.get('student_status', None)
+                    or gradstudent.status_as_of(self.cleaned_data.get('status_asof', None)) in self.cleaned_data.get('student_status', None)
+                )
+
                 )
     
     def secondary_filter(self):

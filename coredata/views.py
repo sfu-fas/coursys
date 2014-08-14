@@ -310,20 +310,20 @@ def unit_admin(request):
     """
     Unit admin front page
     """
-    return render(request, 'coredata/unit_admin.html', {'units': request.units})
+    return render(request, 'coredata/unit_admin.html', {'units': Unit.sub_units(request.units)})
 
 @requires_role("ADMN")
 def unit_role_list(request):
     """
     Display list of who has what role (for department admins)
     """
-    roles = Role.objects.filter(unit__in=request.units, role__in=UNIT_ROLES)
+    roles = Role.objects.filter(unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
     return render(request, 'coredata/unit_roles.html', {'roles': roles})
 
 @requires_role("ADMN")
 def new_unit_role(request, role=None):
     role_choices = [(r,ROLES[r]) for r in UNIT_ROLES]
-    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    unit_choices = [(u.id, unicode(u)) for u in Unit.sub_units(request.units)]
     if request.method == 'POST':
         form = UnitRoleForm(request.POST)
         form.fields['role'].choices = role_choices
@@ -347,7 +347,7 @@ def new_unit_role(request, role=None):
 
 @requires_role("ADMN")
 def delete_unit_role(request, role_id):
-    role = get_object_or_404(Role, pk=role_id, unit__in=request.units, role__in=UNIT_ROLES)
+    role = get_object_or_404(Role, pk=role_id, unit__in=Unit.sub_units(request.units), role__in=UNIT_ROLES)
     messages.success(request, 'Deleted role %s for %s.' % (role.get_role_display(), role.person.name()))
     #LOG EVENT#
     l = LogEntry(userid=request.user.username,
@@ -362,7 +362,7 @@ def delete_unit_role(request, role_id):
 @requires_role('ADMN')
 def unit_address(request, unit_slug):
     unit = get_object_or_404(Unit, slug=unit_slug)
-    if unit not in request.units:
+    if unit not in Unit.sub_units(request.units):
         return ForbiddenResponse(request, "Not an admin for this unit")
     
     if request.method == 'POST':
@@ -387,7 +387,7 @@ def unit_address(request, unit_slug):
 @requires_role('ADMN')
 def missing_instructors(request, unit_slug):
     unit = get_object_or_404(Unit, slug=unit_slug)
-    if unit not in request.units:
+    if unit not in Unit.sub_units(request.units):
         return ForbiddenResponse(request, "Not an admin for this unit")
 
     # build a set of all instructors that don't have an instructor-appropriate role
@@ -453,6 +453,24 @@ def offerings_search(request):
     json.dump(data, response, indent=1)
     return response
 
+# AJAX/JSON for course offering selector autocomplete with slugs
+def offerings_slug_search(request, semester=None):
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
+    term = request.GET['term']
+    response = HttpResponse(content_type='application/json')
+    data = []
+    query = get_query(term, ['subject', 'number', 'section', 'semester__name', 'title'])
+    offerings = CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
+    if semester:
+        offerings = offerings.filter(semester__name=semester)
+    for o in offerings:
+        label = o.search_label_value()
+        d = {'value': o.slug, 'label': label}
+        data.append(d)
+    json.dump(data, response, indent=1)
+    return response
+
 # AJAX/JSON for course selector autocomplete
 def course_search(request):
     if 'term' not in request.GET:
@@ -491,11 +509,12 @@ def student_search(request):
     student_qs = SearchQuerySet().models(Person).filter(text=term)[:20]
     data = [{'value': r.emplid, 'label': r.search_display} for r in student_qs
             if r and r.score >= 1 and unicode(r.emplid) not in EXCLUDE_EMPLIDS]
-
+    
     # non-haystack version of the above query
-    #studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
-    #students = Person.objects.filter(studentQuery)[:20]
-    #data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
+    if len(student_qs) == 0:
+        studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+        students = Person.objects.filter(studentQuery)[:20]
+        data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students if unicode(s.emplid) not in EXCLUDE_EMPLIDS]
 
     if 'nonstudent' in request.GET and 'ADVS' in roles:
         nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
@@ -579,7 +598,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse
 from coredata.forms import OfferingFilterForm, UNIVERSAL_COLUMNS, DEFAULT_COLUMNS, COLUMN_NAMES, FLAG_DICT
-from coredata.queries import more_offering_info, SIMSProblem
+from coredata.queries import more_offering_info, outlines_data_json, SIMSProblem
 from dashboard.views import _offerings_calendar_data
 
 COLUMN_ORDERING = { # column -> ordering info for datatable_view
@@ -768,7 +787,7 @@ def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.
     """
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    offering = get_object_or_404(CourseOffering, slug=course_slug, flags=~CourseOffering.flags.combined)
     if 'data' in request.GET:
         # more_course_info data requested
         response = HttpResponse(content_type='application/json')
@@ -778,10 +797,18 @@ def browse_courses_info(request, course_slug):
             data = {'error': e.message}
         json.dump(data, response, indent=1)
         return response
-    if 'caldata' in request.GET:
+
+    elif 'caldata' in request.GET:
         # calendar data requested
         return _offering_meeting_time_data(request, offering)
-        
+
+    elif 'outline' in request.GET:
+        # course outline data requested
+        response = HttpResponse(content_type='application/json')
+        data = outlines_data_json(offering)
+        response.write(data)
+        return response
+
     # the page itself (with most data assembled by AJAX requests to the above)
     context = {
         'offering': offering,

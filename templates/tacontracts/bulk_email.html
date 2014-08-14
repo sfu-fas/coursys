@@ -1,0 +1,90 @@
+{% extends "base-wide.html" %}
+{% load form_display %}
+{% load currency %}
+{% load bu %}
+
+{% block title %}TA Contracts : New Bulk Email{% endblock %}
+{% block h1 %}New Bulk Email{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.contracts_table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    "aaSorting": [[ 2, "desc" ]],
+  } );
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester %}">{{semester}}</a></li>
+<li>New Bulk Email</li>
+{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<form action="{% url "tacontracts.views.bulk_email" semester=semester %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+        {{ form|as_dl }}
+        <table class='contracts_table'>
+            <thead>
+                <tr>
+                    <th>Contract</th>
+                    <th>Start Date</th>
+                    <th>BUs</th>
+                    <th>Category</th>
+                    <th>Total</th>
+                    <th>Accepted</th>
+                    <th>Emails Sent</th>
+                    <th>Send Email</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% for contract in contracts %}
+        <tr>
+                    <td>
+                        <a href="{% url "tacontracts.views.view_contract" semester=semester contract_slug=contract.slug %}">
+                            {{contract}}</a>
+                    </td>
+                    <td>
+                        <span class="sort">{{ contract.pay_start.isoformat }}</span>
+                        {{contract.pay_start|date:"M d, Y"}}
+                    </td>
+                    <td>
+                        {{contract.total_bu|bu}}
+                    </td>
+                    <td>
+                        {{contract.category.code}} - {{contract.category.title}}
+                    </td>
+                    <td class='total_pay'>
+                        {{contract.total|currency}}
+                    </td>
+                    <td class='accepted'>
+                        {{contract.accepted_by_student|yesno}} 
+                    </td>
+                    <td class='number_of_emails'>
+                        {{contract.number_of_emails}}
+                    </td>
+                    <td class='check'>
+                        <input type="checkbox" name="contracts[]" 
+                        {{contract.accepted_by_student|yesno:',checked'}}
+                        value="{{contract.id}}"></input>
+                    </td>
+                </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+    <p>
+        <input type="submit" class="submit" value="Send Emails" />
+    </p>
+    </fieldset>
+</form>
+{% endblock %}

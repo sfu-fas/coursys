@@ -40,7 +40,7 @@ from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
-from faculty.event_types.base import Choices
+from faculty.event_types.choices import Choices
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
@@ -744,6 +744,7 @@ def summary(request, userid):
         'editor': editor,
         'career_events': career_events,
         'filterform': filterform,
+        'can_wizard': not career_events.exclude(event_type='GRANTAPP').exists(),
     }
     return render(request, 'faculty/summary.html', context)
 
@@ -1371,12 +1372,21 @@ def faculty_wizard(request, userid):
     }
 
     if request.method == "POST":
-        form_appoint = Handler_appoint.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='appoint')
-        form_salary = Handler_salary.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='salary')
-        form_load = Handler_load.get_entry_form(editor=editor, units=member_units, data=request.POST, prefix='load')
+        form_appoint = Handler_appoint.get_entry_form(editor=editor, 
+                                                      units=member_units, 
+                                                      data=request.POST, 
+                                                      prefix='appoint')
+        form_salary = Handler_salary.get_entry_form(editor=editor, 
+                                                    units=member_units, 
+                                                    data=request.POST, 
+                                                    prefix='salary')
+        form_load = Handler_load.get_entry_form(editor=editor, 
+                                                units=member_units, 
+                                                data=request.POST, 
+                                                prefix='load')
 
         # Nuke unwanted fields
-        del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
+        del form_appoint.fields['end_date'], form_load.fields['end_date']
         del form_salary.fields['start_date'], form_load.fields['start_date']
         del form_salary.fields['unit'], form_load.fields['unit']
         del form_appoint.fields['leaving_reason']
@@ -1408,7 +1418,7 @@ def faculty_wizard(request, userid):
         form_load = Handler_load.get_entry_form(editor=editor, units=member_units, prefix='load')
 
         # Nuke unwanted fields
-        del form_appoint.fields['end_date'], form_salary.fields['end_date'], form_load.fields['end_date']
+        del form_appoint.fields['end_date'], form_load.fields['end_date']
         del form_salary.fields['start_date'], form_load.fields['start_date']
         del form_salary.fields['unit'], form_load.fields['unit']
         del form_appoint.fields['leaving_reason']

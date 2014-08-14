@@ -82,6 +82,7 @@ INSTALLED_APPS = (
     'onlineforms',
     'faculty',
     'gpaconvert',
+    'tacontracts',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -274,7 +275,7 @@ if hasattr(localsettings, 'BROKER_URL'):
 MAX_SUBMISSION_SIZE = 30000 # kB
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 CAS_VERSION = '2'
-EMAIL_HOST = 'mailgate.sfu.ca'
+EMAIL_HOST = 'localhost'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
@@ -325,11 +326,13 @@ if DEPLOY_MODE == 'production':
     REPORT_CACHE_CLEAR = True
 
 
-#INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-#MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-#DEBUG_TOOLBAR_CONFIG = {
-#    'INTERCEPT_REDIRECTS': False,
-#}
+if getattr(localsettings, 'DEBUG_TOOLBAR', False):
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    STATICFILES_FINDERS = STATICFILES_FINDERS + ('django.contrib.staticfiles.finders.AppDirectoriesFinder',)
+    #DEBUG_TOOLBAR_CONFIG = {
+    #    'INTERCEPT_REDIRECTS': False,
+    #}
 
 #try:
 #    from local_settings import *

@@ -1,0 +1,23 @@
+
+/* Style the Grad Autocomplete search results 
+ *  We want the Active students to stand out, and the old/gone students to be hidden. 
+ */
+.quicksearch-active, .quicksearch-part-time, .quicksearch-on-leave{
+    color: #000 !important;
+}
+
+.quicksearch-incomplete-application, .quicksearch-complete-application, 
+.quicksearch-application-in-review, .quicksearch-hold-application,
+.quicksearch-offer-out{
+    color: #444 !important;
+}
+
+.quicksearch-rejected-application, .quicksearch-declined-offer,
+.quicksearch-expired-application, .quicksearch-cancelled-acceptance, 
+.quicksearch-withdrawn{
+    color: #AAA !important;
+}
+
+.quicksearch-graduated, .quicksearch-non-degree, .quicksearch-gone{
+    color: #777 !important;
+}
