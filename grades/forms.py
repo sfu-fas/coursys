@@ -340,9 +340,11 @@ class CourseConfigForm(forms.Form):
     indiv_svn = forms.BooleanField(required=False, label="Individual SVN access",
             help_text="Can the instructor and TAs access students' indivdual Subversion repositories? Set only if they are being used explicitly for grading.")
     group_min = forms.IntegerField(required=False, label="Minimum Group Size", initial=1, min_value=1, max_value=50,
-            help_text="Smallest possible group. Entering 1 here implies students can work alone on group activities.")
+            help_text="Smallest possible group. Entering 1 here implies students can work alone on group activities.",
+            widget=forms.NumberInput(attrs={'class': 'smallnumberinput'}))
     group_max = forms.IntegerField(required=False, label="Maximum Group Size", initial=10, min_value=2, max_value=50,
-            help_text="Largest possible group. Instructors can form larger groups, but students cannot.")
+            help_text="Largest possible group. Instructors can form larger groups, but students cannot.",
+            widget=forms.NumberInput(attrs={'class': 'smallnumberinput'}))
 
     def clean(self):
         if 'group_min' in self.cleaned_data and 'group_max' in self.cleaned_data:

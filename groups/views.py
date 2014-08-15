@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, requires_course_staff_by_slug
+from marking.models import GroupActivityMark, GroupActivityMark_LetterGrade
 from log.models import LogEntry
 from dashboard.models import NewsItem
 from collections import defaultdict
@@ -68,7 +69,7 @@ def _groupmanage_student(request, course_slug):
         groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
                           'need_conf': need_conf, 'size_message': size_message})
 
-    return render_to_response('groups/student.html', {'course':course, 'groupList':groupList}, context_instance = RequestContext(request))
+    return render(request, 'groups/student.html', {'course':course, 'groupList':groupList})
 
 def _groupmanage_staff(request, course_slug, activity_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -143,10 +144,42 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
         groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
                           'email': email, 'userids': userids, 'size_message': size_message})
 
-    return render_to_response('groups/instructor.html',
-                              {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup,
-                              'activity':activity, 'activities':activities},
-                              context_instance = RequestContext(request))
+    return render(request, 'groups/instructor.html',
+        {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup,
+        'activity':activity, 'activities':activities})
+
+
+@requires_course_staff_by_slug
+def view_group(request, course_slug, group_slug):
+    offering = get_object_or_404(CourseOffering, slug = course_slug)
+    group = get_object_or_404(Group, courseoffering = offering, slug = group_slug)
+    members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
+
+    activities = Activity.objects.filter(offering=offering, group=True, deleted=False)
+
+    # Quoth the docs: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
+    numeric_mark = dict(
+        (am.activity_id, am)
+        for am
+        in GroupActivityMark.objects.filter(group=group).order_by('created_at')
+    )
+    letter_mark = dict(
+        (am.letter_activity_id, am)
+        for am
+        in GroupActivityMark_LetterGrade.objects.filter(group=group).order_by('created_at')
+    )
+    for a in activities:
+        a.mark = numeric_mark.get(a.id, letter_mark.get(a.id, None))
+
+
+    context = {
+        'offering': offering,
+        'group': group,
+        'members': members,
+        'activities': activities,
+    }
+    return render(request, "groups/view_group.html", context)
+
 
 @requires_course_by_slug
 def create(request,course_slug):
@@ -456,18 +489,6 @@ def invite(request, course_slug, group_slug):
         student_receiver_form = StudentReceiverForm()
         context = {'course': course, 'form': student_receiver_form}
         return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
-
-@requires_course_staff_by_slug
-def view_group(request, course_slug, group_slug):
-    offering = get_object_or_404(CourseOffering, slug = course_slug)
-    group = get_object_or_404(Group, courseoffering = offering, slug = group_slug)
-    members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
-    context = {
-        'offering': offering,
-        'group': group,
-    }
-    return render(request, "groups/view_group.html", context)
-
 
 @login_required
 def remove_student(request, course_slug, group_slug):

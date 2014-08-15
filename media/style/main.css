@@ -135,6 +135,9 @@ span.rowdata { /* content used for calculating totals on data tables */
 .clearfix {
   clear: both;
 }
+.smallnumberinput {
+  width: 4em;
+}
 
 
 /* for the base-wide template */

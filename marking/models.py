@@ -270,7 +270,6 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     group = models.ForeignKey(Group, null = False) 
     letter_activity = models.ForeignKey(LetterActivity, null = False)
-    #letter_grade = models.ForeignKey(LetterGrade, null = False, choices=LETTER_GRADE_CHOICES)
     letter_grade = models.CharField(max_length=2, choices=LETTER_GRADE_CHOICES)
          
     def __unicode__(self):
