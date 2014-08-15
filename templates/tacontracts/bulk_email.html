@@ -22,7 +22,7 @@ $(function() {
 
 {% block subbreadcrumbs %}
 <li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
-<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester %}">{{semester}}</a></li>
+<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester unit_slug=unit_slug %}">{{semester}}</a></li>
 <li>New Bulk Email</li>
 {% endblock %}
 
@@ -30,7 +30,7 @@ $(function() {
 {% endblock %}
 
 {% block content %}
-<form action="{% url "tacontracts.views.bulk_email" semester=semester %}" method="post">
+<form action="{% url "tacontracts.views.bulk_email" semester=semester unit_slug=unit_slug %}" method="post">
     {% csrf_token %}
     <fieldset>
         {{ form|as_dl }}
@@ -51,7 +51,7 @@ $(function() {
         {% for contract in contracts %}
         <tr>
                     <td>
-                        <a href="{% url "tacontracts.views.view_contract" semester=semester contract_slug=contract.slug %}">
+                        <a href="{% url "tacontracts.views.view_contract" unit_slug=unit_slug semester=semester contract_slug=contract.slug %}">
                             {{contract}}</a>
                     </td>
                     <td>
