@@ -644,7 +644,7 @@ class GradStudent(models.Model):
 
         super(GradStudent, self).save(*args, **kwargs)
 
-    def status_as_of_beta(self, semester=None):
+    def status_as_of(self, semester=None):
         """ Like 'current status', but for an arbitrary semester.
 
             We want to filter out any statuses that occur after the  semester,
@@ -674,7 +674,7 @@ class GradStudent(models.Model):
         return semester_statuses[-1][2].status
 
 
-    def status_as_of(self, semester=None):
+    def status_as_of_old(self, semester=None):
         """ Like 'current status', but for an arbitrary semester. 
         
             We want to filter out any statuses that occur after the  semester,

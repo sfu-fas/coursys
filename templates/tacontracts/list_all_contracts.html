@@ -35,16 +35,16 @@ $(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "tacontracts.views.new_category" semester=semester %}">New Category</a></li>
-        <li><a href="{% url "tacontracts.views.view_categories" semester=semester %}">View Categories</a></li>
+        <li><a href="{% url "tacontracts.views.new_category" unit_slug=unit_slug semester=semester %}">New Category</a></li>
+        <li><a href="{% url "tacontracts.views.view_categories" unit_slug=unit_slug semester=semester %}">View Categories</a></li>
         {% if show_copy_categories %}
-        <li><a href="{% url "tacontracts.views.copy_categories" semester=semester %}">Copy Categories From
+        <li><a href="{% url "tacontracts.views.copy_categories" unit_slug=unit_slug semester=semester %}">Copy Categories From
             Previous Semester</a></li>
         {% endif %}
         {% if categories %}
-        <li><a href="{% url "tacontracts.views.new_contract" semester=semester  %}">New Contract</a></li>
-        <li><a href="{% url "tacontracts.views.contracts_csv" semester=semester %}">Generate CSV</a></li>
-        <li><a href="{% url "tacontracts.views.bulk_email" semester=semester %}">Bulk Email</a></li>
+        <li><a href="{% url "tacontracts.views.new_contract" unit_slug=unit_slug semester=semester  %}">New Contract</a></li>
+        <li><a href="{% url "tacontracts.views.contracts_csv" unit_slug=unit_slug semester=semester %}">Generate CSV</a></li>
+        <li><a href="{% url "tacontracts.views.bulk_email" unit_slug=unit_slug semester=semester %}">Bulk Email</a></li>
         {% endif %}
     </ul>
 </div>
@@ -58,11 +58,11 @@ $(function() {
     </p>
     <p>
         Would you like to 
-        <a href="{% url "tacontracts.views.new_category" semester=semester %}">
+        <a href="{% url "tacontracts.views.new_category" unit_slug=unit_slug semester=semester %}">
             Create A Contract Category</a>
         {% if show_copy_categories %}
             or perhaps 
-            <a href="{% url "tacontracts.views.copy_categories" semester=semester %}">
+            <a href="{% url "tacontracts.views.copy_categories" unit_slug=unit_slug semester=semester %}">
             Copy The Categories From The Previous Semester</a>
         {% endif %}?
     </p>
@@ -70,7 +70,7 @@ $(function() {
     {% if not contracts %}
     <p>
         You don't have any contracts yet. Would you like to 
-        <a href="{% url "tacontracts.views.new_contract" semester=semester %}"><i class='fa fa-plus'></i> 
+        <a href="{% url "tacontracts.views.new_contract" unit_slug=unit_slug semester=semester %}"><i class='fa fa-plus'></i> 
             Create A Contract</a>?
     </p>
     {% else %}
