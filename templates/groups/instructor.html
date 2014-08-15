@@ -51,7 +51,7 @@ $(document).ready(function() {
     <tbody>
         {% for info in groupList %}
         <tr>
-            <td scope="row" id="{{info.group.slug}}">{{ info.group.name }}
+            <td scope="row" id="{{info.group.slug}}"><a href="{{ info.group.get_absolute_url }}">{{ info.group.name }}</a>
             {% if info.size_message %}<p class="warningmessage">{{ info.size_message }}</p>{% endif %}
             </td>
             {% if not activity %}<td><ul>{% for activity in info.activities %}<li>{{ activity.name }}</li>{% endfor %}</ul></td>{% endif %}

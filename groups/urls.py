@@ -10,6 +10,7 @@ group_patterns = [ # prefix /COURSE_SLUG/groups/
     url(r'^invite/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.invite'),
     url(r'^join/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.join'),
     url(r'^reject/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.reject'),
+    url(r'^(?P<group_slug>' + SLUG_RE + ')/$', 'groups.views.view_group'),
     url(r'^(?P<group_slug>' + SLUG_RE + ')/remove$', 'groups.views.remove_student'),
     url(r'^(?P<group_slug>' + SLUG_RE + ')/add$', 'groups.views.assign_student'),
     url(r'^(?P<group_slug>' + SLUG_RE + ')/rename$', 'groups.views.change_name'),

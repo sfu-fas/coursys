@@ -34,7 +34,8 @@ class Group(models.Model):
     def __cmp__(self, other):
         return cmp(self.name, other.name)
     def get_absolute_url(self):
-        return reverse('groups.views.groupmanage', kwargs={'course_slug': self.courseoffering.slug}) + "#" + self.slug
+        return reverse('groups.views.view_group', kwargs={'course_slug': self.courseoffering.slug,
+                                                          'group_slug': self.slug})
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
         return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
@@ -107,9 +108,8 @@ def add_activity_to_group(activity1, activity2, course):
     """
     groups = Group.objects.filter(courseoffering = course)
     for group in groups:
-	groupMembers = GroupMember.objects.filter(group=group, activity=activity2, confirmed=True)
-	unique_students = set(groupMember.student for groupMember in groupMembers)
-	for student in unique_students:
-	    groupMember = GroupMember(group=group, student=student, confirmed=True, activity=activity1)
-	    groupMember.save()
-    return
+        groupMembers = GroupMember.objects.filter(group=group, activity=activity2, confirmed=True)
+        unique_students = set(groupMember.student for groupMember in groupMembers)
+        for student in unique_students:
+            groupMember = GroupMember(group=group, student=student, confirmed=True, activity=activity1)
+            groupMember.save()

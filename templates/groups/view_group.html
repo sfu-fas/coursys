@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+</script>
+{% endblock %}
+
+{% block title %}{{ offering.name }} Group: {{ group.name }}{% endblock %}
+{% block h1 %}{{ offering.name }} Group: {{ group.name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+<li><a href="{% url "groups.views.groupmanage" course_slug=offering.slug %}">Groups</a></li>
+<li>{{ group.name }}</li>
+{% endblock %}
+
+{% block content %}
+
+
+{% endblock %}
