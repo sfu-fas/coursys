@@ -24,6 +24,7 @@ class HiringSemesterForm(forms.ModelForm):
     class Meta:
         model = HiringSemester
         widgets = {
+                    'deadline_for_acceptance':CalendarWidget,
                     'pay_start':CalendarWidget,
                     'pay_end':CalendarWidget,
                     'payperiods':GuessPayperiodsWidget,

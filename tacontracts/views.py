@@ -100,7 +100,7 @@ def new_semester(request):
             sem.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Semester %s created.' % str(sem))
+                                 u'Semester %s created.' % unicode(sem))
             return _contracts_redirect(sem.semester.name)
     else:
         form = HiringSemesterForm(request)
@@ -138,7 +138,7 @@ def edit_semester(request, semester):
             sem.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Semester %s updated.' % str(sem))
+                                 u'Semester %s updated.' % unicode(sem))
             return _home_redirect()
     else:
         form = HiringSemesterForm(request, instance=semester)
@@ -234,7 +234,7 @@ def new_category(request, semester):
             category.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Category %s created.' % str(category))
+                                 u'Category %s created.' % unicode(category))
             return _category_redirect(semester)
     else:
         form = TACategoryForm(hiring_semester.unit)
@@ -259,7 +259,7 @@ def edit_category(request, semester, category_slug):
             category.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Category %s updated.' % str(category))
+                                 u'Category %s updated.' % unicode(category))
             return _category_redirect(semester)
     else:
         form = TACategoryForm(hiring_semester.unit, instance=category)
@@ -282,7 +282,7 @@ def hide_category(request, semester, category_slug):
         category.hide()
         messages.add_message(request, 
                              messages.SUCCESS, 
-                             u'Category %s hidden.' % str(category))
+                             u'Category %s hidden.' % unicode(category))
     return _category_redirect(semester)
 
 
@@ -296,10 +296,11 @@ def new_contract(request, semester):
         if form.is_valid():
             contract = form.save(commit=False)
             contract.created_by = request.user.username
+            contract.hiring_semster = hiring_semester
             contract.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract %s created.' % str(contract))
+                                 u'Contract %s created.' % unicode(contract))
             return _contract_redirect(semester, contract.slug)
     else:
         form = TAContractForm(hiring_semester, initial={
@@ -351,7 +352,7 @@ def edit_contract(request, semester, contract_slug):
             contract = form.save()
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Contract %s updated.' % str(contract))
+                                 u'Contract %s updated.' % unicode(contract))
             return _contract_redirect(semester, contract.slug)
     else:
         form = TAContractForm(hiring_semester, instance=contract)
@@ -463,11 +464,11 @@ def new_course(request, semester, contract_slug):
             except IntegrityError:
                 messages.add_message(request, 
                                      messages.ERROR, 
-                                     u'This contract already has %s.' % str(course))
+                                     u'This contract already has %s.' % unicode(course))
                 return _contract_redirect(semester, contract.slug)
             messages.add_message(request, 
                                  messages.SUCCESS, 
-                                 u'Course %s created.' % str(course))
+                                 u'Course %s created.' % unicode(course))
             return _contract_redirect(semester, contract.slug)
     else:
         form = TACourseForm(semester)
