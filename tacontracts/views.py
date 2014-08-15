@@ -25,25 +25,28 @@ def _home_redirect():
     return HttpResponseRedirect(reverse('tacontracts.views.list_all_semesters'))
 
 
-def _contracts_redirect(semester):
+def _contracts_redirect(unit_slug, semester):
     if not isinstance(semester, basestring):
         raise ValueError("Semester must be a four-character string - 1141")
     return HttpResponseRedirect(reverse('tacontracts.views.list_all_contracts', 
-                                        kwargs={'semester':semester}))
+                                        kwargs={'unit_slug':unit_slug,
+                                            'semester':semester}))
 
 
-def _category_redirect(semester):
+def _category_redirect(unit_slug, semester):
     if not isinstance(semester, basestring):
         raise ValueError("Semester must be a four-character string - 1141")
     return HttpResponseRedirect(reverse('tacontracts.views.view_categories',
-                                        kwargs={'semester':semester}))
+                                        kwargs={'unit_slug':unit_slug,
+                                            'semester':semester}))
 
 
-def _contract_redirect(semester, contract_slug):
+def _contract_redirect(unit_slug, semester, contract_slug):
     if not isinstance(semester, basestring):
         raise ValueError("Semester must be a four-character string - 1141")
     return HttpResponseRedirect(reverse('tacontracts.views.view_contract',
-                                        kwargs={'semester':semester, 
+                                        kwargs={'unit_slug':unit_slug,
+                                                'semester':semester, 
                                                 'contract_slug':contract_slug}))
 
 
@@ -101,7 +104,7 @@ def new_semester(request):
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Semester %s created.' % unicode(sem))
-            return _contracts_redirect(sem.semester.name)
+            return _contracts_redirect(sem.unit.label, sem.semester.name)
     else:
         form = HiringSemesterForm(request)
 
@@ -126,10 +129,11 @@ def setup_semester(request, semester):
 
 
 @requires_role(["TAAD", "GRAD"])
-def edit_semester(request, semester):
+def edit_semester(request, unit_slug, semester):
     semester = get_object_or_404(HiringSemester, 
                                  semester__name=semester, 
-                                 unit__in=request.units)
+                                 unit__in=request.units,
+                                 unit__label=unit_slug)
     
     if request.method == 'POST':
         form = HiringSemesterForm(request, request.POST, instance=semester)
@@ -143,15 +147,17 @@ def edit_semester(request, semester):
     else:
         form = HiringSemesterForm(request, instance=semester)
     return render(request, 'tacontracts/edit_semester.html', {
+                    'unit_slug':unit_slug,
                     'hiring_semester':semester,
                     'form':form})
 
 
 @requires_role(["TAAD", "GRAD"])
-def list_all_contracts(request, semester):
+def list_all_contracts(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     categories = TACategory.objects.visible(hiring_semester)
     contracts = TAContract.objects.visible(hiring_semester)
     draft_contracts = TAContract.objects.draft(hiring_semester)
@@ -175,6 +181,7 @@ def list_all_contracts(request, semester):
         show_copy_categories = False
 
     return render(request, 'tacontracts/list_all_contracts.html', {
+        'unit_slug':unit_slug,
         'semester':semester,
         'categories':categories, 
         'contracts':contracts,
@@ -186,10 +193,11 @@ def list_all_contracts(request, semester):
 
 
 @requires_role(["TAAD", "GRAD"])
-def copy_categories(request, semester):
+def copy_categories(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     if ('copied_categories' in hiring_semester.config and
             hiring_semester.config['copied_categories']):
         messages.add_message(request,
@@ -206,26 +214,29 @@ def copy_categories(request, semester):
                              messages.ERROR,
                              u'No previous semester to copy from.')
 
-    return _category_redirect(hiring_semester.semester.name)
+    return _category_redirect(unit_slug, hiring_semester.semester.name)
 
 
 @requires_role(["TAAD", "GRAD"])
-def view_categories(request, semester):
+def view_categories(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     categories = TACategory.objects.visible(hiring_semester)
     return render(request, 'tacontracts/view_categories.html', {
+        'unit_slug':unit_slug,
         'semester':semester,
         'categories':categories,
         })
 
     
 @requires_role(["TAAD", "GRAD"])
-def new_category(request, semester):
+def new_category(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     if request.method == 'POST':
         form = TACategoryForm(hiring_semester.unit, request.POST)
         if form.is_valid():
@@ -235,19 +246,21 @@ def new_category(request, semester):
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Category %s created.' % unicode(category))
-            return _category_redirect(semester)
+            return _category_redirect(unit_slug, semester)
     else:
         form = TACategoryForm(hiring_semester.unit)
     return render(request, 'tacontracts/new_category.html', {
+                  'unit_slug':unit_slug,
                   'semester':semester,
                   'form':form})
 
 
 @requires_role(["TAAD", "GRAD"])
-def edit_category(request, semester, category_slug):
+def edit_category(request, unit_slug, semester, category_slug):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     category = get_object_or_404(TACategory, 
                                  slug=category_slug, 
                                  hiring_semester=hiring_semester,
@@ -260,20 +273,22 @@ def edit_category(request, semester, category_slug):
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Category %s updated.' % unicode(category))
-            return _category_redirect(semester)
+            return _category_redirect(unit_slug, semester)
     else:
         form = TACategoryForm(hiring_semester.unit, instance=category)
     return render(request, 'tacontracts/edit_category.html', {
+                  'unit_slug':unit_slug,
                   'semester':semester,
                   'category':category,
                   'form':form})
 
 
 @requires_role(["TAAD", "GRAD"])
-def hide_category(request, semester, category_slug):
+def hide_category(request, unit_slug, semester, category_slug):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     category = get_object_or_404(TACategory, 
                                  slug=category_slug, 
                                  hiring_semester=hiring_semester,
@@ -283,14 +298,15 @@ def hide_category(request, semester, category_slug):
         messages.add_message(request, 
                              messages.SUCCESS, 
                              u'Category %s hidden.' % unicode(category))
-    return _category_redirect(semester)
+    return _category_redirect(unit_slug, semester)
 
 
 @requires_role(["TAAD", "GRAD"])
-def new_contract(request, semester):
+def new_contract(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     if request.method == 'POST':
         form = TAContractForm(hiring_semester, request.POST)
         if form.is_valid():
@@ -301,7 +317,7 @@ def new_contract(request, semester):
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Contract %s created.' % unicode(contract))
-            return _contract_redirect(semester, contract.slug)
+            return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         form = TAContractForm(hiring_semester, initial={
             'deadline_for_acceptance':hiring_semester.deadline_for_acceptance,
@@ -310,15 +326,17 @@ def new_contract(request, semester):
             'payperiods':hiring_semester.payperiods
         })
     return render(request, 'tacontracts/new_contract.html', {
+                  'unit_slug':unit_slug,
                   'semester':semester,
                   'form':form})
 
 
 @requires_role(["TAAD", "GRAD"])
-def view_contract(request, semester, contract_slug):
+def view_contract(request, unit_slug, semester, contract_slug):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     contract = get_object_or_404(TAContract,
                                  category__hiring_semester=hiring_semester,
                                  slug=contract_slug,
@@ -328,6 +346,7 @@ def view_contract(request, semester, contract_slug):
     emails = contract.email_receipt.all()
     courseform = TACourseForm(semester)
     return render(request, 'tacontracts/view_contract.html', {
+                   'unit_slug': unit_slug,
                    'semester': semester,
                    'editable': not contract.frozen,
                    'category': category, 
@@ -338,10 +357,11 @@ def view_contract(request, semester, contract_slug):
 
 
 @requires_role(["TAAD", "GRAD"])
-def edit_contract(request, semester, contract_slug):
+def edit_contract(request, unit_slug, semester, contract_slug):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     contract = get_object_or_404(TAContract,
                                  category__hiring_semester=hiring_semester,
                                  slug=contract_slug,
@@ -353,10 +373,11 @@ def edit_contract(request, semester, contract_slug):
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Contract %s updated.' % unicode(contract))
-            return _contract_redirect(semester, contract.slug)
+            return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         form = TAContractForm(hiring_semester, instance=contract)
     return render(request, 'tacontracts/edit_contract.html', {
+                  'unit_slug':unit_slug,
                   'semester':semester,
                   'category':contract.category,
                   'contract':contract,
@@ -364,11 +385,12 @@ def edit_contract(request, semester, contract_slug):
 
 
 @requires_role(["TAAD", "GRAD"])
-def sign_contract(request, semester, contract_slug):
+def sign_contract(request, unit_slug, semester, contract_slug):
     if request.method == "POST":
         hiring_semester = get_object_or_404(HiringSemester, 
                                             semester__name=semester, 
-                                            unit__in=request.units)
+                                            unit__in=request.units,
+                                            unit__label=unit_slug)
         contract = get_object_or_404(TAContract,
                                      category__hiring_semester=hiring_semester,
                                      slug=contract_slug,
@@ -377,17 +399,18 @@ def sign_contract(request, semester, contract_slug):
         messages.add_message(request, 
                              messages.SUCCESS, 
                              u'Contract signed!')
-        return _contract_redirect(semester, contract_slug)
+        return _contract_redirect(unit_slug, semester, contract_slug)
     else:
-        return _contract_redirect(semester, contract_slug)
+        return _contract_redirect(unit_slug, semester, contract_slug)
 
 
 @requires_role(["TAAD", "GRAD"])
-def cancel_contract(request, semester, contract_slug):
+def cancel_contract(request, unit_slug, semester, contract_slug):
     if request.method == "POST":
         hiring_semester = get_object_or_404(HiringSemester, 
                                             semester__name=semester, 
-                                            unit__in=request.units)
+                                            unit__in=request.units,
+                                            unit__label=unit_slug)
         contract = get_object_or_404(TAContract,
                                      category__hiring_semester=hiring_semester,
                                      slug=contract_slug,
@@ -397,24 +420,25 @@ def cancel_contract(request, semester, contract_slug):
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Contract Deleted!')
-            return _contracts_redirect(semester)
+            return _contracts_redirect(unit_slug, semester)
         else:
             contract.cancel()
             messages.add_message(request, 
                                  messages.SUCCESS,
                                  u'Contract Cancelled!')
-            return _contract_redirect(semester, contract.slug)
+            return _contract_redirect(unit_slug, semester, contract.slug)
     else:
-        return _contract_redirect(semester, contract_slug)
+        return _contract_redirect(unit_slug, semester, contract_slug)
 
 
 @requires_role(["TAAD", "GRAD"])
 @transaction.atomic
-def copy_contract(request, semester, contract_slug):
+def copy_contract(request, unit_slug, semester, contract_slug):
     if request.method == "POST":
         hiring_semester = get_object_or_404(HiringSemester, 
                                             semester__name=semester, 
-                                            unit__in=request.units)
+                                            unit__in=request.units,
+                                            unit__label=unit_slug)
         contract = get_object_or_404(TAContract,
                                      category__hiring_semester=hiring_semester,
                                      slug=contract_slug,
@@ -423,16 +447,17 @@ def copy_contract(request, semester, contract_slug):
         messages.add_message(request, 
                              messages.SUCCESS, 
                              u'Contract copied!')
-        return _contract_redirect(semester, newcontract.slug)
+        return _contract_redirect(unit_slug, semester, newcontract.slug)
     else:
-        return _contract_redirect(semester, contract_slug)
+        return _contract_redirect(unit_slug, semester, contract_slug)
 
 
 @requires_role(["TAAD", "GRAD"])
-def print_contract(request, semester, contract_slug):
+def print_contract(request, unit_slug, semester, contract_slug):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     contract = get_object_or_404(TAContract,
                                  category__hiring_semester=hiring_semester,
                                  slug=contract_slug,
@@ -445,10 +470,11 @@ def print_contract(request, semester, contract_slug):
 
 
 @requires_role(["TAAD", "GRAD"])
-def new_course(request, semester, contract_slug):
+def new_course(request, unit_slug, semester, contract_slug):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     contract = get_object_or_404(TAContract,
                                  category__hiring_semester=hiring_semester,
                                  slug=contract_slug,
@@ -465,14 +491,15 @@ def new_course(request, semester, contract_slug):
                 messages.add_message(request, 
                                      messages.ERROR, 
                                      u'This contract already has %s.' % unicode(course))
-                return _contract_redirect(semester, contract.slug)
+                return _contract_redirect(unit_slug, semester, contract.slug)
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Course %s created.' % unicode(course))
-            return _contract_redirect(semester, contract.slug)
+            return _contract_redirect(unit_slug, semester, contract.slug)
     else:
         form = TACourseForm(semester)
     return render(request, 'tacontracts/new_course.html', {
+                  'unit_slug': unit_slug,
                   'semester':semester,
                   'category':category,
                   'contract':contract,
@@ -480,11 +507,12 @@ def new_course(request, semester, contract_slug):
 
 
 @requires_role(["TAAD", "GRAD"])
-def delete_course(request, semester, contract_slug, course_slug):
+def delete_course(request, unit_slug, semester, contract_slug, course_slug):
     if request.method == 'POST':
         hiring_semester = get_object_or_404(HiringSemester, 
                                             semester__name=semester, 
-                                            unit__in=request.units)
+                                            unit__in=request.units,
+                                            unit__label=unit_slug)
         contract = get_object_or_404(TAContract,
                                      category__hiring_semester=hiring_semester,
                                      slug=contract_slug,
@@ -494,16 +522,17 @@ def delete_course(request, semester, contract_slug, course_slug):
                                      slug=course_slug)
         course.delete()
         messages.add_message(request, messages.SUCCESS, u'Course deleted.')
-        return _contract_redirect(semester, contract_slug)
+        return _contract_redirect(unit_slug, semester, contract_slug)
     else:
-        return _contract_redirect(semester, contract_slug)
+        return _contract_redirect(unit_slug, semester, contract_slug)
 
 
 @requires_role(["TAAD", "GRAD"])
-def bulk_email(request, semester):
+def bulk_email(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
     contracts = TAContract.objects.draft(hiring_semester)
     if request.method == 'POST':
         form = EmailForm(request.POST)
@@ -528,10 +557,11 @@ def bulk_email(request, semester):
                                  content=n)
                 e.save()
             messages.add_message(request, messages.SUCCESS, u'Email sent.')
-            return _contracts_redirect(semester)
+            return _contracts_redirect(unit_slug, semester)
     else:
         form = EmailForm()
     return render(request, 'tacontracts/bulk_email.html', {
+                  'unit_slug':unit_slug,
                   'semester':semester,
                   'contracts':contracts,
                   'form':form,
@@ -551,9 +581,9 @@ def student_contract(request, semester):
 @login_required
 def accept_contract(request, semester, contract_slug):
     contract = get_object_or_404(TAContract,
-                                          category__hiring_semester__semester__name=semester, 
-                                          person__userid=request.user.username, 
-                                          slug=contract_slug) 
+                                  category__hiring_semester__semester__name=semester, 
+                                  person__userid=request.user.username, 
+                                  slug=contract_slug) 
     if request.POST:
         contract.accepted_by_student = True
         contract.save()
@@ -565,10 +595,11 @@ def accept_contract(request, semester, contract_slug):
 
 
 @requires_role(["TAAD", "GRAD"])
-def contracts_csv(request, semester):
+def contracts_csv(request, unit_slug, semester):
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
-                                        unit__in=request.units)
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
 
     contracts = TAContract.objects.signed(hiring_semester)
 
