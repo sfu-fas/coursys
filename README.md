@@ -236,7 +236,6 @@ and testing the code are still pretty much good to go.
 Best Practices
 --------------
 
-
 Here's some stuff that we almost always tell our students about in the first week of Coursys work. 
 
 ### Status Fields
@@ -278,6 +277,8 @@ purposes of debugging and also occasional larceny.
 It is possible to restrict access to a view to _just people who have a specific role_, 
 using the `@requires_role` decorator. 
 
+*Most of the views you write should have one of these decorators.*
+
     @requires_role("ADVS")
     def view_student_notes(...):
         ...
@@ -292,7 +293,7 @@ of subdividing parts of the system by school in the university - Units include
 groups like "CMPT", "ENGI", "MSE", corresponding to different logical groups within SFU. 
 
 Roles must be created with a Unit. You can't just be an "Advisor", you have to 
-be an "Advisor - CMPT" or an "Advisor - MSE". 
+be an "Advisor in CMPT" or an "Advisor in MSE". 
 
 The `requires_role` decorator automatically appends to the request object a 
 list of units that the current user has _this role_ for, in `request.units`.
@@ -347,6 +348,11 @@ See `/advisornotes/models.py` for an example:
 Here we're automatically making a slug out of the Artifact's unit (CMPT) 
 and name - "cmpt-thingamajigger".
 
+### Hardcoding URLs.
+
+Never hardcode URLs. Use Django's built in `reverse` or the `url` template-tag,
+instead. 
+
 ### Config Fields
 
 When building models that may change in the future (pro-tip: this is most models)
@@ -384,14 +390,97 @@ Here's an example from the Grad subsystem:
 
     req = GradRequirement.objects.filter(program=grad.program, hidden=False)
 
+### Logging
 
-### Urls
+All actions that modify the database should be logged with a log.models.LogEntry
+object.
 
-Never hardcode URLs. Use Django's built in `reverse` instead. 
+### ModelForms, as_dl, and Widgetry
 
-### ModelForms
+Let's imagine that we have a Model:
 
-They're magic and we use them everywhere. 
+    CAMPUS_CHOICES = (
+        "BNBY", "Burnaby",
+        "SRRY", "Surrey",
+        "HRBR", "Harbour Centre"
+    )
+
+    class CampusRestaurant(models.Model):
+        location = models.CharField(max_length=100)
+        opened = models.DateField()
+        campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
+        config = JSONField(null=False, blank=False, default={})
+
+Now, if we want to take full advantage of Django's forms functionality, we'll
+have to create a Form:
+
+    class CampusRestaurantForm(forms.ModelForm):
+        location = forms.CharField(max_length=100)
+        opened = forms.DateField()
+        campus = ...
+
+okay, I'm going to stop us right there and point out the obvious: we could just
+be pulling this information out of the Model, right? Right. See:
+
+    class CampusRestaurantForm(forms.ModelForm):
+        class Meta:
+            model = CampusRestaurant
+
+Here, the [ModelForm](http://pydanny.com/core-concepts-django-modelforms.html) is
+converting the CampusRestaurantModel into a CampusRestaurantForm, with all
+of the validation and POST-processing logic that comes with a Form object. 
+Hooray!
+
+There's a pretty standard view for dealing with a form like this:
+
+    @login_required
+    def new_restaurant(request):
+        if request.method == 'POST':
+            form = CampusRestaurantForm(request, request.POST)
+            if form.is_valid():
+                restaurant = form.save(commit=False)
+                restaurant.save()
+                messages.add_message(request, 
+                                     messages.SUCCESS, 
+                                     u'Restaurant %s created.' % unicode(restaurant))
+                return HttpResponseRedirect(reverse('campus_eating.views.home'))
+        else:
+            form = CampusRestaurantForm()
+
+        return render(request, 'campus_eating/new_restaurant.html', {
+                      'form':form})
+
+And with that in place, we can render the form into HTML, inside `new_restaurant.html`, 
+using:
+
+    {% load form_display %}
+    {{form|as_dl}}
+
+Which is good, but when we visit that page, it contains the config field, which
+we don't want to show to users. And we'd like to handle our DateTimeField with
+a Calendar, rather than just a standard text field. 
+
+We can solve that first problem by adding `editable=False` as one of the arguments
+to config in the Model: 
+        
+    config = JSONField(null=False, blank=False, editable=False, default={})
+
+With that in place, config won't show up in any ModelFields. 
+
+As for the calendar, there's a Widget for that:
+
+    from coredata.widgets import CalendarWidget
+
+    class CampusRestaurantForm(forms.ModelForm):
+        class Meta:
+            model = CampusRestaurant
+            widgets = {'opened':CalendarWidget}
+
+There are more useful widgets and fields in coredata.widgets - the OfferingField
+and PersonField can be used to easily build an Foreign Key to a CourseOffering
+or Person. 
+
+There are a lot of good examples of this in `tacontracts/forms.py`.
 
 ### Fat Models, Thin Views, Skinny Templates
 
@@ -411,6 +500,10 @@ http://twoscoopspress.com/products/two-scoops-of-django-1-6 :
 
 > As for template tags and filters, they should contain the minimum logic 
 > possible to function.
+
+### Testing
+
+Wherever possible, test your application in <yourapp>/tests.py
 
 Table of Contents
 -----------------
