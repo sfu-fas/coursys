@@ -233,6 +233,185 @@ and testing the code are still pretty much good to go.
 * Some Grad students: 0aaagrad, 0bbbgrad, 0cccgrad...
 * Some Undergrad students: 0aaa0... 0aaa19, 0bbb0...0bbb19... 
 
+Best Practices
+--------------
+
+
+Here's some stuff that we almost always tell our students about in the first week of Coursys work. 
+
+### Status Fields
+
+Often, a model can be in one of several states. 
+
+A form from our forms system, for example, can be Active, Inactive, Waiting, 
+Stalled, Happy, Sad, Grumpy, or Sleepy.
+
+Generally, statuses start as a list of tuples, like so: 
+
+    NOTE_CATEGORIES = (
+        ("EXC", "Exceptions"),
+        ("WAI", "Waivers"),
+        ("REQ", "Requirements"),
+        ("TRA", "Transfers"),
+        ("MIS", "Miscellaneous")
+    )
+
+This list can be fed directly to a CharField in a Model, like so: 
+
+    category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
+
+When accessing the model's 'category' field, it will return the three-letter-code, 
+but you can - for example, in a template - return the 'pretty wording' using the 
+`.get_foo_display` property. 
+
+    note.get_category_display
+
+### Persons and Roles
+
+For every person in the system, there is a `coredata.models` Person object. 
+
+The Role object has a foreign key to the Person object. The Role object 
+describes "one job" that is held by that Person. A Person can have many roles - 
+in the live system, for example, I am one of just about everything, for the 
+purposes of debugging and also occasional larceny. 
+
+It is possible to restrict access to a view to _just people who have a specific role_, 
+using the `@requires_role` decorator. 
+
+    @requires_role("ADVS")
+    def view_student_notes(...):
+        ...
+
+Anybody who attempts to trigger this view without having a Role object of the 
+type "ADVS" foreign-keyed to their account will just get an Access Denied message.
+
+### Unit
+
+Many things have a `coredata.models` "Unit" associated with them. This is a way 
+of subdividing parts of the system by school in the university - Units include 
+groups like "CMPT", "ENGI", "MSE", corresponding to different logical groups within SFU. 
+
+Roles must be created with a Unit. You can't just be an "Advisor", you have to 
+be an "Advisor - CMPT" or an "Advisor - MSE". 
+
+The `requires_role` decorator automatically appends to the request object a 
+list of units that the current user has _this role_ for, in `request.units`.
+
+So, for example, if I'm a CMPT Advisor and MSE Advisor, and I'm logged in: 
+
+    @requires_role("ADVS")
+    def view_student_notes(self, request):
+        print request.units
+
+This request.units should contain the "CMPT" and "MSE" Unit model objects. 
+
+Only show users the data that they are allowed to see, considering their unit, 
+as follows:
+
+    @requires_role("ADVS")
+    def view_student_notes(self, request):
+        notes = Notes.objects.filter(unit__in=request.units)
+        ...
+
+### Autoslugs and URLs
+
+We want to keep our URLs as tidy and human-readable as possible. 
+
+Bad:
+
+    coursys.cs.sfu.ca/forms/923
+
+Good:
+
+    coursys.cs.sfu.ca/forms/course_appeal_form
+
+The [django-autoslug](https://pypi.python.org/pypi/django-autoslug)
+package has got us covered - when creating a model, we can create an 'autoslug' 
+field, point it at another field in the model, and from that point on the model 
+has a 'slug' field that we can search on.
+
+For more complicated slug logic, we can create an 'autoslug' function. 
+See `/advisornotes/models.py` for an example: 
+
+    class Artifact(models.Model):
+        name = models.CharField(max_length=140, help_text='The name of the artifact', null=False, blank=False)
+        category = models.CharField(max_length=3, choices=ARTIFACT_CATEGORIES, null=False, blank=False)
+        
+        def autoslug(self):
+            return make_slug(self.unit.label + '-' + self.name)
+        
+        slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+        unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
+        config = JSONField(null=False, blank=False, default={})  # additional configuration stuff:
+
+Here we're automatically making a slug out of the Artifact's unit (CMPT) 
+and name - "cmpt-thingamajigger".
+
+### Config Fields
+
+When building models that may change in the future (pro-tip: this is most models)
+we often include an empty JSON field in the model. 
+ 
+    config = JSONField(null=False, blank=False, default={})
+
+When working with the config field, it's considered polite to include any fields
+that we might be storing in the config field as a comment. 
+
+    # phonenumber - the user's phone number
+    # words - words words words
+
+The config field can be treated as an object:
+
+    model_object.config["data"] = "harblar"
+
+But before accessing config data, always protect against a KeyError or check 
+if the data exists:
+
+    if "data" in model_object.config:
+        data = model_object.config["data"]
+    else:
+        data = "STEVE"
+
+### Hidden Fields
+
+We try our very best to never delete anything. Instead, we set a 'hidden' flag,
+and filter out all 'hidden' variables every time that we pull data 
+from the database. 
+
+Here's an example from the Grad subsystem: 
+
+    hidden = models.BooleanField(null=False, default=False)
+
+    req = GradRequirement.objects.filter(program=grad.program, hidden=False)
+
+
+### Urls
+
+Never hardcode URLs. Use Django's built in `reverse` instead. 
+
+### ModelForms
+
+They're magic and we use them everywhere. 
+
+### Fat Models, Thin Views, Skinny Templates
+
+Logic belongs in models before views, and views before templates.
+
+In a quote from Two Scoops of Django - 
+http://twoscoopspress.com/products/two-scoops-of-django-1-6 :
+
+> When deciding where to put a piece of code, we like to follow the “Fat Models, 
+> Helper Modules, Thin Views, Stupid Templates” approach.
+
+> We recommend that you err on the side of putting more logic into anything but
+> views and templates.
+
+> The results are pleasing. The code becomes clearer, more self-documenting, 
+> less duplicated, and a lot more reusable. 
+
+> As for template tags and filters, they should contain the minimum logic 
+> possible to function.
+
 Table of Contents
 -----------------
 
