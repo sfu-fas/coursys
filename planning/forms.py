@@ -102,7 +102,7 @@ class OfferingBasicsForm(BaseOfferingBasicsForm):
 class MeetingTimeForm(forms.ModelForm):
     class Meta:
         model = MeetingTime
-        exclude = ('offering')
+        exclude = ('offering',)
 
 
 class OfferingInstructorForm(forms.ModelForm):
