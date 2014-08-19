@@ -320,6 +320,10 @@ class GroupTest(TestCase):
         # recheck basic view with more data        
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
+
+        url = reverse('groups.views.view_group', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
+        response = basic_page_tests(self, client, url)
+
         
         
         

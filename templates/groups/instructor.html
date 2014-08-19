@@ -16,7 +16,6 @@ $(document).ready(function() {
       null,
       {% if not activity %}null,{% endif %}
       { "bSortable": false },
-      { "bSortable": false },
     ]
   } );
 });
@@ -29,6 +28,16 @@ $(document).ready(function() {
 {% block h1 %}{{course.name}} Groups{% if activity %} for {{activity.name}}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>for {{activity.name}}</li>{% else %}<li>Groups</li>{% endif %}{% endblock %}
+
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url "groups.views.create" course_slug=course.slug %}">Create New Group</a></li>
+</ul>
+</div>
+{% endblock %}
 
 {% block content %}
 {% if not activity %}
@@ -46,7 +55,7 @@ $(document).ready(function() {
             <th scope="col">Group</th>
             {% if not activity %}<th scope="col">For</th>{% endif %}
             <th scope="col">Members</th>
-            <th scope="col" class="noprint">Actions</th></tr>
+        </tr>
     </thead>
     <tbody>
         {% for info in groupList %}
@@ -58,23 +67,12 @@ $(document).ready(function() {
             <td>
                 <ul>
                     {% for m in info.unique_members %}
-                    <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
-                    {% if m.missing %}(not
-                    {% for a in m.missing %}
-                    {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
-                    {% endfor %}
-                    {% endif %}
+                    <li>
+                        <a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>,
+                        {{ m.member.person.userid }}
+                        {% if not m.confirmed %}(unconfirmed){% endif %}
                     </li>
                     {% endfor %}
-                </ul>
-            </td>
-            <td class="groupaction noprint">
-                <ul>
-                    <li><a href="{% url "groups.views.change_name" course_slug=course.slug group_slug=info.group.slug %}">Change Name</a></li>
-                    <li><a href="{% url "groups.views.assign_student" course_slug=course.slug group_slug=info.group.slug %}">Add Student</a></li>
-                    <li><a href="{% url "groups.views.remove_student" course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a></li>
-                    <li><a href="mailto:{{ info.email|urlencode }}">Email Group</a></li>
-                    {% if course.uses_svn %}<li><a href="{{info.group.svn_url}}">SVN repo</a></li>{% endif %}
                 </ul>
             </td>
         </tr>
@@ -97,9 +95,6 @@ $(document).ready(function() {
   {% else %}
   <p class="empty">None.</p>
   {% endif %}
-  <p>
-    <a class="button" href="{% url "groups.views.create" course_slug=course.slug %}">New Group</a>
-  </p>
 
 <h2 id="data">Group Data</h2>
 <div>

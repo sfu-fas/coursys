@@ -100,7 +100,7 @@ class ActivityMark(models.Model):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     class Meta:
         ordering = ['created_at']
-    
+
     def copyFrom(self, obj):
         """
         Copy information form another ActivityMark object
