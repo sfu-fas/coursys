@@ -163,8 +163,12 @@ def view_group(request, course_slug, group_slug):
     group = get_object_or_404(Group, courseoffering = offering, slug = group_slug)
     members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
 
-    info =  _group_info(offering, group, members)
-    activities = info['activities']
+    info = _group_info(offering, group, members)
+
+    # select activities so we get the subclasses
+    act_ids = set(a.id for a in info['activities'])
+    activities = all_activities_filter(offering)
+    activities = [a for a in activities if a.id in act_ids]
 
     # Quoth the docs: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
     numeric_mark = dict(
@@ -198,17 +202,16 @@ def group_data(request, course_slug):
 
     response = HttpResponse(content_type='text/plain; charset=utf-8')
     for g in groups:
-        response.write('%s: ' % (g.slug))
         userids = set(m.student.person.userid_or_emplid() for m in allmembers if m.group == g)
+        if not userids:
+            continue
+        response.write('%s: ' % (g.slug))
         response.write(','.join(userids))
         if offering.uses_svn():
             response.write('; ' + g.svn_url())
         response.write('\n')
 
-
     return response
-'''{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}{% if course.uses_svn %}; {{info.group.svn_url}}{% endif %}
-'''
 
 
 @requires_course_by_slug
