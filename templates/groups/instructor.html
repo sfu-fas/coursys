@@ -6,6 +6,18 @@
 
 $(document).ready(function() {
   $("h2#data").collapsible();
+
+  $('#groups').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aoColumns": [
+      null,
+      {% if not activity %}null,{% endif %}
+      { "bSortable": false },
+    ]
+  } );
 });
 
 
@@ -17,6 +29,18 @@ $(document).ready(function() {
 
 {% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li>{% if activity %}<li><a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">Groups</a></li><li>for {{activity.name}}</li>{% else %}<li>Groups</li>{% endif %}{% endblock %}
 
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url "groups.views.create" course_slug=course.slug %}">Create New Group</a></li>
+<li><a href="{% url "groups.views.group_data" course_slug=course.slug %}">Fetch Group Data</a></li>
+
+</ul>
+</div>
+{% endblock %}
+
 {% block content %}
 {% if not activity %}
   <p>
@@ -26,34 +50,42 @@ $(document).ready(function() {
 {% endif%}
 </p>
 <h2 id="current">Current Groups</h2>
-<div id="grouplist">
-  {% if groupList %}
-  {% for info in groupList %}
-  <h3 id="{{info.group.slug}}">{{ info.group.name }}</h3>
-  {% if not activity %}<p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>{% endif %}
-          <ul class="bulleted">
-              {% for m in info.unique_members %}
-              <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
-              {% if m.missing %}(not for 
-              {% for a in m.missing %}
-              {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
-              {% endfor %}
-              {% endif %}
-              </li>
-              {% endfor %}
-          </ul>
-  <p class="noprint">[ <a href="{% url "groups.views.change_name" course_slug=course.slug group_slug=info.group.slug %}">Change Name</a> |
-          <a href="{% url "groups.views.assign_student" course_slug=course.slug group_slug=info.group.slug %}">Add Student</a> |
-          <a href="{% url "groups.views.remove_student" course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a> |
-          <a href="mailto:{{ info.email|urlencode }}">Email Group</a>
-          {% if course.uses_svn %}| <a href="{{info.group.svn_url}}">SVN repo</a> {% endif %}
-          ]</p>
-  {% endfor %}
+{% if groupList %}
+<table id="groups">
+    <thead>
+        <tr>
+            <th scope="col">Group</th>
+            {% if not activity %}<th scope="col">For</th>{% endif %}
+            <th scope="col">Members</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for info in groupList %}
+        <tr>
+            <td scope="row" id="{{info.group.slug}}"><a href="{{ info.group.get_absolute_url }}">{{ info.group.name }}</a>
+            {% if info.size_message %}<p class="warningmessage">{{ info.size_message }}</p>{% endif %}
+            </td>
+            {% if not activity %}<td><ul>{% for activity in info.activities %}<li>{{ activity.name }}</li>{% endfor %}</ul></td>{% endif %}
+            <td>
+                <ul>
+                    {% for m in info.unique_members %}
+                    <li>
+                        <a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>,
+                        {{ m.member.person.userid }}
+                        {% if not m.confirmed %}(unconfirmed){% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">There are currently no groups in this course</p>
+{% endif %}
 
-  {% else %}
-    <p class="empty">There are currently no groups in this course offering</p>
-  {% endif %}  
-	
+
 <h2 id="nogroup">Students not in any group</h2>
 
   {% if studentsNotInGroup %}
@@ -65,16 +97,5 @@ $(document).ready(function() {
   {% else %}
   <p class="empty">None.</p>
   {% endif %}
-  </div>
-  <p>
-    <a class="button" href="{% url "groups.views.create" course_slug=course.slug %}">New Group</a>
-  </p>
 
-<h2 id="data">Group Data</h2>
-<div>
-<p>This is a machine-readable list of group members that you can copy-and-paste. [Does this format make sense? Anybody want something different?]</p>
-<blockquote><pre>{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}{% if course.uses_svn %}; {{info.group.svn_url}}{% endif %}
-{% endfor %}</pre></blockquote>
-
-</div>
 {% endblock %}

@@ -135,6 +135,9 @@ span.rowdata { /* content used for calculating totals on data tables */
 .clearfix {
   clear: both;
 }
+.smallnumberinput {
+  width: 4em;
+}
 
 
 /* for the base-wide template */
@@ -1061,4 +1064,17 @@ form#filter-form label {
 }
 form#filter-form span {
   white-space: nowrap;
+}
+
+/* groups */
+
+table#groups ul {
+  margin-top: 0;
+}
+table#groups .groupaction {
+  font-size: smaller;
+  line-height: 1.25em;
+}
+table#groups .groupaction ul li {
+  margin-top: 0.25em;
 }

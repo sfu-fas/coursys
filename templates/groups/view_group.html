@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+	$('#marks-table').dataTable({
+	    "bJQueryUI": true,
+	    "bPaginate": false,
+            "bSort": true,
+            "bInfo": false,
+          "bFilter": false,
+        "aaSorting": [[0,'asc']],
+	});
+});
+</script>
+{% endblock %}
+
+{% block title %}{{ offering.name }} Group: {{ group.name }}{% endblock %}
+{% block h1 %}{{ offering.name }} Group: {{ group.name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "grades.views.course_info" course_slug=offering.slug %}">{{ offering.name }}</a></li>
+<li><a href="{% url "groups.views.groupmanage" course_slug=offering.slug %}">Groups</a></li>
+<li>{{ group.name }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url "groups.views.change_name" course_slug=offering.slug group_slug=info.group.slug %}">Change Name</a></li>
+<li><a href="{% url "groups.views.assign_student" course_slug=offering.slug group_slug=info.group.slug %}">Add Student</a></li>
+<li><a href="{% url "groups.views.remove_student" course_slug=offering.slug group_slug=info.group.slug %}">Remove Student</a></li>
+<li><a href="mailto:{{ info.email|urlencode }}">Email Group</a></li>
+{% if offering.uses_svn %}<li><a href="{{info.group.svn_url}}">SVN repo</a></li>{% endif %}
+</ul>
+</div>
+{% endblock %}
+
+
+{% block content %}
+
+<h2 id="members">Group Members</h2>
+<ul class="bulleted">
+  {% for m in info.unique_members %}
+  <li><a href="{% url "grades.views.student_info" course_slug=offering.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+    {% if m.missing %}(not
+    {% for a in m.missing %}
+    {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
+    {% endfor %}
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+
+<h2 id="marks">Marks</h2>
+<p class="helptext">Note: these are whole-group marks only. It's possible that marks for individual group members have been overridden.</p>
+<table id="marks-table">
+    <thead>
+    <tr><th scope="col">Activity</th><th scope="col">Mark</th></tr>
+    </thead>
+    <tbody>
+    {% for a in activities %}
+    <tr>
+        <td scope="row"><span class="sort">{{ a.position }}</span>{{ a.name }}</td>
+        <td>
+        {% if a.mark %}
+            {% if a.is_numeric %}
+            {{ a.mark.mark }} / {{ a.max_grade }}
+            <a href="{% url 'marking.views.mark_summary_group' course_slug=offering.slug activity_slug=a.slug group_slug=group.slug %}"><i class="fa fa-search" title="View detail"></i></a>
+            {% else %}
+            {{ a.mark.mark }}
+            <a href="{% url 'marking.views.mark_all_groups' course_slug=offering.slug activity_slug=a.slug %}"><i class="fa fa-edit" title="Edit group marks"></i></a>
+            {% endif %}
+        {% else %}
+            {% if a.is_numeric %}
+            <a href="{% url 'marking.views.marking_group' course_slug=offering.slug activity_slug=a.slug group_slug=group.slug %}"><i class="fa fa-edit" title="Edit group mark"></i></a>
+            {% else %}
+            <a href="{% url 'marking.views.mark_all_groups' course_slug=offering.slug activity_slug=a.slug %}"><i class="fa fa-edit" title="Edit group marks"></i></a>
+            {% endif %}
+        {% endif %}
+
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}

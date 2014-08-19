@@ -606,6 +606,8 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
         # 'instr_rw_svn': can instructors/TAs *write* to student SVN repos? (default False)
+        # 'group_min': minimum group size
+        # 'group_max': maximum group size
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
@@ -613,7 +615,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
-                'instr_rw_svn': False, 'combined_with': ()}
+                'instr_rw_svn': False, 'combined_with': (), 'group_min': None, 'group_max': None}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
@@ -625,7 +627,10 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
     combined_with, set_combined_with = getter_setter('combined_with')
-    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn'] # fields that should be copied when instructor does "copy course setup"
+    group_min, set_group_min = getter_setter('group_min')
+    group_max, set_group_max = getter_setter('group_max')
+    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn',
+                          'group_min', 'group_max'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
         # changed slug format for fall 2011
