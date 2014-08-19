@@ -5,7 +5,7 @@ from grades.models import Activity, all_activities_filter
 from django.shortcuts import render_to_response, render, get_object_or_404
 from django.template import RequestContext
 from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupNameForm
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, requires_course_staff_by_slug
@@ -94,7 +94,6 @@ def _group_info(course, group, members):
     all_act.sort()
     # other attributes for easy display
     email = ",".join(["%s <%s>" % (m['member'].person.name(), m['member'].person.email()) for m in unique_members])
-    userids = ",".join([m['member'].person.userid for m in unique_members if m['member'].person.userid])
 
     size_message = ''
     headcount = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
@@ -113,7 +112,7 @@ def _group_info(course, group, members):
         if bad_act:
             size_message = 'Too small for %s.' % (', '.join(bad_act))
     return {'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
-                          'email': email, 'userids': userids, 'size_message': size_message}
+                          'email': email, 'size_message': size_message}
 
 
 def _groupmanage_staff(request, course_slug, activity_slug=None):
@@ -190,6 +189,26 @@ def view_group(request, course_slug, group_slug):
         'info': info,
     }
     return render(request, "groups/view_group.html", context)
+
+@requires_course_staff_by_slug
+def group_data(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    groups = Group.objects.filter(courseoffering=offering)
+    allmembers = GroupMember.objects.filter(group__courseoffering=offering).select_related('group', 'student', 'student__person')
+
+    response = HttpResponse(content_type='text/plain; charset=utf-8')
+    for g in groups:
+        response.write('%s: ' % (g.slug))
+        userids = set(m.student.person.userid_or_emplid() for m in allmembers if m.group == g)
+        response.write(','.join(userids))
+        if offering.uses_svn():
+            response.write('; ' + g.svn_url())
+        response.write('\n')
+
+
+    return response
+'''{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}{% if course.uses_svn %}; {{info.group.svn_url}}{% endif %}
+'''
 
 
 @requires_course_by_slug

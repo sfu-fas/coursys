@@ -35,6 +35,8 @@ $(document).ready(function() {
 <h2 class="heading">Actions</h2>
 <ul>
 <li><a href="{% url "groups.views.create" course_slug=course.slug %}">Create New Group</a></li>
+<li><a href="{% url "groups.views.group_data" course_slug=course.slug %}">Fetch Group Data</a></li>
+
 </ul>
 </div>
 {% endblock %}
@@ -96,10 +98,4 @@ $(document).ready(function() {
   <p class="empty">None.</p>
   {% endif %}
 
-<h2 id="data">Group Data</h2>
-<div>
-<p>This is a machine-readable list of group members that you can copy-and-paste. [Does this format make sense? Anybody want something different?]</p>
-<blockquote><pre>{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}{% if course.uses_svn %}; {{info.group.svn_url}}{% endif %}
-{% endfor %}</pre></blockquote>
-</div>
 {% endblock %}
