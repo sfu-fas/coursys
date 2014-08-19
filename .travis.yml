@@ -1,7 +1,8 @@
 language: python
 python:
   - "2.7"
-email:
-  - courseman-project@sfu.ca
+notifications:
+    email:
+      - courseman-project@sfu.ca
 install: "pip install -r build_deps/working_deps.txt"
 script: "python manage.py test"
