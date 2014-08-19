@@ -198,17 +198,16 @@ def group_data(request, course_slug):
 
     response = HttpResponse(content_type='text/plain; charset=utf-8')
     for g in groups:
-        response.write('%s: ' % (g.slug))
         userids = set(m.student.person.userid_or_emplid() for m in allmembers if m.group == g)
+        if not userids:
+            continue
+        response.write('%s: ' % (g.slug))
         response.write(','.join(userids))
         if offering.uses_svn():
             response.write('; ' + g.svn_url())
         response.write('\n')
 
-
     return response
-'''{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}{% if course.uses_svn %}; {{info.group.svn_url}}{% endif %}
-'''
 
 
 @requires_course_by_slug
