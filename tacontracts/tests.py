@@ -400,3 +400,6 @@ class TAContractTestCase(TestCase):
         self.assertEqual(course.holiday_hours, decimal.Decimal('3.3'))
         self.assertEqual(course.hours, decimal.Decimal('126'))
 
+    def test_intentionally_break_the_build(self):
+        self.assertEqual(1, 0)
+
