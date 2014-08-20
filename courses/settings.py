@@ -59,6 +59,7 @@ INSTALLED_APPS = (
     'djcelery',
     'djcelery_email',
     'featureflags',
+    'django_nose',
 
     'coredata',
     'dashboard',
@@ -109,6 +110,10 @@ TIME_ZONE = 'America/Vancouver'
 USE_I18N = False
 USE_L10N = False
 USE_TZ = False
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_ARGS = ['--exe', 
+            '--with-progressive',
+            '--exclude=(test_views|basic_page_tests|get_test_file|test_auth|create_test_offering|field_test)']
 
 # security-related settings
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca'])
@@ -338,4 +343,3 @@ if getattr(localsettings, 'DEBUG_TOOLBAR', False):
 #    from local_settings import *
 #except ImportError:
 #    pass
-

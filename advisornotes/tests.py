@@ -8,6 +8,8 @@ from dashboard.models import UserConfig
 from django.test.testcases import TransactionTestCase
 import datetime
 
+from nose.plugins.skip import Skip, SkipTest
+
 class AdvisorNotestest(TestCase):
     fixtures = ['test_data']
 
@@ -345,6 +347,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Invalid base64 data for note file attachment")
 
     def DISABLED_test_rest_notes_no_problems(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_no_problems.json')
         data = f.read()
@@ -354,6 +357,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "No problems present")
 
     def DISABLED_test_rest_notes_problems_not_list(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problems_not_list.json')
         data = f.read()
@@ -363,6 +367,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Problems not in list format")
 
     def DISABLED_test_rest_notes_problems_empty(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problems_empty.json')
         data = f.read()
@@ -372,6 +377,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "No problems present")
 
     def DISABLED_test_rest_notes_problem_fields_missing(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_fields_missing.json')
         data = f.read()
@@ -381,6 +387,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Necessary fields not present in problem")
 
     def DISABLED_test_rest_notes_problem_emplid_not_int(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_emplid_not_int.json')
         data = f.read()
@@ -390,6 +397,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Problem emplid & resolution_lasts must be integers")
 
     def DISABLED_test_rest_notes_problem_emplid_invalid(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_emplid_invalid.json')
         data = f.read()
@@ -399,6 +407,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Emplid '123' doesn't exist")
 
     def DISABLED_test_rest_notes_problem_resolution_zero(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_resolution_zero.json')
         data = f.read()
@@ -408,6 +417,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Resolution_lasts must be greater than zero")
 
     def DISABLED_test_rest_notes_problem_code_not_string(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_code_not_string.json')
         data = f.read()
@@ -417,6 +427,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Problem code & description must be strings")
 
     def DISABLED_test_rest_notes_problem_description_too_long(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_description_too_long.json')
         data = f.read()
@@ -426,6 +437,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Problem code & description must be less than or equal to 30 & 50 characters respectively")
 
     def DISABLED_test_rest_notes_problem_unit_invalid(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_unit_invalid.json')
         data = f.read()
@@ -435,6 +447,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Unit 'NOTREAL' does not exist")
 
     def DISABLED_test_rest_notes_problem_comments_not_string(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_comments_not_string.json')
         data = f.read()
@@ -444,6 +457,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.content, "Problem comments must be a string")
 
     def DISABLED_test_rest_notes_problem_already_exists(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problem_already_exists.json')
         data = f.read()
@@ -456,6 +470,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(before_count, after_count, "Shouldn't duplicate problem")
 
     def DISABLED_test_rest_notes_problems_successful(self):
+        raise SkipTest()
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_problems_successful.json')
         data = f.read()

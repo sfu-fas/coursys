@@ -1,15 +1,62 @@
 from django.test import TestCase
-from coredata.models import CourseOffering, Semester, Person, SemesterWeek, Member, Role, Unit
+from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
+                            Member, Role, Unit, ROLE_CHOICES
 
 from django.core.urlresolvers import reverse
 from django.core.management import call_command
 
-from courselib.testing import basic_page_tests, validate_content, Client, TEST_COURSE_SLUG
+from courselib.testing import basic_page_tests, validate_content, Client, \
+                              TEST_COURSE_SLUG
 #from django.conf import settings
 
 from django.db import IntegrityError
 from datetime import date, datetime
 import pytz, json
+
+def create_semesters():
+    semester_1124 = Semester(name="1124", start=date(2012,4,4), end=date(2012,9,3))
+    semester_1124.save()
+    semester_1127 = Semester(name="1127", start=date(2012,9,4), end=date(2012,12,3))
+    semester_1127.save()
+    semester_1131 = Semester(name="1131", start=date(2013,1,4), end=date(2013,4,3))
+    semester_1131.save()
+    semester_1134 = Semester(name="1134", start=date(2013,4,4), end=date(2013,9,3))
+    semester_1134.save()
+    semester_1137 = Semester(name="1137", start=date(2013,9,4), end=date(2013,12,3))
+    semester_1137.save()
+    semester_1141 = Semester(name="1141", start=date(2014,1,4), end=date(2014,4,3))
+    semester_1141.save()
+    semester_1144 = Semester(name="1144", start=date(2014,4,4), end=date(2014,9,3))
+    semester_1144.save()
+    semester_1147 = Semester(name="1147", start=date(2014,9,4), end=date(2014,12,3))
+    semester_1147.save()
+    semester_1151 = Semester(name="1151", start=date(2015,1,4), end=date(2015,4,3))
+    semester_1151.save()
+    semester_1154 = Semester(name="1154", start=date(2015,4,4), end=date(2015,9,3))
+    semester_1154.save()
+    semester_1157 = Semester(name="1157", start=date(2015,9,4), end=date(2015,12,3))
+    semester_1157.save()
+    semester_1161 = Semester(name="1161", start=date(2016,1,4), end=date(2016,4,3))
+    semester_1161.save()
+    semester_1164 = Semester(name="1164", start=date(2016,4,4), end=date(2016,9,3))
+    semester_1164.save()
+    semester_1167 = Semester(name="1167", start=date(2016,9,4), end=date(2016,12,3))
+    semester_1167.save()
+
+def create_unit():
+    unit = Unit(label="UNIV", name="Testington University")
+    unit.save()
+    return unit
+
+def create_greg(unit):
+    baker = Person(emplid="123456789", userid="ggbaker", first_name="Greg", last_name="Baker")
+    baker.config['privacy_date'] = date(2008,9,9)
+    baker.config['privacy_version'] = 1 
+    baker.save()
+    for role_tuple in ROLE_CHOICES:
+        role = Role(person=baker, role=role_tuple[0], unit=unit) 
+        role.save()
+    return baker
 
 def create_semester():
     s = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
@@ -26,23 +73,11 @@ def create_offering():
 
 
 class CoredataTest(TestCase):
-    fixtures = ['test_data']
+
     def setUp(self):
-        pass
-    
-    def test_test_data(self):
-        """
-        Make sure we have some decent test data in place.
-        """
-        sems = Semester.objects.all()
-        self.assertTrue(len( sems ) >= 4)
-        for s in sems:
-            # make sure that every semester has a week #1
-            w = s.semesterweek_set.filter(week=1)
-            self.assertEqual(w.count(), 1, "Semester %s doesn't have a SemesterWeek for week 1" % (s))
-            # check all week.monday are really Monday
-            for w in s.semesterweek_set.all():
-                self.assertEqual(w.monday.weekday(), 0, "Semester %s's SemesterWeek doesn't start on a Monday" % (s))
+        unit = create_unit()
+        person = create_greg(unit)
+        create_semesters()
 
     def test_person(self):
         """
@@ -259,9 +294,15 @@ class CoredataTest(TestCase):
         # make sure the role is now there
         self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)
 
+
+class SlowCoredataTest(TestCase):
+    fixtures = ['test_data']
+    
     def test_course_browser(self):
         client = Client()
 
+        s, c = create_offering()
+        
         # the main search/filter page
         url = reverse('coredata.views.browse_courses')
         response = basic_page_tests(self, client, url)
@@ -275,11 +316,11 @@ class CoredataTest(TestCase):
         # courseoffering detail page
         url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
         response = basic_page_tests(self, client, url)
-
-
+    
     def test_ajax(self):
         client = Client()
-        call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
+        # this takes like 20 seconds to run
+        #call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
 
         # test person autocomplete
         client.login_user("dzhao")
@@ -292,7 +333,3 @@ class CoredataTest(TestCase):
         data = json.loads(response.content)
         emplids = [str(d['value']) for d in data]
         self.assertIn(str(p.emplid), emplids)
-
-
-
-
