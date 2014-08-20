@@ -278,7 +278,7 @@ if hasattr(localsettings, 'BROKER_URL'):
 
 
 MAX_SUBMISSION_SIZE = 30000 # kB
-CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
+CAS_SERVER_URL = "https://cas.sfu.ca/cas/"
 CAS_VERSION = '2'
 EMAIL_HOST = 'localhost'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
@@ -343,3 +343,5 @@ if getattr(localsettings, 'DEBUG_TOOLBAR', False):
 #    from local_settings import *
 #except ImportError:
 #    pass
+
+#DEBUG=False

@@ -25,6 +25,9 @@
           {% for activity in info.activities %}
           {{ activity.name }}{% if forloop.last %}.{% else %}, {% endif %}
           {% endfor %}</p>
+
+      {% if info.size_message %}<p class="warningmessage">Warning: {{ info.size_message }}</p>{% endif %}
+
           <ul class="bulleted">
               {% for m in info.unique_members %}
               <li>{{ m.member.person.name }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}

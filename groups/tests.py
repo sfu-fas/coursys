@@ -276,9 +276,7 @@ class GroupTest(TestCase):
         # check group management screen again
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        self.assert_( re.search(r"Test Group</h3>", response.content) )
-        self.assert_( re.search(r"For\s+Assignment 1", response.content) )
-        
+
         # add membership form
         url = reverse('groups.views.assign_student', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
         response = basic_page_tests(self, client, url)
@@ -322,6 +320,10 @@ class GroupTest(TestCase):
         # recheck basic view with more data        
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
+
+        url = reverse('groups.views.view_group', kwargs={'course_slug': c.slug, 'group_slug': "g-test-group"})
+        response = basic_page_tests(self, client, url)
+
         
         
         

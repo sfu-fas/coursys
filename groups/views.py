@@ -1,20 +1,17 @@
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, Person, CourseOffering
-from groups.models import *
-from grades.models import Activity
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from groups.models import Group, GroupMember, all_activities
+from grades.models import Activity, all_activities_filter
+from django.shortcuts import render_to_response, render, get_object_or_404
 from django.template import RequestContext
-from groups.forms import *
-from django.forms.models import modelformset_factory
-from django.forms.formsets import formset_factory
-from django.forms.util import ErrorList
+from groups.forms import ActivityForm, GroupForSemesterForm, StudentForm, GroupNameForm
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from django.conf import settings
-from courselib.auth import *
-from log.models import *
-from django.db.models import Q
+from courselib.auth import is_course_staff_by_slug, is_course_student_by_slug, requires_course_by_slug, requires_course_staff_by_slug
+from marking.models import GroupActivityMark, GroupActivityMark_LetterGrade
+from log.models import LogEntry
+from dashboard.models import NewsItem
 from collections import defaultdict
 
 @login_required
@@ -28,6 +25,7 @@ def groupmanage(request, course_slug, activity_slug=None):
 
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    group_min = course.group_min()
 
     groups = Group.objects.filter(courseoffering=course, groupmember__student__person__userid=request.user.username)
     groups = set(groups) # all groups student is a member of
@@ -48,11 +46,74 @@ def _groupmanage_student(request, course_slug):
             missing.sort()
             unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
 
+        # check minimum size problems
+        size_message = ''
+        headcount = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
+        if group_min and headcount < group_min:
+            # total size too small
+            size_message = 'Groups in this course must have at least %i members.' % (group_min)
+        #elif group_max and headcount > group_max:
+        #    # total size too large
+        #    size_message = 'Groups in this course must have at most %i members.' % (group_max)
+        else:
+            # check size for each activity
+            act_count = defaultdict(int)
+            for m in members:
+                act_count[m.activity] += 1
+            bad_act = [act.name for act,count in act_count.items() if count < group_min]
+            if bad_act:
+                size_message = 'Groups in this course must have at least %i members: this group doesn\'t for %s.' % (group_min, ', '.join(bad_act))
+
         all_act = list(all_act)
         all_act.sort()
-        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'need_conf': need_conf})
+        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
+                          'need_conf': need_conf, 'size_message': size_message})
 
-    return render_to_response('groups/student.html', {'course':course, 'groupList':groupList}, context_instance = RequestContext(request))
+    return render(request, 'groups/student.html', {'course':course, 'groupList':groupList})
+
+
+def _group_info(course, group, members):
+    """
+    Collect all info about a group we need for display
+    """
+    group_min = course.group_min()
+    group_max = course.group_max()
+
+    gmembers = members.filter(group=group)
+    all_act = all_activities(gmembers)
+    unique_members = []
+    for s in set(m.student for m in gmembers):
+        # confirmed in group?
+        confirmed = False not in (m.confirmed for m in gmembers if m.student==s)
+        # not a member for any activities?
+        missing = all_act - set(m.activity for m in gmembers if m.student==s)
+        missing = list(missing)
+        missing.sort()
+        unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
+    all_act = list(all_act)
+    all_act.sort()
+    # other attributes for easy display
+    email = ",".join(["%s <%s>" % (m['member'].person.name(), m['member'].person.email()) for m in unique_members])
+
+    size_message = ''
+    headcount = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
+    if group_min and headcount < group_min:
+        # total size too small
+        size_message = 'Only %i members.' % (headcount)
+    elif group_max and headcount > group_max:
+        # total size too large
+        size_message = 'Has %i members.' % (headcount)
+    else:
+        # check size for each activity
+        act_count = defaultdict(int)
+        for m in group.groupmember_set.all().select_related('activity'):
+            act_count[m.activity] += 1
+        bad_act = [act.name for act,count in act_count.items() if count < group_min]
+        if bad_act:
+            size_message = 'Too small for %s.' % (', '.join(bad_act))
+    return {'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members,
+                          'email': email, 'size_message': size_message}
+
 
 def _groupmanage_staff(request, course_slug, activity_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -88,29 +149,70 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
 
     groupList = []
     for group in groups_populated:
-        gmembers = members.filter(group=group)
-        all_act = all_activities(gmembers)
-        unique_members = []
-        for s in set(m.student for m in gmembers):
-            # confirmed in group?
-            confirmed = False not in (m.confirmed for m in gmembers if m.student==s)
-            # not a member for any activities?
-            missing = all_act - set(m.activity for m in gmembers if m.student==s)
-            missing = list(missing)
-            missing.sort()
-            unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
-        all_act = list(all_act)
-        all_act.sort()
-        # other attributes for easy display
-        email = ",".join(["%s <%s>" % (m['member'].person.name(), m['member'].person.email()) for m in unique_members])
-        userids = ",".join([m['member'].person.userid for m in unique_members if m['member'].person.userid])
-        
-        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'email': email, 'userids': userids})
+        info = _group_info(course, group, members)
+        groupList.append(info)
 
-    return render_to_response('groups/instructor.html', \
-                              {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup,
-                              'activity':activity, 'activities':activities}, \
-                              context_instance = RequestContext(request))
+    return render(request, 'groups/instructor.html',
+        {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup,
+        'activity':activity, 'activities':activities})
+
+
+@requires_course_staff_by_slug
+def view_group(request, course_slug, group_slug):
+    offering = get_object_or_404(CourseOffering, slug = course_slug)
+    group = get_object_or_404(Group, courseoffering = offering, slug = group_slug)
+    members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
+
+    info = _group_info(offering, group, members)
+
+    # select activities so we get the subclasses
+    act_ids = set(a.id for a in info['activities'])
+    activities = all_activities_filter(offering)
+    activities = [a for a in activities if a.id in act_ids]
+
+    # Quoth the docs: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
+    numeric_mark = dict(
+        (am.activity_id, am)
+        for am
+        in GroupActivityMark.objects.filter(group=group).order_by('created_at')
+    )
+    letter_mark = dict(
+        (am.letter_activity_id, am)
+        for am
+        in GroupActivityMark_LetterGrade.objects.filter(group=group).order_by('created_at')
+    )
+    for a in activities:
+        a.mark = numeric_mark.get(a.id, letter_mark.get(a.id, None))
+
+
+    context = {
+        'offering': offering,
+        'group': group,
+        'members': members,
+        'activities': activities,
+        'info': info,
+    }
+    return render(request, "groups/view_group.html", context)
+
+@requires_course_staff_by_slug
+def group_data(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    groups = Group.objects.filter(courseoffering=offering)
+    allmembers = GroupMember.objects.filter(group__courseoffering=offering).select_related('group', 'student', 'student__person')
+
+    response = HttpResponse(content_type='text/plain; charset=utf-8')
+    for g in groups:
+        userids = set(m.student.person.userid_or_emplid() for m in allmembers if m.group == g)
+        if not userids:
+            continue
+        response.write('%s: ' % (g.slug))
+        response.write(','.join(userids))
+        if offering.uses_svn():
+            response.write('; ' + g.svn_url())
+        response.write('\n')
+
+    return response
+
 
 @requires_course_by_slug
 def create(request,course_slug):
@@ -302,7 +404,7 @@ def submit(request,course_slug):
                     n.save()
                     
             messages.add_message(request, messages.SUCCESS, 'Group Created')
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
         else:
             return HttpResponseForbidden()
 
@@ -359,6 +461,7 @@ def invite(request, course_slug, group_slug):
     person = get_object_or_404(Person, userid = request.user.username)
     invitor = get_object_or_404(Member, person = person, offering=course)
     error_info=None
+    group_max = course.group_max()
     from django import forms
     class StudentReceiverForm(forms.Form):
         name = forms.CharField()
@@ -368,6 +471,12 @@ def invite(request, course_slug, group_slug):
         #student_receiver_form.activate_addform_validation(course_slug,group_slug)
         if student_receiver_form.is_valid():
             name = student_receiver_form.cleaned_data['name']
+
+            existing = GroupMember.objects.filter(group=group).values('student').order_by().distinct().count()
+            if group_max and existing >= group_max:
+                messages.add_message(request, messages.ERROR, 'Group already has %s members, which is the maximum.' % (group_max))
+                return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+
             members = Member.objects.filter(person__userid = name, offering = course, role="STUD")
             if not members:
                 messages.add_message(request, messages.ERROR, 'Could not find userid "%s".' % (name))
@@ -387,7 +496,7 @@ def invite(request, course_slug, group_slug):
             else:
                 #member = Member.objects.get(person = member.person, offering = course)
                 for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
-                    newGroupMember = GroupMember(group = group, student = member, \
+                    newGroupMember = GroupMember(group = group, student = member,
                                           activity = invitorMembership.activity, confirmed = False)
                     newGroupMember.save(member.person)
 
@@ -445,9 +554,11 @@ def remove_student(request, course_slug, group_slug):
                 description="deleted %s in group %s for %s." % (m.student.person.userid, group.name, m.activity),
                 related_object=m.group)
                 l.save()
-                #LOG EVENT#
 
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        if is_staff:
+            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
+        else:
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
     else:
         data = []
@@ -478,7 +589,7 @@ def change_name(request, course_slug, group_slug):
             description="changed name of group %s to %s for course %s." % (oldname, group.name, group.courseoffering),
             related_object=group)
             l.save()
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
     else:
         groupForm = GroupNameForm(instance=group)
@@ -518,7 +629,7 @@ def assign_student(request, course_slug, group_slug):
                         description="added %s to group %s for %s." % (m.person.userid, group.name, a), related_object=gm)
                         l.save()
 
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course.slug}))
+        return HttpResponseRedirect(reverse('groups.views.view_group', kwargs={'course_slug': course.slug, 'group_slug': group.slug}))
         
     else:
         activity_data = []
