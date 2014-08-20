@@ -5,4 +5,4 @@ notifications:
     email:
       - courseman-project@sfu.ca
 install: "pip install -r build_deps/working_deps.txt"
-script: "python manage.py test"
+script: "python manage.py test --with-timer"
