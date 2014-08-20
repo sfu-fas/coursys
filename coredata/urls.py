@@ -50,6 +50,7 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^dishonesty/new$', 'discipline.views.new_template'),
     url(r'^dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
     url(r'^dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
+    url(r'^panel$', 'coredata.views.admin_panel'),
 ]
 
 browse_patterns = [ # prefix /browse/

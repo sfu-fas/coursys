@@ -235,6 +235,39 @@ def edit_semester(request, semester_name=None):
     return render(request, 'coredata/edit_semester.html', context)
 
 
+from coredata import panel
+@requires_global_role("SYSA")
+def admin_panel(request):
+    if 'deploy_checks' in request.GET:
+        response = HttpResponse(content_type='application/json')
+        passed, failed = panel.deploy_checks()
+        response.write(json.dumps({'passed': passed, 'failed': failed}, indent=1))
+        return response
+    elif 'settings_info' in request.GET:
+        response = HttpResponse(content_type='application/json')
+        data = panel.settings_info()
+        response.write(json.dumps(data, indent=1))
+        return response
+
+
+    context = {}
+    return render(request, 'coredata/admin_panel.html', context)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # views to let instructors manage TAs
 
 @requires_course_staff_by_slug
