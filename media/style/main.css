@@ -132,6 +132,9 @@ span.rowdata { /* content used for calculating totals on data tables */
 #ui-datepicker-div { /* shrink the datepicker to something more reasonable */
   font-size:0.75em;
 }
+.ui-tabs .ui-tabs-hide {
+  display: none !important;
+}
 .clearfix {
   clear: both;
 }

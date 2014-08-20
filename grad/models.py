@@ -512,7 +512,7 @@ STATUS_CHOICES = (
         ('ARSP', 'Completed Special'), # Special Arrangements + GONE
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
-STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'CONF', 'ARIV') # statuses that mean "currently applying"
+STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
 STATUS_DECIDEDAPPLICANT = set(STATUS_APPLICANT) - set(STATUS_CURRENTAPPLICANT)
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
