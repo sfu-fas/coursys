@@ -1,0 +1,24 @@
+{% load admin_panel_tags %}
+
+{% if failed %}
+<h2 id="failed">Failed Checks</h2>
+{{ failed|panel_info }}
+{% endif %}
+
+{% if passed %}
+<h2 id="passed">Passed Checks</h2>
+{{ passed|panel_info }}
+{% endif %}
+
+{% if settings_data %}
+{{ settings_data|panel_info }}
+{% endif %}
+
+{% if email %}
+<form action="" method="post">{% csrf_token %}
+<p>Email address to send test message to:
+<input type="email" name="email" value="{{email}}" />
+<input type="submit" value="Send" />
+</p>
+</form>
+{% endif %}

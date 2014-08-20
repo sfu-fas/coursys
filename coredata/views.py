@@ -10,12 +10,13 @@ from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
         UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
+from coredata import panel
 from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from haystack.query import SearchQuerySet
-import json, datetime
+import socket, json, datetime
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -235,35 +236,27 @@ def edit_semester(request, semester_name=None):
     return render(request, 'coredata/edit_semester.html', context)
 
 
-from coredata import panel
 @requires_global_role("SYSA")
 def admin_panel(request):
-    if 'deploy_checks' in request.GET:
-        response = HttpResponse(content_type='application/json')
-        passed, failed = panel.deploy_checks()
-        response.write(json.dumps({'passed': passed, 'failed': failed}, indent=1))
-        return response
-    elif 'settings_info' in request.GET:
-        response = HttpResponse(content_type='application/json')
-        data = panel.settings_info()
-        response.write(json.dumps(data, indent=1))
-        return response
+    if 'content' in request.GET:
+        if request.GET['content'] == 'deploy_checks':
+            passed, failed = panel.deploy_checks()
+            return render(request, 'coredata/admin_panel_tab.html', {'passed': passed, 'failed': failed})
+        elif request.GET['content'] == 'settings_info':
+            data = panel.settings_info()
+            return render(request, 'coredata/admin_panel_tab.html', {'settings_data': data})
+        elif request.GET['content'] == 'email':
+            user = Person.objects.get(userid=request.user.username)
+            return render(request, 'coredata/admin_panel_tab.html', {'email': user.email()})
+    elif request.method == 'POST' and 'email' in request.POST:
+        email = request.POST['email']
+        success, res = panel.send_test_email(email)
+        if success:
+            messages.success(request, res)
+        else:
+            messages.error(request, res)
 
-
-    context = {}
-    return render(request, 'coredata/admin_panel.html', context)
-
-
-
-
-
-
-
-
-
-
-
-
+    return render(request, 'coredata/admin_panel.html', {})
 
 
 

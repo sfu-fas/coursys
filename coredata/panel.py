@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.cache import cache
+from django.core.mail import send_mail
 import django
 
 from coredata.models import Semester, Unit
@@ -92,14 +93,18 @@ def deploy_checks():
     celery_okay = False
     try:
         if settings.USE_CELERY:
-            from coredata.tasks import ping
-            t = ping.apply_async()
-            res = t.get(timeout=5)
-            if res == True:
-                passed.append(('Celery task', 'okay'))
-                celery_okay = True
+            try:
+                from coredata.tasks import ping
+            except ImportError:
+                failed.append(('Celery task', "Couldn't import task: probably missing MySQLdb module"))
             else:
-                failed.append(('Celery task', 'got incorrect result from task'))
+                t = ping.apply_async()
+                res = t.get(timeout=5)
+                if res == True:
+                    passed.append(('Celery task', 'okay'))
+                    celery_okay = True
+                else:
+                    failed.append(('Celery task', 'got incorrect result from task'))
         else:
             failed.append(('Celery task', 'celery disabled in settings'))
     except celery.exceptions.TimeoutError:
@@ -271,3 +276,12 @@ def deploy_checks():
 
 
     return passed, failed
+
+
+def send_test_email(email):
+    try:
+        send_mail('check_things test message', "This is a test message to make sure they're getting through.",
+                  settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
+        return True, "Message sent to %s." % (email)
+    except socket.error:
+        return False, "socket error: maybe can't communicate with AMPQ for celery sending?"

@@ -1,8 +1,44 @@
 {% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+var tab_url = '{% url "coredata.views.admin_panel" %}';
+$(document).ready(function() {
+  /* http://stackoverflow.com/questions/9288467/jquery-tabs-display-indicator-in-the-container-div-during-ajax-load */
+  $.ajaxSetup({
+    cache:false,
+    beforeSend: function() {
+       $('#fetchwait').show()
+    },
+    complete: function(){
+       $('#fetchwait').hide()
+    },
+    success: function() {}
+  });
+  $( "#tabs" ).tabs();
+} );
+</script>
+{% endblock %}
+
+
 {% block title %}Admin Panel{% endblock %}
 {% block h1 %}Admin Panel{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>Admin Panel</li>{% endblock %}
 
 {% block content %}
+<div id="tabs">
+  <ul>
+  <li><a href="#welcome">Welcome</a></li>
+  <li><a href="{% url 'coredata.views.admin_panel' %}?content=settings_info">Settings Info</a></li>
+  <li><a href="{% url 'coredata.views.admin_panel' %}?content=deploy_checks">Deployment Checks</a></li>
+  <li><a href="{% url 'coredata.views.admin_panel' %}?content=email">Email Check</a></li>
+  </ul>
+  <div id="welcome">
+  <p>This is the admin panel.</p>
+  </div>
+</div>
+<p><i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></p>
+
+
 {% endblock %}
