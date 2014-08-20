@@ -1,4 +1,5 @@
-from django.test import TestCase
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
 import json, datetime
 from coredata.models import Person, Semester, Role
@@ -92,6 +93,7 @@ class GradTest(TestCase):
 
 
     def __make_test_grad(self):
+        
         gs = GradStudent.objects.get(person__userid=self.gs_userid)
         sem = Semester.current()
         
@@ -119,6 +121,7 @@ class GradTest(TestCase):
         """
         Check the pages for a grad student and make sure they all load
         """
+
         client = Client()
         test_auth(client, 'ggbaker')
         gs = self.__make_test_grad()

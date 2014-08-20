@@ -1,4 +1,5 @@
-from django.test import TestCase
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
 from courselib.testing import basic_page_tests
 from discuss.models import DiscussionTopic, DiscussionMessage

@@ -1,4 +1,5 @@
-from django.test import TestCase
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
 from courselib.testing import Client, test_views
 from ra.models import RAAppointment, Account, Project
 

@@ -2,9 +2,46 @@ import os
 import urllib
 import html5lib
 from django.core.urlresolvers import reverse
+from django.core.management import call_command
+
+from django.test import TestCase
 
 # course with the test data
 TEST_COURSE_SLUG = '2014su-cmpt-165-c1'
+
+class CachedFixtureTestCase(TestCase):
+    current_fixtures = None
+
+    def _pre_setup(self):
+        super(CachedFixtureTestCase, self)._pre_setup()
+
+    def _post_teardown(self):
+        super(CachedFixtureTestCase, self)._post_teardown()
+
+    def _remove_fixture(self):
+        for db_name in self._databases_names(include_mirrors=False):
+             call_command('flush', verbosity=0, interactive=False,
+                            database=db_name, skip_checks=True,
+                            reset_sequences=False,
+                            allow_cascade=self.available_apps is not None,
+                            inhibit_post_migrate=self.available_apps is not None)
+
+    def _fixture_setup(self):
+        for db_name in self._databases_names(include_mirrors=False):
+            if (hasattr(self, 'fixtures') and 
+                      self.fixtures and 
+                      self.fixtures != CachedFixtureTestCase.current_fixtures):
+                print self.fixtures
+                CachedFixtureTestCase.current_fixture = self.fixtures
+                self._remove_fixture()
+                call_command('loaddata', *self.fixtures,
+                   **{'verbosity': 0, 'database': db_name, 'skip_checks': True})
+            else:
+                self._remove_fixture()
+
+    def _fixture_teardown(self):
+        print "teardown pass"
+        pass
 
 def validate_content_xhtml(testcase, data, page_descr="unknown page"):
     """

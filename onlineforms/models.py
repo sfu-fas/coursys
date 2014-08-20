@@ -1,5 +1,6 @@
 import os
-from django.db import models, transaction
+from django.db import models
+import django.db.transaction
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from coredata.models import Person, Unit
@@ -314,11 +315,11 @@ class Form(models.Model, _FormCoherenceMixin):
         self.active = False
         self.save()
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        instance = super(Form, self).save(*args, **kwargs)
-        self.cleanup_fields()
-        return instance
+        with django.db.transaction.atomic():
+            instance = super(Form, self).save(*args, **kwargs)
+            self.cleanup_fields()
+            return instance
     
     @property
     def initial_sheet(self):
@@ -338,7 +339,6 @@ class Form(models.Model, _FormCoherenceMixin):
     def get_initiators_display_short(self):
         return INITIATOR_SHORT[self.initiators]
 
-    @transaction.atomic
     def duplicate(self):
         """
         Make a independent duplicate of this form.
@@ -352,30 +352,31 @@ class Form(models.Model, _FormCoherenceMixin):
             newform.slug = None
             newform.save()
         """
-        newform = self.clone()
-        newform.original = None
-        newform.slug = None
-        newform.active = True
-        newform.initiators = 'NON'
-        newform.save()
+        with django.db.transaction.atomic():
+            newform = self.clone()
+            newform.original = None
+            newform.slug = None
+            newform.active = True
+            newform.initiators = 'NON'
+            newform.save()
 
-        sheets = Sheet.objects.filter(form=self)
-        for s in sheets:
-            newsheet = s.clone()
-            newsheet.form = newform
-            newsheet.original = None
-            newsheet.slug = None
-            newsheet.save()
+            sheets = Sheet.objects.filter(form=self)
+            for s in sheets:
+                newsheet = s.clone()
+                newsheet.form = newform
+                newsheet.original = None
+                newsheet.slug = None
+                newsheet.save()
 
-            fields = Field.objects.filter(sheet=s)
-            for f in fields:
-                newfield = f.clone()
-                newfield.sheet = newsheet
-                newfield.original = None
-                newfield.slug = None
-                newfield.save()
+                fields = Field.objects.filter(sheet=s)
+                for f in fields:
+                    newfield = f.clone()
+                    newfield.sheet = newsheet
+                    newfield.original = None
+                    newfield.slug = None
+                    newfield.save()
 
-        return newform
+            return newform
 
 
 
@@ -416,41 +417,41 @@ class Sheet(models.Model, _FormCoherenceMixin):
         unique_together = (("form", "slug"),)
         ordering = ('order',)
 
-    @transaction.atomic
     def safe_save(self):
         """
         Save a copy of this sheet, and return the copy: does not modify self.
         """
-        # clone the sheet
-        sheet2 = self.clone()
-        self.slug = self.slug + "_" + str(self.id)
-        self.save()
-        sheet2.save()
-        sheet2.cleanup_fields()
-        # copy the fields
-        for field1 in Field.objects.filter(sheet=self, active=True):
-            field2 = field1.clone()
-            field2.sheet = sheet2
-            field2.save()
-        return sheet2       
+        with django.db.transaction.atomic():
+            # clone the sheet
+            sheet2 = self.clone()
+            self.slug = self.slug + "_" + str(self.id)
+            self.save()
+            sheet2.save()
+            sheet2.cleanup_fields()
+            # copy the fields
+            for field1 in Field.objects.filter(sheet=self, active=True):
+                field2 = field1.clone()
+                field2.sheet = sheet2
+                field2.save()
+            return sheet2       
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        # if this sheet is just being created it needs a order number
-        if(self.order == None):
-            max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
-            if(max_aggregate['order__max'] == None):
-                next_order = 0
-                # making first sheet for form--- initial 
-                self.is_initial = True
-            else:
-                next_order = max_aggregate['order__max'] + 1
-            self.order = next_order
+        with django.db.transaction.atomic():
+            # if this sheet is just being created it needs a order number
+            if(self.order == None):
+                max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
+                if(max_aggregate['order__max'] == None):
+                    next_order = 0
+                    # making first sheet for form--- initial 
+                    self.is_initial = True
+                else:
+                    next_order = max_aggregate['order__max'] + 1
+                self.order = next_order
 
-        #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
-  
-        super(Sheet, self).save(*args, **kwargs)
-        self.cleanup_fields()
+            #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
+      
+            super(Sheet, self).save(*args, **kwargs)
+            self.cleanup_fields()
 
     cached_fields = None
     def get_fields(self, refetch=False):
@@ -488,20 +489,20 @@ class Field(models.Model, _FormCoherenceMixin):
     class Meta:
         unique_together = (("sheet", "slug"),)
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        # if this field is just being created it needs a order number
-        if(self.order == None):
-            max_aggregate = Field.objects.filter(sheet=self.sheet).aggregate(Max('order'))
-            if(max_aggregate['order__max'] == None):
-                next_order = 0
-            else:
-                next_order = max_aggregate['order__max'] + 1
-            self.order = next_order
+        with django.db.transaction.atomic():
+            # if this field is just being created it needs a order number
+            if(self.order == None):
+                max_aggregate = Field.objects.filter(sheet=self.sheet).aggregate(Max('order'))
+                if(max_aggregate['order__max'] == None):
+                    next_order = 0
+                else:
+                    next_order = max_aggregate['order__max'] + 1
+                self.order = next_order
 
 
-        super(Field, self).save(*args, **kwargs)
-        self.cleanup_fields()
+            super(Field, self).save(*args, **kwargs)
+            self.cleanup_fields()
 
 def neaten_field_positions(sheet):
     """
@@ -599,11 +600,11 @@ class SheetSubmission(models.Model):
         # 'reject_reason': reason given for rejecting the sheet
         # 'return_reason': reason given for returning the sheet to the filler
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        self.completed_at = datetime.datetime.now()
-        super(SheetSubmission, self).save(*args, **kwargs)
-        self.form_submission.update_status()
+        with django.db.transaction.atomic():
+            self.completed_at = datetime.datetime.now()
+            super(SheetSubmission, self).save(*args, **kwargs)
+            self.form_submission.update_status()
 
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
@@ -806,11 +807,11 @@ class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     key = models.CharField(max_length=128, null=False, editable=False, unique=True)
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        if not(self.key):
-            self.key = self.autokey()
-        super(SheetSubmissionSecretUrl, self).save(*args, **kwargs)
+        with django.db.transaction.atomic():
+            if not(self.key):
+                self.key = self.autokey()
+            super(SheetSubmissionSecretUrl, self).save(*args, **kwargs)
 
     def autokey(self):
         generated = False

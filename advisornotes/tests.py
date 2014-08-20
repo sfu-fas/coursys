@@ -1,11 +1,12 @@
-from django.test import TestCase
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test.testcases import TransactionTestCase
 
 from django.core.urlresolvers import reverse
 from coredata.models import Person, Unit
 from advisornotes.models import NonStudent, AdvisorNote
 from courselib.testing import basic_page_tests, Client
 from dashboard.models import UserConfig
-from django.test.testcases import TransactionTestCase
 import datetime
 
 from nose.plugins.skip import Skip, SkipTest
@@ -138,7 +139,7 @@ class AdvisorNotestest(TestCase):
                 raise
 
 
-class AdvistorNotesAPITest(TransactionTestCase):
+class AdvisorNotesAPITest(TestCase):
 #class AdvistorNotesAPITest(object):
     fixtures = ['test_data']
 
@@ -277,16 +278,6 @@ class AdvistorNotesAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.content, "Emplid '321' doesn't exist")
 
-    def test_rest_notes_all_or_nothing(self):
-        client = Client()
-        f = open('advisornotes/testfiles/rest_notes_all_or_nothing.json')
-        data = f.read()
-        f.close()
-        before_count = len(AdvisorNote.objects.all())
-        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
-        self.assertEqual(response.status_code, 422)
-        after_count = len(AdvisorNote.objects.all())
-        self.assertEqual(before_count, after_count, "No advisor notes should be created if any are invalid")
 
     def test_rest_notes_success(self):
         client = Client()
@@ -488,3 +479,4 @@ class AdvistorNotesAPITest(TransactionTestCase):
         after_count = len(Problem.objects.filter(person__emplid=200000172))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(before_count + 1, after_count, "Only one problem should have been created")
+

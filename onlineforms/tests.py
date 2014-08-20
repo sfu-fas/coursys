@@ -1,5 +1,6 @@
-from django.test import TestCase
-from django.db import transaction
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
+import django.db.transaction
 from django.db.utils import IntegrityError
 from django.core.urlresolvers import reverse
 from django.forms import Field as DjangoFormsField, Form as DjangoForm
@@ -35,7 +36,7 @@ class ModelTests(TestCase):
         # should throw an db integrity exception
         fg2 = FormGroup(name=groupName, unit=u1)
         with self.assertRaises(IntegrityError):
-            with transaction.atomic():
+            with django.db.transaction.atomic():
                 fg2.save()
         # now add a formgroup with the same name into a different unit
         fg2 = FormGroup(name=groupName, unit=u2)

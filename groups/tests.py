@@ -1,4 +1,5 @@
-from django.test import TestCase
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
 
 from django.conf import settings
 CAS_SERVER_URL = settings.CAS_SERVER_URL
