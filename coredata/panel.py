@@ -3,7 +3,6 @@ from django.core.cache import cache
 import django
 
 from coredata.models import Semester, Unit
-from coredata.tasks import ping
 from coredata.queries import SIMSConn, SIMSProblem
 from dashboard.photos import do_photo_fetch
 
@@ -93,6 +92,7 @@ def deploy_checks():
     celery_okay = False
     try:
         if settings.USE_CELERY:
+            from coredata.tasks import ping
             t = ping.apply_async()
             res = t.get(timeout=5)
             if res == True:
