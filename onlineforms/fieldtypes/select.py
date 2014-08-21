@@ -46,11 +46,14 @@ class RadioSelectField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
+        return mark_safe('<p>' + self.to_text(fieldsubmission) + '</p>')
+
+    def to_text(self, fieldsubmission):
         choice = fieldsubmission.data['info']
         if choice in self.config:
-            return mark_safe('<p>' + escape(self.config[choice]) + '</p>')
+            return self.config[choice]
         else:
-            return mark_safe('<p class="empty">None selected</p>')
+            return 'None selected'
 
 
 class DropdownSelectField(FieldBase):
@@ -99,8 +102,11 @@ class DropdownSelectField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
+        return mark_safe('<p>' + escape(self.to_text(fieldsubmission)) + '</p>')
+
+    def to_text(self, fieldsubmission=None):
         choice = fieldsubmission.data['info']
-        return mark_safe('<p>' + escape(self.config[choice]) + '</p>')
+        return self.config[choice]
 
 
 class MultipleSelectField(FieldBase):

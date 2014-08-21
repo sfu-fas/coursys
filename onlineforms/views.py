@@ -25,7 +25,7 @@ from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_she
 
 from coredata.models import Person, Role, Unit
 from log.models import LogEntry
-import json
+import json, csv
 import os
 
 #######################################################################
@@ -774,6 +774,21 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                    'choices': need_choices}
 
         return render(request, 'onlineforms/edit_field.html', context)
+
+@requires_form_admin_by_slug()
+def summary_csv(request, form_slug):
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
+    writer = csv.writer(response)
+    headers, data = form.all_submission_summary()
+    for row in headers:
+        writer.writerow(row)
+    for row in data:
+        writer.writerow(row)
+
+    return response
+
 
 #######################################################################
 # Submitting sheets

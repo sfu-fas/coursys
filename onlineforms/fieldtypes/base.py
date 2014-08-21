@@ -27,6 +27,7 @@ class FieldBase(object):
     default_config = {'required': False, 'label': '', 'help_text': ''}
     configurable = True
     choices = False
+    in_summary = True # this type is included in summary CSV output
 
     def __init__(self, config=None):
         """
@@ -81,6 +82,14 @@ class FieldBase(object):
         """
         Convert FieldSubmission to HTML for display to the user.
 
-        e.g. return mark_safe('<p>'+escape(filled.data['info'])+'</p>')
+        e.g. return mark_safe('<p>'+escape(fieldsubmission.data['info'])+'</p>')
+        """
+        raise NotImplementedError
+
+    def to_text(self, fieldsubmission):
+        """
+        Convert FieldSubmission to text for display in CSV summary output. Required only if self.in_summary.
+
+        e.g. escape(fieldsubmission.data['info'])
         """
         raise NotImplementedError

@@ -65,7 +65,6 @@ FIELD_TYPE_CHOICES = [
 FIELD_TYPES = dict(FIELD_TYPE_CHOICES)
 
 # mapping of field types to FieldType objects that implement their logic
-#from onlineforms.fieldtypes import *
 FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
@@ -377,6 +376,63 @@ class Form(models.Model, _FormCoherenceMixin):
                     newfield.save()
 
             return newform
+
+    def all_submission_summary(self):
+        """
+        Generate summary data of each submission for CSV output
+        """
+        headers = [['',''],['Initiator Name', 'Initiator Email']]
+        data = []
+
+        # find all sheets (in a sensible order: deleted last)
+        sheets = Sheet.objects.filter(form__original_id=self.original_id).order_by('order', '-created_date')
+        active_sheets = [s for s in sheets if s.active]
+        inactive_sheets = [s for s in sheets if not s.active]
+        original_sheet_ids = []
+        for s in itertools.chain(active_sheets, inactive_sheets):
+            if s.original_id not in original_sheet_ids:
+                original_sheet_ids.append(s.original_id)
+
+        # find all fields in each of those sheets (in a equally-sensible order)
+        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet').order_by('order', '-created_date')
+        active_fields = [f for f in fields if f.active]
+        inactive_fields = [f for f in fields if not f.active]
+        original_field_ids = []
+        for s_id in original_sheet_ids:
+            for f in itertools.chain(active_fields, inactive_fields):
+                if f.sheet.original_id != s_id:
+                    continue
+                if f.original_id not in original_field_ids:
+                    if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
+                        continue
+
+                    original_field_ids.append(f.original_id)
+                    headers[0].append(f.sheet.title)
+                    headers[1].append(f.label)
+
+        # go through FormSubmissions and create a row for each
+        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id) \
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller')
+        # TODO: must pick a most-relevant sheetsubmission for each original sheet. This selects sheetsubs/fieldsubs randomly if there are multiples.
+        fieldsubs = FieldSubmission.objects.filter(sheet_submission__form_submission__form__original_id=self.original_id) \
+                .select_related('sheet_submission__form_submission', 'field')
+        fieldsubs = list(fieldsubs)
+
+        for formsub in formsubs:
+            row = [formsub.initiator.name(), formsub.initiator.email()]
+            # make sure to output the fields in the order chosen above
+            for fid in original_field_ids:
+                # search for the fieldsub that goes with this column: maybe not the best way, but better than a DB query for each one.
+                for fs in fieldsubs:
+                    if fs.field.original_id == fid and fs.sheet_submission.form_submission_id == formsub.id:
+                        handler = FIELD_TYPE_MODELS[fs.field.fieldtype](fs.field.config)
+                        print fs.field.fieldtype
+                        row.append(handler.to_text(fs))
+            data.append(row)
+
+
+
+        return headers, data
 
 
 

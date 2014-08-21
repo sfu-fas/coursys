@@ -54,8 +54,12 @@ class SmallTextField(FieldBase):
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
 
+    def to_text(self, fieldsubmission):
+        return fieldsubmission.data['info']
+
 
 class MediumTextField(FieldBase):
+    in_summary = False
     more_default_config = {'min_length': 1, 'max_length': 1000}
 
     class MediumTextConfigForm(FieldConfigForm):
@@ -104,6 +108,7 @@ class MediumTextField(FieldBase):
 
 
 class LargeTextField(FieldBase):
+    in_summary = False
     more_default_config = {'min_length': 1, 'max_length': 10000}
 
     class LargeTextConfigForm(FieldConfigForm):
@@ -177,6 +182,7 @@ class EmailTextField(FieldBase):
 
 
 class ExplanationTextField(FieldBase):
+    in_summary = False
     class ExplanationTextConfigForm(FieldConfigForm):
         text_explanation = forms.CharField(required=True, max_length=10000,
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
