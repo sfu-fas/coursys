@@ -210,8 +210,13 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
             sheet_submission = SheetSubmission(form_submission=form_submission,
                 sheet=form.cleaned_data['sheet'],
                 filler=formFiller)
+            sheet_submission.set_assigner(admin)
             if 'note' in form.cleaned_data and form.cleaned_data['note']:
                 sheet_submission.set_assign_note(form.cleaned_data['note'])
+            if 'comment' in form.cleaned_data and form.cleaned_data['comment']:
+                sheet_submission.set_assign_comment(form.cleaned_data['comment'])
+            else:
+                sheet_submission.set_assign_comment(None)
 
             sheet_submission.save()
 

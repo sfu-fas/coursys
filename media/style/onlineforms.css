@@ -23,6 +23,9 @@ p.incomplete-warning {
   font-weight: bold;
   color: #f00;
 }
+.assign-comment {
+  font-style: italic;
+}
 
 form.sheetsub div.explanation_block {
 	color: #999;

@@ -596,7 +596,9 @@ class SheetSubmission(models.Model):
         return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
-        # 'assign_note': optional note provided when sheet was assigned by admin
+        # 'assigner': the user who assigned this sheet to the filler (Person.id value)
+        # 'assign_note': optional note provided for asignee when sheet was assigned by admin
+        # 'assign_comment': optional comment provided by admin about the formsubmission
         # 'reject_reason': reason given for rejecting the sheet
         # 'return_reason': reason given for returning the sheet to the filler
 
@@ -609,8 +611,10 @@ class SheetSubmission(models.Model):
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
     
-    defaults = {'assign_note': None, 'reject_reason': None, 'return_reason': None}
+    defaults = {'assigner': None, 'assign_comment': None, 'assign_note': None, 'reject_reason': None, 'return_reason': None}
+    assigner_id, set_assigner_id = getter_setter('assigner')
     assign_note, set_assign_note = getter_setter('assign_note')
+    assign_comment, set_assign_comment = getter_setter('assign_comment')
     reject_reason, set_reject_reason = getter_setter('reject_reason')
     return_reason, set_return_reason = getter_setter('return_reason')
 
@@ -620,7 +624,16 @@ class SheetSubmission(models.Model):
             self.cached_fields = FieldSubmission.objects.filter(sheet_submission=self)
         return self.cached_fields
     field_submissions = property(get_field_submissions)
-    
+
+    def assigner(self):
+        assigner_id = self.assigner_id()
+        if assigner_id:
+            return Person.objects.get(id=assigner_id)
+        else:
+            return None
+    def set_assigner(self, assigner):
+        self.set_assigner_id(assigner.id)
+
     def get_secret(self):
         try:
             return SheetSubmissionSecretUrl.objects.get(sheet_submission=self)

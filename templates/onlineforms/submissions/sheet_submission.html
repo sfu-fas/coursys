@@ -56,6 +56,9 @@ $(document).ready(function() {
             {% endif %}
             <fieldset>
                 <legend>{{ sheet.title }}</legend>
+                {% if sheet_submission and sheet_submission.assign_comment %}
+                <p class="assign-comment">Comment from {{ sheet_submission.assigner.name }} when assigning sheet: {{ sheet_submission.assign_comment|linebreaksbr }}</p>
+                {% endif %}
                 {{ form|as_dl_onlineforms }}
                 <input type="submit" name="submit" value="Complete and Submit" class="submit"/>
                 <input type="submit" name="save" value="Save for Later" class="submit"/>
