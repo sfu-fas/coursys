@@ -460,7 +460,10 @@ class Form(models.Model, _FormCoherenceMixin):
                     row.append(None)
 
                 if info['is_initial']:
-                    row.append(ss.given_at.strftime(DATETIME_FMT))
+                    if ss:
+                        row.append(ss.given_at.strftime(DATETIME_FMT))
+                    else:
+                        row.append(None)
 
                 for fid, finfo in info['fields'].iteritems():
                     if ss and (ss.id, fid) in fieldsub_lookup:
