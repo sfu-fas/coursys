@@ -106,11 +106,13 @@ class DropdownSelectField(FieldBase):
 
     def to_text(self, fieldsubmission=None):
         choice = fieldsubmission.data['info']
-        return self.config[choice]
+        if choice in self.config:
+            return self.config[choice]
+        else:
+            return 'None selected'
 
 
 class MultipleSelectField(FieldBase):
-
     choices = True
 
     class MultipleSelectConfigForm(FieldConfigForm):
@@ -176,6 +178,19 @@ class MultipleSelectField(FieldBase):
                 output += '<li>%s</li>' % escape(str(item))
             output += '</ul>'
         else:
-            output = '<br />'
+            output = '<p class="empty">None selected</p>'
 
         return mark_safe(output)
+
+    def to_text(self, fieldsubmission=None):
+
+        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
+
+        initial = []
+
+        if fieldsubmission:
+            initial = fieldsubmission.data['info']
+
+        display_values = [dict(the_choices)[str(i)] for i in initial]
+        return ';'.join(display_values)

@@ -782,8 +782,7 @@ def summary_csv(request, form_slug):
     response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
     writer = csv.writer(response)
     headers, data = form.all_submission_summary()
-    for row in headers:
-        writer.writerow(row)
+    writer.writerow(headers)
     for row in data:
         writer.writerow(row)
 
