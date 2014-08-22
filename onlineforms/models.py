@@ -1,5 +1,6 @@
 import os
-from django.db import models, transaction
+from django.db import models
+import django.db.transaction
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from coredata.models import Person, Unit
@@ -64,7 +65,6 @@ FIELD_TYPE_CHOICES = [
 FIELD_TYPES = dict(FIELD_TYPE_CHOICES)
 
 # mapping of field types to FieldType objects that implement their logic
-#from onlineforms.fieldtypes import *
 FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
@@ -314,11 +314,11 @@ class Form(models.Model, _FormCoherenceMixin):
         self.active = False
         self.save()
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        instance = super(Form, self).save(*args, **kwargs)
-        self.cleanup_fields()
-        return instance
+        with django.db.transaction.atomic():
+            instance = super(Form, self).save(*args, **kwargs)
+            self.cleanup_fields()
+            return instance
     
     @property
     def initial_sheet(self):
@@ -338,7 +338,6 @@ class Form(models.Model, _FormCoherenceMixin):
     def get_initiators_display_short(self):
         return INITIATOR_SHORT[self.initiators]
 
-    @transaction.atomic
     def duplicate(self):
         """
         Make a independent duplicate of this form.
@@ -352,30 +351,87 @@ class Form(models.Model, _FormCoherenceMixin):
             newform.slug = None
             newform.save()
         """
-        newform = self.clone()
-        newform.original = None
-        newform.slug = None
-        newform.active = True
-        newform.initiators = 'NON'
-        newform.save()
+        with django.db.transaction.atomic():
+            newform = self.clone()
+            newform.original = None
+            newform.slug = None
+            newform.active = True
+            newform.initiators = 'NON'
+            newform.save()
 
-        sheets = Sheet.objects.filter(form=self)
-        for s in sheets:
-            newsheet = s.clone()
-            newsheet.form = newform
-            newsheet.original = None
-            newsheet.slug = None
-            newsheet.save()
+            sheets = Sheet.objects.filter(form=self)
+            for s in sheets:
+                newsheet = s.clone()
+                newsheet.form = newform
+                newsheet.original = None
+                newsheet.slug = None
+                newsheet.save()
 
-            fields = Field.objects.filter(sheet=s)
-            for f in fields:
-                newfield = f.clone()
-                newfield.sheet = newsheet
-                newfield.original = None
-                newfield.slug = None
-                newfield.save()
+                fields = Field.objects.filter(sheet=s)
+                for f in fields:
+                    newfield = f.clone()
+                    newfield.sheet = newsheet
+                    newfield.original = None
+                    newfield.slug = None
+                    newfield.save()
 
-        return newform
+            return newform
+
+    def all_submission_summary(self):
+        """
+        Generate summary data of each submission for CSV output
+        """
+        headers = [['',''],['Initiator Name', 'Initiator Email']]
+        data = []
+
+        # find all sheets (in a sensible order: deleted last)
+        sheets = Sheet.objects.filter(form__original_id=self.original_id).order_by('order', '-created_date')
+        active_sheets = [s for s in sheets if s.active]
+        inactive_sheets = [s for s in sheets if not s.active]
+        original_sheet_ids = []
+        for s in itertools.chain(active_sheets, inactive_sheets):
+            if s.original_id not in original_sheet_ids:
+                original_sheet_ids.append(s.original_id)
+
+        # find all fields in each of those sheets (in a equally-sensible order)
+        fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet').order_by('order', '-created_date')
+        active_fields = [f for f in fields if f.active]
+        inactive_fields = [f for f in fields if not f.active]
+        original_field_ids = []
+        for s_id in original_sheet_ids:
+            for f in itertools.chain(active_fields, inactive_fields):
+                if f.sheet.original_id != s_id:
+                    continue
+                if f.original_id not in original_field_ids:
+                    if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
+                        continue
+
+                    original_field_ids.append(f.original_id)
+                    headers[0].append(f.sheet.title)
+                    headers[1].append(f.label)
+
+        # go through FormSubmissions and create a row for each
+        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id) \
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller')
+        # TODO: must pick a most-relevant sheetsubmission for each original sheet. This selects sheetsubs/fieldsubs randomly if there are multiples.
+        fieldsubs = FieldSubmission.objects.filter(sheet_submission__form_submission__form__original_id=self.original_id) \
+                .select_related('sheet_submission__form_submission', 'field')
+        fieldsubs = list(fieldsubs)
+
+        for formsub in formsubs:
+            row = [formsub.initiator.name(), formsub.initiator.email()]
+            # make sure to output the fields in the order chosen above
+            for fid in original_field_ids:
+                # search for the fieldsub that goes with this column: maybe not the best way, but better than a DB query for each one.
+                for fs in fieldsubs:
+                    if fs.field.original_id == fid and fs.sheet_submission.form_submission_id == formsub.id:
+                        handler = FIELD_TYPE_MODELS[fs.field.fieldtype](fs.field.config)
+                        row.append(handler.to_text(fs))
+            data.append(row)
+
+
+
+        return headers, data
 
 
 
@@ -416,41 +472,41 @@ class Sheet(models.Model, _FormCoherenceMixin):
         unique_together = (("form", "slug"),)
         ordering = ('order',)
 
-    @transaction.atomic
     def safe_save(self):
         """
         Save a copy of this sheet, and return the copy: does not modify self.
         """
-        # clone the sheet
-        sheet2 = self.clone()
-        self.slug = self.slug + "_" + str(self.id)
-        self.save()
-        sheet2.save()
-        sheet2.cleanup_fields()
-        # copy the fields
-        for field1 in Field.objects.filter(sheet=self, active=True):
-            field2 = field1.clone()
-            field2.sheet = sheet2
-            field2.save()
-        return sheet2       
+        with django.db.transaction.atomic():
+            # clone the sheet
+            sheet2 = self.clone()
+            self.slug = self.slug + "_" + str(self.id)
+            self.save()
+            sheet2.save()
+            sheet2.cleanup_fields()
+            # copy the fields
+            for field1 in Field.objects.filter(sheet=self, active=True):
+                field2 = field1.clone()
+                field2.sheet = sheet2
+                field2.save()
+            return sheet2       
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        # if this sheet is just being created it needs a order number
-        if(self.order == None):
-            max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
-            if(max_aggregate['order__max'] == None):
-                next_order = 0
-                # making first sheet for form--- initial 
-                self.is_initial = True
-            else:
-                next_order = max_aggregate['order__max'] + 1
-            self.order = next_order
+        with django.db.transaction.atomic():
+            # if this sheet is just being created it needs a order number
+            if(self.order == None):
+                max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
+                if(max_aggregate['order__max'] == None):
+                    next_order = 0
+                    # making first sheet for form--- initial 
+                    self.is_initial = True
+                else:
+                    next_order = max_aggregate['order__max'] + 1
+                self.order = next_order
 
-        #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
-  
-        super(Sheet, self).save(*args, **kwargs)
-        self.cleanup_fields()
+            #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
+      
+            super(Sheet, self).save(*args, **kwargs)
+            self.cleanup_fields()
 
     cached_fields = None
     def get_fields(self, refetch=False):
@@ -488,20 +544,20 @@ class Field(models.Model, _FormCoherenceMixin):
     class Meta:
         unique_together = (("sheet", "slug"),)
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        # if this field is just being created it needs a order number
-        if(self.order == None):
-            max_aggregate = Field.objects.filter(sheet=self.sheet).aggregate(Max('order'))
-            if(max_aggregate['order__max'] == None):
-                next_order = 0
-            else:
-                next_order = max_aggregate['order__max'] + 1
-            self.order = next_order
+        with django.db.transaction.atomic():
+            # if this field is just being created it needs a order number
+            if(self.order == None):
+                max_aggregate = Field.objects.filter(sheet=self.sheet).aggregate(Max('order'))
+                if(max_aggregate['order__max'] == None):
+                    next_order = 0
+                else:
+                    next_order = max_aggregate['order__max'] + 1
+                self.order = next_order
 
 
-        super(Field, self).save(*args, **kwargs)
-        self.cleanup_fields()
+            super(Field, self).save(*args, **kwargs)
+            self.cleanup_fields()
 
 def neaten_field_positions(sheet):
     """
@@ -595,21 +651,25 @@ class SheetSubmission(models.Model):
         return self.filler.identifier()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
-        # 'assign_note': optional note provided when sheet was assigned by admin
+        # 'assigner': the user who assigned this sheet to the filler (Person.id value)
+        # 'assign_note': optional note provided for asignee when sheet was assigned by admin
+        # 'assign_comment': optional comment provided by admin about the formsubmission
         # 'reject_reason': reason given for rejecting the sheet
         # 'return_reason': reason given for returning the sheet to the filler
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        self.completed_at = datetime.datetime.now()
-        super(SheetSubmission, self).save(*args, **kwargs)
-        self.form_submission.update_status()
+        with django.db.transaction.atomic():
+            self.completed_at = datetime.datetime.now()
+            super(SheetSubmission, self).save(*args, **kwargs)
+            self.form_submission.update_status()
 
     def __unicode__(self):
         return "%s by %s" % (self.sheet, self.filler.identifier())
     
-    defaults = {'assign_note': None, 'reject_reason': None, 'return_reason': None}
+    defaults = {'assigner': None, 'assign_comment': None, 'assign_note': None, 'reject_reason': None, 'return_reason': None}
+    assigner_id, set_assigner_id = getter_setter('assigner')
     assign_note, set_assign_note = getter_setter('assign_note')
+    assign_comment, set_assign_comment = getter_setter('assign_comment')
     reject_reason, set_reject_reason = getter_setter('reject_reason')
     return_reason, set_return_reason = getter_setter('return_reason')
 
@@ -619,7 +679,16 @@ class SheetSubmission(models.Model):
             self.cached_fields = FieldSubmission.objects.filter(sheet_submission=self)
         return self.cached_fields
     field_submissions = property(get_field_submissions)
-    
+
+    def assigner(self):
+        assigner_id = self.assigner_id()
+        if assigner_id:
+            return Person.objects.get(id=assigner_id)
+        else:
+            return None
+    def set_assigner(self, assigner):
+        self.set_assigner_id(assigner.id)
+
     def get_secret(self):
         try:
             return SheetSubmissionSecretUrl.objects.get(sheet_submission=self)
@@ -806,11 +875,11 @@ class SheetSubmissionSecretUrl(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     key = models.CharField(max_length=128, null=False, editable=False, unique=True)
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
-        if not(self.key):
-            self.key = self.autokey()
-        super(SheetSubmissionSecretUrl, self).save(*args, **kwargs)
+        with django.db.transaction.atomic():
+            if not(self.key):
+                self.key = self.autokey()
+            super(SheetSubmissionSecretUrl, self).save(*args, **kwargs)
 
     def autokey(self):
         generated = False

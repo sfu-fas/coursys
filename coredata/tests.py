@@ -1,4 +1,5 @@
 from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
                             Member, Role, Unit, ROLE_CHOICES
 
@@ -295,7 +296,7 @@ class CoredataTest(TestCase):
         self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)
 
 
-class SlowCoredataTest(TestCase):
+class SlowCoredataTest(FastFixtureTestCase):
     fixtures = ['test_data']
     
     def test_course_browser(self):

@@ -1,9 +1,10 @@
-from django.test import TestCase
 
 from coredata.tests import create_offering
 from coredata.models import *
 from dashboard.models import UserConfig
 from courselib.testing import *
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
 import re, datetime
 

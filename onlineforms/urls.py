@@ -30,6 +30,7 @@ forms_patterns = [
     url(r'^manage/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
     url(r'^manage/' + FORM_SLUG + '/new$', 'onlineforms.views.new_sheet'),
     url(r'^manage/' + FORM_SLUG + '/preview$', 'onlineforms.views.preview_form'),
+    url(r'^manage/' + FORM_SLUG + '/summary$', 'onlineforms.views.summary_csv'),
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/preview$', 'onlineforms.views.preview_sheet'),
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/$', 'onlineforms.views.edit_sheet'),
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/edit$', 'onlineforms.views.edit_sheet_info'),

@@ -1,5 +1,6 @@
 import copy
-from django.db import models, IntegrityError, transaction
+from django.db import models, IntegrityError
+import django.db.transaction
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
@@ -441,144 +442,144 @@ def save_copied_activity(target_activity, model, target_course_offering):
         old_activity.save()
         target_activity.save(force_insert=True)            
 
-@transaction.atomic
 def copyCourseSetup(course_copy_from, course_copy_to):
     """
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
-    from submission.models.code import CodeComponent
-    from submission.models.codefile import CodefileComponent
-    # copy things in offering's .config dict
-    for f in course_copy_from.copy_config_fields:
-        if f in course_copy_from.config:
-            course_copy_to.config[f] = course_copy_from.config[f]
-    course_copy_to.save()
+    with db.django.transaction.atomic():
+        from submission.models.code import CodeComponent
+        from submission.models.codefile import CodefileComponent
+        # copy things in offering's .config dict
+        for f in course_copy_from.copy_config_fields:
+            if f in course_copy_from.config:
+                course_copy_to.config[f] = course_copy_from.config[f]
+        course_copy_to.save()
 
-    # copy Activities (and related content)
-    all_activities = all_activities_filter(offering=course_copy_from)
+        # copy Activities (and related content)
+        all_activities = all_activities_filter(offering=course_copy_from)
 
-    for activity in all_activities:
-        Class = activity.__class__
-        new_activity = copy_activity(activity, course_copy_from, course_copy_to)
-        save_copied_activity(new_activity, Class, course_copy_to)
-    
-        # should only apply to NumericActivity: others have no ActivityComponents
-        for activity_component in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False):
-            new_activity_component = copy.deepcopy(activity_component)
-            new_activity_component.id = None
-            new_activity_component.pk = None
-            new_activity_component.numeric_activity = new_activity
-            new_activity_component.slug = None
-            new_activity_component.save(force_insert=True)
-            for common_problem in CommonProblem.objects.filter(activity_component=activity_component, deleted=False):
-                new_common_problem = copy.deepcopy(common_problem)
-                new_common_problem.id = None
-                new_common_problem.pk = None
-                new_common_problem.penalty = str(new_common_problem.penalty)
-                new_common_problem.activity_component = new_activity_component
-                new_common_problem.save(force_insert=True)
+        for activity in all_activities:
+            Class = activity.__class__
+            new_activity = copy_activity(activity, course_copy_from, course_copy_to)
+            save_copied_activity(new_activity, Class, course_copy_to)
         
-        for submission_component in select_all_components(activity):
-            new_submission_component = copy.deepcopy(submission_component)
-            new_submission_component.id = None
-            new_submission_component.pk = None
-            new_submission_component.activity = new_activity
-            new_submission_component.slug = None
-            if isinstance(new_submission_component, CodeComponent):
-                # upgrade Code to Codefile while migrating
-                new_submission_component = CodefileComponent.build_from_codecomponent(new_submission_component)
+            # should only apply to NumericActivity: others have no ActivityComponents
+            for activity_component in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False):
+                new_activity_component = copy.deepcopy(activity_component)
+                new_activity_component.id = None
+                new_activity_component.pk = None
+                new_activity_component.numeric_activity = new_activity
+                new_activity_component.slug = None
+                new_activity_component.save(force_insert=True)
+                for common_problem in CommonProblem.objects.filter(activity_component=activity_component, deleted=False):
+                    new_common_problem = copy.deepcopy(common_problem)
+                    new_common_problem.id = None
+                    new_common_problem.pk = None
+                    new_common_problem.penalty = str(new_common_problem.penalty)
+                    new_common_problem.activity_component = new_activity_component
+                    new_common_problem.save(force_insert=True)
             
-            # enforce tighter submission size limits
-            if hasattr(new_submission_component, 'max_size'):
-                if new_submission_component.max_size > settings.MAX_SUBMISSION_SIZE:
-                  new_submission_component.max_size = settings.MAX_SUBMISSION_SIZE
-            
-            new_submission_component.save(force_insert=True)
-    
-    for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
-        # fix up source and exam activities as best possible
-        if activity.numeric_activity:
-            try:
-                na = NumericActivity.objects.get(offering=course_copy_to, name=activity.numeric_activity.name, deleted=False)
-            except NumericActivity.DoesNotExist:
-                na = NumericActivity.objects.filter(offering=course_copy_to, deleted=False)[0]
-            activity.numeric_activity = na
-            
-        if activity.exam_activity:
-            try:
-                a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
-            except Activity.DoesNotExist:
-                a = Activity.objects.filter(offering=course_copy_to, deleted=False)[0]
-            activity.exam_activity = a
+            for submission_component in select_all_components(activity):
+                new_submission_component = copy.deepcopy(submission_component)
+                new_submission_component.id = None
+                new_submission_component.pk = None
+                new_submission_component.activity = new_activity
+                new_submission_component.slug = None
+                if isinstance(new_submission_component, CodeComponent):
+                    # upgrade Code to Codefile while migrating
+                    new_submission_component = CodefileComponent.build_from_codecomponent(new_submission_component)
+                
+                # enforce tighter submission size limits
+                if hasattr(new_submission_component, 'max_size'):
+                    if new_submission_component.max_size > settings.MAX_SUBMISSION_SIZE:
+                      new_submission_component.max_size = settings.MAX_SUBMISSION_SIZE
+                
+                new_submission_component.save(force_insert=True)
         
-        activity.save()
-    
-    
-    # copy the Pages
-    from pages.models import Page, PageFilesStorage, attachment_upload_to
-    for p in Page.objects.filter(offering=course_copy_from):
-        new_p = copy.deepcopy(p)
-        new_p.id = None
-        new_p.pk = None
-        new_p.offering = course_copy_to
-        while True:
-            count = 0
-            orig_label = new_p.label
-            try:
-                new_p.save(force_insert=True)
-                break
-            except IntegrityError:
-                count += 1
-                new_p.label = orig_label + "-" + str(count)
-        
-        # if there are release dates, adapt to new semester
-        if new_p.releasedate():
-            week, wkday = course_copy_from.semester.week_weekday(new_p.releasedate())
-            new_date = course_copy_to.semester.duedate(week, wkday, None)
-            new_p.set_releasedate(new_date)
-        if new_p.editdate():
-            week, wkday = course_copy_from.semester.week_weekday(new_p.editdate())
-            new_date = course_copy_to.semester.duedate(week, wkday, None)
-            new_p.set_editdate(new_date)
-
-        new_p.save()
-
-        v = p.current_version()
-        new_v = copy.deepcopy(v)
-        new_v.id = None
-        new_v.pk = None
-        new_v.page = new_p
-        # collapse old version history
-        new_v.wikitext = v.get_wikitext()
-        new_v.diff = None
-        new_v.diff_from = None
-        new_v.comment = "Page migrated from %s" % (course_copy_from)
-        
-        if new_v.file_attachment:
-            # copy the file (so we can safely remove old semesters'
-            # files without leaving bad path reference)
-            src = v.file_attachment.path
-            path = attachment_upload_to(new_v, new_v.file_name)
-            dst = PageFilesStorage.path(path)
-            dstpath, dstfile = os.path.split(dst)
-            while os.path.exists(os.path.join(dstpath, dstfile)):
-                # handle duplicates by mangling the directory name
-                dstpath += "_"
-            dst = os.path.join(dstpath, dstfile)
-            new_v.file_attachment = dst
+        for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
+            # fix up source and exam activities as best possible
+            if activity.numeric_activity:
+                try:
+                    na = NumericActivity.objects.get(offering=course_copy_to, name=activity.numeric_activity.name, deleted=False)
+                except NumericActivity.DoesNotExist:
+                    na = NumericActivity.objects.filter(offering=course_copy_to, deleted=False)[0]
+                activity.numeric_activity = na
+                
+            if activity.exam_activity:
+                try:
+                    a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
+                except Activity.DoesNotExist:
+                    a = Activity.objects.filter(offering=course_copy_to, deleted=False)[0]
+                activity.exam_activity = a
             
-            if not os.path.exists(dstpath):
-                os.makedirs(dstpath)
+            activity.save()
+        
+        
+        # copy the Pages
+        from pages.models import Page, PageFilesStorage, attachment_upload_to
+        for p in Page.objects.filter(offering=course_copy_from):
+            new_p = copy.deepcopy(p)
+            new_p.id = None
+            new_p.pk = None
+            new_p.offering = course_copy_to
+            while True:
+                count = 0
+                orig_label = new_p.label
+                try:
+                    new_p.save(force_insert=True)
+                    break
+                except IntegrityError:
+                    count += 1
+                    new_p.label = orig_label + "-" + str(count)
+            
+            # if there are release dates, adapt to new semester
+            if new_p.releasedate():
+                week, wkday = course_copy_from.semester.week_weekday(new_p.releasedate())
+                new_date = course_copy_to.semester.duedate(week, wkday, None)
+                new_p.set_releasedate(new_date)
+            if new_p.editdate():
+                week, wkday = course_copy_from.semester.week_weekday(new_p.editdate())
+                new_date = course_copy_to.semester.duedate(week, wkday, None)
+                new_p.set_editdate(new_date)
 
-            try:
-                os.link(src, dst)
-            except:
-                # any problems with the hardlink: try simple copy
-                import shutil
-                shutil.copyfile(src, dst)
+            new_p.save()
 
-        new_v.save(force_insert=True)
+            v = p.current_version()
+            new_v = copy.deepcopy(v)
+            new_v.id = None
+            new_v.pk = None
+            new_v.page = new_p
+            # collapse old version history
+            new_v.wikitext = v.get_wikitext()
+            new_v.diff = None
+            new_v.diff_from = None
+            new_v.comment = "Page migrated from %s" % (course_copy_from)
+            
+            if new_v.file_attachment:
+                # copy the file (so we can safely remove old semesters'
+                # files without leaving bad path reference)
+                src = v.file_attachment.path
+                path = attachment_upload_to(new_v, new_v.file_name)
+                dst = PageFilesStorage.path(path)
+                dstpath, dstfile = os.path.split(dst)
+                while os.path.exists(os.path.join(dstpath, dstfile)):
+                    # handle duplicates by mangling the directory name
+                    dstpath += "_"
+                dst = os.path.join(dstpath, dstfile)
+                new_v.file_attachment = dst
+                
+                if not os.path.exists(dstpath):
+                    os.makedirs(dstpath)
+
+                try:
+                    os.link(src, dst)
+                except:
+                    # any problems with the hardlink: try simple copy
+                    import shutil
+                    shutil.copyfile(src, dst)
+
+            new_v.save(force_insert=True)
 
 
 

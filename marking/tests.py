@@ -7,7 +7,8 @@ import unicodecsv as csv
 from decimal import Decimal, ROUND_HALF_EVEN
 from datetime import datetime
 from django.core.urlresolvers import reverse
-from django.test import TestCase
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
 
 
 from models import ActivityComponent, CommonProblem, Group, GroupMember

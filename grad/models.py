@@ -1,4 +1,4 @@
-from django.db import models, transaction, IntegrityError
+from django.db import models, IntegrityError
 from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, Member
 from django.core.files.storage import FileSystemStorage
@@ -12,6 +12,7 @@ import itertools, datetime, os
 import coredata.queries
 from django.conf import settings
 from collections import defaultdict
+import django.db.transaction
 
 IGNORE_CMPT_STUDENTS = True
 def create_or_update_student( emplid, dryrun=False, verbose=False ):
@@ -1478,32 +1479,33 @@ class GradRequirement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
+
     def __unicode__(self):
         return u"%s" % (self.description)
     class Meta:
         unique_together = (('program', 'description'),)
 
-    @transaction.atomic
     def save(self, *args, **kwargs):
         # maintain self.series as identifying the category of requirements across programs in this unit    
-        if not self.series:
-            others = GradRequirement.objects \
-                    .filter(description=self.description,
-                            program__unit=self.program.unit)
-            if others:
-                # use the series from an identically-named requirement
-                ser = others[0].series
-            else:
-                # need a new series id
-                used = set(r.series for r in GradRequirement.objects.all())
-                try:
-                    ser = max(used) + 1
-                except ValueError:
-                    ser = 1
+        with django.db.transaction.atomic():
+            if not self.series:
+                others = GradRequirement.objects \
+                        .filter(description=self.description,
+                                program__unit=self.program.unit)
+                if others:
+                    # use the series from an identically-named requirement
+                    ser = others[0].series
+                else:
+                    # need a new series id
+                    used = set(r.series for r in GradRequirement.objects.all())
+                    try:
+                        ser = max(used) + 1
+                    except ValueError:
+                        ser = 1
+                
+                self.series = ser
             
-            self.series = ser
-        
-        super(GradRequirement, self).save(*args, **kwargs)
+            super(GradRequirement, self).save(*args, **kwargs)
         
 
 class CompletedRequirement(models.Model):

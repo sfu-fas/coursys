@@ -106,8 +106,10 @@ class AdminAssignFormForm(_AdminAssignForm):
 class AdminAssignSheetForm(_AdminAssignForm):
     sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
     assignee = PersonField(label='Assign to', required=True)
-    note = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '70'}),
-            help_text="Optional note to the assignee")
+    comment = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': '3', 'cols': '70'}),
+            help_text="Optional comment on the form: this becomes part of the form history. If you have additional info about this submission, you can record it here.")
+    note = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': '3', 'cols': '70'}),
+            help_text="Optional private note to the assignee")
 
     def __init__(self, query_set, *args, **kwargs):
         super(_AdminAssignForm, self).__init__(*args, **kwargs)
@@ -127,6 +129,8 @@ class AdminAssignFormForm_nonsfu(_AdminAssignForm_nonsfu):
 
 class AdminAssignSheetForm_nonsfu(_AdminAssignForm_nonsfu):
     sheet = _FormModelChoiceField(required=True, queryset=Sheet.objects.none(), empty_label=None)
+    comment = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': '3', 'cols': '70'}),
+            help_text="Optional comment on the form: this becomes part of the form history.")
     note = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': '70'}),
             help_text="Optional note to the assignee")
 

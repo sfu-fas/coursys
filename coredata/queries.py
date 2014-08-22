@@ -1,6 +1,6 @@
 from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, CourseOffering
 from django.conf import settings
-from django.db import transaction
+import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
@@ -221,7 +221,7 @@ def add_person(emplid, commit=True, get_userid=True):
     """
     Add a Person object based on the found SIMS data
     """
-    with transaction.atomic():
+    with django.db.transaction.atomic():
         ps = Person.objects.filter(emplid=emplid)
         if ps:
             # person already there: ignore

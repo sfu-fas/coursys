@@ -1,4 +1,5 @@
-from django.test import TestCase
+#from django.test import TestCase
+from testboost.testcase import FastFixtureTestCase as TestCase
 from courselib.testing import basic_page_tests, Client, test_views, TEST_COURSE_SLUG
 from ta.models import CourseDescription, TAPosting, TAApplication, CampusPreference, CoursePreference, TUG
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, Role, Member
