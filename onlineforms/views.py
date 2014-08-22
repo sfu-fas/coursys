@@ -25,7 +25,8 @@ from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_she
 
 from coredata.models import Person, Role, Unit
 from log.models import LogEntry
-import json, csv
+import unicodecsv as csv
+import json
 import os
 
 #######################################################################
@@ -778,9 +779,9 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 @requires_form_admin_by_slug()
 def summary_csv(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
-    response = HttpResponse(content_type='text/csv')
+    response = HttpResponse(content_type='text/csv;charset=utf-8')
     response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
-    writer = csv.writer(response)
+    writer = csv.writer(response, encoding='utf-8')
     headers, data = form.all_submission_summary()
     writer.writerow(headers)
     for row in data:

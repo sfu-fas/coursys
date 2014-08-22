@@ -381,6 +381,7 @@ class Form(models.Model, _FormCoherenceMixin):
         """
         Generate summary data of each submission for CSV output
         """
+        DATETIME_FMT = "%Y-%m-%d"
         headers = []
         data = []
 
@@ -394,6 +395,7 @@ class Form(models.Model, _FormCoherenceMixin):
                 sheet_info[s.original_id] = {
                     'title': s.title,
                     'fields': collections.OrderedDict(),
+                    'is_initial': s.is_initial,
                 }
 
         # find all fields in each of those sheets (in a equally-sensible order)
@@ -404,15 +406,20 @@ class Form(models.Model, _FormCoherenceMixin):
             if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
                 continue
             info = sheet_info[f.sheet.original_id]
-            info['fields'][f.original_id] = {
-                'label': f.label,
-            }
+            if f.original_id not in info['fields']:
+                info['fields'][f.original_id] = {
+                    'label': f.label,
+                }
 
+        # build header row
         for sid, info in sheet_info.iteritems():
-            headers.append('| ' + info['title'])
+            headers.append(info['title'].upper())
             headers.append(None)
+            if info['is_initial']:
+                headers.append('Initiated')
             for fid, finfo in info['fields'].iteritems():
                 headers.append(finfo['label'])
+        headers.append('Last Sheet Completed')
 
         # go through FormSubmissions and create a row for each
         formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status='DONE') \
@@ -438,26 +445,39 @@ class Form(models.Model, _FormCoherenceMixin):
 
         for formsub in formsubs:
             row = []
+            found_anything = False
+            last_completed = None
             for sid, info in sheet_info.iteritems():
-                print (formsub.id, sid), formsub
                 if (formsub.id, sid) in winning_sheetsub:
                     ss = winning_sheetsub[(formsub.id, sid)]
                     row.append(ss.filler.name())
                     row.append(ss.filler.email())
+                    if not last_completed or ss.completed_at > last_completed:
+                        last_completed = ss.completed_at
                 else:
                     ss = None
                     row.append(None)
                     row.append(None)
+
+                if info['is_initial']:
+                    row.append(ss.given_at.strftime(DATETIME_FMT))
 
                 for fid, finfo in info['fields'].iteritems():
                     if ss and (ss.id, fid) in fieldsub_lookup:
                         fs = fieldsub_lookup[(ss.id, fid)]
                         handler = FIELD_TYPE_MODELS[fs.field.fieldtype](fs.field.config)
                         row.append(handler.to_text(fs))
+                        found_anything = True
                     else:
                         row.append(None)
 
-            data.append(row)
+            if last_completed:
+                row.append(last_completed.strftime(DATETIME_FMT))
+            else:
+                row.append(None)
+
+            if found_anything:
+                data.append(row)
 
         return headers, data
 
