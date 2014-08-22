@@ -178,7 +178,10 @@ class EmailTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
+        return mark_safe('<p>' + escape(self.to_text(fieldsubmission)) + '</p>')
+
+    def to_text(self, fieldsubmission):
+        return fieldsubmission.data['info']
 
 
 class ExplanationTextField(FieldBase):

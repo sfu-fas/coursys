@@ -426,7 +426,6 @@ class Form(models.Model, _FormCoherenceMixin):
                 for fs in fieldsubs:
                     if fs.field.original_id == fid and fs.sheet_submission.form_submission_id == formsub.id:
                         handler = FIELD_TYPE_MODELS[fs.field.fieldtype](fs.field.config)
-                        print fs.field.fieldtype
                         row.append(handler.to_text(fs))
             data.append(row)
 
