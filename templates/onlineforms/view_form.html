@@ -29,7 +29,6 @@
         <li><a href="{% url "onlineforms.views.edit_form" form_slug=form.slug %}">Edit Form Info</a></li>
         <li><a href="{% url "onlineforms.views.new_sheet" form_slug=form.slug %}">New Sheet</a></li>
         <li><a href="{% url "onlineforms.views.preview_form" form_slug=form.slug %}">Preview all sheets</a></li>
-        <li><a href="{% url "onlineforms.views.summary_csv" form_slug=form.slug %}">Summary of submissions</a> (beta!)</li>
     </ul>
 </div>
 {% endblock %}
