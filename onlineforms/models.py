@@ -420,10 +420,11 @@ class Form(models.Model, _FormCoherenceMixin):
             for fid, finfo in info['fields'].iteritems():
                 headers.append(finfo['label'])
         headers.append('Last Sheet Completed')
+        headers.append('Link')
 
         # go through FormSubmissions and create a row for each
         formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status='DONE') \
-                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller')
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
                 # selecting only fully completed forms: does it make sense to be more liberal and report status?
 
         # choose a winning SheetSubmission: there may be multiples of each sheet but we're only outputting one
@@ -478,6 +479,8 @@ class Form(models.Model, _FormCoherenceMixin):
                 row.append(last_completed.strftime(DATETIME_FMT))
             else:
                 row.append(None)
+
+            row.append(settings.BASE_ABS_URL + formsub.get_absolute_url())
 
             if found_anything:
                 data.append(row)
@@ -647,6 +650,9 @@ class FormSubmission(models.Model):
 
     def __unicode__(self):
         return "%s for %s" % (self.form, self.initiator)
+
+    def get_absolute_url(self):
+        return reverse('onlineforms.views.view_submission', kwargs={'form_slug': self.form.slug,'formsubmit_slug': self.slug})
 
     def closer(self):
         try:
