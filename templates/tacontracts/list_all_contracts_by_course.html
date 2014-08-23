@@ -1,0 +1,66 @@
+{% extends "base-wide.html" %}
+{% load form_display %}
+{% load staticfiles %}
+{% load currency %}
+{% load bu %}
+
+{% block title %}TA Contracts by Course- {{semester}}{% endblock %}
+{% block h1 %}TA Contracts by Course - {{semester}}{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'tacontracts.views.list_all_semesters' %}">Hiring Semesters</a></li>
+<li><a href="{% url 'tacontracts.views.list_all_contracts' semester=semester unit_slug=unit_slug %}">{{semester}}</a></li>
+<li>TA Contracts by Course</li>
+{% endblock %}
+
+{% block content %}
+
+<table class='contracts_course_table'>
+    <thead>
+        <tr>
+            <th>Course Offering</th>
+            <th>Instructor(s)</th>
+            <th>Campus</th>
+            <th>Enrollment</th>
+            <th>Assigned BUs</th>
+            <th>Student</th>
+            <th>Student BUs</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for offering in course_offerings %}
+        <tr>
+            <td rowspan="{{offering.rowspan}}" valign='top'>{{offering.subject}} {{offering.number}} - {{offering.section}}</td>
+            <td rowspan="{{offering.rowspan}}" valign='top'>{{offering.instructors_str}}</td>
+            <td rowspan="{{offering.rowspan}}" valign='top'>{{offering.get_campus_display}}</td>
+            <td rowspan="{{offering.rowspan}}" valign='top'>{{offering.enrl_tot}}/{{offering.enrl_cap}}</td>
+            <td rowspan="{{offering.rowspan}}" valign='top'>{{offering.bu}}</td>
+            {% with offering.courses.0 as course %}
+            <td>
+                {% if course %}
+                <a href="{% url "tacontracts.views.view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
+                    {{course.contract.person.name}}</a>
+                {% endif %}
+            </td>
+            <td>{{course.bu}}</td>
+            {% endwith %}
+        </tr>
+        {% for course in offering.courses|slice:"1:" %}
+        <tr>
+            <td>
+                <a href="{% url "tacontracts.views.view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
+                    {{course.contract.person.name}}</a>
+            </td>
+            <td>{{course.bu}}</td>
+        </tr>
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}

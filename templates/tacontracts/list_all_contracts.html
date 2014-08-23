@@ -45,6 +45,7 @@ $(function() {
         <li><a href="{% url "tacontracts.views.new_contract" unit_slug=unit_slug semester=semester  %}">New Contract</a></li>
         <li><a href="{% url "tacontracts.views.contracts_csv" unit_slug=unit_slug semester=semester %}">Generate CSV</a></li>
         <li><a href="{% url "tacontracts.views.bulk_email" unit_slug=unit_slug semester=semester %}">Bulk Email</a></li>
+        <li><a href="{% url "tacontracts.views.list_all_contracts_by_course" unit_slug=unit_slug semester=semester %}">All Contracts by Course</a></li>
         {% endif %}
     </ul>
 </div>

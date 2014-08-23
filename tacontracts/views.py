@@ -11,7 +11,7 @@ from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 # Local
 from courselib.auth import requires_role
-from coredata.models import Semester, Unit
+from coredata.models import Semester, Unit, CourseOffering
 from dashboard.models import NewsItem
 # App
 from .models import HiringSemester, TACategory, TAContract, TACourse, \
@@ -189,6 +189,31 @@ def list_all_contracts(request, unit_slug, semester):
         'signed_contracts':signed_contracts,
         'cancelled_contracts':cancelled_contracts,
         'show_copy_categories':show_copy_categories,
+    })
+
+@requires_role(["TAAD", "GRAD"])
+def list_all_contracts_by_course(request, unit_slug, semester):
+    hiring_semester = get_object_or_404(HiringSemester, 
+                                        semester__name=semester, 
+                                        unit__in=request.units,
+                                        unit__label=unit_slug)
+    contracts = TAContract.objects.visible(hiring_semester)
+    courses = TACourse.objects.filter(contract__in=contracts)
+    course_offerings = CourseOffering.objects.filter(owner__label=unit_slug, 
+                                                     semester__name=semester)
+    for offering in course_offerings:
+        offering.courses = [course for course in courses 
+                                                if course.course == offering]
+        offering.bu = sum([c.bu for c in offering.courses])
+        offering.rowspan = len(offering.courses)
+        if offering.rowspan == 0:
+            offering.rowspan = 1
+        #TODO: get professor for each course
+    
+    return render(request, 'tacontracts/list_all_contracts_by_course.html', {
+        'unit_slug':unit_slug,
+        'semester':semester,
+        'course_offerings':course_offerings
     })
 
 
