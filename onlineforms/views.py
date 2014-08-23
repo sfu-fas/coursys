@@ -25,7 +25,8 @@ from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_she
 
 from coredata.models import Person, Role, Unit
 from log.models import LogEntry
-import json, csv
+import unicodecsv as csv
+import json
 import os
 
 #######################################################################
@@ -154,16 +155,8 @@ def admin_list_all(request):
         for wait_sub in wait_submissions:
             last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub, status='WAIT').latest('given_at')
             wait_sub.assigned_to = last_sheet_assigned
-        
-        # Completed submissions
-        done_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='DONE')
-        for done_sub in done_submissions:
-            latest_sumbission = SheetSubmission.objects.filter(form_submission=done_sub).latest('completed_at')
-            done_sub.completed_at = latest_sumbission.completed_at
-        
-        # forms with status=='REJE' were thrown away incomplete by the initiator, so aren't displayed
 
-    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
+    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
 
@@ -375,13 +368,44 @@ def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
         context = {'sheetsub': sheet_submission, 'formsub': form_submission, 'form': form}
         return render(request, "onlineforms/admin/admin_return_sheet.html", context)
 
-
 def _userToFormFiller(user):
     try:
         form_filler = FormFiller.objects.get(sfuFormFiller=user)
     except ObjectDoesNotExist:
         form_filler = FormFiller.objects.create(sfuFormFiller=user)
     return form_filler
+
+
+@requires_formgroup()
+def admin_completed(request):
+    forms = Form.objects.filter(owner__in=request.formgroups).order_by('unit__slug', 'title').select_related('unit')
+    context = {'forms': forms}
+    return render(request, "onlineforms/admin/admin_completed.html", context)
+
+@requires_formgroup()
+def admin_completed_form(request, form_slug):
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    formsubs = FormSubmission.objects.filter(form=form, status='DONE')
+    for fs in formsubs:
+        latest_sumbission = SheetSubmission.objects.filter(form_submission=fs).latest('completed_at')
+        fs.completed_at = latest_sumbission.completed_at
+        # forms with status=='REJE' were thrown away incomplete by the initiator, so aren't displayed
+
+    context = {'form': form, 'formsubs': formsubs}
+    return render(request, "onlineforms/admin/admin_completed_form.html", context)
+
+@requires_formgroup()
+def summary_csv(request, form_slug):
+    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
+    response = HttpResponse(content_type='text/csv;charset=utf-8')
+    response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
+    writer = csv.writer(response, encoding='utf-8')
+    headers, data = form.all_submission_summary()
+    writer.writerow(headers)
+    for row in data:
+        writer.writerow(row)
+    return response
+
 
 
 #######################################################################
@@ -774,20 +798,6 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                    'choices': need_choices}
 
         return render(request, 'onlineforms/edit_field.html', context)
-
-@requires_form_admin_by_slug()
-def summary_csv(request, form_slug):
-    form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'inline; filename="%s-summary.csv"' % (form_slug)
-    writer = csv.writer(response)
-    headers, data = form.all_submission_summary()
-    for row in headers:
-        writer.writerow(row)
-    for row in data:
-        writer.writerow(row)
-
-    return response
 
 
 #######################################################################

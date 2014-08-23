@@ -19,6 +19,11 @@ forms_patterns = [
     url(r'^admin/$', 'onlineforms.views.admin_list_all'),
     url(r'^admin/assign$', 'onlineforms.views.admin_assign_any'),
     url(r'^admin/assign-nonsfu$', 'onlineforms.views.admin_assign_any_nonsfu'),
+
+    url(r'^admin/completed/$', 'onlineforms.views.admin_completed'),
+    url(r'^admin/completed/' + FORM_SLUG + '/$', 'onlineforms.views.admin_completed_form'),
+    url(r'^admin/completed/' + FORM_SLUG + '/summary$', 'onlineforms.views.summary_csv'),
+
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign$', 'onlineforms.views.admin_assign'),
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/assign-nonsfu$', 'onlineforms.views.admin_assign_nonsfu'),
     url(r'^admin/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/give', 'onlineforms.views.admin_change_owner'),
@@ -30,7 +35,6 @@ forms_patterns = [
     url(r'^manage/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
     url(r'^manage/' + FORM_SLUG + '/new$', 'onlineforms.views.new_sheet'),
     url(r'^manage/' + FORM_SLUG + '/preview$', 'onlineforms.views.preview_form'),
-    url(r'^manage/' + FORM_SLUG + '/summary$', 'onlineforms.views.summary_csv'),
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/preview$', 'onlineforms.views.preview_sheet'),
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/$', 'onlineforms.views.edit_sheet'),
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/edit$', 'onlineforms.views.edit_sheet_info'),

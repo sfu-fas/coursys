@@ -16,11 +16,6 @@
                     "bJQueryUI": true,
                     "aaSorting": [[4, "asc"]],
         });
-        $('#done_table').dataTable({
-                    "bPaginate": false,
-                    "bJQueryUI": true,
-                    "aaSorting": [[2, "desc"]],
-        });
     });
 </script>
 {% endblock %}
@@ -35,6 +30,7 @@
     <h2 class="heading">Actions</h2>
     <ul>
         <li><a href="{% url "onlineforms.views.admin_assign_any" %}">Assign Form</a></li>
+        <li><a href="{% url "onlineforms.views.admin_completed" %}">View Completed Submissions</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -92,32 +88,5 @@
             <p>There are currently no forms being worked on.</p>
     {% endif %}
 </div>
-<h2>Completed Forms</h2>
-<p class="helptext">These forms have been marked completed.</p>
-<div class="datatable_container">
-    {% if done_submissions %}
-        <table class="display" id="done_table">
-            <thead>
-                <tr>
-                    <th scope="col">Title</th>
-                    <th scope="col">Initiator</th>
-                    <th scope="col">Completed on</th>
-                    <th scope="col">View Form</th>    
-                </tr>
-            </thead>
-            {% for form_sub in done_submissions %}
-                <tr>
-                    <td>{{ form_sub.form.title }}</td>
-                    <td>{{ form_sub.initiator }}</td>
-                    <td><span class="sort">{{ form_sub.completed_at.isoformat }}</span>{{ form_sub.completed_at }}</td>
-                    <td>
-                        <a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
-                    </td>
-                </tr>
-              {% endfor %}
-        </table>
-    {% else %}
-            <p>No forms have been set to done.</p>
-    {% endif %}
-</div>
+
 {% endblock %}

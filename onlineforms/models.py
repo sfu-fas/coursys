@@ -15,7 +15,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
-import datetime, random, hashlib, itertools
+import datetime, random, hashlib, itertools, collections
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField, SemesterField, DateSelectField
@@ -381,59 +381,111 @@ class Form(models.Model, _FormCoherenceMixin):
         """
         Generate summary data of each submission for CSV output
         """
-        headers = [['',''],['Initiator Name', 'Initiator Email']]
+        DATETIME_FMT = "%Y-%m-%d"
+        headers = []
         data = []
 
         # find all sheets (in a sensible order: deleted last)
         sheets = Sheet.objects.filter(form__original_id=self.original_id).order_by('order', '-created_date')
         active_sheets = [s for s in sheets if s.active]
         inactive_sheets = [s for s in sheets if not s.active]
-        original_sheet_ids = []
+        sheet_info = collections.OrderedDict()
         for s in itertools.chain(active_sheets, inactive_sheets):
-            if s.original_id not in original_sheet_ids:
-                original_sheet_ids.append(s.original_id)
+            if s.original_id not in sheet_info:
+                sheet_info[s.original_id] = {
+                    'title': s.title,
+                    'fields': collections.OrderedDict(),
+                    'is_initial': s.is_initial,
+                }
 
         # find all fields in each of those sheets (in a equally-sensible order)
         fields = Field.objects.filter(sheet__form__original_id=self.original_id).select_related('sheet').order_by('order', '-created_date')
         active_fields = [f for f in fields if f.active]
         inactive_fields = [f for f in fields if not f.active]
-        original_field_ids = []
-        for s_id in original_sheet_ids:
-            for f in itertools.chain(active_fields, inactive_fields):
-                if f.sheet.original_id != s_id:
-                    continue
-                if f.original_id not in original_field_ids:
-                    if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
-                        continue
+        for f in itertools.chain(active_fields, inactive_fields):
+            if not FIELD_TYPE_MODELS[f.fieldtype].in_summary:
+                continue
+            info = sheet_info[f.sheet.original_id]
+            if f.original_id not in info['fields']:
+                info['fields'][f.original_id] = {
+                    'label': f.label,
+                }
 
-                    original_field_ids.append(f.original_id)
-                    headers[0].append(f.sheet.title)
-                    headers[1].append(f.label)
+        # build header row
+        for sid, info in sheet_info.iteritems():
+            headers.append(info['title'].upper())
+            headers.append(None)
+            if info['is_initial']:
+                headers.append('Initiated')
+            for fid, finfo in info['fields'].iteritems():
+                headers.append(finfo['label'])
+        headers.append('Last Sheet Completed')
+        headers.append('Link')
 
         # go through FormSubmissions and create a row for each
-        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id) \
-                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller')
-        # TODO: must pick a most-relevant sheetsubmission for each original sheet. This selects sheetsubs/fieldsubs randomly if there are multiples.
+        formsubs = FormSubmission.objects.filter(form__original_id=self.original_id, status='DONE') \
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+                # selecting only fully completed forms: does it make sense to be more liberal and report status?
+
+        # choose a winning SheetSubmission: there may be multiples of each sheet but we're only outputting one
+        sheetsubs = SheetSubmission.objects.filter(form_submission__form__original_id=self.original_id, status='DONE') \
+                .order_by('given_at').select_related('sheet', 'filler__sfuFormFiller', 'filler__nonSFUFormFiller')
+        # Docs for the dict constructor: "If a key occurs more than once, the last value for that key becomes the corresponding value in the new dictionary."
+        # Result is that the sheetsub with most recent given_at wins.
+        winning_sheetsub = dict(
+            ((ss.form_submission_id, ss.sheet.original_id), ss)
+            for ss in sheetsubs)
+
+        # collect fieldsubs to output
         fieldsubs = FieldSubmission.objects.filter(sheet_submission__form_submission__form__original_id=self.original_id) \
-                .select_related('sheet_submission__form_submission', 'field')
-        fieldsubs = list(fieldsubs)
+                .order_by('sheet_submission__given_at') \
+                .select_related('sheet_submission', 'field')
+        fieldsub_lookup = dict(
+            ((fs.sheet_submission_id, fs.field.original_id), fs)
+            for fs in fieldsubs)
 
         for formsub in formsubs:
-            row = [formsub.initiator.name(), formsub.initiator.email()]
-            # make sure to output the fields in the order chosen above
-            for fid in original_field_ids:
-                # search for the fieldsub that goes with this column: maybe not the best way, but better than a DB query for each one.
-                for fs in fieldsubs:
-                    if fs.field.original_id == fid and fs.sheet_submission.form_submission_id == formsub.id:
+            row = []
+            found_anything = False
+            last_completed = None
+            for sid, info in sheet_info.iteritems():
+                if (formsub.id, sid) in winning_sheetsub:
+                    ss = winning_sheetsub[(formsub.id, sid)]
+                    row.append(ss.filler.name())
+                    row.append(ss.filler.email())
+                    if not last_completed or ss.completed_at > last_completed:
+                        last_completed = ss.completed_at
+                else:
+                    ss = None
+                    row.append(None)
+                    row.append(None)
+
+                if info['is_initial']:
+                    if ss:
+                        row.append(ss.given_at.strftime(DATETIME_FMT))
+                    else:
+                        row.append(None)
+
+                for fid, finfo in info['fields'].iteritems():
+                    if ss and (ss.id, fid) in fieldsub_lookup:
+                        fs = fieldsub_lookup[(ss.id, fid)]
                         handler = FIELD_TYPE_MODELS[fs.field.fieldtype](fs.field.config)
-                        print fs.field.fieldtype
                         row.append(handler.to_text(fs))
-            data.append(row)
+                        found_anything = True
+                    else:
+                        row.append(None)
 
+            if last_completed:
+                row.append(last_completed.strftime(DATETIME_FMT))
+            else:
+                row.append(None)
 
+            row.append(settings.BASE_ABS_URL + formsub.get_absolute_url())
+
+            if found_anything:
+                data.append(row)
 
         return headers, data
-
 
 
 class Sheet(models.Model, _FormCoherenceMixin):
@@ -598,6 +650,9 @@ class FormSubmission(models.Model):
 
     def __unicode__(self):
         return "%s for %s" % (self.form, self.initiator)
+
+    def get_absolute_url(self):
+        return reverse('onlineforms.views.view_submission', kwargs={'form_slug': self.form.slug,'formsubmit_slug': self.slug})
 
     def closer(self):
         try:

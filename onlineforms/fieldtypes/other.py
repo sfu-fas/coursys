@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
+from django.conf import settings
 from django import forms
 from django.forms import fields
 from django.utils.html import conditional_escape as escape
@@ -82,6 +83,10 @@ class ListField(FieldBase):
 
         return mark_safe(html)
 
+    def to_text(self, fieldsubmission=None):
+        infos = fieldsubmission.data['info']
+        return '; '.join(infos)
+
 
 class _ClearableFileInput(forms.ClearableFileInput):
     template_with_initial = u'<div class="formfileinput">Current file: %(initial)s %(clear_template)s<br />Upload file: %(input)s</div>'
@@ -117,6 +122,7 @@ class _ClearableFileInput(forms.ClearableFileInput):
 
 
 class FileCustomField(FieldBase):
+    in_summary = False
     class FileConfigForm(FieldConfigForm):
         pass
 
@@ -171,7 +177,10 @@ class URLCustomField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + fieldsubmission.data['info'] + '</p>')
+        return mark_safe('<p>' + escape(self.to_text(fieldsubmission)) + '</p>')
+
+    def to_text(self, fieldsubmission=None):
+        return fieldsubmission.data['info']
 
 
 ALLOWED_SEMESTER_CHOICES = [
@@ -232,7 +241,10 @@ class SemesterField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + fieldsubmission.data['info'] + '</p>')
+        return mark_safe('<p>' + escape(self.to_text(fieldsubmission)) + '</p>')
+
+    def to_text(self, fieldsubmission=None):
+        return fieldsubmission.data['info']
 
 
 ALLOWED_DATE_CHOICES = [
@@ -285,16 +297,22 @@ class DateSelectField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
+        return mark_safe('<p>' + escape(self._to_text(fieldsubmission)) + '</p>')
+
+    def to_text(self, fieldsubmission=None):
+        return self._to_text(fieldsubmission, 'Y-m-d')
+
+    def _to_text(self, fieldsubmission=None, format=settings.DATE_FORMAT):
         if fieldsubmission.data['info']:
             d = datetime.datetime.strptime(fieldsubmission.data['info'], '%Y-%m-%d').date()
-            df = escape(defaultfilters.date(d))
-            return mark_safe('<p>' + escape(df) + '</p>')
+            return escape(defaultfilters.date(d, format))
         else:
-            return mark_safe('<p class="empty">No date entered.</p>')
+            return 'not entered'
 
 
 class DividerField(FieldBase):
     configurable = False
+    in_summary = False
 
     def make_config_form(self):
         return self.configurable

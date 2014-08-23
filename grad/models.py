@@ -560,6 +560,55 @@ PROGRESS_REPORT_CHOICES = (
     ('CONC', "Satisfactory with Concerns"),
     ('UNST',  "Unsatisfactory"))
 
+# floated out here to allow caching by pk
+@cached(24*3600)
+def _active_semesters(pk, program=None):
+    self = GradStudent.objects.get(pk=pk)
+    next_sem = Semester.current().offset(1)
+    if program:
+        start = program.start_semester
+    else:
+        start = self.start_semester or next_sem
+    end = self.end_semester or next_sem
+
+    statuses_that_indicate_a_change_in_state = STATUS_ACTIVE + STATUS_INACTIVE
+    statuses = GradStatus.objects.filter(student=self, hidden=False, status__in=statuses_that_indicate_a_change_in_state) \
+               .order_by('start__name', 'start_date', 'created_at') \
+               .select_related('start')
+
+    statuses = list(statuses)
+    sem = start
+    active = 0
+    total = 0
+    while sem.name < end.name:
+        prev_statuses = [st for st in statuses if st.start.name <= sem.name]
+        if prev_statuses:
+            this_status = prev_statuses[-1]
+            if this_status.status in STATUS_ACTIVE:
+                active += 1
+                total += 1
+            elif this_status.status in STATUS_INACTIVE and this_status.status not in STATUS_DONE:
+                total += 1
+        sem = sem.next_semester()
+
+    return active, total
+
+@cached(24*3600)
+def _active_semesters_display(pk):
+    self = GradStudent.objects.get(pk=pk)
+    active, total = self.active_semesters()
+    res = u"%i/%i" % (active, total)
+
+    history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related('program')
+    if history.count() > 1:
+        currentprog = history.first()
+        active, total = self.active_semesters(program=currentprog)
+        res += ' (%i/%i in %s)' % (active, total, currentprog.program.label)
+
+    return res
+
+
+
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
@@ -779,11 +828,10 @@ class GradStudent(models.Model):
         current = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
         if old != current:
             self.save()
-            self.active_semesters.invalidate()
-            self.active_semesters_display.invalidate()
+            _active_semesters.invalidate(self.pk)
+            _active_semesters_display.invalidate(self.pk)
 
 
-    @cached(24*3600)
     def active_semesters(self, program=None):
         """
         Number of active and total semesters.
@@ -796,34 +844,7 @@ class GradStudent(models.Model):
         # actually flips through every relevant semester and checks to see
         # their (final) status in that semester. The data is messy enough
         # that I don't see any better way.
-        next_sem = Semester.current().offset(1)
-        if program:
-            start = program.start_semester
-        else:
-            start = self.start_semester or next_sem
-        end = self.end_semester or next_sem
-
-        statuses_that_indicate_a_change_in_state = STATUS_ACTIVE + STATUS_INACTIVE
-        statuses = GradStatus.objects.filter(student=self, hidden=False, status__in=statuses_that_indicate_a_change_in_state) \
-                   .order_by('start__name', 'start_date', 'created_at') \
-                   .select_related('start')
-
-        statuses = list(statuses)
-        sem = start
-        active = 0
-        total = 0
-        while sem.name < end.name:
-            prev_statuses = [st for st in statuses if st.start.name <= sem.name]
-            if prev_statuses:
-                this_status = prev_statuses[-1]
-                if this_status.status in STATUS_ACTIVE:
-                    active += 1
-                    total += 1
-                elif this_status.status in STATUS_INACTIVE and this_status.status not in STATUS_DONE:
-                    total += 1
-            sem = sem.next_semester()
-        
-        return active, total
+        return _active_semesters(self.pk, program)
 
     def _has_committee(self):
         senior_sups = Supervisor.objects.filter(student=self, supervisor_type='SEN', removed=False).count()
@@ -846,23 +867,13 @@ class GradStudent(models.Model):
 
         return bool(res)
 
-    @cached(24*3600)
     def active_semesters_display(self):
         """
         Format self.active_semesters_display for display
 
         Cache is invalidated by self.update_status_fields.
         """
-        active, total = self.active_semesters()
-        res = u"%i/%i" % (active, total)
-
-        history = GradProgramHistory.objects.filter(student=self).order_by('-starting', '-start_semester').select_related('program')
-        if history.count() > 1:
-            currentprog = history.first()
-            active, total = self.active_semesters(program=currentprog)
-            res += ' (%i/%i in %s)' % (active, total, currentprog.program.label)
-
-        return res
+        return _active_semesters_display(self.pk)
 
     def program_as_of(self, semester=None, future_if_necessary=False):
         if semester == None:

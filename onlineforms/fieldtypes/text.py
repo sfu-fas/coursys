@@ -4,6 +4,9 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from django.template.defaultfilters import linebreaksbr
 from pages.models import ParserFor
+from courselib.text import normalize_newlines
+
+MAX_TEXT_LEN = 50 # longest text to output in CSV (for medium/long text)
 
 class SmallTextField(FieldBase):
     more_default_config = {'min_length': 1, 'max_length': 100}
@@ -59,7 +62,6 @@ class SmallTextField(FieldBase):
 
 
 class MediumTextField(FieldBase):
-    in_summary = False
     more_default_config = {'min_length': 1, 'max_length': 1000}
 
     class MediumTextConfigForm(FieldConfigForm):
@@ -106,9 +108,14 @@ class MediumTextField(FieldBase):
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
 
+    def to_text(self, fieldsubmission):
+        txt = normalize_newlines(fieldsubmission.data['info'])
+        if len(txt) > MAX_TEXT_LEN:
+            txt = txt[0:MAX_TEXT_LEN] + '...'
+        return txt.replace('\n', '\\\\')
+
 
 class LargeTextField(FieldBase):
-    in_summary = False
     more_default_config = {'min_length': 1, 'max_length': 10000}
 
     class LargeTextConfigForm(FieldConfigForm):
@@ -156,6 +163,12 @@ class LargeTextField(FieldBase):
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
 
+    def to_text(self, fieldsubmission):
+        txt = normalize_newlines(fieldsubmission.data['info'])
+        if len(txt) > MAX_TEXT_LEN:
+            txt = txt[0:MAX_TEXT_LEN] + '...'
+        return txt.replace('\n', '\\\\')
+
 
 class EmailTextField(FieldBase):
     class EmailTextConfigForm(FieldConfigForm):
@@ -178,7 +191,10 @@ class EmailTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
+        return mark_safe('<p>' + escape(self.to_text(fieldsubmission)) + '</p>')
+
+    def to_text(self, fieldsubmission):
+        return fieldsubmission.data['info']
 
 
 class ExplanationTextField(FieldBase):
