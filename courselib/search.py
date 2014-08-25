@@ -12,6 +12,16 @@ def find_userid_or_emplid(userid):
     except ValueError:
         return Q(userid=userid)
 
+def find_member(userid):
+    """
+    Search Member (or other thing with a .person) by userid or emplid
+    """
+    try:
+        int(userid)
+        return Q(person__userid=userid) | Q(person__emplid=userid)
+    except ValueError:
+        return Q(person__userid=userid)
+
 # adapted from http://julienphalip.com/post/2825034077/adding-search-to-a-django-site-in-a-snap
 
 def normalize_query(query_string,

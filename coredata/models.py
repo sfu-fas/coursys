@@ -982,7 +982,8 @@ class Member(models.Model, ConditionalSaveMixin):
         #unique_together = (('person', 'offering', 'role'),)  # now handled by self.clean()
         ordering = ['offering', 'person']
     def get_absolute_url(self):
-        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})
+        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug,
+                                                            'userid': self.person.userid_or_emplid()})
     
     @classmethod
     def clear_old_official_grades(cls):

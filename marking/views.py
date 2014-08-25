@@ -27,6 +27,7 @@ from groups.models import Group, GroupMember, all_activities_filter
 from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug,\
     ForbiddenResponse, NotFoundResponse
 from courselib.db import retry_transaction
+from courselib.search import find_userid_or_emplid, find_member
 from featureflags.flags import uses_feature
 
 from marking.forms import BaseCommonProblemFormSet, BaseActivityComponentFormSet
@@ -38,18 +39,19 @@ from marking.forms import MarkEntryForm, MarkEntryForm_LetterGrade
 from marking.forms import UploadGradeFileForm, UploadGradeFileForm_LetterGrade
 
 # request to views in the marking may comes from different pages, for POST request, we need to redirect to the right page
-FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
-def _redirct_response(request, course_slug, activity_slug):   
+def _redirct_response(request, course_slug, activity_slug, userid=None):
     from_page = request.GET.get('from_page')
-    if from_page == FROMPAGE['course']:
+    if from_page == 'course':
         redirect_url = reverse('grades.views.course_info', args=(course_slug,))
-    elif from_page == FROMPAGE['activityinfo']:
+    elif from_page == 'activityinfo':
         redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
-    elif from_page == FROMPAGE['activityinfo_group']:
+    elif from_page == 'activityinfo_group':
         redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
+    elif userid and from_page == 'studentinfo':
+        redirect_url = reverse('grades.views.student_info', args=(course_slug, userid))
     else: #default to the activity_info page
         redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
-    return HttpResponseRedirect(redirect_url)  
+    return HttpResponseRedirect(redirect_url)
 
 
 def _find_setup_conflicts(source_setup, target_setup):    
@@ -423,7 +425,7 @@ def change_grade_status(request, course_slug, activity_slug, userid):
     """
     Grade status form.  Calls numeric/letter view as appropriate.
     """
-    course = get_object_or_404(CourseOffering, slug = course_slug)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
     acts = all_activities_filter(course, slug=activity_slug)
     if len(acts) != 1:
         raise Http404('No such Activity.')
@@ -440,7 +442,7 @@ def change_grade_status(request, course_slug, activity_slug, userid):
 @retry_transaction()
 def _change_grade_status_numeric(request, course, activity, userid):
     with django.db.transaction.atomic():
-        member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
+        member = get_object_or_404(Member, find_member(userid), offering=course, role='STUD')
         grades = NumericGrade.objects.filter(activity=activity, member=member)
         if grades:
             numeric_grade = grades[0]
@@ -466,8 +468,8 @@ def _change_grade_status_numeric(request, course, activity, userid):
                 l.save()
                     
                 messages.add_message(request, messages.SUCCESS, 
-                   'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
-                return _redirct_response(request, course.slug, activity.slug)        
+                   'Grade status for student %s on %s changed!' % (userid, activity.name,))
+                return _redirct_response(request, course.slug, activity.slug, userid=userid)
         else:
             status_form = GradeStatusForm(instance=numeric_grade, prefix='grade-status')
             
@@ -482,7 +484,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
 @retry_transaction()
 def _change_grade_status_letter(request, course, activity, userid):
     with django.db.transaction.atomic():
-        member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
+        member = get_object_or_404(Member, find_member(userid), offering=course, role='STUD')
         grades = LetterGrade.objects.filter(activity=activity, member=member)
         if grades:
             letter_grade = grades[0]
@@ -509,7 +511,7 @@ def _change_grade_status_letter(request, course, activity, userid):
                     
                 messages.add_message(request, messages.SUCCESS, 
                    'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
-                return _redirct_response(request, course.slug, activity.slug)        
+                return _redirct_response(request, course.slug, activity.slug, userid=userid)
         else:
             status_form = GradeStatusForm_LetterGrade(instance=letter_grade, prefix='grade-status')
             
@@ -538,7 +540,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             group = get_object_or_404(Group, slug=userid, courseoffering=course)
             ActivityMarkForm = GroupActivityMarkForm
         else:
-            student = get_object_or_404(Person, userid=userid)
+            student = get_object_or_404(Person, find_userid_or_emplid(userid))
             membership = get_object_or_404(Member, offering=course, person=student, role='STUD') 
             ActivityMarkForm = StudentActivityMarkForm
         
@@ -692,8 +694,8 @@ def marking_group(request, course_slug, activity_slug, group_slug):
 
 @login_required
 def mark_summary_student(request, course_slug, activity_slug, userid):
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)     
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug, deleted=False)
 
     if is_course_staff_by_slug(request, course_slug):
         is_staff = True
@@ -704,8 +706,8 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
     else:
         return ForbiddenResponse(request)
     
-    student = get_object_or_404(Person, userid = userid)
-    membership = get_object_or_404(Member,offering = course, person = student, role = 'STUD')
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    membership = get_object_or_404(Member,offering=course, person=student, role='STUD')
           
     act_mark_id = request.GET.get('activity_mark')
     if act_mark_id != None: # if act_mark_id specified in the url
@@ -740,9 +742,9 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
     else:
         return ForbiddenResponse(request)
     
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)    
-    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug, deleted=False)
+    group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
      
     if not is_staff:
         gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.userid)
@@ -811,7 +813,7 @@ def mark_history_student(request, course_slug, activity_slug, userid):
     """
     show the marking history for the student on the activity
     """
-    student = get_object_or_404(Person, userid=userid)
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)     
     membership = get_object_or_404(Member, offering = course, person = student, role = 'STUD') 
@@ -951,7 +953,7 @@ def export_sims(request, course_slug, activity_slug):
     response['Content-Disposition'] = 'attachment; filename="%s_%s_sims.csv"' % (course_slug, activity_slug,)
     
     writer = csv.writer(response)
-    student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
+    student_members = Member.objects.filter(offering=course, role='STUD').select_related('person')
     section_cache = {}
     for std in student_members:
         c = course
@@ -976,7 +978,8 @@ def export_sims(request, course_slug, activity_slug):
                 row.append(lgrade.letter_grade)
         
         row.append(std.person.name())
-        row.append(std.person.userid)
+        if std.person.userid:
+            row.append(std.person.userid)
         writer.writerow(row)
 
     return response

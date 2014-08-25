@@ -45,7 +45,7 @@
             <td>{{g|default_if_none:""}}</td>
             <td>{{m.official_grade|default_if_none:""}}</td>
             <td>{{d|yesno:"yes,"}}
-              {% if d %}[<a href="{% url "grades.views.grade_change" course_slug=course.slug activity_slug=activity.slug userid=m.person.userid %}">grade change form</a>]{% endif %}	
+              {% if d %}[<a href="{% url "grades.views.grade_change" course_slug=course.slug activity_slug=activity.slug userid=m.person.userid_or_emplid %}">grade change form</a>]{% endif %}
             </td>
         </tr>
         {% endfor %}
