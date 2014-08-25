@@ -671,9 +671,13 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         return reverse('grades.views.course_info', kwargs={'course_slug': self.slug})
     
     def instructors(self):
-        return (m.person for m in self.member_set.filter(role="INST"))
+        return (m.person for m in self.member_set.filter(role="INST").select_related('person'))
     def instructors_str(self):
-        return '; '.join(p.sortname() for p in self.instructors())
+        @cached(60*60*24*2)
+        def _instr_str(pk):
+            return '; '.join(p.sortname() for p in CourseOffering.objects.get(pk=pk).instructors())
+        return _instr_str(self.pk)
+
     def tas(self):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
@@ -682,11 +686,41 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         return self.flags.combined
     def set_combined(self, val):
         self.flags.combined = val
+
+    def get_campus_display(self):
+        # override to handle the distance ed special case
+        if self.instr_mode == 'DE':
+            return 'Distance Education'
+        if self.campus in CAMPUSES:
+            return CAMPUSES[self.campus]
+        else:
+            return 'unknown'
     def get_campus_short_display(self):
+        if self.instr_mode == 'DE':
+            return 'Distance'
         if self.campus in CAMPUSES_SHORT:
             return CAMPUSES_SHORT[self.campus]
         else:
             return 'unknown'
+
+    def maillist(self):
+        """
+        The slug used in the CMPT course mailing list scheme
+        """
+        @cached(60*60*24*7)
+        def _maillist(pk):
+            o = CourseOffering.objects.get(pk=pk)
+            num = o.number.replace('W', '')
+            others = CourseOffering.objects \
+                .filter(subject=o.subject, number__in=[num, num+'W'], semester_id=o.semester_id) \
+                .exclude(pk=pk).exists()
+            if others:
+                return '%s-%s-%s' % (o.subject.lower(), num, o.section[0:2].lower())
+            else:
+                return '%s-%s' % (o.subject.lower(), num)
+
+        return _maillist(self.pk)
+
     
     def get_wqb_display(self):
         flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v and f in WQB_KEYS]
