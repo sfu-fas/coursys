@@ -55,8 +55,8 @@
         {% if cansubmit %}
         {% if not is_staff %}
             {% if activity.group and not group %}
-            <p>This is a group-based activity: you cannot submit because you aren't in a group.</p>
-            <p>You need to <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
+            <p class="infomessage">This is a group-based activity: you cannot submit because you aren't in a group.</p>
+            <p class="infomessage">You need to <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
             {% else %}
         <h2 id="submit">Make a Submission</h2>
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
