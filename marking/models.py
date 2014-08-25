@@ -1,6 +1,6 @@
 import copy
+import django
 from django.db import models, IntegrityError
-from django import db
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
@@ -447,7 +447,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
-    with db.django.transaction.atomic():
+    with django.db.transaction.atomic():
         from submission.models.code import CodeComponent
         from submission.models.codefile import CodefileComponent
         # copy things in offering's .config dict
