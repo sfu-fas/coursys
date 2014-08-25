@@ -16,6 +16,17 @@ $(document).ready(function() {
 {% block title %}{{ unit.informal_name }} Course Pages, {{ semester.label }}{% endblock %}
 {% block h1 %}{{ unit.informal_name }} Course Pages, {{ semester.label }}{% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url "coredata.views.course_home_pages_unit" unit_slug=unit.slug semester=semester.previous_semester.name %}">Previous semester</a></li>
+    <li><a href="{% url "coredata.views.course_home_pages_unit" unit_slug=unit.slug semester=semester.next_semester.name %}">Next semester</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+
 {% block subbreadcrumbs %}
 <li><a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li>
 <li><a href="{% url 'coredata.views.course_home_pages' %}">Home Pages</a></li>

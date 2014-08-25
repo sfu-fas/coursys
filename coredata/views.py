@@ -874,9 +874,13 @@ def course_home_pages(request):
     }
     return render(request, "coredata/course_home_pages.html", context)
 
-def course_home_pages_unit(request, unit_slug):
+def course_home_pages_unit(request, unit_slug, semester=None):
+    if semester:
+        semester = get_object_or_404(Semester, name=semester)
+    else:
+        semester = Semester.current()
+
     unit = get_object_or_404(Unit, slug=unit_slug)
-    semester = Semester.current()
     offerings = CourseOffering.objects.filter(semester=semester, owner=unit, graded=True) \
         .exclude(component='CAN').exclude(instr_mode__in=['CO', 'GI'])
 
