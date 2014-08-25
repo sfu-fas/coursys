@@ -861,3 +861,27 @@ def _offering_meeting_time_data(request, offering):
                                          dt_string=True, colour=True, browse_titles=True))
     json.dump(data, response, indent=1)
     return response
+
+
+
+def course_home_pages(request):
+    semester = Semester.current()
+    active_unit_slugs = CourseOffering.objects.filter(semester=semester, graded=True).order_by('owner').values_list('owner', flat=True).distinct()
+    units = Unit.objects.filter(id__in=active_unit_slugs).order_by('label')
+    context = {
+        'semester': semester,
+        'units': units,
+    }
+    return render(request, "coredata/course_home_pages.html", context)
+
+def course_home_pages_unit(request, unit_slug):
+    unit = get_object_or_404(Unit, slug=unit_slug)
+    semester = Semester.current()
+    offerings = CourseOffering.objects.filter(semester=semester, owner=unit, graded=True).exclude(component='CAN')
+
+    context = {
+        'semester': semester,
+        'unit': unit,
+        'offerings': offerings,
+    }
+    return render(request, "coredata/course_home_pages_unit.html", context)
