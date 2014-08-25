@@ -546,6 +546,7 @@ CAMPUS_CHOICES_SHORT = (
         ('METRO', 'Other Vancouver'),
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
+CAMPUSES_SHORT = dict(CAMPUS_CHOICES_SHORT)
 OFFERING_FLAGS = [
     ('write', 'W'),
     ('quant', 'Q'),
@@ -681,6 +682,11 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         return self.flags.combined
     def set_combined(self, val):
         self.flags.combined = val
+    def get_campus_short_display(self):
+        if self.campus in CAMPUSES_SHORT:
+            return CAMPUSES_SHORT[self.campus]
+        else:
+            return 'unknown'
     
     def get_wqb_display(self):
         flags = [WQB_DICT[f] for f,v in self.flags.iteritems() if v and f in WQB_KEYS]

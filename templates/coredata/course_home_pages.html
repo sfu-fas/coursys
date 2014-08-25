@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Course Home Pages, {{ semester.label }}{% endblock %}
+{% block h1 %}Course Home Pages, {{ semester.label }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li>
+<li>Home Pages</li>
+{% endblock %}
+
+{% block content %}
+
+<ul>
+    {% for u in units %}
+    <li><a href="{% url 'coredata.views.course_home_pages_unit' unit_slug=u.slug %}">{{ u.name }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
