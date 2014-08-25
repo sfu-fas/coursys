@@ -32,7 +32,7 @@ $(document).ready(function() {
         <td><span class="sort">{{ o.slug }}</span>{% if o.url %}<a href="{{ o.url }}">{{ o.name }}</a>{% else %}{{ o.name }}{% endif %}</td>
         <td>{{ o.get_campus_short_display }}</td>
         <td>{{ o.instructors_str }}</td>
-        {% if unit.slug == 'cmpt' %}<td></td>{% endif %}
+        {% if unit.slug == 'cmpt' %}<td><a href="http://www.cs.sfu.ca/CourseCentral/Hypermail/{{ o.maillist }}">{{ o.maillist }}</a></td>{% endif %}
     </tr>
     {% endfor %}
     </tbody>
