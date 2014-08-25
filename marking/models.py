@@ -1,6 +1,6 @@
 import copy
 from django.db import models, IntegrityError
-import django.db.transaction
+from django import db
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
