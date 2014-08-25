@@ -36,8 +36,8 @@ class ActivityComponentMarkForm(ModelForm):
 activity_mark_fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
                   'file_attachment']
 activity_mark_widgets = {
-    'late_penalty': forms.NumberInput(attrs={'size': 3}),
-    'mark_adjustment': forms.NumberInput(attrs={'size': 3}),
+    'late_penalty': forms.NumberInput(attrs={'class': 'gradeinput'}),
+    'mark_adjustment': forms.NumberInput(attrs={'class': 'gradeinput'}),
     'mark_adjustment_reason': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
     'overall_comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
     }
@@ -134,7 +134,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
             form.fields['title'].widget.attrs['size'] = 8
             form.fields['description'].widget.attrs['rows'] = 2
             form.fields['description'].widget.attrs['cols'] = 30
-            form.fields['penalty'].widget.attrs['size'] = 4
+            form.fields['penalty'].widget.attrs['class'] = 'gradeinput'
             if activity_components:
                 # limit the choices of activity components
                 form.fields['activity_component'].queryset = activity_components
@@ -244,8 +244,9 @@ class GradeStatusForm(forms.ModelForm):
     def __init__(self, activity=None, *args, **kwargs):
     #    self.activity = activity
         super(GradeStatusForm, self).__init__(*args, **kwargs)
+        # monkey-patch the max mark in so the widget can draw it
+        self.fields['value'].widget.max_mark = self.instance.activity.max_grade
         self.fields['value'].label='Grade'
-        self.fields['value'].help_text="out of %s" % (self.instance.activity.max_grade)
         self.fields['flag'].label='Grade status'
         self.fields['flag'].help_text="See below for descriptions of these choices"
         # exclude CALC status choice for non-calcualted activity
@@ -261,6 +262,9 @@ class GradeStatusForm(forms.ModelForm):
     class Meta:
         model = NumericGrade
         exclude = ('activity', 'member')
+        widgets = {
+            'value': OutOfInput()
+        }
 
 class GradeStatusForm_LetterGrade(forms.ModelForm):
     def __init__(self, activity=None, *args, **kwargs):
