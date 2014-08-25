@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from courselib.urlparts import COURSE_SLUG, USERID_OR_EMPLID, USERID_SLUG, \
-                               EMPLID_SLUG, SEMESTER, UNIT_SLUG
+                               EMPLID_SLUG, SEMESTER, UNIT_SLUG, SEMESTER
 
 data_patterns = [ # prefix /data/
     url(r'^courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
@@ -58,4 +58,5 @@ browse_patterns = [ # prefix /browse/
     url(r'^info/' + COURSE_SLUG + '$', 'coredata.views.browse_courses_info'),
     url(r'^pages/$', 'coredata.views.course_home_pages'),
     url(r'^pages/' + UNIT_SLUG + '$', 'coredata.views.course_home_pages_unit'),
+    url(r'^pages/' + UNIT_SLUG + '/' + SEMESTER + '$', 'coredata.views.course_home_pages_unit'),
 ]
