@@ -60,6 +60,7 @@ INSTALLED_APPS = (
     'djcelery_email',
     'featureflags',
     'django_nose',
+    'rest_framework',
 
     'coredata',
     'dashboard',

@@ -19,6 +19,9 @@ from reports.urls import report_patterns
 from ta.urls import ta_patterns, tug_patterns
 from tacontracts.urls import tacontract_patterns
 
+from api.urls import api_patterns
+#from rest_framework.urls import urlpatterns as rest_patterns
+
 handler404 = 'courselib.auth.NotFoundResponse'
 
 urlpatterns = [
@@ -28,6 +31,7 @@ urlpatterns = [
     url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
+    #url(r'^api-auth/', include(rest_patterns, namespace='rest_framework')),
 
     # top-level pages
     url(r'^$', 'dashboard.views.index'),
@@ -35,6 +39,7 @@ urlpatterns = [
     url(r'^search$', 'dashboard.views.site_search'),
 
     # top-level paths from dashboard and coredata
+    url(r'^api/', include(api_patterns)),
     url(r'^admin/', include(admin_patterns)),
     url(r'^browse/', include(browse_patterns)),
     url(r'^calendar/', include(calendar_patterns)),
