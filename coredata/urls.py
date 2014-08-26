@@ -59,4 +59,5 @@ browse_patterns = [ # prefix /browse/
     url(r'^pages/$', 'coredata.views.course_home_pages'),
     url(r'^pages/' + UNIT_SLUG + '$', 'coredata.views.course_home_pages_unit'),
     url(r'^pages/' + UNIT_SLUG + '/' + SEMESTER + '$', 'coredata.views.course_home_pages_unit'),
+    url(r'^pages/admin/' + COURSE_SLUG + '$', 'coredata.views.course_home_admin'),
 ]

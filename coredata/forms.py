@@ -510,4 +510,5 @@ class OfferingFilterForm(forms.Form):
         subjects = self.all_subjects(semesters)
         self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
 
-
+class CourseHomePageForm(forms.Form):
+    url = forms.URLField(required=True, label="URL", help_text="URL of the course's main web page")

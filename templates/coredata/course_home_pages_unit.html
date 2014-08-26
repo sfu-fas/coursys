@@ -40,7 +40,9 @@ $(document).ready(function() {
     <tbody>
     {% for o in offerings %}
     <tr>
-        <td><span class="sort">{{ o.slug }}</span>{% if o.url %}<a href="{{ o.url }}">{{ o.name }}</a>{% else %}{{ o.name }}{% endif %}</td>
+        <td><span class="sort">{{ o.slug }}</span>{% if o.url %}<a href="{{ o.url }}">{{ o.name }}</a>{% else %}{{ o.name }}{% endif %}
+          {% if is_admin %}[<a href="{% url 'coredata.views.course_home_admin' course_slug=o.slug %}">edit</a>]{% endif %}
+        </td>
         <td>{{ o.title }}</td>
         <td>{{ o.get_campus_short_display }}</td>
         <td>{{ o.instructors_str }}</td>
