@@ -887,7 +887,6 @@ def course_home_pages_unit(request, unit_slug, semester=None):
 
     unit = get_object_or_404(Unit, slug=unit_slug)
     offerings = CourseOffering.objects.filter(semester=semester, owner=unit, graded=True) \
-        .exclude(section__startswith='LA') \
         .exclude(component='CAN') \
         .exclude(instr_mode__in=['CO', 'GI'])
 
