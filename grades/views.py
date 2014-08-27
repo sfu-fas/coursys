@@ -764,7 +764,9 @@ def calculate_all(request, course_slug, activity_slug):
     activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
     
     try:
-        ignored = calculate_numeric_grade(course,activity)
+        ignored, hiding_info = calculate_numeric_grade(course,activity)
+        if hiding_info:
+            messages.warning(request, "This activity is released to students, but the calculation uses unreleased grades. Calculations done with unreleased activities as zero to prevent leaking hidden info to students.")
         if ignored==1:
             messages.warning(request, "Did not calculate grade for 1 manually-graded student.")
         elif ignored>1:
@@ -815,7 +817,7 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
         member = get_object_or_404(Member, offering=course, person__userid=userid, role='STUD')
 
         try:
-            displayable_result = calculate_numeric_grade(course,activity, member)
+            displayable_result, _ = calculate_numeric_grade(course,activity, member)
         except ValidationError:
             return ForbiddenResponse(request)
         except EvalException:
