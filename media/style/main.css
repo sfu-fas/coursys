@@ -63,7 +63,7 @@ form table, form .table {
 form table.info th {
   background-color: #ddd;
 }
-ul.bulleted li, .wikicontents ul>li, table.info li {
+ul.bulleted li, .wikicontents ul>li, table.info ul li {
   list-style-type: circle;
   margin-left: 1em;
 }
