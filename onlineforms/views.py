@@ -106,7 +106,7 @@ def add_group_member(request, formgroup_slug):
                     member.set_email(email)
                     member.save()
                     l = LogEntry(userid=request.user.username,
-                         description=("added %s to form group %s") % (person.userid_or_emplid(), group),
+                         description=("added %s to form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
                          related_object=member)
                     l.save()
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
@@ -130,7 +130,7 @@ def remove_group_member(request, formgroup_slug, userid):
                     member.delete()
                     #LOG EVENT#
                     l = LogEntry(userid=request.user.username,
-                        description=("Removed %s from form group %s") % (person.userid_or_emplid(), group),
+                        description=("Removed %s from form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
                         related_object=group)
                     l.save()
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
@@ -222,7 +222,7 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                description=("Assigned form sheet %s to %s") % (sheet_submission.sheet, sheet_submission.filler.identifier()),
+                description=("Assigned form sheet %s (%i) to %s") % (sheet_submission.sheet, sheet_submission.sheet_id, sheet_submission.filler.identifier()),
                 related_object=sheet_submission)
             l.save()
             messages.success(request, 'Sheet assigned.')
@@ -1226,10 +1226,10 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                         new_file_submission.save()
 
                                 #LOG EVENT#
-                                l = LogEntry(userid=logentry_userid,
-                                    description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
-                                    related_object=fieldSubmission)
-                                l.save()
+                                #l = LogEntry(userid=logentry_userid,
+                                #    description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
+                                #    related_object=fieldSubmission)
+                                #l.save()
 
                         # cleanup for each submit-mode
                         if 'save' in request.POST:

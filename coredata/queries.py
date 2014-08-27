@@ -1218,12 +1218,13 @@ def get_passport_issued_by( emplid ):
 # Course outlines API functions
 # as documented here: http://www.sfu.ca/outlines/help/api.html
 
+OUTLINES_BASE_URL = 'http://www.sfu.ca/bin/wcm/course-outlines'
+OUTLINES_FRONTEND_BASE = 'http://www.sfu.ca/outlines.html'
 def outlines_api_url(offering):
     """
     The URL for info in the API.
     """
     from urllib import quote_plus as q
-    BASE_URL = 'http://www.sfu.ca/bin/wcm/course-outlines'
 
     args = {
         'year': q(str(int(offering.semester.name[0:3]) + 1900)),
@@ -1233,9 +1234,13 @@ def outlines_api_url(offering):
         'section': q(offering.section.lower()),
     }
     qs = 'year={year}&term={term}&dept={dept}&number={number}&section={section}'.format(**args)
-    return BASE_URL + '?' + qs
+    return OUTLINES_BASE_URL + '?' + qs
 
+import json
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
     req = urllib2.urlopen(url, timeout=30)
-    return req.read()
+    data = json.loads(req.read())
+    data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['nodePath']
+
+    return json.dumps(data, indent=1)

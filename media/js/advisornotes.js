@@ -26,9 +26,20 @@ function search_sims(url, emplid, formurl, csrftoken) {
     });
 }
 
-function add_to_info(key, value) {
+function add_to_info(key, value, tableid, rowclass) {
     // add this key/value to the info table
-    $('table.info').append('<tr class="dynamic"><th scope="row">' + key + '</th><td>' + value + '</td></tr>')
+    var table;
+    if ( typeof tableid !== 'undefined' ) {
+        table = $('table#' + tableid);
+    } else {
+        table = $('table.info');
+    }
+
+    var cls = 'dynamic';
+    if ( typeof rowclass !== 'undefined' ) {
+        cls += ' ' + rowclass;
+    }
+    table.append('<tr class="' + cls + '"><th scope="row">' + key + '</th><td>' + value + '</td></tr>')
 }
 
 function get_more_info(url) {
@@ -95,25 +106,25 @@ function more_course_info(url) {
 		url: url,
 		success: function(data){
 			if( $('table.info').length == 0 ) {
-			    $('div.table_container').html('<table class="info"><tbody></tbody></table>');
+			    $('div.table_container').html('<table class="info" id="courseinfo"><tbody></tbody></table>');
 			}
 			if (data['error']) {
-				add_to_info('Error', data['error']);
+				add_to_info('Error', data['error'], 'courseinfo');
 				$('#fetchwait').hide();
 				return;
 			}
 
 			if (data['longtitle']) {
-				add_to_info('Long Title', data['longtitle']);
+				add_to_info('Title', data['longtitle'], 'courseinfo');
 			}
 			if (data['shorttitle']) {
-				add_to_info('Short Title', data['shorttitle']);
+				add_to_info('Short Title', data['shorttitle'], 'courseinfo');
 			}
 			if (data['descrlong']) {
-				add_to_info('Calendar Description', data['descrlong']);
+				add_to_info('Calendar Description', data['descrlong'], 'courseinfo');
 			}
 			if (data['rqmnt_designtn']) {
-				add_to_info('Requirement Designation', data['rqmnt_designtn']);
+				add_to_info('Requirement Designation', data['rqmnt_designtn'], 'courseinfo');
 			}
 
             $('#fetchwait').hide();
@@ -124,10 +135,53 @@ function more_course_info(url) {
         			
 function course_outline_info(url) {
     // fetch course outline from outlines API
+    $('#fetchwait-outline').show();
     $.ajax({
 		url: url,
 		success: function(data){
 			console.log(data);
+			if (data['error']) {
+				add_to_info('Error', data['error']);
+				$('#fetchwait-outline').hide();
+				return;
+			}
+
+			$('h2#outline').after('<p>This information is from <a href="' + data['outlineurl'] + '">the course\'s outline</a>. Please see the outline itself for more complete information.</p>');
+
+            if (data['info']['courseDetails']) {
+				add_to_info('Course Details', data['info']['courseDetails'], 'outlineinfo', 'linkify');
+			}
+            if (data['info']['materials']) {
+				add_to_info('Material &amp; Supplies', data['info']['materials'], 'outlineinfo', 'linkify');
+			}
+            if (data['info']['requirements']) {
+				add_to_info('Requirements', data['info']['requirements'], 'outlineinfo', 'linkify');
+			}
+
+            if (data['requiredText']) {
+                var html = '<ul>';
+                $(data['requiredText']).each(function(i, d){
+                    html += '<li>' + d['details'] + '</li>';
+                });
+                html += '</ul>'
+				add_to_info('Required Text', html, 'outlineinfo', 'linkify');
+			}
+
+            if (data['grades']) {
+                var html = '<ul>';
+                $(data['grades']).each(function(i, d){
+                    html += '<li>' + d['description'] + ', ' + d['weight'] + '%</li>';
+                });
+                html += '</ul>'
+                if (data['info']['gradingNotes']) {
+                    html += '<p>' + data['info']['gradingNotes'] + '</p>'
+                }
+				add_to_info('Grading', html, 'outlineinfo');
+			}
+
+			$('tr.linkify td').linkify();
+
+			$('#fetchwait-outline').hide();
 		},
 	});
 }

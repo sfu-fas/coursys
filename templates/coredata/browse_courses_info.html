@@ -1,13 +1,16 @@
 {% extends "base.html" %}
+{% load staticfiles %}{% load compress %}
 {% block title %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
 {% block h1 %}Course Offerings: {{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li><li>{{ offering.subject }} {{ offering.number }} {{ offering.section }} {{ offering.semester.label }}</li>{% endblock %}
 
 {% block headextra %}
-<link rel='stylesheet' type='text/css' href='{{STATIC_URL}}fullcalendar/fullcalendar.css' />
-<script type='text/javascript' src='{{STATIC_URL}}fullcalendar/fullcalendar.js'></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/advisornotes.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'fullcalendar/fullcalendar.css' %}" />
+{% compress js %}
+<script type="text/javascript" src="{% static 'fullcalendar/fullcalendar.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/advisornotes.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.linkify.min.js' %}"></script>
 <script type="text/javascript">
 function build_calendar(url, y, m ,d) {
 	$('#calendar').fullCalendar({
@@ -31,23 +34,32 @@ function build_calendar(url, y, m ,d) {
   	})
 }
 $(document).ready(function() {
-	$('div.table_container').after('<i class="fa fa-spinner fa-spin" id="fetchwait"></i>');
+	$('table#maininfo').after('<i class="fa fa-spinner fa-spin" id="fetchwait"></i>');
+	$('h2#outline').after('<i class="fa fa-spinner fa-spin" id="fetchwait-outline"></i>');
     more_course_info('{% url "coredata.views.browse_courses_info" course_slug=offering.slug %}?data=yes');
-    //course_outline_info('{% url "coredata.views.browse_courses_info" course_slug=offering.slug %}?outline=yes');
+    course_outline_info('{% url "coredata.views.browse_courses_info" course_slug=offering.slug %}?outline=yes');
     build_calendar('{% url "coredata.views.browse_courses_info" course_slug=offering.slug %}?caldata=yes',
         {{ offering.semester.start.year }}, {{ offering.semester.start.month }}, {{ offering.semester.start.day }});
 } );
 </script>
+{% endcompress %}
 {% endblock %}
 
 {% block content %}
-<div class="table_container"><table class="info"><tbody>
-  <tr><th scope="col">Campus</th><td>{{ offering.get_campus_display }}</td></tr>
-  <tr><th scope="col">Enrolment</th><td>{{ offering.enrl_tot }} out of {{ offering.enrl_cap }}{% if offering.wait_tot %} ({{ offering.wait_tot }} on waitlist){% endif %} *</td></tr>
-  <tr><th scope="col">WQB Designation</th><td>{{ offering.get_wqb_display }}</td></tr>
-  <tr><th scope="col">Class Number</th><td>{{ offering.class_nbr }}</td></tr>
-</tbody></table></div>
+<table class="info" id="courseinfo"><tbody>
+  <tr><th scope="row">Instructor</th><td>{{ offering.instructors_str }}</td></tr>
+  <tr><th scope="row">Campus</th><td>{{ offering.get_campus_display }}</td></tr>
+  <tr><th scope="row">Enrolment</th><td>{{ offering.enrl_tot }} out of {{ offering.enrl_cap }}{% if offering.wait_tot %} ({{ offering.wait_tot }} on waitlist){% endif %} *</td></tr>
+  <tr><th scope="row">WQB Designation</th><td>{{ offering.get_wqb_display }}</td></tr>
+  <tr><th scope="row">Class Number</th><td>{{ offering.class_nbr }}</td></tr>
+</tbody></table>
 <p class="helptext">* updated overnight only: see <a href="https://sis.sfu.ca/">SIS</a> for updated data.</p>
+
+<h2 id="outline">Course Outline</h2>
+<table class="info" id="outlineinfo"><tbody>
+</tbody></table>
+
+
 
 <h2 id="schedule">Course Schedule</h2>
 <div id="calendar"></div>
