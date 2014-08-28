@@ -3,7 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
-        UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm
+        UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
+        TemporaryPersonForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup
 from featureflags.flags import uses_feature
@@ -861,3 +862,32 @@ def _offering_meeting_time_data(request, offering):
                                          dt_string=True, colour=True, browse_titles=True))
     json.dump(data, response, indent=1)
     return response
+
+@requires_role("ADMN")
+def new_temporary_person(request):
+    if request.method == 'POST':
+        form = TemporaryPersonForm(request.POST)
+        if form.is_valid():
+            p = Person( first_name = form.cleaned_data['first_name'], 
+                        last_name = form.cleaned_data['last_name'],
+                        emplid = Person.next_available_temp_emplid(),
+                        userid = Person.next_available_temp_userid(), 
+                        temporary = True)
+            if form.cleaned_data['email']:
+                p.config['email'] = form.cleaned_data['email']
+            if form.cleaned_data['sin']:
+                p.config['sin'] = form.cleaned_data['sin']
+
+            p.save()
+
+            messages.success(request, 'Added new temporary person %s' % (p,))
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new temporary person: %s") % (p,),
+                  related_object=p)
+            l.save()
+            return HttpResponseRedirect(reverse(unit_admin))
+    else:
+        form = TemporaryPersonForm()
+
+    return render(request, 'coredata/new_temporary_person.html', {'form': form})

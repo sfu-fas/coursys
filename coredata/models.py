@@ -53,6 +53,7 @@ class Person(models.Model, ConditionalSaveMixin):
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
+    temporary = models.BooleanField(default=False)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
         # 'pref_first_name': really, truly preferred first name (which can be set in DB if necessary)
@@ -169,6 +170,18 @@ class Person(models.Model, ConditionalSaveMixin):
             return "None"
     def search_label_value(self):
         return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
+
+    @staticmethod
+    def next_available_temp_emplid():
+        p = Person.objects.filter(temporary=True).order_by('-emplid')
+        if len(p) == 0:
+            return 133700001
+        else:
+            return p[0].emplid + 1
+
+    @staticmethod
+    def next_available_temp_userid():
+        return "tmp-"+str(Person.next_available_temp_emplid())[5:]
 
 
 class Semester(models.Model):
