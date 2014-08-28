@@ -139,23 +139,26 @@ function course_outline_info(url) {
     $.ajax({
 		url: url,
 		success: function(data){
-			console.log(data);
+			var anything = false;
 			if (data['error']) {
 				add_to_info('Error', data['error']);
 				$('#fetchwait-outline').hide();
 				return;
 			}
 
-			$('h2#outline').after('<p>This information is from <a href="' + data['outlineurl'] + '">the course\'s outline</a>. Please see the outline itself for more complete information.</p>');
+			$('h2#outline').after('<p id="outlinenote">This information is from <a href="' + data['outlineurl'] + '">the course\'s outline</a>. Please see the outline itself for more complete information.</p>');
 
-            if (data['info']['courseDetails']) {
+            if (data['info'] && data['info']['courseDetails']) {
 				add_to_info('Course Details', data['info']['courseDetails'], 'outlineinfo', 'linkify');
+				anything = true;
 			}
-            if (data['info']['materials']) {
+            if (data['info'] && data['info']['materials']) {
 				add_to_info('Material &amp; Supplies', data['info']['materials'], 'outlineinfo', 'linkify');
+				anything = true;
 			}
-            if (data['info']['requirements']) {
+            if (data['info'] && data['info']['requirements']) {
 				add_to_info('Requirements', data['info']['requirements'], 'outlineinfo', 'linkify');
+				anything = true;
 			}
 
             if (data['requiredText']) {
@@ -165,6 +168,7 @@ function course_outline_info(url) {
                 });
                 html += '</ul>'
 				add_to_info('Required Text', html, 'outlineinfo', 'linkify');
+				anything = true;
 			}
 
             if (data['grades']) {
@@ -173,13 +177,21 @@ function course_outline_info(url) {
                     html += '<li>' + d['description'] + ', ' + d['weight'] + '%</li>';
                 });
                 html += '</ul>'
-                if (data['info']['gradingNotes']) {
+                if (data['info'] && data['info']['gradingNotes']) {
                     html += '<p>' + data['info']['gradingNotes'] + '</p>'
                 }
 				add_to_info('Grading', html, 'outlineinfo');
+				anything = true;
 			}
 
 			$('tr.linkify td').linkify();
+			if ( !anything ) {
+    		    if ( data['outlineurl'] ) {
+    			    $('p#outlinenote').html('See <a href="' + data['outlineurl'] + '">the course\'s outline</a> for additional information.');
+			    } else {
+			        $('p#outlinenote').html('Could not find <a href="http://www.sfu.ca/outlines.html">an outline</a> for this course.');
+			    }
+			}
 
 			$('#fetchwait-outline').hide();
 		},

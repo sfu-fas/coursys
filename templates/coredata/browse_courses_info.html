@@ -52,6 +52,9 @@ $(document).ready(function() {
   <tr><th scope="row">Enrolment</th><td>{{ offering.enrl_tot }} out of {{ offering.enrl_cap }}{% if offering.wait_tot %} ({{ offering.wait_tot }} on waitlist){% endif %} *</td></tr>
   <tr><th scope="row">WQB Designation</th><td>{{ offering.get_wqb_display }}</td></tr>
   <tr><th scope="row">Class Number</th><td>{{ offering.class_nbr }}</td></tr>
+  {% if offering.url %}
+  <tr><th scope="row">Course Home Page</th><td><a href="{{ offering.url }}">{{ offering.url }}</a></td></tr>
+  {% endif %}
 </tbody></table>
 <p class="helptext">* updated overnight only: see <a href="https://sis.sfu.ca/">SIS</a> for updated data.</p>
 

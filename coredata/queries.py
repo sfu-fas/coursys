@@ -1239,8 +1239,16 @@ def outlines_api_url(offering):
 import json
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
-    req = urllib2.urlopen(url, timeout=30)
-    data = json.loads(req.read())
-    data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['nodePath']
+    try:
+        req = urllib2.urlopen(url, timeout=30)
+        jsondata = req.read()
+        data = json.loads(jsondata)
+    except ValueError:
+        data = {'internal_error': 'could not decode JSON'}
+    except (urllib2.HTTPError, urllib2.URLError):
+        data = {'internal_error': 'could not retrieve outline data from API'}
+
+    if 'info' in data and 'nodePath' in data['info']:
+        data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['nodePath']
 
     return json.dumps(data, indent=1)
