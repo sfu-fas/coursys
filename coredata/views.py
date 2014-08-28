@@ -3,13 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
-<<<<<<< HEAD
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
-        TemporaryPersonForm
-=======
-    UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
-    CourseHomePageForm
->>>>>>> c96d12fef4d226ec9435b06b49d6267b4e31dbf1
+        TemporaryPersonForm, CourseHomePageForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup
 from featureflags.flags import uses_feature
