@@ -3,8 +3,13 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
+<<<<<<< HEAD
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
         TemporaryPersonForm
+=======
+    UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
+    CourseHomePageForm
+>>>>>>> c96d12fef4d226ec9435b06b49d6267b4e31dbf1
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup
 from featureflags.flags import uses_feature
@@ -891,3 +896,68 @@ def new_temporary_person(request):
         form = TemporaryPersonForm()
 
     return render(request, 'coredata/new_temporary_person.html', {'form': form})
+
+
+def course_home_pages(request):
+    semester = Semester.current()
+    active_unit_slugs = CourseOffering.objects.filter(semester=semester, graded=True) \
+        .exclude(component='CAN') \
+        .exclude(instr_mode__in=['CO', 'GI']) \
+        .order_by('owner') \
+        .values_list('owner', flat=True).distinct()
+    units = Unit.objects.filter(id__in=active_unit_slugs).order_by('label')
+    context = {
+        'semester': semester,
+        'units': units,
+    }
+    return render(request, "coredata/course_home_pages.html", context)
+
+def course_home_pages_unit(request, unit_slug, semester=None):
+    if semester:
+        semester = get_object_or_404(Semester, name=semester)
+    else:
+        semester = Semester.current()
+
+    unit = get_object_or_404(Unit, slug=unit_slug)
+    offerings = CourseOffering.objects.filter(semester=semester, owner=unit, graded=True) \
+        .exclude(component='CAN') \
+        .exclude(instr_mode__in=['CO', 'GI'])
+
+    if request.user.is_authenticated():
+        is_admin = Role.objects.filter(unit=unit, person__userid=request.user.username, role='ADMN').exists()
+    else:
+        is_admin = False
+
+    context = {
+        'semester': semester,
+        'unit': unit,
+        'offerings': offerings,
+        'is_admin': is_admin,
+    }
+    return render(request, "coredata/course_home_pages_unit.html", context)
+
+@requires_role('ADMN')
+def course_home_admin(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug, owner__in=request.units)
+    if request.method == 'POST':
+        form = CourseHomePageForm(data=request.POST)
+        if form.is_valid():
+            offering.set_url(form.cleaned_data['url'])
+            offering.save()
+
+            messages.success(request, 'Updated URL for %s.' % (offering.name()))
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("Updated course URL for %s.") % (offering.name()),
+                  related_object=offering)
+            l.save()
+            return HttpResponseRedirect(reverse(course_home_pages_unit, kwargs={'unit_slug': offering.owner.slug, 'semester': offering.semester.name}))
+
+    else:
+        form = CourseHomePageForm(initial={'url': offering.url()})
+
+    context = {
+        'offering': offering,
+        'form': form,
+    }
+    return render(request, "coredata/course_home_admin.html", context)

@@ -215,7 +215,7 @@ def group_data(request, course_slug):
 
 
 @requires_course_by_slug
-def create(request,course_slug):
+def create(request, course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.exclude(role="DROP").get(person = person, offering = course)
@@ -296,8 +296,7 @@ def _validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course,
     return not integrityError
 
 @requires_course_by_slug
-def submit(request,course_slug):
-    #TODO: validate activity?
+def submit(request, course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     member = Member.objects.exclude(role='DROP').get(person=person, offering=course)
@@ -543,7 +542,7 @@ def remove_student(request, course_slug, group_slug):
 
     if request.method == "POST":
         for m in members:
-            f = StudentForm(request.POST, prefix = m.student.person.userid + '_' + m.activity.slug)
+            f = StudentForm(request.POST, prefix=unicode(m.student.person.userid_or_emplid()) + '_' + m.activity.slug)
             if (is_staff or m.student_editable(request.user.username)=="") \
                 and f.is_valid() and f.cleaned_data['selected'] == True:
             
@@ -565,7 +564,7 @@ def remove_student(request, course_slug, group_slug):
         for m in members:
             editable = m.student_editable(request.user.username)
             if is_staff or editable == "":
-                f = StudentForm(prefix = m.student.person.userid + '_' + m.activity.slug)
+                f = StudentForm(prefix=unicode(m.student.person.userid_or_emplid()) + '_' + m.activity.slug)
                 data.append({'form': f, 'member': m})
             else:
                 data.append({'form': None, 'member': m, 'reason': editable})

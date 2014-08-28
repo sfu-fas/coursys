@@ -89,6 +89,9 @@ class NewsItem(models.Model):
         """
         Email this news item to the user.
         """
+        if not self.user.email():
+            return
+
         headers = {
                 'Precedence': 'bulk',
                 'Auto-Submitted': 'auto-generated',

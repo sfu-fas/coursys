@@ -12,8 +12,8 @@
   <h2 class="heading">Actions</h2>
   <ul>
   {% if student %}
-  <li><a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a></li>
-  {% if view_history %}<li><a href="{% url "marking.views.mark_history_student" course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">View History</a></li>{% endif %}
+  <li><a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug userid=student.userid_or_emplid %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a></li>
+  {% if view_history %}<li><a href="{% url "marking.views.mark_history_student" course_slug=course.slug activity_slug=activity.slug userid=student.userid_or_emplid %}">View History</a></li>{% endif %}
   {% else %}
   <li><a href="{% url "submission.views.take_ownership_and_mark" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Edit Marking</a></li>
   {% if view_history %}<li><a href="{% url "marking.views.mark_history_group" course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">View History</a></li>{% endif %}

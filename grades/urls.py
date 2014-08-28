@@ -57,7 +57,6 @@ offering_patterns = [ # prefix /COURSE_SLUG/
     url(r'^students/$', 'grades.views.student_search'),
     url(r'^students/' + USERID_SLUG + '$', 'grades.views.student_info'),
     url(r'^export', 'grades.views.export_all'),
-    #url(r'^gitolite', 'grades.views.gitolite_config'),
 
     url(r'^config/tugs/' + USERID_SLUG + '/$', 'ta.views.view_tug'),
     url(r'^config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),

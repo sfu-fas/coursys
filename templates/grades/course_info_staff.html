@@ -19,7 +19,7 @@
 		"aaSorting": [[0, "asc"]],
 		"fnDrawCallback": enable_disable_ordering,
 		"aoColumns": [
-		    {"sType": "numnull"},
+		    null,
 		    null,
 		    null,
 		    {"sType": "numnull"},
@@ -38,8 +38,8 @@
 	for(var r = 1; r <= {{activities_info|length}}; r++)
 	{
 	    /* when javascript is enabled, use ajax call to reorder activity */
-	    $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', 'javascript: return false;');
-	    $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', 'javascript: return false;');
+	    $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', 'javascript:');
+	    $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', 'javascript:');
 	    
 	   /* attach position info to the arrow td */
 	    $('#arrow' + r).data('pos', r-1);

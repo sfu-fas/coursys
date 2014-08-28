@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#offerings').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block title %}{{ unit.informal_name }} Course Pages, {{ semester.label }}{% endblock %}
+{% block h1 %}{{ unit.informal_name }} Course Pages, {{ semester.label }}{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url "coredata.views.course_home_pages_unit" unit_slug=unit.slug semester=semester.previous_semester.name %}">Previous semester</a></li>
+    <li><a href="{% url "coredata.views.course_home_pages_unit" unit_slug=unit.slug semester=semester.next_semester.name %}">Next semester</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "coredata.views.browse_courses" %}">Browse Course Offerings</a></li>
+<li><a href="{% url 'coredata.views.course_home_pages' %}">Home Pages</a></li>
+<li>{{ unit.label }}</li>
+{% endblock %}
+
+{% block content %}
+<table id="offerings">
+    <thead><tr><th scope="col">Course</th><th scope="col">Title</th><th scope="col">Campus</th><th scope="col">Instructor</th>
+        {% if unit.slug == 'cmpt' %}<th scope="col">Maillist Archive</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for o in offerings %}
+    <tr>
+        <td><span class="sort">{{ o.slug }}</span>{% if o.url %}<a href="{{ o.url }}">{{ o.name }}</a>{% else %}{{ o.name }}{% endif %}
+          {% if is_admin %}[<a href="{% url 'coredata.views.course_home_admin' course_slug=o.slug %}">edit</a>]{% endif %}
+        </td>
+        <td>{{ o.title }}</td>
+        <td>{{ o.get_campus_short_display }}</td>
+        <td>{{ o.instructors_str }}</td>
+        {% if unit.slug == 'cmpt' %}<td><a href="http://www.cs.sfu.ca/CourseCentral/Hypermail/{{ o.maillist }}">{{ o.maillist }}</a></td>{% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

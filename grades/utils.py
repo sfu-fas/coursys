@@ -584,10 +584,11 @@ def calculate_numeric_grade(course, activity, student=None):
         numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
     
     ignored = 0
+    visible = activity.status=="RLS"
     for s in student_list:
         # calculate grade
         try:
-            result = eval_parse(parsed_expr, activity, act_dict, s, activity.status=="RLS")
+            result = eval_parse(parsed_expr, activity, act_dict, s, visible)
             result = decimal.Decimal(str(result)) # convert to decimal
         except EvalException:
             raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % s.person.name())
@@ -610,7 +611,11 @@ def calculate_numeric_grade(course, activity, student=None):
             numeric_grade = NumericGrade(activity=activity, member=s,
                                          value=str(result), flag='CALC')
             numeric_grade.save(newsitem=False, entered_by=None)
+
+    uses_unreleased = True in (act_dict[c].status != 'RLS' for c in cols_used(parsed_expr))
+    hiding_info = visible and uses_unreleased
+
     if student != None:
-        return StudentActivityInfo(student, activity, FLAGS['CALC'], numeric_grade.value, None).display_grade_staff()
+        return StudentActivityInfo(student, activity, FLAGS['CALC'], numeric_grade.value, None).display_grade_staff(), hiding_info
     else:
-        return ignored
+        return ignored, hiding_info

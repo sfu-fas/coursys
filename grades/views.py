@@ -20,6 +20,7 @@ from coredata.models import Member, CourseOffering, Person, Semester
 
 from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_student_by_slug
 from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
+from courselib.search import find_member
 
 from grades.models import all_activities_filter
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, GradeHistory
@@ -234,21 +235,21 @@ def _activity_info_staff(request, course_slug, activity_slug):
     
     grades = {}
     for g in grades_list:
-        grades[g.member.person.userid] = g
+        grades[g.member.person.userid_or_emplid()] = g
 
     source_grades = {}
     if activity.is_calculated() and not activity.is_numeric():
         # calculated letter needs source grades too
         source_list = activity.numeric_activity.numericgrade_set.filter().select_related('member__person', 'activity')
         for g in source_list:
-            source_grades[g.member.person.userid] = g
+            source_grades[g.member.person.userid_or_emplid()] = g
 
     # collect group membership info
     group_membership = {}
     if activity.group:
         gms = GroupMember.objects.filter(activity=activity, confirmed=True).select_related('group', 'student__person', 'group__courseoffering')
         for gm in gms:
-            group_membership[gm.student.person.userid] = gm.group
+            group_membership[gm.student.person.userid_or_emplid()] = gm.group
 
     # collect submission status
     sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity=activity, deleted=False)]
@@ -258,11 +259,11 @@ def _activity_info_staff(request, course_slug, activity_slug):
         for s in subs:
             members = s.group.groupmember_set.filter(activity=activity)
             for m in members:
-                submitted[m.student.person.userid] = True
+                submitted[m.student.person.userid_or_emplid()] = True
     else:
         subs = StudentSubmission.objects.filter(activity=activity)
         for s in subs:
-            submitted[s.member.person.userid] = True
+            submitted[s.member.person.userid_or_emplid()] = True
 
     if bool(sub_comps) and not bool(activity.due_date):
         messages.warning(request, 'Students will not be able to submit: no due date/time is set.')
@@ -272,7 +273,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
     marked = {}
     marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade__member__person')
     for m in marks:
-        marked[m.numeric_grade.member.person.userid] = True
+        marked[m.numeric_grade.member.person.userid_or_emplid()] = True
     if activity.group:
         # also collect group marks: attribute to both the group and members
         marks = GroupActivityMark.objects.filter(activity=activity).select_related('group')
@@ -280,7 +281,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
             marked[m.group.slug] = True
             members = m.group.groupmember_set.filter(activity=activity).select_related('student__person')
             for m in members:
-                marked[m.student.person.userid] = True
+                marked[m.student.person.userid_or_emplid()] = True
             
 
     context = {'course': course, 'activity': activity, 'students': students, 'grades': grades, 'source_grades': source_grades,
@@ -537,7 +538,7 @@ def grade_change(request, course_slug, activity_slug, userid):
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
-    member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+    member = get_object_or_404(Member, find_member(userid), offering__slug=course_slug)
     user = Person.objects.get(userid=request.user.username)
     grades = LetterGrade.objects.filter(activity=activity, member=member).exclude(flag='NOGR')
     if grades:
@@ -763,7 +764,9 @@ def calculate_all(request, course_slug, activity_slug):
     activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
     
     try:
-        ignored = calculate_numeric_grade(course,activity)
+        ignored, hiding_info = calculate_numeric_grade(course,activity)
+        if hiding_info:
+            messages.warning(request, "This activity is released to students, but the calculation uses unreleased grades. Calculations done with unreleased activities as zero to prevent leaking hidden info to students.")
         if ignored==1:
             messages.warning(request, "Did not calculate grade for 1 manually-graded student.")
         elif ignored>1:
@@ -814,7 +817,7 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
         member = get_object_or_404(Member, offering=course, person__userid=userid, role='STUD')
 
         try:
-            displayable_result = calculate_numeric_grade(course,activity, member)
+            displayable_result, _ = calculate_numeric_grade(course,activity, member)
         except ValidationError:
             return ForbiddenResponse(request)
         except EvalException:
@@ -1333,7 +1336,7 @@ def student_search(request, course_slug):
 @requires_course_staff_by_slug
 def student_info(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+    member = get_object_or_404(Member, find_member(userid), offering__slug=course_slug)
     requestor = get_object_or_404(Member, person__userid=request.user.username, offering__slug=course_slug)
     activities = all_activities_filter(offering=course)
     
@@ -1376,7 +1379,7 @@ def student_info(request, course_slug, userid):
         from discipline.models import DisciplineCaseInstrStudent
         dishonesty_cases = DisciplineCaseInstrStudent.objects.filter(offering=course, student=member.person)
 
-    group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
+    group_memberships = GroupMember.objects.filter(student=member, activity__offering__slug=course_slug)
     grade_history = GradeHistory.objects.filter(member=member, status_change=False).select_related('entered_by', 'activity', 'group', 'mark')
     #grade_history = GradeHistory.objects.filter(member=member).select_related('entered_by', 'activity', 'group', 'mark')
 
@@ -1445,51 +1448,3 @@ def export_all(request, course_slug):
     except OSError:
         pass
     return response
-
-
-def _git_repo_name(offering, slug, suffix=''):
-    return offering.slug + '-' + slug + suffix
-
-@requires_course_staff_by_slug
-def gitolite_config(request, course_slug):
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-    staff = Member.objects.filter(offering=offering, role__in=['INST', 'TA', 'APPR']).exclude(person__userid__isnull=True).select_related('person')
-    from groups.models import Group
-
-    if 'suffix' in request.GET:
-        suffix = '-'+ request.GET['suffix']
-    else:
-        suffix = ''
-
-    staff_id = 'staffgroup'
-
-    config = []
-    staff_userids = [m.person.userid for m in staff]
-    config.append('@%s = %s' % (staff_id, ' '.join(staff_userids)))
-    config.append('\n')
-
-    if 'groups' in request.GET:
-        groups = Group.objects.filter(courseoffering=offering)
-    else:
-        groups = []
-
-    if 'indiv' in request.GET:
-        students = Member.objects.filter(offering=offering, role='STUD').exclude(person__userid__isnull=True).select_related('person')
-    else:
-        students = []
-
-    for g in groups:
-        config.append('\nrepo ' + _git_repo_name(offering, g.slug, suffix))
-        gms = g.groupmember_set.filter(confirmed=True).exclude(student__person__userid__isnull=True).select_related('student__person')
-        people = set(gm.student.person for gm in gms)
-        userids = ' '.join(p.userid for p in people)
-        config.append('\n    RW = %s %s' % (userids, staff_id))
-        config.append('\n')
-
-    for m in students:
-        userid = m.person.userid
-        config.append('\nrepo ' + _git_repo_name(offering, userid, suffix))
-        config.append('\n    RW = %s %s' % (userid, staff_id))
-        config.append('\n   ')
-
-    return HttpResponse(config, content_type='text/plain')

@@ -55,7 +55,7 @@ class ActivityForm(forms.Form):
                                 widget=forms.TextInput(attrs={'size':'8'}))
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage',
                                  help_text='Percent of final mark',
-                                 widget=forms.TextInput(attrs={'size':'2'}))
+                                 widget=forms.NumberInput(attrs={'class': 'smallnumberinput'}))
     url = forms.URLField(required=False, label='URL',
                                  help_text='Page for more information, e.g. assignment description or exam info',
                                  widget=forms.TextInput(attrs={'size':'60'}))
@@ -169,7 +169,7 @@ class NumericActivityForm(ActivityForm):
             widget=CustomSplitDateTimeWidget())
     max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label='Maximum grade',
             help_text='Maximum grade for the activity',
-            widget=forms.TextInput(attrs={'size':'3'}))
+            widget=forms.NumberInput(attrs={'class': 'gradeinput'}))
     group = forms.ChoiceField(label='Group activity', initial='1',
             choices=GROUP_STATUS_CHOICES,
             widget=forms.RadioSelect())
@@ -228,7 +228,7 @@ class CalNumericActivityForm(ActivityForm):
                                help_text='Visibility of grades/activity to students')
     max_grade = forms.DecimalField(max_digits=8, decimal_places=2, label='Maximum grade',
                                    help_text='Maximum grade of the calculated result',
-                                   widget=forms.TextInput(attrs={'size':'3'}))
+                                   widget=forms.NumberInput(attrs={'class': 'gradeinput'}))
     formula = forms.CharField(max_length=2000,
                     help_text=mark_safe('Formula to calculate the numeric grade: see <a href="#help">formula help</a> below for more info'),
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
@@ -387,61 +387,61 @@ class CutoffForm(forms.Form):
         return self.cleaned_data
 
     def clean_ap(self):
-	ap=self.cleaned_data['ap']
+        ap=self.cleaned_data['ap']
         if ap<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return ap
 
     def clean_a(self):
-	a=self.cleaned_data['a']
+        a=self.cleaned_data['a']
         if a<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return a
 
     def clean_am(self):
-	am=self.cleaned_data['am']
+        am=self.cleaned_data['am']
         if am<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return am
 
     def clean_bp(self):
-	bp=self.cleaned_data['bp']
+        bp=self.cleaned_data['bp']
         if bp<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return bp
 
     def clean_b(self):
-	b=self.cleaned_data['b']
+        b=self.cleaned_data['b']
         if b<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return b
 
     def clean_bm(self):
-	bm=self.cleaned_data['bm']
+        bm=self.cleaned_data['bm']
         if bm<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return bm
 
     def clean_cp(self):
-	cp=self.cleaned_data['cp']
+        cp=self.cleaned_data['cp']
         if cp<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return cp
 
     def clean_c(self):
-	c=self.cleaned_data['c']
-        if c>100 or c<0:
+        c=self.cleaned_data['c']
+        if c<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return c
 
     def clean_cm(self):
-	cm=self.cleaned_data['cm']
+        cm=self.cleaned_data['cm']
         if cm<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return cm
 
     def clean_d(self):
-	d=self.cleaned_data['d']
+        d=self.cleaned_data['d']
         if d<0:
            raise forms.ValidationError('Grade cutoff must be positive.')
         return d

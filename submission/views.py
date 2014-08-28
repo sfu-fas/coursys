@@ -3,6 +3,7 @@ from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
+from courselib.search import find_member, find_userid_or_emplid
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, get_current_submission, select_all_components, \
@@ -15,6 +16,7 @@ from log.models import LogEntry
 from django.forms.util import ErrorList
 from django.db import transaction
 from courselib.db import retry_transaction
+from courselib.search import find_userid_or_emplid
 from featureflags.flags import uses_feature
 
 
@@ -40,9 +42,9 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     """
     if userid == None:
         userid = request.user.username
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(course.activity_set,slug = activity_slug, deleted=False)
-    student = get_object_or_404(Person, userid=userid)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(course.activity_set,slug=activity_slug, deleted=False)
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
     cansubmit = True
 
     submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
@@ -180,7 +182,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):
     if userid is None:
         userid = request.GET.get('userid')
-    course = get_object_or_404(CourseOffering, slug = course_slug)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug, deleted=False)
     staff = False
 
@@ -194,12 +196,13 @@ def show_components_submission_history(request, course_slug, activity_slug, user
         else:
             return ForbiddenResponse(request)
 
+    member = get_object_or_404(Member, find_member(userid), offering=course)
     if activity.group:
         messages.add_message(request, messages.INFO, "This is a group submission. This history is based on submissions from all your group members.")
-        gms = GroupMember.objects.filter(student__person__userid=userid, confirmed=True, activity=activity)
+        gms = GroupMember.objects.filter(student=member, confirmed=True, activity=activity)
         submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
     else:
-        submissions = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid)
+        submissions = StudentSubmission.objects.filter(activity=activity, member=member)
 
     # get all submission components
     component_list = select_all_components(activity, include_deleted=staff)
@@ -350,7 +353,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
 
     elif userid:
         # userid specified: get their most recent submission
-        student = get_object_or_404(Person, userid=userid)
+        student = get_object_or_404(Person, find_userid_or_emplid(userid))
         submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
         if not submission:
             return NotFoundResponse(request)
@@ -411,12 +414,13 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         urlencode = '?' +  qDict.urlencode()
 
     if userid:
+        student = get_object_or_404(Member, find_member(userid), role='STUD', offering=course)
         try:
             if activity.group is True:
-                member = GroupMember.objects.filter(activity=activity, student__person__userid=userid, confirmed=True)
+                member = GroupMember.objects.filter(activity=activity, student=student, confirmed=True)
                 submission = GroupSubmission.objects.filter(activity=activity, group=member[0].group).latest('created_at')
             else:
-                submission = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid).latest('created_at')
+                submission = StudentSubmission.objects.filter(member=student, activity=activity).latest('created_at')
         except:
             submission = None
         response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
@@ -430,7 +434,6 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
             submission.set_owner(course, request.user.username)
 
         #LOG EVENT#
-        student = get_object_or_404(Person, userid=userid)
         if submission:
             str = (" of submission %i") % (submission.id)
         else:
@@ -472,7 +475,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
 def _override_ownership_confirm(request, course, activity, userid, group_slug, old_owner, urlencode):
     if group_slug == None:
         group = None
-        student = get_object_or_404(Person, userid=userid)
+        student = get_object_or_404(Person, find_userid_or_emplid(userid))
     else:
         student = None
         groups = Group.objects.all().filter(courseoffering=course)
