@@ -16,6 +16,7 @@ from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
 import socket, json, datetime
 
@@ -809,7 +810,7 @@ def _instructor_autocomplete(request):
 
 
 @uses_feature('course_browser')
-#@cache_page(60*60*6)
+@cache_page(60*60)
 def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.
@@ -892,15 +893,19 @@ def new_temporary_person(request):
 
     return render(request, 'coredata/new_temporary_person.html', {'form': form})
 
+@cached(3600*12)
+def _has_homepages(unit_id, semester_id):
+    offerings = CourseOffering.objects.filter(owner_id=unit_id, semester_id=semester_id, graded=True) \
+        .exclude(component='CAN') \
+        .exclude(instr_mode__in=['CO', 'GI']) \
+        .filter(config__contains='"url"')
+    offerings = [o for o in offerings if 'url' in o.config]
+    return bool(offerings)
 
 def course_home_pages(request):
     semester = Semester.current()
-    active_unit_slugs = CourseOffering.objects.filter(semester=semester, graded=True) \
-        .exclude(component='CAN') \
-        .exclude(instr_mode__in=['CO', 'GI']) \
-        .order_by('owner') \
-        .values_list('owner', flat=True).distinct()
-    units = Unit.objects.filter(id__in=active_unit_slugs).order_by('label')
+    units = Unit.objects.all().order_by('label')
+    units = [u for u in units if _has_homepages(u.id, semester.id)]
     context = {
         'semester': semester,
         'units': units,
@@ -938,6 +943,9 @@ def course_home_admin(request, course_slug):
         form = CourseHomePageForm(data=request.POST)
         if form.is_valid():
             offering.set_url(form.cleaned_data['url'])
+            if 'maillist' in form.cleaned_data and form.cleaned_data['maillist']:
+                offering.set_maillist(form.cleaned_data['maillist'])
+
             offering.save()
 
             messages.success(request, 'Updated URL for %s.' % (offering.name()))
@@ -949,7 +957,7 @@ def course_home_admin(request, course_slug):
             return HttpResponseRedirect(reverse(course_home_pages_unit, kwargs={'unit_slug': offering.owner.slug, 'semester': offering.semester.name}))
 
     else:
-        form = CourseHomePageForm(initial={'url': offering.url()})
+        form = CourseHomePageForm(initial={'url': offering.url(), 'maillist': offering.maillist()})
 
     context = {
         'offering': offering,
