@@ -61,6 +61,7 @@ INSTALLED_APPS = (
     'featureflags',
     'django_nose',
     'rest_framework',
+    'oauth_provider',
 
     'coredata',
     'dashboard',
@@ -85,6 +86,7 @@ INSTALLED_APPS = (
     'faculty',
     'gpaconvert',
     'tacontracts',
+    'api',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -101,6 +103,8 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 AUTHENTICATION_BACKENDS = (
     'django_cas.backends.CASBackend',
 )
+OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
+OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
 
 # basic app setup
 ROOT_URLCONF = 'courses.urls'

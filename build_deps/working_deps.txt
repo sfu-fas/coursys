@@ -40,3 +40,4 @@ nose-progressive==1.5.1
 nose-timer==0.3.0
 mock==1.0.1
 djangorestframework==2.3.14
+django-oauth-plus==2.2.4

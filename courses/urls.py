@@ -20,6 +20,7 @@ from ta.urls import ta_patterns, tug_patterns
 from tacontracts.urls import tacontract_patterns
 
 from api.urls import api_patterns
+from oauth_provider.urls import urlpatterns as oauth_patterns
 #from rest_framework.urls import urlpatterns as rest_patterns
 
 handler404 = 'courselib.auth.NotFoundResponse'
@@ -31,7 +32,6 @@ urlpatterns = [
     url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
     url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^favicon.ico$', RedirectView.as_view(url=settings.STATIC_URL+'icons/favicon.ico', permanent=True)),
-    #url(r'^api-auth/', include(rest_patterns, namespace='rest_framework')),
 
     # top-level pages
     url(r'^$', 'dashboard.views.index'),
