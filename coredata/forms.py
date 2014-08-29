@@ -510,5 +510,14 @@ class OfferingFilterForm(forms.Form):
         subjects = self.all_subjects(semesters)
         self.fields['subject'].choices = [('', u'all')] + [(s,s) for s in subjects]
 
+class TemporaryPersonForm(forms.Form):
+    first_name = forms.CharField(max_length=32, required=True)
+    last_name = forms.CharField(max_length=32, required=True)
+    email = forms.CharField(max_length=50, required=False,
+                    help_text='Person\'s email address')
+    sin = forms.CharField(max_length=10, required=False, 
+                    help_text='SIN number')
+
 class CourseHomePageForm(forms.Form):
     url = forms.URLField(required=True, label="URL", help_text="URL of the course's main web page")
+    maillist = forms.CharField(required=False, label="Mailing List", help_text="The course mailing list. Leave blank for the default. e.g. \"cmpt-100-bby\".")

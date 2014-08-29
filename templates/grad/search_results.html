@@ -3,7 +3,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}js/grad.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-bbq.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript">
 var self_url = "{% filter escapejs %}{% url "grad.views.search" %}{% endfilter %}";
 var query_string = "{{query_string|escapejs}}";

@@ -53,6 +53,7 @@ class Person(models.Model, ConditionalSaveMixin):
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
+    temporary = models.BooleanField(default=False)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
         # 'pref_first_name': really, truly preferred first name (which can be set in DB if necessary)
@@ -169,6 +170,18 @@ class Person(models.Model, ConditionalSaveMixin):
             return "None"
     def search_label_value(self):
         return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
+
+    @staticmethod
+    def next_available_temp_emplid():
+        p = Person.objects.filter(temporary=True).order_by('-emplid')
+        if len(p) == 0:
+            return 133700001
+        else:
+            return p[0].emplid + 1
+
+    @staticmethod
+    def next_available_temp_userid():
+        return "tmp-"+str(Person.next_available_temp_emplid())[5:]
 
 
 class Semester(models.Model):
@@ -613,10 +626,12 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
         # 'combined_with': list of offerings this one is combined with (as CourseOffering.slug)
+        # 'maillist': course mailing list (@sfu.ca). Used for CMPT in course homepage list
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
-                'instr_rw_svn': False, 'combined_with': (), 'group_min': None, 'group_max': None}
+                'instr_rw_svn': False, 'combined_with': (), 'group_min': None, 'group_max': None,
+                'maillist': None}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
@@ -630,6 +645,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     combined_with, set_combined_with = getter_setter('combined_with')
     group_min, set_group_min = getter_setter('group_min')
     group_max, set_group_max = getter_setter('group_max')
+    _, set_maillist = getter_setter('maillist')
     copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn',
                           'group_min', 'group_max'] # fields that should be copied when instructor does "copy course setup"
     
@@ -707,6 +723,9 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         """
         The slug used in the CMPT course mailing list scheme
         """
+        if 'maillist' in self.config and self.config['maillist']:
+            return self.config['maillist']
+
         @cached(60*60*24*7)
         def _maillist(pk):
             o = CourseOffering.objects.get(pk=pk)

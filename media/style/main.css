@@ -63,7 +63,7 @@ form table, form .table {
 form table.info th {
   background-color: #ddd;
 }
-ul.bulleted li, .wikicontents ul>li {
+ul.bulleted li, .wikicontents ul>li, table.info ul li {
   list-style-type: circle;
   margin-left: 1em;
 }
@@ -506,8 +506,9 @@ table.info th {
   width: 12em;
   background-color: #eee;
   border: 1px solid #bbb;
-  padding: .15em .5em;
+  padding: .25em .5em;
   line-height: 1.25em;
+  vertical-align: top;
 }
 table.info td {
   border: 1px solid #bbb;
@@ -532,6 +533,9 @@ table.info p input {
 table.info a.editlink { /* small "edit this thing" links in table.info */
   float: right;
   font-size: smaller;
+}
+table.info ul {
+  margin-top: 0;
 }
 
 

@@ -17,6 +17,7 @@ data_patterns = [ # prefix /data/
 
 admin_patterns = [ # prefix /admin/
     url(r'^$', 'coredata.views.unit_admin'),
+    url(r'^new_temporary_person$', 'coredata.views.new_temporary_person'),
     url(r'^roles/$', 'coredata.views.unit_role_list'),
     url(r'^roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_unit_role'),
     url(r'^roles/new$', 'coredata.views.new_unit_role'),

@@ -251,8 +251,8 @@ function student_autocomplete(id, nonstudent) {
 // enable or disable ordering of activities for instructor: disable if not sorted by position.
 function enable_disable_ordering(oSettings) {
   var s = oSettings.aaSorting;
-  // condition is essentially (oSettings.aaSorting == [[0,"asc",0]])
-  if ( s.length==1 && s[0].length==3 && s[0][0]==0 && s[0][1]=='asc' && s[0][2]==0 ) {
+  // condition is essentially (oSettings.aaSorting == [[0,"asc",...]])
+  if ( s.length==1 && s[0].length>=2 && s[0][0]==0 && s[0][1]=='asc' ) {
     // sorted by position: enable reordering buttons
     $('.arrow_up').show();
     $('.arrow_down').show();

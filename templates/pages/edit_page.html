@@ -7,7 +7,7 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{STATIC_URL}}tiny_mce/tiny_mce.js"></script>
-<script type="text/javascript" src="{{STATIC_URL}}js/jquery.cookie.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}jquery-ext/jquery.cookie.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/pages.js"></script>
 <script type="text/javascript">
 var convert_url = '{% if page %}{% url "pages.views.convert_content" course_slug=offering.slug page_label=page.label %}{% else %}{% url "pages.views.convert_content" course_slug=offering.slug %}{% endif %}';

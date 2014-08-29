@@ -3,8 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
-    UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
-    CourseHomePageForm
+        UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
+        TemporaryPersonForm, CourseHomePageForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup
 from featureflags.flags import uses_feature
@@ -16,6 +16,7 @@ from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
 import socket, json, datetime
 
@@ -809,7 +810,7 @@ def _instructor_autocomplete(request):
 
 
 @uses_feature('course_browser')
-#@cache_page(60*60*6)
+@cache_page(60*60)
 def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.
@@ -863,16 +864,48 @@ def _offering_meeting_time_data(request, offering):
     json.dump(data, response, indent=1)
     return response
 
+@requires_role("ADMN")
+def new_temporary_person(request):
+    if request.method == 'POST':
+        form = TemporaryPersonForm(request.POST)
+        if form.is_valid():
+            p = Person( first_name = form.cleaned_data['first_name'], 
+                        last_name = form.cleaned_data['last_name'],
+                        emplid = Person.next_available_temp_emplid(),
+                        userid = Person.next_available_temp_userid(), 
+                        temporary = True)
+            if form.cleaned_data['email']:
+                p.config['email'] = form.cleaned_data['email']
+            if form.cleaned_data['sin']:
+                p.config['sin'] = form.cleaned_data['sin']
 
+            p.save()
+
+            messages.success(request, 'Added new temporary person %s' % (p,))
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new temporary person: %s") % (p,),
+                  related_object=p)
+            l.save()
+            return HttpResponseRedirect(reverse(unit_admin))
+    else:
+        form = TemporaryPersonForm()
+
+    return render(request, 'coredata/new_temporary_person.html', {'form': form})
+
+@cached(3600*12)
+def _has_homepages(unit_id, semester_id):
+    offerings = CourseOffering.objects.filter(owner_id=unit_id, semester_id=semester_id, graded=True) \
+        .exclude(component='CAN') \
+        .exclude(instr_mode__in=['CO', 'GI']) \
+        .filter(config__contains='"url"')
+    offerings = [o for o in offerings if 'url' in o.config]
+    return bool(offerings)
 
 def course_home_pages(request):
     semester = Semester.current()
-    active_unit_slugs = CourseOffering.objects.filter(semester=semester, graded=True) \
-        .exclude(component='CAN') \
-        .exclude(instr_mode__in=['CO', 'GI']) \
-        .order_by('owner') \
-        .values_list('owner', flat=True).distinct()
-    units = Unit.objects.filter(id__in=active_unit_slugs).order_by('label')
+    units = Unit.objects.all().order_by('label')
+    units = [u for u in units if _has_homepages(u.id, semester.id)]
     context = {
         'semester': semester,
         'units': units,
@@ -887,7 +920,6 @@ def course_home_pages_unit(request, unit_slug, semester=None):
 
     unit = get_object_or_404(Unit, slug=unit_slug)
     offerings = CourseOffering.objects.filter(semester=semester, owner=unit, graded=True) \
-        .exclude(section__startswith='LA') \
         .exclude(component='CAN') \
         .exclude(instr_mode__in=['CO', 'GI'])
 
@@ -911,6 +943,9 @@ def course_home_admin(request, course_slug):
         form = CourseHomePageForm(data=request.POST)
         if form.is_valid():
             offering.set_url(form.cleaned_data['url'])
+            if 'maillist' in form.cleaned_data and form.cleaned_data['maillist']:
+                offering.set_maillist(form.cleaned_data['maillist'])
+
             offering.save()
 
             messages.success(request, 'Updated URL for %s.' % (offering.name()))
@@ -922,7 +957,7 @@ def course_home_admin(request, course_slug):
             return HttpResponseRedirect(reverse(course_home_pages_unit, kwargs={'unit_slug': offering.owner.slug, 'semester': offering.semester.name}))
 
     else:
-        form = CourseHomePageForm(initial={'url': offering.url()})
+        form = CourseHomePageForm(initial={'url': offering.url(), 'maillist': offering.maillist()})
 
     context = {
         'offering': offering,
