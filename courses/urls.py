@@ -20,8 +20,6 @@ from ta.urls import ta_patterns, tug_patterns
 from tacontracts.urls import tacontract_patterns
 
 from api.urls import api_patterns
-from oauth_provider.urls import urlpatterns as oauth_patterns
-#from rest_framework.urls import urlpatterns as rest_patterns
 
 handler404 = 'courselib.auth.NotFoundResponse'
 

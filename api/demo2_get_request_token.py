@@ -25,7 +25,10 @@ def authorize_token(request_token):
     url = AUTHORIZE_TOKEN_URL + '?' + urllib.urlencode({'oauth_token': request_token['oauth_token']})
     return url
 
-req_token = get_request_token()
+req_token = get_request_token(False)
 url = authorize_token(req_token)
+
 print "Please visit:"
 print url
+print "...then use with this request token and secret, and the verifier you are given:"
+print req_token['oauth_token'], req_token['oauth_token_secret']

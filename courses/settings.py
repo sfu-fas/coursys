@@ -105,6 +105,7 @@ AUTHENTICATION_BACKENDS = (
 )
 OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
 OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
+OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
 
 # basic app setup
 ROOT_URLCONF = 'courses.urls'

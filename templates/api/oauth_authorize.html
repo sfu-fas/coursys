@@ -18,9 +18,11 @@
   <li>{{ p }}</li>
   {% endfor %}
 </ul>
+<p>If you don't trust this application (and its developers) to do the above actions on your behalf, then <strong>do not agree here</strong>.</p>
 
-{{form|as_dl}}
-<p><input type="submit" value="Authorize this application" /></p>
+<p><strong>Allow access as described above:</strong> {{ form.authorize_access }}</p>
+<p>{{ form.oauth_token }}
+<input type="submit" value="Authorize this application" /></p>
 </form>
 
 {% endblock %}

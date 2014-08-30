@@ -14,7 +14,10 @@
 {% if error %}
 <p class="errormessage">Error: {{ error }}</p>
 {% endif %}
-{% if oauth_token %}
-<p>Your application can access CourSys with this token: {{ oauth_token }}</p>
+{% if token.is_approved %}
+<p>The application can access CourSys after you give it this &ldquo;verifier&rdquo;:</p>
+<blockquote>
+{{ token.verifier }}
+</blockquote>
 {% endif %}
 {% endblock %}
