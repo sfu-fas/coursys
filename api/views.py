@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from oauth_provider.models import Token
-from api.models import ConsumerInfo, TokenInfo
+from api.models import ConsumerInfo
 from oauth_provider.forms import AuthorizeRequestTokenForm
 
 @login_required
@@ -13,10 +13,6 @@ def oauth_authorize(request, request_token, callback, params):
     consumer = request_token.consumer
     consumerinfo = ConsumerInfo.objects.get(consumer_id=request_token.consumer_id)
     form = AuthorizeRequestTokenForm(initial={'oauth_token': request_token.key})
-
-    tokeninfo, _ = TokenInfo.objects.get_or_create(token=request_token)
-    tokeninfo.permissions = consumerinfo.permissions
-    tokeninfo.save()
 
     context = {
         'consumer': consumer,

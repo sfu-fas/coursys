@@ -3,9 +3,9 @@ from django.views.decorators.http import require_GET
 from coredata.serializers import CourseOfferingSerializer
 from dashboard.views import _get_memberships
 
-from courselib.api import JSONResponse, api_auth_required
+from courselib.rest import JSONResponse, requires_api_permission
 
-@api_auth_required
+@requires_api_permission('courses')
 @require_GET
 def my_offerings(request):
     memberships, _ = _get_memberships(request.user.username)

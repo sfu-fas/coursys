@@ -26,4 +26,3 @@ def create_consumer():
     return c
 
 c = create_consumer()
-print c.__dict__
