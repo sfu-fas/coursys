@@ -2,11 +2,11 @@ from rest_framework import generics
 
 from coredata.serializers import CourseOfferingSerializer
 from dashboard.views import _get_memberships
-from courselib.rest import APIPermissions
+from courselib.rest import APIConsumerPermissions
 
 class MyOfferings(generics.ListAPIView):
-    permission_classes = (APIPermissions,)
-    required_permissions = set(['courses'])
+    permission_classes = (APIConsumerPermissions,)
+    consumer_permissions = set(['courses'])
 
     serializer_class = CourseOfferingSerializer
 

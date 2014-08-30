@@ -3,6 +3,7 @@ from oauth_provider.models import Consumer
 from courselib.json_fields import JSONField
 from courselib.json_fields import config_property
 from time import time
+
 PERMISSION_CHOICES = [
     ('courses', 'View the courses you are enrolled in'),
     ('grades', 'View the marks you have received in your courses')
@@ -34,7 +35,7 @@ class ConsumerInfo(models.Model):
         Get the ConsumerInfo that the user agreed to with this token (since it's possible the permission list changes
         over time), and return the permission list they agreed to
         """
-        return ConsumerInfo.objects.filter(consumer=token.consumer, timestamp__lt=token.timestamp) \
+        return ConsumerInfo.objects.filter(consumer_id=token.consumer_id, timestamp__lt=token.timestamp) \
             .order_by('-timestamp').first()
 
     @classmethod

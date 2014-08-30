@@ -184,7 +184,7 @@ STATIC_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
-    #'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 )
 COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
@@ -352,7 +352,6 @@ if DEPLOY_MODE == 'production':
 if getattr(localsettings, 'DEBUG_TOOLBAR', False):
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
     MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-    STATICFILES_FINDERS = STATICFILES_FINDERS + ('django.contrib.staticfiles.finders.AppDirectoriesFinder',)
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,
     #}
