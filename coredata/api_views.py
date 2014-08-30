@@ -1,14 +1,18 @@
-from django.views.decorators.http import require_GET
+from rest_framework import generics
 
 from coredata.serializers import CourseOfferingSerializer
 from dashboard.views import _get_memberships
+from courselib.rest import APIPermissions
 
-from courselib.rest import JSONResponse, requires_api_permission
+class MyOfferings(generics.ListAPIView):
+    permission_classes = (APIPermissions,)
+    required_permissions = set(['courses'])
 
-@requires_api_permission('courses')
-@require_GET
-def my_offerings(request):
-    memberships, _ = _get_memberships(request.user.username)
-    offerings = [m.offering for m in memberships]
-    serializer = CourseOfferingSerializer(offerings, many=True)
-    return JSONResponse(serializer.data)
+    serializer_class = CourseOfferingSerializer
+
+    def get_queryset(self):
+        memberships, _ = _get_memberships(self.request.user.username)
+        offerings = [m.offering for m in memberships]
+        return offerings
+
+

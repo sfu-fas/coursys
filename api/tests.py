@@ -1,5 +1,6 @@
 from testboost.testcase import FastFixtureTestCase as TestCase
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from oauth_provider.models import Consumer, Token
 from oauth_provider.consts import ACCEPTED
 
@@ -72,6 +73,24 @@ class APITest(TestCase):
         self.consumerinfo.save()
         perms = ConsumerInfo.allowed_permissions(self.token)
         self.assertEqual(perms, [])
+
+    def test_oauth_auth(self):
+        return
+        c = Client()
+        url = reverse('api.views.my_offerings')
+        resp = c.get(url)
+        self.assertEqual(resp.status_code, 401)
+
+        session = c.session
+        #session['request_token'] = {...}
+        session['access_token'] = self.token
+        #session.save()
+        resp = c.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+
+
+
 
 
 

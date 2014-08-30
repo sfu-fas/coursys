@@ -106,6 +106,13 @@ AUTHENTICATION_BACKENDS = (
 OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
 OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
 OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        #'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.OAuthAuthentication',
+    )
+}
 
 # basic app setup
 ROOT_URLCONF = 'courses.urls'

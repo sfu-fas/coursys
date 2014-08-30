@@ -1,7 +1,7 @@
 import oauth2 as oauth
 import requests
 
-RESOURCE_URL = 'http://localhost:8000/api/offerings/'
+RESOURCE_URL = 'http://localhost:8000/api/offerings'
 
 def use_access_token(oauth_token, oauth_secret):
     consumer = oauth.Consumer(key='9fdce0e111a1489eb5a42eab7a84306b', secret='liqutXmqJpKmetfs')

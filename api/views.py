@@ -32,3 +32,4 @@ def oauth_callback(request, oauth_token=None, error=None):
         'error': error,
     }
     return render(request, 'api/oauth_callback.html', context)
+

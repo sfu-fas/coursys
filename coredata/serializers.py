@@ -8,4 +8,7 @@ class CourseOfferingSerializer(serializers.ModelSerializer):
         fields = ('subject', 'number', 'section', 'semester', 'crse_id', 'class_nbr', 'title', 'campus', 'slug')
 
     def transform_semester(self, obj, value):
-        return obj.semester.name
+        if obj:
+            return obj.semester.name
+        else:
+            return None
