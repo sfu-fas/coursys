@@ -3,6 +3,10 @@ from oauth_provider.models import Token
 from api.models import ConsumerInfo
 from rest_framework import permissions, authentication
 
+from django.conf import settings
+import pytz
+
+
 class APIConsumerPermissions(permissions.BasePermission):
     """
     Checks that the user's token has been authorized with all of the actions specified in View.consumer_permissions.
@@ -35,3 +39,15 @@ class APIConsumerPermissions(permissions.BasePermission):
 
         else:
             raise ValueError, "Unknown authentication method."
+
+
+system_tz = pytz.timezone(settings.TIME_ZONE)
+
+def utc_datetime(dt):
+    """
+    Convert the local datetime value from the database to UTC, since that's just better for the API.
+    """
+    if dt:
+        return system_tz.normalize(system_tz.localize(dt)).astimezone(pytz.utc)
+    else:
+        return None
