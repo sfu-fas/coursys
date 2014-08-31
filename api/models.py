@@ -1,5 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from oauth_provider.models import Consumer
+from oauth_provider.consts import ACCEPTED
+
 from courselib.json_fields import JSONField
 from courselib.json_fields import config_property
 from time import time
@@ -45,3 +48,27 @@ class ConsumerInfo(models.Model):
             return []
         else:
             return ci.permissions
+
+
+def create_consumer(name, description, owner_userid, admin_contact, permissions):
+    """
+    Create a new Consumer with all of the info we need recorded.
+
+    Could be rolled into a form+view in /sysadmin/, but how many could there possibly be?
+    """
+    assert set(permissions) <= set(PERMISSION_OPTIONS.keys()), 'Permissions must be chosen from PERMISSION_CHOICES.'
+
+    User = get_user_model()
+    c = Consumer(name=name, description=description, status=ACCEPTED,
+            user=User.objects.get(username=owner_userid), xauth_allowed=False)
+    c.generate_random_codes()
+    c.save()
+
+    i = ConsumerInfo(consumer=c)
+    i.admin_contact = admin_contact
+    i.permissions = list(permissions)
+    i.save()
+
+    print "Consumer key:", c.key
+    print "Consumer secret:", c.secret
+
