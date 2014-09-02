@@ -4,7 +4,6 @@ from rest_framework import generics, views
 
 from coredata.models import CourseOffering, Member
 from coredata.serializers import CourseOfferingSerializer, ActivitySerializer
-from dashboard.views import _get_memberships
 from courselib.rest import APIConsumerPermissions
 
 class MyOfferings(generics.ListAPIView):
@@ -14,7 +13,7 @@ class MyOfferings(generics.ListAPIView):
     serializer_class = CourseOfferingSerializer
 
     def get_queryset(self):
-        memberships, _ = _get_memberships(self.request.user.username)
+        memberships, _ = Member.get_memberships(self.request.user.username)
         offerings = [m.offering for m in memberships]
         return offerings
 

@@ -32,41 +32,10 @@ import itertools
 from urllib import urlencode
 
 
-def _get_memberships(userid):
-    today = datetime.date.today()
-    past1 = today - datetime.timedelta(days=365) # 1 year ago
-    past2 = today - datetime.timedelta(days=730) # 2 years ago
-    memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
-            .filter(offering__graded=True, person__userid=userid) \
-            .annotate(num_activities=Count('offering__activity')) \
-            .select_related('offering','offering__semester')
-
-    memberships = list(memberships) # get out of the database and do this locally
-
-    # students don't see non-active courses or future courses
-    memberships = [m for m in memberships if
-                    m.role in ['TA', 'INST', 'APPR']
-                    or (m.num_activities > 0
-                        and m.offering.semester.start <= today)]
-
-    count1 = len(memberships)
-    # exclude everything from more than 2 years ago
-    memberships = [m for m in memberships if m.offering.semester.end >= past2]
-
-    # students don't see as far in the past
-    memberships = [m for m in memberships if
-                    m.role in ['TA', 'INST', 'APPR']
-                    or m.offering.semester.end >= past1]
-    count2 = len(memberships)
-
-    # have courses been excluded because of date?
-    excluded = (count1-count2) != 0
-    return memberships, excluded
-
 @login_required
 def index(request):
     userid = request.user.username
-    memberships, excluded = _get_memberships(userid)
+    memberships, excluded = Member.get_memberships(userid)
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)

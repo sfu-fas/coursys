@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Count
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.conf import settings
@@ -909,6 +910,47 @@ class Member(models.Model, ConditionalSaveMixin):
 
     def bu(self):
         return decimal.Decimal(unicode(self.raw_bu()))
+
+    @classmethod
+    def get_memberships(cls, userid, memberships=None):
+        """
+        Get course memberships for this userid that we want to display on their menu. return list of Member objects and
+        a boolean indicating whether or not there were temporal exclusions (so the "course history" link is relevant).
+
+        memberships argument can be given if caller already has a query of Member objects going, and wants it narrowed.
+        """
+        if memberships is None:
+            memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
+                    .filter(offering__graded=True)
+
+        today = datetime.date.today()
+        past1 = today - datetime.timedelta(days=365) # 1 year ago
+        past2 = today - datetime.timedelta(days=730) # 2 years ago
+        memberships = memberships.filter(person__userid=userid) \
+            .annotate(num_activities=Count('offering__activity')) \
+            .select_related('offering','offering__semester')
+        memberships = list(memberships) # get out of the database and do this locally
+
+        # students don't see non-active courses or future courses
+        memberships = [m for m in memberships if
+                        m.role in ['TA', 'INST', 'APPR']
+                        or (m.num_activities > 0
+                            and m.offering.semester.start <= today)]
+
+        count1 = len(memberships)
+        # exclude everything from more than 2 years ago
+        memberships = [m for m in memberships if m.offering.semester.end >= past2]
+
+        # students don't see as far in the past
+        memberships = [m for m in memberships if
+                        m.role in ['TA', 'INST', 'APPR']
+                        or m.offering.semester.end >= past1]
+        count2 = len(memberships)
+
+        # have courses been excluded because of date?
+        excluded = (count1-count2) != 0
+        return memberships, excluded
+
 
     def teaching_credit(self):
         """
