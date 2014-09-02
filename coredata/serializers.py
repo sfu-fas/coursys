@@ -1,5 +1,6 @@
+from django.core.urlresolvers import reverse
 from rest_framework import serializers
-from coredata.models import CourseOffering, Member
+from coredata.models import CourseOffering
 from grades.models import Activity
 from courselib.rest import utc_datetime
 
@@ -9,18 +10,22 @@ class CourseOfferingSerializer(serializers.ModelSerializer):
     instructors = serializers.SerializerMethodField('get_instructors')
     tas = serializers.SerializerMethodField('get_tas')
     contact_email = serializers.Field(source='taemail')
+    href = serializers.SerializerMethodField('get_href')
 
     class Meta:
         model = CourseOffering
         fields = ('subject', 'number', 'section', 'semester', 'crse_id', 'class_nbr', 'title', 'campus', 'slug',
             'url', 'contact_email',
-            'instructors', 'tas')
+            'instructors', 'tas', 'href')
 
     def get_instructors(self, o):
         return [{'fname': p.real_pref_first(), 'lname': p.last_name, 'email': p.email()} for p in o.instructors()]
 
     def get_tas(self, o):
         return [{'fname': p.real_pref_first(), 'lname': p.last_name, 'email': p.email()} for p in o.tas()]
+
+    def get_href(self, o):
+        return reverse('api.OfferingInfo', kwargs={'course_slug': o.slug})
 
 
 class ActivitySerializer(serializers.ModelSerializer):

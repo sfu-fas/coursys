@@ -912,23 +912,18 @@ class Member(models.Model, ConditionalSaveMixin):
         return decimal.Decimal(unicode(self.raw_bu()))
 
     @classmethod
-    def get_memberships(cls, userid, memberships=None):
+    def get_memberships(cls, userid):
         """
         Get course memberships for this userid that we want to display on their menu. return list of Member objects and
         a boolean indicating whether or not there were temporal exclusions (so the "course history" link is relevant).
-
-        memberships argument can be given if caller already has a query of Member objects going, and wants it narrowed.
         """
-        if memberships is None:
-            memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
-                    .filter(offering__graded=True)
-
         today = datetime.date.today()
         past1 = today - datetime.timedelta(days=365) # 1 year ago
         past2 = today - datetime.timedelta(days=730) # 2 years ago
-        memberships = memberships.filter(person__userid=userid) \
-            .annotate(num_activities=Count('offering__activity')) \
-            .select_related('offering','offering__semester')
+        memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
+                .filter(offering__graded=True, person__userid=userid) \
+                .annotate(num_activities=Count('offering__activity')) \
+                .select_related('offering','offering__semester')
         memberships = list(memberships) # get out of the database and do this locally
 
         # students don't see non-active courses or future courses
