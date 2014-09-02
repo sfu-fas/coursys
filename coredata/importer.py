@@ -38,6 +38,20 @@ def get_combined():
     combined_sections = [
         {
             'subject': 'CMPT', 'number': '413', 'section': 'X100',
+            'semester': Semester.objects.get(name="1147"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32760, 'class_nbr': 32761,
+            'title': 'Computational Linguistics (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2014fa-cmpt-413-d1'),
+                CourseOffering.objects.get(slug='2014fa-cmpt-825-g1')
+            ]
+        },
+        {
+            'subject': 'CMPT', 'number': '413', 'section': 'X100',
             'semester': Semester.objects.get(name="1141"),
             'component': 'LEC', 'graded': True, 
             'crse_id': 32760, 'class_nbr': 32760,
