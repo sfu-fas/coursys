@@ -62,6 +62,7 @@ INSTALLED_APPS = (
     'django_nose',
     'rest_framework',
     'oauth_provider',
+    #'rest_framework_swagger',
 
     'coredata',
     'dashboard',
@@ -112,6 +113,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.OAuthAuthentication',
     )
+}
+SWAGGER_SETTINGS = {
+    "api_version": '1',  # Specify your API's version
+    "api_path": "/api/",  # Specify the path to your API not a root level
 }
 
 # basic app setup

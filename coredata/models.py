@@ -568,7 +568,7 @@ OFFERING_FLAGS = [
     ('bsci', 'B-Sci'),
     ('bsoc', 'B-Soc'),
     ('combined', 'Combined section'), # used to flag sections that have been merged in the import
-	]
+    ]
 OFFERING_FLAG_KEYS = [flag[0] for flag in OFFERING_FLAGS]
 WQB_FLAGS = [(k,v) for k,v in OFFERING_FLAGS if k != 'combined']
 WQB_KEYS = [flag[0] for flag in WQB_FLAGS]
@@ -584,11 +584,11 @@ INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
 class CourseOffering(models.Model, ConditionalSaveMixin):
     subject = models.CharField(max_length=4, null=False, db_index=True,
-        help_text='Subject code, like "CMPT" or "FAN".')
+        help_text='Subject code, like "CMPT" or "FAN"')
     number = models.CharField(max_length=4, null=False, db_index=True,
-        help_text='Course number, like "120" or "XX1".')
+        help_text='Course number, like "120" or "XX1"')
     section = models.CharField(max_length=4, null=False, db_index=True,
-        help_text='Section should be in the form "C100" or "D103".')
+        help_text='Section should be in the form "C100" or "D103"')
     semester = models.ForeignKey(Semester, null=False)
     component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES, db_index=True,
         help_text='Component of the offering, like "LEC" or "LAB"')
@@ -600,7 +600,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)
     class_nbr = models.PositiveIntegerField(null=True, db_index=True)
 
-    title = models.CharField(max_length=30, help_text='The course title.', db_index=True)
+    title = models.CharField(max_length=30, help_text='The course title', db_index=True)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, db_index=True)
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()

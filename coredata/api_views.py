@@ -3,12 +3,12 @@ from django.db.models import Q
 from rest_framework import generics, views
 
 from coredata.models import CourseOffering, Member
-from coredata.serializers import CourseOfferingSerializer, ActivitySerializer
+from coredata.serializers import ShortCourseOfferingSerializer, CourseOfferingSerializer
 from courselib.rest import APIConsumerPermissions
 
 class MyOfferings(generics.ListAPIView):
     """
-    Return a list of course offering for the authenticated user.
+    Course offering for the authenticated user.
 
     By default, all memberships known in the system are returned. Query string `relevant=yes` will give the list of
     offerings that are relevant to show the user in a menu: ones where there is some data in CourSys and are within a
@@ -17,7 +17,7 @@ class MyOfferings(generics.ListAPIView):
     permission_classes = (APIConsumerPermissions,)
     consumer_permissions = set(['courses'])
 
-    serializer_class = CourseOfferingSerializer
+    serializer_class = ShortCourseOfferingSerializer
 
     def get_queryset(self):
         relevant = self.request.QUERY_PARAMS.get('relevant', None)
@@ -30,18 +30,15 @@ class MyOfferings(generics.ListAPIView):
         offerings = [m.offering for m in memberships]
         return offerings
 
-class OfferingInfo(generics.ListAPIView):
-    permission_classes = (APIConsumerPermissions,)
-    consumer_permissions = set(['courses', 'grades'])
+class OfferingInfo(generics.RetrieveAPIView):
+    """
+    Detailed information on one course offering.
+    """
+    permission_classes = ()
+    consumer_permissions = set() # any user can get this for any offering, so no authn needed
 
-    serializer_class = ActivitySerializer
+    serializer_class = CourseOfferingSerializer
+    lookup_field = 'slug'
+    lookup_url_kwarg = 'course_slug'
 
-    def get_queryset(self):
-        offering = get_object_or_404(CourseOffering, ~Q(component='CAN'), slug=self.kwargs['course_slug'])
-        qs = offering.activity_set.filter(deleted=False)
-
-        member = get_object_or_404(Member, ~Q(role='DROP'), person__userid=self.request.user.username, offering=offering)
-        if member.role == 'STUD':
-            qs.exclude(status='INVI')
-
-        return qs
+    queryset = CourseOffering.objects.exclude(component='CAN')
