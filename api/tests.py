@@ -22,6 +22,7 @@ VERIFIER = '1234567890'
 
 class APITest(TestCase):
     def setUp(self):
+        self.faketime = 525942870
         self.client = Client()
 
         # create a Consumer (and associated stuff)
@@ -47,7 +48,7 @@ class APITest(TestCase):
         i = ConsumerInfo(consumer=c)
         i.admin_contact = 'the_developer@example.com'
         i.permissions = ['courses']
-        i.timestamp = time.time() - 10 # make sure the ConsumerInfo was there "before" the Token was created
+        i.timestamp = self.faketime - 10 # make sure the ConsumerInfo was there "before" the Token was created
         i.save()
         self.consumerinfo = i
 
@@ -55,8 +56,8 @@ class APITest(TestCase):
         try:
             t = Token.objects.get(token_type=Token.ACCESS, consumer=c, user=u)
         except Token.DoesNotExist:
-            t = Token(token_type=Token.ACCESS, consumer=c, user=u)
-
+            t = Token(token_type=Token.ACCESS, consumer=c, user=u, timestamp=self.faketime)
+       
         t.is_approved = True
         t.generate_random_codes()
         t.verifier = VERIFIER
@@ -66,28 +67,25 @@ class APITest(TestCase):
     def test_consumerinfo(self):
 
         # replace time.time with a function that always returns ( 7:14AM, Sept 1, 1986 ) 
-        with mock.patch('time.time', lambda:  525942870 ):
 
-            self.assertEqual( time.time(), 525942870 )
+        # make sure we get the right ConsumerInfo object for a token
+        i0 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['everything', 'nothing'])
+        i0.timestamp = self.faketime - 100
+        i0.save()
 
-            # make sure we get the right ConsumerInfo object for a token
-            i0 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['everything', 'nothing'])
-            i0.timestamp = time.time() - 100
-            i0.save()
+        i2 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['something'])
+        i2.timestamp = self.faketime + 100
+        i2.save()
 
-            i2 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['something'])
-            i2.timestamp = time.time() + 100
-            i2.save()
+        # we should retrieve the most recent before token creation: this is what the user agreed to.
+        perms = ConsumerInfo.allowed_permissions(self.token)
+        self.assertEqual(perms, ['courses'])
 
-            # we should retrieve the most recent before token creation: this is what the user agreed to.
-            perms = ConsumerInfo.allowed_permissions(self.token)
-            self.assertEqual(perms, ['courses'])
-
-            # if it has been deactivated, then no permissions remain
-            self.consumerinfo.deactivated = True
-            self.consumerinfo.save()
-            perms = ConsumerInfo.allowed_permissions(self.token)
-            self.assertEqual(perms, [])
+        # if it has been deactivated, then no permissions remain
+        self.consumerinfo.deactivated = True
+        self.consumerinfo.save()
+        perms = ConsumerInfo.allowed_permissions(self.token)
+        self.assertEqual(perms, [])
 
 
 
