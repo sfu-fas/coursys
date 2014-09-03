@@ -48,7 +48,7 @@ class APITest(TestCase):
         i = ConsumerInfo(consumer=c)
         i.admin_contact = 'the_developer@example.com'
         i.permissions = ['courses']
-        i.timestamp = faketime - 10 # make sure the ConsumerInfo was there "before" the Token was created
+        i.timestamp = self.faketime - 10 # make sure the ConsumerInfo was there "before" the Token was created
         i.save()
         self.consumerinfo = i
 
@@ -56,7 +56,7 @@ class APITest(TestCase):
         try:
             t = Token.objects.get(token_type=Token.ACCESS, consumer=c, user=u)
         except Token.DoesNotExist:
-            t = Token(token_type=Token.ACCESS, consumer=c, user=u, timestamp=faketime)
+            t = Token(token_type=Token.ACCESS, consumer=c, user=u, timestamp=self.faketime)
        
         t.is_approved = True
         t.generate_random_codes()
