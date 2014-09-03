@@ -1,12 +1,22 @@
-from testboost.testcase import FastFixtureTestCase as TestCase
+#Python
+import time
+
+#Django
+from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+
+#Third Party
 from oauth_provider.models import Consumer, Token
 from oauth_provider.consts import ACCEPTED
+import mock
 
-from api.models import ConsumerInfo
+#Local
 from courselib.testing import Client
-import time
+
+#App
+from .models import ConsumerInfo
+
 
 VERIFIER = '1234567890'
 
@@ -54,27 +64,30 @@ class APITest(TestCase):
         self.token = t
 
     def test_consumerinfo(self):
-        return # fails in Travis because of mocked time.time? TODO: figure that one out.
 
-        # make sure we get the right ConsumerInfo object for a token
+        # replace time.time with a function that always returns ( 7:14AM, Sept 1, 1986 ) 
+        with mock.patch('time.time', lambda:  525942870 ):
 
-        i0 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['everything', 'nothing'])
-        i0.timestamp = time.time() - 100
-        i0.save()
+            self.assertEqual( time.time(), 525942870 )
 
-        i2 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['something'])
-        i2.timestamp = time.time() + 100
-        i2.save()
+            # make sure we get the right ConsumerInfo object for a token
+            i0 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['everything', 'nothing'])
+            i0.timestamp = time.time() - 100
+            i0.save()
 
-        # we should retrieve the most recent before token creation: this is what the user agreed to.
-        perms = ConsumerInfo.allowed_permissions(self.token)
-        self.assertEqual(perms, ['courses'])
+            i2 = ConsumerInfo(consumer=self.consumer, admin_contact='foo', permissions=['something'])
+            i2.timestamp = time.time() + 100
+            i2.save()
 
-        # if it has been deactivated, then no permissions remain
-        self.consumerinfo.deactivated = True
-        self.consumerinfo.save()
-        perms = ConsumerInfo.allowed_permissions(self.token)
-        self.assertEqual(perms, [])
+            # we should retrieve the most recent before token creation: this is what the user agreed to.
+            perms = ConsumerInfo.allowed_permissions(self.token)
+            self.assertEqual(perms, ['courses'])
+
+            # if it has been deactivated, then no permissions remain
+            self.consumerinfo.deactivated = True
+            self.consumerinfo.save()
+            perms = ConsumerInfo.allowed_permissions(self.token)
+            self.assertEqual(perms, [])
 
 
 
