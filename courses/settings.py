@@ -62,7 +62,7 @@ INSTALLED_APPS = (
     'django_nose',
     'rest_framework',
     'oauth_provider',
-    #'rest_framework_swagger',
+    'rest_framework_swagger',
 
     'coredata',
     'dashboard',

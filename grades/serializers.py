@@ -3,7 +3,7 @@ from grades.models import Activity
 from courselib.rest import utc_datetime
 
 class ActivitySerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField('get_url')
+    url = serializers.SerializerMethodField('get_url', help_text='URL for more info, if set by instructor')
     max_grade = serializers.SerializerMethodField('get_max_grade')
     is_numeric = serializers.Field(source='is_numeric')
     is_calculated = serializers.Field(source='is_calculated')
