@@ -3,7 +3,9 @@ from oauth_provider.models import Token
 from api.models import ConsumerInfo
 from rest_framework import permissions, authentication
 
+from django.shortcuts import get_object_or_404
 from django.conf import settings
+from coredata.models import CourseOffering, Member
 import pytz
 
 
@@ -39,6 +41,23 @@ class APIConsumerPermissions(permissions.BasePermission):
 
         else:
             raise ValueError, "Unknown authentication method."
+
+
+class IsOfferingMember(permissions.BasePermission):
+    """
+    Check that the authenticated user is a (non-dropped) member of the course.
+    """
+    def has_permission(self, request, view):
+        if not hasattr(view, 'offering'):
+            offering = get_object_or_404(CourseOffering, slug=view.kwargs['course_slug'])
+            view.offering = offering
+
+        if not hasattr(view, 'member'):
+            assert request.user.is_authenticated()
+            member = Member.objects.exclude(role='DROP').filter(offering=offering, person__userid=request.user.username).first()
+            view.member = member
+
+        return bool(view.member)
 
 
 system_tz = pytz.timezone(settings.TIME_ZONE)

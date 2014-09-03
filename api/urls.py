@@ -4,10 +4,12 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from oauth_provider.urls import urlpatterns as oauth_patterns
 from courselib.urlparts import COURSE_SLUG
 from coredata.api_views import MyOfferings, OfferingInfo
+from grades.api_views import OfferingActivities
 
 endpoint_v1_patterns = [
     url(r'^offerings$', MyOfferings.as_view()),
     url(r'^offerings/' + COURSE_SLUG + '$', OfferingInfo.as_view(), name='api.OfferingInfo'),
+    url(r'^offerings/' + COURSE_SLUG + '/activities/$', OfferingActivities.as_view(), name='api.OfferingActivities'),
 ]
 endpoint_v1_patterns = format_suffix_patterns(endpoint_v1_patterns)
 

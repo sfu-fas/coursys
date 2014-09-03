@@ -1,5 +1,3 @@
-from django.shortcuts import get_object_or_404
-from django.db.models import Q
 from rest_framework import generics, views
 
 from coredata.models import CourseOffering, Member
@@ -35,7 +33,7 @@ class OfferingInfo(generics.RetrieveAPIView):
     Detailed information on one course offering.
     """
     permission_classes = ()
-    consumer_permissions = set() # any user can get this for any offering, so no authn needed
+    consumer_permissions = set() # anybody can get this for any offering, so no authn needed
 
     serializer_class = CourseOfferingSerializer
     lookup_field = 'slug'
