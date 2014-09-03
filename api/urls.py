@@ -11,7 +11,9 @@ endpoint_v1_patterns = [
 ]
 endpoint_v1_patterns = format_suffix_patterns(endpoint_v1_patterns)
 
+
 api_patterns = [
   url(r'^1/', include(endpoint_v1_patterns)),
   url('', include(oauth_patterns)),
+  #url(r'^docs/', include('rest_framework_swagger.urls')),
 ]
