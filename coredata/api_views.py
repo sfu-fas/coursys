@@ -2,7 +2,7 @@ from rest_framework import generics, views
 
 from coredata.models import CourseOffering, Member
 from coredata.serializers import ShortCourseOfferingSerializer, CourseOfferingSerializer
-from courselib.rest import APIConsumerPermissions
+from courselib.rest import APIConsumerPermissions, IsOfferingMember
 
 class MyOfferings(generics.ListAPIView):
     """
@@ -32,8 +32,8 @@ class OfferingInfo(generics.RetrieveAPIView):
     """
     Detailed information on one course offering.
     """
-    permission_classes = ()
-    consumer_permissions = set() # anybody can get this for any offering, so no authn needed
+    permission_classes = (APIConsumerPermissions, IsOfferingMember,)
+    consumer_permissions = set(['courses'])
 
     serializer_class = CourseOfferingSerializer
     lookup_field = 'slug'

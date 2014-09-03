@@ -1,13 +1,13 @@
 from oauth_provider.utils import get_oauth_request
 from oauth_provider.models import Token
 from api.models import ConsumerInfo
-from rest_framework import permissions, authentication
+from rest_framework import permissions, authentication, fields, relations
 
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from coredata.models import CourseOffering, Member
 import pytz
-
+import copy
 
 class APIConsumerPermissions(permissions.BasePermission):
     """
@@ -58,6 +58,30 @@ class IsOfferingMember(permissions.BasePermission):
             view.member = member
 
         return bool(view.member)
+
+
+class HyperlinkCollectionField(fields.Field):
+    """
+    Field to represent a collection of links to related views. Used for HATEOAS-style self-documenting.
+
+    Constructor arguments are a 'label', and kwargs to a HyperlinkedIdentityField.
+    """
+    def __init__(self, data):
+        super(fields.Field, self).__init__()
+        self.data = data
+        self.label = None
+
+    def field_to_native(self, obj, field_name):
+        result = {}
+        for link in self.data:
+            label = link['label']
+            kwargs = copy.copy(link)
+            del kwargs['label']
+
+            field = relations.HyperlinkedIdentityField(**kwargs)
+            field.initialize(self.parent, label)
+            result[label] = field.field_to_native(obj, label)
+        return result
 
 
 system_tz = pytz.timezone(settings.TIME_ZONE)

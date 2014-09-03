@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from grades.models import Activity
+from grades.models import Activity, NumericGrade
 from courselib.rest import utc_datetime
 
 class ActivitySerializer(serializers.ModelSerializer):
@@ -20,3 +20,6 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     def get_max_grade(self, a):
         return getattr(a, 'max_grade', None)
+
+class GradeMarkSerializer(serializers.Serializer):
+    pass
