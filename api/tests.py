@@ -22,7 +22,7 @@ VERIFIER = '1234567890'
 
 class APITest(TestCase):
     def setUp(self):
-        with mock.patch('time.time', 525942870):
+        with mock.patch('time.time', lambda: 525942870):
             self.client = Client()
 
             # create a Consumer (and associated stuff)
