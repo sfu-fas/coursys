@@ -15,6 +15,7 @@ config_patterns = [ # prefix /config/
     url(r'^news$', 'dashboard.views.news_config'),
     url(r'^photos$', 'dashboard.views.photo_agreement'),
     url(r'^privacy/', include(privacy_patterns)),
+    url(r'^tokens/', 'api.views.manage_tokens'),
 ]
 
 news_patterns = [ # prefix /news/

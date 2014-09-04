@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Manage API Tokens{% endblock %}
+{% block h1 %}Manage API Tokens{% endblock %}
+
+{% block headextra %}
+<script>
+$(document).ready(function() {
+  $('#token-table').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bFilter': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'dashboard.views.config' %}">User Configuration</a></li>
+<li>API Tokens</li>{% endblock %}
+
+{% block content %}
+
+{% if tokens %}
+  <table id="token-table">
+  <thead><tr><th scope="col">App</th><th scope="col">Granted Permissions</th><th scope="col">Remove Authorization</th></tr></thead>
+  {% for t in tokens %}
+    <tr>
+    <td>{{ t.consumer.name }}</td>
+    <td><ul>
+      {% for p in t.consumer_info.permission_descriptions %}
+      <li>{{p}}</li>
+      {% empty %}
+      <li class="empty">None</li>
+      {% endfor %}
+    </ul></td>
+    <td>
+      <form action="" method="post" enctype="multipart/form-data" class="subtle">{% csrf_token %}
+      <p><input type="hidden" name="consumer-key" value="{{ t.consumer.key }}" />
+      <input type="submit" value="Remove" onclick="return confirmSubmit('remove this authorization')" /></p>
+      </form>
+    </td>
+    </tr>
+  {% endfor %}
+  </table>
+{% else %}
+<p class="empty">You currently have no access tokens authorizing third-party apps to access data within CourSys.</p>
+{% endif %}
+
+{% endblock %}
