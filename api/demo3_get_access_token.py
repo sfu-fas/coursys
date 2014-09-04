@@ -2,7 +2,7 @@ import oauth2 as oauth
 import requests
 import urlparse
 
-ACCESS_TOKEN_URL = 'http://localhost:8000/api/access_token/'
+ACCESS_TOKEN_URL = 'http://localhost:8000/api/oauth/access_token/'
 
 def get_access_token(oauth_token, oauth_secret, oauth_verifier):
     consumer = oauth.Consumer(key='9fdce0e111a1489eb5a42eab7a84306b', secret='liqutXmqJpKmetfs')

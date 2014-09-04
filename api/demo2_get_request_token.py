@@ -3,8 +3,8 @@ import oauth2 as oauth
 import requests
 import urllib
 
-REQUEST_TOKEN_URL = 'http://localhost:8000/api/request_token/'
-AUTHORIZE_TOKEN_URL = 'http://localhost:8000/api/authorize/'
+REQUEST_TOKEN_URL = 'http://localhost:8000/api/oauth/request_token/'
+AUTHORIZE_TOKEN_URL = 'http://localhost:8000/api/oauth/authorize/'
 
 CALLBACK_URL = 'http://example.com/request_token_ready'
 
