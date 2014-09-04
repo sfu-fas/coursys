@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Authorize {{ consumer.name }}{% endblock %}
+{% block h1 %}Authorize {{ consumer.name }}{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Authorize {{ consumer.name }}</li>
+{% endblock %}
+
+{% block content %}
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+<p>The application &ldquo;{{ consumer.name }}&rdquo; is requesting access to your CourSys account to do the following:</p>
+<ul class="bulleted">
+  {% for p in consumerinfo.permission_descriptions %}
+  <li>{{ p }}</li>
+  {% endfor %}
+</ul>
+<p>If you don't trust this application (and its developers) to do the above actions on your behalf, then <strong>do not agree here</strong>.</p>
+
+<p><strong>Allow access as described above:</strong> {{ form.authorize_access }}</p>
+<p>{{ form.oauth_token }}
+<input type="submit" value="Authorize this application" /></p>
+</form>
+
+{% endblock %}

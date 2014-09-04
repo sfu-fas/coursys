@@ -22,12 +22,15 @@
 {% else %}
 <li><a href="{% url "dashboard.views.create_calendar_url" %}">Activate external calendar</a></li>
 {% endif %}
+<li><a href="{% url "api.views.manage_tokens" %}"><i class="fa fa-li fa-lock"></i>Manage API Tokens</a></li>
+
 {% if instructor %}
 <li class="newsec"><a href="{% url "dashboard.views.photo_agreement" %}">Display ID Photos</a></li>
 {% endif %}
 {% if privacy_visible %}
 <li><a href="{% url "privacy.views.privacy" %}"><i class="fa fa-li fa-lock"></i>Privacy Agreement</a></li>
 {% endif %}
+
 
 {% if advisor %}
     {% if advisortoken %}

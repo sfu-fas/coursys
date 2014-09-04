@@ -60,6 +60,9 @@ INSTALLED_APPS = (
     'djcelery_email',
     'featureflags',
     'django_nose',
+    'rest_framework',
+    'oauth_provider',
+    'rest_framework_swagger',
 
     'coredata',
     'dashboard',
@@ -84,6 +87,7 @@ INSTALLED_APPS = (
     'faculty',
     'gpaconvert',
     'tacontracts',
+    'api',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -100,6 +104,20 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 AUTHENTICATION_BACKENDS = (
     'django_cas.backends.CASBackend',
 )
+OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
+OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
+OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        #'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.OAuthAuthentication',
+    )
+}
+SWAGGER_SETTINGS = {
+    "api_version": '1',  # Specify your API's version
+    "api_path": "/api/",  # Specify the path to your API not a root level
+}
 
 # basic app setup
 ROOT_URLCONF = 'courses.urls'
@@ -171,7 +189,7 @@ STATIC_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
-    #'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 )
 COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
@@ -339,7 +357,6 @@ if DEPLOY_MODE == 'production':
 if getattr(localsettings, 'DEBUG_TOOLBAR', False):
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
     MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-    STATICFILES_FINDERS = STATICFILES_FINDERS + ('django.contrib.staticfiles.finders.AppDirectoriesFinder',)
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,
     #}

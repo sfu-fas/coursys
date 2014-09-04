@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Authorization Result{% endblock %}
+{% block h1 %}Authorization Result{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Authorization Result</li>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<p class="errormessage">Error: {{ error }}</p>
+{% endif %}
+{% if token.is_approved %}
+<p>The application can access CourSys after you give it this &ldquo;verifier&rdquo;:</p>
+<blockquote>
+{{ token.verifier }}
+</blockquote>
+{% endif %}
+{% endblock %}
