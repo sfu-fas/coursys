@@ -4,9 +4,9 @@ from courselib.rest import HyperlinkCollectionField
 from coredata.models import CourseOffering
 
 class ShortCourseOfferingSerializer(serializers.ModelSerializer):
-    semester = serializers.Field(source='semester.name')
-    link = serializers.HyperlinkedIdentityField(view_name='api.OfferingInfo',
-                                                slug_field='slug', slug_url_kwarg='course_slug')
+    semester = serializers.Field(source='semester.name', help_text='The SIMS-format semester for the offering')
+    link = serializers.HyperlinkedIdentityField(view_name='api.OfferingInfo', slug_field='slug',
+        slug_url_kwarg='course_slug', help_text='Link to more information for this offering')
 
     class Meta:
         model = CourseOffering
@@ -31,8 +31,8 @@ class CourseOfferingSerializer(ShortCourseOfferingSerializer):
     url = serializers.Field(source='url', help_text='course homepage URL, if set by instructor')
     instructors = serializers.SerializerMethodField('get_instructors')
     tas = serializers.SerializerMethodField('get_tas')
-    contact_email = serializers.Field(source='taemail')
-    links = HyperlinkCollectionField(link_data)
+    contact_email = serializers.Field(source='taemail', help_text='Contact email for the TAs, if set by instructor')
+    links = HyperlinkCollectionField(link_data, help_text='Links to additional information')
 
     class Meta(ShortCourseOfferingSerializer.Meta):
         model = CourseOffering
