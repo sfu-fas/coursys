@@ -10,7 +10,7 @@ class ShortCourseOfferingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CourseOffering
-        fields = ('subject', 'number', 'section', 'semester', 'title', 'slug',)
+        fields = ('subject', 'number', 'section', 'semester', 'title', 'slug', 'link')
 
 
 class CourseOfferingSerializer(ShortCourseOfferingSerializer):
