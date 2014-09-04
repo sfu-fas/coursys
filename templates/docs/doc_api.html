@@ -17,7 +17,7 @@
 <p>You can test the authenticated parts of the API in a web browser if you have already logged in with CAS.
     With a normally-authenticated session, you will be treated like you're coming from an API consumer with all permissions granted (for your computing account only, of course)</p>
 <p>For &ldquo;real&rdquo; API use, users must be authenticated with OAuth (1.0). The short instructions: it's like
-    <a href="https://dev.twitter.com/docs/auth/implementing-sign-twitter">Twitter &ldquo;application-user authentication&rdquo;</a>, either 3-legged or PIN-based but with these URLs:</p>
+    <a href="https://dev.twitter.com/docs/auth/obtaining-access-tokens">Twitter &ldquo;application-user authentication&rdquo;</a>, either 3-legged or PIN-based but with these URLs:</p>
 <ul class="bulleted">
     <li>Request token URL: {{BASE_ABS_URL}}{% url 'oauth_request_token' %}</li>
     <li>Authorize token URL: {{BASE_ABS_URL}}{% url 'oauth_user_authorization' %}</li>

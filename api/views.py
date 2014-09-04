@@ -57,9 +57,8 @@ def oauth_callback(request, oauth_token=None, error=None):
 def manage_tokens(request):
     if request.method == 'POST':
         # token deletion requested
-        key = request.POST.get('consumer-key', None)
-        token = get_object_or_404(Token, user__username=request.user.username, token_type=Token.ACCESS,
-                                  consumer__key=key)
+        key = request.POST.get('key', None)
+        token = get_object_or_404(Token, user__username=request.user.username, token_type=Token.ACCESS, key=key)
         token.delete()
         return HttpResponseRedirect(reverse(manage_tokens))
 

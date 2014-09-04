@@ -38,7 +38,7 @@ $(document).ready(function() {
     </ul></td>
     <td>
       <form action="" method="post" enctype="multipart/form-data" class="subtle">{% csrf_token %}
-      <p><input type="hidden" name="consumer-key" value="{{ t.consumer.key }}" />
+      <p><input type="hidden" name="key" value="{{ t.key }}" />
       <input type="submit" value="Remove" onclick="return confirmSubmit('remove this authorization')" /></p>
       </form>
     </td>
