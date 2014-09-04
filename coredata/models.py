@@ -647,7 +647,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     group_min, set_group_min = getter_setter('group_min')
     group_max, set_group_max = getter_setter('group_max')
     _, set_maillist = getter_setter('maillist')
-    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn',
+    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators', 'discussion', 'uses_svn', 'instr_rw_svn',
                           'group_min', 'group_max'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
@@ -673,7 +673,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     def __unicode__(self):
         return "%s %s %s (%s)" % (self.subject, self.number, self.section, self.semester.label())
     def name(self):
-        if self.graded and self.section[3:] == '00':
+        if self.graded and self.section[2:4] == '00':
             return "%s %s %s" % (self.subject, self.number, self.section[:-2])
         else:
             return "%s %s %s" % (self.subject, self.number, self.section)
