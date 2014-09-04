@@ -4,16 +4,20 @@ db_node = node[:sfu_db2][:node]
 db_users = node[:sfu_db2][:users]
 
 # deploy DB2 v9.7 tar file
-cookbook_file "/tmp/db2.tar.gz" do
+directory "/opt" do
+    mode "00755"
+    action :create
+end
+cookbook_file "/opt/db2.tar.gz" do
     source "v9.7fp5_linuxx64_client.tar.gz"
 end
 
 execute "tar -xvzf db2.tar.gz" do
-    cwd "/tmp/"
+    cwd "/opt/"
     creates "client"
 end
 
-execute "yes \"no\" | /tmp/client/db2_install" do
+execute "yes \"no\" | /opt/client/db2_install" do
     creates "/opt/ibm/db2/V9.7"
 end
 
@@ -59,21 +63,21 @@ end
 
 package 'python-dev'
 
-cookbook_file "/tmp/pydb2.tar.gz" do
+cookbook_file "/opt/pydb2.tar.gz" do
     source "PyDB2_1.1.1-1.tar.gz"
 end
 
 execute "tar -xvzf pydb2.tar.gz" do
-    cwd "/tmp/"
+    cwd "/opt/"
     creates "PyDB2_1.1.1"
 end
 
-execute "chmod u+x -R /tmp/PyDB2_1.1.1"
+execute "chmod u+x -R /opt/PyDB2_1.1.1"
 
 execute "ln -s /opt/ibm/db2/V9.7/lib64 /opt/ibm/db2/V9.7/lib" do
     creates "/opt/ibm/db2/V9.7/lib"
 end
 
 execute "python setup.py install" do
-    cwd "/tmp/PyDB2_1.1.1"
+    cwd "/opt/PyDB2_1.1.1"
 end

@@ -26,10 +26,30 @@ execute "link coursys" do
     command "ln -s /home/vagrant/courses /home/coursys/courses"
     not_if do ::File.exists?('/home/coursys/courses/manage.py') end
 end
-execute "chmod courses" do 
+execute "chmod courses" do
     command "chown -R coursys /home/vagrant/courses"
-    ignore_failure true    
+    ignore_failure true
 end
+
+# static files
+directory "/home/coursys/static" do
+    owner "coursys"
+    group "coursys"
+    mode 00755
+    action :create
+end
+directory "/home/vagrant/static" do
+    owner "coursys"
+    group "coursys"
+    mode 00755
+    action :create
+end
+execute "static files" do
+    user "coursys"
+    cwd "/home/coursys/courses"
+    command "echo 'yes' | ./manage.py collectstatic"
+end
+
 
 # MySQL
 package "mysql-client"

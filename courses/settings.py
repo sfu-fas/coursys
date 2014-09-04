@@ -185,17 +185,20 @@ else:
 
 
 # static file settings
-STATIC_URL = '/media/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static', 'static')
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 )
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'media'),
+)
 COMPRESS_ENABLED = getattr(localsettings, 'COMPRESS_ENABLED', DEPLOY_MODE != 'devel')
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter', 'compressor.filters.cssmin.CSSMinFilter']
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
-COMPRESS_ROOT = os.path.join(BASE_DIR, 'media')
+COMPRESS_ROOT = STATIC_ROOT
 
 # production-like vs development settings
 if DEPLOY_MODE in ['production', 'proddev']:

@@ -57,18 +57,22 @@ directory "/home/coursys/courses/submitted_files" do
 end
 
 # set rabbitmq password
-execute "rabbit add_user" do 
+execute "rabbit add_user" do
     user "rabbitmq"
     environment ({'HOME' => '/var/lib/rabbitmq'})
     command "rabbitmqctl add_user coursys supersecretpassword"
-    ignore_failure true    
+    ignore_failure true
 end
 
 execute "rabbit add_vhost" do
     user "rabbitmq"
     environment ({'HOME' => '/var/lib/rabbitmq'})
     command "rabbitmqctl add_vhost myvhost"
-    ignore_failure true    
+    ignore_failure true
+end
+
+execute "chown static" do
+    command "chown -R vagrant /home/coursys/static"
 end
 
 execute "rabbit set_permissions" do

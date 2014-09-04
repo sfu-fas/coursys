@@ -144,6 +144,8 @@ def deploy_checks():
             failed.append(('Reporting DB connection', 'query inexplicably returned nothing'))
     except SIMSProblem as e:
         failed.append(('Reporting DB connection', 'SIMSProblem, %s' % (unicode(e))))
+    except ImportError:
+        failed.append(('Reporting DB connection', "couldn't import DB2 module"))
 
     # compression enabled?
     if settings.COMPRESS_ENABLED:

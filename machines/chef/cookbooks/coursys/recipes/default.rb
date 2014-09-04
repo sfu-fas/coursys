@@ -1,5 +1,6 @@
+package "git"
 package "libxslt1-dev"
-package "python" 
+package "python"
 package "python-pip"
 package "python-dev"
 package "python-lxml"
