@@ -66,8 +66,8 @@ class HyperlinkCollectionField(fields.Field):
 
     Constructor arguments are a 'label', and kwargs to a HyperlinkedIdentityField.
     """
-    def __init__(self, data):
-        super(fields.Field, self).__init__()
+    def __init__(self, data, help_text='links to additional information about this object', **kwargs):
+        super(HyperlinkCollectionField, self).__init__(help_text=help_text, **kwargs)
         self.data = data
         self.label = None
 

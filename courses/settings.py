@@ -114,10 +114,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.OAuthAuthentication',
     )
 }
-SWAGGER_SETTINGS = {
-    "api_version": '1',  # Specify your API's version
-    "api_path": "/api/",  # Specify the path to your API not a root level
-}
+SWAGGER_SETTINGS = { "api_version": '1' }
 
 # basic app setup
 ROOT_URLCONF = 'courses.urls'
