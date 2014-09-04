@@ -9,9 +9,9 @@ from grades.api_views import OfferingActivities, OfferingGrades
 
 endpoint_v1_patterns = [
     url(r'^offerings$', MyOfferings.as_view()),
-    url(r'^offerings/' + COURSE_SLUG + '$', OfferingInfo.as_view(), name='api.OfferingInfo'),
-    url(r'^offerings/' + COURSE_SLUG + '/activities/$', OfferingActivities.as_view(), name='api.OfferingActivities'),
-    url(r'^offerings/' + COURSE_SLUG + '/grades/$', OfferingGrades.as_view(), name='api.OfferingGrades'),
+    #url(r'^offerings/' + COURSE_SLUG + '$', OfferingInfo.as_view(), name='api.OfferingInfo'),
+    #url(r'^offerings/' + COURSE_SLUG + '/activities/$', OfferingActivities.as_view(), name='api.OfferingActivities'),
+    #url(r'^offerings/' + COURSE_SLUG + '/grades/$', OfferingGrades.as_view(), name='api.OfferingGrades'),
 ]
 endpoint_v1_patterns = format_suffix_patterns(endpoint_v1_patterns)
 
