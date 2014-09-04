@@ -588,7 +588,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1"')
     section = models.CharField(max_length=4, null=False, db_index=True,
-        help_text='Section should be in the form "C100" or "D103"')
+        help_text='Section should be in the form "C100" or "D100"')
     semester = models.ForeignKey(Semester, null=False)
     component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES, db_index=True,
         help_text='Component of the offering, like "LEC" or "LAB"')
