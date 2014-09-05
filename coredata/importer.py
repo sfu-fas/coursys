@@ -810,6 +810,8 @@ def combine_sections(combined):
         course.set_combined(True)
         course.save()
 
+def import_combined():
+    combine_sections(get_combined())
 
 @transaction.atomic
 def give_sysadmin(sysadmin):
