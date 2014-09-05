@@ -6,7 +6,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
-from coredata.models import CAMPUSES, COMPONENTS, INSTR_MODE
+from coredata.models import CombinedOffering, CAMPUSES, COMPONENTS, INSTR_MODE
 from dashboard.models import NewsItem
 from log.models import LogEntry
 from django.db import transaction
@@ -24,172 +24,7 @@ today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=90)
 
-# artificial combined sections to create: kwargs for CourseOffering creation,
-# plus 'subsections' list of sections we're combining.
-
-def get_combined():
-    
-    # IMPORTANT: When combining sections in the future, ensure that the created
-    #            section has 'owner': Unit(~CMPT~) 
-    combined_sections = [
-        {
-            'subject': 'CMPT', 'number': '413', 'section': 'X100',
-            'semester': Semester.objects.get(name="1147"),
-            'component': 'LEC', 'graded': True, 
-            'crse_id': 32760, 'class_nbr': 32761,
-            'title': 'Natural Language Processing',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2014fa-cmpt-413-d1'),
-                CourseOffering.objects.get(slug='2014fa-cmpt-825-g1')
-            ]
-        },
-        {
-            'subject': 'CMPT', 'number': '413', 'section': 'X100',
-            'semester': Semester.objects.get(name="1141"),
-            'component': 'LEC', 'graded': True, 
-            'crse_id': 32760, 'class_nbr': 32760,
-            'title': 'Computational Linguistics (combined)',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2014sp-cmpt-413-d1'),
-                CourseOffering.objects.get(slug='2014sp-cmpt-825-g1')
-            ]
-        },
-        {
-            'subject': 'CMPT', 'number': '419', 'section': 'X100',
-            'semester': Semester.objects.get(name="1137"),
-            'component': 'LEC', 'graded': True, 
-            'crse_id': 32759, 'class_nbr': 32759,
-            'title': 'Biomedical Image Computing (combined)',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2013fa-cmpt-419-d1'),
-                CourseOffering.objects.get(slug='2013fa-cmpt-829-g1')
-            ]
-        },
-        {
-            'subject': 'STAT', 'number': '340', 'section': 'X100',
-            'semester': Semester.objects.get(name="1141"),
-            'component': 'LEC', 'graded': True,
-            'crse_id': 32752, 'class_nbr': 32752,
-            'title': 'Stat Comp Data Ana (combined)',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2014sp-stat-340-d1'),
-                CourseOffering.objects.get(slug='2014sp-stat-341-d1'),
-                CourseOffering.objects.get(slug='2014sp-stat-342-d1'),
-            ]
-        },
-        {
-            'subject': 'STAT', 'number': '403', 'section': 'X100',
-            'semester': Semester.objects.get(name="1141"),
-            'component': 'LEC', 'graded': True,
-            'crse_id': 32751, 'class_nbr': 32751,
-            'title': 'Sampl./Exper. Des. (combined)',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2014sp-stat-403-d1'),
-                CourseOffering.objects.get(slug='2014sp-stat-650-g1'),
-                CourseOffering.objects.get(slug='2014sp-stat-890-g1'),
-            ]
-        },
-#        {
-#            'subject': 'CMPT', 'number': '419', 'section': 'X100',
-#            'semester': Semester.objects.get(name="1127"),
-#            'component': 'LEC', 'graded': True, 
-#            'crse_id': 32754, 'class_nbr': 32754,
-#            'title': 'Bioinformatics (combined sections)',
-#            'campus': 'BRNBY',
-#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-#            'config': {},
-#            'subsections': [
-#                CourseOffering.objects.get(slug='2012fa-cmpt-419-e1'),
-#                CourseOffering.objects.get(slug='2012fa-cmpt-829-g1')
-#            ]
-#        },
-#        {
-#            'subject': 'CMPT', 'number': '441', 'section': 'X100',
-#            'semester': Semester.objects.get(name="1127"),
-#            'component': 'LEC', 'graded': True, 
-#            'crse_id': 32753, 'class_nbr': 32753,
-#            'title': 'Computational Biology',
-#            'campus': 'BRNBY',
-#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-#            'config': {},
-#            'subsections': [
-#                CourseOffering.objects.get(slug='2012fa-cmpt-441-d1'),
-#                CourseOffering.objects.get(slug='2012fa-cmpt-711-g1')
-#            ]
-#        },
-#        {
-#            'subject': 'MACM', 'number': '101', 'section': 'X100',
-#            'semester': Semester.objects.get(name="1131"),
-#            'component': 'LEC', 'graded': True, 
-#            'crse_id': 32755, 'class_nbr': 32755,
-#            'title': 'Discrete Math I',
-#            'campus': 'BRNBY',
-#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-#            'config': {},
-#            'subsections': [
-#                CourseOffering.objects.get(slug='2013sp-macm-101-d1'),
-#                CourseOffering.objects.get(slug='2013sp-macm-101-d2')
-#            ]
-#        },
-#        {
-#            'subject': 'CMPT', 'number': '125', 'section': 'X100',
-#            'semester': Semester.objects.get(name="1131"),
-#            'component': 'LEC', 'graded': True, 
-#            'crse_id': 32756, 'class_nbr': 32756,
-#            'title': 'Intro.Cmpt.Sci/Programming II',
-#            'campus': 'BRNBY',
-#            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-#            'config': {},
-#            'subsections': [
-#                CourseOffering.objects.get(slug='2013sp-cmpt-125-d1'),
-#                CourseOffering.objects.get(slug='2013sp-cmpt-126-d1')
-#            ]
-#        },
-        {
-            'subject': 'CMPT', 'number': '125', 'section': 'X100',
-            'semester': Semester.objects.get(name="1134"),
-            'component': 'LEC', 'graded': True, 
-            'crse_id': 32757, 'class_nbr': 32757,
-            'title': 'Intro.Cmpt.Sci/Programming II',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2013su-cmpt-125-d1'),
-                CourseOffering.objects.get(slug='2013su-cmpt-126-d1')
-            ]
-        },
-        {
-            'subject': 'CMPT', 'number': '125', 'section': 'X100',
-            'semester': Semester.objects.get(name="1137"),
-            'component': 'LEC', 'graded': True, 
-            'crse_id': 32758, 'class_nbr': 32758,
-            'title': 'Intro.Cmpt.Sci/Programming II',
-            'campus': 'BRNBY',
-            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-            'config': {},
-            'subsections': [
-                CourseOffering.objects.get(slug='2013fa-cmpt-125-d1'),
-                CourseOffering.objects.get(slug='2013fa-cmpt-126-d1')
-            ]
-        },
-        ]
-    return combined_sections
+# fake combined sections now handed at https://courses.cs.sfu.ca/sysadmin/combined/
 
 class MySQLConn(DBConn):
     db_host = '127.0.0.1'
@@ -746,68 +581,9 @@ def import_joint(extra_where='1=1'):
             offering.save()
 
 
-@transaction.atomic
-def combine_sections(combined):
-    """
-    Combine sections in the database to co-offered courses look the same.
-    """
-    for info in combined:
-        # create the section if necessary
-        courses = CourseOffering.objects.filter(subject=info['subject'], number=info['number'], section=info['section'], semester=info['semester'], component=info['component'], campus=info['campus'])
-        if courses:
-            course = courses[0]
-        else:
-            kwargs = copy.copy(info)
-            del kwargs['subsections']
-            course = CourseOffering(**kwargs)
-            course.save()
-
-        print "  ", course        
-        cap_total = 0
-        tot_total = 0
-        wait_total = 0
-        labtut = False
-        in_section = set() # students who are in section and not dropped (so we don't overwrite with a dropped membership)
-        for sub in info['subsections']:
-            cap_total += sub.enrl_cap
-            tot_total += sub.enrl_tot
-            wait_total += sub.wait_tot
-            labtut = labtut or sub.labtut()
-            for m in sub.member_set.all():
-                old_ms = course.member_set.filter(offering=course, person=m.person)
-                if old_ms:
-                    # was already a member: update.
-                    old_m = old_ms[0]
-                    old_m.role = m.role
-                    old_m.credits = m.credits
-                    old_m.career = m.career
-                    old_m.added_reason = m.added_reason
-                    old_m.config['origsection'] = sub.slug
-                    old_m.labtut_section = m.labtut_section
-                    if m.role != 'DROP' or old_m.person_id not in in_section:
-                        # condition keeps from overwriting enrolled students with drops (from other section)
-                        old_m.save()
-                    if m.role != 'DROP':
-                        in_section.add(old_m.person_id)
-                else:
-                    # new membership: duplicate into combined
-                    new_m = Member(offering=course, person=m.person, role=m.role, labtut_section=m.labtut_section,
-                            credits=m.credits, career=m.career, added_reason=m.added_reason)
-                    new_m.config['origsection'] = sub.slug
-                    new_m.save()
-                    if m.role != 'DROP':
-                        in_section.add(new_m.person_id)
-
-        # update totals        
-        course.enrl_cap = cap_total
-        course.tot_total = tot_total
-        course.wait_total = wait_total
-        course.set_labtut(labtut)
-        course.set_combined(True)
-        course.save()
-
-def import_combined():
-    combine_sections(get_combined())
+def import_combined(import_semesters=import_semesters):
+    for combined in CombinedOffering.objects.filter(semester__name__in=import_semesters):
+        combined.create_combined_offering()
 
 
 @transaction.atomic

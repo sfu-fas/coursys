@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Count
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -1310,7 +1310,7 @@ class CombinedOffering(models.Model):
     component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES)
     instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P')
     owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
-    crse_id = models.PositiveSmallIntegerField(null=True) # fake value for DB constraint on CourseOffering
+    crse_id = models.PositiveSmallIntegerField(null=True)
     class_nbr = models.PositiveIntegerField(null=True) # fake value for DB constraint on CourseOffering
 
     title = models.CharField(max_length=30)
@@ -1323,3 +1323,69 @@ class CombinedOffering(models.Model):
 
     def name(self):
         return "%s %s %s" % (self.subject, self.number, self.section)
+
+    def create_combined_offering(self):
+        """
+        Do the import-like work of creating/updating the CourseOffering object
+        """
+        with transaction.atomic():
+            try:
+                offering = CourseOffering.objects.get(semester=self.semester, subject=self.subject,
+                        number=self.number, section=self.section)
+            except CourseOffering.DoesNotExist:
+                offering = CourseOffering(semester=self.semester, subject=self.subject,
+                        number=self.number, section=self.section)
+                offering.enrl_cap = 0
+                offering.enrl_tot = 0
+                offering.wait_tot = 0
+                offering.set_combined(True)
+                offering.save()
+
+            offering.component = self.component
+            offering.instr_mode = self.instr_mode
+            offering.owner = self.owner
+            offering.crse_id = self.crse_id
+            offering.class_nbr = self.class_nbr
+            offering.title = self.title
+            offering.campus = self.campus
+
+            cap_total = 0
+            tot_total = 0
+            wait_total = 0
+            labtut = False
+            in_section = set() # students who are in section and not dropped (so we don't overwrite with a dropped membership)
+            for sub in self.offerings.all():
+                cap_total += sub.enrl_cap
+                tot_total += sub.enrl_tot
+                wait_total += sub.wait_tot
+                labtut = labtut or sub.labtut()
+                for m in sub.member_set.all():
+                    old_ms = offering.member_set.filter(offering=offering, person=m.person)
+                    if old_ms:
+                        # was already a member: update.
+                        old_m = old_ms[0]
+                        old_m.role = m.role
+                        old_m.credits = m.credits
+                        old_m.career = m.career
+                        old_m.added_reason = m.added_reason
+                        old_m.config['origsection'] = sub.slug
+                        old_m.labtut_section = m.labtut_section
+                        if m.role != 'DROP' or old_m.person_id not in in_section:
+                            # condition keeps from overwriting enrolled students with drops (from other section)
+                            old_m.save()
+                        if m.role != 'DROP':
+                            in_section.add(old_m.person_id)
+                    else:
+                        # new membership: duplicate into combined
+                        new_m = Member(offering=offering, person=m.person, role=m.role, labtut_section=m.labtut_section,
+                                credits=m.credits, career=m.career, added_reason=m.added_reason)
+                        new_m.config['origsection'] = sub.slug
+                        new_m.save()
+                        if m.role != 'DROP':
+                            in_section.add(new_m.person_id)
+
+            offering.enrl_cap = cap_total
+            offering.enrl_tot = tot_total
+            offering.wait_tot = wait_total
+            offering.set_labtut(labtut)
+            offering.save()
