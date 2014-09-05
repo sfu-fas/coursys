@@ -712,16 +712,16 @@ class GradStudent(models.Model):
 
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
                     .filter(timely_status | application_status) \
-                    .order_by('-start', '-start_date').select_related('start')
+                    .order_by('-start__name', '-start_date').select_related('start')
 
         if not statuses:
             return None
 
         # find all statuses in the most-recent semester: the one that sorts last wins.
         status_sem = statuses[0].start
-        semester_statuses = [(st.start.name, STATUS_ORDER[st.status], st) for st in statuses if st.start == status_sem]
+        semester_statuses = [(st.start.name, st.start_date, STATUS_ORDER[st.status], st) for st in statuses if st.start == status_sem]
         semester_statuses.sort()
-        return semester_statuses[-1][2].status
+        return semester_statuses[-1][3].status
 
 
     def status_as_of_old(self, semester=None):
