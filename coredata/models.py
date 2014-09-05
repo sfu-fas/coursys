@@ -626,12 +626,12 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
-        # 'combined_with': list of offerings this one is combined with (as CourseOffering.slug)
+        # 'joint_with': list of offerings this one is combined with (as CourseOffering.slug)
         # 'maillist': course mailing list (@sfu.ca). Used for CMPT in course homepage list
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
-                'instr_rw_svn': False, 'combined_with': (), 'group_min': None, 'group_max': None,
+                'instr_rw_svn': False, 'joint_with': (), 'group_min': None, 'group_max': None,
                 'maillist': None}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
@@ -643,7 +643,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
-    combined_with, set_combined_with = getter_setter('combined_with')
+    joint_with, set_joint_with = getter_setter('joint_with')
     group_min, set_group_min = getter_setter('group_min')
     group_max, set_group_max = getter_setter('group_max')
     _, set_maillist = getter_setter('maillist')
@@ -984,7 +984,7 @@ class Member(models.Model, ConditionalSaveMixin):
             return fractions.Fraction(0), 'no scheduled lectures'
         else:
             # now probably a real offering: split the credit among the (real SIMS) instructors and across joint offerings
-            joint_with = CourseOffering.objects.filter(slug__in=self.offering.combined_with())
+            joint_with = CourseOffering.objects.filter(slug__in=self.offering.joint_with())
             other_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').exclude(id=self.id)
             credits = fractions.Fraction(1)
             reasons = []

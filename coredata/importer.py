@@ -732,9 +732,9 @@ def import_offering_members(offering, students=True):
 
 
 @transaction.atomic
-def import_combined(extra_where='1=1'):
+def import_joint(extra_where='1=1'):
     """
-    Find combined sections and set CourseOffering.config['combined_with'] appropriately.
+    Find combined sections and set CourseOffering.config['joint_with'] appropriately.
     """
     db = SIMSConn()
     db.execute("SELECT strm, class_nbr, sctn_combined_id FROM ps_sctn_cmbnd c WHERE c.strm IN %s "
@@ -746,7 +746,7 @@ def import_combined(extra_where='1=1'):
         class_nbrs = [int(class_nbr) for _,class_nbr,_ in v]
         offerings = CourseOffering.objects.filter(semester__name=strm, class_nbr__in=class_nbrs)
         for offering in offerings:
-            offering.set_combined_with([o.slug for o in offerings if o != offering])
+            offering.set_joint_with([o.slug for o in offerings if o != offering])
             offering.save()
 
 
@@ -927,7 +927,7 @@ def main():
         time.sleep(0.5)
 
     print "combining joint offerings"
-    import_combined()
+    import_joint()
     combine_sections(get_combined())
 
     print "giving sysadmin permissions"
