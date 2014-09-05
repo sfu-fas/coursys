@@ -1,4 +1,4 @@
-from rest_framework import generics, views
+from rest_framework import generics
 
 from coredata.models import CourseOffering, Member
 from coredata.serializers import ShortCourseOfferingSerializer, CourseOfferingSerializer
