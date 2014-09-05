@@ -719,7 +719,13 @@ class GradStudent(models.Model):
 
         # find all statuses in the most-recent semester: the one that sorts last wins.
         status_sem = statuses[0].start
-        semester_statuses = [(st.start.name, st.start_date, STATUS_ORDER[st.status], st) for st in statuses if st.start == status_sem]
+
+        semester_statuses = [(
+                                 st.start.name,
+                                 STATUS_ORDER[st.status],
+                                 st.start_date or datetime.date(1970,1,1),
+                                 st)
+                             for st in statuses if st.start == status_sem]
         semester_statuses.sort()
         return semester_statuses[-1][3].status
 
