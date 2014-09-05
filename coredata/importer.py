@@ -24,10 +24,6 @@ today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=90)
 
-# these users will be given sysadmin role (for bootstrapping)
-#sysadmin = ["ggbaker", "sumo"]
-sysadmin = ["ggbaker"]
-
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
 
@@ -813,17 +809,6 @@ def combine_sections(combined):
 def import_combined():
     combine_sections(get_combined())
 
-@transaction.atomic
-def give_sysadmin(sysadmin):
-    """
-    Give specified users sysadmin role (for bootstrapping)
-    """
-    for userid in sysadmin:
-        p = Person.objects.get(userid=userid)
-        r = Role.objects.filter(person=p, role="SYSA")
-        if not r:
-            r = Role(person=p, role="SYSA", unit=Unit.objects.get(label="UNIV"))
-            r.save()
 
 @transaction.atomic
 def update_amaint_userids():
@@ -894,7 +879,7 @@ def import_one_semester(strm, extra_where='1=1'):
         print o
         import_offering_members(o, students=False)
 
-
+'''
 def main():
     global sysadmin
 
@@ -961,4 +946,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''
 
