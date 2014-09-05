@@ -37,7 +37,7 @@ def get_combined():
             'semester': Semester.objects.get(name="1147"),
             'component': 'LEC', 'graded': True, 
             'crse_id': 32760, 'class_nbr': 32761,
-            'title': 'Computational Linguistics (combined)',
+            'title': 'Natural Language Processing',
             'campus': 'BRNBY',
             'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
             'config': {},

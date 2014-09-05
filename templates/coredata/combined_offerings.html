@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Combined Offerings{% endblock %}
+{% block h1 %}Combined Offerings{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#combined').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'desc']],
+  } );
+
+    offering_autocomplete('id_offering');
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    });
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
+<li>Combined Offerings</li>
+{% endblock %}
+
+
+{% block content %}
+<table id="combined">
+  <thead><tr><th scope="col">Semester</th><th scope="col">Name</th><th scope="col">Offerings</th><th scope="col">Add</th></tr></thead>
+  <tbody>
+  {% for c in combined %}
+  <tr>
+  <td><span class="sort">{{c.semester.name}}</span>{{c.semester}}</td>
+  <td>{{c.name}}</td>
+  <td><ul>
+    {% for o in c.offerings.all %}
+    <li>{{ o }}</li>
+    {% endfor %}
+  </ul></td>
+  <td><a href="{% url "coredata.views.add_combined_offering" pk=c.pk %}">add offering</a></td>
+  {% endfor %}
+  </tbody>
+</table>
+
+<form action="{% url 'coredata.views.new_combined' %}" method="get">
+<fieldset><legend>Create New Combined Offering</legend>
+{{ new_form|as_dl }}
+<p><input type="submit" class="submit" value="Create" /></p>
+</fieldset>
+</form>
+
+{% endblock %}

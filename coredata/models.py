@@ -1296,3 +1296,30 @@ class ComputingAccount(models.Model):
     """
     emplid = models.PositiveIntegerField(primary_key=True, unique=True, null=False)
     userid = models.CharField(max_length=8, unique=True, null=False, db_index=True)
+
+
+class CombinedOffering(models.Model):
+    """
+    A model to represent a local fake CourseOffering that should be the result of combining members of two or more
+    CourseOffering objects on import.
+    """
+    subject = models.CharField(max_length=4, null=False, blank=False)
+    number = models.CharField(max_length=4, null=False, blank=False)
+    section = models.CharField(max_length=4, null=False, blank=False)
+    semester = models.ForeignKey(Semester, null=False, blank=False)
+    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES)
+    instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P')
+    owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
+    crse_id = models.PositiveSmallIntegerField(null=True) # fake value for DB constraint on CourseOffering
+    class_nbr = models.PositiveIntegerField(null=True) # fake value for DB constraint on CourseOffering
+
+    title = models.CharField(max_length=30)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
+
+    offerings = models.ManyToManyField(CourseOffering, related_name='+')
+        # actually a Many-to-One, but don't want to junk CourseOffering up with another ForeignKey
+
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+
+    def name(self):
+        return "%s %s %s" % (self.subject, self.number, self.section)
