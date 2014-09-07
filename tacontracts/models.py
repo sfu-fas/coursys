@@ -489,6 +489,8 @@ class TAContract(models.Model):
             assert(not(exists_and_is_in_the_course and exists_and_is_dropped))
             assert(not(exists_and_is_dropped and does_not_exist))
             assert(not(exists_and_is_in_the_course and does_not_exist))
+            assert(len(dropped_members) < 2)
+            assert(len(members) < 2)
 
             if self.should_be_added_to_the_course:
                 if exists_and_is_dropped:
@@ -505,6 +507,7 @@ class TAContract(models.Model):
                 else:
                     assert(False)
                 m.added_reason='CTA'
+                m.role = 'TA'
                 m.config['bu'] = crs.total_bu
                 m.save()
                 crs.member = m
