@@ -12,8 +12,8 @@ whatever your university uses, it's likely that there's something in the
 Django ecosystem that will allow you to enable some form of automatic or 
 single-sign-on structure. 
 
-In our case, we're using the `django-cas` package, which 
-populates `request.user` and `request.user.username`.
+In our case, we're using the [django-cas](https://bitbucket.org/cpcc/django-cas/overview)
+package, which populates `request.user` and `request.user.username`.
 
 In Coursys, the standard authentication User object is generally abandoned in
 favour of the `coredata.models` "Person" object. This Person object is keyed to
@@ -23,14 +23,14 @@ for example, employee/student id doesn't exist, it might be wise to alter
 Person to provide emplid as a calculated property.
 
     @property
-    emplid(self):
+    def emplid(self):
         return self.userid
 
 
 The Great Data Heist
 --------------------
 
-The system absolutely depends on certain coredata.models objects being generated
+The system depends on certain coredata.models objects being generated
 automatically by the system.
 
 Namely, 
