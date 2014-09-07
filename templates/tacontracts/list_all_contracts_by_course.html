@@ -42,9 +42,11 @@
             {% with offering.courses.0 as course %}
             <td>
                 {% if course %}
+                {% if course.contract.status == 'CAN' %}<del>{% endif %}
                 <a href="{% url "tacontracts.views.view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
-                    {{course.contract.person.name}}</a>
+                    {{course.contract.person.name}} ({{course.contract.get_status_display}})</a>
                 {% endif %}
+                {% if course.contract.status == 'CAN' %}</del>{% endif %}
             </td>
             <td>{{course.bu}}</td>
             {% endwith %}
@@ -52,8 +54,10 @@
         {% for course in offering.courses|slice:"1:" %}
         <tr>
             <td>
+                {% if course.contract.status == 'CAN' %}<del>{% endif %}
                 <a href="{% url "tacontracts.views.view_contract" unit_slug=unit_slug semester=semester contract_slug=course.contract.slug %}">
-                    {{course.contract.person.name}}</a>
+                    {{course.contract.person.name}} ({{course.contract.get_status_display}})</a>
+                {% if course.contract.status == 'CAN' %}</del>{% endif %}
             </td>
             <td>{{course.bu}}</td>
         </tr>
