@@ -210,19 +210,19 @@ service "nginx" do
 end
 
 # purge supervisord
-execute "uninstall-supervisord" do
-    command "echo y | pip uninstall supervisor"
-    ignore_failure true
-end
-file "/etc/supervisord.conf" do
-  action :delete
-end
-file "/etc/init.d/supervisord" do
-  action :delete
-end
-file "/etc/logrotate.d/gunicorn" do
-  action :delete
-end
+#execute "uninstall-supervisord" do
+#    command "echo y | pip uninstall supervisor"
+#    ignore_failure true
+#end
+#file "/etc/supervisord.conf" do
+#  action :delete
+#end
+#file "/etc/init.d/supervisord" do
+#  action :delete
+#end
+#file "/etc/logrotate.d/gunicorn" do
+#  action :delete
+#end
 cookbook_file "rc.local" do
     path "/etc/rc.local"
     owner "root"
