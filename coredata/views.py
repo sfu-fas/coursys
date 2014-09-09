@@ -344,6 +344,9 @@ def admin_panel(request):
         elif request.GET['content'] == 'email':
             user = Person.objects.get(userid=request.user.username)
             return render(request, 'coredata/admin_panel_tab.html', {'email': user.email()})
+        elif request.GET['content'] == 'request':
+            import pprint
+            return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request)})
     elif request.method == 'POST' and 'email' in request.POST:
         email = request.POST['email']
         success, res = panel.send_test_email(email)
