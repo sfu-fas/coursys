@@ -87,6 +87,5 @@ end
 #end
 
 execute "restart gunicorns" do
-    cwd "/home/coursys/courses"
-    command "make restart"
+    command "restart gunicorn"
 end

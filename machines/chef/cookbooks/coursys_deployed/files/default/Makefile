@@ -2,10 +2,10 @@ reload:
 	killall -USR2 gunicorn
 
 restart:
-	supervisorctl restart gunicorn
+	sudo restart gunicorn
 
 run:
-	supervisord
+	sudo start gunicorn
 
 big-restart: restart
 	sudo /etc/init.d/nginx reload

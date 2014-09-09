@@ -31,7 +31,7 @@ execute "chmod courses" do
     ignore_failure true
 end
 
-# static files
+# static files directory
 directory "/home/coursys/static" do
     owner "coursys"
     group "coursys"
@@ -44,12 +44,6 @@ directory "/home/vagrant/static" do
     mode 00755
     action :create
 end
-execute "static files" do
-    user "coursys"
-    cwd "/home/coursys/courses"
-    command "echo 'yes' | ./manage.py collectstatic"
-end
-
 
 # MySQL
 package "mysql-client"
@@ -91,6 +85,13 @@ package "dos2unix"
 execute "install_pip_requirements" do
     cwd "/home/vagrant/"
     command "pip install -r /home/vagrant/courses/build_deps/deployed_deps.txt"
+end
+
+# collect static files
+execute "static files" do
+    user "coursys"
+    cwd "/home/coursys/courses"
+    command "echo 'yes' | ./manage.py collectstatic"
 end
 
 # database backup directory
@@ -208,18 +209,20 @@ service "nginx" do
   action :restart
 end
 
-#configure supervisord
-cookbook_file "supervisord.conf" do 
-    path "/etc/supervisord.conf"
-    mode "0744"
+# purge supervisord
+execute "uninstall-supervisord" do
+    command "echo y | pip uninstall supervisor"
+    ignore_failure true
 end
-
-#put supervisord in init.d
-#cookbook_file "supervisor_init.d" do
-#    owner "coursys"
-#    path "/etc/init.d/supervisord"
-#    mode "0755"
-#end
+file "/etc/supervisord.conf" do
+  action :delete
+end
+file "/etc/init.d/supervisord" do
+  action :delete
+end
+file "/etc/logrotate.d/gunicorn" do
+  action :delete
+end
 cookbook_file "rc.local" do
     path "/etc/rc.local"
     owner "root"
@@ -229,7 +232,7 @@ end
 
 # create a directory for the gunicorn log files
 # directory "/var/log/gunicorn"
-directory "/var/log/gunicorn" do 
+directory "/var/log/gunicorn" do
     owner "coursys"
     mode "00755"
     action :create
@@ -250,9 +253,14 @@ cookbook_file "Makefile" do
     action :create
 end
 
-#start supervisord
-execute "supervisord" do
-    user "coursys"
-    command "supervisord"
-    ignore_failure true    
+# gunicorn upstart config
+cookbook_file "gunicorn.conf" do
+    path "/etc/init/gunicorn.conf"
+    mode "0644"
+    action :create
+end
+
+#start gunicorn
+execute "gunicorn" do
+    command "restart gunicorn"
 end

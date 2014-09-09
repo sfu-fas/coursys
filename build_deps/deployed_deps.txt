@@ -6,4 +6,3 @@ django-dbdump==1.1
 pyelasticsearch==0.6.1
 lxml==3.3.3
 gunicorn==18.0
-supervisor==3.0
