@@ -290,15 +290,19 @@ class NumericActivity(Activity):
     def is_calculated(self):
         return False
 
-    def display_grade_visible(self, student):
+    def get_grade(self, student):
         grades = NumericGrade.objects.filter(activity=self, member__person=student)
-        if len(grades)==0:
-            grade = u'\u2014'
-        elif grades[0].flag == "NOGR":
-            grade = u'\u2014'
+        if len(grades)==0 or grades[0].flag == "NOGR":
+            return None
         else:
-            grade = grades[0].value
-        return "%s/%s" % (grade, self.max_grade)
+            return grades[0].value
+
+    def display_grade_visible(self, student):
+        grade = self.get_grade(student)
+        if grade:
+            return "%s/%s" % (grade, self.max_grade)
+        else:
+            return u'\u2014'
 
 
 
@@ -314,16 +318,20 @@ class LetterActivity(Activity):
         return False
     def is_calculated(self):
         return False
-    
-    def display_grade_visible(self, student):
+
+    def get_grade(self, student):
         grades = LetterGrade.objects.filter(activity=self, member__person=student)
-        if len(grades)==0:
-            grade = u'\u2014'
-        elif grades[0].flag == "NOGR":
-            grade = u'\u2014'
+        if len(grades)==0 or grades[0].flag == "NOGR":
+            return None
         else:
-            grade = str(grades[0].letter_grade)
-        return grade
+            return grades[0].letter_grade
+
+    def display_grade_visible(self, student):
+        grade = self.get_grade(student)
+        if grade:
+            return unicode(grade)
+        else:
+            return u'\u2014'
 
 
 class CalNumericActivity(NumericActivity):

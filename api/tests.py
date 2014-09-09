@@ -28,8 +28,9 @@ class APIEndpointTester(object):
     Records views we have seen links to, and views we have tested. We want the set to be the same to ensure HATEOS
     links, and complete test coverage of API views.
     """
-    def __init__(self, client):
+    def __init__(self, client, testcase):
         self.client = client
+        self.testcase = testcase
         # fake APIRoot into the found links: we don't demand a link to it since it's the root
         self.found_view_links = set([self.link_to_view(reverse('api.APIRoot'))])
         self.checked_views = set()
@@ -66,13 +67,14 @@ class APIEndpointTester(object):
         """
         url = reverse(view, kwargs=view_kwargs)
         resp = self.client.get(url)
+        self.testcase.assertEqual(resp.status_code, 200)
         data = json.loads(resp.content)
 
         self.find_views_in(data)
         self.checked_views.add(self.link_to_view(url))
 
-    def check_found_links(self, testcase):
-        testcase.assertEqual(self.checked_views, self.found_view_links)
+    def check_found_links(self):
+        self.testcase.assertEqual(self.checked_views, self.found_view_links)
 
 
 
@@ -150,7 +152,7 @@ class APITest(TestCase):
         client = self.client
         client.login_user("ggbaker")
 
-        tester = APIEndpointTester(client)
+        tester = APIEndpointTester(client, self)
 
         tester.check_endpoint('api.APIRoot', {})
         tester.check_endpoint('api.MyOfferings', {})
@@ -158,4 +160,4 @@ class APITest(TestCase):
         tester.check_endpoint('api.OfferingActivities', {'course_slug': TEST_COURSE_SLUG})
         tester.check_endpoint('api.OfferingGrades', {'course_slug': TEST_COURSE_SLUG})
 
-        tester.check_found_links(self)
+        tester.check_found_links()

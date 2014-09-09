@@ -1,4 +1,4 @@
-from rest_framework import generics, views
+from rest_framework import generics, views, response
 
 from grades.models import all_activities_filter
 from grades.serializers import ActivitySerializer, GradeMarkSerializer
@@ -19,10 +19,12 @@ class OfferingGrades(generics.GenericAPIView):
 
     serializer_class = GradeMarkSerializer
 
-    def get_object(self):
+    def get(self, request, *args, **kwargs):
         activities = all_activities_filter(offering=self.offering)
         activities = [a for a in activities if a.status in ['RLS', 'URLS']]
+        res = []
         for activity in activities:
-            g = activity.display_grade_student(self.member.person)
-            # ???
-        return []
+            g = activity.get_grade(self.member.person)
+            maxgrade = getattr(activity, 'max_grade', None)
+            res.append({'slug': activity.slug, 'grade': g, 'max_grade': maxgrade})
+        return response.Response(res)
