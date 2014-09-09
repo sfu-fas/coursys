@@ -923,13 +923,14 @@ class Member(models.Model, ConditionalSaveMixin):
         memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
                 .filter(offering__graded=True, person__userid=userid) \
                 .annotate(num_activities=Count('offering__activity')) \
+                .annotate(num_pages=Count('offering__page')) \
                 .select_related('offering','offering__semester')
         memberships = list(memberships) # get out of the database and do this locally
 
         # students don't see non-active courses or future courses
         memberships = [m for m in memberships if
                         m.role in ['TA', 'INST', 'APPR']
-                        or (m.num_activities > 0
+                        or ((m.num_activities > 0 or m.num_pages > 0)
                             and m.offering.semester.start <= today)]
 
         count1 = len(memberships)
