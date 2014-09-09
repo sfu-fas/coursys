@@ -287,3 +287,9 @@ def send_test_email(email):
         return True, "Message sent to %s." % (email)
     except socket.error:
         return False, "socket error: maybe can't communicate with AMPQ for celery sending?"
+
+def git_branch():
+    return subprocess.check_output(['git', 'rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])
+
+def git_revision():
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])

@@ -26,3 +26,12 @@
 {% if request %}
 <pre>{{ request }}</pre>
 {% endif %}
+
+{% if git %}
+<table>
+    <th>Most Recent Commit</th>
+    <td>
+        <a href="https://github.com/sfu-fas/coursys/commit/{{git.revision}}">{{git.branch}} - {{git.revision}}</a>
+    </td>
+</table>
+{% endif %}

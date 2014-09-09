@@ -347,6 +347,11 @@ def admin_panel(request):
         elif request.GET['content'] == 'request':
             import pprint
             return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request)})
+        elif request.GET['content'] == 'git':
+            git = {}
+            git['branch'] = panel.git_branch()
+            git['revision'] = panel.git_revision()
+            return render(request, 'coredata/admin_panel_tab.html', {'git':git})
     elif request.method == 'POST' and 'email' in request.POST:
         email = request.POST['email']
         success, res = panel.send_test_email(email)
