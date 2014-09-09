@@ -127,9 +127,11 @@ def _course_info_staff(request, course_slug):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['NG']})            
         elif isinstance(activity, LetterActivity):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['LG']})
-    
+
     if len(activities) == 0:
-        messages.info(request, "Students won't see this course in their menu on the front page. As soon as some activities have been added, they will see a link to the course info page.")
+        num_pages = Page.objects.filter(offering=course)
+        if num_pages == 0:
+            messages.info(request, "Students won't see this course in their menu on the front page. As soon as some activities or pages have been added, they will see a link to the course info page.")
     
     discussion_activity = False
     if course.discussion:
