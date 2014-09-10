@@ -42,7 +42,7 @@ def _format_currency(i):
 def _create_news(person, url, from_user, accept_deadline):
     
     # attempt to e-mail the student's supervisor
-    gradstudents = GradStudent.get_canonical(person);
+    gradstudents = GradStudent.get_canonical(person)
     if len(gradstudents) > 0: 
         gradstudent = gradstudents[0]
         senior_supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type='SEN')

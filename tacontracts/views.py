@@ -204,11 +204,10 @@ def list_all_contracts_by_course(request, unit_slug, semester):
     for offering in course_offerings:
         offering.courses = [course for course in courses 
                                                 if course.course == offering]
-        offering.bu = sum([c.bu for c in offering.courses])
+        offering.bu = sum([c.bu for c in offering.courses if c.contract.status == 'SGN'])
         offering.rowspan = len(offering.courses)
         if offering.rowspan == 0:
             offering.rowspan = 1
-        #TODO: get professor for each course
     
     return render(request, 'tacontracts/list_all_contracts_by_course.html', {
         'unit_slug':unit_slug,

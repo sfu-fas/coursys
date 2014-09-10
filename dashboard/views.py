@@ -27,6 +27,7 @@ from icalendar import Calendar, Event
 from featureflags.flags import uses_feature
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery, Exact, Clean
+from ipware import ip
 import pytz
 import itertools
 from urllib import urlencode
@@ -98,6 +99,11 @@ def fake_login(request, next_page=None):
             user.save()
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
+        #LOG EVENT#
+        l = LogEntry(userid=user.username,
+              description=("fake login as %s from %s") % (user.username, ip.get_ip(request)),
+              related_object=user)
+        l.save()
         return HttpResponseRedirect(next_page)
 
     response = HttpResponse('<h1>Fake Authenticator</h1><p>Who would you like to be today?</p><form action="">Userid: <input type="text" name="userid" /><br/><input type="submit" value="&quot;Authenticate&quot;" /><input type="hidden" name="next" value="%s" /></form>' % (next_page))
@@ -151,7 +157,7 @@ def login(request, next_page=None, required=False):
             auth.login(request, user)
             #LOG EVENT#
             l = LogEntry(userid=user.username,
-                  description=("logged in as %s from %s") % (user.username, request.META['REMOTE_ADDR']),
+                  description=("logged in as %s from %s") % (user.username, ip.get_ip(request)),
                   related_object=user)
             l.save()
             return HttpResponseRedirect(next_page)
@@ -921,7 +927,7 @@ def photo_agreement(request):
             if config.value['agree']:
                 config.value['version'] = 1
                 config.value['at'] = datetime.datetime.now().isoformat()
-                config.value['from'] = request.META['REMOTE_ADDR']
+                config.value['from'] = ip.get_ip(request)
             config.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your photo agreement status.')
             if 'return' in request.GET:

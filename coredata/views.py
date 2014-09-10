@@ -4,13 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
-        TemporaryPersonForm, CourseHomePageForm
+        TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup
 from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-        UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
+    CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
 from coredata import panel
 from advisornotes.models import NonStudent
 from log.models import LogEntry
@@ -238,6 +238,100 @@ def edit_semester(request, semester_name=None):
     return render(request, 'coredata/edit_semester.html', context)
 
 
+# combined sections admin
+
+@requires_global_role("SYSA")
+def combined_offerings(request):
+    combined = CombinedOffering.objects.all()
+    new_form = OneOfferingForm()
+    context = {
+        'combined': combined,
+        'new_form': new_form,
+    }
+    return render(request, 'coredata/combined_offerings.html', context)
+
+
+def _new_fake_class_nbr(semester):
+    # largest class_nbr in production is 47348. Assuming that >65536 can be reserved as fakes.
+    from django.db.models import Max
+    max_offering = CourseOffering.objects.filter(semester=semester).aggregate(Max('class_nbr'))['class_nbr__max']
+    max_combined = CombinedOffering.objects.filter(semester=semester).aggregate(Max('class_nbr'))['class_nbr__max']
+
+    nbr = 65536
+    if max_offering:
+        nbr = max(nbr, max_offering)
+    if max_combined:
+        nbr = max(nbr, max_combined)
+
+    return nbr+1
+
+@requires_global_role("SYSA")
+def new_combined(request):
+    offering_id = request.GET.get('offering', None)
+    offering = get_object_or_404(CourseOffering, id=offering_id)
+    if request.method == 'POST':
+        form = NewCombinedForm(request.POST)
+        if form.is_valid():
+            combined = form.save(commit=False)
+            combined.semester = offering.semester
+            combined.crse_id = offering.crse_id
+            combined.class_nbr = _new_fake_class_nbr(combined.semester)
+            combined.save()
+            combined.offerings.add(offering)
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created combined offering %i with %s") % (combined.id, offering.slug),
+                  related_object=combined)
+            l.save()
+            messages.success(request, 'Created combined offering.')
+            return HttpResponseRedirect(reverse('coredata.views.combined_offerings', kwargs={}))
+    else:
+        # set up creation form from the offering given
+        initial = {
+            'subject': offering.subject,
+            'number': offering.number,
+            'section': 'X100',
+            'component': offering.component,
+            'instr_mode': offering.instr_mode,
+            'owner': offering.owner,
+            'title': offering.title,
+            'campus': offering.campus,
+        }
+        form = NewCombinedForm(initial=initial)
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'coredata/edit_combined.html', context)
+
+@requires_global_role("SYSA")
+def add_combined_offering(request, pk):
+    combined = get_object_or_404(CombinedOffering, pk=pk)
+    if request.method == 'POST':
+        form = OneOfferingForm(request.POST)
+        if form.is_valid():
+            offering = form.cleaned_data['offering']
+            if offering in combined.offerings.all():
+                messages.error(request, 'That offering is already in the combined section.')
+            else:
+                combined.offerings.add(offering)
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("added %s to combined offering %i") % (offering.slug, combined.id),
+                      related_object=combined)
+                l.save()
+                messages.success(request, 'Added offering.')
+                return HttpResponseRedirect(reverse('coredata.views.combined_offerings', kwargs={}))
+    else:
+        form = OneOfferingForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'coredata/add_combined_offering.html', context)
+
+
+
 @requires_global_role("SYSA")
 def admin_panel(request):
     if 'content' in request.GET:
@@ -250,6 +344,14 @@ def admin_panel(request):
         elif request.GET['content'] == 'email':
             user = Person.objects.get(userid=request.user.username)
             return render(request, 'coredata/admin_panel_tab.html', {'email': user.email()})
+        elif request.GET['content'] == 'request':
+            import pprint
+            return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request)})
+        elif request.GET['content'] == 'git':
+            git = {}
+            git['branch'] = panel.git_branch()
+            git['revision'] = panel.git_revision()
+            return render(request, 'coredata/admin_panel_tab.html', {'git':git})
     elif request.method == 'POST' and 'email' in request.POST:
         email = request.POST['email']
         success, res = panel.send_test_email(email)

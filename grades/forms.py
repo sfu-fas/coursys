@@ -338,7 +338,9 @@ class CourseConfigForm(forms.Form):
     discussion = forms.BooleanField(required=False, label='Discussion',
             help_text="Should the student/TA/instructor discussion forum be activated for this course?")
     indiv_svn = forms.BooleanField(required=False, label="Individual SVN access",
-            help_text="Can the instructor and TAs access students' indivdual Subversion repositories? Set only if they are being used explicitly for grading.")
+            help_text="Can the instructor and TAs read students' individual Subversion repositories? Set only if they are being used explicitly for grading.")
+    instr_rw_svn = forms.BooleanField(required=False, label="Write SVN access",
+            help_text="Can the instructor and TAs write to students' individual Subversion repositories?")
     group_min = forms.IntegerField(required=False, label="Minimum Group Size", initial=1, min_value=1, max_value=50,
             help_text="Smallest possible group. Entering 1 here implies students can work alone on group activities.",
             widget=forms.NumberInput(attrs={'class': 'smallnumberinput'}))

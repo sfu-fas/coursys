@@ -127,9 +127,11 @@ def _course_info_staff(request, course_slug):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['NG']})            
         elif isinstance(activity, LetterActivity):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['LG']})
-    
+
     if len(activities) == 0:
-        messages.info(request, "Students won't see this course in their menu on the front page. As soon as some activities have been added, they will see a link to the course info page.")
+        num_pages = Page.objects.filter(offering=course)
+        if num_pages == 0:
+            messages.info(request, "Students won't see this course in their menu on the front page. As soon as some activities or pages have been added, they will see a link to the course info page.")
     
     discussion_activity = False
     if course.discussion:
@@ -152,6 +154,7 @@ def course_config(request, course_slug):
             course.set_discussion(form.cleaned_data['discussion'])
             if course.uses_svn():
                 course.set_indiv_svn(form.cleaned_data['indiv_svn'])
+                course.set_instr_rw_svn(form.cleaned_data['instr_rw_svn'])
             course.set_group_min(form.cleaned_data['group_min'])
             course.set_group_max(form.cleaned_data['group_max'])
             course.save()
@@ -166,7 +169,7 @@ def course_config(request, course_slug):
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
     else:
         form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail(), 'discussion': course.discussion(),
-                'indiv_svn': course.indiv_svn(), 'group_min': course.group_min(),'group_max': course.group_max()})
+                'indiv_svn': course.indiv_svn(), 'instr_rw_svn': course.instr_rw_svn(), 'group_min': course.group_min(),'group_max': course.group_max()})
     
     context = {'course': course, 'form': form}
     return render(request, "grades/course_config.html", context)

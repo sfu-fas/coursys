@@ -250,7 +250,7 @@ def deploy_checks():
     hostname = socket.gethostname()
     ports = [
         25, # mail server
-        4369, # epmd, erlang port mapper daemon
+        #4369, # epmd, erlang port mapper daemon is okay to listen externally and won't start with ERL_EPMD_ADDRESS set. http://serverfault.com/questions/283913/turn-off-epmd-listening-port-4369-in-ubuntu-rabbitmq
         45130, # beam? rabbitmq something
         4000, # main DB stunnel
         50000, # reporting DB
@@ -287,3 +287,9 @@ def send_test_email(email):
         return True, "Message sent to %s." % (email)
     except socket.error:
         return False, "socket error: maybe can't communicate with AMPQ for celery sending?"
+
+def git_branch():
+    return subprocess.check_output(['git', 'rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])
+
+def git_revision():
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
