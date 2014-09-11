@@ -513,7 +513,6 @@ STATUS_CHOICES = (
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
-STATUS_DECIDEDAPPLICANT = set(STATUS_APPLICANT) - set(STATUS_CURRENTAPPLICANT)
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
@@ -708,7 +707,7 @@ class GradStudent(models.Model):
             semester = Semester.current()
 
         timely_status = models.Q(start__name__lte=semester.name)
-        application_status = models.Q(start__name__lte=semester.offset_name(1), status__in=STATUS_DECIDEDAPPLICANT)
+        application_status = models.Q(start__name__lte=semester.offset_name(1), status__in=STATUS_APPLICANT)
 
         statuses = GradStatus.objects.filter(student=self, hidden=False) \
                     .filter(timely_status | application_status) \
