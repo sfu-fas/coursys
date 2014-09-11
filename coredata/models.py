@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Count
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -626,12 +626,12 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'extra_bu': number of TA base units required
         # 'page_creators': who is allowed to create new pages?
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
-        # 'combined_with': list of offerings this one is combined with (as CourseOffering.slug)
+        # 'joint_with': list of offerings this one is combined with (as CourseOffering.slug)
         # 'maillist': course mailing list (@sfu.ca). Used for CMPT in course homepage list
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,
-                'instr_rw_svn': False, 'combined_with': (), 'group_min': None, 'group_max': None,
+                'instr_rw_svn': False, 'joint_with': (), 'group_min': None, 'group_max': None,
                 'maillist': None}
     labtut, set_labtut = getter_setter('labtut')
     _, set_labtas = getter_setter('labtas')
@@ -643,7 +643,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
     page_creators, set_page_creators = getter_setter('page_creators')
     discussion, set_discussion = getter_setter('discussion')
     _, set_sessional_pay = getter_setter('sessional_pay')
-    combined_with, set_combined_with = getter_setter('combined_with')
+    joint_with, set_joint_with = getter_setter('joint_with')
     group_min, set_group_min = getter_setter('group_min')
     group_max, set_group_max = getter_setter('group_max')
     _, set_maillist = getter_setter('maillist')
@@ -923,13 +923,14 @@ class Member(models.Model, ConditionalSaveMixin):
         memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
                 .filter(offering__graded=True, person__userid=userid) \
                 .annotate(num_activities=Count('offering__activity')) \
+                .annotate(num_pages=Count('offering__page')) \
                 .select_related('offering','offering__semester')
         memberships = list(memberships) # get out of the database and do this locally
 
         # students don't see non-active courses or future courses
         memberships = [m for m in memberships if
                         m.role in ['TA', 'INST', 'APPR']
-                        or (m.num_activities > 0
+                        or ((m.num_activities > 0 or m.num_pages > 0)
                             and m.offering.semester.start <= today)]
 
         count1 = len(memberships)
@@ -984,7 +985,7 @@ class Member(models.Model, ConditionalSaveMixin):
             return fractions.Fraction(0), 'no scheduled lectures'
         else:
             # now probably a real offering: split the credit among the (real SIMS) instructors and across joint offerings
-            joint_with = CourseOffering.objects.filter(slug__in=self.offering.combined_with())
+            joint_with = CourseOffering.objects.filter(slug__in=self.offering.joint_with())
             other_instr = Member.objects.filter(offering=self.offering, role='INST', added_reason='AUTO').exclude(id=self.id)
             credits = fractions.Fraction(1)
             reasons = []
@@ -1296,3 +1297,96 @@ class ComputingAccount(models.Model):
     """
     emplid = models.PositiveIntegerField(primary_key=True, unique=True, null=False)
     userid = models.CharField(max_length=8, unique=True, null=False, db_index=True)
+
+
+class CombinedOffering(models.Model):
+    """
+    A model to represent a local fake CourseOffering that should be the result of combining members of two or more
+    CourseOffering objects on import.
+    """
+    subject = models.CharField(max_length=4, null=False, blank=False)
+    number = models.CharField(max_length=4, null=False, blank=False)
+    section = models.CharField(max_length=4, null=False, blank=False)
+    semester = models.ForeignKey(Semester, null=False, blank=False)
+    component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES)
+    instr_mode = models.CharField(max_length=2, null=False, choices=INSTR_MODE_CHOICES, default='P')
+    owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
+    crse_id = models.PositiveSmallIntegerField(null=True)
+    class_nbr = models.PositiveIntegerField(null=True) # fake value for DB constraint on CourseOffering
+
+    title = models.CharField(max_length=30)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
+
+    offerings = models.ManyToManyField(CourseOffering, related_name='+')
+        # actually a Many-to-One, but don't want to junk CourseOffering up with another ForeignKey
+
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+
+    def name(self):
+        return "%s %s %s" % (self.subject, self.number, self.section)
+
+    def create_combined_offering(self):
+        """
+        Do the import-like work of creating/updating the CourseOffering object
+        """
+        with transaction.atomic():
+            try:
+                offering = CourseOffering.objects.get(semester=self.semester, subject=self.subject,
+                        number=self.number, section=self.section)
+            except CourseOffering.DoesNotExist:
+                offering = CourseOffering(semester=self.semester, subject=self.subject,
+                        number=self.number, section=self.section)
+                offering.enrl_cap = 0
+                offering.enrl_tot = 0
+                offering.wait_tot = 0
+                offering.set_combined(True)
+                offering.save()
+
+            offering.component = self.component
+            offering.instr_mode = self.instr_mode
+            offering.owner = self.owner
+            offering.crse_id = self.crse_id
+            offering.class_nbr = self.class_nbr
+            offering.title = self.title
+            offering.campus = self.campus
+
+            cap_total = 0
+            tot_total = 0
+            wait_total = 0
+            labtut = False
+            in_section = set() # students who are in section and not dropped (so we don't overwrite with a dropped membership)
+            for sub in self.offerings.all():
+                cap_total += sub.enrl_cap
+                tot_total += sub.enrl_tot
+                wait_total += sub.wait_tot
+                labtut = labtut or sub.labtut()
+                for m in sub.member_set.all():
+                    old_ms = offering.member_set.filter(offering=offering, person=m.person)
+                    if old_ms:
+                        # was already a member: update.
+                        old_m = old_ms[0]
+                        old_m.role = m.role
+                        old_m.credits = m.credits
+                        old_m.career = m.career
+                        old_m.added_reason = m.added_reason
+                        old_m.config['origsection'] = sub.slug
+                        old_m.labtut_section = m.labtut_section
+                        if m.role != 'DROP' or old_m.person_id not in in_section:
+                            # condition keeps from overwriting enrolled students with drops (from other section)
+                            old_m.save()
+                        if m.role != 'DROP':
+                            in_section.add(old_m.person_id)
+                    else:
+                        # new membership: duplicate into combined
+                        new_m = Member(offering=offering, person=m.person, role=m.role, labtut_section=m.labtut_section,
+                                credits=m.credits, career=m.career, added_reason=m.added_reason)
+                        new_m.config['origsection'] = sub.slug
+                        new_m.save()
+                        if m.role != 'DROP':
+                            in_section.add(new_m.person_id)
+
+            offering.enrl_cap = cap_total
+            offering.enrl_tot = tot_total
+            offering.wait_tot = wait_total
+            offering.set_labtut(labtut)
+            offering.save()

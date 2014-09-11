@@ -1,5 +1,13 @@
 from django.conf import settings
 from coredata.models import Member
+from cache_utils.decorators import cached
+
+@cached(60)
+def context_memberships(userid):
+    if userid:
+        return Member.get_memberships(userid)[0]
+    else:
+        return []
 
 def media(request):
     """
@@ -10,4 +18,4 @@ def media(request):
             'GRAD_DATETIME_FORMAT': settings.GRAD_DATETIME_FORMAT,
             'LOGOUT_URL': settings.LOGOUT_URL,
             'LOGIN_URL': settings.LOGIN_URL,
-            'memberships': Member.get_memberships(request.user.username)[0]}
+            'memberships': context_memberships(request.user.username)}

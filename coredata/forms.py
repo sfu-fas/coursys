@@ -1,5 +1,6 @@
 from django import forms
-from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
+from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday,\
+    ComputingAccount, CombinedOffering
 from coredata.queries import find_person, add_person, SIMSProblem
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
@@ -27,7 +28,12 @@ class OfferingField(forms.ModelChoiceField):
     unnecessarily, and can set other parameters appropriately.
     """
     def __init__(self, *args, **kwargs):
-        super(OfferingField, self).__init__(*args, queryset=CourseOffering.objects.none(), widget=OfferingSelect(attrs={'size': 30}), help_text="Type to search for course offerings.", **kwargs)
+        if 'help_text' in kwargs:
+            help_text = kwargs['help_text']
+            del kwargs['help_text']
+        else:
+            help_text = "Type to search for course offerings."
+        super(OfferingField, self).__init__(*args, queryset=CourseOffering.objects.none(), widget=OfferingSelect(attrs={'size': 30}), help_text=help_text, **kwargs)
         
     def to_python(self, value):
         if not self.required and not value:
@@ -210,6 +216,13 @@ class MemberForm(forms.ModelForm):
         model = Member
         exclude = ('config', 'official_grade')
     
+class OneOfferingForm(forms.Form):
+    offering = OfferingField(help_text='Offering to combine')
+
+class NewCombinedForm(forms.ModelForm):
+    class Meta:
+        model = CombinedOffering
+        exclude = ('semester', 'crse_id', 'class_nbr', 'config', 'offerings')
 
 class RoleForm(forms.ModelForm):
     person = PersonField(label="Emplid", help_text="or type to search")

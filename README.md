@@ -85,6 +85,7 @@ We could stop here, but the site isn't too useful without test data. Good thing
 we have a big bale of it! 
 
     python manage.py loaddata test_data
+    python manage.py update_index
 
 If you're ever done something awful to your database, you can steamroll it
 and rebuild it with 
@@ -93,6 +94,7 @@ and rebuild it with
     python manage.py syncdb
     python manage.py migrate
     python manage.py loaddata test_data
+    python manage.py update_index
 
 ##### Run the server
 
@@ -177,7 +179,7 @@ You can turn off the VM by navigating to `machines/developer` and running:
 
 ##### Change The Test Data
 
-See `serialize.py` and the comments therein. 
+See `tools/serialize.py` and the comments therein. 
 
 If you modify the model for an app, you can reset the database with 
 
@@ -489,8 +491,8 @@ Logic belongs in models before views, and views before templates.
 In a quote from Two Scoops of Django - 
 http://twoscoopspress.com/products/two-scoops-of-django-1-6 :
 
-> When deciding where to put a piece of code, we like to follow the “Fat Models, 
-> Helper Modules, Thin Views, Stupid Templates” approach.
+> When deciding where to put a piece of code, we like to follow the ï¿½Fat Models, 
+> Helper Modules, Thin Views, Stupid Templatesï¿½ approach.
 
 > We recommend that you err on the side of putting more logic into anything but
 > views and templates.
@@ -511,38 +513,35 @@ Table of Contents
 Here is a quick description of what is in the project:
 
 ### APPS
-coredata: data on course offerings and enrolment; imported from goSFU or set by admins
-  coredata/importer.py: program to do the import from goSFU
-dashboard: responsible for display of front page, main course pages, news items
-discipline: handling academic dishonesty cases
-grades: management of course activities and grades
-groups: handling groups so assignments can be group-based
-log: finer-grained logging for the system
-marking: finer-grained marking with a rubric
-mobile: some read-only views for mobile devices
-submission: submission of work (for later grading)
-ta: management of TA applications and assignment
-tacontracts: management of TA contracts 
-grad: grade student database
-ra: research assistant database and appointments
-advisornotes: advisor notepads for student advising
-discuss: discussion forum for course offerings
-pages: wiki-like course web pages
-onlineforms: configurable and fillable online forms
-alerts: automated student problem alerts
-planning: planning of courses, assigning instructors, etc.
-techreq: collection of technical requirements for courses
-booking: booking system for advisors
+* coredata: data on course offerings and enrolment; imported from goSFU or set by admins
+  * coredata/importer.py: program to do the import from goSFU
+* dashboard: responsible for display of front page, main course pages, news items
+* discipline: handling academic dishonesty cases
+* grades: management of course activities and grades
+* groups: handling groups so assignments can be group-based
+* log: finer-grained logging for the system
+* marking: finer-grained marking with a rubric
+* submission: submission of work (for later grading)
+* ta: management of TA applications and assignment
+* tacontracts: management of TA contracts 
+* grad: grade student database
+* ra: research assistant database and appointments
+* advisornotes: advisor notepads for student advising
+* discuss: discussion forum for course offerings
+* pages: wiki-like course web pages
+* onlineforms: configurable and fillable online forms
+* alerts: automated student problem alerts
+* planning: planning of courses, assigning instructors, etc.
+* techreq: collection of technical requirements for courses (incomplete and disabled)
+* booking: booking system for advisors (incomplete and disabled)
 
 ### OTHER TOP-LEVEL FILES/DIRECTORIES
-courselib: various library code for the system
-docs: reports written on the system by DDP students
-external: external code used by the system
-media: static web files (CSS, JS, images, etc.)
-old: practice/warmup modules written that are no longer used.
-serialize.py: code to create more JSON data for test_data.json.  See comments in the file.
-server-setup: description of how the production server is configured.
-tools: various scripts that have been used to manage the data as necessary
+* courselib: various library code for the system
+* external: external code used by the system
+* machines: Vagrant and Chef files to set up development, testing, and production environments
+* media: static web files (CSS, JS, images, etc.)
+* server-setup: description of how the production server is configured.
+* tools: various scripts that have been used to manage the data as necessary
 
 Other files are the standard Django setup.
 
