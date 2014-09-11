@@ -159,5 +159,6 @@ class APITest(TestCase):
         tester.check_endpoint('api.OfferingInfo', {'course_slug': TEST_COURSE_SLUG})
         tester.check_endpoint('api.OfferingActivities', {'course_slug': TEST_COURSE_SLUG})
         tester.check_endpoint('api.OfferingGrades', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api.OfferingStats', {'course_slug': TEST_COURSE_SLUG})
 
         tester.check_found_links()

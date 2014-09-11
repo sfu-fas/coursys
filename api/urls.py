@@ -17,9 +17,8 @@ endpoint_v1_patterns = [
 ]
 endpoint_v1_patterns = format_suffix_patterns(endpoint_v1_patterns)
 
-
 api_patterns = [
-    #url(r'^1$', APIRoot.as_view(), name='api.APIRoot'),
+    url(r'^1$', APIRoot.as_view(), name='api.APIRoot'),
     url(r'^1/', include(endpoint_v1_patterns)),
     url(r'^oauth/', include(oauth_patterns)),
     url(r'^docs/', include(swagger_patterns)),
