@@ -26,9 +26,13 @@ class GradeMarkSerializer(serializers.Serializer):
     slug = serializers.SlugField(help_text='String that identifies this activity within the course offering')
     grade = serializers.SerializerMethodField('get_grade', help_text='Grade the student received, or null')
     max_grade = serializers.SerializerMethodField('get_max_grade', help_text='Maximum grade for numeric activities, or null for letter activities')
+    # TODO: add comments and marking details
 
     def get_grade(self, a):
-        return a.get_grade(self.context['view'].member.person)
+        if a.status == 'RLS':
+            return a.get_grade(self.context['view'].member.person, self.context['view'].member.role)
+        else:
+            return None
 
     def get_max_grade(self, a):
         return getattr(a, 'max_grade', None)

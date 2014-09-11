@@ -113,7 +113,7 @@ class GradesTest(TestCase):
         expr = "[Assignment #2]"
         tree = parse(expr, c, ca)
         
-        # unrelased assignment (with grade)
+        # unreleased assignment (with grade)
         a2.status='URLS'
         a2.save()
         activities = NumericActivity.objects.filter(offering=c)
@@ -121,7 +121,7 @@ class GradesTest(TestCase):
         res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
         
-        # explicit no grade (relased assignment)
+        # explicit no grade (released assignment)
         g.flag="NOGR"
         g.save(entered_by='ggbaker')
         a2.status='RLS'
@@ -131,7 +131,7 @@ class GradesTest(TestCase):
         res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
 
-        # no grade in database (relased assignment)
+        # no grade in database (released assignment)
         g.delete()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
@@ -574,6 +574,78 @@ class GradesTest(TestCase):
         # check GradeHistory objects
         ghs = GradeHistory.objects.filter(activity=a, member=m)
         self.assertEquals(ghs.count(), 3)
+
+    def test_get_grade(self):
+        """
+        Make sure activity.get_grade() keeps the right things hidden
+        """
+        o = CourseOffering.objects.get(slug=self.course_slug)
+        na = NumericActivity.objects.get(slug='a1')
+        la = LetterActivity.objects.get(slug='rep')
+        instr = Person.objects.get(userid='ggbaker')
+
+        student = Member.objects.get(person__userid='0aaa0', offering=o)
+
+        na.status = 'RLS'
+        na.save(entered_by=instr)
+        la.status = 'RLS'
+        la.save(entered_by=instr)
+
+        # no grades yet
+        self.assertEqual(na.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(la.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(na.get_grade(student.person, 'INST'), None)
+        self.assertEqual(la.get_grade(student.person, 'INST'), None)
+
+        # grades should be visible
+        ng = NumericGrade(activity=na, member=student, value=1, flag='GRAD', comment='Foo')
+        ng.save(entered_by=instr)
+        lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
+        lg.save(entered_by=instr)
+        self.assertEqual(na.get_grade(student.person, 'STUD'), 1)
+        self.assertEqual(la.get_grade(student.person, 'STUD'), 'A')
+        self.assertEqual(na.get_grade(student.person, 'INST'), 1)
+        self.assertEqual(la.get_grade(student.person, 'INST'), 'A')
+
+        # unreleased: grades visible only to staff
+        na.status = 'URLS'
+        na.save(entered_by=instr)
+        la.status = 'URLS'
+        la.save(entered_by=instr)
+        self.assertEqual(na.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(la.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(na.get_grade(student.person, 'INST'), 1)
+        self.assertEqual(la.get_grade(student.person, 'INST'), 'A')
+
+        # student shouldn't ever see invisible grade
+        na.status = 'INVI'
+        na.save(entered_by=instr)
+        la.status = 'INVI'
+        la.save(entered_by=instr)
+        with self.assertRaises(RuntimeError):
+            na.get_grade(student.person, 'STUD')
+        with self.assertRaises(RuntimeError):
+            la.get_grade(student.person, 'STUD')
+        self.assertEqual(na.get_grade(student.person, 'INST'), 1)
+        self.assertEqual(la.get_grade(student.person, 'INST'), 'A')
+
+        # flag==NOGR handling
+        ng.flag = 'NOGR'
+        ng.save(entered_by=instr)
+        lg.flag = 'NOGR'
+        lg.save(entered_by=instr)
+        na.status = 'RLS'
+        na.save(entered_by=instr)
+        la.status = 'RLS'
+        la.save(entered_by=instr)
+        self.assertEqual(na.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(la.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(na.get_grade(student.person, 'INST'), None)
+        self.assertEqual(la.get_grade(student.person, 'INST'), None)
+
+
+
+
 
 
 
