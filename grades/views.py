@@ -50,9 +50,6 @@ from discuss import activity as discuss_activity
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
-# Course should have this number to student to display the activity statistics, including histogram
-STUD_NUM_TO_DISP_ACTSTAT = 10
-
 # Only for display purpose.
 ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded',
                  'CNG': 'Calculated Numeric Graded', 'CLG': 'Calculated Letter Graded'}
@@ -315,16 +312,9 @@ def _activity_info_student(request, course_slug, activity_slug):
     reason_msg = ''
     
     if activity.is_numeric():
-        activity_stat = generate_numeric_activity_stat(activity)
+        activity_stat, reason_msg = generate_numeric_activity_stat(activity, 'STUD')
     else:
-        activity_stat = generate_letter_activity_stat(activity)
-
-    if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
-        reason_msg = 'Summary statistics disabled for small classes.'
-        activity_stat = None
-    elif activity.status != 'RLS':
-        reason_msg = 'Summary statistics disabled for unreleased activities.'
-        activity_stat = None
+        activity_stat, reason_msg = generate_letter_activity_stat(activity, 'STUD')
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg}
@@ -399,10 +389,10 @@ def activity_stat(request, course_slug, activity_slug):
     display_summary = True # always display for staff
     
     if activity.is_numeric():
-        activity_stat = generate_numeric_activity_stat(activity)
+        activity_stat, _ = generate_numeric_activity_stat(activity, request.member.role)
         GradeClass = NumericGrade
     else:
-        activity_stat = generate_letter_activity_stat(activity)
+        activity_stat, _ = generate_letter_activity_stat(activity, request.member.role)
         GradeClass = LetterGrade
     
     # counts submissions (individual & group)

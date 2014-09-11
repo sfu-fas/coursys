@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 
 class APIRoot(views.APIView):
     """
-    An API endpoint purely for HATEOAS discoverability.
+    An API endpoint purely for HATEOAS-ish discoverability.
     """
     def get(self, request, format=None):
         data = {'links': {

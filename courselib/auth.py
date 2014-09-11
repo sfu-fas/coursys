@@ -154,8 +154,10 @@ def is_course_staff_by_slug(request, course_slug, **kwargs):
     """
     memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username,
             role__in=['INST', 'TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")
-    count = memberships.count()
-    return count>0
+    memberships = list(memberships)
+    if memberships:
+        request.member = memberships[0]
+    return bool(memberships)
 
 def requires_course_staff_by_slug(function=None, login_url=None):
     """

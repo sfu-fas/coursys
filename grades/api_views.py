@@ -11,16 +11,20 @@ class OfferingActivities(generics.ListAPIView):
     serializer_class = ActivitySerializer
 
     def get_queryset(self):
-        return all_activities_filter(self.offering)
+        activities = all_activities_filter(self.offering)
+        # TODO: staff should see all
+        activities = [a for a in activities if a.status in ['RLS', 'URLS']]
+        return activities
 
 class OfferingGrades(generics.GenericAPIView):
     permission_classes = (APIConsumerPermissions, IsOfferingMember,)
     consumer_permissions = set(['courses', 'grades'])
 
-    serializer_class = GradeMarkSerializer
+    #serializer_class = GradeMarkSerializer
 
     def get(self, request, *args, **kwargs):
         activities = all_activities_filter(offering=self.offering)
+        # TODO: staff should see all
         activities = [a for a in activities if a.status in ['RLS', 'URLS']]
         res = []
         for activity in activities:
@@ -28,3 +32,12 @@ class OfferingGrades(generics.GenericAPIView):
             maxgrade = getattr(activity, 'max_grade', None)
             res.append({'slug': activity.slug, 'grade': g, 'max_grade': maxgrade})
         return response.Response(res)
+
+class OfferingStats(generics.GenericAPIView):
+    permission_classes = (APIConsumerPermissions, IsOfferingMember,)
+    consumer_permissions = set(['courses', 'grades'])
+
+    def get(self, request, *args, **kwargs):
+        activities = all_activities_filter(offering=self.offering)
+        # TODO: staff should see all
+        activities = [a for a in activities if a.status in ['RLS', 'URLS']]
