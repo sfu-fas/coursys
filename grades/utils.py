@@ -246,7 +246,13 @@ def generate_numeric_activity_stat(activity, role):
     """
     student_grade_list = fetch_students_numeric_grade(activity)
     if not student_grade_list:
-        return None, 'Summary statistics disabled for small classes.'
+        if role == 'STUD':
+            return None, 'Summary statistics disabled for small classes.'
+        else:
+            return None, 'No grades assigned.'
+    if role == 'STUD' and not activity.showstats():
+        return None, 'Summary stats disabled by instructor.'
+
     student_grade_list.sort()
     student_grade_list_count = len(student_grade_list)
     average = sum(student_grade_list)
@@ -266,7 +272,10 @@ def generate_numeric_activity_stat(activity, role):
     else:
         normalized_student_grade_list = [ float(student_grade)/float(activity.max_grade)*100
                                         for student_grade in student_grade_list ]
-    grade_range_stat_list = generate_grade_range_stat(normalized_student_grade_list)
+    if role == 'STUD' and not activity.showhisto():
+        grade_range_stat_list = []
+    else:
+        grade_range_stat_list = generate_grade_range_stat(normalized_student_grade_list)
 
     stats = ActivityStat(format_number(average, _DECIMAL_PLACE), format_number(student_grade_list[0], _DECIMAL_PLACE),
                         format_number(student_grade_list[student_grade_list_count - 1], _DECIMAL_PLACE),
@@ -292,10 +301,18 @@ def generate_letter_activity_stat(activity, role):
     student_grade_list = fetch_students_letter_grade(activity)
     sorted_grades = sorted_letters(student_grade_list) 
     if not sorted_grades:
-        return None, ''
+        if role == 'STUD':
+            return None, 'Summary statistics disabled for small classes.'
+        else:
+            return None, 'No grades assigned.'
+    if role == 'STUD' and not activity.showstats():
+        return None, 'Summary stats disabled by instructor.'
 
     student_grade_list_count = len(student_grade_list)
-    grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
+    if role == 'STUD' and not activity.showhisto():
+        grade_range_stat_list = []
+    else:
+        grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
     median=median_letters(sorted_grades)
     max=max_letters(sorted_grades)
     min=min_letters(sorted_grades)

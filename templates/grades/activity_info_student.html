@@ -104,7 +104,6 @@
 
 
 {% if activity_stat %}
-{% if activity.showstats %}
 <h2 id="summary">Summary Statistics</h2>
 
     <table class="info">
@@ -136,8 +135,6 @@
         </tbody>
     </table>
 {% else %}
-<p class="empty">Summary stats disabled by instructor.</p>
-{% endif %}{% else %}
 <p class="empty">{{ reason_msg }}</p>
 {% endif %}
 
