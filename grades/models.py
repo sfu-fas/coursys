@@ -75,7 +75,8 @@ class Activity(models.Model):
     short_name = models.CharField(max_length=15, db_index=True, help_text='Short-form name of the activity.')
     def autoslug(self):
         return make_slug(self.short_name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering', manager=objects)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering', manager=objects,
+                         help_text='String that identifies this activity within the course offering')
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(null=True, help_text='Activity due date')
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
@@ -177,18 +178,13 @@ class Activity(models.Model):
         """
         String representing grade for this student
         """
-        if self.status=="URLS":
-            return u'\u2014'
-        elif self.status=="INVI":
-            raise RuntimeError, "Can't display invisible grade."
-        else:
-            return self.display_grade_visible(student)
+        return self.display_grade_visible(student, 'STUD')
 
     def display_grade_staff(self, student):
         """
         String representing grade for this student
         """
-        return self.display_grade_visible(student)
+        return self.display_grade_visible(student, 'INST')
     def get_status_display(self):
         """
         Override to provide better string for not-yet-due case.
@@ -290,15 +286,21 @@ class NumericActivity(Activity):
     def is_calculated(self):
         return False
 
-    def get_grade(self, student):
+    def get_grade(self, student, role):
+        if role == 'STUD':
+            if self.status == 'INVI':
+                raise RuntimeError, "Can't display invisible grade."
+            elif self.status == 'URLS':
+                return None
+
         grades = NumericGrade.objects.filter(activity=self, member__person=student)
         if len(grades)==0 or grades[0].flag == "NOGR":
             return None
         else:
             return grades[0].value
 
-    def display_grade_visible(self, student):
-        grade = self.get_grade(student)
+    def display_grade_visible(self, student, role):
+        grade = self.get_grade(student, role)
         if grade:
             return "%s/%s" % (grade, self.max_grade)
         else:
@@ -319,15 +321,21 @@ class LetterActivity(Activity):
     def is_calculated(self):
         return False
 
-    def get_grade(self, student):
+    def get_grade(self, student, role):
+        if role == 'STUD':
+            if self.status == 'INVI':
+                raise RuntimeError, "Can't display invisible grade."
+            elif self.status == 'URLS':
+                return None
+
         grades = LetterGrade.objects.filter(activity=self, member__person=student)
         if len(grades)==0 or grades[0].flag == "NOGR":
             return None
         else:
             return grades[0].letter_grade
 
-    def display_grade_visible(self, student):
-        grade = self.get_grade(student)
+    def display_grade_visible(self, student, role):
+        grade = self.get_grade(student, role)
         if grade:
             return unicode(grade)
         else:

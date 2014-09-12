@@ -25,7 +25,7 @@ class APIEndpointTester(object):
     """
     Check API views
 
-    Records views we have seen links to, and views we have tested. We want the set to be the same to ensure HATEOS
+    Records views we have seen links to, and views we have tested. We want the set to be the same to ensure HATEOAS
     links, and complete test coverage of API views.
     """
     def __init__(self, client, testcase):
@@ -159,5 +159,6 @@ class APITest(TestCase):
         tester.check_endpoint('api.OfferingInfo', {'course_slug': TEST_COURSE_SLUG})
         tester.check_endpoint('api.OfferingActivities', {'course_slug': TEST_COURSE_SLUG})
         tester.check_endpoint('api.OfferingGrades', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api.OfferingStats', {'course_slug': TEST_COURSE_SLUG})
 
         tester.check_found_links()

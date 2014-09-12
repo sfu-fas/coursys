@@ -27,6 +27,12 @@ class CourseOfferingSerializer(ShortCourseOfferingSerializer):
             'slug_field': 'slug',
             'slug_url_kwarg': 'course_slug',
         },
+        {
+            'label': 'stats',
+            'view_name': 'api.OfferingStats',
+            'slug_field': 'slug',
+            'slug_url_kwarg': 'course_slug',
+        },
     ]
     url = serializers.Field(source='url', help_text='course homepage URL, if set by instructor')
     instructors = serializers.SerializerMethodField('get_instructors')
