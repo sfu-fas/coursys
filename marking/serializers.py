@@ -1,27 +1,30 @@
 from rest_framework import serializers
-from marking.models import ActivityMark
+from marking.models import ActivityMark, ActivityComponentMark
 
-class MarkSerializer(serializers.ModelSerializer):
-    components = serializers.SerializerMethodField('get_component_marks', help_text='Grades on each component')
+class MarkComponentSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='activity_component.title')
+    description = serializers.CharField(source='activity_component.description')
+    max_grade = serializers.CharField(source='activity_component.max_mark')
+    grade = serializers.DecimalField(source='value')
+
+    class Meta:
+        model = ActivityComponentMark
+        fields = ('title', 'description', 'max_grade', 'grade', 'comment')
+
+
+class MarkDetailSerializer(serializers.ModelSerializer):
+    components = MarkComponentSerializer(many=True)
+    grade = serializers.DecimalField(source='mark')
 
     class Meta:
         model = ActivityMark
-        fields = ('components', 'late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', 'mark')
+        fields = ('components', 'late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', 'grade')
         # TODO: file attachments?
         # TODO: indicate individual/group marking?
 
-    def get_component_marks(self, m):
-        # TODO: make this a sub-serializer on ComponentMarks?
-        componentmarks = m.activitycomponentmark_set.all().select_related('activity_component').order_by('activity_component__position')
-        marks = []
-        for cm in componentmarks:
-            cmdata = {
-                'title': cm.activity_component.title,
-                'description': cm.activity_component.description,
-                'max_grade': cm.activity_component.max_mark,
-                'grade': cm.value,
-                'comment': cm.comment,
-            }
-            marks.append(cmdata)
+    def to_native(self, m):
+        # annotate the activity with its components before starting
+        components = m.activitycomponentmark_set.all().select_related('activity_component').order_by('activity_component__position')
+        m.components = components
 
-        return marks
+        return super(MarkDetailSerializer, self).to_native(m)

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from grades.models import Activity
 from grades.utils import generate_numeric_activity_stat, generate_letter_activity_stat
 from marking.models import get_activity_mark_for_student
-from marking.serializers import MarkSerializer
+from marking.serializers import MarkDetailSerializer
 from courselib.rest import utc_datetime
 
 class ActivitySerializer(serializers.ModelSerializer):
@@ -29,15 +29,15 @@ class GradeMarkSerializer(serializers.Serializer):
     slug = serializers.SlugField(help_text='String that identifies this activity within the course offering')
     grade = serializers.SerializerMethodField('get_grade', help_text='Grade the student received, or null')
     max_grade = serializers.SerializerMethodField('get_max_grade', help_text='Maximum grade for numeric activities, or null for letter activities')
-    mark = MarkSerializer(help_text='Marking details, if configured by instructor and received by this student.')
+    details = MarkDetailSerializer(help_text='Marking details, if configured by instructor and received by this student.')
     # TODO: add comments and marking details
 
     def to_native(self, a):
-        # annotate the activity with its stats object before starting
-        if self.context['view'].member == 'STUD' and a.status != 'RLS':
-            a.mark = None
+        # annotate the activity with its marking object before starting
+        if self.context['view'].member.role == 'STUD' and a.status != 'RLS':
+            a.details = None
         else:
-            a.mark = get_activity_mark_for_student(a, self.context['view'].member)
+            a.details = get_activity_mark_for_student(a, self.context['view'].member)
 
         return super(GradeMarkSerializer, self).to_native(a)
 
