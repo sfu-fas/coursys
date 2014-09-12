@@ -18,14 +18,29 @@ class _ActivityInfoView(generics.ListAPIView):
             activities = [a for a in activities if a.status in ['RLS', 'URLS']]
         return activities
 
+
 class OfferingActivities(_ActivityInfoView):
-    "List of all activities in this course offering, with details"
+    """
+    List of all activities in this course offering, with details.
+
+    User must be a student/staff in the course.
+    """
     serializer_class = ActivitySerializer
 
+
 class OfferingGrades(_ActivityInfoView):
-    "List of this student's grades in each activity, if they are available/visible."
+    """
+    List of this student's grades in each activity, if they are available/visible.
+
+    User must be a student in the course.
+    """
     serializer_class = GradeMarkSerializer
 
+
 class OfferingStats(_ActivityInfoView):
-    "Summary statistics for each activity"
+    """
+    Summary statistics for each activity.
+
+    User must be a student in the course.
+    """
     serializer_class = StatsSerializer

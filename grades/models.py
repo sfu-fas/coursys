@@ -297,12 +297,12 @@ class NumericActivity(Activity):
         if len(grades)==0 or grades[0].flag == "NOGR":
             return None
         else:
-            return grades[0].value
+            return grades[0]
 
     def display_grade_visible(self, student, role):
         grade = self.get_grade(student, role)
         if grade:
-            return "%s/%s" % (grade, self.max_grade)
+            return "%s/%s" % (grade.value, self.max_grade)
         else:
             return u'\u2014'
 
@@ -332,12 +332,12 @@ class LetterActivity(Activity):
         if len(grades)==0 or grades[0].flag == "NOGR":
             return None
         else:
-            return grades[0].letter_grade
+            return grades[0]
 
     def display_grade_visible(self, student, role):
         grade = self.get_grade(student, role)
         if grade:
-            return unicode(grade)
+            return unicode(grade.letter_grade)
         else:
             return u'\u2014'
 
@@ -467,6 +467,11 @@ class NumericGrade(models.Model):
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
 
+    @property
+    def grade(self):
+        "Property for the actual grade received"
+        return self.value
+
     def display_staff(self):
         if self.flag == 'NOGR':
             return u'\u2014'
@@ -561,6 +566,11 @@ class LetterGrade(models.Model):
     
     def __unicode__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
+
+    @property
+    def grade(self):
+        "Property for the actual grade received"
+        return self.letter_grade
 
     def display_staff(self):
         if self.flag == 'NOGR':

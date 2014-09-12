@@ -29,11 +29,14 @@ class GradeMarkSerializer(serializers.Serializer):
     slug = serializers.SlugField(help_text='String that identifies this activity within the course offering')
     grade = serializers.SerializerMethodField('get_grade', help_text='Grade the student received, or null')
     max_grade = serializers.SerializerMethodField('get_max_grade', help_text='Maximum grade for numeric activities, or null for letter activities')
+    comment = serializers.SerializerMethodField('get_comment', help_text='Comment entered when marking, or null')
     details = MarkDetailSerializer(help_text='Marking details, if configured by instructor and received by this student.')
     # TODO: add comments and marking details
 
     def to_native(self, a):
-        # annotate the activity with its marking object before starting
+        # annotate the activity with its grade and marking object before starting
+        a.grade = a.get_grade(self.context['view'].member.person, self.context['view'].member.role)
+
         if self.context['view'].member.role == 'STUD' and a.status != 'RLS':
             a.details = None
         else:
@@ -42,8 +45,14 @@ class GradeMarkSerializer(serializers.Serializer):
         return super(GradeMarkSerializer, self).to_native(a)
 
     def get_grade(self, a):
-        if a.status == 'RLS':
-            return a.get_grade(self.context['view'].member.person, self.context['view'].member.role)
+        if a.grade:
+            return a.grade.grade
+        else:
+            return None
+
+    def get_comment(self, a):
+        if a.grade:
+            return a.grade.comment
         else:
             return None
 

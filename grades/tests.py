@@ -602,10 +602,10 @@ class GradesTest(TestCase):
         ng.save(entered_by=instr)
         lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
         lg.save(entered_by=instr)
-        self.assertEqual(na.get_grade(student.person, 'STUD'), 1)
-        self.assertEqual(la.get_grade(student.person, 'STUD'), 'A')
-        self.assertEqual(na.get_grade(student.person, 'INST'), 1)
-        self.assertEqual(la.get_grade(student.person, 'INST'), 'A')
+        self.assertEqual(na.get_grade(student.person, 'STUD').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'STUD').grade, 'A')
+        self.assertEqual(na.get_grade(student.person, 'INST').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'INST').grade, 'A')
 
         # unreleased: grades visible only to staff
         na.status = 'URLS'
@@ -614,8 +614,8 @@ class GradesTest(TestCase):
         la.save(entered_by=instr)
         self.assertEqual(na.get_grade(student.person, 'STUD'), None)
         self.assertEqual(la.get_grade(student.person, 'STUD'), None)
-        self.assertEqual(na.get_grade(student.person, 'INST'), 1)
-        self.assertEqual(la.get_grade(student.person, 'INST'), 'A')
+        self.assertEqual(na.get_grade(student.person, 'INST').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'INST').grade, 'A')
 
         # student shouldn't ever see invisible grade
         na.status = 'INVI'
@@ -626,8 +626,8 @@ class GradesTest(TestCase):
             na.get_grade(student.person, 'STUD')
         with self.assertRaises(RuntimeError):
             la.get_grade(student.person, 'STUD')
-        self.assertEqual(na.get_grade(student.person, 'INST'), 1)
-        self.assertEqual(la.get_grade(student.person, 'INST'), 'A')
+        self.assertEqual(na.get_grade(student.person, 'INST').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'INST').grade, 'A')
 
         # flag==NOGR handling
         ng.flag = 'NOGR'

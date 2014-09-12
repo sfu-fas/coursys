@@ -32,6 +32,8 @@ class MyOfferings(generics.ListAPIView):
 class OfferingInfo(generics.RetrieveAPIView):
     """
     Detailed information on one course offering.
+
+    User must be student/staff in the course.
     """
     permission_classes = (APIConsumerPermissions, IsOfferingMember,)
     consumer_permissions = set(['courses'])
