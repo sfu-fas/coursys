@@ -244,6 +244,9 @@ def generate_numeric_activity_stat(activity, role):
     """
     This function fetch statistics of the numeric activity.
     """
+    if role == 'STUD' and activity.status != 'RLS':
+        return None, 'Summary statistics disabled for unreleased activities.'
+
     student_grade_list = fetch_students_numeric_grade(activity)
     if not student_grade_list:
         if role == 'STUD':
@@ -283,13 +286,9 @@ def generate_numeric_activity_stat(activity, role):
                         format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list, student_grade_list_count)
 
     reason_msg = ''
-    if role == 'STUD':
-        if activity.status != 'RLS':
-            reason_msg = 'Summary statistics disabled for unreleased activities.'
-            stats = None
-        elif stats is None or stats.count < STUD_NUM_TO_DISP_ACTSTAT:
-            reason_msg = 'Summary statistics disabled for small classes.'
-            stats = None
+    if role == 'STUD' and (stats is None or stats.count < STUD_NUM_TO_DISP_ACTSTAT):
+        reason_msg = 'Summary statistics disabled for small classes.'
+        stats = None
 
     return stats, reason_msg
 
@@ -298,6 +297,9 @@ def generate_letter_activity_stat(activity, role):
     """
     This function fetch statistics of the numeric activity.
     """
+    if role == 'STUD' and activity.status != 'RLS':
+        return None, 'Summary statistics disabled for unreleased activities.'
+
     student_grade_list = fetch_students_letter_grade(activity)
     sorted_grades = sorted_letters(student_grade_list) 
     if not sorted_grades:
@@ -320,13 +322,9 @@ def generate_letter_activity_stat(activity, role):
     stats = ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median,min,max)
 
     reason_msg = ''
-    if role == 'STUD':
-        if activity.status != 'RLS':
-            reason_msg = 'Summary statistics disabled for unreleased activities.'
-            stats = None
-        elif stats is None or stats.count < STUD_NUM_TO_DISP_ACTSTAT:
-            reason_msg = 'Summary statistics disabled for small classes.'
-            stats = None
+    if role == 'STUD' and (stats is None or stats.count < STUD_NUM_TO_DISP_ACTSTAT):
+        reason_msg = 'Summary statistics disabled for small classes.'
+        stats = None
 
     return stats, reason_msg
 
