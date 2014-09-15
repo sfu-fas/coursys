@@ -2,15 +2,16 @@ from rest_framework import generics, views, response
 
 from grades.models import all_activities_filter
 from grades.serializers import ActivitySerializer, GradeMarkSerializer, StatsSerializer
-from courselib.rest import APIConsumerPermissions, IsOfferingMember
+from courselib.rest import APIConsumerPermissions, IsOfferingMember, CacheMixin
 
 
-class _ActivityInfoView(generics.ListAPIView):
+class _ActivityInfoView(CacheMixin, generics.ListAPIView):
     """
     Abstract view for returning info on each activity in the offering
     """
     permission_classes = (APIConsumerPermissions, IsOfferingMember,)
     consumer_permissions = set(['courses'])
+    cache_hours = 2
 
     def get_queryset(self):
         activities = all_activities_filter(self.offering)

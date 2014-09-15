@@ -2,9 +2,9 @@ from rest_framework import generics
 
 from coredata.models import CourseOffering, Member
 from coredata.serializers import ShortCourseOfferingSerializer, CourseOfferingSerializer
-from courselib.rest import APIConsumerPermissions, IsOfferingMember
+from courselib.rest import APIConsumerPermissions, IsOfferingMember, CacheMixin
 
-class MyOfferings(generics.ListAPIView):
+class MyOfferings(CacheMixin, generics.ListAPIView):
     """
     Course offering for the authenticated user.
 
@@ -15,6 +15,7 @@ class MyOfferings(generics.ListAPIView):
     """
     permission_classes = (APIConsumerPermissions,)
     consumer_permissions = set(['courses'])
+    cache_hours = 8
 
     serializer_class = ShortCourseOfferingSerializer
 
@@ -29,7 +30,7 @@ class MyOfferings(generics.ListAPIView):
         offerings = [m.offering for m in memberships]
         return offerings
 
-class OfferingInfo(generics.RetrieveAPIView):
+class OfferingInfo(CacheMixin, generics.RetrieveAPIView):
     """
     Detailed information on one course offering.
 
@@ -37,6 +38,7 @@ class OfferingInfo(generics.RetrieveAPIView):
     """
     permission_classes = (APIConsumerPermissions, IsOfferingMember,)
     consumer_permissions = set(['courses'])
+    cache_hours = 8
 
     serializer_class = CourseOfferingSerializer
     lookup_field = 'slug'
