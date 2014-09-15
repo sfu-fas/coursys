@@ -65,11 +65,11 @@
 {% endblock %}
 {% block actions %}
 
-{% if view == 'staff' or request.user.username == topic.author.person.userid and topic.still_editable %}
+{% if view == 'staff' or username == topic.author.person.userid and topic.still_editable %}
 <div id="actions">
 	<h2 class="heading">Actions</h2>
 	<ul>
-		{% if request.user.username == topic.author.person.userid and topic.still_editable %}
+		{% if username == topic.author.person.userid and topic.still_editable %}
 		<li><a href="{% url "discuss.views.edit_topic" course_slug=course.slug topic_slug=topic.slug %}">Edit Topic ({{ topic.editable_time_left }} left)</a></li>
 		{% endif %}
 		{% if view == 'staff' %}
@@ -108,13 +108,13 @@
             </p>
             {% if reply.status != 'HID' %}
             <div class="discussion-reply-controls">
-			{% if view == 'staff' or request.user.username == reply.author.person.userid %}
+			{% if view == 'staff' or username == reply.author.person.userid %}
 			    <form class="miniform" id="remove-reply-{{ reply.pk }}" action="{% url "discuss.views.remove_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" method="post">
 				{% csrf_token %}
-			    </form>
 			    <span class="remove-discussion-reply" id="topic-{{ reply.pk }}"><i class="fa fa-times"></i> Remove</span>
+			    </form>
 			{% endif %}
-			{% if reply.still_editable and request.user.username == reply.author.person.userid %}
+			{% if reply.still_editable and username == reply.author.person.userid %}
 			    <a href="{% url "discuss.views.edit_message" course_slug=course.slug topic_slug=topic.slug message_slug=reply.slug %}" class="edit-discussion-reply">
                 <i class="fa fa-pencil-square-o"></i> Edit ({{ reply.editable_time_left }})</a>
 			{% endif %}
