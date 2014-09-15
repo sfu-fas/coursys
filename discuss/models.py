@@ -49,7 +49,7 @@ class DiscussionTopic(models.Model):
     """
     offering = models.ForeignKey(CourseOffering, null=False)
     title = models.CharField(max_length=140, help_text="A brief description of the topic")
-    content = models.TextField(help_text='The inital message for the topic, <a href="http://wikicreole.org/wiki/CheatSheet">WikiCreole-formatted</a>')
+    content = models.TextField(help_text='The inital message for the topic, <a href="http://www.wikicreole.org/wiki/Creole1.0">WikiCreole-formatted</a>')
     created_at = models.DateTimeField(auto_now_add=True)
     last_activity_at = models.DateTimeField(auto_now_add=True)
     message_count = models.IntegerField(default=0)
@@ -153,7 +153,7 @@ class DiscussionMessage(models.Model):
     A message (post) associated with a Discussion Topic
     """
     topic = models.ForeignKey(DiscussionTopic)
-    content = models.TextField(blank=False, help_text=mark_safe('Reply to topic, <a href="http://wikicreole.org/wiki/CheatSheet">WikiCreole-formatted</a>'))
+    content = models.TextField(blank=False, help_text=mark_safe('Reply to topic, <a href="http://www.wikicreole.org/wiki/Creole1.0">WikiCreole-formatted</a>'))
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=3, choices=MESSAGE_STATUSES, default='VIS')
