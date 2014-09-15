@@ -669,74 +669,77 @@ class APITests(TestCase):
         instr = Member.objects.get(person__userid='ggbaker', offering=o, role='INST')
         student = Member.objects.get(person__userid='0aaa0', offering=o, role='STUD')
 
-        # below uses assertFalse to test for None, '', [], {}, all of which are fine. Just no real grade info.
+        # mock out the cache so we get fresh results for each request
+        with self.settings(CACHES={ 'default': { 'BACKEND': 'django.core.cache.backends.dummy.DummyCache' } }):
 
-        # invisible activities shouldn't appear
-        na.status = 'INVI'
-        na.save(entered_by=instr.person)
-        la.status = 'INVI'
-        la.save(entered_by=instr.person)
-        resp = client.get(grades_url)
-        data = json.loads(resp.content)
-        self.assertIsNone(self._get_by_slug(data, 'a1'))
-        self.assertIsNone(self._get_by_slug(data, 'rep'))
+            # below uses assertFalse to test for None, '', [], {}, all of which are fine. Just no real grade info.
 
-        # no grades: shouldn't see
-        na.status = 'URLS'
-        na.save(entered_by=instr.person)
-        la.status = 'URLS'
-        la.save(entered_by=instr.person)
-        resp = client.get(grades_url)
-        data = json.loads(resp.content)
-        self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
-        self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
-        self.assertFalse(self._get_by_slug(data, 'a1')['details'])
-        self.assertFalse(self._get_by_slug(data, 'rep')['details'])
+            # invisible activities shouldn't appear
+            na.status = 'INVI'
+            na.save(entered_by=instr.person)
+            la.status = 'INVI'
+            la.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertIsNone(self._get_by_slug(data, 'a1'))
+            self.assertIsNone(self._get_by_slug(data, 'rep'))
 
-        resp = client.get(stats_url)
-        data = json.loads(resp.content)
-        self.assertIn('unreleased activities', self._get_by_slug(data, 'a1')['missing_reason'])
-        self.assertIn('unreleased activities', self._get_by_slug(data, 'rep')['missing_reason'])
-        self.assertIsNone(self._get_by_slug(data, 'a1')['count'])
-        self.assertIsNone(self._get_by_slug(data, 'rep')['count'])
+            # no grades: shouldn't see
+            na.status = 'URLS'
+            na.save(entered_by=instr.person)
+            la.status = 'URLS'
+            la.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'a1')['details'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['details'])
 
-        # grades but unreleased: shouldn't see
-        ng = NumericGrade(activity=na, member=student, value=1, flag='GRAD', comment='Foo')
-        ng.save(entered_by=instr.person)
-        from marking.models import StudentActivityMark, ActivityComponentMark, ActivityComponent
-        am = StudentActivityMark(numeric_grade=ng, mark=2, created_by='ggbaker', overall_comment='thecomment')
-        am.save()
-        comp = ActivityComponent.objects.filter(numeric_activity=na)[0]
-        cm = ActivityComponentMark(activity_mark=am, value=2, comment='foo',
-                                   activity_component=comp)
-        cm.save()
-        am.setMark(2, entered_by=instr.person)
+            resp = client.get(stats_url)
+            data = json.loads(resp.content)
+            self.assertIn('unreleased activities', self._get_by_slug(data, 'a1')['missing_reason'])
+            self.assertIn('unreleased activities', self._get_by_slug(data, 'rep')['missing_reason'])
+            self.assertIsNone(self._get_by_slug(data, 'a1')['count'])
+            self.assertIsNone(self._get_by_slug(data, 'rep')['count'])
 
-        lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
-        lg.save(entered_by=instr.person)
-        resp = client.get(grades_url)
-        data = json.loads(resp.content)
-        self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
-        self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
-        self.assertFalse(self._get_by_slug(data, 'a1')['details'])
-        self.assertFalse(self._get_by_slug(data, 'rep')['details'])
+            # grades but unreleased: shouldn't see
+            ng = NumericGrade(activity=na, member=student, value=1, flag='GRAD', comment='Foo')
+            ng.save(entered_by=instr.person)
+            from marking.models import StudentActivityMark, ActivityComponentMark, ActivityComponent
+            am = StudentActivityMark(numeric_grade=ng, mark=2, created_by='ggbaker', overall_comment='thecomment')
+            am.save()
+            comp = ActivityComponent.objects.filter(numeric_activity=na)[0]
+            cm = ActivityComponentMark(activity_mark=am, value=2, comment='foo',
+                                       activity_component=comp)
+            cm.save()
+            am.setMark(2, entered_by=instr.person)
 
-        # release and they should appear
-        na.status = 'RLS'
-        na.save(entered_by=instr.person)
-        la.status = 'RLS'
-        la.save(entered_by=instr.person)
-        resp = client.get(grades_url)
-        data = json.loads(resp.content)
-        self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2')
-        self.assertEqual(self._get_by_slug(data, 'rep')['grade'], 'A')
-        self.assertEqual(self._get_by_slug(data, 'a1')['details']['overall_comment'], 'thecomment')
-        self.assertIsNone(self._get_by_slug(data, 'rep')['details']) # letter grades have no marking
+            lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
+            lg.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'a1')['details'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['details'])
 
-        resp = client.get(stats_url)
-        data = json.loads(resp.content)
-        self.assertIn('small classes', self._get_by_slug(data, 'a1')['missing_reason'])
-        self.assertIn('small classes', self._get_by_slug(data, 'rep')['missing_reason'])
+            # release and they should appear
+            na.status = 'RLS'
+            na.save(entered_by=instr.person)
+            la.status = 'RLS'
+            la.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2')
+            self.assertEqual(self._get_by_slug(data, 'rep')['grade'], 'A')
+            self.assertEqual(self._get_by_slug(data, 'a1')['details']['overall_comment'], 'thecomment')
+            self.assertIsNone(self._get_by_slug(data, 'rep')['details']) # letter grades have no marking
+
+            resp = client.get(stats_url)
+            data = json.loads(resp.content)
+            self.assertIn('small classes', self._get_by_slug(data, 'a1')['missing_reason'])
+            self.assertIn('small classes', self._get_by_slug(data, 'rep')['missing_reason'])
 
 
 
