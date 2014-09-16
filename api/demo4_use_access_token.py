@@ -1,6 +1,8 @@
 import oauth2 as oauth
 import requests
 
+# using the tokens in the fixture: python api/demo4_use_access_token.py 3e9be729117c4accab214037771c0f92 8r9KjHOuDiENhQH7
+
 RESOURCE_URL = 'http://localhost:8000/api/1/offerings/'
 
 def use_access_token(oauth_token, oauth_secret):
