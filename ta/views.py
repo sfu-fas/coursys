@@ -184,6 +184,7 @@ def new_tug(request, course_slug, userid):
                'LAB_BONUS': lab_bonus_decimal,
                'LAB_BONUS_4': lab_bonus_decimal+4, # used in the help text
                'HOURS_PER_BU': hours_per_bu,
+               'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
                }
     return render(request,'ta/new_tug.html',context)
 
@@ -235,7 +236,9 @@ def view_tug(request, course_slug, userid):
                 'LAB_BONUS_4': lab_bonus_decimal+4, 
                 'HOURS_PER_BU': hours_per_bu, 
                 'LAB_BONUS_HOURS': lab_bonus_decimal*hours_per_bu, 
-                'HOURS_PER_BU': hours_per_bu,}
+                'HOURS_PER_BU': hours_per_bu,
+                'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
+                }
         return render(request, 'ta/view_tug.html',context)
 
 @requires_course_instr_or_dept_admn_by_slug
@@ -290,6 +293,7 @@ def edit_tug(request, course_slug, userid):
                'course':course, 
                'form': form, 
                'userid':userid,
+               'HOLIDAY_HOURS_PER_BU': HOLIDAY_HOURS_PER_BU,
                }
     
     return render(request, 'ta/edit_tug.html',context)
