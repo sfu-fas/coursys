@@ -33,6 +33,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             # OAuth authenticated: check that the consumer is allowed to do these things
 
             # re-find the Token, since it isn't stashed in the request
+            # could be avoided if: http://code.larlet.fr/django-oauth-plus/issue/40/set-requestconsumer-and-requesttoken-to
             oauth_req = get_oauth_request(request)
             token = Token.objects.get(key=oauth_req['oauth_token'], consumer__key=oauth_req['oauth_consumer_key'])
 
@@ -78,7 +79,9 @@ class CacheMixin(object):
     cache_hours = 1 # number of hours to cache the response (Expires header and local cache)
     cache_ignore_auth = False # set to True if view can be cached without regard to who is fetching it
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(CacheMixin, self).__init__(*args, **kwargs)
+
         # borrowed from FetchFromCacheMiddleware
         self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
         self.cache_alias = settings.CACHE_MIDDLEWARE_ALIAS

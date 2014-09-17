@@ -1,4 +1,4 @@
-from rest_framework import generics, views, response
+from rest_framework import generics
 
 from grades.models import all_activities_filter
 from grades.serializers import ActivitySerializer, GradeMarkSerializer, StatsSerializer
