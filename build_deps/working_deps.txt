@@ -43,5 +43,5 @@ djangorestframework==2.3.14
 django-oauth-plus==2.2.4
 markdown # for API docs
 #django-rest-swagger>=0.1.14
-git+git://github.com/gregbaker/django-rest-swagger@develop # includes help_text in docs, and choices field support
+git+git://github.com/gregbaker/django-rest-swagger@develop# includes help_text in docs, and choices field support
 django-ipware==0.0.8

@@ -331,7 +331,8 @@ DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
 FEATUREFLAGS_LOADER = 'featureflags.loaders.settings_loader'
 FEATUREFLAGS_DISABLED_VIEW = 'courselib.auth.service_unavailable'
 FEATUREFLAGS_DISABLE = set([])
-FEATUREFLAGS_PANIC_DISABLE = set(['course_browser', 'sims', 'feeds'])
+FEATUREFLAGS_PANIC_DISABLE = set(['course_browser', 'sims', 'feeds', 'photos'])
+FEATUREFLAGS_PANIC_TIMEOUT = 300
 
 LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_loggers': False})
 
