@@ -135,7 +135,7 @@ def new_tug(request, course_slug, userid):
     lab_bonus_decimal = LAB_BONUS_DECIMAL
     hours_per_bu = HOURS_PER_BU
     
-    contract_information_list = member.tacourse.all()
+    contract_information_list = member.tacourse.filter(contract__status='SGN')
     if len(contract_information_list) > 0:
         contract_information = contract_information_list[0]
         lab_bonus_decimal = contract_information.contract.category.bu_lab_bonus
