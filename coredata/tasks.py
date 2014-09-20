@@ -35,8 +35,8 @@ def check_sims_connection():
 from celery_haystack.tasks import CeleryHaystackSignalHandler
 class CeleryHaystackTask(CeleryHaystackSignalHandler):
     # subclass CeleryHaystackSignalHandler to modify queue settings
-    rate_limit = '10/s'
-    queue = 'fast'
+    rate_limit = '20/s'
+    queue = 'haystack'
 
 
 

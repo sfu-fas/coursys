@@ -1,5 +1,5 @@
 # Names of nodes to start
-CELERYD_NODES="worker fastworker photo sims"
+CELERYD_NODES="worker fastworker haystack photo sims"
 
 # Absolute or relative path to the 'celery' command:
 CELERY_BIN="python /home/coursys/courses/manage.py celery"
@@ -13,7 +13,7 @@ CELERYD_CHDIR="/home/coursys/courses"
 
 # Extra command-line arguments to the worker
 BEAT_OPTS="-B:worker --schedule=/var/run/celery/celerybeat.schedule" # options for celerybeat
-WORKER_OPTS="-Q:fastworker fast -Q:photo photo -Q:sims sims -Q:worker batch,email,fast -E"
+WORKER_OPTS="-Q:fastworker fast -Q:photo photo -Q:sims sims -Q:worker batch,email,fast -Q:haystack haystack,fast -E"
 CONCURRENCY_OPTS="-c 2 -c:photo 5 -c:sims 2"
 CELERYD_OPTS="$BEAT_OPTS $WORKER_OPTS $CONCURRENCY_OPTS --loglevel=INFO" # actual command line options
 

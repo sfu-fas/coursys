@@ -288,6 +288,7 @@ if USE_CELERY:
         'batch': {}, # possibly-slow batch-mode tasks
         'email': {}, # email sending
         'fast': {}, # only jobs that need to run soon, and finish quickly should go in this queue
+        'haystack': {}, # Haystack index updates
         'photo': {}, # separate queue for photo fetching, so we can enforce the max-5-concurrent-requests requirement
         'sims': {}, # SIMS/reporting database queries
     }
