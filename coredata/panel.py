@@ -60,6 +60,7 @@ def settings_info():
     info.append(('Database engine', _last_component(settings.DATABASES['default']['ENGINE'])))
     info.append(('Cache backend', _last_component(settings.CACHES['default']['BACKEND'])))
     info.append(('Haystack engine', _last_component(settings.HAYSTACK_CONNECTIONS['default']['ENGINE'])))
+    #info.append(('Haystack signal processor', _last_component(settings.HAYSTACK_SIGNAL_PROCESSOR)))
     info.append(('Email backend', '.'.join(settings.EMAIL_BACKEND.split('.')[-2:])))
     if hasattr(settings, 'CELERY_EMAIL') and settings.CELERY_EMAIL:
         info.append(('Celery email backend', '.'.join(settings.CELERY_EMAIL_BACKEND.split('.')[-2:])))

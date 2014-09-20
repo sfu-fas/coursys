@@ -1,9 +1,10 @@
 from discuss.models import DiscussionTopic, DiscussionMessage
 from haystack import indexes
+from celery_haystack.indexes import CelerySearchIndex
 
 # Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
 
-class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
+class DiscussionIndex(CelerySearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     url = indexes.CharField(indexed=False, null=False)
     search_display = indexes.CharField(indexed=False)
