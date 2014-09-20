@@ -1,9 +1,10 @@
 from pages.models import Page, PageVersion
 from haystack import indexes
+from celery_haystack.indexes import CelerySearchIndex
 
 # Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
 
-class PageIndex(indexes.SearchIndex, indexes.Indexable):
+class PageIndex(CelerySearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     #title = indexes.EdgeNgramField()
     url = indexes.CharField(indexed=False, null=False)

@@ -32,7 +32,11 @@ def check_sims_connection():
         raise SIMSProblem("Didn't get any data back from SIMS query.")
 
 
-
+from celery_haystack.tasks import CeleryHaystackSignalHandler
+class CeleryHaystackTask(CeleryHaystackSignalHandler):
+    # subclass CeleryHaystackSignalHandler to modify queue settings
+    rate_limit = '10/s'
+    queue = 'fast'
 
 
 

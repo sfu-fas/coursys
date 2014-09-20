@@ -1,9 +1,10 @@
 from coredata.models import CourseOffering, Person, Member
 from haystack import indexes
+from celery_haystack.indexes import CelerySearchIndex
 
 # Any additions here should be reflected in courselib.signals.SelectiveRealtimeSignalProcessor so reindexing happens
 
-class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
+class OfferingIndex(CelerySearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     title = indexes.EdgeNgramField(model_attr='title')
     name = indexes.CharField(indexed=False)
@@ -32,7 +33,7 @@ class OfferingIndex(indexes.SearchIndex, indexes.Indexable):
         return "%s %s" % (o.name(), o.semester.label())
 
 
-class PersonIndex(indexes.SearchIndex, indexes.Indexable):
+class PersonIndex(CelerySearchIndex, indexes.Indexable):
     # used for autocompletes, not full-site search
     text = indexes.EdgeNgramField(document=True)
     emplid = indexes.CharField(model_attr='emplid')
@@ -56,7 +57,7 @@ class PersonIndex(indexes.SearchIndex, indexes.Indexable):
         return o.search_label_value()
 
 
-class MemberIndex(indexes.SearchIndex, indexes.Indexable):
+class MemberIndex(CelerySearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     offering_slug = indexes.CharField(null=False)
     url = indexes.CharField(indexed=False, null=False)
