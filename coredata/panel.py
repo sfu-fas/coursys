@@ -294,3 +294,25 @@ def git_branch():
 
 def git_revision():
     return subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+
+def celery_info():
+    data = {}
+    from celery.task.control import inspect
+    i = inspect()
+    for worker, tasks in i.active().items():
+        d = data.get(worker, {})
+        d['active'] = len(tasks)
+        data[worker] = d
+
+    for worker, tasks in i.scheduled().items():
+        d = data.get(worker, {})
+        d['scheduled'] = len(tasks)
+        data[worker] = d
+
+    queues = []
+    for queue, d in data.items():
+        desc = "scheduled: %i, active: %i" % (d.get('scheduled', '?'), d.get('active', '?'))
+        queues.append((queue, desc))
+
+    queues.sort()
+    return queues

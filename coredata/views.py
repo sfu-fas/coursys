@@ -344,6 +344,9 @@ def admin_panel(request):
         elif request.GET['content'] == 'email':
             user = Person.objects.get(userid=request.user.username)
             return render(request, 'coredata/admin_panel_tab.html', {'email': user.email()})
+        elif request.GET['content'] == 'celery':
+            data = panel.celery_info()
+            return render(request, 'coredata/admin_panel_tab.html', {'celery': data})
         elif request.GET['content'] == 'request':
             import pprint
             return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request)})

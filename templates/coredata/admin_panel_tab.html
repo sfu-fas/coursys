@@ -23,6 +23,12 @@
 </form>
 {% endif %}
 
+{% if celery %}
+<h2 id="celery">Celery Info</h2>
+{{ celery|panel_info }}
+{% endif %}
+
+
 {% if request %}
 <pre>{{ request }}</pre>
 {% endif %}
