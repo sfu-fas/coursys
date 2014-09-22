@@ -95,6 +95,7 @@ def import_task():
         return
 
     tasks = [
+        daily_cleanup.si(),
         get_amaint_userids.si(),
         fix_unknown_emplids.si(),
         update_all_userids.si(),
