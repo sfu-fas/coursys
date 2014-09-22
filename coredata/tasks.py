@@ -201,7 +201,6 @@ def import_offering_group(self, slugs):
     offerings = CourseOffering.objects.filter(slug__in=slugs)
     for o in offerings:
         logger.debug('Importing %s' % (o.slug,))
-        importer.import_offering_members(o)
         try:
             importer.import_offering_members(o)
         except Timeout as exc:
