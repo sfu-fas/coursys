@@ -8,6 +8,10 @@ from celery.schedules import crontab
 import sys
 sys.setrecursionlimit(10000)
 
+from celery import Celery
+app = Celery()
+app.config_from_object(settings)
+
 @task(rate_limit="30/m", max_retries=2)
 def update_repository_task(*args, **kwargs):
     return update_repository(*args, **kwargs)
@@ -16,8 +20,12 @@ def update_repository_task(*args, **kwargs):
 
 # system tasks
 
+@app.task(bind=True, queue='fast')
+def ping(self): # used to check that celery is alive
+    return True
+
 @task(queue='fast')
-def ping(): # used to check that celery is alive
+def ping_oldstyle():
     return True
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
@@ -187,13 +195,19 @@ def get_import_offerings_tasks():
     offering_import_chain = chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
     return offering_import_chain
 
-
-@task(queue='sims')
-def import_offering_group(slugs):
+from requests.exceptions import Timeout
+@app.task(bind=True, queue='sims', default_retry_delay=300)
+def import_offering_group(self, slugs):
     offerings = CourseOffering.objects.filter(slug__in=slugs)
     for o in offerings:
         logger.debug('Importing %s' % (o.slug,))
         importer.import_offering_members(o)
+        try:
+            importer.import_offering_members(o)
+        except Timeout as exc:
+            # elasticsearch timeout: have celery pause while it collects it thoughts, and retry
+            raise self.retry(exc=exc)
+
         time.sleep(1)
 
 #@task(queue='sims')
