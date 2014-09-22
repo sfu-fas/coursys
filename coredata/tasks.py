@@ -56,7 +56,7 @@ from log.models import LogEntry
 from coredata import importer
 from celery import chain
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
-import itertools, datetime
+import itertools, datetime, time
 import logging
 logger = logging.getLogger('coredata.importer')
 
@@ -194,6 +194,7 @@ def import_offering_group(slugs):
     for o in offerings:
         logger.debug('Importing %s' % (o.slug,))
         importer.import_offering_members(o)
+        time.sleep(1)
 
 #@task(queue='sims')
 #def XXXimport_one_offering(offering_slug):

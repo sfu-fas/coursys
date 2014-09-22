@@ -500,7 +500,7 @@ class OfferingFilterForm(forms.Form):
     mode = forms.ChoiceField(label='Mode/Time', choices=[('', 'all'), ('dist', 'Distance'), ('on', 'On-Campus'), ('day', 'On-Campus, day'), ('eve', 'On-Campus, evening')])
     
     @classmethod
-    @cached(24*3600)
+    @cached(6*3600)
     def allowed_semesters(self):
         # semester choices: start of good data, to reasonably in the future
         today = datetime.date.today()
@@ -510,7 +510,7 @@ class OfferingFilterForm(forms.Form):
         return timely_sem
 
     @classmethod
-    @cached(24*3600)
+    @cached(6*3600)
     def all_subjects(self, semesters):
         return CourseOffering.objects.filter(semester__in=semesters).order_by('subject').values_list('subject', flat=True).distinct()
 

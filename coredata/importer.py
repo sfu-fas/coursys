@@ -280,7 +280,7 @@ def _person_save(p):
         p.save()
 
 imported_people = {}
-IMPORT_THRESHOLD = 3600*24*7 # import personal info only once a week
+IMPORT_THRESHOLD = 3600*24*14 # import personal info infrequently
 def get_person(emplid, commit=True, force=False):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.
