@@ -3,6 +3,9 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 import django
 
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape as escape
+
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem
 from dashboard.photos import do_photo_fetch
@@ -312,3 +315,39 @@ def celery_info():
 
     info.sort()
     return info
+
+def ps_info():
+    import psutil, time
+    data = []
+    data.append(('System Load', os.getloadavg()))
+    cpu_total = 0
+    psdata = ['<table id="procs"><thead><tr><th>PID</th><th>CPU %</th><th>VM Use (MB)</th><th>Status</th><th>Command</th></tr></thead><tbody>']
+    for proc in psutil.process_iter():
+        # start the clock on CPU usage percents
+        try:
+            proc.cpu_percent()
+        except psutil.NoSuchProcess:
+            pass
+
+    time.sleep(1)
+    for proc in psutil.process_iter():
+        try:
+            perc = proc.cpu_percent()
+            if perc > 0:
+                cpu_total += perc
+                mem = proc.memory_info().vms / 1024.0 / 1024.0
+                cmd = ' '.join(proc.cmdline())
+                if len(cmd) > 80:
+                    cmd = '<span title="%s">%s</span>' % (escape(cmd), escape(cmd[:70]) + '&hellip;')
+                else:
+                    cmd = escape(cmd)
+
+                psdata.append('<tr><td>%s</td><td>%s</td><td>%.1f</td><td>%s</td><td>%s</td></tr>' \
+                    % (proc.pid, perc, mem, escape(unicode(proc.status())), cmd))
+
+        except psutil.NoSuchProcess:
+            pass
+    psdata.append('</tbody></table>')
+    data.append(('CPU Percent', cpu_total))
+    data.append(('Running Processes', mark_safe(''.join(psdata))))
+    return data

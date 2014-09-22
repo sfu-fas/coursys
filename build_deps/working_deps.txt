@@ -45,3 +45,4 @@ markdown # for API docs
 #django-rest-swagger>=0.1.14
 git+git://github.com/gregbaker/django-rest-swagger@develop# includes help_text in docs, and choices field support
 django-ipware==0.0.8
+psutil==2.1.2
