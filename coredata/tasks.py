@@ -4,6 +4,9 @@ from coredata.management.commands import backup_db
 from celery.task import task, periodic_task
 from celery.schedules import crontab
 
+# hack around dealing with long chains https://github.com/celery/celery/issues/1078
+import sys
+sys.setrecursionlimit(10000)
 
 @task(rate_limit="30/m", max_retries=2)
 def update_repository_task(*args, **kwargs):
