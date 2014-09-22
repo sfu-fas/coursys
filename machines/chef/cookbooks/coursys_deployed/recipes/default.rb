@@ -262,6 +262,5 @@ end
 
 #start gunicorn
 execute "gunicorn" do
-    command "restart gunicorn; start gunicorn"
-    ignore_failure true
+    command "restart gunicorn"
 end

@@ -58,7 +58,6 @@ INSTALLED_APPS = (
     'haystack',
     'djcelery',
     'djcelery_email',
-    'celery_haystack',
     'featureflags',
     'django_nose',
     'rest_framework',
@@ -211,8 +210,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'INDEX_NAME': 'haystack',
         },
     }
-    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveSignalProcessor'
-    CELERY_HAYSTACK_DEFAULT_TASK = 'coredata.tasks.CeleryHaystackTask'
+    HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
     DB_BACKUP_DIR = '/home/coursys/db_backup'
 
 else:
