@@ -208,6 +208,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
             'URL': 'http://127.0.0.1:9200/',
             'INDEX_NAME': 'haystack',
+            'TIMEOUT': 60,
         },
     }
     HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'

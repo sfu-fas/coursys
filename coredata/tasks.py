@@ -174,7 +174,7 @@ def get_import_offerings_tasks():
     offerings = list(offerings)
     offerings.sort()
 
-    offering_groups = _grouper(offerings, 40)
+    offering_groups = _grouper(offerings, 10)
     slug_groups = ([o.slug for o in offerings] for offerings in offering_groups)
 
     #tasks = [import_offering_group.si(slugs) for slugs in slug_groups]
