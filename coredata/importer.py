@@ -22,7 +22,7 @@ import itertools, random
 
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
-future_cutoff = today + datetime.timedelta(days=90)
+future_cutoff = today + datetime.timedelta(days=110)
 
 # fake combined sections now handed at https://courses.cs.sfu.ca/sysadmin/combined/
 
