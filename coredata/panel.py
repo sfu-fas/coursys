@@ -330,7 +330,7 @@ def ps_info():
         except psutil.NoSuchProcess:
             pass
 
-    time.sleep(1)
+    time.sleep(2)
     for proc in psutil.process_iter():
         try:
             perc = proc.cpu_percent()
