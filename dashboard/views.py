@@ -111,7 +111,7 @@ def fake_login(request, next_page=None):
 
 def fake_logout(request):
     """
-    Fake logoutiew for devel without access to the fake CAS server
+    Fake logout view for devel without access to the fake CAS server
     """
     import socket
     hostname = socket.gethostname()
@@ -151,7 +151,6 @@ def login(request, next_page=None, required=False):
                 user = None
             else:
                 raise IOError, "The errno is %r: %s." % (e.errno, unicode(e))
-                raise e
 
         if user is not None:
             auth.login(request, user)

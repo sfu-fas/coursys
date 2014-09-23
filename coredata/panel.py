@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 
 from coredata.models import Semester, Unit
-from coredata.queries import SIMSConn, SIMSProblem
+from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid
 from dashboard.photos import do_photo_fetch
 
 import celery
@@ -181,6 +181,15 @@ def deploy_checks():
             failed.append(('Photo fetching', 'failed to fetch photo (%s). Maybe wrong password?' % (e)))
     else:
         failed.append(('Photo fetching', 'not testing since memcached or celery failed'))
+
+    # emplid/userid API
+    emplid = userid_to_emplid('ggbaker')
+    if not emplid:
+        failed.append(('Emplid API', 'no emplid returned'))
+    elif isinstance(emplid, basestring) and not emplid.startswith('2000'):
+        failed.append(('Emplid API', 'incorrect emplid returned'))
+    else:
+        passed.append(('Emplid API', 'okay'))
 
 
     # certificates
