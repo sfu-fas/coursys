@@ -318,10 +318,11 @@ def celery_info():
 
 def ps_info():
     import psutil, time
+    CMD_DISP_MAX = 80
     data = []
     data.append(('System Load', os.getloadavg()))
     cpu_total = 0
-    psdata = ['<table id="procs"><thead><tr><th>PID</th><th>CPU %</th><th>VM Use (MB)</th><th>Status</th><th>Command</th></tr></thead><tbody>']
+    psdata = ['<table id="procs"><thead><tr><th>PID</th><th>Owner</th><th>CPU %</th><th>VM Use (MB)</th><th>Status</th><th>Command</th></tr></thead><tbody>']
     for proc in psutil.process_iter():
         # start the clock on CPU usage percents
         try:
@@ -337,13 +338,13 @@ def ps_info():
                 cpu_total += perc
                 mem = proc.memory_info().vms / 1024.0 / 1024.0
                 cmd = ' '.join(proc.cmdline())
-                if len(cmd) > 80:
-                    cmd = '<span title="%s">%s</span>' % (escape(cmd), escape(cmd[:70]) + '&hellip;')
+                if len(cmd) > CMD_DISP_MAX:
+                    cmd = '<span title="%s">%s</span>' % (escape(cmd), escape(cmd[:(CMD_DISP_MAX-5)]) + '&hellip;')
                 else:
                     cmd = escape(cmd)
 
-                psdata.append('<tr><td>%s</td><td>%s</td><td>%.1f</td><td>%s</td><td>%s</td></tr>' \
-                    % (proc.pid, perc, mem, escape(unicode(proc.status())), cmd))
+                psdata.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%.1f</td><td>%s</td><td>%s</td></tr>' \
+                    % (proc.pid, proc.username(), perc, mem, escape(unicode(proc.status())), cmd))
 
         except psutil.NoSuchProcess:
             pass
