@@ -4,6 +4,13 @@ from coredata.management.commands import backup_db
 from celery.task import task, periodic_task
 from celery.schedules import crontab
 
+# hack around dealing with long chains https://github.com/celery/celery/issues/1078
+import sys
+sys.setrecursionlimit(10000)
+
+from celery import Celery
+app = Celery()
+app.config_from_object(settings)
 
 @task(rate_limit="30/m", max_retries=2)
 def update_repository_task(*args, **kwargs):
@@ -13,8 +20,12 @@ def update_repository_task(*args, **kwargs):
 
 # system tasks
 
+@app.task(bind=True, queue='fast')
+def ping(self): # used to check that celery is alive
+    return True
+
 @task(queue='fast')
-def ping(): # used to check that celery is alive
+def ping_oldstyle():
     return True
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
@@ -53,7 +64,7 @@ from log.models import LogEntry
 from coredata import importer
 from celery import chain
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
-import itertools, datetime
+import itertools, datetime, time
 import logging
 logger = logging.getLogger('coredata.importer')
 
@@ -92,6 +103,7 @@ def import_task():
         return
 
     tasks = [
+        daily_cleanup.si(),
         get_amaint_userids.si(),
         fix_unknown_emplids.si(),
         update_all_userids.si(),
@@ -174,7 +186,7 @@ def get_import_offerings_tasks():
     offerings = list(offerings)
     offerings.sort()
 
-    offering_groups = _grouper(offerings, 40)
+    offering_groups = _grouper(offerings, 10)
     slug_groups = ([o.slug for o in offerings] for offerings in offering_groups)
 
     #tasks = [import_offering_group.si(slugs) for slugs in slug_groups]
@@ -183,13 +195,19 @@ def get_import_offerings_tasks():
     offering_import_chain = chain(*[import_offering_group.si(slugs) for slugs in slug_groups])
     return offering_import_chain
 
-
-@task(queue='sims')
-def import_offering_group(slugs):
+from requests.exceptions import Timeout
+@app.task(bind=True, queue='sims', default_retry_delay=300)
+def import_offering_group(self, slugs):
     offerings = CourseOffering.objects.filter(slug__in=slugs)
     for o in offerings:
         logger.debug('Importing %s' % (o.slug,))
-        importer.import_offering_members(o)
+        try:
+            importer.import_offering_members(o)
+        except Timeout as exc:
+            # elasticsearch timeout: have celery pause while it collects it thoughts, and retry
+            raise self.retry(exc=exc)
+
+        time.sleep(1)
 
 #@task(queue='sims')
 #def XXXimport_one_offering(offering_slug):

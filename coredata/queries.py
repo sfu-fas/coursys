@@ -4,7 +4,7 @@ import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
-import re, hashlib, datetime, string, urllib2
+import re, hashlib, datetime, string, urllib, urllib2, time, json
 
 
 multiple_breaks = re.compile(r'\n\n+')
@@ -1236,7 +1236,7 @@ def outlines_api_url(offering):
     qs = 'year={year}&term={term}&dept={dept}&number={number}&section={section}'.format(**args)
     return OUTLINES_BASE_URL + '?' + qs
 
-import json
+
 def outlines_data_json(offering):
     url = outlines_api_url(offering)
     try:
@@ -1252,3 +1252,94 @@ def outlines_data_json(offering):
         data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['nodePath']
 
     return json.dumps(data, indent=1)
+
+
+
+##############################################################################3
+# Emplid -> Userid APIs
+# as documented here: http://www.sfu.ca/outlines/help/api.html
+
+EMPLID_SECRET = settings.EMPLID_API_SECRET
+EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global.json?'
+
+def userid_to_emplid(userid):
+    """
+    Fetch emplid from ITS API for userid -> emplid mapping.
+
+    Admin contact for the API is George Lee in the Learning & Community Platforms Group
+    """
+    qs = urllib.urlencode({'art': EMPLID_SECRET, 'username': userid})
+    url = EMPLID_BASE_URL + qs
+    try:
+        req = urllib2.urlopen(url, timeout=30)
+        jsondata = req.read()
+        data = json.loads(jsondata)
+    except ValueError:
+        # can't decode JSON
+        return None
+    except (urllib2.HTTPError, urllib2.URLError):
+        # network problem, or 404 (if userid doesn't exist)
+        return None
+
+    if 'sfuid' not in data:
+        raise ValueError, "No 'sfuid' returned in response."
+
+    return data['sfuid']
+
+
+def ensure_person_from_userid(userid):
+    """
+    Make sure the Person object for this userid exists.
+    """
+    p = Person.objects.get(userid=userid)
+    if p:
+        # already have them: done.
+        return p
+
+    # look up their emplid
+    emplid = userid_to_emplid(userid)
+    if not emplid:
+        # can't find emplid: maybe a role account? Maybe out-of-sync databases? Fail quietly.
+        return None
+
+    p = Person.objects.get(emplid=emplid)
+    if p:
+        # found the emplid: record the userid and return.
+        p.userid = userid
+        p.save()
+        return p
+
+    # we've never heard of them, but the University has.
+    return build_person(emplid, userid)
+
+
+def build_person(emplid, userid=None, commit=True):
+    """
+    Build a Person object for this newly-discovered person
+    """
+    p = Person(emplid=emplid, userid=userid)
+
+    # TODO: find userid if not known
+
+    last_name, first_name, middle_name, pref_first_name, title = get_names(emplid)
+    if last_name is None:
+        # no name = no such person
+        return None
+
+    p.last_name = last_name
+    p.first_name = first_name
+    p.middle_name = middle_name
+    p.pref_first_name = pref_first_name
+    p.title = title
+    p.config['lastimport'] = int(time.time())
+
+    if commit:
+        p.save()
+        # TODO: userid-changing functionality from importer._person_save
+
+    return p
+
+
+
+
+

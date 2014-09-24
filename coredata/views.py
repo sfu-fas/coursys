@@ -18,7 +18,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from cache_utils.decorators import cached
 from haystack.query import SearchQuerySet
-import socket, json, datetime
+import socket, json, datetime, os
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -341,9 +341,15 @@ def admin_panel(request):
         elif request.GET['content'] == 'settings_info':
             data = panel.settings_info()
             return render(request, 'coredata/admin_panel_tab.html', {'settings_data': data})
+        elif request.GET['content'] == 'psinfo':
+            data = panel.ps_info()
+            return render(request, 'coredata/admin_panel_tab.html', {'psinfo': data})
         elif request.GET['content'] == 'email':
             user = Person.objects.get(userid=request.user.username)
             return render(request, 'coredata/admin_panel_tab.html', {'email': user.email()})
+        elif request.GET['content'] == 'celery':
+            data = panel.celery_info()
+            return render(request, 'coredata/admin_panel_tab.html', {'celery': data})
         elif request.GET['content'] == 'request':
             import pprint
             return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request)})
@@ -360,7 +366,10 @@ def admin_panel(request):
         else:
             messages.error(request, res)
 
-    return render(request, 'coredata/admin_panel.html', {})
+    context = {
+        'loadavg': os.getloadavg()
+    }
+    return render(request, 'coredata/admin_panel.html', context)
 
 
 

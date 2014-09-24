@@ -22,7 +22,7 @@ import itertools, random
 
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
-future_cutoff = today + datetime.timedelta(days=90)
+future_cutoff = today + datetime.timedelta(days=110)
 
 # fake combined sections now handed at https://courses.cs.sfu.ca/sysadmin/combined/
 
@@ -280,7 +280,7 @@ def _person_save(p):
         p.save()
 
 imported_people = {}
-IMPORT_THRESHOLD = 3600*24*7 # import personal info only once a week
+IMPORT_THRESHOLD = 3600*24*14 # import personal info infrequently
 def get_person(emplid, commit=True, force=False):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.

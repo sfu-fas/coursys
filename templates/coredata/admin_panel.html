@@ -27,20 +27,22 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>Admin Panel</li>{% endblock %}
 
 {% block content %}
+<p><i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></p>
 <div id="tabs">
   <ul>
   <li><a href="#welcome">Welcome</a></li>
+  <li><a href="{% url 'coredata.views.admin_panel' %}?content=psinfo">Process Info</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=settings_info">Settings Info</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=deploy_checks">Deployment Checks</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=email">Email Check</a></li>
+  <li><a href="{% url 'coredata.views.admin_panel' %}?content=celery">Celery Queues</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=request">Request Details</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=git">Git Status</a></li>
   </ul>
   <div id="welcome">
-  <p>This is the admin panel.</p>
+  <p>Current load average: {{ loadavg }}</p>
   </div>
 </div>
-<p><i class="fa fa-spinner fa-spin" id="fetchwait" style="display:none"></i></p>
 
 
 {% endblock %}

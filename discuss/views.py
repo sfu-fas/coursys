@@ -152,7 +152,7 @@ def view_topic(request, course_slug, topic_slug):
     else:
         form = DiscussionMessageForm(creole=None)
     context = {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form,
-               'brushes': brushes, 'need_mathjax': need_mathjax, 'any_math': any_math}
+               'brushes': brushes, 'need_mathjax': need_mathjax, 'any_math': any_math, 'username': request.user.username}
     return render(request, 'discuss/topic.html', context)
 
 @uses_feature('discuss')

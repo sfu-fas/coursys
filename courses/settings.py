@@ -208,6 +208,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
             'ENGINE': 'courselib.elasticsearch_backend.CustomElasticsearchSearchEngine',
             'URL': 'http://127.0.0.1:9200/',
             'INDEX_NAME': 'haystack',
+            'TIMEOUT': 60,
         },
     }
     HAYSTACK_SIGNAL_PROCESSOR = 'courselib.signals.SelectiveRealtimeSignalProcessor'
@@ -312,6 +313,7 @@ SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 AMAINT_DB_PASSWORD = getattr(secrets, 'AMAINT_DB_PASSWORD', '')
+EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
@@ -331,7 +333,8 @@ DO_IMPORTING_HERE = getattr(localsettings, 'DO_IMPORTING_HERE', False)
 FEATUREFLAGS_LOADER = 'featureflags.loaders.settings_loader'
 FEATUREFLAGS_DISABLED_VIEW = 'courselib.auth.service_unavailable'
 FEATUREFLAGS_DISABLE = set([])
-FEATUREFLAGS_PANIC_DISABLE = set(['course_browser', 'sims', 'feeds'])
+FEATUREFLAGS_PANIC_DISABLE = set(['course_browser', 'sims', 'feeds', 'photos'])
+FEATUREFLAGS_PANIC_TIMEOUT = 300
 
 LOGGING = getattr(localsettings, 'LOGGING', {'version': 1,'disable_existing_loggers': False})
 
