@@ -1265,6 +1265,8 @@ EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/
 def userid_to_emplid(userid):
     """
     Fetch emplid from ITS API for userid -> emplid mapping.
+
+    Admin contact for the API is George Lee in the Learning & Community Platforms Group
     """
     qs = urllib.urlencode({'art': EMPLID_SECRET, 'username': userid})
     url = EMPLID_BASE_URL + qs
