@@ -71,13 +71,13 @@ The code for this lives in /grad/management/commands/new_grad_students.py.
 This should work with MSE, ENSC, or CMPT. For units that aren't MSE, ENSC, or CMPT, 
 you may need to modify the code, which
 contains a _hard-coded_ mapping between SIMS program codes (like "MSEPH") and CourSys GradPrograms 
-(like <GradProgram "Mechatronics PhD Program">).
+(like GradProgram "Mechatronics PhD Program").
 
 GradProgram objects have a config object that can contain the SIMS program code - which
 means that maintaining a hardcoded mapping object is asinine, and this script could be
 easily refactored to not have to do that anymore. 
 
-"Hey, wouldn't it be nice if this were automatic?"
+_"Hey, wouldn't it be nice if this were automatic and scheduled?"_
 
 Yes, disembodied voice. Yes it would be. Integrating this with the automatic grad update functionality in grad/models.py
 would be a wonderful idea. 
@@ -115,7 +115,7 @@ ta and tacontracts
 ------------------
 The `/ta` and `/tacontracts` applications both manage TA Contracts for a semester.  
 
-"Why are there two different applications, both offering up what appears to be exactly the same set of functionality?"
+_"Why are there two different applications, both offering up what appears to be exactly the same set of functionality?"_
 
 Good question, disembodied voice!
 
@@ -132,8 +132,8 @@ CMPT. `/tacontracts` was designed to fill that need, with `/forms` suggested as 
 form management. `/tacontracts` was designed to be as department-neutral as possible - it only deals with the problem
 of creating and tracking TA Contracts, and leaves the hiring procedure out. 
 
-"Couldn't you adapt the CMPT system to use the new, simplified TA Contracts system, without pulling out their hiring
-and ranking logic? That way you'd only have one set of TAContracts to manage." 
+_"Couldn't you adapt the CMPT system to use the new, simplified TA Contracts system, without pulling out their hiring
+and ranking logic? That way you'd only have one set of TAContracts to manage."_ 
 
 The hiring and ranking logic in `/ta` is pretty deeply attached to the contracts logic. It would require taking
 the application completely apart, which would mean months of fixing bugs. 
@@ -144,8 +144,8 @@ ENSC and MSE to the point where they are happy using `/forms` for hiring.
 
 ### TUGS
 
-"So, both `/ta` and `/tacontracts` use the TUG model from `/ta`. That doesn't seem like very good system architecture.
-You should have refactored TUGS out into its own application."
+_"So, both `/ta` and `/tacontracts` use the TUG model from `/ta`. That doesn't seem like very good system architecture.
+You should have refactored TUGS out into its own application."_
 
 I totally agree. I should have. 
 
