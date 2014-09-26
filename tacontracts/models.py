@@ -630,6 +630,11 @@ class TACourse(models.Model):
 
 
 class EmailReceipt(models.Model):
+    """ 
+    The system offers the ability to bulk email notifications to contract holders.
+    This object serves as a record that this has occurred, which we can consult
+    later. 
+    """
     contract = models.ForeignKey(TAContract, 
                                  blank=False, 
                                  null=False, 
