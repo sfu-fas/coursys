@@ -207,13 +207,6 @@ def import_offering_group(self, slugs):
             # elasticsearch timeout: have celery pause while it collects it thoughts, and retry
             raise self.retry(exc=exc)
 
-        time.sleep(1)
-
-#@task(queue='sims')
-#def XXXimport_one_offering(offering_slug):
-#    logger.info('Importing %s' % (offering_slug,))
-#    offering = CourseOffering.objects.get(slug=offering_slug)
-#    #importer.import_offering_members(offering)
 
 @task(queue='sims')
 def import_combined_sections():
@@ -239,23 +232,3 @@ def daily_cleanup():
     # cleanup old celery tasks
     TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
 
-
-
-class ReportSender(object):
-    def __init__(self):
-        from courselib.amqp_log import Consumer
-        self.messages = []
-        self.consumer = None
-        self.consumer = Consumer(self.collect_msg)
-
-    def consume(self):
-        self.consumer.consume_forever()
-
-    def collect_msg(self, msg):
-        print msg
-
-
-@task(queue='sims')
-def send_report():
-    #sender = ReportSender()
-    pass
