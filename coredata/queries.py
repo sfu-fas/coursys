@@ -1328,9 +1328,10 @@ def ensure_person_from_userid(userid):
         # can't find emplid: maybe a role account? Maybe out-of-sync databases? Fail quietly.
         return None
 
-    p = Person.objects.get(emplid=emplid)
+    p = Person.objects.filter(emplid=emplid)
     if p:
         # found the emplid: record the userid and return.
+        p = p[0]
         p.userid = userid
         p.save()
         return p
