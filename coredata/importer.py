@@ -85,7 +85,7 @@ def get_unit(acad_org, create=False):
     """
     Get the corresponding Unit
     """
-    # in older semesters, there are some inconsistent acad_org values: normalize.
+    # there are some inconsistent acad_org values: normalize.
     if acad_org == 'GERON':
         acad_org = 'GERONTOL'
     elif acad_org == 'GEOG':
@@ -105,9 +105,7 @@ def get_unit(acad_org, create=False):
                    "WHERE eff_status='A' and acad_org=%s", (acad_org,))
         
         name, = db.fetchone()
-        if acad_org == 'ENVIRO SCI':
-            label = 'ENVS'
-        elif acad_org == 'COMP SCI': # for test/demo imports
+        if acad_org == 'COMP SCI': # for test/demo imports
             label = 'CMPT'
         elif acad_org == 'ENG SCI': # for test/demo imports
             label = 'ENSC'
@@ -216,31 +214,7 @@ WHERE
 # They seem to have different class_nbr values, but are otherwise identical.
 # Students are imported by class_nbr but are unified in our DB, so that might be bad, but it hasn't come up.
 
-def import_one_offering(strm, subject, number, section):
-    """
-    Find a single offering by its details (used by Cortez data importer).
-    """
-    db = SIMSConn()
-    db.execute(CLASS_TBL_QUERY +
-               "AND ct.strm=%s and ct.subject=%s and ct.catalog_nbr LIKE %s and ct.class_section=%s",
-               (strm, subject, '%'+number+'%', section))
 
-    # can have multiple results for intersession courses (and others?). Just taking the first.
-    res = list(db)
-    if not res:
-        # lots of section numbers wrong in cortez: try finding any section as a fallback
-        db.execute(CLASS_TBL_QUERY
-               + "AND ct.strm=%s AND ct.subject=%s AND ct.catalog_nbr LIKE %s",
-               (strm, subject, '%'+number+'%'))
-        res = list(db)
-        if res:
-            row = res[0]
-            return import_offering(*row)
-        return None
-
-    row = res[0]
-    return import_offering(*row)
-    
 def import_offerings(extra_where='1=1', import_semesters=import_semesters, cancel_missing=False, create_units=False):
     db = SIMSConn()
     db.execute(CLASS_TBL_QUERY + " AND ct.strm IN %s "
@@ -654,73 +628,3 @@ def import_one_semester(strm, extra_where='1=1'):
     for o in offerings:
         print o
         import_offering_members(o, students=False)
-
-'''
-def main():
-    global sysadmin
-
-    print "getting emplid/userid mapping"
-    update_amaint_userids()
-
-    print "fixing any unknown emplids"
-    fix_emplid()
-    
-    print "updating userids"
-    update_all_userids()
-    
-    print "updating active grad students"
-    update_grads()
-    
-    print "importing course offering list"
-    #offerings = import_offerings(extra_where="subject IN ('GEOG', 'EDUC') and strm='1124' and catalog_nbr LIKE '%%9%%'")
-    #offerings = import_offerings(extra_where="ct.subject='CMPT' and ct.catalog_nbr IN (' 470')")
-    #offerings = import_offerings(extra_where="ct.subject='CMPT'")
-    offerings = import_offerings(cancel_missing=True)
-    offerings = list(offerings)
-    offerings.sort()
-
-    # note on doing this kind of thing in Celery when the time comes: http://stackoverflow.com/questions/13271056/how-to-chain-a-celery-task-that-returns-a-list-into-a-group
-    print "importing course members"
-    last = None
-    for o in offerings:
-        if last != o.subject:
-            print o.subject, o.semester
-            last = o.subject
-        import_offering_members(o)
-        time.sleep(0.5)
-
-    print "combining joint offerings"
-    import_joint()
-    combine_sections(get_combined())
-
-    print "giving sysadmin permissions"
-    give_sysadmin(sysadmin)
-    
-    # cleanup sessions table
-    from django.core.management import call_command
-    call_command('clearsessions')
-    # cleanup old news items
-    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
-    # cleanup old log entries
-    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
-    # cleanup old official grades
-    Member.clear_old_official_grades()
-    
-    # cleanup already-run Celery jobs
-    if settings.USE_CELERY:
-        #import djkombu.models
-        #djkombu.models.Message.objects.cleanup() # no longer needed with AMPQ
-        from djcelery.models import TaskMeta
-        TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
-
-    # run any Report reports
-    #schedule_ping() # moved to celery periodic_task
-
-    print "People:", len(imported_people)
-    print "Course Offerings:", len(offerings)
-
-
-if __name__ == "__main__":
-    main()
-'''
-
