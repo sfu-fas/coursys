@@ -1317,10 +1317,10 @@ def ensure_person_from_userid(userid):
     """
     Make sure the Person object for this userid exists.
     """
-    p = Person.objects.get(userid=userid)
+    p = Person.objects.filter(userid=userid)
     if p:
         # already have them: done.
-        return p
+        return p[0]
 
     # look up their emplid
     emplid = userid_to_emplid(userid)
