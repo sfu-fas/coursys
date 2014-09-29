@@ -5,7 +5,6 @@ from rest_framework import permissions, authentication, fields, relations
 
 from django.shortcuts import get_object_or_404
 from django.conf import settings
-from django.views.decorators.cache import cache_page
 from coredata.models import CourseOffering, Member
 import pytz
 import copy

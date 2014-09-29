@@ -31,7 +31,6 @@ class GradeMarkSerializer(serializers.Serializer):
     max_grade = serializers.SerializerMethodField('get_max_grade', help_text='Maximum grade for numeric activities, or null for letter activities')
     comment = serializers.SerializerMethodField('get_comment', help_text='Comment entered when marking, or null')
     details = MarkDetailSerializer(help_text='Marking details, if configured by instructor and received by this student.')
-    # TODO: add comments and marking details
 
     def to_native(self, a):
         # annotate the activity with its grade and marking object before starting

@@ -4,6 +4,7 @@ from coredata.models import CourseOffering, Member
 from coredata.serializers import ShortCourseOfferingSerializer, CourseOfferingSerializer
 from courselib.rest import APIConsumerPermissions, IsOfferingMember, CacheMixin
 
+
 class MyOfferings(CacheMixin, generics.ListAPIView):
     """
     Course offering for the authenticated user.
@@ -29,6 +30,7 @@ class MyOfferings(CacheMixin, generics.ListAPIView):
 
         offerings = [m.offering for m in memberships]
         return offerings
+
 
 class OfferingInfo(CacheMixin, generics.RetrieveAPIView):
     """
