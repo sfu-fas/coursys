@@ -1261,6 +1261,7 @@ def outlines_data_json(offering):
 
 EMPLID_SECRET = settings.EMPLID_API_SECRET
 EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global.json?'
+USERID_BASE_URL = 'http://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/amaint/username/username.json?'
 
 def userid_to_emplid(userid):
     """
@@ -1285,6 +1286,31 @@ def userid_to_emplid(userid):
         raise ValueError, "No 'sfuid' returned in response."
 
     return data['sfuid']
+
+def emplid_to_userid(emplid):
+    """
+    Fetch userid from ITS API for emplid -> userid mapping.
+
+    Admin contact for the API is George Lee in the Learning & Community Platforms Group
+    """
+    qs = urllib.urlencode({'art': EMPLID_SECRET, 'sfuid': str(emplid)})
+    url = USERID_BASE_URL + qs
+    try:
+        req = urllib2.urlopen(url, timeout=30)
+        jsondata = req.read()
+        data = json.loads(jsondata)
+    except ValueError:
+        # can't decode JSON
+        return None
+    except (urllib2.HTTPError, urllib2.URLError):
+        # network problem, or 404 (if userid doesn't exist)
+        return None
+
+    if 'username' not in data:
+        raise ValueError, "No 'username' returned in response."
+
+    userids = data['username']
+    return userids.split(',')[0].strip()
 
 
 def ensure_person_from_userid(userid):
@@ -1317,9 +1343,10 @@ def build_person(emplid, userid=None, commit=True):
     """
     Build a Person object for this newly-discovered person
     """
-    p = Person(emplid=emplid, userid=userid)
+    if not userid:
+        userid = emplid_to_userid(emplid)
 
-    # TODO: find userid if not known
+    p = Person(emplid=emplid, userid=userid)
 
     last_name, first_name, middle_name, pref_first_name, title = get_names(emplid)
     if last_name is None:
