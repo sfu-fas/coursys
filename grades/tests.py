@@ -9,7 +9,7 @@ from coredata.models import Person, Member, CourseOffering, Unit
 from dashboard.models import UserConfig
 from submission.models import StudentSubmission
 from coredata.tests import create_offering
-import pickle, datetime, decimal
+import pickle, datetime, decimal, json
 
 from django.conf import settings
 from courselib.testing import *
@@ -113,7 +113,7 @@ class GradesTest(TestCase):
         expr = "[Assignment #2]"
         tree = parse(expr, c, ca)
         
-        # unrelased assignment (with grade)
+        # unreleased assignment (with grade)
         a2.status='URLS'
         a2.save()
         activities = NumericActivity.objects.filter(offering=c)
@@ -121,7 +121,7 @@ class GradesTest(TestCase):
         res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
         
-        # explicit no grade (relased assignment)
+        # explicit no grade (released assignment)
         g.flag="NOGR"
         g.save(entered_by='ggbaker')
         a2.status='RLS'
@@ -131,7 +131,7 @@ class GradesTest(TestCase):
         res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
 
-        # no grade in database (relased assignment)
+        # no grade in database (released assignment)
         g.delete()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
@@ -574,6 +574,174 @@ class GradesTest(TestCase):
         # check GradeHistory objects
         ghs = GradeHistory.objects.filter(activity=a, member=m)
         self.assertEquals(ghs.count(), 3)
+
+    def test_get_grade(self):
+        """
+        Make sure activity.get_grade() keeps the right things hidden
+        """
+        o = CourseOffering.objects.get(slug=self.course_slug)
+        na = NumericActivity.objects.get(slug='a1')
+        la = LetterActivity.objects.get(slug='rep')
+        instr = Person.objects.get(userid='ggbaker')
+
+        student = Member.objects.get(person__userid='0aaa0', offering=o)
+
+        na.status = 'RLS'
+        na.save(entered_by=instr)
+        la.status = 'RLS'
+        la.save(entered_by=instr)
+
+        # no grades yet
+        self.assertEqual(na.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(la.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(na.get_grade(student.person, 'INST'), None)
+        self.assertEqual(la.get_grade(student.person, 'INST'), None)
+
+        # grades should be visible
+        ng = NumericGrade(activity=na, member=student, value=1, flag='GRAD', comment='Foo')
+        ng.save(entered_by=instr)
+        lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
+        lg.save(entered_by=instr)
+        self.assertEqual(na.get_grade(student.person, 'STUD').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'STUD').grade, 'A')
+        self.assertEqual(na.get_grade(student.person, 'INST').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'INST').grade, 'A')
+
+        # unreleased: grades visible only to staff
+        na.status = 'URLS'
+        na.save(entered_by=instr)
+        la.status = 'URLS'
+        la.save(entered_by=instr)
+        self.assertEqual(na.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(la.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(na.get_grade(student.person, 'INST').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'INST').grade, 'A')
+
+        # student shouldn't ever see invisible grade
+        na.status = 'INVI'
+        na.save(entered_by=instr)
+        la.status = 'INVI'
+        la.save(entered_by=instr)
+        with self.assertRaises(RuntimeError):
+            na.get_grade(student.person, 'STUD')
+        with self.assertRaises(RuntimeError):
+            la.get_grade(student.person, 'STUD')
+        self.assertEqual(na.get_grade(student.person, 'INST').grade, 1)
+        self.assertEqual(la.get_grade(student.person, 'INST').grade, 'A')
+
+        # flag==NOGR handling
+        ng.flag = 'NOGR'
+        ng.save(entered_by=instr)
+        lg.flag = 'NOGR'
+        lg.save(entered_by=instr)
+        na.status = 'RLS'
+        na.save(entered_by=instr)
+        la.status = 'RLS'
+        la.save(entered_by=instr)
+        self.assertEqual(na.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(la.get_grade(student.person, 'STUD'), None)
+        self.assertEqual(na.get_grade(student.person, 'INST'), None)
+        self.assertEqual(la.get_grade(student.person, 'INST'), None)
+
+
+
+
+class APITests(TestCase):
+    fixtures = ['test_data']
+
+    def _get_by_slug(self, data, slug):
+        for d in data:
+            if d['slug'] == slug:
+                 return d
+
+    def test_api_permissions(self):
+        """
+        Make sure the API views display activity/grade info at the right moments
+        """
+        client = Client()
+        client.login_user("0aaa0")
+        grades_url = reverse('api.OfferingGrades', kwargs={'course_slug': TEST_COURSE_SLUG})
+        stats_url = reverse('api.OfferingStats', kwargs={'course_slug': TEST_COURSE_SLUG})
+
+        o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        na = NumericActivity.objects.get(slug='a1')
+        la = LetterActivity.objects.get(slug='rep')
+        instr = Member.objects.get(person__userid='ggbaker', offering=o, role='INST')
+        student = Member.objects.get(person__userid='0aaa0', offering=o, role='STUD')
+
+        # mock out the cache so we get fresh results for each request
+        with self.settings(CACHES={ 'default': { 'BACKEND': 'django.core.cache.backends.dummy.DummyCache' } }):
+
+            # below uses assertFalse to test for None, '', [], {}, all of which are fine. Just no real grade info.
+
+            # invisible activities shouldn't appear
+            na.status = 'INVI'
+            na.save(entered_by=instr.person)
+            la.status = 'INVI'
+            la.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertIsNone(self._get_by_slug(data, 'a1'))
+            self.assertIsNone(self._get_by_slug(data, 'rep'))
+
+            # no grades: shouldn't see
+            na.status = 'URLS'
+            na.save(entered_by=instr.person)
+            la.status = 'URLS'
+            la.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'a1')['details'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['details'])
+
+            resp = client.get(stats_url)
+            data = json.loads(resp.content)
+            self.assertIn('unreleased activities', self._get_by_slug(data, 'a1')['missing_reason'])
+            self.assertIn('unreleased activities', self._get_by_slug(data, 'rep')['missing_reason'])
+            self.assertIsNone(self._get_by_slug(data, 'a1')['count'])
+            self.assertIsNone(self._get_by_slug(data, 'rep')['count'])
+
+            # grades but unreleased: shouldn't see
+            ng = NumericGrade(activity=na, member=student, value=1, flag='GRAD', comment='Foo')
+            ng.save(entered_by=instr.person)
+            from marking.models import StudentActivityMark, ActivityComponentMark, ActivityComponent
+            am = StudentActivityMark(numeric_grade=ng, mark=2, created_by='ggbaker', overall_comment='thecomment')
+            am.save()
+            comp = ActivityComponent.objects.filter(numeric_activity=na)[0]
+            cm = ActivityComponentMark(activity_mark=am, value=2, comment='foo',
+                                       activity_component=comp)
+            cm.save()
+            am.setMark(2, entered_by=instr.person)
+
+            lg = LetterGrade(activity=la, member=student, letter_grade='A', flag='GRAD', comment='Foo')
+            lg.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertFalse(self._get_by_slug(data, 'a1')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['grade'])
+            self.assertFalse(self._get_by_slug(data, 'a1')['details'])
+            self.assertFalse(self._get_by_slug(data, 'rep')['details'])
+
+            # release and they should appear
+            na.status = 'RLS'
+            na.save(entered_by=instr.person)
+            la.status = 'RLS'
+            la.save(entered_by=instr.person)
+            resp = client.get(grades_url)
+            data = json.loads(resp.content)
+            self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2')
+            self.assertEqual(self._get_by_slug(data, 'rep')['grade'], 'A')
+            self.assertEqual(self._get_by_slug(data, 'a1')['details']['overall_comment'], 'thecomment')
+            self.assertIsNone(self._get_by_slug(data, 'rep')['details']) # letter grades have no marking
+
+            resp = client.get(stats_url)
+            data = json.loads(resp.content)
+            self.assertIn('small classes', self._get_by_slug(data, 'a1')['missing_reason'])
+            self.assertIn('small classes', self._get_by_slug(data, 'rep')['missing_reason'])
+
+
 
 
 

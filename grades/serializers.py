@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from grades.models import Activity, NumericGrade
+from grades.models import Activity
+from grades.utils import generate_numeric_activity_stat, generate_letter_activity_stat
+from marking.models import get_activity_mark_for_student
+from marking.serializers import MarkDetailSerializer
 from courselib.rest import utc_datetime
 
 class ActivitySerializer(serializers.ModelSerializer):
@@ -10,7 +13,7 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
-        fields = ('name', 'short_name', 'due_date', 'percent', 'group', 'url', 'max_grade', 'is_numeric', 'is_calculated')
+        fields = ('slug', 'name', 'short_name', 'due_date', 'percent', 'group', 'url', 'max_grade', 'is_numeric', 'is_calculated')
 
     def transform_due_date(self, obj, value):
         return utc_datetime(value)
@@ -21,5 +24,79 @@ class ActivitySerializer(serializers.ModelSerializer):
     def get_max_grade(self, a):
         return getattr(a, 'max_grade', None)
 
+
 class GradeMarkSerializer(serializers.Serializer):
-    pass
+    slug = serializers.SlugField(help_text='String that identifies this activity within the course offering')
+    grade = serializers.SerializerMethodField('get_grade', help_text='Grade the student received, or null')
+    max_grade = serializers.SerializerMethodField('get_max_grade', help_text='Maximum grade for numeric activities, or null for letter activities')
+    comment = serializers.SerializerMethodField('get_comment', help_text='Comment entered when marking, or null')
+    details = MarkDetailSerializer(help_text='Marking details, if configured by instructor and received by this student.')
+
+    def to_native(self, a):
+        # annotate the activity with its grade and marking object before starting
+        a.grade = a.get_grade(self.context['view'].member.person, self.context['view'].member.role)
+
+        if self.context['view'].member.role == 'STUD' and a.status != 'RLS':
+            a.details = None
+        else:
+            a.details = get_activity_mark_for_student(a, self.context['view'].member)
+
+        return super(GradeMarkSerializer, self).to_native(a)
+
+    def get_grade(self, a):
+        if a.grade:
+            return a.grade.grade
+        else:
+            return None
+
+    def get_comment(self, a):
+        if a.grade:
+            return a.grade.comment
+        else:
+            return None
+
+    def get_max_grade(self, a):
+        return getattr(a, 'max_grade', None)
+
+
+class StatsSerializer(serializers.Serializer):
+    slug = serializers.SlugField(help_text='String that identifies this activity within the course offering')
+    count = serializers.SerializerMethodField('get_count', help_text='Grade count')
+    min = serializers.SerializerMethodField('get_min', help_text='Minimum grade')
+    max = serializers.SerializerMethodField('get_max', help_text='Maximum grade')
+    average = serializers.SerializerMethodField('get_average', help_text='Average (mean) grade, or null for letter graded activities')
+    median = serializers.SerializerMethodField('get_count', help_text='Median grade')
+    histogram = serializers.SerializerMethodField('get_histo', help_text='Histogram data: list of label/count pairs, null if not available or disabled by instructor')
+    missing_reason = serializers.CharField(help_text='Human-readable reason stats are missing (if relevant)')
+
+    def to_native(self, a):
+        # annotate the activity with its stats object before starting
+        if a.is_numeric():
+            a.stats, a.missing_reason = generate_numeric_activity_stat(a, self.context['view'].member.role)
+        else:
+            a.stats, a.missing_reason = generate_letter_activity_stat(a, self.context['view'].member.role)
+
+        return super(StatsSerializer, self).to_native(a)
+
+    def _get_or_none(self, a, attr):
+        if a.stats:
+            return getattr(a.stats, attr, None)
+        else:
+            return None
+
+    def get_histo(self, a):
+        if a.stats:
+            return [(rng.grade_range, rng.stud_count) for rng in a.stats.grade_range_stat_list]
+        else:
+            return None
+
+    def get_count(self, a):
+        return self._get_or_none(a, 'count')
+    def get_min(self, a):
+        return self._get_or_none(a, 'min')
+    def get_max(self, a):
+        return self._get_or_none(a, 'max')
+    def get_average(self, a):
+        return self._get_or_none(a, 'average')
+    def get_median(self, a):
+        return self._get_or_none(a, 'median')

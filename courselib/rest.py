@@ -32,6 +32,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             # OAuth authenticated: check that the consumer is allowed to do these things
 
             # re-find the Token, since it isn't stashed in the request
+            # could be avoided if: http://code.larlet.fr/django-oauth-plus/issue/40/set-requestconsumer-and-requesttoken-to
             oauth_req = get_oauth_request(request)
             token = Token.objects.get(key=oauth_req['oauth_token'], consumer__key=oauth_req['oauth_consumer_key'])
 
@@ -59,6 +60,121 @@ class IsOfferingMember(permissions.BasePermission):
 
         return bool(view.member)
 
+from django.core.cache import get_cache
+from django.utils.encoding import force_bytes, iri_to_uri
+from django.utils.cache import patch_response_headers, patch_cache_control
+from rest_framework.response import Response
+import hashlib
+MAX_KEY_LENGTH = 200
+class CacheMixin(object):
+    """
+    View mixin to cache responses based on username (whether they are authenticated by session, oauth, ...).
+
+    Does this by caching the Response object *before* it is rendered into JSON, HTML, etc.  What goes in the cache is
+    kwargs to rebuild the rest_framework.response.Response object.
+
+    Assumes that your response data is serializable into your cache, which seems pretty likely.
+    """
+    cache_hours = 1 # number of hours to cache the response (Expires header and local cache)
+    cache_ignore_auth = False # set to True if view can be cached without regard to who is fetching it
+
+    def __init__(self, *args, **kwargs):
+        super(CacheMixin, self).__init__(*args, **kwargs)
+
+        # borrowed from FetchFromCacheMiddleware
+        self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
+        self.cache_alias = settings.CACHE_MIDDLEWARE_ALIAS
+        self.cache = get_cache(self.cache_alias)
+
+    def _get_cache_key(self, request):
+        """
+        Generate cache key that's exactly unique enough.
+
+        Assumes that the response is determined by the request.method, authenticated user, and URL path.
+        """
+        # HTTP method
+        method = request.method
+
+        # Authenticated username
+        if not request.user.is_authenticated() or self.cache_ignore_auth:
+            username = '*'
+        else:
+            username = request.user.username
+
+        # URL path
+        url = force_bytes(iri_to_uri(request.get_full_path()))
+
+        # build a cache key out of that
+        key = '#'.join(('CacheMixin', self.key_prefix, username, method, url))
+        if len(key) > MAX_KEY_LENGTH:
+            # make sure keys don't get too long
+            key = key[:(MAX_KEY_LENGTH - 33)] + '-' + hashlib.md5(key).hexdigest()
+
+        return key
+
+    def _timeout(self):
+        return self.cache_hours * 3600
+
+
+    @property
+    def default_response_headers(self):
+        # shouldn't be necessary since we're setting "cache-control: private" and delivering by HTTPS, but be sure
+        # there's no cross-contamination in caches
+        h = super(CacheMixin, self).default_response_headers
+        h['Vary'] = 'Accept, Authorization, Cookie'
+        return h
+
+    def cached_response(self, handler, request, *args, **kwargs):
+        # make sure we're actually being asked to do something
+        timeout = self._timeout()
+        if timeout <= 0:
+            return handler(request, *args, **kwargs)
+
+        # check the cache
+        cache_key = self._get_cache_key(request)
+        response_kwargs = self.cache.get(cache_key)
+        if response_kwargs:
+            # found it in the cache: hooray!
+            return Response(**response_kwargs)
+
+        # actually generate the response
+        response = handler(request, *args, **kwargs)
+
+        # ignore errors and streamed responses: borrowed from from UpdateCacheMiddleware
+        if response.streaming or response.status_code != 200:
+            return response
+
+        response['Cache-control'] = 'private'
+        patch_response_headers(response, cache_timeout=timeout)
+
+        # cache the response
+        assert isinstance(response, Response), "the response must be a rest_framework.response.Response instance"
+        response_kwargs = {
+            'data': response.data,
+            'status': response.status_code,
+            'template_name': response.template_name,
+            'headers': dict(response._headers.values()),
+            'exception': response.exception,
+            'content_type': response.content_type,
+        }
+        self.cache.set(cache_key, response_kwargs, timeout)
+
+        return response
+
+    def get(self, request, *args, **kwargs):
+        if hasattr(self, 'cached_get'):
+            handler = self.cached_get
+        else:
+            handler = super(CacheMixin, self).get
+        return self.cached_response(handler, request, *args, **kwargs)
+
+    def head(self, request, *args, **kwargs):
+        if hasattr(self, 'cached_head'):
+            handler = self.cached_head
+        else:
+            handler = super(CacheMixin, self).head
+        return self.cached_response(handler, request, *args, **kwargs)
+
 
 class HyperlinkCollectionField(fields.Field):
     """
@@ -75,7 +191,7 @@ class HyperlinkCollectionField(fields.Field):
         result = {}
         for link in self.data:
             label = link['label']
-            kwargs = copy.copy(link)
+            kwargs = copy.copy(link)    
             del kwargs['label']
 
             field = relations.HyperlinkedIdentityField(**kwargs)

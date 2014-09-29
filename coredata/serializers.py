@@ -10,7 +10,7 @@ class ShortCourseOfferingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CourseOffering
-        fields = ('subject', 'number', 'section', 'semester', 'title', 'slug',)
+        fields = ('subject', 'number', 'section', 'semester', 'title', 'slug', 'link')
 
 
 class CourseOfferingSerializer(ShortCourseOfferingSerializer):
@@ -24,6 +24,12 @@ class CourseOfferingSerializer(ShortCourseOfferingSerializer):
         {
             'label': 'grades',
             'view_name': 'api.OfferingGrades',
+            'slug_field': 'slug',
+            'slug_url_kwarg': 'course_slug',
+        },
+        {
+            'label': 'stats',
+            'view_name': 'api.OfferingStats',
             'slug_field': 'slug',
             'slug_url_kwarg': 'course_slug',
         },

@@ -52,7 +52,7 @@ class ConsumerInfo(models.Model):
 
 def create_consumer(name, description, owner_userid, admin_contact, permissions):
     """
-    Create a new Consumer with all of the info we need recorded.
+    Create a new Consumer with all of the info we need recorded. Arguments: (name, description, owner_userid, admin_contact, permissions)
 
     Could be rolled into a form+view in /sysadmin/, but how many could there possibly be?
     """

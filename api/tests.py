@@ -1,10 +1,10 @@
 #Python
-import time
+import json
 
 #Django
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, resolve
 
 #Third Party
 from oauth_provider.models import Consumer, Token
@@ -12,7 +12,7 @@ from oauth_provider.consts import ACCEPTED
 import mock
 
 #Local
-from courselib.testing import Client
+from courselib.testing import Client, TEST_COURSE_SLUG
 
 #App
 from .models import ConsumerInfo
@@ -20,7 +20,68 @@ from .models import ConsumerInfo
 
 VERIFIER = '1234567890'
 
+
+class APIEndpointTester(object):
+    """
+    Check API views
+
+    Records views we have seen links to, and views we have tested. We want the set to be the same to ensure HATEOAS
+    links, and complete test coverage of API views.
+    """
+    def __init__(self, client, testcase):
+        self.client = client
+        self.testcase = testcase
+        # fake APIRoot into the found links: we don't demand a link to it since it's the root
+        self.found_view_links = set([self.link_to_view(reverse('api.APIRoot'))])
+        self.checked_views = set()
+
+    def all_links(self, data):
+        """
+        find all links in a JSON API response
+        """
+        if isinstance(data, dict):
+            if 'link' in data:
+                yield data['link']
+            if 'links' in data:
+                for u in data['links'].values():
+                    yield u
+        elif isinstance(data, (list, tuple)):
+            for d in data:
+                for u in self.all_links(d):
+                    yield u
+
+    def link_to_view(self, url):
+        url = url.replace('http://testserver/', '/')
+        return resolve(url).func
+
+    def links_to_views(self, urls):
+        return map(self.link_to_view, urls)
+
+    def find_views_in(self, data):
+        found = set(self.links_to_views(self.all_links(data)))
+        self.found_view_links |= found
+
+    def check_endpoint(self, view, view_kwargs):
+        """
+        Check an API endpoint. Returns set of views that are linked by the resp
+        """
+        url = reverse(view, kwargs=view_kwargs)
+        resp = self.client.get(url)
+        self.testcase.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+
+        self.find_views_in(data)
+        self.checked_views.add(self.link_to_view(url))
+
+    def check_found_links(self):
+        self.testcase.assertEqual(self.checked_views, self.found_view_links)
+
+
+
+
 class APITest(TestCase):
+    fixtures = ['test_data']
+
     def setUp(self):
         self.faketime = 525942870
         self.client = Client()
@@ -87,11 +148,17 @@ class APITest(TestCase):
         perms = ConsumerInfo.allowed_permissions(self.token)
         self.assertEqual(perms, [])
 
+    def test_all_endpoints(self):
+        client = self.client
+        client.login_user("ggbaker")
 
+        tester = APIEndpointTester(client, self)
 
+        tester.check_endpoint('api.APIRoot', {})
+        tester.check_endpoint('api.MyOfferings', {})
+        tester.check_endpoint('api.OfferingInfo', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api.OfferingActivities', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api.OfferingGrades', {'course_slug': TEST_COURSE_SLUG})
+        tester.check_endpoint('api.OfferingStats', {'course_slug': TEST_COURSE_SLUG})
 
-
-
-
-
-
+        tester.check_found_links()

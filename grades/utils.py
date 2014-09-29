@@ -16,6 +16,8 @@ _NO_GRADE = u'\u2014'
 _DECIMAL_PLACE = 2
 _SUPPORTED_GRADE_RANGE = [10]
 
+# Course should have this number to student to display the activity statistics, including histogram
+STUD_NUM_TO_DISP_ACTSTAT = 10
 
 class GradeRangeStat:
     """
@@ -118,20 +120,8 @@ class StudentActivityInfo:
                 return '%s/%s' % (self.numeric_grade, self.activity.max_grade)
             elif isinstance(self.activity, LetterActivity):
                 return self.letter_grade
-    
-    def append_activity_stat(self):
-        """
-        Generate activity statistics and append activity_stat attribute to the object.
-        Activity statistics include: average grade, min, max, median, stddev and
-        grade range statistics.
-        """
-        if isinstance(self.activity, NumericActivity):
-            self.activity_stat = generate_numeric_activity_stat(self.activity)
-        else:
-            self.activity_stat = generate_letter_activity_stat(self.activity)
-            
-        return self
-    
+
+
 class FormulaTesterActivityEntry:
     def __init__(self, activity, activity_form_entry):
         self.activity = activity
@@ -250,13 +240,22 @@ def create_StudentActivityInfo_list(course, activity, student=None):
                                                                   student_grade_status, None, student_grade))
     return student_activity_info_list
 
-def generate_numeric_activity_stat(activity):
+def generate_numeric_activity_stat(activity, role):
     """
     This function fetch statistics of the numeric activity.
     """
+    if role == 'STUD' and activity.status != 'RLS':
+        return None, 'Summary statistics disabled for unreleased activities.'
+
     student_grade_list = fetch_students_numeric_grade(activity)
     if not student_grade_list:
-        return
+        if role == 'STUD':
+            return None, 'Summary statistics disabled for small classes.'
+        else:
+            return None, 'No grades assigned.'
+    if role == 'STUD' and not activity.showstats():
+        return None, 'Summary stats disabled by instructor.'
+
     student_grade_list.sort()
     student_grade_list_count = len(student_grade_list)
     average = sum(student_grade_list)
@@ -276,30 +275,59 @@ def generate_numeric_activity_stat(activity):
     else:
         normalized_student_grade_list = [ float(student_grade)/float(activity.max_grade)*100
                                         for student_grade in student_grade_list ]
-    grade_range_stat_list = generate_grade_range_stat(normalized_student_grade_list)
+    if role == 'STUD' and not activity.showhisto():
+        grade_range_stat_list = []
+    else:
+        grade_range_stat_list = generate_grade_range_stat(normalized_student_grade_list)
 
-    return ActivityStat(format_number(average, _DECIMAL_PLACE), format_number(student_grade_list[0], _DECIMAL_PLACE),
+    stats = ActivityStat(format_number(average, _DECIMAL_PLACE), format_number(student_grade_list[0], _DECIMAL_PLACE),
                         format_number(student_grade_list[student_grade_list_count - 1], _DECIMAL_PLACE),
                         format_number(median, _DECIMAL_PLACE),
                         format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list, student_grade_list_count)
+
+    reason_msg = ''
+    if role == 'STUD' and (stats is None or stats.count < STUD_NUM_TO_DISP_ACTSTAT):
+        reason_msg = 'Summary statistics disabled for small classes.'
+        stats = None
+
+    return stats, reason_msg
+
 ##########################################################################################################################
-def generate_letter_activity_stat(activity):
+def generate_letter_activity_stat(activity, role):
     """
     This function fetch statistics of the numeric activity.
     """
+    if role == 'STUD' and activity.status != 'RLS':
+        return None, 'Summary statistics disabled for unreleased activities.'
+
     student_grade_list = fetch_students_letter_grade(activity)
     sorted_grades = sorted_letters(student_grade_list) 
     if not sorted_grades:
-        return
+        if role == 'STUD':
+            return None, 'Summary statistics disabled for small classes.'
+        else:
+            return None, 'No grades assigned.'
+    if role == 'STUD' and not activity.showstats():
+        return None, 'Summary stats disabled by instructor.'
 
     student_grade_list_count = len(student_grade_list)
-    grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
+    if role == 'STUD' and not activity.showhisto():
+        grade_range_stat_list = []
+    else:
+        grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
     median=median_letters(sorted_grades)
     max=max_letters(sorted_grades)
     min=min_letters(sorted_grades)
 
-    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median,min,max)
-    
+    stats = ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median,min,max)
+
+    reason_msg = ''
+    if role == 'STUD' and (stats is None or stats.count < STUD_NUM_TO_DISP_ACTSTAT):
+        reason_msg = 'Summary statistics disabled for small classes.'
+        stats = None
+
+    return stats, reason_msg
+
 
    
     
