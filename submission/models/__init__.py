@@ -1,7 +1,7 @@
 import zipfile
 import tempfile
 import os
-import gzip
+import errno
 import StringIO
 import unicodecsv as csv
 from datetime import datetime
@@ -190,7 +190,17 @@ def _add_submission_to_zip(zipf, submission, components, prefix=""):
     """
     for component, sub in components:
         if sub:
-            sub.add_to_zip(zipf, prefix=prefix)
+            try:
+                sub.add_to_zip(zipf, prefix=prefix)
+            except OSError as e:
+                if e.errno == errno.ENOENT:
+                    # Missing file? How did that come up once in five years?
+                    fn = os.path.join(prefix, "MISSING_FILE.txt")
+                    zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
+                                      "Please email coursys-help@sfu.ca and ask us to help track it down."
+                                      % (sub.get_filename()))
+                else:
+                    raise
 
     # add lateness note
     if submission.activity.due_date and submission.created_at > submission.activity.due_date:

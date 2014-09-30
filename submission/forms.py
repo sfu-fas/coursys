@@ -58,7 +58,12 @@ def filetype(fh):
     elif magic[0:2]=="\037\213":
         fh.seek(0)
         gzfh = gzip.GzipFile(filename="filename", fileobj=fh)
-        gzfh.seek(257)
+        try:
+            gzfh.seek(257)
+        except:
+            # generic error occurs on invalid gzip data
+            return None
+
         if gzfh.read(5)=="ustar":
             return "TGZ"
         else:
