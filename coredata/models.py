@@ -852,7 +852,8 @@ class Member(models.Model, ConditionalSaveMixin):
     REASON_CHOICES = (
         ('AUTO', 'Automatically added'),
         ('TRU', 'TRU/OU Distance Student'),
-        ('CTA', 'CourSys-Appointed TA'),
+        ('CTA', 'CourSys-Appointed TA'), # from ta app
+        ('TAC', 'CourSys-Appointed TA'), # from tacontracts app
         ('TA', 'Additional TA'),
         ('TAIN', 'TA added by instructor'),
         ('INST', 'Additional Instructor'),

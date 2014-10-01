@@ -501,12 +501,12 @@ class TAContract(models.Model):
                     m = Member(person=self.person, 
                                offering=crs.course, 
                                role='TA',
-                               added_reason='CTA', 
+                               added_reason='TAC',
                                credits=0, 
                                career='NONS')
                 else:
                     assert(False)
-                m.added_reason='CTA'
+                m.added_reason='TAC'
                 m.role = 'TA'
                 m.config['bu'] = crs.total_bu
                 m.save()
@@ -517,7 +517,7 @@ class TAContract(models.Model):
                     pass
                 elif exists_and_is_in_the_course:
                     m = members[0]
-                    if m.added_reason == 'CTA':
+                    if m.added_reason == 'TAC':
                         m.role = 'DROP'
                         m.save()
                     crs.member = None
@@ -525,11 +525,11 @@ class TAContract(models.Model):
                 elif does_not_exist:
                     pass
 
-        # If they are CTA-added members of any other course this semester, 
+        # If they are TAC-added members of any other course this semester,
         #    they probably shouldn't be.
         members = Member.objects.filter(person=self.person, 
                                         role='TA', 
-                                        added_reason='CTA', 
+                                        added_reason='TAC',
                                         offering__semester=self.category.hiring_semester.semester)
         
         courseofferings = [crs.course for crs in courses]

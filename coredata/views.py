@@ -120,7 +120,7 @@ def edit_unit(request, unit_slug=None):
 
 @requires_global_role("SYSA")
 def members_list(request):
-    members = Member.objects.exclude(added_reason="AUTO").exclude(added_reason="CTA")
+    members = Member.objects.exclude(added_reason="AUTO").exclude(added_reason="CTA").exclude(added_reason="TAC")
     return render(request, 'coredata/members_list.html', {'members': members})
 
 
