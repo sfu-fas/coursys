@@ -104,9 +104,7 @@ def import_task():
 
     tasks = [
         daily_cleanup.si(),
-        get_amaint_userids.si(),
         fix_unknown_emplids.si(),
-        update_all_userids.si(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
         #get_import_offerings_task(),
@@ -118,19 +116,9 @@ def import_task():
 
 
 @task(queue='sims')
-def get_amaint_userids():
-    logger.info('Fetching userids from AMAINT')
-    importer.update_amaint_userids()
-
-@task(queue='sims')
 def fix_unknown_emplids():
     logger.info('Fixing unknown emplids')
     importer.fix_emplid()
-
-@task(queue='sims')
-def update_all_userids():
-    logger.info('Updating userids')
-    importer.update_all_userids()
 
 
 def get_update_grads_task():

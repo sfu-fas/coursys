@@ -9,7 +9,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 import random, socket, datetime, itertools
 from django.core import serializers
-from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff, update_amaint_userids, fix_emplid
+from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff, fix_emplid
 from demodata_importer import fake_emplid, fake_emplids, create_classes, create_fake_semester, create_grads
 from demodata_importer import create_grad_templ, create_more_data, create_form_data, create_ta_data, create_ra_data
 from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES, ComputingAccount
@@ -266,9 +266,6 @@ def main():
         create_fake_semester(strm)
     create_units()
 
-    print "getting emplid/userid mapping"
-    update_amaint_userids()
-
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around
     offerings = import_offerings(import_semesters=import_semesters, create_units=True, extra_where=
@@ -286,7 +283,6 @@ def main():
 
     # should now have all the "real" people: fake their emplids
     fake_emplids()
-    ComputingAccount.objects.all().delete()
 
     # make sure these people are here, since we need them
     if not Person.objects.filter(userid='ggbaker'):

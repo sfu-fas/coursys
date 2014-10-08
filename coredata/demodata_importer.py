@@ -5,7 +5,7 @@
 #   echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, random
-from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin, update_amaint_userids
+from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin
 from coredata.models import Member, Person, CourseOffering, ComputingAccount, Semester, SemesterWeek, Unit, Role, CAMPUSES
 from courselib.testing import create_fake_semester
 import datetime, itertools
@@ -691,9 +691,6 @@ def main():
         create_fake_semester(strm)
     Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University')
 
-    print "getting emplid/userid mapping"
-    update_amaint_userids()
-
     print "importing course offerings"
     offerings = import_offerings(import_semesters=import_semesters, create_units=True) # extra_where="ct.subject='CMPT' or ct.subject='ENSC'"
     offerings = list(offerings)
@@ -719,8 +716,6 @@ def main():
     print "giving sysadmin permissions"
     Person(userid='sysa', first_name='System', last_name='Admin', emplid='000054312').save()
     give_sysadmin(['sysa'])
-    
-    ComputingAccount.objects.all().delete()
 
 
 if __name__ == "__main__":

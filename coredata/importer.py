@@ -4,8 +4,9 @@ sys.path.append(".")
 #sys.path.append("courses")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
-from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, GRADFIELDS, REQMNT_DESIGNTN_FLAGS
-from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
+from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, import_person,\
+    userid_to_emplid, GRADFIELDS,REQMNT_DESIGNTN_FLAGS
+from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role
 from coredata.models import CombinedOffering, CAMPUSES, COMPONENTS, INSTR_MODE
 from dashboard.models import NewsItem
 from log.models import LogEntry
@@ -59,9 +60,9 @@ def fix_emplid():
     """
     people = Person.objects.filter(emplid__lt=100000)
     for p in people:
-        cas = ComputingAccount.objects.filter(userid=p.userid)
-        for ca in cas:
-            p.emplid = ca.emplid
+        emplid = userid_to_emplid(p.userid)
+        if emplid:
+            p.emplid = emplid
             p.save_if_dirty()
 
 
@@ -254,7 +255,8 @@ def _person_save(p):
         p.save()
 
 imported_people = {}
-IMPORT_THRESHOLD = 3600*24*14 # import personal info infrequently
+IMPORT_THRESHOLD = 3600*24*7 # import personal info infrequently
+NO_USERID_IMPORT_THRESHOLD = 3600*24*2 # import if we don't know their userid yet
 def get_person(emplid, commit=True, force=False):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.
@@ -264,9 +266,10 @@ def get_person(emplid, commit=True, force=False):
     if emplid in imported_people:
         return imported_people[emplid]
 
-    # either get old or create new Person object    
+    # either get old or create new Person object
     p_old = Person.objects.filter(emplid=emplid)
     if len(p_old)>1:
+        # should be dead code, since emplid is a unique key in the DB
         raise KeyError, "Already duplicate people: %r" % (p_old)
     elif len(p_old)==1:
         p = p_old[0]
@@ -274,43 +277,23 @@ def get_person(emplid, commit=True, force=False):
         p = Person(emplid=emplid)
     imported_people[emplid] = p
 
+    if 'lastimport' in p.config:
+        import_age = time.time() - p.config['lastimport']
+    else:
+        import_age = IMPORT_THRESHOLD * 2
+
+    # active students with no userid: pay more attention to try to get their userid for login/email.
+    if p.userid is None and import_age > NO_USERID_IMPORT_THRESHOLD:
+        return import_person(p, commit=commit)
+
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if random.random() < 0.99 and not force and 'lastimport' in p.config \
-            and time.time() - p.config['lastimport'] < IMPORT_THRESHOLD:
+    elif not force and import_age < IMPORT_THRESHOLD and random.random() < 0.99:
         return p
-    
-    # get their names
-    last_name, first_name, middle_name, pref_first_name, title = get_names(emplid)
-    if last_name is None:
-        # no name = no such person
-        p.userid = None
-        p.save()
-        return p
-    
-    # get userid
-    try:
-        ca = ComputingAccount.objects.get(emplid=p.emplid)
-        userid = ca.userid
-    except ComputingAccount.DoesNotExist:
-        userid = None
-    
-    if p.userid and p.userid != userid and userid is not None:
-        raise ValueError, "Did somebody's userid change? " + `p.userid` + " " +  `userid`
-    
-    # update person's data
-    if userid is not None:
-        p.userid = userid
-    p.last_name = last_name
-    p.first_name = first_name
-    p.middle_name = middle_name
-    p.pref_first_name = pref_first_name
-    p.title = title
-    p.config['lastimport'] = int(time.time())
-    if commit:
-        _person_save(p)
 
-    return p
+    # actually import their data
+    else:
+        return import_person(p, commit=commit)
     
 
 imported_people_full = {}
@@ -327,12 +310,17 @@ def get_person_grad(emplid, commit=True, force=False):
     
     imported_people_full[emplid] = p
 
+    if 'lastimportgrad' in p.config:
+        import_age = time.time() - p.config['lastimportgrad']
+    else:
+        import_age = IMPORT_THRESHOLD * 2
+
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if random.random() < 0.95 and not force and 'lastimportgrad' in p.config \
-            and time.time() - p.config['lastimportgrad'] < IMPORT_THRESHOLD:
+    if not force and import_age < IMPORT_THRESHOLD and random.random() < 0.95 \
+            and p.userid:
         return p
-   
+
     create_or_update_student(emplid)
     data = grad_student_info(emplid)
     p.config.update(data)
@@ -559,22 +547,7 @@ def import_combined(import_semesters=import_semesters):
     for combined in CombinedOffering.objects.filter(semester__name__in=import_semesters):
         combined.create_combined_offering()
 
-
-@transaction.atomic
-def update_amaint_userids():
-    """
-    Refresh the AMAINT translation table
-    """
-    db = AMAINTConn()
-    ComputingAccount.objects.all().delete()
-    db.execute("SELECT username, emplid FROM idMap WHERE emplid!='' ORDER BY username", ())
-    for userid, emplid in db:
-        if emplid.startswith('E'):
-            continue
-        a = ComputingAccount(emplid=emplid, userid=userid)
-        a.save()
-
-
+'''
 @transaction.atomic
 def update_all_userids():
     """
@@ -604,7 +577,7 @@ def update_all_userids():
                 #p.config['old_userid'] = p.userid
                 #p.userid = None
                 #p.save()
-
+'''
 
 def update_grads():
     """

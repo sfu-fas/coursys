@@ -1,4 +1,4 @@
-from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, CourseOffering
+from coredata.models import Person, Semester, SemesterWeek, CourseOffering
 from django.conf import settings
 import django.db.transaction
 from django.core.cache import cache
@@ -237,18 +237,8 @@ def add_person(emplid, commit=True, get_userid=True):
     return p
 
 @cache_by_args
-@SIMS_problem_handler
 def get_person_by_userid(userid):
-    try:
-        p = Person.objects.get(userid=userid)
-    except Person.DoesNotExist:
-        try:
-            ca = ComputingAccount.objects.get(userid=userid)
-            p = add_person(ca.emplid)
-        except ComputingAccount.DoesNotExist:
-            return None
-
-    return p
+    return ensure_person_from_userid(userid)
 
 @cache_by_args
 @SIMS_problem_handler
@@ -1340,19 +1330,24 @@ def ensure_person_from_userid(userid):
     return build_person(emplid, userid)
 
 
-def build_person(emplid, userid=None, commit=True):
+def build_person(emplid, userid=None):
     """
     Build a Person object for this newly-discovered person
     """
-    if not userid:
-        userid = emplid_to_userid(emplid)
-
     p = Person(emplid=emplid, userid=userid)
+    return import_person(p)
 
-    last_name, first_name, middle_name, pref_first_name, title = get_names(emplid)
+
+def import_person(p, commit=True):
+    """
+    Import SIMS/AMAINT information about this Person. Return the Person or None if they can't be found.
+    """
+    last_name, first_name, middle_name, pref_first_name, title = get_names(p.emplid)
     if last_name is None:
         # no name = no such person
         return None
+
+    userid = emplid_to_userid(p.emplid)
 
     p.last_name = last_name
     p.first_name = first_name
@@ -1361,9 +1356,16 @@ def build_person(emplid, userid=None, commit=True):
     p.title = title
     p.config['lastimport'] = int(time.time())
 
+    # don't deactivate userids that have been deactivated by the University
+    if userid:
+        # but freak out if a userid changes
+        if p.userid and p.userid != userid:
+            raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
+        p.userid = userid
+
     if commit:
         p.save()
-        # TODO: userid-changing functionality from importer._person_save
+        # TODO: userid-changing functionality from importer._person_save?
 
     return p
 

@@ -12,7 +12,7 @@ from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequ
         FinancialComment
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
-from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors, update_amaint_userids
+from coredata.importer import AMAINTConn, get_person, get_person_grad, import_instructors
 import datetime, json, time, decimal
 
 from cortez_import import CortezConn
