@@ -1,7 +1,7 @@
 from django import forms
-from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday,\
-    ComputingAccount, CombinedOffering
-from coredata.queries import find_person, add_person, SIMSProblem
+from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, \
+    CombinedOffering
+from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emplid
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
@@ -159,12 +159,17 @@ class PersonField(forms.CharField):
                 return Person.objects.get(emplid=value)
             except (ValueError, Person.DoesNotExist):
                 # try to find the emplid in SIMS if they are missing from our DB
-                if not value or not value.isdigit():
-                    cas = ComputingAccount.objects.filter(userid=value)
-                    if cas:
-                        value = cas[0].emplid
-                    else:
-                        raise forms.ValidationError, "Could not find this emplid."
+                if not value:
+                    raise forms.ValidationError, "Could not find this emplid."
+
+                if not value.isdigit(): # doesn't look like an emplid: try it as a userid
+                    try:
+                        return Person.objects.get(userid=value)
+                    except Person.DoesNotExist:
+                        value = userid_to_emplid(value)
+                        if not value:
+                            raise forms.ValidationError, "Could not find this emplid."
+
                 try:
                     persondata = find_person(value)
                 except SIMSProblem, e:

@@ -6,7 +6,7 @@
 
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin
-from coredata.models import Member, Person, CourseOffering, ComputingAccount, Semester, SemesterWeek, Unit, Role, CAMPUSES
+from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, Unit, Role, CAMPUSES
 from courselib.testing import create_fake_semester
 import datetime, itertools
 

@@ -15,8 +15,8 @@ from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContra
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
-from coredata.models import Member, Role, CourseOffering, Person, Semester, ComputingAccount, CAMPUSES
-from coredata.queries import add_person, more_personal_info, SIMSProblem
+from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES
+from coredata.queries import more_personal_info, SIMSProblem, ensure_person_from_userid
 from grad.models import GradStatus, GradStudent, Supervisor
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
@@ -348,15 +348,13 @@ def _new_application(request, post_slug, manual=False, userid=None):
     
     if not manual:
         try:
-            person = Person.objects.get(userid=request.user.username)
-        except Person.DoesNotExist:
-            try:
-                acct = ComputingAccount.objects.get(userid=request.user.username)
-                person = add_person(acct.emplid)
-            except ComputingAccount.DoesNotExist:
-                return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email helpdesk@cs.sfu.ca.")
-            except SIMSProblem:
-                return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
+            person = ensure_person_from_userid(request.user.username)
+        except SIMSProblem:
+            return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
+
+        if not person:
+            return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email coursys-help@sfu.ca.")
+
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if not userid and existing_app.count() > 0: 
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
