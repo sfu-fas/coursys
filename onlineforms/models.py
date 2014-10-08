@@ -801,6 +801,7 @@ class SheetSubmission(models.Model):
         min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
         sheet_subs = SheetSubmission.objects.exclude(status='DONE').exclude(status='REJE') \
                 .exclude(given_at__gt=min_age) \
+                .order_by('filler__id') \
                 .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'form_submission__form__initiator', 'sheet')
         return itertools.groupby(sheet_subs, lambda ss: ss.filler)
 
