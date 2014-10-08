@@ -159,7 +159,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c_old = list(set(c_old1) | set(c_old2))
     
     if len(c_old)>1:
-        raise KeyError, "Already duplicate courses: %r" % (c_old1)
+        raise KeyError, "Already duplicate courses: %r %r" % (c_old1, c_old2)
     elif len(c_old)==1:
         # already in DB: update things that might have changed
         c = c_old[0]
