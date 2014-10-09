@@ -60,6 +60,8 @@ def fix_emplid():
     """
     people = Person.objects.filter(emplid__lt=100000)
     for p in people:
+        if not p.userid:
+            continue
         emplid = userid_to_emplid(p.userid)
         if emplid:
             p.emplid = emplid
