@@ -99,10 +99,11 @@ sudo ./manage.py install_secrets
         <blockquote><pre>def sanitize_memcached_key(key, max_length=245):</pre></blockquote>
 
     </dd>
-    <dt>Cron</dt>
+    <dt>Haystack Index</dt>
     <dd>
-        <p>Hopefully this will be replaced with a celery task soon, but for the moment, the coursys user needs a crontab to do the daily import:</p>
-        <blockquote><pre>0 8 * * * /home/coursys/courses/server-setup/do-import.sh</pre></blockquote>
+        <p>The haystack indices (in elasticsearch) need to be there. They could be copied from an old server, but can also be rebuilt easily enough.
+            [This will take a while. Maybe run it in a <code>screen</code> session.]</p>
+        <blockquote><pre>./manage.py rebuild_index</pre></blockquote>
 
     </dd>
 </dl>
@@ -141,7 +142,7 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <p>Available flags are: <code class="python">'course_browser'</code> (the course browse/search functionality), <code class="python">'feeds'</code> (for icalendar/atom feeds/JSON dumps),
  <code class="python">'discuss'</code> (discussion forums), <code class="python">'marking'</code> (marking--editing only), <code class="python">'sims'</code> (all SIMS queries), <code class="python">'submit-get'</code> (downloading submissions).</p>
 <p>A reasonable &ldquo;something ain't right here&rdquo; setting is:</p>
-<blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote></dd>
+<blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds', 'photos'])</pre></blockquote></dd>
 
 </dl>
 
@@ -375,33 +376,6 @@ ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 <blockquote><pre>DISABLED_FEATURES = set(['course_browser', 'sims', 'feeds'])</pre></blockquote>
 
 
-
-<h2 id="solr">Solr Search (not yet deployed: maybe never, in favour of elasticsearch?)</h2>
-<p>Solr will (at some point) be used to power the full-text search in production (with Whoosh doing the job in development environments.</p>
-<blockquote><pre>sudo apt-get install solr-jetty openjdk-7-jdk</pre></blockquote>
-
-<p>Edit <code class="file">/etc/default/jetty</code> so the server actually starts (<code>NO_START=0</code>), uses the right port (<code>JETTY_PORT=8983</code>),
-and (in development only) listens enough that we can test (<code>JETTY_HOST=0.0.0.0</code>)</p>
-<p>The Haystack schema for Solr must be installed:</p>
-<blockquote><pre>cd ~/courses
-./manage.py build_solr_schema > /tmp/schema.xml
-sudo cp /tmp/schema.xml /etc/solr/conf/schema.xml
-sudo ln -s /etc/solr/conf/stopwords.txt /etc/solr/conf/stopwords_en.txt
-sudo /etc/init.d/jetty restart
-echo 'y' | ./manage.py rebuild_index
-</pre></blockquote>
-<p>At the moment, there is <a href="http://osdir.com/ml/general/2014-03/msg07628.html">a bug</a> requiring a downgrade of libtomcat6-java to <a href="http://packages.ubuntu.com/saucy/all/libtomcat6-java/download">6.0.37 from Ubuntu saucy</a>.</p>
-
-
-
-<h2 id="elastic">ElasticSearch</h2>
-<p><a href="https://gist.github.com/wingdspur/2026107">instructions adapted from this</a></p>
-<blockquote><pre>cd /tmp
-sudo apt-get install openjdk-7-jre-headless -y
-wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.deb
-sudo dpkg -i elasticsearch-1.1.0.deb
-sudo pip install pyelasticsearch
-echo 'y' | ./manage.py rebuild_index</pre></blockquote>
 </body>
 </html>
 
