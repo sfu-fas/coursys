@@ -205,18 +205,3 @@ class ActiveInProgramOrPlanQuery(object):
         plans = plan_query.result()
         return self.produce_emplid_table( programs, plans )
 
-
-
-class AcadProgsOwnedByUnit(DB2_Query):
-    title = "ACAD_PROGs owned by an ACAD_ORG"
-    description = "Finds all ACAD_PROG that are owned (at least partially) by a unit"
-    query = string.Template("""
-        SELECT DISTINCT acad_prog
-        FROM ps_acad_prog_tbl
-        WHERE eff_status='A' AND acad_plan IN
-            (SELECT DISTINCT acad_plan from ps_acad_plan_owner where acad_org=$acad_org)
-        """)
-
-    default_arguments = {
-        'acad_org': 'COMP SCI',
-        }
