@@ -1251,7 +1251,7 @@ def outlines_data_json(offering):
 
 EMPLID_SECRET = settings.EMPLID_API_SECRET
 EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global.json?'
-USERID_BASE_URL = 'http://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/amaint/username/username.json?'
+USERID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/amaint/username/username.json?'
 
 def userid_to_emplid(userid):
     """
