@@ -22,3 +22,6 @@ div#programs {
 div#programs li {
 	list-style-type: disc;
 }
+dl.dlform dt {
+  clear: none;
+}

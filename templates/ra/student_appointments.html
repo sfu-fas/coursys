@@ -63,7 +63,7 @@
           <th scope="row">Financial Summary</th>
           <td>
           	{% for gs in grads %}
-            <a href="{% url "grad.views.financials" grad_slug=gs.slug %}">{{ gs.program.label }}</a>
+            <a href="{% url "grad.views.financials" grad_slug=gs.slug %}">{{ gs.program.label }}</a> ({{ gs.get_current_status_display }})
             {% endfor %}
           </td>
         </tr>        

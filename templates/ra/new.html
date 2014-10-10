@@ -24,8 +24,8 @@ var emplid = '{{ person.emplid }}';
 var emplid = null;
 {% endif %}
 //]]</script>
-<script type="text/javascript" src="/media/js/ra.js"></script>
-<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+<script type="text/javascript" src="{{ STATIC_URL }}js/ra.js"></script>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ra/ra.css" />
 {% endblock %}
 
 {% block title %}New RA Appointment{% endblock %}
