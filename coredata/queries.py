@@ -4,7 +4,7 @@ import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
-import re, hashlib, datetime, string, urllib, urllib2, time, json
+import re, hashlib, datetime, string, urllib, urllib2, httplib, time, json
 
 
 multiple_breaks = re.compile(r'\n\n+')
@@ -1268,7 +1268,7 @@ def userid_to_emplid(userid):
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError):
+    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
@@ -1292,7 +1292,7 @@ def emplid_to_userid(emplid):
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError):
+    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
