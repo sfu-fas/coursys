@@ -84,9 +84,7 @@ def reorder_activity(request, course_slug):
         activity_up = get_object_or_404(Activity, id=id_up, offering__slug=course_slug)
         activity_down = get_object_or_404(Activity, id=id_down, offering__slug=course_slug)
 
-        temp = activity_up.position
-        activity_up.position = activity_down.position
-        activity_down.position = temp
+        activity_up.position, activity_down.position = activity_down.position, activity_up.position
         activity_up.save()
         activity_down.save()        
         

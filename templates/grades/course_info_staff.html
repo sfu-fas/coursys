@@ -4,12 +4,10 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{{STATIC_URL}}js/grades.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-    /*store activity ids*/	
-	var act_ids = new Array();
-	
-    $(document).ready(function() {
+$(document).ready(function() {
 	var oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
 		"bSort": true,
@@ -29,83 +27,21 @@
 		    null,
 		],
 	});
-	
-	// activity reordering
-	{%for info in activities_info%}
-		act_ids[{{forloop.counter}}-1] = "{{info.activity.id}}";
-	{%endfor%}
-	
-	for(var r = 1; r <= {{activities_info|length}}; r++)
-	{
-	    /* when javascript is enabled, use ajax call to reorder activity */
-	    $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', 'javascript:');
-	    $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', 'javascript:');
-	    
-	   /* attach position info to the arrow td */
-	    $('#arrow' + r).data('pos', r-1);
-	}			
-	
-	$('.arrow_up').click(function(){			
-		 var p = $(this).parent();
-		 var i = p.data('pos');			 
-		 /* post request */
-		 if(i > 0){
-			$.post("{% url "grades.views.reorder_activity" course_slug=course.slug %}",
-				{'id_up': act_ids[i], 'id_down': act_ids[i-1], 'csrfmiddlewaretoken': "{{csrf_token}}"}, 
-				function(data){ /* request success callback: swap rows */					 				
-					 /* swap the content of the current row and the previous row(except for the first column) */				
-					 var row = oTable.fnGetNodes(i);
-					 var pre_row = oTable.fnGetNodes(i-1);
-					 var content = oTable.fnGetData(row);
-					 var pre_content = oTable.fnGetData(pre_row);
-					 var temp;
-					 for (var col=1, len = content.length ; col<len ; col++ )
-					 {  
-					    temp = content[col];
-						oTable.fnUpdate(pre_content[col], i, col);
-						oTable.fnUpdate(temp, i-1, col); 
-					 }
-					 /* swap the order of the two ids as well */
-					 temp = act_ids[i];
-					 act_ids[i] = act_ids[i-1];
-					 act_ids[i-1] = temp;			 				 
-					 
-					 oTable.fnDraw();			
-				 
-				});
-			}
-	  });
-	 
-	$('.arrow_down').click(function(){
-		 var p = $(this).parent();
-		 var i = p.data('pos');
-		 if(i < {{activities_info|length}}-1){
-		 /* post request */
-			$.post("{% url "grades.views.reorder_activity" course_slug=course.slug %}",		  	 
-				{'id_up': act_ids[i+1], 'id_down': act_ids[i], 'csrfmiddlewaretoken': "{{csrf_token}}"},
-				function(data){ /* request success callback: swap rows */  		 	 
-				     /* swap the content of the current row and the next row(except for the first column) */
-					 var row = oTable.fnGetNodes(i);
-					 var next_row = oTable.fnGetNodes(i+1);
-					 var content = oTable.fnGetData(row);
-					 var next_content = oTable.fnGetData(next_row);					
-					 var temp;
-					 for (var col=1, len = content.length ; col<len ; col++ )
-					 {  
-					    temp = content[col];
-						oTable.fnUpdate(next_content[col], i, col);
-						oTable.fnUpdate(temp, i+1, col); 
-					 }
-					 /* swap the order of the two ids as well */
-					 temp = act_ids[i];
-					 act_ids[i] = act_ids[i+1];
-					 act_ids[i+1] = temp;	
-									 
-					 oTable.fnDraw();
-				});		 
-			}
-	  });
-    });
+
+    var reorder_url = "{% url "grades.views.reorder_activity" course_slug=course.slug %}";
+    var csrf_token = "{{csrf_token}}";
+
+	$('.sortarrows .arrow_up').attr('href', 'javascript:').bind('click', function(event) {
+	    var this_tr = $(this).parents('tr')
+	    var prev_tr = this_tr.prev();
+        reorder_activities(reorder_url, csrf_token, oTable, prev_tr, this_tr);
+	});
+	$('.sortarrows .arrow_down').attr('href', 'javascript:').bind('click', function(event) {
+	    var this_tr = $(this).parents('tr')
+	    var next_tr = this_tr.next();
+        reorder_activities(reorder_url, csrf_token, oTable, this_tr, next_tr);
+	});
+});
 //]]>
 </script>
 {% endblock %}
@@ -200,19 +136,19 @@
         <tbody>
             {% for activity_info in activities_info %}
             {% with activity_info.activity as activity %}
-            <tr>
-                <td id="arrow{{forloop.counter}}">
+            <tr id="activity-{{ activity.id }}">
+                <td class="sortarrows">
                     <span class="sort">{{ activity.position }}</span>
                     {% if not forloop.first %}
-		    <a class="arrow_up" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">  
-		    <i class="fa fa-arrow-up"></i>
-		    </a>
-		    {% endif %}
-		    {% if not forloop.last %}
-		    <a class="arrow_down" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
-			<i class="fa fa-arrow-down"></i>
-		    </a>
-		    {% endif %}
+                    <a class="arrow_up" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">
+                    <i class="fa fa-arrow-up"></i>
+                    </a>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <a class="arrow_down" href="{% url "grades.views.course_info" course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
+                    <i class="fa fa-arrow-down"></i>
+                    </a>
+                    {% endif %}
                 </td>
                 <td scope="row">
                 <a href="{% url "grades.views.activity_info" course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
