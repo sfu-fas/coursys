@@ -306,6 +306,10 @@ class Form(models.Model, _FormCoherenceMixin):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+        # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
+
+    defaults = {'loginprompt': True}
+    loginprompt, set_loginprompt = getter_setter('loginprompt')
 
     def __unicode__(self):
         return "%s [%s]" % (self.title, self.id)
