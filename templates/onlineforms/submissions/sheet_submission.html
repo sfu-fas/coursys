@@ -49,7 +49,9 @@ $(document).ready(function() {
             {% if nonSFUFormFillerForm %}
                 <fieldset>
                     <legend>Your Contact Information</legend>
+                    {% if sheet.form.loginprompt %}
                     <p>If you have a SFU account, please <a href="{{ LOGIN_URL }}?next={{this_path}}">login</a>. It will be easier for us and you to keep track of your info if you do.</p>
+                    {% endif %}
                     {{ nonSFUFormFillerForm|as_dl_onlineforms }}
                     <input type="hidden" name="add-nonsfu" value="True"/>
                 </fieldset>
