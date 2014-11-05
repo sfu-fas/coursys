@@ -10,6 +10,7 @@
   <h2>Actions</h2>
   <ul>
   <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug style='table' %}">View in table display</a></li>
+  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug style='signin' %}">View as signin sheet</a></li>
   </ul>
 </div>{% endblock %}
 

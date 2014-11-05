@@ -12,12 +12,12 @@ table#photolist td.signature {
 table#photolist tr:nth-child(even) td.idphoto img {
     margin-top: -1em;
     margin-bottom: -1em;
-    margin-right: 100px;
+    margin-right: 130px;
 }
 table#photolist tr:nth-child(odd) td.idphoto img {
     margin-top: -1em;
     margin-bottom: -1em;
-    margin-left: 100px;
+    margin-left: 130px;
 }
 </style>
 {% endblock %}
@@ -29,6 +29,7 @@ table#photolist tr:nth-child(odd) td.idphoto img {
   <h2>Actions</h2>
   <ul>
   <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug %}">View in horizontal &ldquo;yearbook&rdquo; display</a></li>
+  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug style='table' %}">View in table display</a></li>
   </ul>
 </div>{% endblock %}
 
