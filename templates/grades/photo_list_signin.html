@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.name }} Class List{% endblock %}
+{% block h1 %}{{ course.name }} Class List{% endblock %}
+
+{% block headextra %}
+<style>
+table#photolist td.signature {
+    min-width: 20em;
+    border-bottom: 1px solid black;
+}
+table#photolist tr:nth-child(even) td.idphoto img {
+    margin-top: -1em;
+    margin-bottom: -1em;
+    margin-right: 100px;
+}
+table#photolist tr:nth-child(odd) td.idphoto img {
+    margin-top: -1em;
+    margin-bottom: -1em;
+    margin-left: 100px;
+}
+</style>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "grades.views.course_info" course_slug=course.slug %}">{{ course.name }}</a></li><li>Photo List</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+  <li><a href="{% url 'grades.views.photo_list' course_slug=course.slug %}">View in horizontal &ldquo;yearbook&rdquo; display</a></li>
+  </ul>
+</div>{% endblock %}
+
+{% block content %}
+<table class="display" id="photolist">
+<thead>
+<tr>
+  <th scope="col">Photo</th>
+  <th scope="col">Student</th>
+  {% if course.labtut %}<th scope="col"><span class="wideonly">Lab/Tutorial</span><span class="narrowonly">Lab/Tut</span></th>{% endif %}
+  <th scope="col">Signature</th>
+</tr>
+</thead>
+<tbody>
+{% for member in members %}
+<tr>
+            <td class="idphoto"><img src="{% url "grades.views.student_photo" emplid=member.person.emplid %}" alt="" /></td>
+            <td>
+                {{member.person.last_name}}, {{member.person.first_with_pref}}<br/>
+                <a href="{{member.get_absolute_url}}">{{member.person.emplid}}</a>, {{member.person.userid}}
+            </td>
+            {% if course.labtut %}<td>{{member.labtut_section}}</td>{% endif %}
+            <td class="signature"></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

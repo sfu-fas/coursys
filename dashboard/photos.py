@@ -21,7 +21,7 @@ URL_BASE = 'https://photos-api.its.sfu.ca/'
 TOKEN_URL = URL_BASE + 'Account/Token'
 PHOTO_URL = URL_BASE + 'Values/%s?includePhoto=true'
 PASSWORD_URL = URL_BASE + 'Account/ChangePassword'
-DUMMY_IMAGE_FILE = os.path.join(settings.STATIC_ROOT, 'images', 'No_image.JPG') # from http://commons.wikimedia.org/wiki/File:No_image.JPG
+DUMMY_IMAGE_FILE = os.path.join(settings.BASE_DIR, 'media', 'images', 'No_image.JPG') # from http://commons.wikimedia.org/wiki/File:No_image.JPG
 
 CHUNK_SIZE = 10 # max number of photos to fetch in one request
 # max number of concurrent requests is managed by the celery 'photos' queue (it should be <= 5)

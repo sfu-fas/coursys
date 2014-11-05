@@ -1212,7 +1212,7 @@ def _has_photo_agreement(user):
     configs = UserConfig.objects.filter(user=user, key='photo-agreement')
     return bool(configs and configs[0].value['agree'])
 
-PHOTO_LIST_STYLES = set(['table', 'horiz'])
+PHOTO_LIST_STYLES = set(['table', 'horiz', 'signin'])
 @requires_course_staff_by_slug
 @uses_feature('photos')
 def photo_list(request, course_slug, style='horiz'):
