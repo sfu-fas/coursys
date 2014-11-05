@@ -62,11 +62,14 @@
 		</span>
 	</span>
 	<br />
-	<span id="courses">Course(s): 
-		<span class="tugField">{{course.name}}</span> 
+	<span id="courses">Course:
+		<span class="tugField">{{course.name}}, {{course.semester.label}}</span>
 	</span>
 	<span id="maxHours"> Maximum Hours to be Assigned: 
 		<span class="tugField">{{ max_hours }}</span>
+	</span>
+	<span id="totalBU"> Total BUs:
+		<span class="tugField">{{ tug.base_units }}</span>
 	</span>
 	{% if has_lab_or_tut %}
         <span id="prepHours"> Prep BUs: 
