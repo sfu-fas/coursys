@@ -172,7 +172,7 @@ def list_all_contracts(request, unit_slug, semester):
         show_copy_categories = False
     else:
         try:
-            prev_hiring_semester = HiringSemester.objects.get(semester=prev_semester)
+            prev_hiring_semester = HiringSemester.objects.get(unit__label=unit_slug, semester=prev_semester)
         except HiringSemester.DoesNotExist:
             show_copy_categories = False
 
