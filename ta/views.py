@@ -13,7 +13,7 @@ from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContra
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
     HOLIDAY_HOURS_PER_BU
 from ra.models import Account
-from grad.models import GradStudent 
+from grad.models import GradStudent, STATUS_REAL_PROGRAM
 from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES
 from coredata.queries import more_personal_info, SIMSProblem, ensure_person_from_userid
@@ -793,7 +793,7 @@ def assign_bus(request, post_slug, course_slug):
 
     for applicant in applicants:
         # Determine Current Grad Status
-        statuses = GradStatus.objects.filter(student__person=applicant.person, end=None).select_related('student__program__unit')
+        statuses = GradStatus.objects.filter(student__person=applicant.person, end=None, status__in=STATUS_REAL_PROGRAM).select_related('student__program__unit')
         applicant.statuses = statuses # annotate the application with their current grad status(es)
         
         # Determine Campus Preference
