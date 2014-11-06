@@ -5,18 +5,28 @@
 
 {% block headextra %}
 <style>
+table#photolist tr {
+    page-break-inside: avoid;
+}
 table#photolist td.signature {
-    min-width: 20em;
+    min-width: 15em;
     border-bottom: 1px solid black;
 }
+table#photolist tr:nth-child(even) td.idphoto {
+    width: 200px;
+}
 table#photolist tr:nth-child(even) td.idphoto img {
+    display: inline;
     margin-top: -1em;
     margin-bottom: -1em;
+    text-align: left;
     margin-right: 130px;
 }
 table#photolist tr:nth-child(odd) td.idphoto img {
+    display: inline;
     margin-top: -1em;
     margin-bottom: -1em;
+    text-align: right;
     margin-left: 130px;
 }
 </style>
