@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url "tacontracts.views.edit_semester" semester=hiring_semester.semester.name%}" method="post">
+<form action="" method="post">
     {% csrf_token %}
     <fieldset>
     {{ form|as_dl }}
