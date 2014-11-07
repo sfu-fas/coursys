@@ -11,8 +11,8 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch, mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import textobject, canvas
-from reportlab.pdfbase import pdfmetrics  
-from reportlab.pdfbase.ttfonts import TTFont  
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from coredata.models import Role
@@ -35,24 +35,24 @@ class SFUMediaMixin():
         "Get all of the media needed for the letterhead"
         # fonts and logo
         ttfFile = os.path.join(media_path, 'BemboMTPro-Regular.ttf')
-        pdfmetrics.registerFont(TTFont("BemboMTPro", ttfFile))  
+        pdfmetrics.registerFont(TTFont("BemboMTPro", ttfFile))
         ttfFile = os.path.join(media_path, 'BemboMTPro-Bold.ttf')
-        pdfmetrics.registerFont(TTFont("BemboMTPro-Bold", ttfFile))  
+        pdfmetrics.registerFont(TTFont("BemboMTPro-Bold", ttfFile))
         ttfFile = os.path.join(media_path, 'DINPro-Regular.ttf')
-        pdfmetrics.registerFont(TTFont("DINPro", ttfFile))  
+        pdfmetrics.registerFont(TTFont("DINPro", ttfFile))
         ttfFile = os.path.join(media_path, 'DINPro-Bold.ttf')
-        pdfmetrics.registerFont(TTFont("DINPro-Bold", ttfFile))  
-        
+        pdfmetrics.registerFont(TTFont("DINPro-Bold", ttfFile))
+
         # graphic standards colours
         self.sfu_red = CMYKColor(0, 1, 0.79, 0.2)
         self.sfu_grey = CMYKColor(0, 0, 0.15, 0.82)
         self.sfu_blue = CMYKColor(1, 0.68, 0, 0.12)
-        
+
         # translate digits to old-style numerals (in their Bembo character positions)
         self.digit_trans = {}
         for d in range(10):
             self.digit_trans[48+d] = unichr(0xF643 + d)
-        
+
         self.sc_trans_bembo = {}
         # translate letters to smallcaps characters (in their [strange] Bembo character positions)
         for d in range(26):
@@ -70,7 +70,7 @@ class SFUMediaMixin():
     def _drawStringLeading(self, canvas, x, y, text, charspace=0, mode=None):
         """
         Draws a string in the current text styles.
-        
+
         Duplicate of Canvas.drawString, but passing charspace in when the string is drawn.
         """
         t = textobject.PDFTextObject(canvas, x, y)
@@ -87,7 +87,7 @@ class LetterPageTemplate(PageTemplate, SFUMediaMixin):
         kwargs['frames'] = [self._create_frame(pagesize)]
         kwargs['pagesize'] = pagesize
         PageTemplate.__init__(self, *args, **kwargs)
-    
+
     def _set_margins(self, pagesize):
         self.pg_w, self.pg_h = pagesize
         self.lr_margin = 0.75*inch
@@ -125,13 +125,13 @@ class LetterPageTemplate(PageTemplate, SFUMediaMixin):
         c.setFont('DINPro', 6)
         c.setFillColor(doc.sfu_grey)
         self._drawStringLeading(c, 3.15*inch, 0.5*inch, u'Engaging the World'.upper(), charspace=2)
-        
+
 
 class LetterheadTemplate(LetterPageTemplate):
     def __init__(self, unit, *args, **kwargs):
         LetterPageTemplate.__init__(self, *args, **kwargs)
         self.unit = unit
-    
+
     def beforeDrawPage(self, c, doc):
         "Draw the letterhead before anything else"
         self._draw_header(c, doc)
@@ -187,12 +187,12 @@ class LetterheadTemplate(LetterPageTemplate):
             web = web[:-1]
         lines.append(web)
         self._put_lines(doc, c, lines, 6.25*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
-        
+
 
 class OfficialLetter(BaseDocTemplate, SFUMediaMixin):
     """
     Template for a letter on letterhead.
-    
+
     Implements "2009" version of letterhead in SFU graphic design specs: http://www.sfu.ca/clf/downloads.html
     """
     def __init__(self, filename, unit, pagesize=PAPER_SIZE, *args, **kwargs):
@@ -201,11 +201,11 @@ class OfficialLetter(BaseDocTemplate, SFUMediaMixin):
         kwargs['pageTemplates'] = [LetterheadTemplate(pagesize=pagesize, unit=unit), LetterPageTemplate(pagesize=pagesize)]
         BaseDocTemplate.__init__(self, filename, *args, **kwargs)
         self.contents = [] # to be a list of Flowables
-    
+
     def add_letter(self, letter):
         "Add the given LetterContents object to this document"
         self.contents.extend(letter._contents(self))
-    
+
     def write(self):
         "Write the PDF contents out"
         self.build(self.contents)
@@ -215,7 +215,7 @@ class OfficialLetter(BaseDocTemplate, SFUMediaMixin):
 class LetterContents(object):
     """
     Contents of a single letter.
-    
+
     to_addr_lines: the lines of the recipient's address (list of strings)
     from_name_lines: the sender's name (and title, etc) (list of strings)
     date: sending date of the letter (datetime.date object)
@@ -234,7 +234,7 @@ class LetterContents(object):
         self.use_sig = use_sig
         if paragraphs:
             self.add_paragraphs(paragraphs)
-        
+
         # styles
         self.line_height = 13
         self.content_style = ParagraphStyle(name='Normal',
@@ -250,7 +250,7 @@ class LetterContents(object):
                     ('TOPPADDING', (0,0), (-1,-1), 0),
                     ('BOTTOMPADDING', (0,0), (-1,-1), 0),
                     ])
-    
+
     def add_paragraph(self, text):
         "Add a paragraph (represented as a string) to the letter: used by OfficialLetter.add_letter"
         if text.startswith('||'):
@@ -265,7 +265,7 @@ class LetterContents(object):
     def add_paragraphs(self, paragraphs):
         "Add a list of paragraphs (strings) to the letter"
         [self.add_paragraph(paragraph) for paragraph in paragraphs]
-    
+
     def _contents(self, letter):
         "Builds of contents that can be added to a letter"
         contents = []
@@ -275,15 +275,15 @@ class LetterContents(object):
         contents.append(Paragraph(self.date.strftime('%B %d, %Y').replace(' 0', ' '), style))
         contents.append(Spacer(1, space_height))
         contents.append(NextPageTemplate(1)) # switch to non-letterhead on next page
-        
+
         for line in self.to_addr_lines:
             contents.append(Paragraph(line, style))
         contents.append(Spacer(1, 2*space_height))
-        
+
         for f in self.flowables[:-2]:
             # last paragraph is put in the KeepTogether below, to prevent bad page break
             contents.append(f)
-        
+
         # closing block (kept together on one page)
         close = []
         close.append(self.flowables[-2])
@@ -309,7 +309,7 @@ class LetterContents(object):
                 signature.append(Spacer(1, 4*space_height))
         else:
             signature.append(Spacer(1, 4*space_height))
-        
+
         for line in self.from_name_lines:
             signature.append(Paragraph(line, style))
 
@@ -325,8 +325,8 @@ class LetterContents(object):
             extra = [''] * (len(self.from_name_lines) + len(self.cosigner_lines[1:]))
             for l1,l2 in zip(self.from_name_lines+extra, self.cosigner_lines[1:]+extra):
                 if l1 or l2:
-                    data.append([Paragraph(l1, style), Paragraph(l2, style)])            
-            
+                    data.append([Paragraph(l1, style), Paragraph(l2, style)])
+
             sig_table = Table(data)
             sig_table.setStyle(TableStyle(
                     [('LEFTPADDING', (0,0), (-1,-1), 0),
@@ -337,11 +337,11 @@ class LetterContents(object):
             close.append(sig_table)
         else:
             close.extend(signature)
-        
+
         contents.append(KeepTogether(close))
         contents.append(NextPageTemplate(0)) # next letter starts on letterhead again
         contents.append(PageBreak())
-        
+
         return contents
 
 class MemoHead(Flowable, SFUMediaMixin):
@@ -453,7 +453,7 @@ class RAForm(object, SFUMediaMixin):
         if content:
             self.c.setFont(self.ENTRY_FONT, 12)
             self.c.drawString(x+3*mm, y+height-4.5*mm, content)
-        
+
 
     def draw_pdf(self, outfile):
         """
@@ -465,7 +465,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.translate(6*mm, 16*mm) # origin = bottom-left of the content
         self.c.setStrokeColor(black)
 
-        # SFU logo            
+        # SFU logo
         self.c.drawImage(logofile, x=0, y=247*mm, width=20*mm, height=10*mm)
         self.c.setFont('BemboMTPro', 10)
         self.c.setFillColor(self.sfu_red)
@@ -480,7 +480,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawCentredString(self.MAIN_WIDTH/2, 238*mm, "Payroll Appointment Form (PAF): For Non Affiliated Temporary Appointments")
         self.c.setFont("Helvetica", 5)
         self.c.drawCentredString(self.MAIN_WIDTH/2, 234.5*mm, "FOR GUIDE FOR THE COMPLETION OF PAYROLL APPOINTMENT FORM (PP4), PLEASE VISIT OUR PAYROLL WEBSITE CLICK HERE")
-        
+
         # type of employee checkboxes
         self.c.setLineWidth(0.5)
         self.c.rect(0, 198*mm, self.MAIN_WIDTH, 35.5*mm)
@@ -504,7 +504,7 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(72*mm, 202.5*mm, "Renewal after 2 years with Benefits")
         self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant", filled=(cat=='GRA'))
         self._checkbox(142*mm, 203*mm, text="National Scholarship", filled=(cat=='NS'))
-        
+
         # health/numbers
         if self.ra.medical_benefits:
             fills = [1, 0]
@@ -514,17 +514,17 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(1*mm, 193*mm, "Health Benefits")
         self._checkbox(1*mm, 187*mm, text="Yes, Eligible for Health Benefits", filled=fills[0])
         self._checkbox(1*mm, 182*mm, text="No, Not Eligible for Health Benefits", filled=fills[1])
-        
+
         self.c.setFont("Helvetica-Bold", 9)
         self.c.drawString(52*mm, 190*mm, "Social Insurance")
         self.c.drawString(137*mm, 190*mm, "SFUID")
-        
+
         self._box_entry(83*mm, 188*mm, 51*mm, 6.5*mm, content=unicode(self.ra.sin))
         self._box_entry(148*mm, 188*mm, 55*mm, 6.5*mm, content=unicode(self.ra.person.emplid))
-        
+
         self.c.setLineWidth(1)
         self.c.line(0, 181*mm, self.MAIN_WIDTH, 181*mm)
-        
+
         # personal/position details
         self.c.setFont("Helvetica", 9)
         self.c.drawString(3*mm, 176*mm, "Last Name")
@@ -536,13 +536,13 @@ class RAForm(object, SFUMediaMixin):
         if self.ra.person.middle_name:
             mi = self.ra.person.middle_name[0]
         self._box_entry(183*mm, 165*mm, 19*mm, 7.5*mm, content=mi)
-        
+
         self.c.setFont("Helvetica", 8)
         self.c.drawString(2.5*mm, 158*mm, "Department")
         self.c.drawString(117*mm, 158*mm, "Position Title")
         self._box_entry(30*mm, 156*mm, 83*mm, 6.5*mm, content=self.ra.unit.informal_name())
         self._box_entry(136*mm, 156*mm, 66*mm, 6.5*mm, content=unicode(self.ra.account.title))
-        
+
         # position numbers
         self.c.setFont("Helvetica", 7)
         self.c.drawString(1.5*mm, 148*mm, "Fund (2 digit)")
@@ -555,7 +555,7 @@ class RAForm(object, SFUMediaMixin):
         self._box_entry(66*mm, 139*mm, 38*mm, 6.5*mm, content="%06i" % (self.ra.project.project_number))
         self._box_entry(110*mm, 139*mm, 29*mm, 6.5*mm, content="%06i" % (self.ra.account.account_number))
         self._box_entry(150*mm, 139*mm, 48*mm, 6.5*mm, content='')
-        
+
         # dates
         self.c.setFont("Helvetica", 8)
         self.c.drawString(1.5*mm, 133*mm, "Start Date")
@@ -593,12 +593,12 @@ class RAForm(object, SFUMediaMixin):
         self._box_entry(1.5*mm, 117*mm, 61*mm, 6.5*mm, content=hourly)
         self._box_entry(72.5*mm, 117*mm, 61*mm, 6.5*mm, content=biweekly)
         self._box_entry(141.5*mm, 117*mm, 61*mm, 6.5*mm, content=lumpsum)
-        
+
         # Hours
         self.c.setFont("Helvetica", 5)
         self.c.drawString(2*mm, 112*mm, "Enter Hourly Rate if paid by the hour. Enter bi-weekly rate")
         self.c.drawString(2*mm, 109.5*mm, "if salary. DO NOT ENTER BOTH")
-        
+
         self.c.drawString(81*mm, 113*mm, "Bi-weekly Hours -")
         self.c.drawString(81*mm, 110.5*mm, "must reflect number")
         self.c.drawString(81*mm, 108*mm, "of hours worked on")
@@ -609,15 +609,15 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(108*mm, 109.5*mm, "Minutes")
         self.c.drawString(172*mm, 112*mm, "Hours and")
         self.c.drawString(173*mm, 109.5*mm, "Minutes")
-        
+
         self._box_entry(103*mm, 101*mm, 15.5*mm, 8*mm, content=biweekhours)
         self._box_entry(168*mm, 101*mm, 15.5*mm, 8*mm, content=lumphours)
-        
+
         self.c.setFont("Helvetica", 5)
         self.c.drawString(1.5*mm, 96*mm, "Notes:")
         self.c.drawString(23*mm, 96*mm, "Bi-Weekly employment earnings rate must include vacation pay. Hourly rates will automatically have vacation pay added. The employer cost of the statutory benefits will be charged to the account in")
         self.c.drawString(23*mm, 93*mm, "addition to the earnings rate. Bi-weekly hours must reflect the number of hours worked and must meet legislative requirements for minimum wage.")
-        
+
         # Commments
         self.c.setFont("Helvetica", 9)
         self.c.drawString(2*mm, 81.5*mm, "Comments:")
@@ -634,7 +634,7 @@ class RAForm(object, SFUMediaMixin):
         notes.append(Spacer(1, 8))
         notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
-        
+
         self.c.setFont("Helvetica", 7.5)
         self.c.drawString(2.5*mm, 72*mm, "As signing authority, I certify that the appointment and its applicable benefits are eligible and for the purpose of the funding. Furthermore, the appointment is NOT for a")
         self.c.drawString(2.5*mm, 68.5*mm, "family member of the account holder or signing authority. If a family member relationship exists then additional approvals must be attached in accordance with policies")
@@ -652,14 +652,14 @@ class RAForm(object, SFUMediaMixin):
         self.c.drawString(2*mm, 32.5*mm, "Prepared by/Conact")
         self.c.drawString(2*mm, 29*mm, "Person (Phone no.)")
         self.c.drawString(2*mm, 19*mm, "Date")
-        
+
         self._box_entry(35.5*mm, 49.5*mm, 60*mm, 6*mm, content='')
         self._box_entry(35.5*mm, 41*mm, 60*mm, 6*mm, content='')
         self._box_entry(35.5*mm, 25*mm, 60*mm, 14*mm, content='')
         self._box_entry(35.5*mm, 17*mm, 60*mm, 6*mm, content='')
         self._box_entry(132*mm, 49.5*mm, 60*mm, 6*mm, content='')
         self._box_entry(132*mm, 41*mm, 60*mm, 6*mm, content='')
-        
+
         # footer
         self.c.setFont("Helvetica-Bold", 9)
         self.c.drawCentredString(self.MAIN_WIDTH/2, 12*mm, "PAYROLL WILL ONLY PROCESS COMPLETED FORMS")
@@ -698,15 +698,15 @@ class RAForm_old(object):
 
     def __init__(self, ra):
         self.ra = ra
-    
+
     def _draw_box_right(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET, tick=False):
         self._draw_box_left(x=self.MAIN_WIDTH - x - width - self.BOX_OFFSET, y=y, label=label,
                             content=content, width=width, tick=tick)
-        
+
     def _draw_box_left(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET, tick=False):
         """
         Draw one text entry box with the above parameters.
-        
+
         "width" parameter should include one BOX_OFFSET
         """
         # box/tickmark
@@ -719,22 +719,22 @@ class RAForm_old(object):
         # label
         self.c.setFont("Helvetica", 6)
         self.c.drawString(x + self.BOX_OFFSET + self.LABEL_OFFSET, y - self.BOX_OFFSET - self.LABEL_HEIGHT, label)
-        
+
         # content
         self.c.setFont("Helvetica-Bold", 12)
         self.c.drawString(x + self.BOX_OFFSET + 2*self.LABEL_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE + self.DATA_BUMP, content)
-    
+
     def _rule(self, height):
         self.c.setLineWidth(2)
         self.c.line(0, height, self.MAIN_WIDTH, height)
-    
+
     def _signature_line(self, x, y, width, label):
         self.c.setLineWidth(1)
         self.c.line(x, y, x+width, y)
         self.c.setFont("Helvetica", 6)
         self.c.drawString(x, y-7, label)
-        
-    
+
+
     def draw_pdf(self, outfile):
         """
         Generates PDF in the file object (which could be a Django HttpResponse).
@@ -744,11 +744,11 @@ class RAForm_old(object):
 
         # draw form
         self.c.translate(0.5*inch, 2.25*inch) # origin = lower-left of the main box
-    
+
         self.c.setStrokeColor(black)
         self.c.setLineWidth(2)
         self.c.rect(0, 0, self.MAIN_WIDTH, self.MAIN_HEIGHT)
-        
+
         self.c.setFont("Helvetica", 10)
         self.c.drawCentredString(4*inch, 8.25*inch, "SIMON FRASER UNIVERSITY")
         self.c.setFont("Helvetica-Bold", 14)
@@ -757,7 +757,7 @@ class RAForm_old(object):
         self.c.drawImage(logofile, x=0.5*inch, y=7.75*inch, width=1*inch, height=0.5*inch)
         self.c.setFont("Helvetica", 6)
         self.c.drawCentredString(4*inch, 7.6*inch, "PLEASE SEE GUIDE TO THE COMPLETION OF APPOINTMENT FOR FPP4")
-        
+
         # SIN
         if self.ra.sin:
             sin = "%09i" % (self.ra.sin)
@@ -770,24 +770,24 @@ class RAForm_old(object):
         emplid = unicode(self.ra.person.emplid)
         emplid = emplid[:5] + '-' + emplid[5:]
         self._draw_box_right(0, self.MAIN_HEIGHT, width=3.375*inch, label="SFU ID #", content=emplid)
-        
+
         # names
         self._draw_box_left(0, self.MAIN_HEIGHT - self.ENTRY_HEIGHT, label="LAST OR FAMILY NAME", content=self.ra.person.last_name)
         self._draw_box_left(0, self.MAIN_HEIGHT - 2*self.ENTRY_HEIGHT, label="FIRST NAME", content=self.ra.person.first_name)
-        
+
         height = 5.875*inch
         self._rule(height)
-        
+
         # position
         self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content='') # to be filled by HR
         self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=unicode(self.ra.account.title))
-        
+
         # department
         dept = self.ra.unit.informal_name()
         if self.ra.unit.deptid():
             dept += " (%s)" % (self.ra.unit.deptid())
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=dept)
-        
+
         # fund/project/account
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3.75*inch, label="FUND", content="%i" % (self.ra.project.fund_number))
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3*inch,
@@ -797,12 +797,12 @@ class RAForm_old(object):
 
         height = 4.75*inch
         self._rule(height)
-        
+
         # dates
         self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=unicode(self.ra.start_date).replace('-', '/'))
         self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=unicode(self.ra.end_date).replace('-', '/'))
 
-        # health benefit check boxes        
+        # health benefit check boxes
         self.c.setLineWidth(1)
         self.c.setFont("Helvetica", 6)
         if self.ra.medical_benefits:
@@ -813,7 +813,7 @@ class RAForm_old(object):
         self.c.drawString(5*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 0.5*self.CHECK_SIZE - 3, "Yes, Eligible for Health Benefits")
         self.c.rect(5*inch, height - self.BOX_OFFSET - 2.5*self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[1])
         self.c.drawString(5*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 2*self.CHECK_SIZE - 3, "Not Eligible for Health Benefits")
-        
+
         # pay
         if self.ra.pay_frequency == 'L':
             hourly = ''
@@ -831,18 +831,18 @@ class RAForm_old(object):
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=2.125*inch, label="HOURLY", content=hourly)
         self._draw_box_left(3*inch, height - self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content=biweekly)
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=2.25*inch, label="LUMP SUM ADJUSTMENT", content='')
-        
+
         self._draw_box_left(3*inch, height - 2*self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY HOURS", content=hours)
         self._draw_box_left(self.MAIN_WIDTH - self.BOX_OFFSET - 2.25*inch, height - 2*self.ENTRY_HEIGHT, width=1*inch, label="LUMP SUM", content=lumpsum)
-        
+
         self.c.setFont("Helvetica-Bold", 8)
         self.c.drawString(self.BOX_OFFSET, height - 1.125*inch, "Enter Hourly Rate if Paid by the hour.")
         self.c.drawString(self.BOX_OFFSET, height - 1.125*inch - 9, "Enter Biweekly rate if salary.  DO NOT")
         self.c.drawString(self.BOX_OFFSET, height - 1.125*inch - 18, "ENTER BOTH.")
-        
+
         height = 3*inch
         self._rule(height)
-        
+
         # appointment type checkboxes
         if self.ra.hiring_category == 'U':
             fills = [0,0,1,0]
@@ -854,7 +854,7 @@ class RAForm_old(object):
             fills = [1,0,0,0]
         else:
             fills = [0,0,0,0]
-        
+
         self.c.setLineWidth(1)
         self.c.setFont("Helvetica", 6)
         self.c.rect(0.75*inch, height - self.BOX_OFFSET - self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[0])
@@ -865,17 +865,17 @@ class RAForm_old(object):
         self.c.drawString(4*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 2.5*self.CHECK_SIZE - 3, "UNDERGRAD STUDENT")
         self.c.rect(4*inch, height - self.BOX_OFFSET - 5*self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[3])
         self.c.drawString(4*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 4.5*self.CHECK_SIZE - 3, "NON STUDENT")
-        
+
         height = 2.25*inch
         self._rule(height)
-        
+
         # notes
         self.c.setFont("Helvetica", 6)
         self.c.drawString(self.BOX_OFFSET, height - self.LABEL_HEIGHT, "NOTES:")
         self.c.setFont("Helvetica", 4)
         self.c.drawString(1.25*inch, height - 7, "BI-WEEKLY EMPLOYMENT EARNINGS RATE MUST INCLUDE VACATION PAY. HOURLY RATES WILL AUTOMATICALLY HAVE VACATION PAY ADDED.")
         self.c.drawString(1.25*inch, height - 12, "THE EMPLOYER COST OF STATUTORY BENEFITS WILL BE CHARGED TO THE ACCOUNT IN ADDITION TO THE EARNINGS RATE.")
-        
+
         f = Frame(self.BOX_OFFSET, height - 1.125*inch, self.MAIN_WIDTH - 2*self.BOX_OFFSET, 1*inch) # showBoundary=1
         notes = []
         if self.ra.pay_frequency != 'L':
@@ -889,7 +889,7 @@ class RAForm_old(object):
 
         height = 1.125*inch
         self._rule(height)
-        
+
         # signatures
         self._signature_line(self.BOX_OFFSET, height - 0.325*inch, 2*inch, "SIGNING AUTHORITY")
         self._signature_line(3.125*inch, height - 0.325*inch, 1.125*inch, "FINANCIAL SERVICES")
@@ -897,7 +897,7 @@ class RAForm_old(object):
         self._signature_line(self.BOX_OFFSET, height - 0.75*inch, 2*inch, "DATE")
         self._signature_line(3.125*inch, height - 0.75*inch, 1.125*inch, "DATE")
         self._signature_line(5.5*inch, height - 0.75*inch, 1.25*inch, "DATE")
-        
+
         # footer
         self.c.setFont("Helvetica", 4)
         height = 0
@@ -909,7 +909,7 @@ class RAForm_old(object):
 
         self.c.setFont("Helvetica-Bold", 6)
         self.c.drawString(0, height-50, "REVISED Nov 2004 (produced by CourSys RAForm)")
-        
+
         self.c.showPage()
         self.c.save()
 
@@ -923,6 +923,9 @@ def ra_form(ra, outfile):
 
 
 class TAForm(object):
+    """
+    For for HR to appoint a TA
+    """
     BOX_HEIGHT = 0.25*inch
     LABEL_RIGHT = 2
     LABEL_UP = 2
@@ -942,16 +945,16 @@ class TAForm(object):
         Create TA Appointment Form(s) in the file object (which could be a Django HttpResponse).
         """
         self.c = canvas.Canvas(outfile, pagesize=letter)
-    
+
     def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
         height = self.BOX_HEIGHT
         self.c.setLineWidth(1)
         self.c.rect(x, y, width, height)
-        
+
         if label:
             self.c.setFont("Helvetica", label_size)
             self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
-        
+
         if content:
             self.c.setFont("Helvetica", content_size)
             if right:
@@ -959,10 +962,58 @@ class TAForm(object):
             else:
                 self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
 
-    def draw_form(self, contract):
+
+    def draw_form_cmptcontract(self, contract):
         """
-        Generates form for this contract
+        Draw the form for an old-style CMPT only contract (ta module)
         """
+        initial_appointment_fill = 0
+        if contract.appt == "INIT":
+            initial_appointment_fill = 1
+        reappointment_fill = 0
+        if contract.appt == "REAP":
+            reappointment_fill = 1
+
+        courses = []
+        for crs in contract.tacourse_set.filter(bu__gt=0):
+            courses.append((
+                crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
+                crs.description.description,
+                crs.total_bu,
+                crs.bu,
+            ))
+
+        return self.draw_form(
+            emplid=contract.application.person.emplid,
+            sin=contract.sin,
+            last_name=contract.application.person.last_name,
+            first_name=contract.application.person.first_name,
+            unit_name=contract.application.posting.unit.informal_name(),
+            deptid=contract.application.posting.unit.deptid(),
+            pay_start=contract.pay_start,
+            pay_end=contract.pay_end,
+            initial_appointment_fill=initial_appointment_fill,
+            reappointment_fill=reappointment_fill,
+            position_number=contract.position_number.position_number,
+            courses=courses,
+            appt_category=contract.appt_category,
+            appt_cond=contract.appt_cond,
+            payperiods=contract.posting.payperiods(),
+            pay_per_bu=contract.pay_per_bu,
+            scholarship_per_bu=contract.scholarship_per_bu,
+            remarks=contract.remarks,
+            sigs=Signature.objects.filter(user__userid=contract.created_by),
+        )
+
+    def draw_form_contract(self, contract):
+        """
+        Draw the form for an new-style contract (tacontract module)
+        """
+        return self.draw_form()
+
+    def draw_form(self, emplid, sin, last_name, first_name, unit_name, deptid, pay_start, pay_end,
+                  initial_appointment_fill, reappointment_fill, position_number, courses, appt_category,
+                  appt_cond, payperiods, pay_per_bu, scholarship_per_bu, remarks, sigs):
         self.c.setStrokeColor(black)
         self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
         main_width = 7.25*inch
@@ -972,7 +1023,7 @@ class TAForm(object):
         self.c.setFont("Helvetica-Bold", 9)
         self.c.drawString(main_width/2 + 1*inch, 233*mm, "SIMON FRASER UNIVERSITY")
         self.c.drawRightString(main_width/2 - 1*inch, 233*mm, "Teaching Assistant Appointment Form")
-        
+
         # main outline
         self.c.setStrokeColor(black)
         self.c.setLineWidth(2)
@@ -987,33 +1038,31 @@ class TAForm(object):
         self.c.drawPath(p, stroke=1, fill=0)
 
         # personal info
-        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(contract.application.person.emplid))
-        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(contract.sin))
-        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(contract.application.person.last_name))
-        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(contract.application.person.first_name))
-        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(contract.application.posting.unit.name)) # ADDRESS
+        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode())
+        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(sin))
+        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(last_name))
+        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(first_name))
+
+        self.c.setFont("Helvetica", self.LABEL_SIZE)
+        self.c.drawString(35*mm, 205*mm, "THE DEPARTMENT HAS CONFIRMED THAT THE ABOVE APPOINTEE IS ELIGIBLE TO WORK IN CANADA")
+        self.c.rect(150*mm, 203*mm, 5*mm, 5*mm, fill=True)
+
+        self.c.translate(0, -7*mm) # translate to make room for the new employment eligibility line
+        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(unit_name)) # ADDRESS
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(2, 206*mm, "HOME")
         self.c.drawString(2, 203*mm, "ADDRESS")
-        
+
         # appointment basic info
         self.c.drawString(2, 194*mm, "DEPARTMENT")
-        dept = unicode(contract.application.posting.unit.informal_name())
-        if contract.application.posting.unit.deptid():
-            dept += " (%s)" % (contract.application.posting.unit.deptid())
+        dept = unicode(unicode(unit_name))
+        if deptid:
+            dept += " (%s)" % (deptid)
         self._draw_box(20*mm, 193*mm, 78*mm, content=dept) # DEPARTMENT
-        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(contract.pay_start))
-        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(contract.pay_end))
-        
-        # initial appointment boxes
-        
-        initial_appointment_fill = 0
-        if contract.appt == "INIT":
-            initial_appointment_fill = 1
-        reappointment_fill = 0
-        if contract.appt == "REAP":
-            reappointment_fill = 1
+        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(pay_start))
+        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(pay_end))
 
+        # initial appointment boxes
         self.c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=initial_appointment_fill)
         self.c.rect(14*mm, 176*mm, 5*mm, 5*mm, fill=reappointment_fill)
         self.c.setFont("Helvetica", self.LABEL_SIZE)
@@ -1024,10 +1073,11 @@ class TAForm(object):
         self.c.drawString(21*mm, 177*mm, "NUMBER OR REVISION TO APPOINTMENT")
 
         # position info
-        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=unicode(contract.position_number.position_number))
-        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=unicode(contract.pay_start))
-        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=unicode(contract.pay_end))
-        
+        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=unicode(position_number))
+        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=unicode(pay_start))
+        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=unicode(pay_end))
+
+
         # course assignment headers
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
         self.c.drawString(1*mm, 168*mm, "ASSIGNMENT")
@@ -1040,8 +1090,8 @@ class TAForm(object):
         self.c.drawString(56*mm, 169*mm, "DESCRIPTION")
         self.c.drawString(132*mm, 169*mm, "BASE UNITS")
 
+
         # course assignments
-        courses = contract.tacourse_set.filter(bu__gt=0)
         total_bu = 0
         bu = 0
         for i, crs in zip(range(5), list(courses)+[None]*5):
@@ -1049,26 +1099,26 @@ class TAForm(object):
             self.c.rect(24*mm, h, 27*mm, 6*mm)
             self.c.rect(51*mm, h, 74*mm, 6*mm)
             self.c.rect(125*mm, h, 23*mm, 6*mm)
-            
+
             self.c.setFont("Helvetica", self.CONTENT_SIZE-2)
             if crs:
-                self.c.drawString(25*mm, h + 1*mm, crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2])
-                self.c.drawString(52*mm, h + 1*mm, crs.description.description)
-                self.c.drawRightString(147*mm, h + 1*mm, "%.2f" % (crs.total_bu))
-                bu += crs.bu
-                total_bu += crs.total_bu
-        
+                self.c.drawString(25*mm, h + 1*mm, crs[0])
+                self.c.drawString(52*mm, h + 1*mm, crs[1])
+                self.c.drawRightString(147*mm, h + 1*mm, "%.2f" % (crs[2]))
+                bu += crs[3]
+                total_bu += crs[2]
+
         self.c.rect(125*mm, 132*mm, 23*mm, 6*mm)
         self.c.drawRightString(147*mm, 133*mm, "%.2f" % (total_bu))
-        
-        self._draw_box(153*mm, 155*mm, 22*mm, label="APPT. CATEGORY", content=contract.appt_category)
-            
+
+        self._draw_box(153*mm, 160*mm, 22*mm, label="APPT. CATEGORY", content=appt_category)
+        self._draw_box(153*mm, 145*mm, 22*mm, label="Cond. upon Enrol?", content="Yes" if appt_cond else "No")
+
         # salary/scholarship
-        pp = contract.posting.payperiods()
-        total_pay = total_bu*contract.pay_per_bu
-        biweek_pay = total_pay/pp
-        total_schol = bu*contract.scholarship_per_bu
-        biweek_schol = total_schol/pp
+        total_pay = total_bu*pay_per_bu
+        biweek_pay = total_pay/payperiods
+        total_schol = bu*scholarship_per_bu
+        biweek_schol = total_schol/payperiods
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
         self.c.drawString(8*mm, 123*mm, "SALARY")
         self.c.drawString(1*mm, 112*mm, "SCHOLARSHIP")
@@ -1082,70 +1132,33 @@ class TAForm(object):
         self._draw_box(33*mm, 111*mm, 32*mm, label="BIWEEKLY RATE", right=True, content="%.2f" % (biweek_schol))
         self._draw_box(79*mm, 111*mm, 32*mm, label="SEMESTER RATE", right=True, content="%.2f" % (total_schol))
 
-        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=unicode(contract.pay_start))
+        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=unicode(pay_start))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(114*mm, 125*mm, "THESE RATES INCLUDE 4%")
         self.c.drawString(114*mm, 123*mm, "VACATION PAY")
-        
+
         # remarks
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
         self.c.drawString(1*mm, 103*mm, "REMARKS")
-        f = Frame(3*mm, 82*mm, main_width - 6*mm, 22*mm) #, showBoundary=1 
+        f = Frame(3*mm, 82*mm, main_width - 6*mm, 22*mm) #, showBoundary=1
         notes = []
-        notes.append(Paragraph(contract.remarks, style=self.NOTE_STYLE))
+        notes.append(Paragraph(remarks, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
 
-        # instructions
-        self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
-        self.c.drawString(5*mm, 78*mm, "INSTRUCTIONS TO THE APPOINTEE")
-        self.c.setLineWidth(1)
-        self.c.line(0, 76*mm+self.BOX_HEIGHT, main_width, 76*mm+self.BOX_HEIGHT)
-        self.c.setFont("Helvetica", self.LABEL_SIZE)
-        self.c.drawString(100*mm, 78*mm, "DEADLINE FOR ACCEPTANCE")
-        self._draw_box(139*mm, 76*mm, 32*mm, label="", content=unicode(contract.deadline))
-        
+        self.c.translate(0, 7*mm) # translate back for the un-moved content
 
-        self.c.setFont("Helvetica", 6)
-        self.c.drawString(5*mm, 71*mm, "1. a) This offer of appointment is conditional upon you accepting this appointment by signing and dating this appointment form (see bottom right hand corner box) and returning the signed")
-        self.c.drawString(5*mm, 71*mm - 7, "form to the Dean's Office by the deadline for acceptance above.")
-        self.c.drawString(5*mm, 71*mm - 14, "1. b) If this is an initial appointment in the TSSU bargaining unit, then as a condition of employment under the terms of the Colletive Agreement you must complete and sign the first two")
-        self.c.drawString(5*mm, 71*mm - 21, 'sections of the attached form entitled "Appendix A to Article IV Dues and Union Membership or Non Membership" and return it with this appointment form.')
-        
-        self.c.drawString(5*mm, 60*mm, "2. Citizenship        Please complete a) or b) below")
-        self.c.drawString(10*mm, 60*mm - 7, "a) First appointment in the category. Please check the box which indicates your status.")
-        
-        self.c.drawString(15*mm, 53*mm, "i Canadian citizen")
-        self.c.drawString(56*mm, 53*mm, "ii Permanent Resident")
-        self.c.drawString(98*mm, 53*mm, "iii Work or Study Permit*")
-        self.c.drawString(131*mm, 53*mm, "* Please attach copy to this form.")
-        self.c.rect(37*mm, 52*mm, 3*mm, 3*mm)
-        self.c.rect(80*mm, 52*mm, 3*mm, 3*mm)
-        self.c.rect(125*mm, 52*mm, 3*mm, 3*mm)
-        
-        self.c.drawString(10*mm, 49*mm, "b) Reappointment to this category")
-        self.c.drawString(15*mm, 49*mm - 10, "i Has your citizenship status changed since your last appointment?")
-        self.c.drawString(112*mm, 49*mm - 10, "No")
-        self.c.drawString(130*mm, 49*mm - 10, "Yes")
-        self.c.drawString(142*mm, 49*mm - 10, "Explain")
-        self.c.rect(116*mm, 48*mm - 10, 3*mm, 3*mm)
-        self.c.rect(135*mm, 48*mm - 10, 3*mm, 3*mm)
-        
-        self.c.drawString(15*mm, 49*mm - 20, "ii If you hold an employment authorization, please attach a copy to this form when you return it.")
-        self.c.drawString(15*mm, 49*mm - 30, "N.B. If you are a student and an employee, and are not a Canadian citizen or permanent resident, you are required to hold a valid work or study permit.")
-        
-        self.c.drawString(5*mm, 32*mm, "3. Please check the box at the top of this form containing the Social Insurance No. If it is empty or incorrect, please provide the correct SIN#.")
-        self.c.drawString(5*mm, 28*mm, "4. If you do not wish to accept this offer of appointment, please advise the department as soon as possible. If you have not accepted this appointment by the deadline shown above, it will")
-        self.c.drawString(5*mm, 28*mm - 7, "be assumed that you have declined the offer of appointment")
+        self.c.line(0, 75*mm, main_width, 75*mm)
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(3*mm, 70*mm, "INSTRUCTIONS:")
+        self.c.drawString(3*mm, 63*mm, "DEPARTMENT:")
+        self.c.drawString(3*mm, 59*mm, "This form is to be forwarded to Payroll for processing once the employee has confirmed (by email) their acceptance of the offer of")
+        self.c.drawString(3*mm, 55*mm, "employment and upon the approval of the appropriate departmental signing authority.")
+        self.c.drawString(3*mm, 45*mm, "APPOINTEE:")
+        self.c.drawString(3*mm, 41*mm, "If this is an initial appointment in the TSSU bargaining unit, then as a condition of employment under the terms of the Collective")
+        self.c.drawString(3*mm, 37*mm, 'Agreement you must complete and sign the first two sections of the form entitled "Appendix A to Article IV Dues and Union')
+        self.c.drawString(3*mm, 33*mm, 'Membership or Non Membership" and return it with this appointment form.')
 
-        self.c.drawString(15*mm, 20*mm, "Appointment conditional upon enrolment")
-        fill = 1 if contract.appt_cond else 0
-        self.c.rect(59*mm, 19*mm, 3*mm, 3*mm, fill=fill)
-        self.c.drawString(79*mm, 20*mm, "Appointment in TSSU Bargaining unit")
-        fill = 1 if contract.appt_tssu else 0
-        self.c.rect(120*mm, 19*mm, 3*mm, 3*mm, fill=fill)
-        
         # signatures
-        sigs = Signature.objects.filter(user__userid=contract.created_by)
         if sigs:
             import PIL
             sig = sigs[0]
@@ -1163,19 +1176,17 @@ class TAForm(object):
         self.c.line(0, 9*mm, main_width, 9*mm)
         self.c.line(60*mm, 18*mm, 60*mm, 0)
         self.c.line(120*mm, 18*mm, 120*mm, 0)
-        
+
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(1*mm, 16*mm, "APPROVAL BY DEPARTMENT")
         self.c.drawString(61*mm, 16*mm, "APPROVED BY FACULTY")
-        self.c.drawString(121*mm, 16*mm, "ACCEPTED BY APPOINTEE")
         self.c.drawString(1*mm, 1*mm, "DATE")
         self.c.drawString(61*mm, 1*mm, "DATE")
-        self.c.drawString(121*mm, 1*mm, "DATE")
-        
+
         self.c.setFont("Helvetica", self.CONTENT_SIZE)
         date = datetime.date.today()
         self.c.drawString(10*mm, 2*mm, unicode(date))
-        
+
         # footer
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(1*mm, -3*mm, "ORIGINAL: DEAN     COPY : EMPLOYEE     COPY : DEPARTMENT     COPY : UNION (IF TSSU APP'T)     COPY: PAYROLL")
@@ -1187,28 +1198,38 @@ class TAForm(object):
         self.c.drawString(1*mm, -5*mm - 20, "IF YOU HAVE ANY QUESTIONS ABOUT THE COLLECTION AND USE OF THIS INFORMATION, PLEASE CONTACT THE SIMON FRASER UNIVERSITY PAYROLL SUPERVISOR.")
 
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
-        self.c.drawString(1*mm, -18*mm, "Updated December 2004 (produced by CourSys TAForm)")
+        self.c.drawString(1*mm, -18*mm, "Updated October 2014 (produced by CourSys TAForm)")
 
         self.c.showPage()
-    
+
     def save(self):
         self.c.save()
 
+
+
 def ta_form(contract, outfile):
     """
-    Generate TA Appointment Form for this TAContract.
+    Generate TA Appointment Form for this TAContract (ta module).
     """
     doc = TAForm(outfile)
-    doc.draw_form(contract)
+    doc.draw_form_cmptcontract(contract)
     doc.save()
 
 def ta_forms(contracts, outfile):
     """
-    Generate TA Appointment Forms for this list of TAContracts (in one PDF)
+    Generate TA Appointment Forms for this list of TAContracts (ta module) in one PDF
     """
     doc = TAForm(outfile)
     for c in contracts:
-        doc.draw_form(c)
+        doc.draw_form_cmptcontract(c)
+    doc.save()
+
+def tacontract_form(contract, outfile):
+    """
+    Generate TA Appointment Form for this TAContract (tacontract module).
+    """
+    doc = TAForm(outfile)
+    doc.draw_form_contract(contract)
     doc.save()
 
 
@@ -1216,7 +1237,7 @@ class GradeChangeForm(SFUMediaMixin):
     def __init__(self, outfile):
         self._media_setup()
         self.c = canvas.Canvas(outfile, pagesize=letter)
-    
+
     def title_font(self):
         self.c.setFont("DINPro-Bold", 8.5)
     def label_font(self):
@@ -1225,7 +1246,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.c.setFont("Helvetica-Bold", 15)
     def entry_font_small(self):
         self.c.setFont("Helvetica-Bold", 12)
-    
+
     def check_label(self, x, y, label, fill=0):
         self.label_font()
         self.c.rect(x, y, 3*mm, 3*mm, fill=0)
@@ -1251,7 +1272,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.title_font()
         self.c.drawString(121*mm, 228*mm, u"CHANGE OF GRADE NOTIFICATION")
         self.c.drawString(121*mm, 224*mm, u'AND/OR EXTENSION OF "DE" GRADE')
-        
+
         # student info
         self.title_font()
         self.c.drawString(0, 210*mm, u"SFU STUDENT NUMBER")
@@ -1275,7 +1296,7 @@ class GradeChangeForm(SFUMediaMixin):
         #if member.person.pref_first_name:
         #    fname += ' (' + member.person.pref_first_name + ')'
         self.c.drawString(115*mm, 196*mm, fname)
-        
+
         # term info
         name = str(member.offering.semester.name)
         year = 1900 + int(name[0:3])
@@ -1295,7 +1316,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.entry_font()
         self.c.drawString(10*mm, 184*mm, unicode(year))
         self.c.drawString(148*mm, 185*mm, unicode(name))
-        
+
         # course info
         self.title_font()
         self.c.drawString(0, 175*mm, u"COURSE")
@@ -1316,7 +1337,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.c.drawString(35*mm, 159*mm, member.offering.section)
         self.entry_font_small()
         self.c.drawString(98*mm, 160*mm, member.offering.title)
-        
+
         # grade change
         self.title_font()
         self.c.drawString(0, 149*mm, u"IF CHANGE OF GRADE:")
@@ -1329,11 +1350,11 @@ class GradeChangeForm(SFUMediaMixin):
         if oldgrade:
             old = oldgrade
         else:
-            old = u'' 
+            old = u''
         if newgrade:
             new = newgrade
         else:
-            new = u'' 
+            new = u''
         self.c.drawString(25*mm, 141*mm, old)
         self.c.drawString(69*mm, 141*mm, new)
 
@@ -1348,7 +1369,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.c.line(86*mm, 127*mm, 103*mm, 127*mm)
         self.c.drawString(105*mm, 127*mm, u"Day (DD)")
         self.c.line(118*mm, 127*mm, 136*mm, 127*mm)
-        
+
         # reasons
         self.title_font()
         self.c.drawString(0, 120*mm, u"REASON FOR CHANGE OF GRADE/EXTENION OF \u201CDE\u201D GRADE")
@@ -1364,7 +1385,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.check_label(95*mm, 86*mm, 'No', fill=0)
         self.check_label(76*mm, 80*mm, 'Yes', fill=0)
         self.check_label(95*mm, 80*mm, 'No', fill=0)
-        
+
         # approvals
         self.title_font()
         self.c.drawString(0, 72*mm, u"APPROVALS")
@@ -1400,7 +1421,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.c.line(35*mm, 15*mm, 122*mm, 15*mm)
         self.c.drawString(124*mm, 15*mm, u"Date")
         self.c.line(131*mm, 15*mm, main_width, 15*mm)
-        
+
         # footer
         self.c.setFont("BemboMTPro", 7.5)
         self.c.drawString(43*mm, 6*mm, u"Information, Records and Registration, MBC 3200")
@@ -1411,7 +1432,7 @@ class GradeChangeForm(SFUMediaMixin):
         self.c.drawString(154*mm, 6*mm, u"NOVEMBER".translate(self.sc_trans_bembo) + u" " + u"2009".translate(self.digit_trans))
         self.c.drawString(154*mm, 3*mm, u"(produced by CourSys")
         self.c.drawString(154*mm, 0*mm, u"GradeChangeForm)")
-        
+
 
 
 
@@ -1738,7 +1759,7 @@ class CardReqForm_old(object):
             self.c.line(x, y, x+3*mm, y+3*mm)
             self.c.line(x+3*mm, y, x, y+3*mm)
         self.c.drawString(x+8*mm, y, label)
-                
+
 
     def draw_form(self, grad):
         """
@@ -1750,7 +1771,7 @@ class CardReqForm_old(object):
         self.c.setStrokeColor(black)
         self.c.setFillColor(black)
         self.c.setLineWidth(self.LINE_WIDTH)
-        
+
         # top header
         self.title_font()
         self.c.drawString(0*mm, 251*mm, u"SIMON FRASER UNIVERSITY")
@@ -1761,7 +1782,7 @@ class CardReqForm_old(object):
             self.c.line(118*mm + i*47.0/6*mm, 250*mm, 118*mm + i*47.0/6*mm, 256.5*mm)
         self.check_label(118*mm, 244*mm, u'New Issue', fill=True)
         self.check_label(118*mm, 238*mm, u'Addendum')
-        
+
         # basic info
         self.label_font()
         self.c.drawString(0, 235*mm, 'Department:')
@@ -1772,13 +1793,13 @@ class CardReqForm_old(object):
         self.c.line(28*mm, 217.5*mm, 89*mm, 217.5*mm)
         self.c.drawString(0, 212*mm, 'ID No.:')
         self.c.line(14*mm, 212*mm, 89*mm, 212*mm)
-        
+
         self.entry_font()
         self.c.drawString(29*mm, 236*mm, grad.program.unit.informal_name())
         self.c.drawString(29*mm, 224*mm, grad.person.last_name)
         self.c.drawString(29*mm, 218.5*mm, grad.person.first_name)
         self.c.drawString(29*mm, 213*mm, unicode(grad.person.emplid))
-        
+
         # traffic and security use box
         self.title_font()
         self.c.setLineWidth(self.LINE_WIDTH)
@@ -1796,21 +1817,21 @@ class CardReqForm_old(object):
         self.c.line(135*mm, 213*mm, 161*mm, 213*mm)
 
         self.c.line(0, 208*mm, main_width, 208*mm)
-        
+
         # charge to/refund
         self.title_font()
         self.c.drawString(0*mm, 196.5*mm, 'CHARGE TO:')
         self.c.drawString(0*mm, 190*mm, 'Individual')
         self.c.drawString(50*mm, 190*mm, 'Department')
         self.c.drawString(110*mm, 196.5*mm, 'REFUND:')
-        
+
         self.check_label(0*mm, 182*mm, u'Deposit', fill=True)
         self.check_label(0*mm, 174.5*mm, u'Service Charge')
         self.check_label(50*mm, 182*mm, u'Deposit')
         self.check_label(50*mm, 174.5*mm, u'Service Charge', fill=True)
         self.check_label(110*mm, 182*mm, u'Individual', fill=True)
         self.check_label(110*mm, 174.5*mm, u'Department')
-        
+
         # account code
         self.title_font()
         self.c.drawString(0*mm, 163*mm, 'Account Code')
@@ -1821,15 +1842,15 @@ class CardReqForm_old(object):
                 h = 6.5*mm
             x = 30*mm + i*68.0/12*mm
             self.c.line(x, 162*mm, x, 162*mm+h)
-        
+
         self.entry_font()
         acct = grad.program.unit.config.get('card_account', '')
         for i,c in enumerate(unicode(acct)):
             x = 32*mm + i*68.0/12*mm
             self.c.drawString(x, 163*mm, c)
-        
+
         self.c.line(0, 157*mm, main_width, 157*mm)
-        
+
         # classification
         self.title_font()
         self.c.drawString(0*mm, 148*mm, 'CLASSIFICATION')
@@ -1852,7 +1873,7 @@ class CardReqForm_old(object):
         self.check_label(128*mm, 108*mm, u'____________')
 
         self.c.line(0, 102*mm, main_width, 102*mm)
-        
+
         # areas
         self.title_font()
         self.c.drawString(0*mm, 95*mm, 'AREAS')
@@ -1868,8 +1889,8 @@ class CardReqForm_old(object):
             self.check_label(82*mm, y+1*mm, '', fill=True)
             self.check_label(108*mm, y+1*mm, '')
             self.c.line(130*mm, y, 166*mm, y)
-        
-        
+
+
         self.entry_font()
         rooms = grad.program.unit.config.get('card_rooms', '').split("|")
         for i,rm in enumerate(rooms):
@@ -1904,7 +1925,7 @@ class CardReqForm_old(object):
         self.c.line(13*mm, 51*mm, 74*mm, 51*mm)
         self.c.drawString(80*mm, 51*mm, 'Authorized By:')
         self.c.line(113*mm, 51*mm, 166*mm, 51*mm)
-        
+
         self.entry_font()
         today = datetime.date.today()
         expiry = today + datetime.timedelta(days=365*5+1)
@@ -1914,7 +1935,7 @@ class CardReqForm_old(object):
 
         self.c.setDash(6,3)
         self.c.line(0, 46*mm, main_width, 46*mm)
-        
+
         # rules and signature
         self.c.setFont("Helvetica-Bold", 10)
         self.c.drawString(0*mm, 40*mm, "Please read the following before signing:")
@@ -1923,7 +1944,7 @@ class CardReqForm_old(object):
         self.c.drawString(0*mm, 30*mm, u"\u2022 IT REMAINS THE POPERTY OF SFU.")
         self.c.drawString(0*mm, 25*mm, u"\u2022 IT WILL NOT BE PASSED ON TO ANOTHER PERSON")
         self.c.drawString(0*mm, 20*mm, u"\u2022 IT WILL BE RETURNED TO THIS OFFICE ONLY, WHEN NO LONGER OF USE TO MYSELF.")
-        
+
         self.c.setDash(1)
         self.c.line(0, 5*mm, 62*mm, 5*mm)
         self.c.line(69*mm, 5*mm, 136*mm, 5*mm)
@@ -1999,9 +2020,9 @@ class FASnetForm(object):
         self.c.setStrokeColor(black)
         self.c.setFillColor(black)
         self.c.setLineWidth(0.5)
-        
+
         # for form itself
-        
+
         # top header
         self.c.setFont("Helvetica-Bold", 14)
         self.c.drawCentredString(main_width/2, 243*mm, 'SIMON FRASER UNIVERSITY')
@@ -2054,7 +2075,7 @@ class FASnetForm(object):
         self.c.showPage()
 
         # page 2: leagalese
-        
+
         p = Paragraph("In using information resources at Simon Fraser University you are agreeing to comply with policies and procedures as specified in Simon Fraser University's Policies and Procedures document GP24 and any other University/Departmental policies. The following is an excerpt from GP24.",
                   self.LEGAL_STYLE)
         f = Frame(0.5*inch, 0.5*inch, 7.5*inch, 10*inch)
@@ -2071,7 +2092,7 @@ class FASnetForm(object):
 
         self.label_blank(0.5*inch, 1*inch, 'Signature of Applicant', '', labelwidth=48*mm, linelength=60*mm)
         self.label_blank(125*mm, 1*inch, 'Date', '', labelwidth=14*mm, linelength=40*mm)
-        
+
         self.c.setFont("Helvetica-Bold", 10)
         self.c.drawCentredString(4.25*inch, 0.7*inch, 'Please drop off completed form at the Dean of Applied Science Office (ASB 9861).')
         self.c.drawCentredString(4.25*inch, 0.5*inch, 'For account related inquiries please email helpdesk@fas.sfu.ca.')
@@ -2093,4 +2114,4 @@ def fasnet_forms(grads, outfile):
 
 
 
-    
+
