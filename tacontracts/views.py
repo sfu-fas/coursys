@@ -18,8 +18,7 @@ from .models import HiringSemester, TACategory, TAContract, TACourse, \
                     EmailReceipt, NoPreviousSemesterException
 from .forms import HiringSemesterForm, TACategoryForm, TAContractForm, \
                     TACourseForm, EmailForm
-from .pdfs import ta_pdf
-
+from dashboard.letters import tacontract_form
 
 def _home_redirect():
     return HttpResponseRedirect(reverse('tacontracts.views.list_all_semesters'))
@@ -489,7 +488,7 @@ def print_contract(request, unit_slug, semester, contract_slug):
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % \
                                         (contract.slug, contract.person.userid)
-    ta_pdf(contract, response)
+    tacontract_form(contract, response)
     return response
 
 

@@ -975,13 +975,23 @@ class TAForm(object):
             reappointment_fill = 1
 
         courses = []
+        total_bu = 0
+        bu = 0
         for crs in contract.tacourse_set.filter(bu__gt=0):
             courses.append((
                 crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
                 crs.description.description,
                 crs.total_bu,
-                crs.bu,
             ))
+            bu += crs.bu
+            total_bu += crs.total_bu
+
+        payperiods = contract.posting.payperiods()
+        total_pay = contract.pay_per_bu * total_bu
+        biweekly_pay = total_pay / payperiods
+        scholarship_pay = bu * contract.scholarship_per_bu
+        biweekly_scholarship = scholarship_pay / payperiods
+
 
         return self.draw_form(
             emplid=contract.application.person.emplid,
@@ -998,9 +1008,10 @@ class TAForm(object):
             courses=courses,
             appt_category=contract.appt_category,
             appt_cond=contract.appt_cond,
-            payperiods=contract.posting.payperiods(),
-            pay_per_bu=contract.pay_per_bu,
-            scholarship_per_bu=contract.scholarship_per_bu,
+            total_pay=total_pay,
+            biweek_pay=biweekly_pay,
+            total_schol=scholarship_pay,
+            biweek_schol=biweekly_scholarship,
             remarks=contract.remarks,
             sigs=Signature.objects.filter(user__userid=contract.created_by),
         )
@@ -1009,11 +1020,54 @@ class TAForm(object):
         """
         Draw the form for an new-style contract (tacontract module)
         """
-        return self.draw_form()
+        initial_appointment_fill = 0
+        if contract.appointment == "INIT":
+            initial_appointment_fill = 1
+        reappointment_fill = 0
+        if contract.appointment == "REAP":
+            reappointment_fill = 1
+
+        courses = []
+        for crs in contract.course.filter(bu__gt=0):
+            description = "Office/Marking"
+            if crs.labtut:
+                description = "Office/Marking/Lab"
+
+            courses.append((
+                crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2],
+                description,
+                crs.total_bu,
+            ))
+
+        return self.draw_form(
+            emplid=contract.person.emplid,
+            sin=contract.sin,
+            last_name=contract.person.last_name,
+            first_name=contract.person.first_name,
+            unit_name=contract.category.account.unit.informal_name(),
+            deptid=contract.category.account.unit.deptid(),
+            pay_start=contract.pay_start,
+            pay_end=contract.pay_end,
+            initial_appointment_fill=initial_appointment_fill,
+            reappointment_fill=reappointment_fill,
+            position_number=contract.category.account.position_number,
+            courses=courses,
+            appt_category=contract.category.code,
+            appt_cond=contract.conditional_appointment,
+            total_pay=contract.total_pay,
+            biweek_pay=contract.biweekly_pay,
+            total_schol=contract.scholarship_pay,
+            biweek_schol=contract.biweekly_scholarship,
+            remarks=contract.comments,
+            sigs=Signature.objects.filter(user__userid=contract.created_by),
+        )
 
     def draw_form(self, emplid, sin, last_name, first_name, unit_name, deptid, pay_start, pay_end,
                   initial_appointment_fill, reappointment_fill, position_number, courses, appt_category,
-                  appt_cond, payperiods, pay_per_bu, scholarship_per_bu, remarks, sigs):
+                  appt_cond, total_pay, biweek_pay, total_schol, biweek_schol, remarks, sigs):
+        """
+        Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
+        """
         self.c.setStrokeColor(black)
         self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
         main_width = 7.25*inch
@@ -1038,7 +1092,7 @@ class TAForm(object):
         self.c.drawPath(p, stroke=1, fill=0)
 
         # personal info
-        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode())
+        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(emplid))
         self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(sin))
         self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(last_name))
         self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(first_name))
@@ -1093,7 +1147,6 @@ class TAForm(object):
 
         # course assignments
         total_bu = 0
-        bu = 0
         for i, crs in zip(range(5), list(courses)+[None]*5):
             h = 162*mm - i*6*mm # bottom of this row
             self.c.rect(24*mm, h, 27*mm, 6*mm)
@@ -1105,7 +1158,6 @@ class TAForm(object):
                 self.c.drawString(25*mm, h + 1*mm, crs[0])
                 self.c.drawString(52*mm, h + 1*mm, crs[1])
                 self.c.drawRightString(147*mm, h + 1*mm, "%.2f" % (crs[2]))
-                bu += crs[3]
                 total_bu += crs[2]
 
         self.c.rect(125*mm, 132*mm, 23*mm, 6*mm)
@@ -1115,10 +1167,6 @@ class TAForm(object):
         self._draw_box(153*mm, 145*mm, 22*mm, label="Cond. upon Enrol?", content="Yes" if appt_cond else "No")
 
         # salary/scholarship
-        total_pay = total_bu*pay_per_bu
-        biweek_pay = total_pay/payperiods
-        total_schol = bu*scholarship_per_bu
-        biweek_schol = total_schol/payperiods
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
         self.c.drawString(8*mm, 123*mm, "SALARY")
         self.c.drawString(1*mm, 112*mm, "SCHOLARSHIP")
