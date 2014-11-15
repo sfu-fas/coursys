@@ -2,7 +2,7 @@
 {% block title %}Discussion: {{ topic.title }}{% endblock %}
 {% block h1 %}Discussion: {{ topic.title }}
 	{% if topic.pinned %}<i class="fa fa-tag"></i>{% endif %}
-    {% if topic.status == 'ANS' %}<i class="fa fa-check"></i>{% endif %}
+    {% if topic.status == 'ANS' %}<i class="fa fa-check" title="Answered"></i>{% endif %}
 {% endblock %}
 
 {% block headextra %}
