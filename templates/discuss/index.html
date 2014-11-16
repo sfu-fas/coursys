@@ -41,7 +41,7 @@
 <div class="discussion-topic{% if topic.status == 'HID' %} fade-out{% endif %}" id="topic-{{ topic.pk }}">
 	<h3><a href="{% url "discuss.views.view_topic" course_slug=course.slug topic_slug=topic.slug %}">
 		{% if topic.pinned %}<i class="fa fa-tag"></i>{% endif %}
-		{% if topic.status == 'ANS' %}<i class="fa fa-check"></i>{% endif %}
+		{% if topic.status == 'ANS' %}<i class="fa fa-check" title="Answered"></i>{% endif %}
 		{{ topic.title }}
 	</a></h3>
 	<div>
