@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
@@ -730,41 +730,10 @@ def new_signature(request):
 
 
 
-@login_required
 def student_info(request, userid=None):
-    # everything-about-this-student view
-    if not userid and 'q' in request.GET:
-        # redirect query string away
-        return HttpResponseRedirect(reverse('dashboard.views.student_info', kwargs={'userid': request.GET['q']}))
-
-    elif not userid:
-        # display search screen
-        return render(request, "dashboard/student_info_search.html", {})
-
-    student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    user = Person.objects.get(userid=request.user.username)
-    all_instr = [m.offering for m in Member.objects.exclude(offering__component='CAN').filter(person=user, role='INST').select_related('offering')]
-    all_ta = [m.offering for m in Member.objects.exclude(offering__component='CAN').filter(person=user, role='TA').select_related('offering')]
-    
-    student_instr = Member.objects.exclude(offering__component='CAN').filter(person=student, role='STUD', offering__in=all_instr).select_related('offering', 'person')
-    student_ta = Member.objects.exclude(offering__component='CAN').filter(person=student, role='STUD', offering__in=all_ta).select_related('offering', 'person')
-    ta_instr = Member.objects.exclude(offering__component='CAN').filter(person=student, role='TA', offering__in=all_instr).select_related('offering', 'person')
-    supervisors = Supervisor.objects.filter(student__person=student, supervisor=user, removed=False)
-    
-    anything = student_instr or student_ta or ta_instr or supervisors
-    if not anything:
-        # match get_object_or_404 behaviour to not leak info
-        raise Http404('No Person matches the given query.')
-    
-    context = {
-               'student': student,
-               'student_instr': student_instr,
-               'student_ta': student_ta,
-               'ta_instr': ta_instr,
-               'supervisors': supervisors,
-               }
-
-    return render(request, "dashboard/student_info.html", context)
+    # old student search view: new search is better in every way.
+    messages.add_message(request, messages.INFO, 'The old student search has been replaced with an awesome site search, accessible from the search box at the top of every page in CourSys.')
+    return HttpResponsePermanentRedirect(reverse(site_search))
 
 
 # documentation views

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load search_display %}
 
-{% block title %}Search Results for &ldquo;{{ query }}&rdquo;{% endblock %}
-{% block h1 %}Search Results for &ldquo;{{ query }}&rdquo;{% endblock %}
+{% block title %}{% if query %}Search Results for &ldquo;{{ query }}&rdquo;{% else %}Site Search{% endif %}{% endblock %}
+{% block h1 %}{% if query %}Search Results for &ldquo;{{ query }}&rdquo;{% else %}Site Search{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}<li>Search Results</li>{% endblock %}
+{% block subbreadcrumbs %}<li>Search{% if query %} Results{% endif %}</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -33,7 +33,7 @@ $(document).ready(function() {
 
 {% block content %}
 <form action="" method="get">
-<p>Search again: <input type="text" name="q" value="{{ query }}" />
+<p>Search{% if query %} again{% endif %}: <input type="text" name="q" value="{{ query }}" />
 <input type="submit" class="inlinebutton" value="Search" />
 </p>
 </form>
