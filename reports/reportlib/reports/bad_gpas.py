@@ -1,39 +1,9 @@
 from ..report import Report
-from ..queries import program_and_plan, EmailQuery, NameQuery
+from ..queries import EmailQuery, NameQuery
+from ..queries.fas_programs import get_fas_programs
 from ..db2_query import DB2_Query
 from coredata.models import Semester
 import string
-
-
-
-class AcadProgsOwnedByUnit(DB2_Query):
-    title = "ACAD_PROGs owned by an ACAD_ORG"
-    description = "Finds all ACAD_PROG that are owned (at least partially) by a unit"
-    query = string.Template("""
-        SELECT DISTINCT acad_prog
-        FROM ps_acad_prog_tbl
-        WHERE eff_status='A' AND acad_plan IN
-            (SELECT DISTINCT acad_plan FROM ps_acad_plan_owner WHERE acad_org=$acad_org)
-        """)
-
-    default_arguments = {
-        'acad_org': 'COMP SCI',
-        }
-
-
-class DegreeAcadProgs(DB2_Query):
-    title = "ACAD_PROGs that are grant particular degrees"
-    description = "Finds all ACAD_PROG that are grant a degree: probably BASc for Engineering programs"
-    query = string.Template("""
-        SELECT DISTINCT acad_prog
-        FROM ps_acad_prog_tbl
-        WHERE eff_status='A' AND acad_plan IN
-            (SELECT DISTINCT acad_plan FROM ps_acad_plan_tbl WHERE degree in $degrees)
-        """)
-
-    default_arguments = {
-        'degrees': ['BASC', 'BASC2', 'PAPSC'],
-        }
 
 
 
@@ -92,13 +62,7 @@ class BadGPAsReport(Report):
         current_semester = Semester.current()
         semesters = [current_semester.name, current_semester.offset_name(-1), current_semester.offset_name(-2)]
 
-        cmpt_acad_progs = AcadProgsOwnedByUnit({'acad_org': 'COMP SCI'}) \
-            .result() \
-            .column_as_list('ACAD_PROG')
-
-        eng_acad_progs = DegreeAcadProgs() \
-            .result() \
-            .column_as_list('ACAD_PROG')
+        cmpt_acad_progs, eng_acad_progs = get_fas_programs()
 
         cmpt_gpas = self.bad_gpa_for(cmpt_acad_progs, semesters, '2.4')
         eng_gpas = self.bad_gpa_for(eng_acad_progs, semesters, '2.5')
@@ -119,6 +83,5 @@ class BadGPAsReport(Report):
 
         bad_gpas.remove_column('E_ADDR_TYPE')
         bad_gpas.remove_column('PREF_EMAIL_FLAG')
-
 
         self.artifacts.append(bad_gpas)
