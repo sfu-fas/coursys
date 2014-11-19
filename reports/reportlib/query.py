@@ -202,3 +202,36 @@ class CachedQuery(BaseQuery):
 class Query(CachedQuery):
     pass
 
+
+
+class LocalDBQuery(Query):
+    """
+    Query on the local Django database.
+
+    Must override query_values which should be a list of dicts: SomeModel.objects.all().values() or similar.
+
+    May override field_map to rename resulting columns, and post_process() to mangle the resulting Table.
+    """
+    field_map = {}
+
+    def __init__(self, *args, **kwargs):
+        super(LocalDBQuery, self).__init__(db=None, *args, **kwargs)
+
+    def post_process(self):
+        pass
+
+    def result(self):
+        results_table = Table()
+        qs = list(self.query_values)
+
+        cols = qs[0].keys()
+        for k in cols:
+            results_table.append_column(self.field_map.get(k, k))
+
+        for row in qs:
+            results_table.append_row( [self.output_clean_function(row[c]) for c in cols] )
+
+        self.results_table = results_table
+        self.post_process()
+
+        return self.results_table
