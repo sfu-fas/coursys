@@ -10,7 +10,7 @@ class InternationalGPAReport(Report):
     description = "GPA for FAS students with visa/citizenship"
 
     def run(self):
-        current_semester = Semester.current()
+        current_semester = Semester.current().previous_semester()
         cmpt_progs, eng_progs = get_fas_programs()
         fas_progs = cmpt_progs + eng_progs
 
