@@ -103,13 +103,13 @@ class NonSFUFormFiller(models.Model):
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     def __unicode__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return u"%s, %s" % (self.last_name, self.first_name)
     def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return u"%s %s" % (self.first_name, self.last_name)
     def sortname(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return u"%s, %s" % (self.last_name, self.first_name)
     def initials(self):
-        return "%s%s" % (self.first_name[0], self.last_name[0])
+        return u"%s%s" % (self.first_name[0], self.last_name[0])
     def email(self):
         return self.email_address
 
@@ -140,7 +140,7 @@ class FormFiller(models.Model):
     @classmethod
     def form_full_email(cls, person):
         email = FormFiller.form_email(person)
-        return "%s <%s>" % (person.name(), email)
+        return u"%s <%s>" % (person.name(), email)
 
 
     def getFormFiller(self):
@@ -156,9 +156,9 @@ class FormFiller(models.Model):
 
     def __unicode__(self):
         if self.sfuFormFiller:
-            return "%s (%s)" % (self.sfuFormFiller.name(), self.sfuFormFiller.emplid)
+            return u"%s (%s)" % (self.sfuFormFiller.name(), self.sfuFormFiller.emplid)
         else:
-            return "%s (external user)" % (self.nonSFUFormFiller.name(),)
+            return u"%s (external user)" % (self.nonSFUFormFiller.name(),)
     def name(self):
         formFiller = self.getFormFiller()
         return formFiller.name()
@@ -177,7 +177,7 @@ class FormFiller(models.Model):
             return formFiller.email()
 
     def full_email(self):
-        return "%s <%s>" % (self.name(), self.email())
+        return u"%s <%s>" % (self.name(), self.email())
 
     def identifier(self):
         """
@@ -196,7 +196,7 @@ class FormFiller(models.Model):
         "A mailto: URL for this person's email address: handles the case where we don't know an email for them."
         email = self.email()
         if email:
-            return mark_safe('<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
+            return mark_safe(u'<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
         else:
             return "None"
 
@@ -216,7 +216,7 @@ class FormGroup(models.Model):
         unique_together = (("unit", "name"),)
 
     def __unicode__(self):
-        return "%s, %s" % (self.name, self.unit.label)
+        return u"%s, %s" % (self.name, self.unit.label)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
@@ -248,7 +248,7 @@ class FormGroupMember(models.Model):
         unique_together = (("person", "formgroup"),)
 
     def __unicode__(self):
-        return "%s in %s" % (self.person.name(), self.formgroup.name)
+        return u"%s in %s" % (self.person.name(), self.formgroup.name)
 
 
 class _FormCoherenceMixin(object):
@@ -312,7 +312,7 @@ class Form(models.Model, _FormCoherenceMixin):
     loginprompt, set_loginprompt = getter_setter('loginprompt')
 
     def __unicode__(self):
-        return "%s [%s]" % (self.title, self.id)
+        return u"%s [%s]" % (self.title, self.id)
     
     def delete(self, *args, **kwargs):
         self.active = False
@@ -516,7 +516,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     #    unique_together = (('form', 'order'),)
 
     def __unicode__(self):
-        return "%s, %s [%i]" % (self.form, self.title, self.id)
+        return u"%s, %s [%i]" % (self.form, self.title, self.id)
 
     def delete(self, *args, **kwargs):
         if self.is_initial == True:
@@ -592,7 +592,7 @@ class Field(models.Model, _FormCoherenceMixin):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='sheet')
 
     def __unicode__(self):
-        return "%s, %s" % (self.sheet, self.label)
+        return u"%s, %s" % (self.sheet, self.label)
 
     def delete(self, *args, **kwargs):
         self.active = False
@@ -653,7 +653,7 @@ class FormSubmission(models.Model):
         self.save()
 
     def __unicode__(self):
-        return "%s for %s" % (self.form, self.initiator)
+        return u"%s for %s" % (self.form, self.initiator)
 
     def get_absolute_url(self):
         return reverse('onlineforms.views.view_submission', kwargs={'form_slug': self.form.slug,'formsubmit_slug': self.slug})
@@ -689,7 +689,7 @@ class FormSubmission(models.Model):
                                     kwargs={'form_slug': self.form.slug,
                                             'formsubmit_slug': self.slug}))
         email_context = Context({'formsub': self, 'admin': admin, 'adminurl': full_url})
-        subject = '%s submission transferred' % (self.form.title)
+        subject = u'%s submission transferred' % (self.form.title)
         from_email = FormFiller.form_full_email(admin)
         to = self.owner.notify_emails()
         msg = EmailMultiAlternatives(subject=subject, body=plaintext.render(email_context),
@@ -724,7 +724,7 @@ class SheetSubmission(models.Model):
             self.form_submission.update_status()
 
     def __unicode__(self):
-        return "%s by %s" % (self.sheet, self.filler.identifier())
+        return u"%s by %s" % (self.sheet, self.filler.identifier())
     
     defaults = {'assigner': None, 'assign_comment': None, 'assign_note': None, 'reject_reason': None, 'return_reason': None}
     assigner_id, set_assigner_id = getter_setter('assigner')
@@ -855,7 +855,7 @@ class SheetSubmission(models.Model):
     def email_started(self, request):
         full_url = request.build_absolute_uri(self.get_submission_url())
         context = {'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self}
-        subject = '%s submission incomplete' % (self.sheet.form.title)
+        subject = u'%s submission incomplete' % (self.sheet.form.title)
         self._send_email(request, 'nonsfu_sheet_started', subject,
                          settings.DEFAULT_FROM_EMAIL, [self.filler.full_email()], context)
 
@@ -865,14 +865,14 @@ class SheetSubmission(models.Model):
                                             'formsubmit_slug': self.form_submission.slug}))
         context = {'initiator': self.filler.name(), 'adminurl': full_url, 'form': self.sheet.form,
                                  'rejected': rejected}
-        subject = '%s submission' % (self.sheet.form.title)
+        subject = u'%s submission' % (self.sheet.form.title)
         self._send_email(request, 'sheet_submitted', subject,
                          settings.DEFAULT_FROM_EMAIL, self.sheet.form.owner.notify_emails(), context)
 
 
     def email_returned(self, request, admin):
         context = {'admin': admin, 'sheetsub': self}
-        self._send_email(request, 'sheet_returned', '%s submission returned' % (self.sheet.title),
+        self._send_email(request, 'sheet_returned', u'%s submission returned' % (self.sheet.title),
                          FormFiller.form_full_email(admin), [self.filler.full_email()], context)
 
 
