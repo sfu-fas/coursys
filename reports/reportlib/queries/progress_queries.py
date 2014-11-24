@@ -46,10 +46,11 @@ class InternationalGPAQuery(DB2_Query):
            JOIN ps_acad_stdng_actn stnd ON stnd_strm.strm=stnd.strm AND stnd.emplid=term.emplid
            JOIN ps_citizenship cit ON cit.emplid=term.emplid
            JOIN ps_country_tbl c ON cit.country=c.country
-           JOIN ps_visa_pmt_data v ON v.emplid=term.emplid AND v.effdt=(SELECT MAX(effdt) FROM ps_visa_pmt_data WHERE emplid=term.emplid AND effdt<=current date)
-           JOIN ps_visa_permit_tbl vtbl ON v.visa_permit_type=vtbl.visa_permit_type
+           LEFT JOIN ps_visa_pmt_data v ON v.emplid=term.emplid
+           LEFT JOIN ps_visa_permit_tbl vtbl ON v.visa_permit_type=vtbl.visa_permit_type
         WHERE
             term.strm = $strm
+            AND (v.effdt IS NULL OR v.effdt=(SELECT MAX(effdt) FROM ps_visa_pmt_data WHERE emplid=term.emplid AND effdt<=current date))
             AND term.tot_taken_gpa > 15
             AND term.unt_taken_prgrss > 0
             AND term.acad_prog_primary IN $acad_progs
