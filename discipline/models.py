@@ -481,6 +481,22 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         
         email.send(fail_silently=False)
 
+    def letter_recipients(self):
+        """
+        Return collection of people who will receive the letter by email:
+
+        student, instructor, [department CC], [university CC]
+        """
+        student = self.student.full_email()
+        instr = self.owner.full_email()
+        roles = Role.objects.filter(role="DICC", unit=self.offering.owner)
+        dept = [r.person.full_email() for r in roles]
+        roles = Role.objects.filter(role="DICC", unit__label="UNIV")
+        univ = [r.person.full_email() for r in roles]
+
+        return student, instr, dept, univ
+
+
     def send_letter(self, currentuser):
         """
         Send instructor's letter to the student and CC instructor
@@ -491,14 +507,16 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         self.letter_text = html_body
         self.letter_date = datetime.date.today()
         self.save()
+
+        student, instr, dept, univ = self.letter_recipients()
         
         # instructor/student email
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.offering),
             body=text_body,
-            from_email=self.owner.full_email(),
-            to=[self.student.full_email()],
-            cc=[self.owner.full_email()],
+            from_email=instr,
+            to=[student],
+            cc=[instr],
             )
         email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
         attach = self.public_attachments()
@@ -508,17 +526,12 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         email.send(fail_silently=False)
 
         # copy for filing
-        roles = Role.objects.filter(
-                models.Q(role="DICC", unit=self.offering.owner)
-                | models.Q(role="DICC", unit__label="UNIV"))
-        filing_emails = [r.person.full_email() for r in roles]
-
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.offering),
             body=text_body,
-            from_email=self.owner.full_email(),
-            to=filing_emails,
-            cc=[self.owner.full_email()],
+            from_email=instr,
+            to=dept + univ,
+            cc=[instr],
             )
         email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
         attach = self.public_attachments()

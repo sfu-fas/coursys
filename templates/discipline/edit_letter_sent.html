@@ -19,7 +19,7 @@ function sent_change() {
     date.hide();
     text.hide();
   } else if ( value=="MAIL" ) {
-    div.html( 'Submitting will cause <a href="{% url "discipline.views.edit_case_info" course_slug=course.slug case_slug=case.slug field="letter_review" %}">the letter you reviewed</a> to be sent to the student (as well as instructor, the department, and Student Services for filing).' );
+    div.html( 'Submitting will cause <a href="{% url "discipline.views.edit_case_info" course_slug=course.slug case_slug=case.slug field="letter_review" %}">the letter you reviewed</a> to be sent to those listed below.' );
     submit.val("Email the student");
     date.hide();
     text.hide();
@@ -58,6 +58,28 @@ function sent_change() {
 
     <p><input type="submit" value="Update Letter Status" id="submitbutton" /></p>
     </form>
+    <p>Final decision on the case should be distributed to:</p>
+    {% with recip=case.letter_recipients %}
+    <ul class="bulleted">
+        <li>The student: {{ recip.0 }}</li>
+        <li>The instructor: {{ recip.1 }}</li>
+        <li>{{case.offering.owner.name}}:
+            {% for r in recip.2 %}
+            {{ r }}{% if not forloop.last %},{% endif %}
+            {% empty %}
+            <span class="empty warningmessage">No contacts known: please forward to your department office for filing.</span>
+            {% endfor %}
+        </li>
+        <li>Student Services:
+            {% for r in recip.3 %}
+            {{ r }}{% if not forloop.last %},{% endif %}
+            {% empty %}
+            <span class="empty">No admin CCs known: please forward manually for filing.</span>
+            {% endfor %}
+        </li>
+
+    </ul>
+    {% endwith %}
 </div>
 
 {% endblock %}
