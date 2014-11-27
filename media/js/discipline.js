@@ -14,9 +14,11 @@ function use_template(n) {
   var t = templates[n];
   var input = $('#id_'+t['field']);
   input.val(t['text']);
+  /*
   if (t['activities'] && !hasRelAct) {
     alert("This template uses the {{ACTIVITIES}} substitution, but you haven't indicated related activities: the system has no useful value to fill in.");
   }
+  */
 }
 
 function setup_templates(field) {
