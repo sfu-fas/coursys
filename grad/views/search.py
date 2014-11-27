@@ -115,7 +115,7 @@ def search(request):
 
     program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
 
-    status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE]
+    status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE] + [('', 'None')]
 
     supervisors = Supervisor.objects.filter(student__program__unit__in=request.units, supervisor_type='SEN',
                                             removed=False).select_related('supervisor')

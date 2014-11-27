@@ -610,9 +610,9 @@ class SearchForm(forms.Form):
     end_semester_end = StaffSemesterField(required=False, label="End semester before",
             help_text='Semester in which the student completed/left their program')
     
-    student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
+    student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES + (('', 'None'),),
             required=False, help_text="Student's current status"
-            )
+            ) # choices updated in views/search.py
     status_asof = StaffSemesterField(label='Status as of', required=False, initial='')
 
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
@@ -724,14 +724,9 @@ class SearchForm(forms.Form):
         if not self.is_valid():
             raise Exception, "The form needs to be valid to get the search query"
         auto_queries = [
-                #('start_semester_start', 'start_semester__gte'),
-                #('start_semester_end', 'start_semester__lte'),
-                #('end_semester_start', 'end_semester__gte'),
-                #('end_semester_end', 'end_semester__lte'),
                 ('first_name_contains', 'person__first_name__icontains' ),
                 ('last_name_contains', 'person__last_name__icontains' ),
                 ('application_status', 'application_status__in'),
-#                ('requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
                 ('campus','campus__in'),
                 ('scholarship_sem', 'scholarship__start_semester__in'),
@@ -747,7 +742,12 @@ class SearchForm(forms.Form):
 
         if not self.cleaned_data.get('status_asof', None):
             # current status: is in table
-            auto_queries.append(('student_status', 'current_status__in'))
+            statuses = self.cleaned_data.get('student_status')
+            if '' in statuses:
+                # we're allowing gs.student_status is None
+                manual_queries.append( Q(current_status__in=statuses) | Q(current_status__isnull=True) )
+            else:
+                manual_queries.append( Q(current_status__in=statuses) )
         # else:  selected semester so must calculate. Handled in secondary_filter
 
         if self.cleaned_data.get('start_semester_start', None) is not None:
