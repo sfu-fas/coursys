@@ -143,6 +143,8 @@ def show(request, course_slug, case_slug):
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     roles = request.session['discipline-'+course_slug] # get roles from session
+    if case.public_attachments_size() > MAX_ATTACHMENTS:
+        messages.add_message(request, messages.WARNING, 'Total size of public attachments must be at most %s because of email limitations. Please make some of the attachments private.' % (MAX_ATTACHMENTS_TEXT))
     
     context = {'course': course, 'case': case, 'roles': roles}
     return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
@@ -231,6 +233,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                     
             if hasattr(c, 'send_letter_now'):
                 # send instructor's letter
+                assert case.public_attachments_size() <= MAX_ATTACHMENTS # should be ensured by "review letter" step
                 c.send_letter(_currentuser(request))
                 messages.add_message(request, messages.INFO, "Letter sent to student summarizing case.")
 

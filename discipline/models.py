@@ -171,7 +171,8 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
 TEXTILENOTE = '<a href="javascript:textile_popup()">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
 TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'
 
-
+MAX_ATTACHMENTS = 5*1024*1024 # maximum total size for email attachments
+MAX_ATTACHMENTS_TEXT = '5 MB'
 
 class DisciplineGroup(models.Model):
     """
@@ -322,8 +323,13 @@ class DisciplineCaseBase(models.Model):
 
     def public_attachments(self):
         return CaseAttachment.objects.filter(case=self, public=True)
+    def public_attachments_size(self):
+        return sum(a.attachment.size for a in self.public_attachments())
+
     def related_activities(self):
         return [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
+
+
     
     def groupmembersJSON(self):
         """
@@ -337,39 +343,11 @@ class DisciplineCaseBase(models.Model):
                   "name": "%s (%s)" % (c.subclass().student.name(), c.subclass().student_userid() )}
                 for c in self.group.disciplinecasebase_set.exclude(pk=self.pk)]
                 )
-    
-        
-    def XXX_next_step_chair(self):
-        """
-        Return next field that should be dealt with by Chair
-        """
-        if not self.chair_meeting_date:
-            return 'chair_meeting_date'
-        elif not self.chair_meeting_summary:
-            return 'chair_meeting_summary'
-        elif not self.chair_facts:
-            return 'chair_facts'
-        elif self.chair_penalty == 'WAIT':
-            return 'chair_penalty'
-        elif not self.chair_letter_review:
-            return "chair_letter_review"
-        elif self.chair_letter_sent=="WAIT":
-            return "chair_letter_sent"
-        elif not self.penalty_implemented:
-            return "chair_penalty_implemented"
 
     def next_step_text(self):
         "The text description of the next step."
         return STEP_TEXT[self.next_step()]
 
-    def XXX_next_step_url_chair(self):
-        "The URL to edit view for the next step."
-        return reverse('discipline.views.edit_case_info',
-            kwargs={'field': STEP_VIEW[self.next_step_chair()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
-    def XXX_next_step_text_chair(self):
-        "The text description of the next step."
-        return STEP_TEXT[self.next_step_chair()]
-    
     def create_infodict(self):
         """
         Create a dictionary of info about the case which can be used for template substitution.
