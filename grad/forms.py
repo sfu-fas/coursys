@@ -743,7 +743,9 @@ class SearchForm(forms.Form):
         if not self.cleaned_data.get('status_asof', None):
             # current status: is in table
             statuses = self.cleaned_data.get('student_status')
-            if '' in statuses:
+            if not statuses:
+                pass
+            elif '' in statuses:
                 # we're allowing gs.student_status is None
                 manual_queries.append( Q(current_status__in=statuses) | Q(current_status__isnull=True) )
             else:
