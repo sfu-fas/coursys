@@ -530,7 +530,7 @@ def grade_change(request, course_slug, activity_slug, userid):
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
-    member = get_object_or_404(Member, find_member(userid), offering__slug=course_slug)
+    member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
     user = Person.objects.get(userid=request.user.username)
     grades = LetterGrade.objects.filter(activity=activity, member=member).exclude(flag='NOGR')
     if grades:
@@ -1330,8 +1330,8 @@ def student_search(request, course_slug):
 @requires_course_staff_by_slug
 def student_info(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, find_member(userid), offering__slug=course_slug)
-    requestor = get_object_or_404(Member, person__userid=request.user.username, offering__slug=course_slug)
+    member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
+    requestor = get_object_or_404(Member, ~Q(role='DROP'), person__userid=request.user.username, offering__slug=course_slug)
     activities = all_activities_filter(offering=course)
     
     if member.role != "STUD":
