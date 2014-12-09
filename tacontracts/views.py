@@ -217,17 +217,18 @@ def list_all_contracts_by_course(request, unit_slug, semester):
 
 @requires_role(["TAAD", "GRAD"])
 def copy_categories(request, unit_slug, semester):
+    unit = get_object_or_404(Unit, label=unit_slug)
     hiring_semester = get_object_or_404(HiringSemester, 
                                         semester__name=semester, 
                                         unit__in=request.units,
-                                        unit__label=unit_slug)
+                                        unit=unit)
     if ('copied_categories' in hiring_semester.config and
             hiring_semester.config['copied_categories']):
         messages.add_message(request,
                              messages.ERROR,
                              u'TA Categories have already been copied.')
     try:
-        hiring_semester.copy_categories_from_previous_semester()
+        hiring_semester.copy_categories_from_previous_semester(unit=unit)
         hiring_semester.config['copied_categories'] = True
         messages.add_message(request, 
                              messages.SUCCESS, 

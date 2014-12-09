@@ -109,12 +109,12 @@ class HiringSemester(models.Model):
     def __unicode__(self):
         return unicode(self.semester.name)
 
-    def copy_categories_from_previous_semester(self):
+    def copy_categories_from_previous_semester(self, unit):
         prev_semester = self.semester.previous_semester()
         if prev_semester == None:
             raise NoPreviousSemesterException()
         try:
-            hiring_semester = HiringSemester.objects.get(semester=prev_semester)
+            hiring_semester = HiringSemester.objects.get(semester=prev_semester, unit=unit)
         except HiringSemester.DoesNotExist:
             raise NoPreviousSemesterException()
 
