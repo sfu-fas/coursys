@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.template import RequestContext, defaultfilters
 from django.contrib import messages
 from django.utils.safestring import mark_safe
-from coredata.models import Member, CourseOffering, Person, Role
+from coredata.models import Member, CourseOffering, Person, Role, Unit
 from submission.models import Submission, StudentSubmission, GroupSubmission
 from grades.models import all_activities_filter, Activity
 from discipline.models import *
@@ -562,9 +562,12 @@ def edit_file(request, course_slug, case_slug, fileid):
 @requires_role("DISC")
 def chair_index(request):
     # discipline admin for these departments
-    instr_cases = DisciplineCaseInstr.objects.filter(offering__owner__in=request.units)
+    subunit_ids = Unit.sub_unit_ids(request.units)
+    instr_cases = DisciplineCaseInstr.objects.filter(offering__owner__id__in=subunit_ids).select_related('owner')
+    # can see cases either (1) in your unit, or (2) in subunits if the letter has been sent
+    instr_cases = [c for c in instr_cases if (c.owner in request.units) or (c.letter_sent != 'WAIT')]
     instr_cases = [c.subclass() for c in instr_cases]
-    
+
     context = {'instr_cases': instr_cases}
     return render_to_response("discipline/chair-index.html", context, context_instance=RequestContext(request))
     

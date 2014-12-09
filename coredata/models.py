@@ -1163,7 +1163,7 @@ class Unit(models.Model):
         return self.slug in ['cmpt', 'ensc']
     
     @classmethod
-    @cached(24*3600)
+    #@cached(24*3600)
     def __sub_unit_ids(cls, unitids):
         """
         Do the actual work for sub_unit_ids
