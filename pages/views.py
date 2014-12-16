@@ -389,7 +389,7 @@ import base64
 def _pages_from_json(request, offering, data):
     with django.db.transaction.atomic():
         try:
-            data = data.decode('utf-8')
+            data = data.decode('utf-8-sig')
         except UnicodeDecodeError:
             raise ValidationError(u"Bad UTF-8 data in file.")
             

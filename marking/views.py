@@ -1422,7 +1422,7 @@ def _mark_all_students_numeric(request, course, activity):
 
 def _compose_imported_grades(file, students_qset, data_to_return, activity):
     try:
-        fh = io.StringIO(file.read().decode('utf-8'), newline=None)
+        fh = io.StringIO(file.read().decode('utf-8-sig'), newline=None)
     except UnicodeDecodeError:
         error_string = "File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text."
     else:

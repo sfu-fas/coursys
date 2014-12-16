@@ -219,7 +219,7 @@ class ImportMarkFileForm(forms.Form):
             raise forms.ValidationError(u"Only .json files are permitted")
         
         try:
-            data = file.read().decode('utf-8')
+            data = file.read().decode('utf-8-sig')
         except UnicodeDecodeError:
             raise forms.ValidationError(u"Bad UTF-8 data in file.")
         
