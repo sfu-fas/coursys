@@ -496,7 +496,7 @@ class TestImportFunctionsNumeric(TestCase):
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err,
-            'File cannot be encoded as UTF-8 data: make sure it contains legal Unicode characters.')
+            'File contains bad UTF-8 data: make sure it has been saved as UTF-8 text.')
         self.assertEqual(len(data_to_return), 0)
 
 
