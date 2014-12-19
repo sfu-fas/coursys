@@ -309,7 +309,7 @@ class SlowCoredataTest(FastFixtureTestCase):
         response = basic_page_tests(self, client, url)
 
         # AJAX request for table data
-        url += '?tabledata=yes&data_type=json&iDisplayLength=25'
+        url += '?tabledata=yes&data_type=json&iDisplayStart=0&iDisplayLength=25&iSortingCols=0'
         response = client.get(url)
         data = json.loads(response.content)
         self.assertEquals(len(data['aaData']), 25)

@@ -19,7 +19,7 @@ reportlab==3.1.44
 pillow # let reportlab choose the version
 icalendar==3.8.4
 xlwt==0.7.5
-django-datatables-view==1.7
+django-datatables-view==1.12
 django-bitfield==1.7.1
 django-localflavor==1.0
 django-countries==2.1.2
