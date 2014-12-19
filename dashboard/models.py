@@ -9,9 +9,7 @@ from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
 from courselib.json_fields import JSONField
 import random, hashlib, os
-
-import textile
-Textile = textile.Textile(restricted=True)
+from textile import textile_restricted
 
 def _rfc_format(dt):
     """
@@ -143,7 +141,7 @@ class NewsItem(models.Model):
         if val:
             return mark_safe(val)
         
-        markup = mark_safe(Textile.textile(unicode(self.content)))
+        markup = mark_safe(textile_restricted(unicode(self.content)))
 
         cache.set(key, markup, 86400)
         return markup

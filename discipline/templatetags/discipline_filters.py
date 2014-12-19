@@ -5,8 +5,7 @@ from django.utils.text import wrap
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 from discipline.models import STEP_DESC, STEP_VIEW, PRE_LETTER_STEPS
-import textile
-Textile = textile.Textile(restricted=True)
+from textile import textile_restricted
 
 register = template.Library()
 
@@ -23,7 +22,7 @@ def format_field(case, field):
         # special case: contact email is plain text
         return mark_safe("<pre>" + escape(wrap(case.substitite_values(unicode(text)), 78)) + "</pre>")
     else:
-        return mark_safe(Textile.textile(case.substitite_values(unicode(text))))
+        return mark_safe(textile_restricted(case.substitite_values(unicode(text))))
 
 @register.filter()
 def edit_link(case, field):

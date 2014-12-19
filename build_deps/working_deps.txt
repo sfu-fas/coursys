@@ -12,7 +12,7 @@ django-timezones==0.2
 jsonfield==0.9.20
 pyparsing==2.0.3
 pytz>=2014.10
-textile==2.1.5
+textile==2.2.1
 unicodecsv==0.9.4
 html5lib==0.999
 reportlab==3.1.44
