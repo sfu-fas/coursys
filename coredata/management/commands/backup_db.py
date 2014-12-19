@@ -42,7 +42,7 @@ class Command(BaseCommand):
                     continue
 
                 remove = False
-                if dt < now - datetime.timedelta(days=14):
+                if dt < now - datetime.timedelta(days=30):
                     # remove all dumps older than two weeks
                     remove = True
                 elif dt < now - datetime.timedelta(days=2):
