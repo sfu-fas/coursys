@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from coredata.models import Role, Person, Unit, ROLE_CHOICES
 from alerts.models import AlertType, Alert
 from courselib.json_fields import JSONField
@@ -19,7 +20,7 @@ import importlib
 from reportlib import DB2_Query
 from reportlib.table import Table
 
-REPORT_LOCATION = os.path.join( '.', 'reports', 'reportlib', 'reports' )
+REPORT_LOCATION = os.path.join( settings.BASE_DIR, 'reports', 'reportlib', 'reports' )
 
 class Report(models.Model):
     """ 

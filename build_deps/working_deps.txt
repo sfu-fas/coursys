@@ -21,12 +21,12 @@ icalendar==3.8.4
 xlwt==0.7.5
 django-datatables-view==1.12
 django-bitfield==1.7.1
-django-localflavor==1.0
-django-countries==2.1.2
+django-localflavor==1.1
+django-countries==3.0.1
 django-compressor==1.4
 django-cache-utils==0.7.2
-celery==3.1.8
-django-celery==3.1.1
+celery==3.1.17
+django-celery==3.1.16
 django-celery-email==1.0.4
 #kombu==3.0.10
 iso8601==0.1.8
