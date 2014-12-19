@@ -67,7 +67,7 @@ Vagrant.configure("2") do |config|
      chef.add_recipe "sfu-db2"
 
   #   # You may also specify custom JSON attributes:
-     chef.json = { :sfu_db2 => { :users => ['coursys']} }
+     chef.json = { :sfu_db2 => { :users => ['coursys', 'vagrant']} }
   end
 
 end

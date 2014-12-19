@@ -8,8 +8,14 @@ directory "/opt" do
     mode "00755"
     action :create
 end
-cookbook_file "/opt/db2.tar.gz" do
-    source "v9.7fp5_linuxx64_client.tar.gz"
+#cookbook_file "/opt/db2.tar.gz" do
+#    source "v9.7fp5_linuxx64_client.tar.gz"
+#end
+DB2_DOWNLOAD = "v9.7fp10_linuxx64_client.tar.gz"
+execute "get_db2_driver" do
+    cwd "/opt"
+    command "false"
+    not_if do ::File.exists?("/opt/db2.tar.gz") end
 end
 
 execute "tar -xvzf db2.tar.gz" do
