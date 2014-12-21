@@ -1307,7 +1307,7 @@ class GradStudent(models.Model):
 class GradProgramHistory(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
-    start_semester = models.ForeignKey(Semester, null=False, default=Semester.current,
+    start_semester = models.ForeignKey(Semester, null=False, blank=False,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
     

@@ -103,7 +103,7 @@ class GradTest(TestCase):
         st = ScholarshipType(unit=gs.program.unit, name="Some Scholarship")
         st.save()
         Supervisor(student=gs, supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
-        GradProgramHistory(student=gs, program=gs.program).save()
+        GradProgramHistory(student=gs, program=gs.program, start_semester=Semester.current()).save()
         GradStatus(student=gs, status='ACTI', start=sem).save()
         CompletedRequirement(student=gs, requirement=req, semester=sem).save()
         Scholarship(student=gs, scholarship_type=st, amount=1000, start_semester=sem, end_semester=sem).save()
