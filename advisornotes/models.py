@@ -172,7 +172,7 @@ class ArtifactNote(models.Model):
     course = models.ForeignKey(Course, help_text='The course that the note is about', null=True, blank=True)
     course_offering = models.ForeignKey(CourseOffering, help_text='The course offering that the note is about', null=True, blank=True)
     artifact = models.ForeignKey(Artifact, help_text='The artifact that the note is about', null=True, blank=True)
-    important = models.BooleanField()
+    important = models.BooleanField(default=False)
     category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
     text = models.TextField(blank=False, null=False, verbose_name="Contents",
                             help_text='Note about a student')
