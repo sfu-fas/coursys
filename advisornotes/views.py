@@ -697,12 +697,13 @@ def merge_nonstudent(request, nonstudent_slug):
     return render(request, 'advisornotes/merge_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
 
 
-@csrf_exempt
-@transaction.commit_manually
-def rest_notes(request):
+#@csrf_exempt
+#@transaction.commit_manually
+def xxx_rest_notes(request):
     """
     View to create new advisor notes via RESTful POST (json)
     """
+
     if request.method != 'POST':
         resp = HttpResponse(content='Only POST requests allowed', status=405)
         resp['Allow'] = 'POST'

@@ -34,7 +34,7 @@ assert set(GRADE_POINTS.keys()) == set(dict(GPA_GRADE_CHOICES).keys())
 
 class GradeSourceManager(models.Manager):
     def active(self):
-        qs = self.get_query_set()
+        qs = self.get_queryset()
         return qs.filter(status='ACTI')
 
 

@@ -45,11 +45,13 @@ class GradeSourceChangeForm(ModelForm):
 class DiscreteRuleForm(ModelForm):
     class Meta:
         model = DiscreteRule
+        exclude = []
 
 
 class ContinuousRuleForm(ModelForm):
     class Meta:
         model = ContinuousRule
+        exclude = []
 
 
 def rule_formset_factory(grade_source, reqpost=None):

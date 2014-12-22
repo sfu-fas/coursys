@@ -15,6 +15,8 @@ from faculty.models import Memo
 from faculty.models import MemoTemplate
 from faculty.util import ReportingSemester
 
+from collections import OrderedDict
+
 
 def career_event_factory(person, post_data=None, post_files=None):
     if post_data:
@@ -128,9 +130,14 @@ class MemoForm(forms.ModelForm):
     def __init__(self,*args, **kwargs):
         super(MemoForm, self).__init__(*args, **kwargs)
         # reorder the fields to the order of the printed memo
+        assert isinstance(self.fields, OrderedDict)
         keys = ['to_lines', 'from_lines', 'subject', 'sent_date', 'memo_text', 'cc_lines']
-        keys.extend([k for k in self.fields.keyOrder if k not in keys])
-        self.fields.keyOrder = keys
+        keys.extend([k for k in self.fields.keys() if k not in keys])
+
+        field_data = [(k,self.fields[k]) for k in keys]
+        self.fields.clear()
+        for k,v in field_data:
+            self.fields[k] = v
 
 class MemoFormWithUnit(MemoForm):
     class Meta(MemoForm.Meta):

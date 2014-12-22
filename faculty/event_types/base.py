@@ -108,8 +108,8 @@ class BaseEntryForm(forms.Form):
                 self.initial[name] = handler.get_config(name, None)
 
         # force the comments field to the bottom
-        self.fields.keyOrder = [k for k in self.fields.keyOrder if k != 'comments']
-        self.fields.keyOrder.append('comments')
+        comments = self.fields.pop('comments')
+        self.fields['comments'] = comments
 
         self.post_init()
 

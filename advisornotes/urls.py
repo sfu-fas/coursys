@@ -4,7 +4,7 @@ from courselib.urlparts import UNIT_COURSE_SLUG, NOTE_ID, SEMESTER, COURSE_SLUG,
 
 advisornotes_patterns = [ # prefix /advising/
     url(r'^$', 'advisornotes.views.advising'),
-    url(r'^new_notes/$', 'advisornotes.views.rest_notes'),
+    #url(r'^new_notes/$', 'advisornotes.views.rest_notes'),
     url(r'^hide_note$', 'advisornotes.views.hide_note'),
     url(r'^note_search$', 'advisornotes.views.note_search'),
     url(r'^sims_search$', 'advisornotes.views.sims_search'),

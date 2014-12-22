@@ -45,7 +45,8 @@ class SearchRule(object):
             form = Form(prefix=self.field_name)
 
         # XXX: Hack to make 'operator' show up before 'value'
-        form.fields.keyOrder.sort()
+        value = form.fields.pop('value')
+        form.fields['value'] = value
         return form
 
     def matches(self, handler, form):

@@ -23,6 +23,7 @@ class HiringSemesterForm(forms.ModelForm):
 
     class Meta:
         model = HiringSemester
+        exclude = []
         widgets = {
                     'deadline_for_acceptance':CalendarWidget,
                     'pay_start':CalendarWidget,
@@ -37,7 +38,8 @@ class TACategoryForm(forms.ModelForm):
         self.fields['account'].queryset = accounts
 
     class Meta:
-        model = TACategory 
+        model = TACategory
+        exclude = []
 
 class TAContractForm(forms.ModelForm):
     def __init__(self, hiring_semester, *args, **kwargs):
@@ -47,6 +49,7 @@ class TAContractForm(forms.ModelForm):
     person = PersonField()
     class Meta:
         model = TAContract
+        exclude = []
         widgets = {
             'pay_start':CalendarWidget,
             'pay_end':CalendarWidget,
@@ -62,6 +65,7 @@ class TACourseForm(forms.ModelForm):
     course = OfferingField()
     class Meta:
         model = TACourse
+        exclude = []
 
 class EmailForm(forms.Form):
     subject = forms.CharField(max_length=100)

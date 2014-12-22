@@ -191,7 +191,7 @@ class CareerQuerySet(models.query.QuerySet):
 
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerEventManager(models.Manager):
-    def get_query_set(self):
+    def get_queryset(self):
         model = models.get_model('faculty', 'CareerEvent')
         return CareerQuerySet(model)
 
@@ -199,7 +199,7 @@ class CareerEventManager(models.Manager):
         try:
             return getattr(self.__class__, attr, *args)
         except AttributeError:
-            return getattr(self.get_query_set(), attr, *args)
+            return getattr(self.get_queryset(), attr, *args)
 
 
 class CareerEvent(models.Model):
@@ -598,7 +598,7 @@ class TempGrant(models.Model):
 
 class GrantManager(models.Manager):
     def active(self):
-        qs = self.get_query_set()
+        qs = self.get_queryset()
         return qs.filter(status='A')
 
 
