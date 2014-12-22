@@ -21,7 +21,8 @@ pillow # let reportlab choose the version
 icalendar==3.8.4
 xlwt==0.7.5
 django-datatables-view==1.12
-django-bitfield==1.7.1
+django-bitfield==1.7.1 # suffers from https://github.com/disqus/django-bitfield/issues/46
+#git+git://github.com/nessita/django-bitfield@3ec8e9a
 django-localflavor==1.1
 django-countries==3.0.1
 django-compressor==1.4

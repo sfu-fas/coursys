@@ -138,7 +138,7 @@ class AdvisorNotestest(TestCase):
                 print "with view==" + repr(view)
                 raise
 
-
+"""
 class AdvisorNotesAPITest(TestCase):
 #class AdvistorNotesAPITest(object):
     fixtures = ['test_data']
@@ -480,3 +480,4 @@ class AdvisorNotesAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(before_count + 1, after_count, "Only one problem should have been created")
 
+"""
