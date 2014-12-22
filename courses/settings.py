@@ -89,6 +89,9 @@ INSTALLED_APPS = (
     'api',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'courselib.middleware.ExceptionIgnorer',
     'django_cas.middleware.CASMiddleware',
