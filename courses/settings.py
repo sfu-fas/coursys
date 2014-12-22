@@ -127,7 +127,7 @@ TIME_ZONE = 'America/Vancouver'
 USE_I18N = False
 USE_L10N = False
 USE_TZ = False
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_ARGS = ['--exe', 
             '--with-progressive',
             '--progressive-editor=vim',

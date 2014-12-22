@@ -33,6 +33,9 @@ __all__ = ['FastFixtureTestCase']
 
 
 class FastFixtureTestCase(test.TransactionTestCase):
+    pass
+
+class DisabledFastFixtureTestCase(test.TransactionTestCase):
     """Test case that loads fixtures once and for all rather than once per test
 
     Using this can save huge swaths of time while still preserving test
