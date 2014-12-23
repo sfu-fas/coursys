@@ -334,3 +334,21 @@ class SlowCoredataTest(FastFixtureTestCase):
         data = json.loads(response.content)
         emplids = [str(d['value']) for d in data]
         self.assertIn(str(p.emplid), emplids)
+
+
+class DependencyTest(FastFixtureTestCase):
+    """
+    Tests of dependent libraries, where there have been problems
+    """
+    def test_bitfield(self):
+        s, c = create_offering()
+
+        c.flags = CourseOffering.flags.quant
+        c.save()
+        self.assertEqual(CourseOffering.objects.filter(flags=CourseOffering.flags.quant).count(), 1)
+        self.assertEqual(CourseOffering.objects.filter(flags=~CourseOffering.flags.quant).count(), 0)
+
+        c.flags = 0
+        c.save()
+        self.assertEqual(CourseOffering.objects.filter(flags=CourseOffering.flags.quant).count(), 0)
+        self.assertEqual(CourseOffering.objects.filter(flags=~CourseOffering.flags.quant).count(), 1)
