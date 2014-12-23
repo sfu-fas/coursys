@@ -375,7 +375,7 @@ class TAContractTestCase(TestCase):
                                         offering=offering)
         self.assertEqual(len(members), 0)
 
-        print "Signing Contract"
+        #print "Signing Contract"
         self.sign_contract()
         members = Member.objects.filter(person=contract.person, 
                                         role='TA',
@@ -384,7 +384,7 @@ class TAContractTestCase(TestCase):
         self.assertEqual(members[0].added_reason, 'TAC')
         self.assertEqual(len(members[0].tacourse.all()), 1)
 
-        print "Cancelling Contract"
+        #print "Cancelling Contract"
         self.cancel_contract()
         members = Member.objects.filter(person=contract.person, 
                                         role='TA',
@@ -396,7 +396,7 @@ class TAContractTestCase(TestCase):
         self.assertEqual(len(dropped_members), 1)
 
         # Reinstate a contract and check that a member has been reinstated
-        print "Copying cancelled contract"
+        #print "Copying cancelled contract"
         contract = self.get_contract()
         new_contract = contract.copy('testuser')
         members = Member.objects.filter(person=new_contract.person, role='TA', offering=offering)
@@ -406,7 +406,7 @@ class TAContractTestCase(TestCase):
         self.assertEqual(len(members), 0)
         self.assertEqual(len(dropped_members), 1)
 
-        print "Signing contract"
+        #print "Signing contract"
         new_contract.sign()
         members = Member.objects.filter(person=new_contract.person, role='TA', offering=offering)
         dropped_members = Member.objects.filter(person=contract.person, 
