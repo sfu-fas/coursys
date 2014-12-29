@@ -5,7 +5,7 @@ notifications:
     email:
       - courseman-project@sfu.ca
 install: "pip install -r build_deps/working_deps.txt"
-script: "python manage.py test --with-timer"
+script: "python manage.py test"
 branches:
   except:
     - django17
