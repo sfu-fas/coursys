@@ -29,6 +29,7 @@ def config_property(field, default):
 
 
 from jsonfield.fields import JSONField as JSONFieldOriginal
+import json
 
 class JSONField(JSONFieldOriginal):
     """
@@ -37,7 +38,11 @@ class JSONField(JSONFieldOriginal):
     def pre_init(self, value, obj):
         if value is None or value == '':
             return {}
-        return super(JSONField, self).pre_init(value, obj)
+        res = super(JSONField, self).pre_init(value, obj)
+        # hack around https://github.com/bradjasper/django-jsonfield/issues/106 until fixed properly
+        if isinstance(res, basestring):
+            return json.loads(res)
+        return res
 
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^courselib\.json_fields\.JSONField$"])
+#from south.modelsinspector import add_introspection_rules
+#add_introspection_rules([], ["^courselib\.json_fields\.JSONField$"])

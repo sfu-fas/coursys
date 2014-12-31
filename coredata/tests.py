@@ -352,3 +352,14 @@ class DependencyTest(FastFixtureTestCase):
         c.save()
         self.assertEqual(CourseOffering.objects.filter(flags=CourseOffering.flags.quant).count(), 0)
         self.assertEqual(CourseOffering.objects.filter(flags=~CourseOffering.flags.quant).count(), 1)
+
+    def test_jsonfield(self):
+        from grades.models import CalNumericActivity
+        s, c = create_offering()
+        a = CalNumericActivity(offering=c, name="Test", short_name="Test", max_grade=10, position=1)
+        a.config = {'showstats': True}
+        a.save()
+
+        # https://github.com/bradjasper/django-jsonfield/issues/106
+        a = CalNumericActivity.objects.get(slug='test')
+        self.assertIsInstance(a.config, dict)
