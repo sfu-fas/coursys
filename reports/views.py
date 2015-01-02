@@ -337,7 +337,7 @@ def csv_result(request, report, run, result):
     result = get_object_or_404(Result, slug=result, run=run)
 
     filename = str(report.slug) + '-' + result.autoslug() + '.csv'
-    response = HttpResponse(mimetype='text/csv')
+    response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename=%s'% filename
     csvWriter = csv.writer(response)
 

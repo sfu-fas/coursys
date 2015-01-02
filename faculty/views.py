@@ -1150,7 +1150,7 @@ def timeline_json(request, userid):
             'headline': semester.short_label,
         })
 
-    return HttpResponse(json.dumps(payload), mimetype='application/json')
+    return HttpResponse(json.dumps(payload), content_type='application/json')
 
 
 @requires_role('ADMN')
