@@ -221,7 +221,7 @@ class ArtifactNote(models.Model):
         return (self.text, self.created_at, self.file_attachment).__hash__()
 
     def is_expired(self):
-        return date.today() > self.best_before
+        return self.best_before and date.today() > self.best_before
 
 
 
