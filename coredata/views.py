@@ -926,7 +926,10 @@ def browse_courses_info(request, course_slug):
     """
     Browsing info about a single course offering.
     """
-    offering = get_object_or_404(CourseOffering, slug=course_slug, flags=~CourseOffering.flags.combined)
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    if offering.flags.combined:
+        return NotFoundResponse(request)
+
     if 'data' in request.GET:
         # more_course_info data requested
         response = HttpResponse(content_type='application/json')
