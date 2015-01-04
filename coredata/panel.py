@@ -361,3 +361,9 @@ def ps_info():
     data.append(('CPU Percent', cpu_total))
     data.append(('Running Processes', mark_safe(''.join(psdata))))
     return data
+
+def pip_info():
+    pip = subprocess.Popen(['pip', 'freeze'], stdout=subprocess.PIPE)
+    output = pip.stdout.read()
+    result = '<pre>' + escape(output) + '</pre>'
+    return [('PIP freeze', mark_safe(result))]

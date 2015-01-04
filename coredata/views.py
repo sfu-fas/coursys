@@ -358,6 +358,9 @@ def admin_panel(request):
             git['branch'] = panel.git_branch()
             git['revision'] = panel.git_revision()
             return render(request, 'coredata/admin_panel_tab.html', {'git':git})
+        elif request.GET['content'] == 'pip':
+            data = panel.pip_info()
+            return render(request, 'coredata/admin_panel_tab.html', {'pip': data})
     elif request.method == 'POST' and 'email' in request.POST:
         email = request.POST['email']
         success, res = panel.send_test_email(email)

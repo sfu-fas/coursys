@@ -38,6 +38,7 @@ $(document).ready(function() {
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=celery">Celery Queues</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=request">Request Details</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=git">Git Status</a></li>
+  <li><a href="{% url 'coredata.views.admin_panel' %}?content=pip">PIP Status</a></li>
   </ul>
   <div id="welcome">
   <p>Current load average: {{ loadavg }}</p>

@@ -28,6 +28,10 @@
 {{ celery|panel_info }}
 {% endif %}
 
+{% if pip %}
+{{ pip|panel_info }}
+{% endif %}
+
 {% if psinfo %}
 <script type="text/javascript">
 $(document).ready(function() {
