@@ -197,6 +197,8 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     """
     View to create and edit pages
     """
+    if 'delete' in request.POST and request.POST['delete'] == 'yes':
+        return _delete_pagefile(request, course_slug, page_label, kind)
     with django.db.transaction.atomic():
         offering = get_object_or_404(CourseOffering, slug=course_slug)
         if page_label:
@@ -284,6 +286,30 @@ def _edit_pagefile(request, course_slug, page_label, kind):
         context = {'offering': offering, 'page': page, 'form': form, 'kind': kind.title()}
         return render(request, 'pages/edit_page.html', context)
 
+def _delete_pagefile(request, course_slug, page_label, kind):
+    """
+    Delete page/file
+    """
+    with django.db.transaction.atomic():
+        offering = get_object_or_404(CourseOffering, slug=course_slug)
+        page = get_object_or_404(Page, offering=offering, label=page_label)
+        #version = page.current_version()
+        member = _check_allowed(request, offering, page.can_write, page.editdate())
+        if not member:
+            return ForbiddenResponse(request, 'Not allowed to edit this '+kind+'.')
+        can_create = member.role in MEMBER_ROLES[offering.page_creators()]
+        if not can_create:
+            return ForbiddenResponse(request, 'Not allowed to delete pages in for this offering (must have page-creator permission).')
+
+        page.safely_delete()
+
+        messages.success(request, "Page deleted (but can be recovered by an administrator in an emergency).")
+        return HttpResponseRedirect(reverse(index_page, kwargs={'course_slug': course_slug}))
+
+
+
+
+
 
 def convert_content(request, course_slug, page_label=None):
     """
@@ -347,7 +373,7 @@ def import_page(request, course_slug, page_label):
                 
                 # URL for submitting that form
                 url = reverse(edit_page, kwargs={'course_slug': offering.slug, 'page_label': page.label})
-                messages.warning(request, "Page has not yet been saved, but your HTML has been imported below.")            
+                messages.warning(request, "Page has not yet been saved, but your HTML has been imported below.")
                 context = {'offering': offering, 'page': page, 'form': pageform, 'kind': 'Page', 'import': True, 'url': url}
                 return render(request, 'pages/edit_page.html', context)
         else:

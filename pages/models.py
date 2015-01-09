@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -135,6 +135,28 @@ class Page(models.Model):
             cache.set(key, v, 3600) # expired when a PageVersion is saved
             return v
 
+    def safely_delete(self):
+        """
+        Delete this page (and by "delete", we mean "don't really delete").
+        """
+        with transaction.atomic():
+            # mangle name and short-name so instructors can delete and replace
+            i = 1
+            while True:
+                suffix = "__%04i" % (i)
+                existing = Page.objects.filter(offering=self.offering, label=self.label+suffix).count()
+                if existing == 0:
+                    break
+                i += 1
+
+            new_label = self.label+suffix
+            self.label = new_label
+            self.can_read = 'NONE'
+            self.can_write = 'NONE'
+            self.save()
+
+
+
     @classmethod
     def adjust_acl_release(cls, acl_value, date):
         """
@@ -166,6 +188,7 @@ class Page(models.Model):
         else:
             #return "This page was made %s automatically on %s." % (attrib, date)
             return None
+
 
 
 class PageVersion(models.Model):

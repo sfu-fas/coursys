@@ -44,15 +44,18 @@ $(document).ready(function() {
 <a href="javascript:do_wiki()" id="wiki-on" style="display:none">Switch to wikitext editing</a>
 {% endif %}
 
-<div class="form_container">
-    <form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
-    
-    <fieldset><legend>Page Details</legend>
-    {{form|as_dl_safe}}
+<form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+{{form|as_dl_safe}}
+<p><input class="submit" type="submit" value="{% if page %}Update {{kind}}{% else %}Create {{kind}}{% endif %}" /></p>
+</form>
 
-    <p><input class="submit" type="submit" value="{% if page %}Update {{kind}}{% else %}Create {{kind}}{% endif %}" /></p>
-    </fieldset>
-
-    </form>
-</div>
+{% if page %}
+<h2 id="delete">Delete this page</h2>
+<form action="{% if url %}{{url}}{% endif %}" method="post">{% csrf_token %}
+<p>
+<input type="hidden" name="delete" value="yes" />
+<input class="submit" type="submit" value="Delete {{kind}}" onclick="confirmSubmit('delete this {{kind}}')" />
+</p>
+</form>
+{% endif %}
 {% endblock %}
