@@ -346,7 +346,7 @@ def get_role_people():
     roles = Role.objects.all().select_related('person')
     people = set(r.person for r in roles)
     for p in people:
-        get_person(p)
+        get_person(p.emplid)
 
 
 def fix_mtg_info(section, stnd_mtg_pat):
