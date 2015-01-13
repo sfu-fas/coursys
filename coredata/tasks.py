@@ -105,6 +105,7 @@ def import_task():
     tasks = [
         daily_cleanup.si(),
         fix_unknown_emplids.si(),
+        get_role_people.si(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
         #get_import_offerings_task(),
@@ -120,6 +121,10 @@ def fix_unknown_emplids():
     logger.info('Fixing unknown emplids')
     importer.fix_emplid()
 
+@task(queue='sims')
+def get_role_people():
+    logger.info('Importing people with roles')
+    importer.get_role_people()
 
 def get_update_grads_task():
     """

@@ -339,6 +339,16 @@ def get_person_grad(emplid, commit=True, force=False):
     return p
 
 
+def get_role_people():
+    """
+    Force a get_person() on all of those with roles
+    """
+    roles = Role.objects.all().select_related('person')
+    people = set(r.person for r in roles)
+    for p in people:
+        get_person(p)
+
+
 def fix_mtg_info(section, stnd_mtg_pat):
     """
     Normalize SIMS meeting data to something we can deal with.
