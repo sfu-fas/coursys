@@ -127,15 +127,14 @@ TIME_ZONE = 'America/Vancouver'
 USE_I18N = False
 USE_L10N = False
 USE_TZ = False
-#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-NOSE_ARGS = ['--exe', 
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_ARGS = ['--exe',
             '--with-progressive',
             '--progressive-editor=vim',
             '--with-timer',
             '--with-fixture-bundling',
             '--timer-top-n=10',
             '--exclude=(test_views|basic_page_tests|get_test_file|test_auth|create_test_offering|field_test)']
-NOSE_PLUGINS = ['testboost.nose_plugins.SilenceSouth']
 
 # security-related settings
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca'])
