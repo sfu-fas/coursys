@@ -21,6 +21,7 @@ RANK_CHOICES = Choices(
     ('ASSI', 'Assistant Professor'),
     ('ASSO', 'Associate Professor'),
     ('FULL', 'Full Professor'),
+    ('URAS', 'University Research Associate'),
     #('UNIV', 'University Professor'),
     #('UNIR', 'University Research Professor'),
 )
