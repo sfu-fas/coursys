@@ -23,13 +23,13 @@ class ActivityComponent(models.Model):
     """    
     Markable Component of a numeric activity   
     """
-    numeric_activity = models.ForeignKey(NumericActivity, null = False)
-    max_mark = models.DecimalField(max_digits=8, decimal_places=2, null = False)
-    title = models.CharField(max_length=30, null = False)
-    description = models.TextField(max_length = 200, null = True, blank = True)
-    position = models.IntegerField(null = True, default = 0, blank =True)    
+    numeric_activity = models.ForeignKey(NumericActivity, null=False)
+    max_mark = models.DecimalField(max_digits=8, decimal_places=2, null=False)
+    title = models.CharField(max_length=30, null=False)
+    description = models.TextField(max_length=500, null=True, blank=True)
+    position = models.IntegerField(null=True, default=0, blank=True)
     # set this flag if it is deleted by the user
-    deleted = models.BooleanField(null = False, db_index = True, default = False)
+    deleted = models.BooleanField(null=False, db_index=True, default=False)
     def autoslug(self):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='numeric_activity')
@@ -57,11 +57,11 @@ class CommonProblem(models.Model):
     """
     Common problem of a activity component. One activity component can have several common problems.
     """
-    activity_component = models.ForeignKey(ActivityComponent, null = False)
-    title = models.CharField(max_length=30, null = False)
+    activity_component = models.ForeignKey(ActivityComponent, null=False)
+    title = models.CharField(max_length=30, null=False)
     penalty = models.DecimalField(max_digits=8, decimal_places=2)
-    description = models.TextField(max_length = 200, null = True, blank = True)
-    deleted = models.BooleanField(null = False, db_index = True, default = False)
+    description = models.TextField(max_length=500, null=True, blank=True)
+    deleted = models.BooleanField(null=False, db_index=True, default=False)
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
 
@@ -81,11 +81,11 @@ class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
     """
-    overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
-    late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Percentage to deduct from the total due to late submission')
-    mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null = True, default = 0, blank = True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
-    mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True, verbose_name="Mark Penalty Reason")
-    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True, max_length=500)
+    overall_comment = models.TextField(null=True, max_length=1000, blank=True)
+    late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null=True, default=0, blank=True, help_text='Percentage to deduct from the total due to late submission')
+    mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null=True, default=0, blank=True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
+    mark_adjustment_reason = models.TextField(null=True, max_length=1000, blank=True, verbose_name="Mark Penalty Reason")
+    file_attachment = models.FileField(storage=MarkingSystemStorage, null=True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -131,7 +131,7 @@ class StudentActivityMark(ActivityMark):
     """
     Marking of one student on one numeric activity 
     """        
-    numeric_grade = models.ForeignKey(NumericGrade, null = False)
+    numeric_grade = models.ForeignKey(NumericGrade, null=False)
        
     def __unicode__(self):
         # get the student and the activity
@@ -155,8 +155,8 @@ class GroupActivityMark(ActivityMark):
     """
     Marking of one group on one numeric activity
     """
-    group = models.ForeignKey(Group, null = False) 
-    numeric_activity = models.ForeignKey(NumericActivity, null = False)
+    group = models.ForeignKey(Group, null=False)
+    numeric_activity = models.ForeignKey(NumericActivity, null=False)
          
     def __unicode__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
