@@ -49,8 +49,10 @@ class NewRoleForm(forms.ModelForm):
         data = self.cleaned_data
         person = data['person']
         unit = data['unit']
-        if Role.objects.filter(person=person, unit=unit, role='FAC').exists():
-            raise forms.ValidationError('This person already has a faculty role in that unit.')
+        self.old_role = None
+        existing = Role.objects.filter(person=person, unit=unit, role='FAC')
+        if existing.exists():
+            self.old_role = existing[0]
         return super(NewRoleForm, self).clean()
 
 
