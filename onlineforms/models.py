@@ -822,8 +822,16 @@ class SheetSubmission(models.Model):
         template = get_template('onlineforms/emails/reminder.txt')
         
         for filler, sheets in filler_ss:
+            # annotate with secret URL, so we can remind of that.
+            sheets = list(sheets)
+            for s in sheets:
+                secrets = SheetSubmissionSecretUrl.objects.filter(sheet_submission=s)
+                if secrets:
+                    s.secret = secrets[0]
+                else:
+                    s.secret = None
             context = Context({'full_url': full_url,
-                    'filler': filler, 'sheets': list(sheets)})
+                    'filler': filler, 'sheets': list(sheets), 'BASE_ABS_URL': settings.BASE_ABS_URL})
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()],
                     headers={'X-coursys-topic': 'onlineforms'})
             msg.send()
