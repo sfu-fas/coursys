@@ -145,18 +145,31 @@ class PersonField(forms.CharField):
     def __init__(self, *args, **kwargs):
         widget = PersonWidget()
         kwargs['widget'] = widget
+        self.needs_email = kwargs.pop('needs_email', False)
         return super(PersonField, self).__init__(*args, **kwargs)
+
+    def __check_email(self, p):
+        """
+        Check that the about-to-be-returned person has a valid email address (if relevant)
+        """
+        if not self.needs_email:
+            return p
+
+        if not p.userid and 'email' not in p.config:
+            raise forms.ValidationError, "No email address is known for this person: we need an email here."
+
+        return p
     
-    #def to_python(self, value):
+
     def clean(self, value):
         if isinstance(value, Person):
-            return value
+            return self.__check_email(value)
         else:
             if not self.required and not value:
                 return None
 
             try:
-                return Person.objects.get(emplid=value)
+                return self.__check_email(Person.objects.get(emplid=value))
             except (ValueError, Person.DoesNotExist):
                 # try to find the emplid in SIMS if they are missing from our DB
                 if not value:
@@ -164,7 +177,7 @@ class PersonField(forms.CharField):
 
                 if not value.isdigit(): # doesn't look like an emplid: try it as a userid
                     try:
-                        return Person.objects.get(userid=value)
+                        return self.__check_email(Person.objects.get(userid=value))
                     except Person.DoesNotExist:
                         value = userid_to_emplid(value)
                         if not value:
@@ -183,7 +196,7 @@ class PersonField(forms.CharField):
                 if confirm in self.formdata and checkemplid in self.formdata and self.formdata[checkemplid] == value:
                     # new person was presented in the form last time, and they confirmed import
                     p = add_person(value)
-                    return p
+                    return self.__check_email(p)
                 else:
                     self.widget.found_sims = True
                     self.widget.sims_data = persondata
