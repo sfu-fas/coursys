@@ -21,25 +21,17 @@ function event_filter_update(datatable) {
   }
 
   var cat = $('input:radio[name=category]:checked').val();
-  var table = $('#' + datatable).dataTable( {
-    "bRetrieve": true,
+  var table = $('#' + datatable).DataTable( {
+    "retrieve": true,
   } );
-
-  $.fn.dataTableExt.afnFiltering = [];
-  $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
-    if ( oSettings.nTable.id != datatable ) {
+  $.fn.dataTable.ext.search = [];
+  $.fn.dataTable.ext.search.push(function(settings, data, i) {
+    if ( settings.nTable.id != datatable || cat === 'all' ) {
       return true;
     }
-
-    var row = $(table.fnGetNodes(iDataIndex));
-    if ( cat === 'all' ) {
-      return true;
-    } else if ( row.hasClass(cat) ) {
-      return true;
-    } else {
-      return false;
-    }
+    var row = table.row(i).node();
+    return $(row).hasClass(cat);
   });
 
-  table.fnDraw();
+  table.draw();
 }

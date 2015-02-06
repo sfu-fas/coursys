@@ -198,9 +198,13 @@ def manage_faculty_roles(request):
         form = NewRoleForm(request.POST)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            role = form.save(commit=False)
-            role.role = 'FAC'
-            role.save()
+            if form.old_role:
+                form.old_role.config['gone'] = False
+                form.old_role.save()
+            else:
+                role = form.save(commit=False)
+                role.role = 'FAC'
+                role.save()
             messages.success(request, 'New faculty role added.')
             return HttpResponseRedirect(reverse(manage_faculty_roles))
 
