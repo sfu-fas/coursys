@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, has_role, \
-    requires_course_staff_or_dept_admn_by_slug, requires_course_instr_or_dept_admn_by_slug, \
+    is_course_staff_by_slug, is_course_instr_by_slug, user_passes_test, \
     ForbiddenResponse, NotFoundResponse, HttpError
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
@@ -60,6 +60,40 @@ def _create_news(person, url, from_user, accept_deadline):
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
+
+
+def _is_admin_by_slug(request, course_slug, **kwargs):
+    offering = CourseOffering.objects.get(slug=course_slug)
+    roles = Role.objects.filter(person__userid=request.user.username, role='ADMN', unit=offering.owner).count() \
+            + Role.objects.filter(person__userid=request.user.username, role='TAAD', unit=offering.owner).count()
+    return roles > 0
+
+def _requires_course_staff_or_admin_by_slug(function=None, login_url=None):
+    """
+    Allows access if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug'
+    *or* if they are the departmental admin for the course's department
+    """
+    def test_func(request, **kwargs):
+        return is_course_staff_by_slug(request, **kwargs) or _is_admin_by_slug(request, **kwargs)
+    actual_decorator = user_passes_test(test_func, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
+def _requires_course_instr_or_admin_by_slug(function=None, login_url=None):
+    """
+    Allows access if user is an instructor from course indicated by 'course_slug'
+    *or* if they are the departmental admin for the course's department
+    """
+    def test_func(request, **kwargs):
+        return is_course_instr_by_slug(request, **kwargs) or _is_admin_by_slug(request, **kwargs)
+    actual_decorator = user_passes_test(test_func, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
 
 @login_required
 def all_tugs_admin(request, semester_name=None):
@@ -123,7 +157,7 @@ def all_tugs_admin(request, semester_name=None):
     return render(request, 'ta/all_tugs_admin.html', context)
 
 
-@requires_course_instr_or_dept_admn_by_slug
+@_requires_course_instr_or_admin_by_slug
 @transaction.atomic
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -188,7 +222,7 @@ def new_tug(request, course_slug, userid):
                }
     return render(request,'ta/new_tug.html',context)
 
-@requires_course_staff_or_dept_admn_by_slug
+@_requires_course_staff_or_admin_by_slug
 def view_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role="TA")
@@ -241,7 +275,7 @@ def view_tug(request, course_slug, userid):
                 }
         return render(request, 'ta/view_tug.html',context)
 
-@requires_course_instr_or_dept_admn_by_slug
+@_requires_course_instr_or_admin_by_slug
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role='TA')
