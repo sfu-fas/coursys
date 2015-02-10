@@ -86,6 +86,7 @@ class AdvisorNote(models.Model):
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
     emailed = models.BooleanField(null=False, default=False)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
 
     def __unicode__(self):
         return unicode(self.student) + "@" + unicode(self.created_at)
