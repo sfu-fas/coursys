@@ -2,7 +2,7 @@
 import datetime
 import decimal
 # Django
-from django.db import models
+from django.db import models, transaction
 from django.db.models.query import QuerySet
 # Third Party
 from model_utils.managers import PassThroughManager
@@ -449,6 +449,56 @@ class TAContract(models.Model):
     def should_be_added_to_the_course(self):
         return (self.status == "SGN" or self.accepted_by_student == True)
 
+    @classmethod
+    def update_ta_members(cls, person, semester_id):
+        """
+        Update all TA memberships for this person+semester
+        """
+        from ta.models import TACourse as OldTACourse
+
+        def add_membership_for(tacrs, reason, memberships):
+            if not tacrs.contract.should_be_added_to_the_course or tacrs.total_bu <= 0:
+                return
+
+            for m in memberships:
+                if m.person == person and m.offering == tacrs.course:
+                    break
+            else:
+                m = Member(person=person, offering=tacrs.course)
+
+            m.role = 'TA'
+            m.credits = 0
+            m.career = 'NONS'
+            m.added_reason = reason
+            m.config['bu'] = str(tacrs.total_bu)
+
+
+        with transaction.atomic():
+            memberships = Member.objects.filter(person=person, offering__semester_id=semester_id)
+            memberships = list(memberships)
+
+            # drop any TA memberships that should be re-added below
+            for m in memberships:
+                if m.role == 'TA' and m.added_reason in ['CTA', 'TAC']:
+                    m.role = 'DROP'
+
+            # tacontracts memberships
+            tacrses = TACourse.objects.filter(contract__person_id=person, course__semester_id=semester_id)
+            for tacrs in tacrses:
+                add_membership_for(tacrs, 'TAC', memberships)
+
+            # ta memberships
+            tacrses = OldTACourse.objects.filter(contract__application__person_id=person, course__semester_id=semester_id)
+            for tacrs in tacrses:
+                add_membership_for(tacrs, 'CTA', memberships)
+
+            # save whatever just happened
+            for m in memberships:
+                if m.is_dirty():
+                    print m.__dict__
+                #m.save_if_dirty()
+
+
     def sync_course_member(self):
         """
         Once a contract is Signed, we should create a Member object for them.
@@ -457,6 +507,8 @@ class TAContract(models.Model):
         This operation should be idempotent - run it as many times as you
         want, the result should always be the same. 
         """
+        #TAContract.update_ta_members(self.person, self.category.hiring_semester.semester_id)
+
         # if signed, create the Member objects so they have access to the courses.
         courses = self.course.all()
         for crs in courses:

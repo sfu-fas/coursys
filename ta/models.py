@@ -634,6 +634,10 @@ class TAContract(models.Model):
     def total_pay(self):
         return decimal.Decimal(self.bu()) * self.pay_per_bu
 
+    @property
+    def should_be_added_to_the_course(self):
+        return self.status in ['SGN', 'ACC']
+
 
 class CourseDescription(models.Model):
     """
