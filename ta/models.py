@@ -544,63 +544,8 @@ class TAContract(models.Model):
                 gs.person.set_sin(self.sin)
                 gs.person.save()
 
-        # if signed, create the Member objects so they have access to the courses.
-        courses = TACourse.objects.filter(contract=self)
-        for crs in courses:
-            members = Member.objects.filter(person=self.application.person, offering=crs.course).exclude(role='DROP')
-            # assert( len(members) <= 1 )
-            dropped_members = Member.objects.filter(person=self.application.person, offering=crs.course, role='DROP')
-            # Should Member just have an optional FK to TACourse rather than getting a copy of the BU? 
-            if (self.status in ['SGN', 'ACC'] and crs.bu > 0) and not members:
-                if dropped_members:
-                    m = dropped_members[0]
-                    # if this student was added/dropped by the prof, then added_reason might not be CTA
-                    m.added_reason='CTA'
-                    m.role = "TA"
-                else:
-                    # signed, but not a member: create
-                    m = Member(person=self.application.person, offering=crs.course, role='TA',
-                           added_reason='CTA', credits=0, career='NONS')
-                m.config['bu'] = crs.total_bu
-                m.save()
-            elif (self.status in ['SGN', 'ACC'] and crs.bu > 0 ) and members:
-                # change in BU -> change in BU for Member
-                m = members[0]
-                if not 'bu' in m.config or m.config['bu'] != crs.total_bu:
-                    # if this student was added by the prof, then added_reason might not be CTA
-                    m.config['bu'] = crs.total_bu
-                    m.added_reason='CTA'
-                    m.save()
-            elif ( (not self.status in ['SGN', 'ACC']) or crs.bu == 0) and members:
-                # already in course, but status isn't signed: remove
-                m = members[0]
-                if m.role == 'TA' and m.added_reason == 'CTA':
-                    m.role = 'DROP'
-                    m.save()
-            else: 
-                # (self.status not in ['SGN', 'ACC'] or crs.bu == 0) and not members
-                # there is no contract and this student doesn't exist as a Member in the course
-                pass
-            
-            if self.status in ('CAN', 'REJ'):
-                # These students should be removed from their courses. 
-                crs.bu = 0
-                crs.save()
-
-            # If this course has 0 BUs and a course Member record, clear that record. 
-            if crs.bu == 0 and members:
-                m = members[0]
-                if m.role == 'TA' and m.added_reason == 'CTA':
-                    m.role = 'DROP'
-                    m.save()
-
-        # If they are CTA-added members of any other course this semester, they probably shouldn't be
-        members = Member.objects.filter(person=self.application.person, role='TA', added_reason='CTA', offering__semester=self.posting.semester )
-        courseofferings = [crs.course for crs in courses if crs.bu > 0]
-        for member in members:
-            if member.offering not in courseofferings:
-                member.role = 'DROP'
-                member.save()
+        from tacontracts.models import TAContract as NewTAContract
+        NewTAContract.update_ta_members(self.application.person, self.posting.semester_id)
 
 
     def first_assign(self, application, posting):

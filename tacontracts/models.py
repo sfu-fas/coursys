@@ -452,7 +452,9 @@ class TAContract(models.Model):
     @classmethod
     def update_ta_members(cls, person, semester_id):
         """
-        Update all TA memberships for this person+semester
+        Update all TA memberships for this person+semester.
+
+        Idempotent.
         """
         from ta.models import TACourse as OldTACourse
 
@@ -460,11 +462,15 @@ class TAContract(models.Model):
             if not tacrs.contract.should_be_added_to_the_course or tacrs.total_bu <= 0:
                 return
 
+            # Find existing membership for this person+offering if it exists
+            # (Behaviour here implies you can't be both TA and other role in one offering: I'm okay with that.)
             for m in memberships:
                 if m.person == person and m.offering == tacrs.course:
                     break
             else:
+                # there was no membership: create
                 m = Member(person=person, offering=tacrs.course)
+                memberships.append(m)
 
             m.role = 'TA'
             m.credits = 0
@@ -494,9 +500,7 @@ class TAContract(models.Model):
 
             # save whatever just happened
             for m in memberships:
-                if m.is_dirty():
-                    print m.__dict__
-                #m.save_if_dirty()
+                m.save_if_dirty()
 
 
     def sync_course_member(self):
@@ -507,88 +511,7 @@ class TAContract(models.Model):
         This operation should be idempotent - run it as many times as you
         want, the result should always be the same. 
         """
-        #TAContract.update_ta_members(self.person, self.category.hiring_semester.semester_id)
-
-        # if signed, create the Member objects so they have access to the courses.
-        courses = self.course.all()
-        for crs in courses:
-            members = Member.objects.filter(person=self.person, 
-                                            role='TA',
-                                            offering=crs.course)
-            # the student should either be in the course (1) or not (0)
-            # any other number of responses is unacceptable. 
-            assert( len(members) == 1 or len(members) == 0 )
-
-
-            dropped_members = Member.objects.filter(person=self.person, 
-                                                    offering=crs.course, 
-                                                    role='DROP')
-            
-            assert( len(dropped_members) == 1 or len(dropped_members) == 0)
-
-            # this shouldn't be. 
-            if members and dropped_members:
-                d = dropped_members[0]
-                d.delete()
-                dropped_members = []
-           
-            # the student must be in one of these three states
-            exists_and_is_in_the_course = len(members) > 0
-            exists_and_is_dropped = len(dropped_members) > 0
-            does_not_exist = len(members) == 0 and len(dropped_members) == 0
-            
-            assert(exists_and_is_in_the_course or exists_and_is_dropped or does_not_exist)            
-            assert(not(exists_and_is_in_the_course and exists_and_is_dropped))
-            assert(not(exists_and_is_dropped and does_not_exist))
-            assert(not(exists_and_is_in_the_course and does_not_exist))
-            assert(len(dropped_members) < 2)
-            assert(len(members) < 2)
-
-            if self.should_be_added_to_the_course:
-                if exists_and_is_dropped:
-                    m = dropped_members[0]
-                elif exists_and_is_in_the_course:
-                    m = members[0]
-                elif does_not_exist:
-                    m = Member(person=self.person, 
-                               offering=crs.course, 
-                               role='TA',
-                               added_reason='TAC',
-                               credits=0, 
-                               career='NONS')
-                else:
-                    assert(False)
-                m.added_reason='TAC'
-                m.role = 'TA'
-                m.config['bu'] = crs.total_bu
-                m.save()
-                crs.member = m
-                crs.save(always_allow=True)
-            else:
-                if exists_and_is_dropped:
-                    pass
-                elif exists_and_is_in_the_course:
-                    m = members[0]
-                    if m.added_reason == 'TAC':
-                        m.role = 'DROP'
-                        m.save()
-                    crs.member = None
-                    crs.save(always_allow=True)
-                elif does_not_exist:
-                    pass
-
-        # If they are TAC-added members of any other course this semester,
-        #    they probably shouldn't be.
-        members = Member.objects.filter(person=self.person, 
-                                        role='TA', 
-                                        added_reason='TAC',
-                                        offering__semester=self.category.hiring_semester.semester)
-        
-        courseofferings = [crs.course for crs in courses]
-        for member in members:
-            if member.offering not in courseofferings:
-                member.role = 'DROP'
-                member.save()
+        TAContract.update_ta_members(self.person, self.category.hiring_semester.semester_id)
 
 
 class TACourse(models.Model):
