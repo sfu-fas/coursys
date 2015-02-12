@@ -1245,9 +1245,8 @@ def outlines_data_json(offering):
 
 
 
-##############################################################################3
+##############################################################################
 # Emplid -> Userid APIs
-# as documented here: http://www.sfu.ca/outlines/help/api.html
 
 EMPLID_SECRET = settings.EMPLID_API_SECRET
 EMPLID_BASE_URL = 'https://rest.its.sfu.ca/cgi-bin/WebObjects/AOBRestServer.woa/rest/datastore2/global.json?'
@@ -1273,7 +1272,7 @@ def userid_to_emplid(userid):
         return None
 
     if 'sfuid' not in data:
-        raise ValueError, "No 'sfuid' returned in response."
+        return None
 
     return data['sfuid']
 
