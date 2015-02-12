@@ -14,7 +14,7 @@ TEXT_WIDTH = 70
 class _AdvisorNoteFormNonstudent(forms.ModelForm):
     class Meta:
         model = AdvisorNote
-        exclude = ('hidden', 'emailed', 'created_at')
+        exclude = ('hidden', 'emailed', 'created_at', 'config')
         widgets = {
                 'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})
                 }
