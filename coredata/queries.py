@@ -1203,6 +1203,37 @@ def get_passport_issued_by( emplid ):
     return "Unknown"
 
 
+@SIMS_problem_handler
+def csrpt_update():
+    """
+    Report about when it looks like the reporting database was last updated
+    """
+    data = []
+    db = SIMSConn()
+    this_sem = Semester.current()
+
+    db.execute("""
+        SELECT sfu_clone_dttm FROM ps_sfu_clone_info
+        """, ())
+    row = db.fetchone()
+    data.append(('ps_sfu_clone_info.sfu_clone_dttm', row[0]))
+
+    db.execute("""
+        SELECT max(enrl_add_dt), max(status_dt), max(grading_basis_dt) FROm ps_stdnt_enrl WHERE strm IN (%s, %s)
+        """, (this_sem.name, this_sem.offset_name(1)))
+    row = db.fetchone()
+    data.append(('max(enrl_add_dt)', row[0]))
+    data.append(('max(status_dt)', row[1]))
+    data.append(('max(grading_basis_dt)', row[2]))
+
+    db.execute("""
+        SELECT max(scc_row_add_dttm) FROM ps_acad_plan
+        """, ())
+    row = db.fetchone()
+    data.append(('recent ps_acad_plan', row[0]))
+
+    return data
+
 
 ##############################################################################3
 # Course outlines API functions

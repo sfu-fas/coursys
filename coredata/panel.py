@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 
 from coredata.models import Semester, Unit
-from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid
+from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
 from dashboard.photos import do_photo_fetch
 
 import celery
@@ -367,3 +367,6 @@ def pip_info():
     output = pip.stdout.read()
     result = '<pre>' + escape(output) + '</pre>'
     return [('PIP freeze', mark_safe(result))]
+
+def csrpt_info():
+    return csrpt_update()

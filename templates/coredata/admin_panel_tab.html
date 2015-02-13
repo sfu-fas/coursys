@@ -32,6 +32,11 @@
 {{ pip|panel_info }}
 {% endif %}
 
+{% if csrpt %}
+Some guess about how fresh the reporting database is&hellip;
+{{ csrpt|panel_info }}
+{% endif %}
+
 {% if psinfo %}
 <script type="text/javascript">
 $(document).ready(function() {

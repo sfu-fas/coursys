@@ -361,6 +361,9 @@ def admin_panel(request):
         elif request.GET['content'] == 'pip':
             data = panel.pip_info()
             return render(request, 'coredata/admin_panel_tab.html', {'pip': data})
+        elif request.GET['content'] == 'csrpt':
+            data = panel.csrpt_info()
+            return render(request, 'coredata/admin_panel_tab.html', {'csrpt': data})
     elif request.method == 'POST' and 'email' in request.POST:
         email = request.POST['email']
         success, res = panel.send_test_email(email)

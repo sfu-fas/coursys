@@ -39,6 +39,7 @@ $(document).ready(function() {
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=request">Request Details</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=git">Git Status</a></li>
   <li><a href="{% url 'coredata.views.admin_panel' %}?content=pip">PIP Status</a></li>
+  <li><a href="{% url 'coredata.views.admin_panel' %}?content=csrpt">Reporting DB</a></li>
   </ul>
   <div id="welcome">
   <p>Current load average: {{ loadavg }}</p>
