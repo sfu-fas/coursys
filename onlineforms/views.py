@@ -1101,7 +1101,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             # check if this sheet has already been filled
             if sheet_submission.status in ["DONE", "REJE"]:
                 # TODO: show in display-only mode instead
-                return NotFoundResponse(request)
+                return NotFoundResponse(request, errormsg='This sheet has already been completed and cannot be edited further')
             # check that they can access this sheet
             formFiller = sheet_submission.filler
             if sheet_submission.filler.isSFUPerson():
