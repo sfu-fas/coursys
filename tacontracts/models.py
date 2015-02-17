@@ -566,6 +566,10 @@ class TACourse(models.Model):
         else:
             super(TACourse, self).delete(*args, **kwargs)
 
+    def has_labtut(self):
+        # for consistent interface with ta.models.TACourse
+        return self.labtut
+
     @property
     def prep_bu(self):
         """
@@ -602,6 +606,16 @@ class TACourse(models.Model):
     @property
     def hours(self):
         return self.bu * self.contract.category.hours_per_bu
+
+    @property
+    def min_tug_prep(self):
+        """
+        The fewest hours the instructor should be able to assign for "prep" in the TUG.
+
+        Courses with labs/tutorials must used 1 BU for prep. In addition to the 0.17 BU that must be used for prep.
+        That's a *totally* different kind of prep.
+        """
+        return self.contract.category.hours_per_bu if self.labtut else 0
 
 
 class EmailReceipt(models.Model):

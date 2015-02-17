@@ -627,6 +627,24 @@ class TACourse(models.Model):
         """
         return self.bu + self.prep_bu
 
+    @property
+    def hours(self):
+        return self.bu * HOURS_PER_BU
+
+    @property
+    def holiday_hours(self):
+        return self.bu * HOLIDAY_HOURS_PER_BU
+
+    @property
+    def min_tug_prep(self):
+        """
+        The fewest hours the instructor should be able to assign for "prep" in the TUG.
+
+        Courses with labs/tutorials must used 1 BU for prep. In addition to the 0.17 BU that must be used for prep.
+        That's a *totally* different kind of prep.
+        """
+        return HOURS_PER_BU if self.has_labtut() else 0
+
     def has_labtut(self):
         """
         Does this assignment deserve the LAB_BONUS bonus?

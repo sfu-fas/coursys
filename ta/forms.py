@@ -101,7 +101,7 @@ class TUGForm(forms.ModelForm):
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':',
                  empty_permitted=False, instance=None,
-                 offering=None, userid=None):
+                 offering=None, userid=None, enforced_prep_min=0):
         super(TUGForm, self).__init__(data, files, auto_id, prefix, initial,
                  error_class, label_suffix, empty_permitted, instance)
         # see old revisions (git id 1d1d2f9) for a dropdown
@@ -111,7 +111,9 @@ class TUGForm(forms.ModelForm):
             member = instance.member
         else:
             assert False
-        
+
+        self.enforced_prep_min = enforced_prep_min
+
         self.initial['member'] = member
         self.fields['member'].widget = forms.widgets.HiddenInput()
         
@@ -154,7 +156,7 @@ class TUGForm(forms.ModelForm):
             raise forms.ValidationError("Wrong member")
         return self.cleaned_data['member']
     def is_valid(self):
-        return (all(form.is_valid() for form in self.subforms.itervalues()) 
+        return (all(form.is_valid() for form in self.subforms.itervalues())
                 and super(TUGForm, self).is_valid())
     def full_clean(self):
         for form in self.subforms.itervalues():
@@ -167,7 +169,13 @@ class TUGForm(forms.ModelForm):
                 for field in TUG.all_fields)
         except AttributeError:
             raise forms.ValidationError([])
+
+        prep_hours = data['config']['prep']['total']
+        #if prep_hours < self.enforced_prep_min:
+        #    raise forms.ValidationError('Because this TA has labs or tutorials, you must assign at least %s base units to "Preparation".' % (self.enforced_prep_min))
+
         return data
+
     def save(self, *args, **kwargs):
         self.instance.config = self.cleaned_data['config']
         return super(TUGForm, self).save(*args, **kwargs)
