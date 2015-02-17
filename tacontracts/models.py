@@ -600,12 +600,20 @@ class TACourse(models.Model):
         return self.total_pay + self.scholarship_pay
 
     @property
+    def holiday_hours_per_bu(self):
+        return self.contract.category.holiday_hours_per_bu
+
+    @property
     def holiday_hours(self):
         return self.bu * self.contract.category.holiday_hours_per_bu
     
     @property
     def hours(self):
         return self.bu * self.contract.category.hours_per_bu
+
+    @property
+    def hours_per_bu(self):
+        return self.contract.category.hours_per_bu
 
     @property
     def min_tug_prep(self):
@@ -615,7 +623,7 @@ class TACourse(models.Model):
         Courses with labs/tutorials must used 1 BU for prep. In addition to the 0.17 BU that must be used for prep.
         That's a *totally* different kind of prep.
         """
-        return self.contract.category.hours_per_bu if self.labtut else 0
+        return self.hours_per_bu if self.labtut else 0
 
 
 class EmailReceipt(models.Model):

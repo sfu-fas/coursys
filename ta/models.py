@@ -632,6 +632,14 @@ class TACourse(models.Model):
         return self.bu * HOURS_PER_BU
 
     @property
+    def hours_per_bu(self):
+        return HOURS_PER_BU
+
+    @property
+    def holiday_hours_per_bu(self):
+        return HOLIDAY_HOURS_PER_BU
+
+    @property
     def holiday_hours(self):
         return self.bu * HOLIDAY_HOURS_PER_BU
 

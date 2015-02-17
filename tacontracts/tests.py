@@ -382,7 +382,7 @@ class TAContractTestCase(TestCase):
                                         offering=offering)
         self.assertEqual(len(members), 1)
         self.assertEqual(members[0].added_reason, 'TAC')
-        self.assertEqual(len(members[0].tacourse.all()), 1)
+        #self.assertEqual(len(members[0].tacourse.all()), 1)
 
         #print "Cancelling Contract"
         self.cancel_contract()

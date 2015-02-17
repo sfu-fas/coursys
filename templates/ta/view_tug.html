@@ -68,14 +68,13 @@
 	<span id="maxHours"> Maximum Hours to be Assigned: 
 		<span class="tugField">{{ max_hours }}</span>
 	</span>
-	<span id="totalBU"> Total BUs:
-		<span class="tugField">{{ tug.base_units }}</span>
-	</span>
-	{% if has_lab_or_tut %}
-        <span id="prepHours"> Prep BUs: 
-            <span class="tugField">{{ LAB_BONUS }}</span>
+	<span id="assignBU"> Assigned BUs:
+		<span class="tugField">{{ bu }}
+        {% if has_lab_or_tut %}
+            (+ {{ lab_bonus }} for prep = {{ total_bu }})
+        {% endif %}
         </span>
-    {% endif %}
+	</span>
 </div>
 
 <div id="tugBody">
@@ -143,9 +142,9 @@
 				<td class="numeral">8.</td>
 				<td> Statutory Holiday Compensation - <br />
 					To compensate for all statutory holidays which 
-					may occur in a semester, the total workload required will be reduced by {{HOLIDAY_HOURS_PER_BU}} hour(s) 
-					for each base unit assigned excluding the additional {{LAB_BONUS}} B.U. for preparation, 
-					e.g. 4.4 hours reduction for {{LAB_BONUS_4}} B.U. appointment.
+					may occur in a semester, the total workload required will be reduced by {{holiday_hours_per_bu}} hour(s)
+					for each base unit assigned excluding the additional {{lab_bonus}} B.U. for preparation,
+					e.g. 4.4 hours reduction for {{lab_bonus_4}} B.U. appointment.
  				</td>
 				<td class="tugField">{{tug.config.holiday.weekly|default_if_none:""}}</td>
 				<td class="tugField">{{tug.config.holiday.total}}</td>
@@ -177,7 +176,7 @@
 		and workload review mechanisms in Article XIII E.
 	</p>
 	<p class="smallprint">
-		*There are no hours of work associated with the additional {{LAB_BONUS}} base unit for preparation, 
+		*There are no hours of work associated with the additional {{lab_bonus}} base unit for preparation,
 		Article XIII D. 2 b.  See Appendix B for calculation of hours.
 		<br/>
 		**  Includes grading of all assignments, reports and examinations. 
