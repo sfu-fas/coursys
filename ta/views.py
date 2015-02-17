@@ -257,14 +257,13 @@ def _edit_tug(request, course_slug, userid, tug=None):
         has_lab_or_tut = course.labtas()
         prep_min = HOURS_PER_BU if has_lab_or_tut else 0
         bu = member.bu()
-        if has_lab_or_tut and bu:
-            bu -= LAB_BONUS_DECIMAL
+        if not bu and tug:
+            bu = tug.base_units
         lab_bonus = LAB_BONUS_DECIMAL
         hours_per_bu = HOURS_PER_BU
         holiday_hours = bu * HOLIDAY_HOURS_PER_BU
         prep_bu = 0
 
-    print tug
     if not tug:
         tug = TUG(member=member)
 
