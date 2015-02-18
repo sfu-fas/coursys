@@ -1100,8 +1100,11 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             sheet = sheet_submission.sheet # revert to the old version that the user was working with.
             # check if this sheet has already been filled
             if sheet_submission.status in ["DONE", "REJE"]:
-                # TODO: show in display-only mode instead
-                return NotFoundResponse(request, errormsg='This sheet has already been completed and cannot be edited further')
+                # TODO: show in display-only mode instead?
+                messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
+                return HttpResponseRedirect(reverse(index))
+                #return NotFoundResponse(request, errormsg='This sheet has already been completed and cannot be edited further')
+
             # check that they can access this sheet
             formFiller = sheet_submission.filler
             if sheet_submission.filler.isSFUPerson():
@@ -1260,7 +1263,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                     'sheet_slug': sheet.slug,
                                     'sheetsubmit_slug': sheet_submission.slug})
 
-                            messages.success(request, 'All fields without errors were saved. Use this pages URL to edit this submission in the future.')
+                            messages.success(request, 'All fields without errors were saved. Use this page\'s URL to edit this submission in the future.')
                             return HttpResponseRedirect(access_url)
                         elif 'submit' in request.POST:
                             # all the fields have been submitted, this sheet is done
