@@ -170,9 +170,10 @@ class TUGForm(forms.ModelForm):
         except AttributeError:
             raise forms.ValidationError([])
 
-        prep_hours = data['config']['prep']['total']
-        if not prep_hours or prep_hours < self.enforced_prep_min:
-            raise forms.ValidationError('Because this TA has labs or tutorials, you must assign at least %s base units to "Preparation".' % (self.enforced_prep_min))
+        # this can't possibly be the business logic, right?
+        #prep_hours = data['config']['prep']['total']
+        #if not prep_hours or prep_hours < self.enforced_prep_min:
+        #    raise forms.ValidationError('Because this TA has labs or tutorials, you must assign at least %s base units to "Preparation".' % (self.enforced_prep_min))
 
         return data
 
