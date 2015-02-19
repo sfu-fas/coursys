@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from coredata.models import Member, Person, CourseOffering
 from groups.models import Group, GroupMember, all_activities
 from grades.models import Activity, all_activities_filter
@@ -215,6 +216,7 @@ def group_data(request, course_slug):
 
 
 @requires_course_by_slug
+@transaction.atomic
 def create(request, course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -296,6 +298,7 @@ def _validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course,
     return not integrityError
 
 @requires_course_by_slug
+@transaction.atomic
 def submit(request, course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -410,6 +413,7 @@ def submit(request, course_slug):
 
 
 @requires_course_by_slug
+@transaction.atomic
 def join(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
@@ -432,6 +436,7 @@ def join(request, course_slug, group_slug):
     return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
+@transaction.atomic
 def reject(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
@@ -453,6 +458,7 @@ def reject(request, course_slug, group_slug):
     return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
+@transaction.atomic
 def invite(request, course_slug, group_slug):
     #TODO need to validate the student who is invited, cannot be the invitor him/herself.
     course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -523,6 +529,7 @@ def invite(request, course_slug, group_slug):
         return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
 
 @login_required
+@transaction.atomic
 def remove_student(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
@@ -574,6 +581,7 @@ def remove_student(request, course_slug, group_slug):
                           context_instance = RequestContext(request))
 
 @requires_course_staff_by_slug
+@transaction.atomic
 def change_name(request, course_slug, group_slug):
     "Change the group's name"
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -599,6 +607,7 @@ def change_name(request, course_slug, group_slug):
 
 
 @requires_course_staff_by_slug
+@transaction.atomic
 def assign_student(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     group = get_object_or_404(Group, slug=group_slug, courseoffering=course)
