@@ -232,7 +232,10 @@ def remove_message(request, course_slug, topic_slug, message_slug):
 @uses_feature('discuss')
 @login_required()
 def manage_discussion_subscription(request, course_slug):
-    course, _ = _get_course_and_view(request, course_slug)
+    course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     member = get_object_or_404(Member, offering=course, person__userid=request.user.username)
     sub, _ = DiscussionSubscription.objects.get_or_create(member=member)
     topic_subs = TopicSubscription.objects.filter(member=member, topic__offering=course) \
@@ -255,7 +258,10 @@ def manage_discussion_subscription(request, course_slug):
 @uses_feature('discuss')
 @login_required()
 def manage_topic_subscription(request, course_slug, topic_slug):
-    course, _ = _get_course_and_view(request, course_slug)
+    course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     member = get_object_or_404(Member, offering=course, person__userid=request.user.username)
     topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     sub, _ = TopicSubscription.objects.get_or_create(member=member, topic=topic)
