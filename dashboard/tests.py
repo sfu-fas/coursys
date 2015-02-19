@@ -1,9 +1,7 @@
-
 from coredata.tests import create_offering
-from coredata.models import *
-from dashboard.models import UserConfig
-from courselib.testing import *
-#from django.test import TestCase
+from coredata.models import Person, Member, CourseOffering, Role
+from dashboard.models import UserConfig, NewsItem
+from courselib.testing import TEST_COURSE_SLUG, Client, validate_content, create_test_offering, test_views
 from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
 import re, datetime
@@ -270,6 +268,30 @@ class DashboardTest(TestCase):
         c.login_user(r.person.userid)
         test_views(self, c, 'dashboard.views.', ['signatures', 'new_signature'], {})
 
+
+class DatetimeTest(TestCase):
+    def setUp(self):
+        self.offering = create_test_offering()
+        self.instructor = Member.objects.get(offering=self.offering, role='INST').person
+
+    def test_dst(self):
+        """
+        Test news item in the ambiguous DST switchover
+        """
+        instr = self.instructor
+
+        n = NewsItem(user=instr, author=instr, source_app='foo', title='The Title',
+                     content='Content')
+        n.save()
+
+        c = Client()
+        c.login_user(instr.userid)
+        test_views(self, c, 'dashboard.views.', ['news_list'], {})
+
+        n.published = datetime.datetime(2014, 11, 2, 1, 30, 0) # there are two of this time because of the DST transition
+        n.save()
+
+        test_views(self, c, 'dashboard.views.', [ 'news_list'], {})
 
 from django.core.management import call_command
 from haystack.query import SearchQuerySet

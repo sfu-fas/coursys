@@ -67,11 +67,11 @@ $(document).ready(function() {
    	{%if news.url%}
    	 	<a href="{{news.url}}">{{news.title}}</a>
    	{%else%}
-   		{{news.title}}</h3>
+   		{{news.title}}
    	{% endif %}
    	</h3>
     <div class="newsmore">
-    <div class="newsdate">{{news.published|date:'r'}}</div>
+    <div class="newsdate">{{news.published}}</div>
     <div class="newscontent">{{news.content_xhtml}}</div>
     </div>
     </div>

@@ -8,7 +8,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
 from courselib.json_fields import JSONField
-import random, hashlib, os
+import random, hashlib, os, datetime
 from textile import textile_restricted
 
 def _rfc_format(dt):
@@ -38,7 +38,7 @@ class NewsItem(models.Model):
 
     title = models.CharField(max_length=100, null=False, help_text="Story title (plain text)")
     content = models.TextField(help_text=mark_safe('Main story content (<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a>)'))
-    published = models.DateTimeField(auto_now_add=True)
+    published = models.DateTimeField(default=datetime.datetime.now)
     updated = models.DateTimeField(auto_now=True)
     url = models.URLField(blank=True, verbose_name="URL", help_text='absolute URL for the item: starts with "http://" or "/"')
     

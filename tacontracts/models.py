@@ -199,7 +199,7 @@ class TACategory(models.Model):
                          null=False, 
                          editable=False, 
                          unique=True)
-    created = models.DateTimeField(default=datetime.datetime.now(), 
+    created = models.DateTimeField(default=datetime.datetime.now,
                                    editable=False)
     hidden = models.BooleanField(default=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default={})
