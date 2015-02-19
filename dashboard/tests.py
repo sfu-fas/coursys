@@ -286,12 +286,12 @@ class DatetimeTest(TestCase):
 
         c = Client()
         c.login_user(instr.userid)
-        test_views(self, c, 'dashboard.views.', ['news_list'], {})
+        test_views(self, c, 'dashboard.views.', ['index', 'news_list'], {})
 
         n.published = datetime.datetime(2014, 11, 2, 1, 30, 0) # there are two of this time because of the DST transition
         n.save()
 
-        test_views(self, c, 'dashboard.views.', [ 'news_list'], {})
+        test_views(self, c, 'dashboard.views.', ['index', 'news_list'], {})
 
 from django.core.management import call_command
 from haystack.query import SearchQuerySet
