@@ -1,18 +1,23 @@
 # do the import with fake data for development
 # suggested execution:
-#   echo "select 'drop table \"' || tablename || '\" cascade;' from pg_tables where schemaname = 'public';" | ./manage.py dbshell | grep 'drop table' | ./manage.py dbshell
-#   drop database coursys_db; create database coursys_db;
+#   echo "drop database coursys; create database coursys; CREATE USER 'coursysuser'@'localhost' IDENTIFIED BY 'coursyspassword'; GRANT ALL PRIVILEGES ON coursys.* TO 'coursysuser'@'localhost'" | mysql -uroot -p
+#   ./manage.py migrate && python coredata/demodata_importer.py
 #   echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, random
-from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin
+from importer import create_semesters, import_offering_members, import_offerings
 from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, Unit, Role, CAMPUSES
 from courselib.testing import create_fake_semester
 import datetime, itertools
 
+import os
+from django.core.wsgi import get_wsgi_application
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
+application = get_wsgi_application()
+
 NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157]
-IMPORT_SEMESTERS = ('1144', '1147')
-TEST_SEMESTER = 1141 # semester for TA/RA demo data
+IMPORT_SEMESTERS = ('1151', '1154')
+TEST_SEMESTER = 1151 # semester for TA/RA demo data
 
 fakes = {}
 next_emplid = 100
@@ -715,7 +720,7 @@ def main():
 
     print "giving sysadmin permissions"
     Person(userid='sysa', first_name='System', last_name='Admin', emplid='000054312').save()
-    give_sysadmin(['sysa'])
+    #give_sysadmin(['sysa'])
 
 
 if __name__ == "__main__":
