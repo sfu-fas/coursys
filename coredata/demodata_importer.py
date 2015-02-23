@@ -691,7 +691,7 @@ def import_semesters():
     return IMPORT_SEMESTERS
 
 
-def main():
+def realdata_import():
     for strm in NEEDED_SEMESTERS:
         create_fake_semester(strm)
     Unit.objects.get_or_create(label='UNIV', name='Simon Fraser University')
@@ -707,8 +707,9 @@ def main():
     
     # should now have all the "real" people: fake their emplids
     fake_emplids()
-    
-    print "creating fake classess"
+
+def fakedata_import():
+    print "creating fake classes"
     create_classes()
     create_others()
     create_grads()
@@ -719,9 +720,13 @@ def main():
     create_ra_data()
 
     print "giving sysadmin permissions"
-    Person(userid='sysa', first_name='System', last_name='Admin', emplid='000054312').save()
-    #give_sysadmin(['sysa'])
+    p=Person(userid='sysa', first_name='System', last_name='Admin', emplid='000054312').save()
+    Role.objects.get_or_create(person=p, role='FAC', unit=Unit.objects.get(slug='univ'))
 
+
+def main():
+    realdata_import()
+    fakedata_import()
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
