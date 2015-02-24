@@ -15,7 +15,7 @@ from django.core.wsgi import get_wsgi_application
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 application = get_wsgi_application()
 
-NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157]
+NEEDED_SEMESTERS = [1111,1114,1117, 1121,1124,1127, 1131,1134,1137, 1141,1144,1147, 1151,1154,1157, 1161,1164,1167]
 IMPORT_SEMESTERS = ('1151', '1154')
 TEST_SEMESTER = 1151 # semester for TA/RA demo data
 
@@ -708,9 +708,12 @@ def realdata_import():
     # should now have all the "real" people: fake their emplids
     fake_emplids()
 
-def fakedata_import():
+def fakestudent_import():
     print "creating fake classes"
     create_classes()
+
+def fakedata_import():
+    print "creating other data"
     create_others()
     create_grads()
     create_grad_templ()
@@ -726,6 +729,7 @@ def fakedata_import():
 
 def main():
     realdata_import()
+    fakestudent_import()
     fakedata_import()
 
 if __name__ == "__main__":
