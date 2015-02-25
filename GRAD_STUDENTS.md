@@ -96,15 +96,15 @@ ENSC and MSE use a system that (mostly works and) just updates GradStudent statu
 A lot of the code for this is borrowed from the code for Importing Grad Students. Yep, they're good candidates for
 being combined with one another.
 
-The logical starting point for this exists within `grad.models.create_or_update_student`, which is the core logic
+The logical starting point for this exists within `grad.importer.create_or_update_student`, which is the core logic
 for building GradStudent objects. It is called regularly from coredata.importer.get_person_grad.
 
 This code leans heavily on: 
  * coredata.queries.find_or_generate_person : which finds or generates a Person object in the system that matches the emplid
  * coredata.queries.get_timeline : which tries to guess at the entire grad history of a student by calling a bunch of 
     coredata.queries functions and mooshing their results together.
- * grad.models.split_timeline_into_groups:  which tries to group the timeline into sets that would constitute a GradStudent
- * grad.models.admission_records_to_grad_statuses: which converts SIMS admission codes into Grad Status codes. 
+ * grad.importer.split_timeline_into_groups:  which tries to group the timeline into sets that would constitute a GradStudent
+ * grad.importer.admission_records_to_grad_statuses: which converts SIMS admission codes into Grad Status codes.
  * grad.models.GradStudent.create : which creates a GradStudent object
  * coredata.queries.get_supervisory_committee : which, given a date range, tries to guess a supervisory committee
 

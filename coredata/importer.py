@@ -1,24 +1,20 @@
 import sys, os, datetime, time, copy
 import MySQLdb
 sys.path.append(".")
-#sys.path.append("courses")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, import_person,\
     userid_to_emplid, GRADFIELDS,REQMNT_DESIGNTN_FLAGS
 from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role
 from coredata.models import CombinedOffering, CAMPUSES, COMPONENTS, INSTR_MODE
-from dashboard.models import NewsItem
-from log.models import LogEntry
 from django.db import transaction
 from django.db.utils import IntegrityError
-from django.contrib.sessions.models import Session
 from django.conf import settings
 from django.core.cache import cache
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
-from grad.models import GradStudent, create_or_update_student, STATUS_ACTIVE, STATUS_APPLICANT
-from reports.models import schedule_ping
+from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
+from grad.importer import create_or_update_student
 import itertools, random
 
 today = datetime.date.today()

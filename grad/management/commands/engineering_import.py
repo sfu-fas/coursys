@@ -9,7 +9,8 @@ It requires a connection to the reporting database.
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
 from coredata.models import Person, Unit, Role, Semester
-from grad.models import * 
+from grad.models import *
+from grad.importer import create_or_update_student
 
 from new_grad_students import get_mother_tongue, get_passport_issued_by, holds_resident_visa 
 
