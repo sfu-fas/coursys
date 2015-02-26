@@ -1076,7 +1076,7 @@ def get_adm_appl_nbrs( emplid ):
     return list(db)
     return [str(x[0]) for x in list(db)]
 
-def find_or_generate_person( emplid ):
+def find_or_generate_person(emplid):
     # return a Person object, even if you have to make it yourself
     # throws IntegrityError, SIMSProblem
     try:

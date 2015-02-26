@@ -1,3 +1,83 @@
+from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args
+from coredata.models import Semester
+import datetime
+from pprint import pprint
+
+# in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
+DATE_OFFSET = datetime.timedelta(days=28)
+
+@SIMS_problem_handler
+@cache_by_args
+def grad_program_changes(emplid):
+    db = SIMSConn()
+    db.execute("""
+        SELECT stdnt_car_nbr, acad_prog, prog_action, prog_reason, action_dt, admit_term, completion_term, adm_appl_nbr
+        FROM ps_acad_prog
+        WHERE acad_career='GRAD' AND emplid=%s
+        ORDER BY effdt,effseq
+    """, (emplid,))
+    return list(db)
+
+@SIMS_problem_handler
+@cache_by_args
+def grad_semesters(emplid):
+    db = SIMSConn()
+    db.execute("""
+        SELECT strm, withdraw_code, acad_prog_primary, tot_taken_prgrss
+        FROM ps_stdnt_car_term
+        WHERE acad_career='GRAD' AND emplid=%s
+        ORDER BY strm
+    """, (emplid,))
+    return list(db)
+
+
+def NEW_create_or_update_student(emplid, dryrun=False, verbose=False):
+    print "---------------------------"
+    p = add_person(emplid)
+    prog_map = program_map()
+    pprint(emplid)
+    #pprint(coredata.queries.get_timeline(emplid))
+    #pprint(grad_program_changes(emplid))
+    #pprint(grad_semesters(emplid))
+
+    happenings = []
+    prog_changes = grad_program_changes(emplid)
+    for car_nbr, acad_prog, action, reason, dt, admit_term, completion_term, adm_appl_nbr in prog_changes:
+        dt = datetime.datetime.strptime(dt, '%Y-%m-%d').date()
+        sem = Semester.get_semester(dt + DATE_OFFSET)
+        prog = prog_map[acad_prog]
+        print sem, dt, car_nbr, acad_prog, action, reason, admit_term, completion_term, adm_appl_nbr, prog_map[acad_prog]
+
+        gs_possible = GradStudent.objects.filter(person__emplid=emplid, start_semester__name=admit_term)
+        gs_possible = list(gs_possible)
+        print gs_possible
+        if len(gs_possible) == 0:
+            print "need to create"
+        elif len(gs_possible) > 1:
+            print "multiple options"
+        else:
+            print "found"
+            gs = gs[0]
+
+    grad_sems = grad_semesters(emplid)
+    for strm, withdr, acad_prog, taken in grad_sems:
+        sem = Semester.objects.get(name=strm)
+        prog = prog_map[acad_prog]
+        print sem, withdr, acad_prog, taken
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from django.db import IntegrityError
 from django.conf import settings
 import coredata
@@ -308,6 +388,7 @@ def program_map():
             'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
             'CPGND': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
             'CPGQL': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+            'CPMBD': GradProgram.objects.get(label="MSc Big Data", unit=cmptunit),
 
             'ESMEN': GradProgram.objects.get(label="MEng", unit=engunit),
             'ESMAS': GradProgram.objects.get(label="MEng", unit=engunit),
@@ -327,6 +408,7 @@ def program_map():
             'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
             'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
             'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
+            'CPMBD': GradProgram.objects.get(label="MSc Big Data", unit=cmptunit),
 
             'ESMEN': GradProgram.objects.get(label="M.Eng.", unit=engunit),
             'ESMAS': GradProgram.objects.get(label="M.A.Sc.", unit=engunit),
