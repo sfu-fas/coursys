@@ -55,6 +55,7 @@ def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
             print "multiple options", (emplid, admit_term, adm_appl_nbr)
         else:
             gs = gs[0]
+            print "found", (emplid, admit_term, adm_appl_nbr), gs.config.get('adm_appl_nbr', None)
 
     return
 
