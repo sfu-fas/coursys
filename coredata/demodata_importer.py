@@ -723,8 +723,9 @@ def fakedata_import():
     create_ra_data()
 
     print "giving sysadmin permissions"
-    p=Person(userid='sysa', first_name='System', last_name='Admin', emplid='000054312').save()
-    Role.objects.get_or_create(person=p, role='FAC', unit=Unit.objects.get(slug='univ'))
+    p=Person(userid='sysa', first_name='System', last_name='Admin', emplid='000054312')
+    p.save()
+    Role.objects.get_or_create(person=p, role='SYSA', unit=Unit.objects.get(slug='univ'))
 
 
 def main():

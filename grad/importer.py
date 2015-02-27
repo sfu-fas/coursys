@@ -8,14 +8,15 @@ DATE_OFFSET = datetime.timedelta(days=28)
 
 @SIMS_problem_handler
 @cache_by_args
-def grad_program_changes(emplid):
+def grad_program_changes(acad_prog):
     db = SIMSConn()
     db.execute("""
-        SELECT stdnt_car_nbr, acad_prog, prog_action, prog_reason, action_dt, admit_term, completion_term, adm_appl_nbr
+        SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
+            effdt, admit_term
         FROM ps_acad_prog
-        WHERE acad_career='GRAD' AND emplid=%s
-        ORDER BY effdt,effseq
-    """, (emplid,))
+        WHERE acad_career='GRAD' AND acad_prog=%s
+        ORDER BY effdt, effseq
+    """, (acad_prog,))
     return list(db)
 
 @SIMS_problem_handler
@@ -23,27 +24,127 @@ def grad_program_changes(emplid):
 def grad_semesters(emplid):
     db = SIMSConn()
     db.execute("""
-        SELECT strm, withdraw_code, acad_prog_primary, tot_taken_prgrss
+        SELECT emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss
         FROM ps_stdnt_car_term
         WHERE acad_career='GRAD' AND emplid=%s
         ORDER BY strm
     """, (emplid,))
     return list(db)
 
-@SIMS_problem_handler
-@cache_by_args
-def grad_program_applicants(acad_prog):
-    db = SIMSConn()
-    db.execute("""
-        SELECT *
-        FROM ps_adm_appl_prog
-        WHERE acad_career='GRAD' AND acad_prog=%s
-        ORDER BY effdt, effseq
-    """, (acad_prog,))
-    return list(db)
+
+class GradHappening(object):
+    """
+    Superclass to represent things that happen to grad students.
+    """
+
+class ProgramStatusChange(GradHappening):
+    def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
+            prog_reason, effdt, admit_term):
+        # argument order must match grad_program_changes query
+        self.emplid = emplid
+        self.stdnt_car_nbr = stdnt_car_nbr
+        self.adm_appl_nbr = adm_appl_nbr
+        self.acad_prog = acad_prog
+        self.effdt = effdt
+        self.admit_term = admit_term
+
+        self.status = ProgramStatusChange.prog_status_translate(prog_status, prog_action, prog_reason)
+
+    def __repr__(self):
+        return "%s@%s is %s" % (self.emplid, self.stdnt_car_nbr, self.status)
+
+    @staticmethod
+    def prog_status_translate(prog_status, prog_action, prog_reason=None):
+        """
+        Convert a SIMS admission applicant status (e.g. "AD", "ADMT")
+        into a Coursys Status Code (e.g. "OFFO")
+
+        See ps_adm_action_tbl and ps_prog_rsn_tbl in reporting DB for some explanations of the codes.
+        """
+        st_ac = (prog_status, prog_action)
+
+        # application-related
+        if st_ac == ('AP', 'APPL'):
+            return 'INCO'
+        if st_ac == ('AP', 'RAPP'):
+            # application for readmission
+            return 'INCO'
+        elif st_ac == ('CN', 'WAPP'):
+            return 'DECL'
+        elif st_ac == ('CN', 'WADM'):
+            return 'INCO'
+        elif st_ac == ('AD', 'ADMT'):
+            return 'OFFO'
+        elif st_ac == ('AD', 'COND'):
+            # conditional offer
+            return 'OFFO'
+        elif st_ac == ('AC', 'MATR'):
+            return 'CONF'
+        elif st_ac == ('CN', 'DENY'):
+            return 'REJE'
+        elif st_ac == ('CN', 'ADRV'):
+            return 'CANC'
+        elif prog_action == 'RECN':
+            # "reconsideration"
+            return None
+        elif prog_action == 'DEFR':
+            # deferred start: probably implies start semester change
+            return None
+
+        elif prog_action == 'DATA':
+            if prog_reason == 'APPR':
+                # approved by department: close enough
+                return 'OFFO'
+            # updated data, like a program or start semester change
+            return None
+        elif prog_action in ['PRGC', 'PLNC']:
+            # changed to different program/plan
+            return None
+
+        elif st_ac == ('AC', 'ACTV'):
+            return 'ACTI'
+        elif st_ac == ('DC', 'DISC'):
+            return 'WIDR'
+        elif st_ac == ('LA', 'LEAV'):
+            return 'LEAV'
+        elif st_ac == ('AC', 'RLOA'):
+            return 'ACTI'
+        elif st_ac == ('AC', 'RADM'):
+            return 'ACTI'
+        elif st_ac == ('CM', 'COMP'):
+            return 'GRAD'
+
+        raise ValueError, str((prog_status, prog_action, prog_reason))
+
+class GradSemester(GradHappening):
+    """
+    Used to make sure we catch them being active: program status doesn't always record it.
+    """
+    def __init__(self, emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss):
+        # argument order must match grad_semesters query
+        self.emplid = emplid
+        self.strm = strm
+        self.stdnt_car_nbr = stdnt_car_nbr
+        self.withdraw_code = withdraw_code
+        self.acad_prog_primary = acad_prog_primary
+        self.unt_taken_prgrss = unt_taken_prgrss
+
+    def __repr__(self):
+        return "%s@%s %s in %s" % (self.emplid, self.stdnt_car_nbr, self.withdraw_code, self.strm)
 
 
-def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
+def add_semester_happenings(emplid, timeline):
+    print "--------------", emplid
+    print timeline
+    for gs in grad_semesters(emplid):
+        h = GradSemester(*gs)
+        print h
+
+
+'''
+
+def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1)
+
     #print "---------------------------"
     print emplid
     p = add_person(emplid)
@@ -81,26 +182,40 @@ def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
         prog = prog_map[acad_prog]
         print sem, withdr, acad_prog, taken
 
-
+'''
 
 
 
 
 def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
-    # should be all grads found in SIMS, not existing data
     prog_map = program_map()
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit == unit]
-    acad_progs = ['CPMBD']
+    #acad_progs = ['CPMBD']
+
+    timelines = {}
     for acad_prog in acad_progs:
-        print grad_program_applicants(acad_prog)
+        appls = grad_program_changes(acad_prog)
+        for a in appls:
+            emplid = a[0]
+            timeline = timelines.get(emplid, [])
+            status = ProgramStatusChange(*a)
+            timeline.append(status)
+            timelines[emplid] = timeline
+
+    for emplid, timeline in timelines.iteritems():
+        add_semester_happenings(emplid, timeline)
+
+    #print add_semester_happenings('301013710', timelines['301013710'])
 
     return
+    '''
     gps = GradStudent.objects.filter(program__unit=unit, start_semester__name__gte='1137').select_related('person')
     emplids = [gs.person.emplid for gs in gps]
     emplids = ['301067285']
 
     for emplid in emplids:
         NEW_create_or_update_student(emplid, dry_run=dry_run, verbosity=verbosity)
+        '''
 
 
 
