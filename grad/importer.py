@@ -30,9 +30,22 @@ def grad_semesters(emplid):
     """, (emplid,))
     return list(db)
 
+@SIMS_problem_handler
+@cache_by_args
+def grad_program_applicants(acad_prog):
+    db = SIMSConn()
+    db.execute("""
+        SELECT *
+        FROM ps_adm_appl_prog
+        WHERE acad_career='GRAD' AND acad_prog=%s
+        ORDER BY effdt, effseq
+    """, (acad_prog,))
+    return list(db)
+
 
 def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
     #print "---------------------------"
+    print emplid
     p = add_person(emplid)
     prog_map = program_map()
     #pprint(coredata.queries.get_timeline(emplid))
@@ -44,7 +57,10 @@ def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
     for car_nbr, acad_prog, action, reason, dt, admit_term, completion_term, adm_appl_nbr in prog_changes:
         dt = datetime.datetime.strptime(dt, '%Y-%m-%d').date()
         sem = Semester.get_semester(dt + DATE_OFFSET)
-        prog = prog_map[acad_prog]
+        prog = prog_map.get(acad_prog, None)
+        if not prog:
+            print "don't know about acad_prog %s" % (acad_prog)
+            continue
 
         gs_possible = GradStudent.objects.filter(person__emplid=emplid, start_semester__name=admit_term)
         gs_possible = list(gs_possible)
@@ -54,7 +70,7 @@ def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
         elif len(gs_possible) > 1:
             print "multiple options", (emplid, admit_term, adm_appl_nbr)
         else:
-            gs = gs[0]
+            gs = gs_possible[0]
             print "found", (emplid, admit_term, adm_appl_nbr), gs.config.get('adm_appl_nbr', None)
 
     return
@@ -72,7 +88,16 @@ def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
 
 def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     # should be all grads found in SIMS, not existing data
-    emplids = [gs.person.emplid for gs in GradStudent.objects.filter(program__unit=unit).select_related('person')]
+    prog_map = program_map()
+    acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit == unit]
+    acad_progs = ['CPMBD']
+    for acad_prog in acad_progs:
+        print grad_program_applicants(acad_prog)
+
+    return
+    gps = GradStudent.objects.filter(program__unit=unit, start_semester__name__gte='1137').select_related('person')
+    emplids = [gs.person.emplid for gs in gps]
+    emplids = ['301067285']
 
     for emplid in emplids:
         NEW_create_or_update_student(emplid, dry_run=dry_run, verbosity=verbosity)

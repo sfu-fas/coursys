@@ -7,7 +7,7 @@ class Command(BaseCommand):
         unit_slug = args[0]
         #from courselib.testing import create_fake_semester
         #import itertools
-        #strms = itertools.product(['107', '108', '109', '110', '111', '112', '113', '114'], ['1', '4', '7'])
+        #strms = itertools.product(map(lambda y: "%03i"%(y), range(98, 114)), ['1', '4', '7'])
         #for yr,s in strms:
         #    strm = yr+s
         #    create_fake_semester(strm)
