@@ -31,11 +31,10 @@ def grad_semesters(emplid):
     return list(db)
 
 
-def NEW_create_or_update_student(emplid, dryrun=False, verbose=False):
-    print "---------------------------"
+def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1):
+    #print "---------------------------"
     p = add_person(emplid)
     prog_map = program_map()
-    pprint(emplid)
     #pprint(coredata.queries.get_timeline(emplid))
     #pprint(grad_program_changes(emplid))
     #pprint(grad_semesters(emplid))
@@ -46,18 +45,18 @@ def NEW_create_or_update_student(emplid, dryrun=False, verbose=False):
         dt = datetime.datetime.strptime(dt, '%Y-%m-%d').date()
         sem = Semester.get_semester(dt + DATE_OFFSET)
         prog = prog_map[acad_prog]
-        print sem, dt, car_nbr, acad_prog, action, reason, admit_term, completion_term, adm_appl_nbr, prog_map[acad_prog]
 
         gs_possible = GradStudent.objects.filter(person__emplid=emplid, start_semester__name=admit_term)
         gs_possible = list(gs_possible)
-        print gs_possible
+
         if len(gs_possible) == 0:
-            print "need to create"
+            print "need to create", (emplid, admit_term, adm_appl_nbr)
         elif len(gs_possible) > 1:
-            print "multiple options"
+            print "multiple options", (emplid, admit_term, adm_appl_nbr)
         else:
-            print "found"
             gs = gs[0]
+
+    return
 
     grad_sems = grad_semesters(emplid)
     for strm, withdr, acad_prog, taken in grad_sems:
@@ -70,7 +69,12 @@ def NEW_create_or_update_student(emplid, dryrun=False, verbose=False):
 
 
 
+def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
+    # should be all grads found in SIMS, not existing data
+    emplids = [gs.person.emplid for gs in GradStudent.objects.filter(program__unit=unit).select_related('person')]
 
+    for emplid in emplids:
+        NEW_create_or_update_student(emplid, dry_run=dry_run, verbosity=verbosity)
 
 
 
