@@ -233,7 +233,8 @@ def add_person(emplid, commit=True, get_userid=True):
 
         p = Person(emplid=data['emplid'], last_name=data['last_name'], first_name=data['first_name'],
                    pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
-        p.save()
+        if commit:
+            p.save()
     return p
 
 @cache_by_args

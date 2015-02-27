@@ -1,22 +1,27 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.core.files import File
+from optparse import make_option
 import unicodecsv as csv
 import datetime
 import os.path
 import mimetypes
-import warnings
 
 from advisornotes.models import AdvisorNote
 from coredata.models import Person, Unit
 from coredata.queries import add_person
 from courselib.text import normalize_newlines
 
-unit = Unit.objects.get(slug='crim')
-
 class Command(BaseCommand):
     help = 'Import CSV advising data from CRIM.'
-    args = '<advisor_userid> <csv_data> <file_base>'
+    args = '<unit_slug> <advisor_userid> <csv_data> <file_base>'
+    option_list = BaseCommand.option_list + (
+        make_option('-n', '--dry-run',
+            action='store_true',
+            dest='dry_run',
+            default=False,
+            help='Don\'t actually modify anything.'),
+        )
 
     def get_filepath(self, fm_filename):
         if not fm_filename:
@@ -28,7 +33,8 @@ class Command(BaseCommand):
         if os.path.isfile(filepath):
             return filepath
         else:
-            warnings.warn("Missing file %s." % (filename), RuntimeWarning)
+            if self.verbosity > 0:
+                print u"Missing file %s." % (filename,)
 
     def get_advisornote(self, key, person, advisor, created, delete_old_file=False, offset=0):
         """
@@ -36,7 +42,7 @@ class Command(BaseCommand):
         """
         created = created + datetime.timedelta(minutes=offset)
         # look for previously-imported version of this note, so we're roughly idempotent
-        oldnotes = AdvisorNote.objects.filter(student=person, advisor=advisor, created_at=created, unit=unit)
+        oldnotes = AdvisorNote.objects.filter(student=person, advisor=advisor, created_at=created, unit=self.unit)
         oldnotes = [n for n in oldnotes if 'import_key' in n.config and n.config['import_key'] == key]
 
         if oldnotes:
@@ -47,9 +53,10 @@ class Command(BaseCommand):
                 note.file_attachment = None
                 note.file_mediatype = None
         else:
-            note = AdvisorNote(student=person, advisor=advisor, created_at=created, unit=unit)
+            note = AdvisorNote(student=person, advisor=advisor, created_at=created, unit=self.unit)
             note.config['import_key'] = key
 
+        note.config['src'] = 'crim_import'
         return note, bool(oldnotes)
 
     def attach_file(self, note, filepath):
@@ -58,7 +65,8 @@ class Command(BaseCommand):
         """
         with File(open(filepath, 'rb')) as fh:
             base = os.path.split(filepath)[1]
-            note.file_attachment.save(base, fh)
+            if self.commit:
+                note.file_attachment.save(base, fh)
 
         mediatype = mimetypes.guess_type(filepath)[0]
         note.file_mediatype = mediatype
@@ -97,13 +105,18 @@ class Command(BaseCommand):
 
 
         if not emplid or emplid == '0':
-            print 'No emplid on row %i' % (i+2)
+            if self.verbosity > 0:
+                print 'No emplid on row %i' % (i+2)
             return
 
-        p = add_person(emplid)
+        p = add_person(emplid, commit=self.commit)
         if not p:
-            print "Can't find person on row %i (emplid %s)" % (i+2, emplid)
+            if self.verbosity > 0:
+                print u"Can't find person on row %i (emplid %s)" % (i+2, emplid)
             return
+
+        if self.verbosity > 1:
+            print u"Importing %s with %i file(s)." % (emplid, len(files))
 
         try:
             date = datetime.datetime.strptime(date_str, '%m-%d-%Y').date()
@@ -112,9 +125,8 @@ class Command(BaseCommand):
         created = datetime.datetime.combine(date, datetime.time(hour=12, minute=0))
 
         key = '%s-%i' % (fn, i)
-        note, _ = self.get_advisornote(key, p, advisor, created, delete_old_file=True)
+        note, _ = self.get_advisornote(key, p, advisor, created, delete_old_file=self.commit)
 
-        print emplid, files
         if files:
             path = files[0]
             self.attach_file(note, path)
@@ -122,16 +134,19 @@ class Command(BaseCommand):
             for j, path in enumerate(files[1:]):
                 # these get stashed in accompanying notes
                 k = key + '-auxfile-' + str(i)
-                n, _ = self.get_advisornote(k, p, advisor, created, delete_old_file=True, offset=(j+1))
+                n, _ = self.get_advisornote(k, p, advisor, created, delete_old_file=self.commit, offset=(j+1))
                 n.text = '[Additional file for previous note.]'
                 self.attach_file(n, path)
-                n.save()
+                if self.commit:
+                    n.save()
 
         note.text = notes
-        note.save()
+        if self.commit:
+            note.save()
 
 
-    def import_notes(self, advisor_userid, inputfile, file_base):
+    def import_notes(self, unit_slug, advisor_userid, inputfile, file_base):
+        self.unit = Unit.objects.get(slug=unit_slug)
         self.file_base = file_base
         advisor = Person.objects.get(userid=advisor_userid)
         with open(inputfile, 'rb') as fh:
@@ -144,4 +159,6 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        self.import_notes(args[0], args[1], args[2])
+        self.verbosity = int(options['verbosity'])
+        self.commit = not options['dry_run']
+        self.import_notes(args[0], args[1], args[2], args[3])
