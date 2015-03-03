@@ -15,6 +15,7 @@ from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
 from grad.importer import create_or_update_student
+from ra.models import RAAppointment
 import itertools, random
 
 today = datetime.date.today()
@@ -339,10 +340,15 @@ def get_person_grad(emplid, commit=True, force=False):
 
 def get_role_people():
     """
-    Force a get_person() on all of those with roles
+    Force a get_person() on all of those with roles and RA appointments
     """
     roles = Role.objects.all().select_related('person')
     people = set(r.person for r in roles)
+
+    cutoff = datetime.datetime.now() - datetime.timedelta(days=365)
+    ras = RAAppointment.objects.filter(start_date__lte=cutoff).select_related('person')
+    people |= set([ra.person for ra in ras])
+
     for p in people:
         get_person(p.emplid)
 
