@@ -1369,7 +1369,7 @@ def build_person(emplid, userid=None):
     return import_person(p)
 
 
-def import_person(p, commit=True):
+def import_person(p, commit=True, grad_data=False):
     """
     Import SIMS/AMAINT information about this Person. Return the Person or None if they can't be found.
     """
@@ -1393,6 +1393,15 @@ def import_person(p, commit=True):
         if p.userid and p.userid != userid:
             raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
         p.userid = userid
+
+    if grad_data:
+        data = grad_student_info(p.emplid)
+        p.config.update(data)
+
+        # if we tried to update but it's gone: don't keep old version
+        for f in GRADFIELDS:
+            if f not in data and f in p.config:
+                del p.config[f]
 
     if commit:
         p.save()

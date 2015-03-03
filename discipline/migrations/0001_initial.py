@@ -173,7 +173,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='disciplinecasechair',
             name='instr_case',
-            field=models.ForeignKey(default=0, to='discipline.DisciplineCaseInstr', help_text=b"The instructor's case that triggered this case"),
+            field=models.ForeignKey(to='discipline.DisciplineCaseInstr', help_text=b"The instructor's case that triggered this case"),
             preserve_default=True,
         ),
         migrations.AddField(
