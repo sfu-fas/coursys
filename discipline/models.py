@@ -610,7 +610,7 @@ class DisciplineCaseChair(DisciplineCaseBase):
     """
     An chair's case
     """
-    instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case", default=0)
+    instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case")
 
 class DisciplineCaseChairStudent(DisciplineCaseChair):
     student = models.ForeignKey(Person, help_text="The student this case concerns.")
