@@ -258,7 +258,7 @@ def _person_save(p):
 imported_people = {}
 IMPORT_THRESHOLD = 3600*24*7 # import personal info infrequently
 NO_USERID_IMPORT_THRESHOLD = 3600*24*2 # import if we don't know their userid yet
-def get_person(emplid, commit=True, force=False):
+def get_person(emplid, commit=True, force=False, grad_data=False):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.
     """
@@ -285,7 +285,7 @@ def get_person(emplid, commit=True, force=False):
 
     # active students with no userid: pay more attention to try to get their userid for login/email.
     if p.userid is None and import_age > NO_USERID_IMPORT_THRESHOLD:
-        return import_person(p, commit=commit)
+        return import_person(p, commit=commit, grad_data=grad_data)
 
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
@@ -294,7 +294,7 @@ def get_person(emplid, commit=True, force=False):
 
     # actually import their data
     else:
-        return import_person(p, commit=commit)
+        return import_person(p, commit=commit, grad_data=grad_data)
     
 
 imported_people_full = {}
@@ -307,7 +307,7 @@ def get_person_grad(emplid, commit=True, force=False):
     if emplid in imported_people_full:
         return imported_people_full[emplid]
     
-    p = get_person(emplid, commit=False)
+    p = get_person(emplid, commit=False, grad_data=True)
     
     imported_people_full[emplid] = p
 
@@ -318,19 +318,12 @@ def get_person_grad(emplid, commit=True, force=False):
 
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if not force and import_age < IMPORT_THRESHOLD and random.random() < 0.95 \
+    if not force and import_age < IMPORT_THRESHOLD and random.random() < 0.98 \
             and p.userid:
         return p
 
     create_or_update_student(emplid)
-    data = grad_student_info(emplid)
-    p.config.update(data)
 
-    # if we tried to update but it's gone: don't keep old version
-    for f in GRADFIELDS:
-        if f not in data and f in p.config:
-            del p.config[f]
-    
     p.config['lastimportgrad'] = int(time.time())
     if commit:
         _person_save(p)
@@ -350,7 +343,7 @@ def get_role_people():
     people |= set([ra.person for ra in ras])
 
     for p in people:
-        get_person(p.emplid)
+        get_person(p.emplid, grad_data=True)
 
 
 def fix_mtg_info(section, stnd_mtg_pat):
