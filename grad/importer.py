@@ -7,16 +7,16 @@ import intervaltree
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=28)
 ONE_DAY = datetime.timedelta(days=1)
+GRAD_OFFSET = -datetime.timedelta(days=90)
 
 def build_semester_lookup():
     """
-    Build data structure to let us easily look up date -> strm. Applies the DATE_OFFSET heuristic that things entered
-    towards the end of a semester are really effective in the next semester.
+    Build data structure to let us easily look up date -> strm.
     """
     all_semesters = Semester.objects.all()
     intervals = ((s.name, Semester.start_end_dates(s)) for s in all_semesters)
     intervals = (
-        intervaltree.Interval(st-DATE_OFFSET, en+ONE_DAY-DATE_OFFSET, name)
+        intervaltree.Interval(st, en+ONE_DAY, name)
         for (name, (st, en)) in intervals)
     return intervaltree.IntervalTree(intervals)
 
@@ -66,10 +66,17 @@ class GradHappening(object):
     """
     def effdt_to_strm(self):
         "Look up the semester that goes with this date"
+        # within a few days of the end of the semester, things applicable next semester are being entered
+        offset = DATE_OFFSET
+        if hasattr(self, 'status') and self.status == 'GRAD':
+            # ... except graduation which is entered after it effectively happens.
+            offset = GRAD_OFFSET
+
         try:
-            strm = semester_lookup[self.effdt].pop().data
+            strm = semester_lookup[self.effdt + offset].pop().data
         except KeyError:
             raise KeyError, "Couldn't find semester for %s." % (self.effdt)
+
         self.strm = strm
 
 
@@ -135,7 +142,7 @@ class ProgramStatusChange(GradHappening):
 
         elif self.prog_action == 'DATA':
             if self.prog_reason == 'APPR':
-                # approved by department: close enough
+                # approved by department: close enough to ('AD', 'COND')
                 return 'OFFO'
             # updated data, like a program or start semester change
             return None
@@ -179,53 +186,6 @@ class GradSemester(GradHappening):
         return "%s in %s" % (self.withdraw_code, self.strm)
 
 
-
-
-
-
-'''
-
-def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1)
-
-    #print "---------------------------"
-    print emplid
-    p = add_person(emplid)
-    prog_map = program_map()
-    #pprint(coredata.queries.get_timeline(emplid))
-    #pprint(grad_program_changes(emplid))
-    #pprint(grad_semesters(emplid))
-
-    happenings = []
-    prog_changes = grad_program_changes(emplid)
-    for car_nbr, acad_prog, action, reason, dt, admit_term, completion_term, adm_appl_nbr in prog_changes:
-        dt = datetime.datetime.strptime(dt, '%Y-%m-%d').date()
-        sem = Semester.get_semester(dt + DATE_OFFSET)
-        prog = prog_map.get(acad_prog, None)
-        if not prog:
-            print "don't know about acad_prog %s" % (acad_prog)
-            continue
-
-        gs_possible = GradStudent.objects.filter(person__emplid=emplid, start_semester__name=admit_term)
-        gs_possible = list(gs_possible)
-
-        if len(gs_possible) == 0:
-            print "need to create", (emplid, admit_term, adm_appl_nbr)
-        elif len(gs_possible) > 1:
-            print "multiple options", (emplid, admit_term, adm_appl_nbr)
-        else:
-            gs = gs_possible[0]
-            print "found", (emplid, admit_term, adm_appl_nbr), gs.config.get('adm_appl_nbr', None)
-
-    return
-
-    grad_sems = grad_semesters(emplid)
-    for strm, withdr, acad_prog, taken in grad_sems:
-        sem = Semester.objects.get(name=strm)
-        prog = prog_map[acad_prog]
-        print sem, withdr, acad_prog, taken
-
-'''
-
 class GradCareer(object):
     def __init__(self, emplid, adm_appl_nbr):
         self.emplid = emplid
@@ -262,6 +222,14 @@ class GradCareer(object):
 
     def sort_happenings(self):
         self.happenings.sort(key=lambda h: h.strm)
+
+    def find_gradstudent(self):
+        gss = GradStudent.objects.filter(person__emplid=self.emplid)
+        gss = list(gss)
+        by_adm_appl = [gs for gs in gss if 'adm_appl_nbr' in gs.config and gs.config['adm_appl_nbr'] == self.adm_appl_nbr]
+
+        print gss
+        print by_adm_appl
 
 
 class GradTimeline(object):
@@ -308,8 +276,6 @@ class GradTimeline(object):
 
         for c in self.careers:
             c.sort_happenings()
-            print c
-            print c.happenings
 
 
 
@@ -346,13 +312,15 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
             timeline.add(status)
 
 
-    emplids = timelines.keys()
+    #emplids = timelines.keys()
     emplids = ['301013710', '961102054']
     for emplid in emplids:
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
         timeline.split_careers()
-        #print timeline.careers
+        for c in timeline.careers:
+            c.find_gradstudent()
+
     #    csplit = split_by_car_nbr(timeline)
     #    print csplit
 
