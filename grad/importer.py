@@ -2,9 +2,30 @@ from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_b
 from coredata.models import Semester
 import datetime
 from pprint import pprint
+import intervaltree
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=28)
+ONE_DAY = datetime.timedelta(days=1)
+
+def build_semester_lookup():
+    """
+    Build data structure to let us easily look up date -> strm. Applies the DATE_OFFSET heuristic that things entered
+    towards the end of a semester are really effective in the next semester.
+    """
+    all_semesters = Semester.objects.all()
+    intervals = ((s.name, Semester.start_end_dates(s)) for s in all_semesters)
+    intervals = (
+        intervaltree.Interval(st-DATE_OFFSET, en+ONE_DAY-DATE_OFFSET, name)
+        for (name, (st, en)) in intervals)
+    return intervaltree.IntervalTree(intervals)
+
+semester_lookup = build_semester_lookup()
+
+IMPORT_START_DATE = datetime.date(1997, 1, 1)
+IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
+
+
 
 @SIMS_problem_handler
 @cache_by_args
@@ -14,9 +35,9 @@ def grad_program_changes(acad_prog):
         SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
             effdt, admit_term
         FROM ps_acad_prog
-        WHERE acad_career='GRAD' AND acad_prog=%s
+        WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s
         ORDER BY effdt, effseq
-    """, (acad_prog,))
+    """, (acad_prog, IMPORT_START_DATE))
     return list(db)
 
 @SIMS_problem_handler
@@ -26,16 +47,31 @@ def grad_semesters(emplid):
     db.execute("""
         SELECT emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss
         FROM ps_stdnt_car_term
-        WHERE acad_career='GRAD' AND emplid=%s
+        WHERE acad_career='GRAD' AND emplid=%s AND strm>=%s
         ORDER BY strm
-    """, (emplid,))
+    """, (emplid, IMPORT_START_SEMESTER))
     return list(db)
+
+
+
+
+
+
+
 
 
 class GradHappening(object):
     """
     Superclass to represent things that happen to grad students.
     """
+    def effdt_to_strm(self):
+        "Look up the semester that goes with this date"
+        try:
+            strm = semester_lookup[self.effdt].pop().data
+        except KeyError:
+            raise KeyError, "Couldn't find semester for %s." % (self.effdt)
+        self.strm = strm
+
 
 class ProgramStatusChange(GradHappening):
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
@@ -45,23 +81,29 @@ class ProgramStatusChange(GradHappening):
         self.stdnt_car_nbr = stdnt_car_nbr
         self.adm_appl_nbr = adm_appl_nbr
         self.acad_prog = acad_prog
-        self.effdt = effdt
+        self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
         self.admit_term = admit_term
 
-        self.status = ProgramStatusChange.prog_status_translate(prog_status, prog_action, prog_reason)
+        self.prog_status = prog_status
+        self.prog_action = prog_action
+        self.prog_reason = prog_reason
+
+        self.status = self.prog_status_translate()
+        self.effdt_to_strm()
+
+        self.in_career = False
 
     def __repr__(self):
-        return "%s@%s is %s" % (self.emplid, self.stdnt_car_nbr, self.status)
+        return "%s at %s (%s)" % (self.status, self.effdt, self.strm)
 
-    @staticmethod
-    def prog_status_translate(prog_status, prog_action, prog_reason=None):
+    def prog_status_translate(self):
         """
         Convert a SIMS admission applicant status (e.g. "AD", "ADMT")
         into a Coursys Status Code (e.g. "OFFO")
 
         See ps_adm_action_tbl and ps_prog_rsn_tbl in reporting DB for some explanations of the codes.
         """
-        st_ac = (prog_status, prog_action)
+        st_ac = (self.prog_status, self.prog_action)
 
         # application-related
         if st_ac == ('AP', 'APPL'):
@@ -84,20 +126,20 @@ class ProgramStatusChange(GradHappening):
             return 'REJE'
         elif st_ac == ('CN', 'ADRV'):
             return 'CANC'
-        elif prog_action == 'RECN':
+        elif self.prog_action == 'RECN':
             # "reconsideration"
             return None
-        elif prog_action == 'DEFR':
+        elif self.prog_action == 'DEFR':
             # deferred start: probably implies start semester change
             return None
 
-        elif prog_action == 'DATA':
-            if prog_reason == 'APPR':
+        elif self.prog_action == 'DATA':
+            if self.prog_reason == 'APPR':
                 # approved by department: close enough
                 return 'OFFO'
             # updated data, like a program or start semester change
             return None
-        elif prog_action in ['PRGC', 'PLNC']:
+        elif self.prog_action in ['PRGC', 'PLNC']:
             # changed to different program/plan
             return None
 
@@ -114,7 +156,8 @@ class ProgramStatusChange(GradHappening):
         elif st_ac == ('CM', 'COMP'):
             return 'GRAD'
 
-        raise ValueError, str((prog_status, prog_action, prog_reason))
+        raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason))
+
 
 class GradSemester(GradHappening):
     """
@@ -129,16 +172,15 @@ class GradSemester(GradHappening):
         self.acad_prog_primary = acad_prog_primary
         self.unt_taken_prgrss = unt_taken_prgrss
 
+        self.adm_appl_nbr = None
+        self.in_career = False
+
     def __repr__(self):
-        return "%s@%s %s in %s" % (self.emplid, self.stdnt_car_nbr, self.withdraw_code, self.strm)
+        return "%s in %s" % (self.withdraw_code, self.strm)
 
 
-def add_semester_happenings(emplid, timeline):
-    print "--------------", emplid
-    print timeline
-    for gs in grad_semesters(emplid):
-        h = GradSemester(*gs)
-        print h
+
+
 
 
 '''
@@ -184,6 +226,105 @@ def NEW_create_or_update_student(emplid, dry_run=False, verbosity=1)
 
 '''
 
+class GradCareer(object):
+    def __init__(self, emplid, adm_appl_nbr):
+        self.emplid = emplid
+        #self.stdnt_car_term = stdnt_car_term
+        self.adm_appl_nbr = adm_appl_nbr
+        self.happenings = []
+        self.admit_term = None
+        self.stdnt_car_nbr = None
+
+    def __repr__(self):
+        return "%s@%s:%s" % (self.emplid, self.adm_appl_nbr, self.stdnt_car_nbr)
+
+    def add(self, h):
+        if h.adm_appl_nbr:
+            if not self.adm_appl_nbr:
+                self.adm_appl_nbr = h.adm_appl_nbr
+            if not self.stdnt_car_nbr:
+                self.stdnt_car_nbr = h.stdnt_car_nbr
+
+            if self.adm_appl_nbr != h.adm_appl_nbr or self.stdnt_car_nbr != h.stdnt_car_nbr:
+                raise ValueError
+
+            if hasattr(h, 'admit_term'):
+                # record most-recent admit term we find
+                self.admit_term = h.admit_term
+
+        self.happenings.append(h)
+
+    def matches(self, h):
+        """
+        True if this happening is possibly part of this career: same stdnt_car_nbr and starts before the happening
+        """
+        return self.stdnt_car_nbr == h.stdnt_car_nbr and self.admit_term <= h.strm
+
+    def sort_happenings(self):
+        self.happenings.sort(key=lambda h: h.strm)
+
+
+class GradTimeline(object):
+    def __init__(self, emplid):
+        self.emplid = emplid
+        self.happenings = []
+        self.careers = []
+
+    def __repr__(self):
+        return 'GradTimeline(%s, %s)' % (self.emplid, repr(self.happenings))
+
+    def add(self, happening):
+        self.happenings.append(happening)
+
+    def add_semester_happenings(self):
+        for gs in grad_semesters(self.emplid):
+            h = GradSemester(*gs)
+            self.add(h)
+
+    def split_careers(self):
+        # pass 1: we know the adm_appl_nbr
+        for h in self.happenings:
+            if h.adm_appl_nbr:
+                cs = [c for c in self.careers if c.adm_appl_nbr == h.adm_appl_nbr]
+                if len(cs) == 1:
+                    c = cs[0]
+                else:
+                    c = GradCareer(self.emplid, h.adm_appl_nbr)
+                    self.careers.append(c)
+
+                c.add(h)
+                h.in_career = True
+
+        # pass 2: use stdnt_car_nbr to decide, falling back to admit_term if we must
+        for h in self.happenings:
+            if h.in_career:
+                continue
+
+            possible_careers = [c for c in self.careers if c.matches(h)]
+            possible_careers.sort(key=lambda c: c.admit_term)
+            c = possible_careers[-1]
+            c.add(h)
+            h.in_career = True
+
+        for c in self.careers:
+            c.sort_happenings()
+            print c
+            print c.happenings
+
+
+
+
+def split_by_car_nbr(timeline):
+    careers = {}
+    for h in timeline:
+        c = careers.get(h.stdnt_car_nbr, None)
+        if c is None:
+            c = GradCareer(h.emplid, h.stdnt_car_nbr)
+            careers[h.stdnt_car_nbr] = c
+
+        c.add(h)
+
+    return careers
 
 
 
@@ -197,26 +338,31 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
         appls = grad_program_changes(acad_prog)
         for a in appls:
             emplid = a[0]
-            timeline = timelines.get(emplid, [])
+            timeline = timelines.get(emplid, None)
+            if not timeline:
+                timeline = GradTimeline(emplid)
+                timelines[emplid] = timeline
             status = ProgramStatusChange(*a)
-            timeline.append(status)
-            timelines[emplid] = timeline
+            timeline.add(status)
 
-    for emplid, timeline in timelines.iteritems():
-        add_semester_happenings(emplid, timeline)
 
-    #print add_semester_happenings('301013710', timelines['301013710'])
+    emplids = timelines.keys()
+    emplids = ['301013710', '961102054']
+    for emplid in emplids:
+        timeline = timelines[emplid]
+        timeline.add_semester_happenings()
+        timeline.split_careers()
+        #print timeline.careers
+    #    csplit = split_by_car_nbr(timeline)
+    #    print csplit
+
+    #pprint(timelines)
+
+    #add_semester_happenings('301013710', timelines['301013710'])
+    #csplit = split_by_car_nbr(timelines['301013710']))
+    #pprint (split_by_appl_nbr(timelines['301013710']))
 
     return
-    '''
-    gps = GradStudent.objects.filter(program__unit=unit, start_semester__name__gte='1137').select_related('person')
-    emplids = [gs.person.emplid for gs in gps]
-    emplids = ['301067285']
-
-    for emplid in emplids:
-        NEW_create_or_update_student(emplid, dry_run=dry_run, verbosity=verbosity)
-        '''
-
 
 
 
