@@ -55,15 +55,41 @@ def grad_semesters(emplid):
 
 
 
+def build_program_map():
+    """
+    Return a dict mapping SIMS's ACAD_PROG to GradProgram
+    i.e.:
+        { 'CPPHD': GradProgram.objects.get(label='PhD'... ) }
+    """
+    cmptunit = Unit.objects.get(label="CMPT")
 
+    engunit = Unit.objects.get(label="ENSC")
+    program_map = {
+        'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
+        'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
+        'CPMSC': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+        'CPMZU': GradProgram.objects.get(label="MSc Thesis", unit=cmptunit),
+        'CPMBD': GradProgram.objects.get(label="MSc Big Data", unit=cmptunit),
+        'CPGQL': GradProgram.objects.get(label="Qualifying", unit=cmptunit),
+        'CPMCW': GradProgram.objects.get(label="MSc Course", unit=cmptunit),
+        'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
+    }
+    if settings.DEPLOY_MODE == 'production':
+        mechunit = Unit.objects.get(label="MSE")
+        program_map['MSEPH'] = GradProgram.objects.get(label="Ph.D.", unit=mechunit)
+        program_map['MSEMS'] = GradProgram.objects.get(label="M.A.Sc.", unit=mechunit)
+        program_map['ESMEN'] = GradProgram.objects.get(label="M.Eng.", unit=engunit)
+        program_map['ESMAS'] = GradProgram.objects.get(label="M.A.Sc.", unit=engunit)
+        program_map['ESPHD'] = GradProgram.objects.get(label="Ph.D.", unit=engunit)
 
-
+    return program_map
 
 
 class GradHappening(object):
     """
     Superclass to represent things that happen to grad students.
     """
+    program_map = None
     def effdt_to_strm(self):
         "Look up the semester that goes with this date"
         # within a few days of the end of the semester, things applicable next semester are being entered
@@ -78,6 +104,11 @@ class GradHappening(object):
             raise KeyError, "Couldn't find semester for %s." % (self.effdt)
 
         self.strm = strm
+
+    def acad_prog_to_gradprogram(self):
+        if GradHappening.program_map is None:
+            GradHappening.program_map = build_program_map()
+        self.grad_program = GradHappening.program_map[self.acad_prog]
 
 
 class ProgramStatusChange(GradHappening):
@@ -96,6 +127,7 @@ class ProgramStatusChange(GradHappening):
         self.prog_reason = prog_reason
 
         self.status = self.prog_status_translate()
+        self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
 
         self.in_career = False
@@ -176,8 +208,10 @@ class GradSemester(GradHappening):
         self.strm = strm
         self.stdnt_car_nbr = stdnt_car_nbr
         self.withdraw_code = withdraw_code
-        self.acad_prog_primary = acad_prog_primary
+        self.acad_prog = acad_prog_primary
         self.unt_taken_prgrss = unt_taken_prgrss
+
+        self.acad_prog_to_gradprogram()
 
         self.adm_appl_nbr = None
         self.in_career = False
@@ -194,6 +228,7 @@ class GradCareer(object):
         self.happenings = []
         self.admit_term = None
         self.stdnt_car_nbr = None
+        self.last_program = None
 
     def __repr__(self):
         return "%s@%s:%s" % (self.emplid, self.adm_appl_nbr, self.stdnt_car_nbr)
@@ -212,6 +247,8 @@ class GradCareer(object):
                 # record most-recent admit term we find
                 self.admit_term = h.admit_term
 
+            self.last_program = GradHappening.program_map[h.acad_prog]
+
         self.happenings.append(h)
 
     def matches(self, h):
@@ -224,12 +261,29 @@ class GradCareer(object):
         self.happenings.sort(key=lambda h: h.strm)
 
     def find_gradstudent(self):
-        gss = GradStudent.objects.filter(person__emplid=self.emplid)
+        gss = GradStudent.objects.filter(person__emplid=self.emplid).select_related('start_semester')
         gss = list(gss)
-        by_adm_appl = [gs for gs in gss if 'adm_appl_nbr' in gs.config and gs.config['adm_appl_nbr'] == self.adm_appl_nbr]
+        # option 1: matching adm_appl_nbr recorded
+        by_adm_appl = [gs for gs in gss if
+                gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr]
 
-        print gss
-        print by_adm_appl
+        if len(by_adm_appl) == 1:
+            return by_adm_appl[0]
+        elif len(by_adm_appl) > 1:
+            raise ValueError, "Duplicate adm_appl_number %s found... that can't be good." % (self.adm_appl_nbr)
+
+        # option 2: same program and start semester
+        by_program = [gs for gs in gss if
+                gs.config.get('adm_appl_nbr', 'none') != self.adm_appl_nbr
+                and gs.program == self.last_program
+                and gs.start_semester.name == self.admit_term]
+
+        if len(by_program) == 1:
+            return by_program[0]
+        elif len(by_program) > 1:
+            print "More than one degree/start match for %s." % (self)
+
+
 
 
 class GradTimeline(object):
@@ -278,19 +332,6 @@ class GradTimeline(object):
             c.sort_happenings()
 
 
-
-
-def split_by_car_nbr(timeline):
-    careers = {}
-    for h in timeline:
-        c = careers.get(h.stdnt_car_nbr, None)
-        if c is None:
-            c = GradCareer(h.emplid, h.stdnt_car_nbr)
-            careers[h.stdnt_car_nbr] = c
-
-        c.add(h)
-
-    return careers
 
 
 

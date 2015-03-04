@@ -9,6 +9,9 @@ class Command(BaseCommand):
         # testing setup
         from grad.models import GradProgram
         GradProgram.objects.get_or_create(unit=Unit.objects.get(slug='cmpt'), label='MSc Big Data')
+        GradProgram.objects.get_or_create(unit=Unit.objects.get(slug='cmpt'), label="Qualifying")
+        GradProgram.objects.get_or_create(unit=Unit.objects.get(slug='cmpt'), label="MSc Course")
+        GradProgram.objects.get_or_create(unit=Unit.objects.get(slug='cmpt'), label="Special")
 
         from courselib.testing import create_fake_semester
         import itertools
