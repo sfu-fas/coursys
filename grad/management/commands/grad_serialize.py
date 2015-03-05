@@ -1,0 +1,34 @@
+from django.core.management.base import BaseCommand
+from django.core import serializers
+
+from coredata.models import Unit, Person
+from grad.models import GradProgram, GradStudent, GradProgramHistory, Supervisor, \
+    GradStatus, ProgressReport
+
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        unit_slug = args[0]
+        unit = Unit.objects.get(slug=unit_slug)
+
+        objs = []
+
+        objs.extend(GradProgram.objects.filter(unit=unit))
+        gss = GradStudent.objects.filter(program__unit=unit).select_related('person')
+        objs.extend(gss)
+        objs.extend(GradProgramHistory.objects.filter(program__unit=unit))
+        supervs = Supervisor.objects.filter(student__program__unit=unit).select_related('supervisor')
+        objs.extend(supervs)
+        objs.extend(GradStatus.objects.filter(student__program__unit=unit))
+        objs.extend(ProgressReport.objects.filter(student__program=unit))
+
+        people = set(gs.person for gs in gss) \
+                 | set(s.supervisor for s in supervs if s.supervisor) \
+                 | set([Person.objects.get(userid='ggbaker')])
+
+        objs.extend(people)
+
+        data = serializers.serialize("json", objs, sort_keys=True, indent=1)
+        print data
+        #print people
+
+
