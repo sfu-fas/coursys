@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.core import serializers
 
-from coredata.models import Unit, Person, Semester
+from coredata.models import Unit, Person, Semester, Role
 from grad.models import GradProgram, GradStudent, GradProgramHistory, Supervisor, \
     GradStatus, ProgressReport
 
@@ -10,8 +10,9 @@ class Command(BaseCommand):
         unit_slug = args[0]
         unit = Unit.objects.get(slug=unit_slug)
 
-        objs = [unit]
+        objs = []
 
+        objs.extend(Unit.super_units())
         objs.extend(Semester.objects.all())
         objs.extend(GradProgram.objects.filter(unit=unit))
         gss = GradStudent.objects.filter(program__unit=unit).select_related('person')
@@ -27,6 +28,7 @@ class Command(BaseCommand):
                  | set([Person.objects.get(userid='ggbaker')])
 
         objs.extend(people)
+        objs.extend(Role.objects.filter(person__userid='ggbaker', unit=unit))
 
         data = serializers.serialize("json", objs, sort_keys=True, indent=1)
         print data
