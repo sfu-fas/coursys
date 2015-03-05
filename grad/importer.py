@@ -62,8 +62,6 @@ def build_program_map():
         { 'CPPHD': GradProgram.objects.get(label='PhD'... ) }
     """
     cmptunit = Unit.objects.get(label="CMPT")
-
-    engunit = Unit.objects.get(label="ENSC")
     program_map = {
         'CPPHD': GradProgram.objects.get(label="PhD", unit=cmptunit),
         'CPPZU': GradProgram.objects.get(label="PhD", unit=cmptunit),
@@ -75,6 +73,7 @@ def build_program_map():
         'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
     }
     if settings.DEPLOY_MODE == 'production':
+        engunit = Unit.objects.get(label="ENSC")
         mechunit = Unit.objects.get(label="MSE")
         program_map['MSEPH'] = GradProgram.objects.get(label="Ph.D.", unit=mechunit)
         program_map['MSEMS'] = GradProgram.objects.get(label="M.A.Sc.", unit=mechunit)
@@ -108,7 +107,11 @@ class GradHappening(object):
     def acad_prog_to_gradprogram(self):
         if GradHappening.program_map is None:
             GradHappening.program_map = build_program_map()
-        self.grad_program = GradHappening.program_map[self.acad_prog]
+
+        try:
+            self.grad_program = GradHappening.program_map[self.acad_prog]
+        except KeyError:
+            self.grad_program = None
 
 
 class ProgramStatusChange(GradHappening):
@@ -276,12 +279,15 @@ class GradCareer(object):
         by_program = [gs for gs in gss if
                 gs.config.get('adm_appl_nbr', 'none') != self.adm_appl_nbr
                 and gs.program == self.last_program
-                and gs.start_semester.name == self.admit_term]
+                and gs.start_semester and gs.start_semester.name == self.admit_term]
 
         if len(by_program) == 1:
             return by_program[0]
         elif len(by_program) > 1:
             print "More than one degree/start match for %s." % (self)
+
+
+#        print "can't find %s" % (self)
 
 
 
@@ -306,6 +312,9 @@ class GradTimeline(object):
     def split_careers(self):
         # pass 1: we know the adm_appl_nbr
         for h in self.happenings:
+            if not h.grad_program:
+                continue
+
             if h.adm_appl_nbr:
                 cs = [c for c in self.careers if c.adm_appl_nbr == h.adm_appl_nbr]
                 if len(cs) == 1:
@@ -319,10 +328,14 @@ class GradTimeline(object):
 
         # pass 2: use stdnt_car_nbr to decide, falling back to admit_term if we must
         for h in self.happenings:
-            if h.in_career:
+            if h.in_career or not h.grad_program:
                 continue
 
             possible_careers = [c for c in self.careers if c.matches(h)]
+            if not possible_careers:
+                print "ignoring %s %s because it's old" % (self.emplid, h)
+                continue
+
             possible_careers.sort(key=lambda c: c.admit_term)
             c = possible_careers[-1]
             c.add(h)
@@ -336,7 +349,7 @@ class GradTimeline(object):
 
 
 def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
-    prog_map = program_map()
+    prog_map = build_program_map()
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit == unit]
     #acad_progs = ['CPMBD']
 
@@ -353,8 +366,8 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
             timeline.add(status)
 
 
-    #emplids = timelines.keys()
-    emplids = ['301013710', '961102054']
+    emplids = timelines.keys()
+    emplids = ['301013710', '961102054', '953018734']
     for emplid in emplids:
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
