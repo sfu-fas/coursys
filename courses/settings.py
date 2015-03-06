@@ -271,6 +271,7 @@ if USE_CELERY:
     else:
         # use Kombo (aka the Django database) in devel
         BROKER_URL = getattr(secrets, 'BROKER_URL', "django://")
+        CELERY_RESULT_BACKEND = 'djcelery.backends.database.DatabaseBackend'
         INSTALLED_APPS = INSTALLED_APPS + ("kombu.transport.django",)
 
     CELERY_EMAIL = getattr(localsettings, 'CELERY_EMAIL', DEPLOY_MODE != 'devel')
