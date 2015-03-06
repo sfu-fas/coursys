@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
         from courselib.testing import create_fake_semester
         import itertools
-        strms = itertools.product(map(lambda y: "%03i"%(y), range(96, 114)), ['1', '4', '7'])
+        strms = itertools.product(map(lambda y: "%03i"%(y), range(90, 114)), ['1', '4', '7'])
         for yr,s in strms:
             strm = yr+s
             create_fake_semester(strm)

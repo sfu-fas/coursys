@@ -22,7 +22,7 @@ def build_semester_lookup():
 
 semester_lookup = build_semester_lookup()
 
-IMPORT_START_DATE = datetime.date(1997, 1, 1)
+IMPORT_START_DATE = datetime.date(1990, 1, 1)
 IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
 
 
@@ -35,9 +35,9 @@ def grad_program_changes(acad_prog):
         SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
             effdt, admit_term
         FROM ps_acad_prog
-        WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s
+        WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
         ORDER BY effdt, effseq
-    """, (acad_prog, IMPORT_START_DATE))
+    """, (acad_prog, IMPORT_START_DATE, IMPORT_START_SEMESTER))
     return list(db)
 
 @SIMS_problem_handler
@@ -119,7 +119,7 @@ class ProgramStatusChange(GradHappening):
             prog_reason, effdt, admit_term):
         # argument order must match grad_program_changes query
         self.emplid = emplid
-        self.stdnt_car_nbr = stdnt_car_nbr
+        self.stdnt_car_nbr = None # these seem meaningless
         self.adm_appl_nbr = adm_appl_nbr
         self.acad_prog = acad_prog
         self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
@@ -226,10 +226,10 @@ class GradSemester(GradHappening):
 class GradCareer(object):
     def __init__(self, emplid, adm_appl_nbr):
         self.emplid = emplid
-        #self.stdnt_car_term = stdnt_car_term
         self.adm_appl_nbr = adm_appl_nbr
         self.happenings = []
         self.admit_term = None
+        self.first_admit_term = None
         self.stdnt_car_nbr = None
         self.last_program = None
 
@@ -243,8 +243,13 @@ class GradCareer(object):
             if not self.stdnt_car_nbr:
                 self.stdnt_car_nbr = h.stdnt_car_nbr
 
-            if self.adm_appl_nbr != h.adm_appl_nbr or self.stdnt_car_nbr != h.stdnt_car_nbr:
+            if self.adm_appl_nbr != h.adm_appl_nbr or (h.stdnt_car_nbr and self.stdnt_car_nbr != h.stdnt_car_nbr):
                 raise ValueError
+
+            if hasattr(h, 'admit_term'):
+                # record earliest-ever-proposed admit term we find
+                if self.first_admit_term is None or self.first_admit_term > h.admit_term:
+                    self.first_admit_term = h.admit_term
 
             if hasattr(h, 'admit_term'):
                 # record most-recent admit term we find
@@ -253,12 +258,6 @@ class GradCareer(object):
             self.last_program = GradHappening.program_map[h.acad_prog]
 
         self.happenings.append(h)
-
-    def matches(self, h):
-        """
-        True if this happening is possibly part of this career: same stdnt_car_nbr and starts before the happening
-        """
-        return self.stdnt_car_nbr == h.stdnt_car_nbr and self.admit_term <= h.strm
 
     def sort_happenings(self):
         self.happenings.sort(key=lambda h: h.strm)
@@ -326,12 +325,26 @@ class GradTimeline(object):
                 c.add(h)
                 h.in_career = True
 
-        # pass 2: use stdnt_car_nbr to decide, falling back to admit_term if we must
+        # pass 2: look at admit_term
         for h in self.happenings:
             if h.in_career or not h.grad_program:
                 continue
 
-            possible_careers = [c for c in self.careers if c.matches(h)]
+            possible_careers = [c for c in self.careers if c.admit_term <= h.strm]
+            if not possible_careers:
+                continue
+
+            possible_careers.sort(key=lambda c: c.admit_term)
+            c = possible_careers[-1]
+            c.add(h)
+            h.in_career = True
+
+        # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer
+        for h in self.happenings:
+            if h.in_career or not h.grad_program:
+                continue
+
+            possible_careers = [c for c in self.careers if c.first_admit_term <= h.strm]
             if not possible_careers:
                 print "ignoring %s %s because it's old" % (self.emplid, h)
                 continue
@@ -343,6 +356,7 @@ class GradTimeline(object):
 
         for c in self.careers:
             c.sort_happenings()
+            print c
 
 
 
@@ -367,7 +381,7 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
 
 
     emplids = timelines.keys()
-    emplids = ['301013710', '961102054', '953018734']
+    #emplids = ['301013710', '961102054', '953018734', '200079269']
     for emplid in emplids:
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
