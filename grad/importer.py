@@ -77,7 +77,7 @@ def build_program_map():
         'CPMCW': GradProgram.objects.get(label="MSc Course", unit=cmptunit),
         'CPGND': GradProgram.objects.get(label="Special", unit=cmptunit),
     }
-    if settings.DEPLOY_MODE == 'production':
+    if True or settings.DEPLOY_MODE == 'production':
         engunit = Unit.objects.get(label="ENSC")
         mechunit = Unit.objects.get(label="MSE")
         program_map['MSEPH'] = GradProgram.objects.get(label="Ph.D.", unit=mechunit)
@@ -307,7 +307,7 @@ class GradCareer(object):
         )
 
     GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches)
-        ('by_adm_appl_nbr', False),
+        ('by_adm_appl_nbr', True),
         ('by_program_and_start', True),
         ('by_similar_program_and_start', True),
     ]
@@ -333,7 +333,7 @@ class GradCareer(object):
         print "can't find %s" % (self)
         print self.adm_appl_nbr, [gs.config.get('adm_appl_nbr', 'none') for gs in gss]
         print self.admit_term, [(gs.start_semester.name if gs.start_semester else None) for gs in gss]
-        print self.last_program, [gs.program for gs in gss]
+        print self.last_program, [GradCareer.reverse_program_map[gs.program] for gs in gss]
 
 
 
@@ -404,6 +404,7 @@ class GradTimeline(object):
 
         for c in self.careers:
             c.sort_happenings()
+            #print c
 
 
 
@@ -428,8 +429,12 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
 
 
     emplids = timelines.keys()
-    #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552']
+    #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
+    #           '301241424']
     for emplid in emplids:
+        if emplid not in timelines:
+            continue
+
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
         timeline.split_careers()

@@ -26,7 +26,7 @@ class Command(BaseCommand):
 
             people = set(gs.person for gs in gss) \
                      | set(s.supervisor for s in supervs if s.supervisor) \
-                     | set([Person.objects.get(userid='ggbaker')])
+                     | set(Person.objects.filter(userid='ggbaker'))
 
             objs.extend(people)
             objs.extend(Role.objects.filter(person__userid='ggbaker', unit=unit))
