@@ -1,6 +1,7 @@
 from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args
 from coredata.models import Semester
 import datetime
+from collections import defaultdict
 from pprint import pprint
 import intervaltree
 
@@ -25,6 +26,9 @@ semester_lookup = build_semester_lookup()
 IMPORT_START_DATE = datetime.date(1990, 1, 1)
 IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
 
+# if we find programs starting before this semester, don't import
+RELEVANT_PROGRAM_START = Semester.objects.get(name='1031')
+
 
 
 @SIMS_problem_handler
@@ -48,6 +52,7 @@ def grad_semesters(emplid):
         SELECT emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss
         FROM ps_stdnt_car_term
         WHERE acad_career='GRAD' AND emplid=%s AND strm>=%s
+            AND unt_taken_prgrss>0
         ORDER BY strm
     """, (emplid, IMPORT_START_SEMESTER))
     return list(db)
@@ -83,6 +88,16 @@ def build_program_map():
 
     return program_map
 
+def build_reverse_program_map():
+    program_map = build_program_map()
+    rev_program_map = defaultdict(list)
+    for acad_prog, gradprog in program_map.items():
+        rev_program_map[gradprog].append(acad_prog)
+
+    cmptunit = Unit.objects.get(label="CMPT")
+    rev_program_map[GradProgram.objects.get(label="MSc Course", unit=cmptunit)].append('CPMSC')
+    rev_program_map[GradProgram.objects.get(label="MSc Proj", unit=cmptunit)].append('CPMSC')
+    return rev_program_map
 
 class GradHappening(object):
     """
@@ -224,6 +239,9 @@ class GradSemester(GradHappening):
 
 
 class GradCareer(object):
+    program_map = None
+    reverse_program_map = None
+
     def __init__(self, emplid, adm_appl_nbr):
         self.emplid = emplid
         self.adm_appl_nbr = adm_appl_nbr
@@ -232,6 +250,11 @@ class GradCareer(object):
         self.first_admit_term = None
         self.stdnt_car_nbr = None
         self.last_program = None
+
+        if not GradCareer.program_map:
+            GradCareer.program_map = build_program_map()
+        if not GradCareer.reverse_program_map:
+            GradCareer.reverse_program_map = build_reverse_program_map()
 
     def __repr__(self):
         return "%s@%s:%s" % (self.emplid, self.adm_appl_nbr, self.stdnt_car_nbr)
@@ -246,47 +269,71 @@ class GradCareer(object):
             if self.adm_appl_nbr != h.adm_appl_nbr or (h.stdnt_car_nbr and self.stdnt_car_nbr != h.stdnt_car_nbr):
                 raise ValueError
 
-            if hasattr(h, 'admit_term'):
-                # record earliest-ever-proposed admit term we find
-                if self.first_admit_term is None or self.first_admit_term > h.admit_term:
-                    self.first_admit_term = h.admit_term
+        if hasattr(h, 'admit_term'):
+            # record earliest-ever-proposed admit term we find
+            if self.first_admit_term is None or self.first_admit_term > h.admit_term:
+                self.first_admit_term = h.admit_term
 
-            if hasattr(h, 'admit_term'):
-                # record most-recent admit term we find
-                self.admit_term = h.admit_term
+        if hasattr(h, 'admit_term'):
+            # record most-recent admit term we find
+            self.admit_term = h.admit_term
 
-            self.last_program = GradHappening.program_map[h.acad_prog]
+        self.last_program = h.acad_prog
 
         self.happenings.append(h)
 
     def sort_happenings(self):
         self.happenings.sort(key=lambda h: h.strm)
 
+    def check_stdnt_car_nbr(self, h):
+        if not self.stdnt_car_nbr and h.stdnt_car_nbr:
+            self.stdnt_car_nbr = h.stdnt_car_nbr
+        #elif self.stdnt_car_nbr and h.stdnt_car_nbr and self.stdnt_car_nbr != h.stdnt_car_nbr:
+        #    raise ValueError
+
+    # program selection methods:
+    def by_adm_appl_nbr(self, gs):
+        return gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr
+
+    def by_program_and_start(self, gs):
+        return (GradCareer.program_map[self.last_program] == gs.program
+                and gs.start_semester
+                and gs.start_semester.name == self.admit_term)
+
+    def by_similar_program_and_start(self, gs):
+        return (self.last_program in GradCareer.reverse_program_map[gs.program]
+                and gs.start_semester
+                and gs.start_semester.offset_name(-2) <= self.admit_term <= gs.start_semester.offset_name(2)
+        )
+
+    GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches)
+        ('by_adm_appl_nbr', False),
+        ('by_program_and_start', True),
+        ('by_similar_program_and_start', True),
+    ]
+
     def find_gradstudent(self):
         gss = GradStudent.objects.filter(person__emplid=self.emplid).select_related('start_semester')
         gss = list(gss)
-        # option 1: matching adm_appl_nbr recorded
-        by_adm_appl = [gs for gs in gss if
-                gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr]
 
-        if len(by_adm_appl) == 1:
-            return by_adm_appl[0]
-        elif len(by_adm_appl) > 1:
-            raise ValueError, "Duplicate adm_appl_number %s found... that can't be good." % (self.adm_appl_nbr)
+        if self.admit_term < RELEVANT_PROGRAM_START.name:
+            return
 
-        # option 2: same program and start semester
-        by_program = [gs for gs in gss if
-                gs.config.get('adm_appl_nbr', 'none') != self.adm_appl_nbr
-                and gs.program == self.last_program
-                and gs.start_semester and gs.start_semester.name == self.admit_term]
+        for method, multiple_okay in GradCareer.GS_SELECTORS:
+            by_selector = [gs for gs in gss if getattr(self, method)(gs)]
+            if len(by_selector) == 1:
+                return by_selector[0]
+            elif len(by_selector) > 1:
+                if multiple_okay:
+                    return by_selector[-1]
+                else:
+                    raise ValueError, "Multiple records found by %s for %s." % (method, self)
 
-        if len(by_program) == 1:
-            return by_program[0]
-        elif len(by_program) > 1:
-            print "More than one degree/start match for %s." % (self)
-
-
-#        print "can't find %s" % (self)
+        print
+        print "can't find %s" % (self)
+        print self.adm_appl_nbr, [gs.config.get('adm_appl_nbr', 'none') for gs in gss]
+        print self.admit_term, [(gs.start_semester.name if gs.start_semester else None) for gs in gss]
+        print self.last_program, [gs.program for gs in gss]
 
 
 
@@ -336,6 +383,7 @@ class GradTimeline(object):
 
             possible_careers.sort(key=lambda c: c.admit_term)
             c = possible_careers[-1]
+            c.check_stdnt_car_nbr(h)
             c.add(h)
             h.in_career = True
 
@@ -346,7 +394,7 @@ class GradTimeline(object):
 
             possible_careers = [c for c in self.careers if c.first_admit_term <= h.strm]
             if not possible_careers:
-                print "ignoring %s %s because it's old" % (self.emplid, h)
+                print "ignoring %s %s because it's old and/or has no adm_appl_nbr" % (self.emplid, h)
                 continue
 
             possible_careers.sort(key=lambda c: c.admit_term)
@@ -356,7 +404,6 @@ class GradTimeline(object):
 
         for c in self.careers:
             c.sort_happenings()
-            print c
 
 
 
@@ -381,7 +428,7 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
 
 
     emplids = timelines.keys()
-    #emplids = ['301013710', '961102054', '953018734', '200079269']
+    #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552']
     for emplid in emplids:
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
@@ -399,6 +446,39 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     #pprint (split_by_appl_nbr(timelines['301013710']))
 
     return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
