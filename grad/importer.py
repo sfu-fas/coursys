@@ -44,7 +44,7 @@ def grad_program_changes(acad_prog):
     db = SIMSConn()
     db.execute("""
         SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
-            effdt, admit_term
+            effdt, effseq, admit_term
         FROM ps_acad_prog
         WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
         ORDER BY effdt, effseq
@@ -138,7 +138,7 @@ class GradHappening(object):
 
 class ProgramStatusChange(GradHappening):
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
-            prog_reason, effdt, admit_term):
+            prog_reason, effdt, effseq, admit_term):
         # argument order must match grad_program_changes query
         self.emplid = emplid
         self.stdnt_car_nbr = None # these seem meaningless
@@ -154,6 +154,8 @@ class ProgramStatusChange(GradHappening):
         self.status = self.prog_status_translate()
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
+
+        self.key = [emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
 
         self.in_career = False
 
@@ -229,9 +231,16 @@ class ProgramStatusChange(GradHappening):
         if self.status in STATUS_APPLICANT:
             self.strm = admit_term
 
+    def import_key(self):
+        # must be JSON-serializable (and comparable for equality after serializing/deserializing)
+        return self.key
+
     def find_existing_status(self, statuses):
-        # look for something imported from this
-        # TODO
+        # look for something previously imported from this
+        key = self.import_key()
+        existing = [s for s in statuses
+               if 'imported_from' in s.config and s.config['imported_from'] == key]
+
         # look for a match in old data
         exact = [s for s in statuses
                if s.start.name == self.strm and s.status == self.status]
