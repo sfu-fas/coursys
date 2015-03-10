@@ -5,6 +5,12 @@ from collections import defaultdict
 from pprint import pprint
 import intervaltree
 
+# TODO: should make better decision if we find multiple adm_appl_nbr records in find_gradstudent
+# TODO: handle students that switch programs between units
+
+
+
+
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=28)
 ONE_DAY = datetime.timedelta(days=1)
@@ -215,6 +221,9 @@ class ProgramStatusChange(GradHappening):
 
         raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason))
 
+    def update_local_data(self, student_info, verbosity=1, dry_run=False):
+        pass
+
 
 class GradSemester(GradHappening):
     """
@@ -237,6 +246,84 @@ class GradSemester(GradHappening):
     def __repr__(self):
         return "%s in %s" % (self.withdraw_code, self.strm)
 
+    def update_local_data(self, student_info, verbosity=1, dry_run=False):
+        # only job: make sure student is Active if relevant
+        statuses = student_info['statuses']
+        previous_statuses = [s for s in statuses if s.start.name <= self.strm]
+        if previous_statuses:
+            status = previous_statuses[-1]
+            print ">>>", self.strm, self.unt_taken_prgrss, status
+
+
+
+class GradTimeline(object):
+    def __init__(self, emplid):
+        self.emplid = emplid
+        self.happenings = []
+        self.careers = []
+
+    def __repr__(self):
+        return 'GradTimeline(%s, %s)' % (self.emplid, repr(self.happenings))
+
+    def add(self, happening):
+        self.happenings.append(happening)
+
+    def add_semester_happenings(self):
+        for gs in grad_semesters(self.emplid):
+            h = GradSemester(*gs)
+            self.add(h)
+
+    def split_careers(self, verbosity=1):
+        # pass 1: we know the adm_appl_nbr
+        for h in self.happenings:
+            if not h.grad_program:
+                continue
+
+            if h.adm_appl_nbr:
+                cs = [c for c in self.careers if c.adm_appl_nbr == h.adm_appl_nbr]
+                if len(cs) == 1:
+                    c = cs[0]
+                else:
+                    c = GradCareer(self.emplid, h.adm_appl_nbr)
+                    self.careers.append(c)
+
+                c.add(h)
+                h.in_career = True
+
+        # pass 2: look at admit_term
+        for h in self.happenings:
+            if h.in_career or not h.grad_program:
+                continue
+
+            possible_careers = [c for c in self.careers if c.admit_term <= h.strm]
+            if not possible_careers:
+                continue
+
+            possible_careers.sort(key=lambda c: c.admit_term)
+            c = possible_careers[-1]
+            c.check_stdnt_car_nbr(h)
+            c.add(h)
+            h.in_career = True
+
+        # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer
+        for h in self.happenings:
+            if h.in_career or not h.grad_program:
+                continue
+
+            possible_careers = [c for c in self.careers if c.first_admit_term <= h.strm]
+            if not possible_careers:
+                if verbosity:
+                    print "ignoring %s %s because it's old and/or has no adm_appl_nbr" % (self.emplid, h)
+                continue
+
+            possible_careers.sort(key=lambda c: c.admit_term)
+            c = possible_careers[-1]
+            c.add(h)
+            h.in_career = True
+
+        for c in self.careers:
+            c.sort_happenings()
+
 
 class GradCareer(object):
     program_map = None
@@ -250,6 +337,8 @@ class GradCareer(object):
         self.first_admit_term = None
         self.stdnt_car_nbr = None
         self.last_program = None
+
+        self.gradstudent = None
 
         if not GradCareer.program_map:
             GradCareer.program_map = build_program_map()
@@ -312,7 +401,7 @@ class GradCareer(object):
         ('by_similar_program_and_start', True),
     ]
 
-    def find_gradstudent(self):
+    def find_gradstudent(self, verbosity=1):
         gss = GradStudent.objects.filter(person__emplid=self.emplid).select_related('start_semester')
         gss = list(gss)
 
@@ -329,82 +418,42 @@ class GradCareer(object):
                 else:
                     raise ValueError, "Multiple records found by %s for %s." % (method, self)
 
-        print
-        print "can't find %s" % (self)
-        print self.adm_appl_nbr, [gs.config.get('adm_appl_nbr', 'none') for gs in gss]
-        print self.admit_term, [(gs.start_semester.name if gs.start_semester else None) for gs in gss]
-        print self.last_program, [GradCareer.reverse_program_map[gs.program] for gs in gss]
+        if verbosity:
+            print
+            print "can't find %s" % (self)
+            print self.adm_appl_nbr, [gs.config.get('adm_appl_nbr', 'none') for gs in gss]
+            print self.admit_term, [(gs.start_semester.name if gs.start_semester else None) for gs in gss]
+            print self.last_program, [GradCareer.reverse_program_map[gs.program] for gs in gss]
 
+    def fill_gradstudent(self, verbosity=1):
+        gs = self.find_gradstudent(verbosity=verbosity)
+        self.gradstudent = gs
 
+    def update_local_data(self, verbosity=1, dry_run=False):
+        if not self.gradstudent:
+            return
 
+        print self.emplid, self.admit_term, self.gradstudent
+        student_info = {
+            'student': self.gradstudent,
+            'statuses': GradStatus.objects.filter(student=self.gradstudent) \
+                .select_related('start').order_by('start__name', 'start_date'),
+            'programs': GradProgramHistory.objects.filter(student=self.gradstudent) \
+                .select_related('start_semester').order_by('start_semester__name', 'start_date'),
+        }
 
-class GradTimeline(object):
-    def __init__(self, emplid):
-        self.emplid = emplid
-        self.happenings = []
-        self.careers = []
-
-    def __repr__(self):
-        return 'GradTimeline(%s, %s)' % (self.emplid, repr(self.happenings))
-
-    def add(self, happening):
-        self.happenings.append(happening)
-
-    def add_semester_happenings(self):
-        for gs in grad_semesters(self.emplid):
-            h = GradSemester(*gs)
-            self.add(h)
-
-    def split_careers(self):
-        # pass 1: we know the adm_appl_nbr
         for h in self.happenings:
-            if not h.grad_program:
-                continue
+            h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
 
-            if h.adm_appl_nbr:
-                cs = [c for c in self.careers if c.adm_appl_nbr == h.adm_appl_nbr]
-                if len(cs) == 1:
-                    c = cs[0]
-                else:
-                    c = GradCareer(self.emplid, h.adm_appl_nbr)
-                    self.careers.append(c)
 
-                c.add(h)
-                h.in_career = True
 
-        # pass 2: look at admit_term
-        for h in self.happenings:
-            if h.in_career or not h.grad_program:
-                continue
+        # TODO: GradProgramHistory
 
-            possible_careers = [c for c in self.careers if c.admit_term <= h.strm]
-            if not possible_careers:
-                continue
+        if not dry_run:
+            self.update_status_fields()
 
-            possible_careers.sort(key=lambda c: c.admit_term)
-            c = possible_careers[-1]
-            c.check_stdnt_car_nbr(h)
-            c.add(h)
-            h.in_career = True
 
-        # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer
-        for h in self.happenings:
-            if h.in_career or not h.grad_program:
-                continue
 
-            possible_careers = [c for c in self.careers if c.first_admit_term <= h.strm]
-            if not possible_careers:
-                print "ignoring %s %s because it's old and/or has no adm_appl_nbr" % (self.emplid, h)
-                continue
-
-            possible_careers.sort(key=lambda c: c.admit_term)
-            c = possible_careers[-1]
-            c.add(h)
-            h.in_career = True
-
-        for c in self.careers:
-            c.sort_happenings()
-            #print c
 
 
 
@@ -430,15 +479,18 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     emplids = timelines.keys()
     #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
     #           '301241424']
+    emplids = ['301199421', '301002760', '301192850', '301085871']
     for emplid in emplids:
         if emplid not in timelines:
             continue
 
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
-        timeline.split_careers()
+        timeline.split_careers(verbosity=0)
         for c in timeline.careers:
-            c.find_gradstudent()
+            c.fill_gradstudent(verbosity=0)
+            c.update_local_data(dry_run=True, verbosity=verbosity)
+
 
     #    csplit = split_by_car_nbr(timeline)
     #    print csplit
