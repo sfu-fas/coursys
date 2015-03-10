@@ -874,6 +874,8 @@ class GradProgramHistory(models.Model):
     start_semester = models.ForeignKey(Semester, null=False, blank=False,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
+    config = JSONField(default={}) # addition configuration
+        # 'imported_from': key indicating the SIMS record that imported to this, so we don't duplicate
     
     class Meta:
         ordering = ('-starting',)
@@ -982,6 +984,7 @@ class Supervisor(models.Model):
         # 'email': Email address (for external)
         # 'contact': Address etc (for external)
         # 'attend': 'P'/'A'/'T' for attending in person/in abstentia/by teleconference (probably only for external)
+        # 'imported_from': key indicating the SIMS record that imported to this, so we don't duplicate
     defaults = {'email': None}
     email, set_email = getter_setter('email')
           
@@ -1140,6 +1143,8 @@ class GradStatus(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     # Set this flag if the status is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
+    config = JSONField(default={}) # addition configuration
+        # 'imported_from': key indicating the SIMS record that imported to this, so we don't duplicate
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."

@@ -228,7 +228,7 @@ class GradStatusForm(ModelForm):
         
     class Meta:
         model = GradStatus
-        exclude = ('student', 'created_by', 'hidden', 'end', 'start_date')
+        exclude = ('student', 'created_by', 'hidden', 'end', 'start_date', 'config')
         hidden = ('id')
         widgets = {
                    'notes': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
