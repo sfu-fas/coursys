@@ -1,5 +1,6 @@
 from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args
 from coredata.models import Semester
+from grad.models import STATUS_DONE, STATUS_APPLICANT
 import datetime
 from collections import defaultdict
 from pprint import pprint
@@ -221,8 +222,32 @@ class ProgramStatusChange(GradHappening):
 
         raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason))
 
+    def update_application_timing(self, admit_term):
+        """
+        We like application-related things to be effective in their start semester, not the current
+        """
+        if self.status in STATUS_APPLICANT:
+            self.strm = admit_term
+
+    def find_existing_status(self, statuses):
+        # look for something imported from this
+        # TODO
+        # look for a match in old data
+        exact = [s for s in statuses
+               if s.start.name == self.strm and s.status == self.status]
+
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
-        pass
+        if self.status:
+            statuses = student_info['statuses']
+            print ">>>", self.emplid, self.strm, self.effdt, self.status
+            st = self.find_existing_status(statuses)
+            print st
+
+
+        #print "...", [(s.start.name, s.start_date, s.status) for s in statuses]
+        #print "...", [s for s in statuses if s.start.name == self.strm]
+
+        # TODO: it still might be a program change
 
 
 class GradSemester(GradHappening):
@@ -246,13 +271,12 @@ class GradSemester(GradHappening):
     def __repr__(self):
         return "%s in %s" % (self.withdraw_code, self.strm)
 
+    def update_application_timing(self, admit_term):
+        pass
+
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
         # only job: make sure student is Active if relevant
-        statuses = student_info['statuses']
-        previous_statuses = [s for s in statuses if s.start.name <= self.strm]
-        if previous_statuses:
-            status = previous_statuses[-1]
-            print ">>>", self.strm, self.unt_taken_prgrss, status
+        pass
 
 
 
@@ -436,13 +460,14 @@ class GradCareer(object):
         print self.emplid, self.admit_term, self.gradstudent
         student_info = {
             'student': self.gradstudent,
-            'statuses': GradStatus.objects.filter(student=self.gradstudent) \
-                .select_related('start').order_by('start__name', 'start_date'),
-            'programs': GradProgramHistory.objects.filter(student=self.gradstudent) \
-                .select_related('start_semester').order_by('start_semester__name', 'start_date'),
+            'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
+                .select_related('start').order_by('start__name', 'start_date')),
+            'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
+                .select_related('start_semester').order_by('start_semester__name', 'starting')),
         }
 
         for h in self.happenings:
+            h.update_application_timing(self.admit_term)
             h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
 
 
