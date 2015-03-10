@@ -413,7 +413,6 @@ class GradTimeline(object):
 def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     prog_map = build_program_map()
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit == unit]
-    #acad_progs = ['CPMBD']
 
     timelines = {}
     for acad_prog in acad_progs:
