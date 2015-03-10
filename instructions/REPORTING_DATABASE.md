@@ -76,3 +76,14 @@ In `courses/secrets.py`, add the connection info it needs:
     SIMS_PASSWORD = 'yourpassword'
 
 After that, your CourSys instance should be able to do reporting DB queries. This is checked by the admin panel's "Deployment Checks".
+
+## Reporting Database Tips
+
+- Many fields are somewhat cryptic, but can be joined to a table that has more verbose explanations.
+ These explanatory tables are generally suffixed `_tbl`. 
+ For example, the `acad_prog` field for students' academic program is explained in `ps_acad_prog_tbl` and the field `visa_permit_type` field in the work visa tables is explained by rows in `ps_visa_permit_tbl`.
+- In these (and other) tables, watch for the `eff_status` field that is either `'A'` (active) or `'I'` (inactive). There is also often an `effdt` and you have to select the most-recent active record for the correct data.
+ For the `_tbl` descriptions, it is often easier to just pre-select the explainations and join in you logic, instead of adding horrible complexity to your SQL query just to get descriptions.
+- Usually, fields with the same name hold the same value. For example `acad_org` is the department that owns the thing pretty much everywhere and values correspond to departments described in `ps_acad_org_tbl`. 
+- Many tables have `effdt` and `effseq` fields to indicate when things were active and their order.
+ So to select a student's academic program history, `SELECT * FROM ps_acad_prog WHERE emplid='...' ORDER BY effdt, effseq`. Selecting the One True Current Status out of a table like this is tricky.
