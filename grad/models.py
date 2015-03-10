@@ -202,7 +202,7 @@ class GradStudent(models.Model):
     end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem')
     current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
-    config = JSONField(default={}) # addition configuration
+    config = JSONField(default=dict) # addition configuration
         # 'sin': Social Insurance Number: no longer used. Now at self.person.sin()
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
@@ -874,7 +874,7 @@ class GradProgramHistory(models.Model):
     start_semester = models.ForeignKey(Semester, null=False, blank=False,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
-    config = JSONField(default={}) # addition configuration
+    config = JSONField(default=dict) # addition configuration
         # 'imported_from': key indicating the SIMS record that imported to this, so we don't duplicate
     
     class Meta:
@@ -980,7 +980,7 @@ class Supervisor(models.Model):
     updated_at = models.DateTimeField(auto_now=True) 
     created_by = models.CharField(max_length=32, null=False, help_text='Committee member added by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Committee member modified by.', verbose_name='Last Modified By')
-    config = JSONField(default={}) # addition configuration
+    config = JSONField(default=dict) # addition configuration
         # 'email': Email address (for external)
         # 'contact': Address etc (for external)
         # 'attend': 'P'/'A'/'T' for attending in person/in abstentia/by teleconference (probably only for external)
@@ -1143,7 +1143,7 @@ class GradStatus(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     # Set this flag if the status is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
-    config = JSONField(default={}) # addition configuration
+    config = JSONField(default=dict) # addition configuration
         # 'imported_from': key indicating the SIMS record that imported to this, so we don't duplicate
 
     def delete(self, *args, **kwargs):
@@ -1225,7 +1225,7 @@ class Letter(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
-    config = JSONField(default={}) # addition configuration for within the letter
+    config = JSONField(default=dict) # addition configuration for within the letter
         # data returned by grad.letter_info() is stored here.
         # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
     
@@ -1369,7 +1369,7 @@ class GradFlagValue(models.Model):
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)
     query = models.TextField()
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     
     class Meta:
         #unique_together = (('person', 'query'),)
@@ -1386,7 +1386,7 @@ class ProgressReport(models.Model):
                               db_index=True)
     removed = models.BooleanField(default=False)
     date = models.DateField(default=datetime.date.today)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
@@ -1422,7 +1422,7 @@ class ExternalDocument(models.Model):
                                       editable=False)
     removed = models.BooleanField(default=False)
     date = models.DateField(default=datetime.date.today)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
     
     def __unicode__(self):

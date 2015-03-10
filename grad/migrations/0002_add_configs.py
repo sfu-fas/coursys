@@ -15,13 +15,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gradprogramhistory',
             name='config',
-            field=courselib.json_fields.JSONField(default={}),
+            field=courselib.json_fields.JSONField(default=dict),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='gradstatus',
             name='config',
-            field=courselib.json_fields.JSONField(default={}),
+            field=courselib.json_fields.JSONField(default=dict),
             preserve_default=True,
         ),
     ]
