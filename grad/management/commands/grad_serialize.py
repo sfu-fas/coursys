@@ -6,7 +6,7 @@ from grad.models import GradProgram, GradStudent, GradProgramHistory, Supervisor
     GradStatus, ProgressReport
 
 from grad.models import CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, \
-    GradFlagValue, ExternalDocument, GradRequirement, ScholarshipType, LetterTemplate
+    GradFlagValue, ExternalDocument, GradRequirement, ScholarshipType, LetterTemplate, GradFlag
 
 
 class Command(BaseCommand):
@@ -31,6 +31,7 @@ class Command(BaseCommand):
             objs.extend(GradRequirement.objects.filter(program__unit=unit))
             objs.extend(ScholarshipType.objects.filter(unit=unit))
             objs.extend(LetterTemplate.objects.filter(unit=unit))
+            objs.extend(GradFlag.objects.filter(unit=unit))
 
             objs.extend(CompletedRequirement.objects.filter(student__program__unit=unit))
             letters = Letter.objects.filter(student__program__unit=unit)
@@ -45,7 +46,7 @@ class Command(BaseCommand):
 
             people = set(gs.person for gs in gss) \
                      | set(s.supervisor for s in supervs if s.supervisor) \
-                     | set(l.from_person for l in letters if s.from_person) \
+                     | set(l.from_person for l in letters if l.from_person) \
                      | set(Person.objects.filter(userid='ggbaker'))
 
             objs.extend(people)
