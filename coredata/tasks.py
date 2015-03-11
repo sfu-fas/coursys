@@ -24,6 +24,11 @@ def update_repository_task(*args, **kwargs):
 def ping(self): # used to check that celery is alive
     return True
 
+# uncomment to see if celery beat is running in the logs
+#@periodic_task(run_every=crontab(minute='*', hour='*'))
+#def beat_test():
+#    return True
+
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def backup_database():
     if settings.DO_IMPORTING_HERE:
