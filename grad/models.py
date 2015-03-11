@@ -8,6 +8,7 @@ from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from courselib.json_fields import JSONField
 from courselib.text import normalize_newlines, many_newlines
+from courselib.conditional_save import ConditionalSaveMixin
 import itertools, datetime, os
 import coredata.queries
 from django.conf import settings
@@ -173,7 +174,7 @@ def _active_semesters_display(pk):
 
 
 
-class GradStudent(models.Model):
+class GradStudent(models.Model, ConditionalSaveMixin):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     def autoslug(self):
@@ -868,7 +869,7 @@ class GradStudent(models.Model):
             passport_issued_by=passport_issued_by,
             is_canadian=is_canadian)
         
-class GradProgramHistory(models.Model):
+class GradProgramHistory(models.Model, ConditionalSaveMixin):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     start_semester = models.ForeignKey(Semester, null=False, blank=False,
@@ -963,7 +964,7 @@ SUPERVISOR_TYPE_ORDER = {
     'POTFalse': 3, # potential without committee
     }
 
-class Supervisor(models.Model):
+class Supervisor(models.Model, ConditionalSaveMixin):
     """
     Member (or potential member) of student's supervisory committee.
     """
@@ -1125,7 +1126,7 @@ STATUS_ORDER = {
         'ARSP': 8,
         None: 9,
         }
-class GradStatus(models.Model):
+class GradStatus(models.Model, ConditionalSaveMixin):
     """
     A "status" for a grad student: what were they doing in this range of semesters?
     """
