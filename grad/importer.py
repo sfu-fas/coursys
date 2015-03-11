@@ -1,3 +1,4 @@
+from django.db import transaction
 from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args
 from coredata.models import Semester
 from grad.models import STATUS_DONE, STATUS_APPLICANT
@@ -8,14 +9,15 @@ import intervaltree
 
 # TODO: should make better decision if we find multiple adm_appl_nbr records in find_gradstudent
 # TODO: handle students that switch programs between units
-
+# TODO: supervisory committees
 
 
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
-DATE_OFFSET = datetime.timedelta(days=28)
+DATE_OFFSET = datetime.timedelta(days=30)
+# ...even longer for dates of things that are startup-biased (like returning from leave)
+DATE_OFFSET_START = datetime.timedelta(days=90)
 ONE_DAY = datetime.timedelta(days=1)
-GRAD_OFFSET = -datetime.timedelta(days=90)
 
 def build_semester_lookup():
     """
@@ -36,7 +38,7 @@ IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
 # if we find programs starting before this semester, don't import
 RELEVANT_PROGRAM_START = Semester.objects.get(name='1031')
 
-
+STRM_MAP = dict((s.name, s) for s in Semester.objects.all())
 
 @SIMS_problem_handler
 @cache_by_args
@@ -44,7 +46,7 @@ def grad_program_changes(acad_prog):
     db = SIMSConn()
     db.execute("""
         SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
-            effdt, effseq, admit_term
+            effdt, effseq, admit_term, exp_grad_term
         FROM ps_acad_prog
         WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
         ORDER BY effdt, effseq
@@ -115,14 +117,20 @@ class GradHappening(object):
         "Look up the semester that goes with this date"
         # within a few days of the end of the semester, things applicable next semester are being entered
         offset = DATE_OFFSET
-        if hasattr(self, 'status') and self.status == 'GRAD':
-            # ... except graduation which is entered after it effectively happens.
-            offset = GRAD_OFFSET
+        if hasattr(self, 'status') and self.status == 'ACTI':
+            offset = DATE_OFFSET_START
 
-        try:
-            strm = semester_lookup[self.effdt + offset].pop().data
-        except KeyError:
-            raise KeyError, "Couldn't find semester for %s." % (self.effdt)
+        if hasattr(self, 'status') and self.status == 'GRAD':
+            # Graduation strm is explicitly in there
+            strm = self.exp_grad_term
+        elif hasattr(self, 'status') and self.status in STATUS_APPLICANT:
+            # we like application-related things to be effective in their start semester, not the "current"
+            strm = self.admit_term
+        else:
+            try:
+                strm = semester_lookup[self.effdt + offset].pop().data
+            except KeyError:
+                raise KeyError, "Couldn't find semester for %s." % (self.effdt)
 
         self.strm = strm
 
@@ -138,7 +146,7 @@ class GradHappening(object):
 
 class ProgramStatusChange(GradHappening):
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
-            prog_reason, effdt, effseq, admit_term):
+            prog_reason, effdt, effseq, admit_term, exp_grad_term):
         # argument order must match grad_program_changes query
         self.emplid = emplid
         self.stdnt_car_nbr = None # these seem meaningless
@@ -146,6 +154,7 @@ class ProgramStatusChange(GradHappening):
         self.acad_prog = acad_prog
         self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
         self.admit_term = admit_term
+        self.exp_grad_term = exp_grad_term
 
         self.prog_status = prog_status
         self.prog_action = prog_action
@@ -224,13 +233,6 @@ class ProgramStatusChange(GradHappening):
 
         raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason))
 
-    def update_application_timing(self, admit_term):
-        """
-        We like application-related things to be effective in their start semester, not the current
-        """
-        if self.status in STATUS_APPLICANT:
-            self.strm = admit_term
-
     def import_key(self):
         # must be JSON-serializable (and comparable for equality after serializing/deserializing)
         return self.key
@@ -239,24 +241,45 @@ class ProgramStatusChange(GradHappening):
         # look for something previously imported from this
         key = self.import_key()
         existing = [s for s in statuses
-               if 'imported_from' in s.config and s.config['imported_from'] == key]
+                if 'imported_from' in s.config and s.config['imported_from'] == key]
+        if existing:
+            assert existing[0].status == self.status
+            return existing[0]
 
         # look for a match in old data
-        exact = [s for s in statuses
-               if s.start.name == self.strm and s.status == self.status]
+        similar = [s for s in statuses
+                if s.start.name == self.strm and s.status == self.status
+                and 'imported_from' not in s.config]
+
+        if len(similar) > 1:
+            # multiple matches: try to match on effdt, or just pick one.
+            datematch = [s for s in similar if s.start_date == self.effdt]
+            if datematch:
+                return datematch[0]
+            else:
+                return similar[0]
+        elif similar:
+            return similar[0]
+
 
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
         if self.status:
             statuses = student_info['statuses']
-            print ">>>", self.emplid, self.strm, self.effdt, self.status
+            #print ">>>", self.emplid, self.strm, self.effdt, self.status
             st = self.find_existing_status(statuses)
-            print st
+            if not st:
+                st = GradStatus(student=student_info['student'], status=self.status)
+                #print "creating GradStatus(student__slug=%r, status=%r, start=%r, start_date=%s)" % (student_info['student'].slug, self.status, self.strm, self.effdt)
 
+            assert st.status == self.status
+            st.start = STRM_MAP[self.strm]
+            st.start_date = self.effdt
+            st.config['imported_from'] = self.import_key()
 
-        #print "...", [(s.start.name, s.start_date, s.status) for s in statuses]
-        #print "...", [s for s in statuses if s.start.name == self.strm]
+            if not dry_run:
+                st.save_if_dirty()
 
-        # TODO: it still might be a program change
+        # TODO: it still might represent a program change
 
 
 class GradSemester(GradHappening):
@@ -279,9 +302,6 @@ class GradSemester(GradHappening):
 
     def __repr__(self):
         return "%s in %s" % (self.withdraw_code, self.strm)
-
-    def update_application_timing(self, admit_term):
-        pass
 
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
         # only job: make sure student is Active if relevant
@@ -475,16 +495,14 @@ class GradCareer(object):
                 .select_related('start_semester').order_by('start_semester__name', 'starting')),
         }
 
-        for h in self.happenings:
-            h.update_application_timing(self.admit_term)
-            h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
+        with transaction.atomic():
+            for h in self.happenings:
+                h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
 
+            # TODO: GradProgramHistory
 
-
-        # TODO: GradProgramHistory
-
-        if not dry_run:
-            self.update_status_fields()
+            if not dry_run:
+                self.gradstudent.update_status_fields()
 
 
 
@@ -513,7 +531,7 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     emplids = timelines.keys()
     #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
     #           '301241424']
-    emplids = ['301199421', '301002760', '301192850', '301085871']
+    #emplids = ['301199421', '301002760', '301192850', '301085871']
     for emplid in emplids:
         if emplid not in timelines:
             continue
@@ -523,7 +541,7 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
         timeline.split_careers(verbosity=0)
         for c in timeline.careers:
             c.fill_gradstudent(verbosity=0)
-            c.update_local_data(dry_run=True, verbosity=verbosity)
+            c.update_local_data(dry_run=dry_run, verbosity=verbosity)
 
 
     #    csplit = split_by_car_nbr(timeline)
