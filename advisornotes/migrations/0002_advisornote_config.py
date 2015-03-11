@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='advisornote',
             name='config',
-            field=courselib.json_fields.JSONField(default={}),
+            field=courselib.json_fields.JSONField(default=dict),
             preserve_default=True,
         ),
     ]
