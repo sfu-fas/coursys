@@ -55,7 +55,7 @@ class SmallTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
+        return mark_safe('<p>' + linebreaksbr(fieldsubmission.data['info'], autoescape=True) + '</p>')
 
     def to_text(self, fieldsubmission):
         return fieldsubmission.data['info']
@@ -106,7 +106,7 @@ class MediumTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
+        return mark_safe('<p>' + linebreaksbr(fieldsubmission.data['info'], autoescape=True) + '</p>')
 
     def to_text(self, fieldsubmission):
         txt = normalize_newlines(fieldsubmission.data['info'])
@@ -161,7 +161,7 @@ class LargeTextField(FieldBase):
         return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        return mark_safe('<p>' + linebreaksbr(escape(fieldsubmission.data['info'])) + '</p>')
+        return mark_safe('<p>' + linebreaksbr(fieldsubmission.data['info'], autoescape=True) + '</p>')
 
     def to_text(self, fieldsubmission):
         txt = normalize_newlines(fieldsubmission.data['info'])
