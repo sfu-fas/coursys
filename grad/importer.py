@@ -164,7 +164,7 @@ class ProgramStatusChange(GradHappening):
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
 
-        self.key = [emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
+        self.key = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
 
         self.in_career = False
         self.gradstatus = None
@@ -183,14 +183,15 @@ class ProgramStatusChange(GradHappening):
 
         # application-related
         if st_ac == ('AP', 'APPL'):
-            return 'INCO'
+            return 'COMP'
         if st_ac == ('AP', 'RAPP'):
             # application for readmission
-            return 'INCO'
+            return 'COMP'
         elif st_ac == ('CN', 'WAPP'):
             return 'DECL'
         elif st_ac == ('CN', 'WADM'):
-            return 'INCO'
+            # cancelled application
+            return None
         elif st_ac == ('AD', 'ADMT'):
             return 'OFFO'
         elif st_ac == ('AD', 'COND'):
@@ -290,9 +291,10 @@ class ProgramStatusChange(GradHappening):
 
 
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
+        #print ">>>", self.emplid, self.strm, self.effdt, self.status
+        # grad status
         if self.status:
             statuses = student_info['statuses']
-            print ">>>", self.emplid, self.strm, self.effdt, self.status
             if self.gradstatus:
                 st = self.gradstatus
             else:
@@ -302,7 +304,8 @@ class ProgramStatusChange(GradHappening):
                 if not st:
                     # really not found: make a new one
                     st = GradStatus(student=student_info['student'], status=self.status)
-                    print "creating GradStatus(student__slug=%r, status=%r, start=%r, start_date=%s)" % (student_info['student'].slug, self.status, self.strm, self.effdt)
+                    statuses.append(st)
+                    #print "creating GradStatus(student__slug=%r, status=%r, start=%r, start_date=%s)" % (student_info['student'].slug, self.status, self.strm, self.effdt)
 
             self.gradstatus = st
             self.gradstatus.found_in_import = True
@@ -315,7 +318,41 @@ class ProgramStatusChange(GradHappening):
             if not dry_run:
                 st.save_if_dirty()
 
-        # TODO: it still might represent a program change
+            # re-sort if we added something, so we find things right on the next check
+            student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
+
+        # program history
+        programs = student_info['programs']
+        previous_history = [p for p in programs if p.start_semester.name <= self.strm]
+        need_ph = False
+        if previous_history:
+            # there is a previously-know program: make sure it matches
+            ph = previous_history[-1]
+            if ph.program != self.grad_program:
+                # current program isn't what we found
+                # ... but is there maybe two program changes in one semester?
+                similar_history = [p for p in programs if p.start_semester.name == self.strm
+                        and ph.program == self.grad_program]
+                if similar_history:
+                    ph = similar_history[0]
+                else:
+                    need_ph = True
+        else:
+            # no history: create
+            need_ph = True
+
+        # TODO: what if new program is in a different unit?
+        if need_ph:
+            #print "creating GradProgramHistory(student=%r, program=%s, start_semester=%s, starting=%s)" \
+            #      % (student_info['student'].slug, self.grad_program.slug, self.strm, self.effdt)
+            ph = GradProgramHistory(student=student_info['student'], program=self.grad_program,
+                    start_semester=STRM_MAP[self.strm], starting=self.effdt)
+            ph.config['imported_from'] = self.import_key()
+            student_info['programs'].append(ph)
+            if not dry_run:
+                ph.save()
+
+
 
 
 class GradSemester(GradHappening):
@@ -343,8 +380,26 @@ class GradSemester(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
-        # only job: make sure student is Active if relevant
-        pass
+        # make sure the student is "active" as of the start of this semester, since they're taking courses
+        statuses = student_info['statuses']
+        semester = STRM_MAP[self.strm]
+        effdt = semester.start
+
+        effective_statuses = [s for s in statuses if s.start.name <= self.strm
+                and (not s.start_date or s.start_date <= effdt)]
+        if effective_statuses and effective_statuses[-1].status == 'ACTI':
+            # currently active, so okay.
+            pass
+        else:
+            st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
+                    start_date=effdt)
+            st.config['imported_from'] = ['ps_stdnt_car_term', self.emplid, self.strm]
+            if not dry_run:
+                st.save()
+            student_info['statuses'].append(st)
+
+            # re-sort if we added something, so we find things right on the next check
+            student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
 
 
 
@@ -431,6 +486,7 @@ class GradCareer(object):
         self.last_program = None
 
         self.gradstudent = None
+        self.current_program = None # used to track program changes as we import
 
         if not GradCareer.program_map:
             GradCareer.program_map = build_program_map()
@@ -525,7 +581,11 @@ class GradCareer(object):
         if not self.gradstudent:
             return
 
+        # make sure we know who was touched by the new importer
+        self.gradstudent.config['importer'] = 2
+
         if self.adm_appl_nbr:
+            # make sure we can find it next time
             self.gradstudent.config['adm_appl_nbr'] = self.adm_appl_nbr
 
         print self.emplid, self.admit_term, self.gradstudent
@@ -544,8 +604,6 @@ class GradCareer(object):
 
             for h in self.happenings:
                 h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
-
-            # TODO: GradProgramHistory
 
             if not dry_run:
                 self.gradstudent.update_status_fields()
@@ -578,7 +636,7 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     emplids = timelines.keys()
     #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
     #           '301241424']
-    #emplids = ['301199421', '301002760', '301192850', '301085871']
+    #emplids = ['301209500', '301199421', '301002760', '301192850', '301085871']
     for emplid in emplids:
         if emplid not in timelines:
             continue
