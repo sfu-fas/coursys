@@ -216,8 +216,18 @@ def find_person(emplid, get_userid=True):
             userid = None
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
 
+@cache_by_args
+@SIMS_problem_handler
+def find_external_email(emplid):
+    db = SIMSConn()
+    db.execute("SELECT email_addr FROM ps_email_addresses WHERE emplid=%s AND e_addr_type='WORK'",
+               (str(emplid),))
+    row = db.fetchone()
+    if row and not row[0].endswith('sfu.ca'):
+        return row[0]
 
-def add_person(emplid, commit=True, get_userid=True):
+
+def add_person(emplid, commit=True, get_userid=True, external_email=False):
     """
     Add a Person object based on the found SIMS data
     """
@@ -233,6 +243,14 @@ def add_person(emplid, commit=True, get_userid=True):
 
         p = Person(emplid=data['emplid'], last_name=data['last_name'], first_name=data['first_name'],
                    pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
+
+        if external_email:
+            # used for fetching grad committee members: includes non-SFU people and we want
+            # their non-SFU email address
+            e = find_external_email(emplid)
+            if e:
+                p.config['external_email'] = e
+
         if commit:
             p.save()
     return p
@@ -1110,6 +1128,7 @@ def get_admission_records( emplid, adm_appl_nbr ):
     db.execute(query, (str(emplid), str(adm_appl_nbr)))
     return list(db)
 
+@SIMS_problem_handler
 def get_supervisory_committee(emplid, min_date=None, max_date=None):
     if not min_date:
         # I refuse to believe that the world existed before I was born

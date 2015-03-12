@@ -73,6 +73,7 @@ class Person(models.Model, ConditionalSaveMixin):
         # 'nonstudent_notes': notes field from NonStudent record
         # 'phone_ext': local phone number (for faculty/staff) (e.g. '25555')
         # 'form_email': email address to be used by the onlineforms app for this person
+        # 'external_email': external email for non-SFU grad committee members
 
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
