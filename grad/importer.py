@@ -1,6 +1,6 @@
 from django.db import transaction
-from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args
-from coredata.models import Semester
+from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args, get_supervisory_committee
+from coredata.models import Semester, Person
 from grad.models import STATUS_DONE, STATUS_APPLICANT
 import datetime
 from collections import defaultdict
@@ -10,7 +10,7 @@ import intervaltree
 # TODO: should make better decision if we find multiple adm_appl_nbr records in find_gradstudent
 # TODO: handle students that switch programs between units
 # TODO: supervisory committees
-
+# TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
 
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
@@ -18,6 +18,8 @@ DATE_OFFSET = datetime.timedelta(days=30)
 # ...even longer for dates of things that are startup-biased (like returning from leave)
 DATE_OFFSET_START = datetime.timedelta(days=90)
 ONE_DAY = datetime.timedelta(days=1)
+
+found_people = {} # emplid -> Person map, to keep queries to a minimum
 
 def build_semester_lookup():
     """
@@ -39,6 +41,20 @@ IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
 RELEVANT_PROGRAM_START = Semester.objects.get(name='1031')
 
 STRM_MAP = dict((s.name, s) for s in Semester.objects.all())
+
+COMMITTEE_MEMBER_MAP = { # SIMS committee_role -> our Supervisor.supervisor_type
+    'SNRS': 'SEN',
+    'COSP': 'COS',
+    'SUPR': 'COM',
+    'MMBR': 'COM',
+    'INTX': 'SFU',
+    'EXTM': 'EXT',
+    'CHAI': 'CHA',
+    # not explained by ps_commit_role_tbl but found in SIMS
+    'STDN': 'COM', # existing data point was a committee member
+    'FADV': 'SEN', # existing data point was a senior supervisor
+}
+
 
 @SIMS_problem_handler
 @cache_by_args
@@ -65,6 +81,39 @@ def grad_semesters(emplid):
         ORDER BY strm
     """, (emplid, IMPORT_START_SEMESTER))
     return list(db)
+
+@SIMS_problem_handler
+@cache_by_args
+def committee_members(emplid, acad_prog):
+    db = SIMSConn()
+    # subquery to find max effdt for a committee *with actual members* (there are some later committees with all members gone)
+    real_ctte_effdt = """(
+        SELECT MAX(com0.effdt)
+        FROM ps_committee com0
+          JOIN ps_committee_membr mem0
+              ON (com0.committee_id=mem0.committee_id AND com0.effdt=mem0.effdt)
+        WHERE
+          com0.committee_id=com.committee_id
+    )"""
+
+    db.execute("""
+        SELECT st.committee_id, com.effdt, com.committee_type, mem.emplid, mem.committee_role
+        FROM
+            ps_stdnt_advr_hist st
+            JOIN ps_committee com
+                ON (com.institution=st.institution AND com.committee_id=st.committee_id)
+            JOIN ps_committee_membr mem
+                ON (mem.institution=st.institution AND mem.committee_id=st.committee_id AND com.effdt=mem.effdt)
+        WHERE
+            st.emplid=%s
+            AND st.acad_prog=%s
+            AND st.effdt = (SELECT max(effdt)
+                            FROM ps_stdnt_advr_hist st2
+                            WHERE st.emplid=st2.emplid AND st.institution=st2.institution AND st.acad_prog=st2.acad_prog)
+            AND com.effdt = """ + real_ctte_effdt + """
+    """, (emplid, acad_prog))
+    return list(db)
+
 
 
 
@@ -573,9 +622,51 @@ class GradCareer(object):
             print self.admit_term, [(gs.start_semester.name if gs.start_semester else None) for gs in gss]
             print self.last_program, [GradCareer.reverse_program_map[gs.program] for gs in gss]
 
+        # TODO: create missing GradStudent
+
     def fill_gradstudent(self, verbosity=1):
         gs = self.find_gradstudent(verbosity=verbosity)
         self.gradstudent = gs
+
+    def update_committee(self, dry_run=False):
+        """
+        Find and update the graduate committee for this student
+        """
+        global found_people
+        sims_committee = committee_members(self.emplid, self.last_program)
+        local_committee = Supervisor.objects.filter(student=self.gradstudent, removed=False) \
+                .exclude(supervisor_type='POT')
+        local_committee = list(local_committee)
+
+        for ctte_id, effdt, ctype, sup_emplid, role in sims_committee:
+            # this value might change over time (supervisory -> examining committee for example)
+            key = [ctte_id, effdt, ctype, sup_emplid, role]
+
+            sup_type = COMMITTEE_MEMBER_MAP[role]
+
+            if sup_emplid in found_people:
+                p = found_people[sup_emplid]
+            else:
+                p = add_person(sup_emplid, external_email=True, commit=(not dry_run))
+                found_people[sup_emplid] = p
+
+            matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
+            if matches:
+                member = matches[0]
+            else:
+                similar = [m for m in local_committee if m.supervisor == p]
+                if len(similar) > 0:
+                    member = similar[0]
+                else:
+                    member = Supervisor(student=self.gradstudent, supervisor=p, supervisor_type=sup_type)
+                    local_committee.append(member)
+
+            member.config['imported_from'] = key
+            # TODO: try to match up external members with new real ones?
+
+            if not dry_run:
+                member.save_if_dirty()
+
 
     def update_local_data(self, verbosity=1, dry_run=False):
         if not self.gradstudent:
@@ -598,10 +689,10 @@ class GradCareer(object):
                 .select_related('start_semester').order_by('start_semester__name', 'starting')),
         }
 
-        with transaction.atomic():
-            for h in self.happenings:
-                h.find_local_data(student_info, verbosity=verbosity)
+        for h in self.happenings:
+            h.find_local_data(student_info, verbosity=verbosity)
 
+        with transaction.atomic():
             for h in self.happenings:
                 h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
 
@@ -609,8 +700,8 @@ class GradCareer(object):
                 self.gradstudent.update_status_fields()
                 self.gradstudent.save_if_dirty()
 
-
-
+        with transaction.atomic():
+            self.update_committee(dry_run=dry_run)
 
 
 
