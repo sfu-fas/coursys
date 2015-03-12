@@ -1168,7 +1168,7 @@ class GradStatus(models.Model, ConditionalSaveMixin):
 
     
     def __unicode__(self):
-        return u"Grad Status: %s %s" % (self.status, self.student)
+        return u"Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
     
     def status_order(self):
         "For sorting by status"

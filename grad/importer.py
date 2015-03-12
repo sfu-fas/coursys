@@ -167,6 +167,7 @@ class ProgramStatusChange(GradHappening):
         self.key = [emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
 
         self.in_career = False
+        self.gradstatus = None
 
     def __repr__(self):
         return "%s at %s (%s)" % (self.status, self.effdt, self.strm)
@@ -246,9 +247,10 @@ class ProgramStatusChange(GradHappening):
             assert existing[0].status == self.status
             return existing[0]
 
-        # look for a match in old data
+        # look for a real match in old data
         similar = [s for s in statuses
-                if s.start.name == self.strm and s.status == self.status
+                if s.start.name == self.strm
+                and s.status == self.status
                 and 'imported_from' not in s.config]
 
         if len(similar) > 1:
@@ -261,15 +263,49 @@ class ProgramStatusChange(GradHappening):
         elif similar:
             return similar[0]
 
+    def find_similar_status(self, statuses):
+        # a hail-mary to find something manually entered that is
+        # (1) close enough we think it's the same fact
+        # (2) not found as "real" data to match something else in the first pass
+        close_enough = [s for s in statuses
+                if s.start.offset_name(-1) <= self.strm <= s.start.offset_name(1)
+                and s.status == self.status
+                and 'imported_from' not in s.config
+                and not hasattr(s, 'found_in_import')]
+        if close_enough:
+            return close_enough[0]
+
+
+    def find_local_data(self, student_info, verbosity=1):
+        if self.status:
+            # do a first pass to find good matches
+            statuses = student_info['statuses']
+            st = self.find_existing_status(statuses)
+            self.gradstatus = st
+
+            if self.gradstatus:
+                self.gradstatus.found_in_import = True
+                assert st.status == self.status
+                assert st.start == STRM_MAP[self.strm]
+
 
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
         if self.status:
             statuses = student_info['statuses']
-            #print ">>>", self.emplid, self.strm, self.effdt, self.status
-            st = self.find_existing_status(statuses)
-            if not st:
-                st = GradStatus(student=student_info['student'], status=self.status)
-                #print "creating GradStatus(student__slug=%r, status=%r, start=%r, start_date=%s)" % (student_info['student'].slug, self.status, self.strm, self.effdt)
+            print ">>>", self.emplid, self.strm, self.effdt, self.status
+            if self.gradstatus:
+                st = self.gradstatus
+            else:
+                # try really hard to find a local status we can use for this: anything close not found
+                # by any find_local_data() call
+                st = self.find_similar_status(statuses)
+                if not st:
+                    # really not found: make a new one
+                    st = GradStatus(student=student_info['student'], status=self.status)
+                    print "creating GradStatus(student__slug=%r, status=%r, start=%r, start_date=%s)" % (student_info['student'].slug, self.status, self.strm, self.effdt)
+
+            self.gradstatus = st
+            self.gradstatus.found_in_import = True
 
             assert st.status == self.status
             st.start = STRM_MAP[self.strm]
@@ -302,6 +338,9 @@ class GradSemester(GradHappening):
 
     def __repr__(self):
         return "%s in %s" % (self.withdraw_code, self.strm)
+
+    def find_local_data(self, student_info, verbosity=1):
+        pass
 
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
         # only job: make sure student is Active if relevant
@@ -486,7 +525,11 @@ class GradCareer(object):
         if not self.gradstudent:
             return
 
+        if self.adm_appl_nbr:
+            self.gradstudent.config['adm_appl_nbr'] = self.adm_appl_nbr
+
         print self.emplid, self.admit_term, self.gradstudent
+
         student_info = {
             'student': self.gradstudent,
             'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
@@ -497,12 +540,16 @@ class GradCareer(object):
 
         with transaction.atomic():
             for h in self.happenings:
+                h.find_local_data(student_info, verbosity=verbosity)
+
+            for h in self.happenings:
                 h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
 
             # TODO: GradProgramHistory
 
             if not dry_run:
                 self.gradstudent.update_status_fields()
+                self.gradstudent.save_if_dirty()
 
 
 
