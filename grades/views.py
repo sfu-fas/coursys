@@ -16,7 +16,7 @@ from django.contrib import messages
 from django.utils.html import mark_safe
 from django.conf import settings
 
-from coredata.models import Member, CourseOffering, Person, Semester
+from coredata.models import Member, CourseOffering, Person, Semester, Role
 
 from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_student_by_slug
 from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
@@ -1237,19 +1237,25 @@ def photo_list(request, course_slug, style='horiz'):
 def student_photo(request, emplid):
     # confirm user's photo agreement
     user = get_object_or_404(Person, userid=request.user.username)
+    can_access = False
 
-    if not _has_photo_agreement(user):
-        url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
-        return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
+    if Role.objects.filter(person=user, role='ADVS'):
+        can_access = True
+    else:
+        if not _has_photo_agreement(user):
+            url = reverse('dashboard.views.photo_agreement') + '?return=' + urllib.quote(request.path)
+            return ForbiddenResponse(request, mark_safe('You must <a href="%s">confirm the photo usage agreement</a> before seeing student photos.' % (url)))
 
-    # confirm user is an instructor of this student (within the last two years)
-    # TODO: cache past_semester to save the query?
-    past_semester = Semester.get_semester(datetime.date.today() - datetime.timedelta(days=730))
-    student_members = Member.objects.filter(offering__semester__name__gte=past_semester.name,
-            person__emplid=emplid, role='STUD').select_related('offering')
-    student_offerings = [m.offering for m in student_members]
-    instructor_of = Member.objects.filter(person=user, role='INST', offering__in=student_offerings)
-    if instructor_of.count() == 0:
+        # confirm user is an instructor of this student (within the last two years)
+        # TODO: cache past_semester to save the query?
+        past_semester = Semester.get_semester(datetime.date.today() - datetime.timedelta(days=730))
+        student_members = Member.objects.filter(offering__semester__name__gte=past_semester.name,
+                person__emplid=emplid, role='STUD').select_related('offering')
+        student_offerings = [m.offering for m in student_members]
+        instructor_of = Member.objects.filter(person=user, role='INST', offering__in=student_offerings)
+        can_access = (instructor_of.count() > 0)
+
+    if not can_access:
         return ForbiddenResponse(request, 'You must be an instructor of this student.')
 
     # get the photo
