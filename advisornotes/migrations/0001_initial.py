@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created_at', models.DateTimeField(default=datetime.datetime.now)),
-                ('config', courselib.json_fields.JSONField(default={})),
+                ('config', courselib.json_fields.JSONField(default=dict)),
                 ('advisor', models.ForeignKey(related_name='+', editable=False, to='coredata.Person', help_text=b'The advisor that created the note')),
             ],
             options={
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(help_text=b'The name of the artifact', max_length=140)),
                 ('category', models.CharField(max_length=3, choices=[(b'INS', b'Institution'), (b'PRO', b'Program'), (b'OTH', b'Other')])),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                ('config', courselib.json_fields.JSONField(default={})),
+                ('config', courselib.json_fields.JSONField(default=dict)),
                 ('unit', models.ForeignKey(help_text=b'The academic unit that owns this artifact', to='coredata.Unit')),
             ],
             options={
@@ -96,7 +96,7 @@ class Migration(migrations.Migration):
                 ('start_year', models.IntegerField(help_text=b'The predicted/potential start year', null=True, blank=True)),
                 ('notes', models.TextField(help_text=b'Any general information for the student', blank=True)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                ('config', courselib.json_fields.JSONField(default={})),
+                ('config', courselib.json_fields.JSONField(default=dict)),
                 ('unit', models.ForeignKey(blank=True, to='coredata.Unit', help_text=b'The potential academic unit for the student', null=True)),
             ],
             options={

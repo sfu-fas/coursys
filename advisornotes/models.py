@@ -44,7 +44,7 @@ class NonStudent(models.Model):
         return make_slug(self.first_name + ' ' + self.last_name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
@@ -86,7 +86,7 @@ class AdvisorNote(models.Model):
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
     emailed = models.BooleanField(null=False, default=False)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     def __unicode__(self):
         return unicode(self.student) + "@" + unicode(self.created_at)
@@ -146,7 +146,7 @@ class Artifact(models.Model):
 
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     class Meta:
         ordering = ['name']
@@ -246,7 +246,7 @@ class AdvisorVisit(models.Model):
                                 editable=False, related_name='+')
     created_at = models.DateTimeField(default=datetime.datetime.now)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this visit', null=False)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     def save(self, *args, **kwargs):
         # ensure we always have either the student, nonstudent, or program unit.

@@ -33,3 +33,10 @@ end
 service "nginx" do
   action :restart
 end
+
+# celery checking cron
+cron "celery check" do
+    user 'coursys'
+    minute '0'
+    command 'python ${HOME}/courses/manage.py ping_celery'
+end
