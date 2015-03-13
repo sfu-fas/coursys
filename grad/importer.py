@@ -325,7 +325,7 @@ class ProgramStatusChange(GradHappening):
                 assert st.start == STRM_MAP[self.strm]
 
 
-    def update_local_data(self, student_info, verbosity=1, dry_run=False):
+    def update_local_data(self, student_info, verbosity, dry_run):
         # grad status
         if self.status:
             statuses = student_info['statuses']
@@ -417,7 +417,7 @@ class GradSemester(GradHappening):
     def find_local_data(self, student_info, verbosity=1):
         pass
 
-    def update_local_data(self, student_info, verbosity=1, dry_run=False):
+    def update_local_data(self, student_info, verbosity, dry_run):
         # make sure the student is "active" as of the start of this semester, since they're taking courses
         statuses = student_info['statuses']
         semester = STRM_MAP[self.strm]
@@ -483,7 +483,7 @@ class CommitteeMembership(GradHappening):
     def find_local_data(self, student_info, verbosity=1):
         pass
 
-    def update_local_data(self, student_info, verbosity=1, dry_run=False):
+    def update_local_data(self, student_info, verbosity, dry_run):
         global found_people
         key = [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
         local_committee = student_info['committee']
@@ -608,7 +608,7 @@ class GradTimeline(object):
         for c in self.careers:
             c.sort_happenings()
 
-    def find_rogue_local_data(self, verbosity=1, dry_run=False):
+    def find_rogue_local_data(self, verbosity, dry_run):
         existing_grads = set(GradStudent.objects.filter(person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START).select_related('start_semester', 'program__unit'))
         found_grads = set(c.gradstudent for c in self.careers if c.gradstudent and c.gradstudent.id)
         extra_grads = existing_grads - found_grads
@@ -711,7 +711,7 @@ class GradCareer(object):
         ('by_similar_program_and_start', True),
     ]
 
-    def find_gradstudent(self, verbosity=1, dry_run=False):
+    def find_gradstudent(self, verbosity, dry_run):
         gss = GradStudent.objects.filter(person__emplid=self.emplid).select_related('start_semester', 'program__unit')
         gss = list(gss)
 
@@ -740,11 +740,11 @@ class GradCareer(object):
             gs.save() # get gs.id filled in for foreign keys elsewhere
         return gs
 
-    def fill_gradstudent(self, verbosity=1, dry_run=False):
+    def fill_gradstudent(self, verbosity, dry_run):
         gs = self.find_gradstudent(verbosity=verbosity, dry_run=dry_run)
         self.gradstudent = gs
 
-    def update_local_data(self, verbosity=1, dry_run=False):
+    def update_local_data(self, verbosity, dry_run):
         """
         Update local data for the GradStudent using what we found in SIMS
         """
@@ -778,7 +778,7 @@ class GradCareer(object):
             self.gradstudent.save_if_dirty()
 
 
-    def find_rogue_local_data(self, verbosity=1, dry_run=False):
+    def find_rogue_local_data(self, verbosity, dry_run):
         """
         Find any local data that doesn't seem to belong and report it.
         """
@@ -798,7 +798,7 @@ class GradCareer(object):
 
 
 
-def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
+def NEW_import_unit_grads(unit, dry_run, verbosity):
     prog_map = build_program_map()
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit == unit]
 
