@@ -88,7 +88,7 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('COMP', 'Complete App'),
         ('INRE', 'In-Review'),
         ('HOLD', 'Hold'),
-        ('OFFO', 'Out'),
+        ('OFFO', 'Offer'),
         ('REJE', 'Reject'),
         ('DECL', 'Declined'),
         ('EXPI', 'Expired'),
@@ -953,6 +953,7 @@ SUPERVISOR_TYPE_CHOICES = [
     ('SFU', 'SFU Examiner'),
     ('POT', 'Potential Supervisor'),
     ]
+SUPERVISOR_TYPE = dict(SUPERVISOR_TYPE_CHOICES)
 SUPERVISOR_TYPE_ORDER = {
     'SEN': 1,
     'COS': 2,

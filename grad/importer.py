@@ -1,17 +1,15 @@
 from django.db import transaction
 from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args, get_supervisory_committee
 from coredata.models import Semester
-from grad.models import STATUS_APPLICANT, Supervisor
+from grad.models import STATUS_APPLICANT, SHORT_STATUSES, SUPERVISOR_TYPE, Supervisor
 import datetime
 from collections import defaultdict
 from pprint import pprint
 import intervaltree
 
 # TODO: should make better decision if we find multiple adm_appl_nbr records in find_gradstudent
-# TODO: handle students that switch programs between units
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
 # TODO: adjust WIDR statuses depending on the NWD/WRD status from ps_stdnt_car_term?
-# TODO: one person/program with multiple grad records will duplicate supervisory committee
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
@@ -41,7 +39,7 @@ IMPORT_START_DATE = datetime.date(1990, 1, 1)
 IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
 
 # if we find students starting before this semester, don't import
-RELEVANT_PROGRAM_START = Semester.objects.get(name='1031')
+RELEVANT_PROGRAM_START = '1031'
 
 STRM_MAP = dict((s.name, s) for s in Semester.objects.all())
 
@@ -105,8 +103,6 @@ def committee_members(emplid):
 
 
 
-class ProgramChangeError(ValueError):
-    pass
 
 def build_program_map():
     """
@@ -330,7 +326,6 @@ class ProgramStatusChange(GradHappening):
 
 
     def update_local_data(self, student_info, verbosity=1, dry_run=False):
-        #print ">>>", self.emplid, self.strm, self.effdt, self.status
         # grad status
         if self.status:
             statuses = student_info['statuses']
@@ -344,7 +339,8 @@ class ProgramStatusChange(GradHappening):
                     # really not found: make a new one
                     st = GradStatus(student=student_info['student'], status=self.status)
                     statuses.append(st)
-                    #print "creating GradStatus(student__slug=%r, status=%r, start=%r, start_date=%s)" % (student_info['student'].slug, self.status, self.strm, self.effdt)
+                    if verbosity:
+                        print "Adding grad status: %s is '%s' as of %s." % (self.emplid, SHORT_STATUSES[self.status], self.strm)
 
             self.gradstatus = st
             self.gradstatus.found_in_import = True
@@ -380,10 +376,10 @@ class ProgramStatusChange(GradHappening):
             # no history: create
             need_ph = True
 
-        # TODO: what if new program is in a different unit?
         if need_ph:
-            #print "creating GradProgramHistory(student=%r, program=%s, start_semester=%s, starting=%s)" \
-            #      % (student_info['student'].slug, self.grad_program.slug, self.strm, self.effdt)
+            if (verbosity and previous_history) or verbosity > 1:
+                # don't usually report first ever ProgramHistory because those are boring
+                print "Adding program change: %s in %s as of %s." % (self.emplid, self.grad_program.slug, self.strm)
             ph = GradProgramHistory(student=student_info['student'], program=self.grad_program,
                     start_semester=STRM_MAP[self.strm], starting=self.effdt)
             ph.config['imported_from'] = self.import_key()
@@ -430,6 +426,8 @@ class GradSemester(GradHappening):
             # currently active, so okay.
             pass
         else:
+            if verbosity:
+                print "Adding grad status: %s is '%s' as of %s." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
                     start_date=effdt)
             st.config['imported_from'] = ['ps_stdnt_car_term', self.emplid, self.strm]
@@ -492,9 +490,10 @@ class CommitteeMembership(GradHappening):
             if len(similar) > 0:
                 member = similar[0]
             else:
+                if verbosity:
+                    print "Adding committee member: %s is a %s for %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid)
                 member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
                 member.created_at = self.effdt
-                print "    creating", p, sup_type, self.effdt
                 local_committee.append(member)
 
         if 'imported_from' not in member.config:
@@ -534,13 +533,21 @@ class GradTimeline(object):
             self.add(h)
 
     def split_careers(self, verbosity=1):
+        """
+        Take all of the happenings we found and split them into careers, with each representing one GradStudent object.
+
+        Rules:
+        careers have to be within one unit
+        a career is usually started by applying for a program (or by transferring between units)
+        """
+        # TODO: if we find multiple careeers with the same adm_appl_nbr (because of intra-unit transfer), create some "transferred out" and "transferred in" statuses
         # pass 1: we know the adm_appl_nbr
         for h in self.happenings:
             if not h.grad_program:
                 continue
 
             if h.adm_appl_nbr:
-                cs = [c for c in self.careers if c.adm_appl_nbr == h.adm_appl_nbr]
+                cs = [c for c in self.careers if c.unit == h.grad_program.unit and c.adm_appl_nbr == h.adm_appl_nbr]
                 if len(cs) == 1:
                     c = cs[0]
                 else:
@@ -555,7 +562,7 @@ class GradTimeline(object):
             if h.in_career or not h.grad_program:
                 continue
 
-            possible_careers = [c for c in self.careers if c.admit_term <= h.strm]
+            possible_careers = [c for c in self.careers if c.unit == h.grad_program.unit and c.admit_term <= h.strm]
             if not possible_careers:
                 continue
 
@@ -565,21 +572,22 @@ class GradTimeline(object):
             c.add(h)
             h.in_career = True
 
-        # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer
+        # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer their start
         for h in self.happenings:
             if h.in_career or not h.grad_program:
                 continue
 
-            possible_careers = [c for c in self.careers if c.first_admit_term <= h.strm]
+            possible_careers = [c for c in self.careers if c.unit == h.grad_program.unit and c.first_admit_term <= h.strm]
             if not possible_careers:
-                if verbosity:
-                    print "ignoring %s %s because it's old and/or has no adm_appl_nbr" % (self.emplid, h)
                 continue
 
             possible_careers.sort(key=lambda c: c.admit_term)
             c = possible_careers[-1]
             c.add(h)
             h.in_career = True
+
+        # Failures to categorize happenings into a career by this point seem to always have to do with an
+        # older career that we're not importing. Those get dropped here.
 
         for c in self.careers:
             c.sort_happenings()
@@ -620,10 +628,7 @@ class GradCareer(object):
             if self.adm_appl_nbr != h.adm_appl_nbr or (h.stdnt_car_nbr and self.stdnt_car_nbr != h.stdnt_car_nbr):
                 raise ValueError
 
-        # if the student changed programs *and* units that own those programs, then we can't accept this happening:
-        # must start a new career owned by that unit
-        if h.grad_program.unit != self.unit:
-            raise ProgramChangeError
+        assert h.grad_program.unit == self.unit
 
         if hasattr(h, 'admit_term'):
             # record earliest-ever-proposed admit term we find
@@ -641,6 +646,10 @@ class GradCareer(object):
     def sort_happenings(self):
         self.happenings.sort(key=lambda h: h.strm)
 
+    def import_key(self):
+        assert self.adm_appl_nbr
+        return [self.emplid, self.adm_appl_nbr, self.unit.slug]
+
     def check_stdnt_car_nbr(self, h):
         if not self.stdnt_car_nbr and h.stdnt_car_nbr:
             self.stdnt_car_nbr = h.stdnt_car_nbr
@@ -648,6 +657,9 @@ class GradCareer(object):
         #    raise ValueError
 
     # program selection methods:
+    def by_key(self, gs):
+        return gs.config.get('imported_from', 'none') == self.import_key()
+
     def by_adm_appl_nbr(self, gs):
         return gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr
 
@@ -663,16 +675,17 @@ class GradCareer(object):
         )
 
     GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches)
+        ('by_key', False),
         ('by_adm_appl_nbr', True),
         ('by_program_and_start', True),
         ('by_similar_program_and_start', True),
     ]
 
-    def find_gradstudent(self, verbosity=1):
-        gss = GradStudent.objects.filter(person__emplid=self.emplid).select_related('start_semester')
+    def find_gradstudent(self, verbosity=1, dry_run=False):
+        gss = GradStudent.objects.filter(person__emplid=self.emplid).select_related('start_semester', 'program__unit')
         gss = list(gss)
 
-        if self.admit_term < RELEVANT_PROGRAM_START.name:
+        if self.admit_term < RELEVANT_PROGRAM_START:
             return
 
         for method, multiple_okay in GradCareer.GS_SELECTORS:
@@ -686,31 +699,29 @@ class GradCareer(object):
                     raise ValueError, "Multiple records found by %s for %s." % (method, self)
 
         if verbosity:
-            print
-            print "can't find %s" % (self)
-            print self.adm_appl_nbr, [gs.config.get('adm_appl_nbr', 'none') for gs in gss]
-            print self.admit_term, [(gs.start_semester.name if gs.start_semester else None) for gs in gss]
-            print self.last_program, [GradCareer.reverse_program_map[gs.program] for gs in gss]
+            print "New grad student career found: %s in %s starting %s." % (self.emplid, self.last_program, self.admit_term)
 
-        # TODO: create missing GradStudent
+        # can't find anything in database: create new
+        gs = GradStudent(person=add_person(self.emplid, commit=(not dry_run)))
+        # everything else updated by gs.update_status_fields later
 
-    def fill_gradstudent(self, verbosity=1):
-        gs = self.find_gradstudent(verbosity=verbosity)
+        gs.program = GradCareer.program_map[self.last_program] # ...but this is needed to save
+        if not dry_run:
+            gs.save() # get gs.id filled in for foreign keys elsewhere
+        return gs
+
+    def fill_gradstudent(self, verbosity=1, dry_run=False):
+        gs = self.find_gradstudent(verbosity=verbosity, dry_run=dry_run)
         self.gradstudent = gs
 
-
     def update_local_data(self, verbosity=1, dry_run=False):
-        if not self.gradstudent:
-            return
-
-        # make sure we know who was touched by the new importer
-        self.gradstudent.config['importer'] = 2
-
+        """
+        Update local data for the GradStudent using what we found in SIMS
+        """
+        # make sure we can find it next time
+        self.gradstudent.config['imported_from'] = self.import_key()
         if self.adm_appl_nbr:
-            # make sure we can find it next time
             self.gradstudent.config['adm_appl_nbr'] = self.adm_appl_nbr
-
-        print self.emplid, self.admit_term, self.gradstudent
 
         student_info = {
             'student': self.gradstudent,
@@ -721,18 +732,28 @@ class GradCareer(object):
             'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
                 .exclude(supervisor_type='POT')),
         }
+        self.student_info = student_info
+
+        print "  ", self.emplid, self.adm_appl_nbr, self.unit.slug, self.admit_term, self.gradstudent
 
         for h in self.happenings:
             # do this first for everything so a second pass can try harder to find things not matching in the first pass
             h.find_local_data(student_info, verbosity=verbosity)
 
-        with transaction.atomic():
-            for h in self.happenings:
-                h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
+        for h in self.happenings:
+            h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
 
-            if not dry_run:
-                self.gradstudent.update_status_fields()
-                self.gradstudent.save_if_dirty()
+        if not dry_run:
+            self.gradstudent.update_status_fields()
+            self.gradstudent.save_if_dirty()
+
+
+    def find_rogue_local_data(self, verbosity=1, dry_run=False):
+        """
+        Find any local data that doesn't seem to belong and report it.
+        """
+        statuses = self.student_info['statuses']
+        print [s for s in statuses if 'imported_from' not in s.config]
 
 
 
@@ -758,6 +779,7 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
     #           '301241424']
     #emplids = ['301073851', '200118115', '301209500', '301199421', '301002760', '301192850', '301085871']
+    emplids = ['200010820']
     for emplid in emplids:
         if emplid not in timelines:
             continue
@@ -765,10 +787,15 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
         timeline.add_committee_happenings()
-        timeline.split_careers(verbosity=0)
+        timeline.split_careers(verbosity=verbosity)
         for c in timeline.careers:
-            c.fill_gradstudent(verbosity=0)
-            c.update_local_data(dry_run=dry_run, verbosity=verbosity)
+            with transaction.atomic(): # all or nothing for each GradStudent
+                c.fill_gradstudent(verbosity=3, dry_run=dry_run)
+                if not c.gradstudent:
+                    # we gave up on this because it's too old
+                    continue
+                c.update_local_data(verbosity=3, dry_run=dry_run)
+                c.find_rogue_local_data(verbosity=verbosity, dry_run=True)
 
 
 
