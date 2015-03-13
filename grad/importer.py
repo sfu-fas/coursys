@@ -275,7 +275,7 @@ class ProgramStatusChange(GradHappening):
         # must be JSON-serializable (and comparable for equality after serializing/deserializing)
         return self.key
 
-    def find_existing_status(self, statuses):
+    def find_existing_status(self, statuses, verbosity):
         # look for something previously imported from this
         key = self.import_key()
         existing = [s for s in statuses
@@ -290,17 +290,15 @@ class ProgramStatusChange(GradHappening):
                 and s.status == self.status
                 and 'imported_from' not in s.config]
 
-        if len(similar) > 1:
-            # multiple matches: try to match on effdt, or just pick one.
-            datematch = [s for s in similar if s.start_date == self.effdt]
-            if datematch:
-                return datematch[0]
-            else:
-                return similar[0]
-        elif similar:
+        if similar:
+            if len(similar) > 1:
+                # multiple matches: try to match on effdt, or just pick one.
+                datematch = [s for s in similar if s.start_date == self.effdt]
+                if datematch:
+                    return datematch[0]
             return similar[0]
 
-    def find_similar_status(self, statuses):
+    def find_similar_status(self, statuses, verbosity):
         # a hail-mary to find something manually entered that is
         # (1) close enough we think it's the same fact
         # (2) not found as "real" data to match something else in the first pass
@@ -310,14 +308,16 @@ class ProgramStatusChange(GradHappening):
                 and 'imported_from' not in s.config
                 and not hasattr(s, 'found_in_import')]
         if close_enough:
+            if verbosity > 2:
+                print "* Found similar (but imperfect) status for %s is %s in %s" % (self.emplid, self.status, self.strm)
             return close_enough[0]
 
 
-    def find_local_data(self, student_info, verbosity=1):
+    def find_local_data(self, student_info, verbosity):
         if self.status:
             # do a first pass to find good matches
             statuses = student_info['statuses']
-            st = self.find_existing_status(statuses)
+            st = self.find_existing_status(statuses, verbosity=verbosity)
             self.gradstatus = st
 
             if self.gradstatus:
@@ -335,7 +335,7 @@ class ProgramStatusChange(GradHappening):
             else:
                 # try really hard to find a local status we can use for this: anything close not found
                 # by any find_local_data() call
-                st = self.find_similar_status(statuses)
+                st = self.find_similar_status(statuses, verbosity=verbosity)
                 if not st:
                     # really not found: make a new one
                     st = GradStatus(student=student_info['student'], status=self.status)
@@ -415,7 +415,7 @@ class GradSemester(GradHappening):
     def key(self):
         return ['ps_stdnt_car_term', self.emplid, self.strm]
 
-    def find_local_data(self, student_info, verbosity=1):
+    def find_local_data(self, student_info, verbosity):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
@@ -435,7 +435,7 @@ class GradSemester(GradHappening):
 
         if active_semester_statuses:
             if verbosity > 1:
-                print "Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
+                print "* Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = active_semester_statuses[-1]
             st.start_date = effdt
             st.config['imported_from'] = self.key()
@@ -481,7 +481,7 @@ class CommitteeMembership(GradHappening):
     def __repr__(self):
         return "%s as %s" % (self.sup_emplid, self.committee_role)
 
-    def find_local_data(self, student_info, verbosity=1):
+    def find_local_data(self, student_info, verbosity):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
@@ -505,6 +505,8 @@ class CommitteeMembership(GradHappening):
         else:
             similar = [m for m in local_committee if m.supervisor == p]
             if len(similar) > 0:
+                if verbosity > 2:
+                    print "* Found similar (but imperfect) committee member for %s is a %s for %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid)
                 member = similar[0]
             else:
                 if verbosity:
@@ -785,8 +787,8 @@ class GradCareer(object):
         Find any local data that doesn't seem to belong and report it.
         """
         extra_statuses = [s for s in self.student_info['statuses'] if 'imported_from' not in s.config]
-        extra_programs = [p for p in self.student_info['programs'] if 'imported_from' not in s.config]
-        extra_committee = [c for c in self.student_info['committee'] if 'imported_from' not in s.config]
+        extra_programs = [p for p in self.student_info['programs'] if 'imported_from' not in p.config]
+        extra_committee = [c for c in self.student_info['committee'] if 'imported_from' not in c.config]
         if verbosity:
             for s in extra_statuses:
                 print "Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name)
