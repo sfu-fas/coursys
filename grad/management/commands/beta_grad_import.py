@@ -25,4 +25,4 @@ class Command(BaseCommand):
 #            strm = yr+s
 #            create_fake_semester(strm)
 
-        NEW_import_unit_grads(Unit.objects.get(slug=unit_slug), dry_run=options['dryrun'])
+        NEW_import_unit_grads(Unit.objects.get(slug=unit_slug), dry_run=options['dryrun'], verbosity=int(options['verbosity']))

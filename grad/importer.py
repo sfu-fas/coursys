@@ -411,6 +411,9 @@ class GradSemester(GradHappening):
     def __repr__(self):
         return "%s in %s" % (self.withdraw_code, self.strm)
 
+    def key(self):
+        return ['ps_stdnt_car_term', self.emplid, self.strm]
+
     def find_local_data(self, student_info, verbosity=1):
         pass
 
@@ -420,23 +423,36 @@ class GradSemester(GradHappening):
         semester = STRM_MAP[self.strm]
         effdt = semester.start
 
+        # Option 1: we're already active
         effective_statuses = [s for s in statuses if s.start.name <= self.strm
                 and (not s.start_date or s.start_date <= effdt)]
         if effective_statuses and effective_statuses[-1].status == 'ACTI':
-            # currently active, so okay.
-            pass
+            return
+
+        # Option 2: there's an active status this semester, but it's not the most recent
+        active_semester_statuses = [s for s in statuses if s.start.name == self.strm and s.status == 'ACTI']
+
+        if active_semester_statuses:
+            if verbosity > 1:
+                print "Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
+            st = active_semester_statuses[-1]
+            st.start_date = effdt
+            st.config['imported_from'] = self.key()
+            if not dry_run:
+                st.save()
         else:
+            # Option 3: need to add an active status
             if verbosity:
-                print "Adding grad status: %s is '%s' as of %s." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
+                print "Adding grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
                     start_date=effdt)
-            st.config['imported_from'] = ['ps_stdnt_car_term', self.emplid, self.strm]
+            st.config['imported_from'] = self.key()
             if not dry_run:
                 st.save()
             student_info['statuses'].append(st)
 
-            # re-sort if we added something, so we find things right on the next check
-            student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
+        # re-sort if we added something, so we find things right on the next check
+        student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
 
 
 
@@ -592,6 +608,19 @@ class GradTimeline(object):
         for c in self.careers:
             c.sort_happenings()
 
+    def find_rogue_local_data(self, verbosity=1, dry_run=False):
+        existing_grads = set(GradStudent.objects.filter(person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START).select_related('start_semester', 'program__unit'))
+        found_grads = set(c.gradstudent for c in self.careers if c.gradstudent and c.gradstudent.id)
+        extra_grads = existing_grads - found_grads
+        if verbosity:
+            for gs in extra_grads:
+                if 'imported_from' in gs.config:
+                    # trust us-from-the-past
+                    continue
+                print 'Rogue grad student: %s in %s %s starting %s' % (self.emplid, gs.program.unit.label, gs.program.slug, gs.start_semester.name if gs.start_semester else '???')
+
+
+
 
 class GradCareer(object):
     program_map = None
@@ -609,6 +638,7 @@ class GradCareer(object):
 
         self.gradstudent = None
         self.current_program = None # used to track program changes as we import
+        self.student_info = None
 
         if not GradCareer.program_map:
             GradCareer.program_map = build_program_map()
@@ -728,13 +758,13 @@ class GradCareer(object):
             'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
                 .select_related('start').order_by('start__name', 'start_date')),
             'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
-                .select_related('start_semester').order_by('start_semester__name', 'starting')),
+                .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
             'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
                 .exclude(supervisor_type='POT')),
         }
         self.student_info = student_info
 
-        print "  ", self.emplid, self.adm_appl_nbr, self.unit.slug, self.admit_term, self.gradstudent
+        #print "  ", self.emplid, self.adm_appl_nbr, self.unit.slug, self.admit_term, self.gradstudent
 
         for h in self.happenings:
             # do this first for everything so a second pass can try harder to find things not matching in the first pass
@@ -752,8 +782,18 @@ class GradCareer(object):
         """
         Find any local data that doesn't seem to belong and report it.
         """
-        statuses = self.student_info['statuses']
-        print [s for s in statuses if 'imported_from' not in s.config]
+        extra_statuses = [s for s in self.student_info['statuses'] if 'imported_from' not in s.config]
+        extra_programs = [p for p in self.student_info['programs'] if 'imported_from' not in s.config]
+        extra_committee = [c for c in self.student_info['committee'] if 'imported_from' not in s.config]
+        if verbosity:
+            for s in extra_statuses:
+                print "Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name)
+            for p in extra_programs:
+                print "Rogue program change: %s in %s as of %s." % (self.emplid, p.program.slug, p.start_semester.name)
+            for c in extra_committee:
+                print "Rogue committee member: %s is a %s for %s" % (c.sortname(), SUPERVISOR_TYPE[c.supervisor_type], self.emplid)
+
+
 
 
 
@@ -779,7 +819,6 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
     #           '301241424']
     #emplids = ['301073851', '200118115', '301209500', '301199421', '301002760', '301192850', '301085871']
-    emplids = ['200010820']
     for emplid in emplids:
         if emplid not in timelines:
             continue
@@ -788,14 +827,16 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
         timeline.add_semester_happenings()
         timeline.add_committee_happenings()
         timeline.split_careers(verbosity=verbosity)
-        for c in timeline.careers:
-            with transaction.atomic(): # all or nothing for each GradStudent
-                c.fill_gradstudent(verbosity=3, dry_run=dry_run)
+        with transaction.atomic(): # all or nothing for each person
+            for c in timeline.careers:
+                c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
                 if not c.gradstudent:
                     # we gave up on this because it's too old
                     continue
-                c.update_local_data(verbosity=3, dry_run=dry_run)
+                c.update_local_data(verbosity=verbosity, dry_run=dry_run)
                 c.find_rogue_local_data(verbosity=verbosity, dry_run=True)
+
+            timeline.find_rogue_local_data(verbosity=verbosity, dry_run=True)
 
 
 
