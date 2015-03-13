@@ -1,7 +1,7 @@
 from django.db import transaction
 from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args, get_supervisory_committee
 from coredata.models import Semester
-from grad.models import STATUS_APPLICANT
+from grad.models import STATUS_APPLICANT, Supervisor
 import datetime
 from collections import defaultdict
 from pprint import pprint
@@ -19,7 +19,10 @@ DATE_OFFSET = datetime.timedelta(days=30)
 DATE_OFFSET_START = datetime.timedelta(days=90)
 ONE_DAY = datetime.timedelta(days=1)
 
-found_people = {} # emplid -> Person map, to keep queries to a minimum
+# emplid -> Person map, to keep queries to a minimum
+found_people = dict((s.supervisor.emplid, s.supervisor)
+                    for s in Supervisor.objects.all().select_related('supervisor')
+                    if s.supervisor and s.supervisor.emplid)
 
 def build_semester_lookup():
     """
@@ -102,7 +105,8 @@ def committee_members(emplid):
 
 
 
-
+class ProgramChangeError(ValueError):
+    pass
 
 def build_program_map():
     """
@@ -540,7 +544,7 @@ class GradTimeline(object):
                 if len(cs) == 1:
                     c = cs[0]
                 else:
-                    c = GradCareer(self.emplid, h.adm_appl_nbr)
+                    c = GradCareer(self.emplid, h.adm_appl_nbr, h.grad_program.unit)
                     self.careers.append(c)
 
                 c.add(h)
@@ -585,9 +589,10 @@ class GradCareer(object):
     program_map = None
     reverse_program_map = None
 
-    def __init__(self, emplid, adm_appl_nbr):
+    def __init__(self, emplid, adm_appl_nbr, unit):
         self.emplid = emplid
         self.adm_appl_nbr = adm_appl_nbr
+        self.unit = unit
         self.happenings = []
         self.admit_term = None
         self.first_admit_term = None
@@ -614,6 +619,11 @@ class GradCareer(object):
 
             if self.adm_appl_nbr != h.adm_appl_nbr or (h.stdnt_car_nbr and self.stdnt_car_nbr != h.stdnt_car_nbr):
                 raise ValueError
+
+        # if the student changed programs *and* units that own those programs, then we can't accept this happening:
+        # must start a new career owned by that unit
+        if h.grad_program.unit != self.unit:
+            raise ProgramChangeError
 
         if hasattr(h, 'admit_term'):
             # record earliest-ever-proposed admit term we find
@@ -713,6 +723,7 @@ class GradCareer(object):
         }
 
         for h in self.happenings:
+            # do this first for everything so a second pass can try harder to find things not matching in the first pass
             h.find_local_data(student_info, verbosity=verbosity)
 
         with transaction.atomic():
@@ -722,10 +733,6 @@ class GradCareer(object):
             if not dry_run:
                 self.gradstudent.update_status_fields()
                 self.gradstudent.save_if_dirty()
-
-        #with transaction.atomic():
-        #    self.update_committee(dry_run=dry_run)
-
 
 
 
@@ -747,7 +754,7 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
             timeline.add(status)
 
 
-    emplids = timelines.keys()
+    emplids = sorted(timelines.keys())
     #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
     #           '301241424']
     #emplids = ['301073851', '200118115', '301209500', '301199421', '301002760', '301192850', '301085871']
