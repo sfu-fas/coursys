@@ -977,8 +977,8 @@ class Supervisor(models.Model, ConditionalSaveMixin):
     supervisor_type = models.CharField(max_length=3, blank=False, null=False, choices=SUPERVISOR_TYPE_CHOICES)
     removed = models.BooleanField(default=False)
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True) 
+    created_at = models.DateTimeField(default=datetime.datetime.now) # actually being used as an "effective as of"
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Committee member added by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Committee member modified by.', verbose_name='Last Modified By')
     config = JSONField(default=dict) # addition configuration

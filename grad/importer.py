@@ -1,7 +1,7 @@
 from django.db import transaction
 from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args, get_supervisory_committee
-from coredata.models import Semester, Person
-from grad.models import STATUS_DONE, STATUS_APPLICANT
+from coredata.models import Semester
+from grad.models import STATUS_APPLICANT
 import datetime
 from collections import defaultdict
 from pprint import pprint
@@ -9,9 +9,9 @@ import intervaltree
 
 # TODO: should make better decision if we find multiple adm_appl_nbr records in find_gradstudent
 # TODO: handle students that switch programs between units
-# TODO: supervisory committees
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
-
+# TODO: adjust WIDR statuses depending on the NWD/WRD status from ps_stdnt_car_term?
+# TODO: one person/program with multiple grad records will duplicate supervisory committee
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
@@ -37,7 +37,7 @@ semester_lookup = build_semester_lookup()
 IMPORT_START_DATE = datetime.date(1990, 1, 1)
 IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
 
-# if we find programs starting before this semester, don't import
+# if we find students starting before this semester, don't import
 RELEVANT_PROGRAM_START = Semester.objects.get(name='1031')
 
 STRM_MAP = dict((s.name, s) for s in Semester.objects.all())
@@ -84,20 +84,10 @@ def grad_semesters(emplid):
 
 @SIMS_problem_handler
 @cache_by_args
-def committee_members(emplid, acad_prog):
+def committee_members(emplid):
     db = SIMSConn()
-    # subquery to find max effdt for a committee *with actual members* (there are some later committees with all members gone)
-    real_ctte_effdt = """(
-        SELECT MAX(com0.effdt)
-        FROM ps_committee com0
-          JOIN ps_committee_membr mem0
-              ON (com0.committee_id=mem0.committee_id AND com0.effdt=mem0.effdt)
-        WHERE
-          com0.committee_id=com.committee_id
-    )"""
-
     db.execute("""
-        SELECT st.committee_id, com.effdt, com.committee_type, mem.emplid, mem.committee_role
+        SELECT st.emplid, st.committee_id, st.acad_prog, com.effdt, com.committee_type, mem.emplid, mem.committee_role
         FROM
             ps_stdnt_advr_hist st
             JOIN ps_committee com
@@ -106,12 +96,8 @@ def committee_members(emplid, acad_prog):
                 ON (mem.institution=st.institution AND mem.committee_id=st.committee_id AND com.effdt=mem.effdt)
         WHERE
             st.emplid=%s
-            AND st.acad_prog=%s
-            AND st.effdt = (SELECT max(effdt)
-                            FROM ps_stdnt_advr_hist st2
-                            WHERE st.emplid=st2.emplid AND st.institution=st2.institution AND st.acad_prog=st2.acad_prog)
-            AND com.effdt = """ + real_ctte_effdt + """
-    """, (emplid, acad_prog))
+        ORDER BY com.effdt""",
+        (emplid,))
     return list(db)
 
 
@@ -452,6 +438,75 @@ class GradSemester(GradHappening):
 
 
 
+class CommitteeMembership(GradHappening):
+    def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role):
+        # argument order must match committee_members query
+        self.emplid = emplid
+        self.adm_appl_nbr = None
+        self.stdnt_car_nbr = None
+        self.committee_id = committee_id
+        self.acad_prog = acad_prog
+        self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
+        self.sup_emplid = sup_emplid
+        self.committee_type = committee_type
+        self.committee_role = committee_role
+
+        self.acad_prog_to_gradprogram()
+        self.effdt_to_strm()
+        self.in_career = False
+
+        if self.sup_emplid == '301001497':
+            # Our friend Bob Two Studentnumbers
+            self.sup_emplid = '200011069'
+
+    def __repr__(self):
+        return "%s as %s" % (self.sup_emplid, self.committee_role)
+
+    def find_local_data(self, student_info, verbosity=1):
+        pass
+
+    def update_local_data(self, student_info, verbosity=1, dry_run=False):
+        global found_people
+        key = [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
+        local_committee = student_info['committee']
+        sup_type = COMMITTEE_MEMBER_MAP[self.committee_role]
+
+        # should we be checking that the current local program and the committee program match up?
+        #print self.grad_program, student_info['student'].program_as_of(STRM_MAP[self.strm])
+
+        if self.sup_emplid in found_people:
+            p = found_people[self.sup_emplid]
+        else:
+            p = add_person(self.sup_emplid, external_email=True, commit=(not dry_run))
+            found_people[self.sup_emplid] = p
+
+        matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
+        if matches:
+            member = matches[0]
+        else:
+            similar = [m for m in local_committee if m.supervisor == p]
+            if len(similar) > 0:
+                member = similar[0]
+            else:
+                member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
+                member.created_at = self.effdt
+                print "    creating", p, sup_type, self.effdt
+                local_committee.append(member)
+
+        if 'imported_from' not in member.config:
+            # record (the first) place we found this fact
+            member.config['imported_from'] = key
+            # if it wasn't the product of a previous import it was hand-entered: take the effdt from SIMS
+            member.created_at = self.effdt
+
+        # TODO: try to match up external members with new real ones? That sounds hard.
+        # TODO: remove members if added by this import (in the past) and not found
+
+        if not dry_run:
+            member.save_if_dirty()
+
+
+
 class GradTimeline(object):
     def __init__(self, emplid):
         self.emplid = emplid
@@ -467,6 +522,11 @@ class GradTimeline(object):
     def add_semester_happenings(self):
         for gs in grad_semesters(self.emplid):
             h = GradSemester(*gs)
+            self.add(h)
+
+    def add_committee_happenings(self):
+        for cm in committee_members(self.emplid):
+            h = CommitteeMembership(*cm)
             self.add(h)
 
     def split_careers(self, verbosity=1):
@@ -628,45 +688,6 @@ class GradCareer(object):
         gs = self.find_gradstudent(verbosity=verbosity)
         self.gradstudent = gs
 
-    def update_committee(self, dry_run=False):
-        """
-        Find and update the graduate committee for this student
-        """
-        global found_people
-        sims_committee = committee_members(self.emplid, self.last_program)
-        local_committee = Supervisor.objects.filter(student=self.gradstudent, removed=False) \
-                .exclude(supervisor_type='POT')
-        local_committee = list(local_committee)
-
-        for ctte_id, effdt, ctype, sup_emplid, role in sims_committee:
-            # this value might change over time (supervisory -> examining committee for example)
-            key = [ctte_id, effdt, ctype, sup_emplid, role]
-
-            sup_type = COMMITTEE_MEMBER_MAP[role]
-
-            if sup_emplid in found_people:
-                p = found_people[sup_emplid]
-            else:
-                p = add_person(sup_emplid, external_email=True, commit=(not dry_run))
-                found_people[sup_emplid] = p
-
-            matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
-            if matches:
-                member = matches[0]
-            else:
-                similar = [m for m in local_committee if m.supervisor == p]
-                if len(similar) > 0:
-                    member = similar[0]
-                else:
-                    member = Supervisor(student=self.gradstudent, supervisor=p, supervisor_type=sup_type)
-                    local_committee.append(member)
-
-            member.config['imported_from'] = key
-            # TODO: try to match up external members with new real ones?
-
-            if not dry_run:
-                member.save_if_dirty()
-
 
     def update_local_data(self, verbosity=1, dry_run=False):
         if not self.gradstudent:
@@ -687,6 +708,8 @@ class GradCareer(object):
                 .select_related('start').order_by('start__name', 'start_date')),
             'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
                 .select_related('start_semester').order_by('start_semester__name', 'starting')),
+            'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
+                .exclude(supervisor_type='POT')),
         }
 
         for h in self.happenings:
@@ -700,8 +723,8 @@ class GradCareer(object):
                 self.gradstudent.update_status_fields()
                 self.gradstudent.save_if_dirty()
 
-        with transaction.atomic():
-            self.update_committee(dry_run=dry_run)
+        #with transaction.atomic():
+        #    self.update_committee(dry_run=dry_run)
 
 
 
@@ -727,29 +750,18 @@ def NEW_import_unit_grads(unit, dry_run=False, verbosity=1):
     emplids = timelines.keys()
     #emplids = ['301013710', '961102054', '953018734', '200079269', '301042450', '301148552',
     #           '301241424']
-    #emplids = ['301209500', '301199421', '301002760', '301192850', '301085871']
+    #emplids = ['301073851', '200118115', '301209500', '301199421', '301002760', '301192850', '301085871']
     for emplid in emplids:
         if emplid not in timelines:
             continue
 
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
+        timeline.add_committee_happenings()
         timeline.split_careers(verbosity=0)
         for c in timeline.careers:
             c.fill_gradstudent(verbosity=0)
             c.update_local_data(dry_run=dry_run, verbosity=verbosity)
-
-
-    #    csplit = split_by_car_nbr(timeline)
-    #    print csplit
-
-    #pprint(timelines)
-
-    #add_semester_happenings('301013710', timelines['301013710'])
-    #csplit = split_by_car_nbr(timelines['301013710']))
-    #pprint (split_by_appl_nbr(timelines['301013710']))
-
-    return
 
 
 
