@@ -10,6 +10,7 @@ import intervaltree
 # TODO: should make better decision if we find multiple adm_appl_nbr records in find_gradstudent
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
 # TODO: adjust WIDR statuses depending on the NWD/WRD status from ps_stdnt_car_term?
+# TODO: don't touch anything if GradStudent.program.unit doesn't match the original call in
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
@@ -527,8 +528,9 @@ class CommitteeMembership(GradHappening):
 
 
 class GradTimeline(object):
-    def __init__(self, emplid):
+    def __init__(self, emplid, unit):
         self.emplid = emplid
+        self.unit = unit
         self.happenings = []
         self.careers = []
 
@@ -609,7 +611,7 @@ class GradTimeline(object):
             c.sort_happenings()
 
     def find_rogue_local_data(self, verbosity, dry_run):
-        existing_grads = set(GradStudent.objects.filter(person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START).select_related('start_semester', 'program__unit'))
+        existing_grads = set(GradStudent.objects.filter(program__unit=self.unit, person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START).select_related('start_semester', 'program__unit'))
         found_grads = set(c.gradstudent for c in self.careers if c.gradstudent and c.gradstudent.id)
         extra_grads = existing_grads - found_grads
         if verbosity:
@@ -617,7 +619,7 @@ class GradTimeline(object):
                 if 'imported_from' in gs.config:
                     # trust us-from-the-past
                     continue
-                print 'Rogue grad student: %s in %s %s starting %s' % (self.emplid, gs.program.unit.label, gs.program.slug, gs.start_semester.name if gs.start_semester else '???')
+                print 'Rogue grad student: %s in %s starting %s' % (self.emplid, gs.program.slug, gs.start_semester.name if gs.start_semester else '???')
 
 
 
@@ -809,7 +811,7 @@ def NEW_import_unit_grads(unit, dry_run, verbosity):
             emplid = a[0]
             timeline = timelines.get(emplid, None)
             if not timeline:
-                timeline = GradTimeline(emplid)
+                timeline = GradTimeline(emplid, unit)
                 timelines[emplid] = timeline
             status = ProgramStatusChange(*a)
             timeline.add(status)
