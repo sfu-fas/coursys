@@ -1,3 +1,4 @@
+{% load sims_check %}
 <div class="datatable_container datatable">
 	<table class="display sort-2">
 		<thead>
@@ -10,7 +11,7 @@
 		<tbody>
 			{% for ph in programhistory %}
 			<tr{% if forloop.last %} class="current"{% endif %}>
-				<td> {{ ph.program.label }}	</td>
+				<td> {{ ph.program.label }}	{% sims_check ph %} </td>
 				<td> {{ ph.start_semester.name }} </td>
 				<td> <span class="sort">{{ph.starting.isoformat}}</span>{{ ph.starting|date:GRAD_DATE_FORMAT }} </td>
 			</tr>

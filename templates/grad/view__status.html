@@ -1,3 +1,4 @@
+{% load sims_check %}
 {% if index and can_edit %}<p class="manage_link"><a href="{% url "grad.views.manage_status" grad_slug=grad.slug  %}">Manage Status</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
@@ -16,7 +17,7 @@
 				<td> 
                     <span class="sort">{{s.status_order}}</span>
                     {% if s.hidden %}<del>{% endif %}
-                        {{ s.get_status_display }}
+                        {{ s.get_status_display }} {% sims_check s %}
                     {% if s.hidden %}</del>{% endif %}
 				    {% if s.notes %}
                         <i class="fa fa-info-circle collapsiblecomment"></i>

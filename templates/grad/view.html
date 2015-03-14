@@ -1,4 +1,5 @@
 {% extends "grad/base.html" %}
+{% load sims_check %}
 
 {% block title %}
     {{grad.person.name}}, 
@@ -9,6 +10,7 @@
     {{grad.person.name}}, 
     {% if grad.is_applicant %}Application: {% endif %}
     {{grad.program.description}}
+    {% sims_check grad %}
 {% endblock %}
 
 {% block subbreadcrumbs %}

@@ -10,6 +10,7 @@ import intervaltree
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
 # TODO: adjust LEAV statuses depending on the NWD/WRD status from ps_stdnt_car_term?
 # TODO: GradStudent.create does things: use it
+# TODO: CMPT distinction between thesis/project/course in SIMS?
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
