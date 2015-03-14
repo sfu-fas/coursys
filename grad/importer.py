@@ -7,21 +7,15 @@ from collections import defaultdict
 from pprint import pprint
 import intervaltree
 
-# TODO: should make better decision if we find multiple adm_appl_nbr records in find_gradstudent
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
-# TODO: adjust WIDR statuses depending on the NWD/WRD status from ps_stdnt_car_term?
-# TODO: don't touch anything if GradStudent.program.unit doesn't match the original call in
+# TODO: adjust LEAV statuses depending on the NWD/WRD status from ps_stdnt_car_term?
+# TODO: GradStudent.create does things: use it
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
 # ...even longer for dates of things that are startup-biased (like returning from leave)
 DATE_OFFSET_START = datetime.timedelta(days=90)
 ONE_DAY = datetime.timedelta(days=1)
-
-# emplid -> Person map, to keep queries to a minimum
-found_people = dict((s.supervisor.emplid, s.supervisor)
-                    for s in Supervisor.objects.all().select_related('supervisor')
-                    if s.supervisor and s.supervisor.emplid)
 
 def build_semester_lookup():
     """
@@ -41,6 +35,9 @@ IMPORT_START_SEMESTER = semester_lookup[IMPORT_START_DATE].pop().data
 
 # if we find students starting before this semester, don't import
 RELEVANT_PROGRAM_START = '1031'
+
+# before this, we don't have Semester objects anyway, so throw up our hands (but could go earlier if there were semesters)
+RELEVANT_DATA_START = datetime.date(1993, 9, 1)
 
 STRM_MAP = dict((s.name, s) for s in Semester.objects.all())
 
@@ -166,7 +163,10 @@ class GradHappening(object):
             try:
                 strm = semester_lookup[self.effdt + offset].pop().data
             except KeyError:
-                raise KeyError, "Couldn't find semester for %s." % (self.effdt)
+                # ignore things
+                # from the long-long ago
+                assert self.effdt < RELEVANT_DATA_START
+                strm = None
 
         self.strm = strm
 
@@ -458,6 +458,7 @@ class GradSemester(GradHappening):
 
 
 class CommitteeMembership(GradHappening):
+    found_people = None
     def __init__(self, emplid, committee_id, acad_prog, effdt, committee_type, sup_emplid, committee_role):
         # argument order must match committee_members query
         self.emplid = emplid
@@ -474,6 +475,13 @@ class CommitteeMembership(GradHappening):
         self.effdt_to_strm()
         self.in_career = False
 
+        # emplid -> Person map, to keep queries to a minimum
+        if not CommitteeMembership.found_people:
+            CommitteeMembership.found_people = dict((s.supervisor.emplid, s.supervisor)
+                    for s in Supervisor.objects.all().select_related('supervisor')
+                    if s.supervisor and s.supervisor.emplid)
+
+
         if self.sup_emplid == '301001497':
             # Our friend Bob Two Studentnumbers
             self.sup_emplid = '200011069'
@@ -485,7 +493,6 @@ class CommitteeMembership(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        global found_people
         key = [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
         local_committee = student_info['committee']
         sup_type = COMMITTEE_MEMBER_MAP[self.committee_role]
@@ -493,11 +500,11 @@ class CommitteeMembership(GradHappening):
         # should we be checking that the current local program and the committee program match up?
         #print self.grad_program, student_info['student'].program_as_of(STRM_MAP[self.strm])
 
-        if self.sup_emplid in found_people:
-            p = found_people[self.sup_emplid]
+        if self.sup_emplid in CommitteeMembership.found_people:
+            p = CommitteeMembership.found_people[self.sup_emplid]
         else:
             p = add_person(self.sup_emplid, external_email=True, commit=(not dry_run))
-            found_people[self.sup_emplid] = p
+            CommitteeMembership.found_people[self.sup_emplid] = p
 
         matches = [m for m in local_committee if m.supervisor == p and m.supervisor_type == sup_type]
         if matches:
@@ -708,7 +715,7 @@ class GradCareer(object):
                 and gs.start_semester.offset_name(-2) <= self.admit_term <= gs.start_semester.offset_name(2)
         )
 
-    GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches)
+    GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches?)
         ('by_key', False),
         ('by_adm_appl_nbr', True),
         ('by_program_and_start', True),
@@ -836,6 +843,9 @@ def NEW_import_unit_grads(unit, dry_run, verbosity):
                 c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
                 if not c.gradstudent:
                     # we gave up on this because it's too old
+                    continue
+                if c.gradstudent.program.unit != unit:
+                    # only touch if it's from the unit we're trying to import
                     continue
                 c.update_local_data(verbosity=verbosity, dry_run=dry_run)
                 c.find_rogue_local_data(verbosity=verbosity, dry_run=True)
