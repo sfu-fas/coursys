@@ -1,19 +1,27 @@
 from django import template
 from django.utils.html import mark_safe
+from django import template
 from grad.models import Supervisor
 
-register = template.Library()
+# who can see these checks?
+ALLOWED_USERIDS = {'ggbaker',}
 
-from django import template
+register = template.Library()
 
 class SIMSCheckNode(template.Node):
     def __init__(self, obj):
         self.obj = template.Variable(obj)
         self.grad = template.Variable('grad')
+        self.user = template.Variable('user')
     def render(self, context):
         gs = self.grad.resolve(context)
-        if gs.program.unit.slug == 'cmpt':
+        user = self.user.resolve(context)
+
+        # don't reveal these widely yet
+        if not user or user.username not in ALLOWED_USERIDS:
             return ''
+        #if gs.program.unit.slug == 'cmpt':
+        #    return ''
 
         obj = self.obj.resolve(context)
         if hasattr(obj, 'config') and 'imported_from' in obj.config and obj.config['imported_from']:
