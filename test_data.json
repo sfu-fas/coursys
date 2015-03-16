@@ -27760,5 +27760,66 @@
  }, 
  "model": "ra.project", 
  "pk": 1
+},
+{ "fields" : { "config" : "{}",
+      "emplid" : 301050395,
+      "first_name" : "Phil",
+      "last_name" : "Boutros",
+      "middle_name" : "",
+      "pref_first_name" : "",
+      "temporary" : false,
+      "title" : "",
+      "userid" : "pba7"
+    },
+  "model" : "coredata.person",
+  "pk" : 314
+},
+{ "fields" : { "config" : "{}",
+      "person" : 314,
+      "role" : "SYSA",
+      "unit" : 2
+    },
+  "model" : "coredata.role",
+  "pk" : 25
+},
+{ "fields" : { "config" : "{}",
+      "person" : 314,
+      "role" : "SYSA",
+      "unit" : 1
+    },
+  "model" : "coredata.role",
+  "pk" : 26
+},
+{ "fields" : { "config" : "{}",
+      "person" : 314,
+      "role" : "ADVS",
+      "unit" : 4
+    },
+  "model" : "coredata.role",
+  "pk" : 27
+},
+{ "fields" : { "config" : "{}",
+      "person" : 314,
+      "role" : "FAC",
+      "unit" : 1
+    },
+  "model" : "coredata.role",
+  "pk" : 28
+},
+{ "fields" : { "config" : "{}",
+      "person" : 314,
+      "role" : "TAAD",
+      "unit" : 4
+    },
+  "model" : "coredata.role",
+  "pk" : 29
+},
+{ "fields" : { "config" : "{}",
+      "person" : 314,
+      "role" : "GRAD",
+      "unit" : 4
+    },
+  "model" : "coredata.role",
+  "pk" : 30
 }
 ]
