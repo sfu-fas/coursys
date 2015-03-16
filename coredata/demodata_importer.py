@@ -2,7 +2,7 @@
 # suggested execution:
 #   echo "drop database coursys; create database coursys; CREATE USER 'coursysuser'@'localhost' IDENTIFIED BY 'coursyspassword'; GRANT ALL PRIVILEGES ON coursys.* TO 'coursysuser'@'localhost'" | mysql -uroot -p
 #   ./manage.py migrate && python coredata/demodata_importer.py
-#   echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
+#   echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py && ./manage.py rebuild_index
 
 import string, socket, random
 from importer import create_semesters, import_offering_members, import_offerings
