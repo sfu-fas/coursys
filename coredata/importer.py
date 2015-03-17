@@ -705,6 +705,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
         except KeyError:
             # No data found about this semester: if there's a date already around, honour it
             # Otherwise, guess "same day as this semester last year" which is probably wrong but close.
+            start = semester.start
             if not semester.start:
                 lastyr = semesters[semester.offset_name(-3)]
                 start = lastyr.start.replace(year=lastyr.start.year+1)
