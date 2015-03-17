@@ -213,6 +213,11 @@ def combine_sections():
     importer.combine_sections(importer.get_combined())
 
 @task(queue='sims')
+def import_semester_info():
+    logger.info('Importing semester info')
+    importer.import_semester_info()
+
+@task(queue='sims')
 def daily_cleanup():
     logger.info('Cleaning up database')
     # cleanup sessions table

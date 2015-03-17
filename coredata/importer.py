@@ -669,6 +669,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
     output = []
     semester_start = semester_first_day()
     semester_end = semester_last_day()
+    semester_end['1161'] = '2016-04-11' # correct for wacky data in SIMS
     sims_holidays = [(datetime.datetime.strptime(d, "%Y-%m-%d").date(), h) for d,h in all_holidays()]
 
     # we want semesters 5 years into the future: that's a realistic max horizon for grad promises
