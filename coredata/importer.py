@@ -674,9 +674,9 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
     # we want semesters 5 years into the future: that's a realistic max horizon for grad promises
     current = Semester.current()
     strms = [current.offset_name(i) for i in range(15)]
-    semesters = dict((s.name, s) for s in Semester.objects.filter(name__in=strms))
     if long_long_ago:
         strms = sorted(list(set(strms) | set(semester_start.keys())))
+    semesters = dict((s.name, s) for s in Semester.objects.filter(name__in=strms))
 
     semester_weeks = itertools.groupby(
                 SemesterWeek.objects.filter(semester__name__in=strms).select_related('semester'),
