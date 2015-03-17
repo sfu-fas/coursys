@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}Visas{% endblock %}
+{% block h1 %}Visas{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>Visas</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "visas.views.new_visa" %}">New Visa</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if visa_list %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Person</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for visa in visa_list %}
+            <td>{{ visa.person }}</td>
+            <td>{{ visa.start_date }}</td>
+            <td>{{ visa.end_date }}</td>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% endblock %}
