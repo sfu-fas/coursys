@@ -660,7 +660,7 @@ def import_admin_email(source, message, subject='data import: intervention requi
     mail_admins(subject, '[%s checking in.]\n\n%s' % (source, message))
 
 @transaction.atomic
-def import_semester_info(verbose=False, dry_run=False):
+def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
     """
     Update information on Semester objects from SIMS
 
@@ -671,8 +671,12 @@ def import_semester_info(verbose=False, dry_run=False):
     semester_end = semester_last_day()
     sims_holidays = [(datetime.datetime.strptime(d, "%Y-%m-%d").date(), h) for d,h in all_holidays()]
 
-    strms = sorted(semester_start.keys())
+    # we want semesters 5 years into the future: that's a realistic max horizon for grad promises
+    current = Semester.current()
+    strms = [current.offset_name(i) for i in range(15)]
     semesters = dict((s.name, s) for s in Semester.objects.filter(name__in=strms))
+    if long_long_ago:
+        strms = sorted(list(set(strms) | set(semester_start.keys())))
 
     semester_weeks = itertools.groupby(
                 SemesterWeek.objects.filter(semester__name__in=strms).select_related('semester'),
@@ -692,10 +696,20 @@ def import_semester_info(verbose=False, dry_run=False):
             semester = semesters[strm]
         except KeyError:
             semester = Semester(name=strm)
+            semesters[strm] = semester
             output.append("Creating %s." % (strm,))
 
         # class start and end dates
-        start = datetime.datetime.strptime(semester_start[strm], "%Y-%m-%d").date()
+        try:
+            start = datetime.datetime.strptime(semester_start[strm], "%Y-%m-%d").date()
+        except KeyError:
+            # No data found about this semester: if there's a date already around, honour it
+            # Otherwise, guess "same day as this semester last year" which is probably wrong but close.
+            if not semester.start:
+                lastyr = semesters[semester.offset_name(-3)]
+                start = lastyr.start.replace(year=lastyr.start.year+1)
+                output.append("Guessing start date for %s." % (strm,))
+
         try:
             end = datetime.datetime.strptime(semester_end[strm], "%Y-%m-%d").date()
         except KeyError:
@@ -719,6 +733,12 @@ def import_semester_info(verbose=False, dry_run=False):
             weeks.append(sw)
             assert sw.monday.weekday() == 0
             output.append("Creating week 1 for %s on %s." % (strm, sw.monday))
+            if not dry_run:
+                sw.save()
+        elif weeks[0].monday != first_monday(start):
+            sw = weeks[0]
+            sw.monday = first_monday(start)
+            output.append("Changing first Monday of %s to %s." % (strm, sw.monday))
             if not dry_run:
                 sw.save()
 
