@@ -8,6 +8,25 @@
 <li>Visas</li>
 {% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#visas').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[2, 'asc']],
+  } );
+} );
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this role?") ) {
+    document.location = url;
+  };
+}
+</script>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
     <h2>Actions</h2>
@@ -20,23 +39,30 @@
 {% block content %}
 
 {% if visa_list %}
-
-<table>
-    <thead>
-        <tr>
-            <th>Person</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for visa in visa_list %}
-            <td>{{ visa.person }}</td>
-            <td>{{ visa.start_date }}</td>
-            <td>{{ visa.end_date }}</td>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="datatable_container">
+    <table id="visas" class="display">
+        <thead>
+            <tr>
+                <th>Person</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for visa in visa_list %}
+                <tr>
+                    <td>{{ visa.person }}</td>
+                    <td>{{ visa.start_date }}</td>
+                    <td>{{ visa.end_date }}</td>
+                    <td>{{ visa.status }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    <h2>There are no visas to display.</h2>
 {% endif %}
 
 {% endblock %}

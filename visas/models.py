@@ -10,7 +10,7 @@ from coredata.widgets import CalendarWidget, PersonField
 
 class Visa (models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
-    status = forms.MultipleChoiceField(VISA_STATUSES, required=True)
+    status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
     start_date = models.DateField('Start Date', default=timezone.now().date())
     end_date = models.DateField('End Date', blank=True)
     config = JSONField(null=False, blank=False, editable=False, default={})  # For future fields
@@ -18,8 +18,6 @@ class Visa (models.Model):
 
 
 class VisaForm(forms.ModelForm):
-    status = forms.MultipleChoiceField(VISA_STATUSES, required=True)
-
     class Meta:
         exclude = []
         model = Visa
