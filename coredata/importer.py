@@ -11,6 +11,8 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.conf import settings
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
+from django.core.mail import mail_admins
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
@@ -651,10 +653,18 @@ def first_monday(start):
         # thursday/friday: this week is a loss
         return start + datetime.timedelta(days=(7-weekday))
 
+def import_admin_email(source, message, subject='data import: intervention required'):
+    """
+    Message the admins about an import problem. Assumes we're in a context where stdout does us no good.
+    """
+    mail_admins(subject, '[%s checking in.]\n\n%s' % (source, message))
+
 @transaction.atomic
 def import_semester_info(verbose=False, dry_run=False):
     """
     Update information on Semester objects from SIMS
+
+    Finding the reference is tricky. Try Googling 'sfu calendar {{year}} "academic dates"'
     """
     output = []
     semester_start = semester_first_day()
@@ -675,6 +685,8 @@ def import_semester_info(verbose=False, dry_run=False):
     holidays = dict((k,list(v)) for k,v in holidays)
 
     for strm in strms:
+        url = settings.BASE_ABS_URL + reverse('coredata.views.edit_semester', kwargs={'semester_name': strm})
+
         # Semester object
         try:
             semester = semesters[strm]
@@ -714,7 +726,20 @@ def import_semester_info(verbose=False, dry_run=False):
         if length > datetime.timedelta(days=92) and len(weeks) < 2 \
                 and semester.start - datetime.date.today() < datetime.timedelta(days=365):
             # semester is longer than 13 weeks: insist that the user specify reading week reasonably-soon before the semester starts
-            print "Semester %s is long (%s) but has no reading week specified. Please do that." % (strm, length)
+            message = "Semester %s is long (%s) but has no reading week specified. Please have a look here: %s\n\nYou probably want to enter the Monday of week 5/6/7/8 as the Monday after reading week, a week later than it would otherwise be." % (strm, length, url)
+            if verbose:
+                output.append('*** ' + message)
+            else:
+                import_admin_email(source='coredata.importer.import_semester_info', message=message)
+        else:
+            # also check that the last day of classes is at a coherent time. Might reveal problems with reading week specification.
+            endweek,_ = semester.week_weekday(semester.end, weeks=weeks)
+            if endweek not in [13, 14]:
+                message = "Semester %s ends in week %i (should be 13 or 14). That's weird. Have a look here to see if things are coherent: %s" % (strm, endweek, url)
+                if verbose:
+                    output.append('*** ' + message)
+                else:
+                    import_admin_email(source='coredata.importer.import_semester_info', message=message)
 
         # Holidays
         hs = holidays.get(strm, [])
