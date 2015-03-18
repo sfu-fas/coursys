@@ -12,6 +12,7 @@ def list_all_visas(request):
     return render(request, 'visas/view_visas.html', context)
 
 
+@requires_global_role("SYSA")
 def new_visa(request):
     if request.method == 'POST':
         form = VisaForm(request.POST)
