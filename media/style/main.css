@@ -754,6 +754,12 @@ div.discside {
   margin-bottom: 0.5em;
   display: none; /* display controlled by JS */
 }
+@media(max-width:1280px){
+  div.discside {
+    width: 10em;
+    font-size: smaller;
+  }
+}
 #main div.discside h3 {
   margin: 0.5em 0;
   padding: 0;

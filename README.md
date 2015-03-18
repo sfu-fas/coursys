@@ -217,7 +217,7 @@ There's a pretty standard view for dealing with a form like this:
     @login_required
     def new_restaurant(request):
         if request.method == 'POST':
-            form = CampusRestaurantForm(request, request.POST)
+            form = CampusRestaurantForm(request.POST)
             if form.is_valid():
                 restaurant = form.save(commit=False)
                 restaurant.save()
