@@ -43,6 +43,7 @@ class Visa (models.Model):
     def __unicode__(self):
         return "%s, %s, %s" % (self.person, self.status, self.start_date)
 
+
 class VisaForm(forms.ModelForm):
     class Meta:
         exclude = []
