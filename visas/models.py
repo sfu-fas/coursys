@@ -9,21 +9,27 @@ from coredata.models import Semester
 
 EXPIRY_STATUSES = ['Expired', 'Expiring Soon', 'Valid']
 
+def timezone_today():
+    """
+    Return the timezone-aware version of datetime.date.today()
+    """
+    # field default must be a callable (so it's the "today" of the request, not the "today" of the server startup)
+    return timezone.now().date()
 
 class Visa (models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
-    start_date = models.DateField('Start Date', default=timezone.now().date())
+    start_date = models.DateField('Start Date', default=timezone_today)
     end_date = models.DateField('End Date', blank=True)
-    config = JSONField(null=False, blank=False, editable=False, default={})  # For future fields
+    config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
 
     # Helper methods to display a proper status we can sort on
     def is_valid(self):
-        return self.start_date <= timezone.now().date() < self.end_date
+        return self.start_date <= timezone_today() < self.end_date
 
     def is_expired(self):
-        return timezone.now().date() > self.end_date
+        return timezone_today() > self.end_date
 
     # If this visa will expire this semester, that may be important
     # A better business rule may be forthcoming.
