@@ -160,9 +160,9 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
 
 @requires_course_staff_by_slug
 def view_group(request, course_slug, group_slug):
-    offering = get_object_or_404(CourseOffering, slug = course_slug)
-    group = get_object_or_404(Group, courseoffering = offering, slug = group_slug)
-    members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(Group, courseoffering=offering, slug=group_slug)
+    members = GroupMember.objects.filter(group=group).select_related('group', 'student', 'student__person', 'activity')
 
     info = _group_info(offering, group, members)
 
@@ -200,6 +200,10 @@ def group_data(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     groups = Group.objects.filter(courseoffering=offering)
     allmembers = GroupMember.objects.filter(group__courseoffering=offering).select_related('group', 'student', 'student__person')
+
+    if 'activity' in request.GET:
+        activity = get_object_or_404(Activity, offering=offering, slug=request.GET['activity'])
+        allmembers = allmembers.filter(activity=activity)
 
     response = HttpResponse(content_type='text/plain; charset=utf-8')
     for g in groups:

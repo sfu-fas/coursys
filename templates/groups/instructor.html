@@ -35,7 +35,7 @@ $(document).ready(function() {
 <h2 class="heading">Actions</h2>
 <ul>
 <li><a href="{% url "groups.views.create" course_slug=course.slug %}">Create New Group</a></li>
-<li><a href="{% url "groups.views.group_data" course_slug=course.slug %}">Fetch Group Data</a></li>
+<li><a href="{% url "groups.views.group_data" course_slug=course.slug %}{% if activity %}?activity={{ activity.slug }}{% endif %}">Fetch Group Data</a></li>
 
 </ul>
 </div>
