@@ -1,9 +1,7 @@
 from django.db import models
 from coredata.models import VISA_STATUSES, Person
 from django.utils import timezone
-from django import forms
 from courselib.json_fields import JSONField
-from coredata.widgets import CalendarWidget, PersonField
 from coredata.models import Semester
 
 
@@ -48,14 +46,3 @@ class Visa (models.Model):
 
     def __unicode__(self):
         return "%s, %s, %s" % (self.person, self.status, self.start_date)
-
-
-class VisaForm(forms.ModelForm):
-    class Meta:
-        exclude = []
-        model = Visa
-        person = PersonField()
-        widgets = {
-            'start_date': CalendarWidget,
-            'end_date': CalendarWidget
-            }

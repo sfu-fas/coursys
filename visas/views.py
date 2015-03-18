@@ -1,5 +1,6 @@
 from courselib.auth import requires_global_role
-from visas.models import Visa, VisaForm
+from .models import Visa
+from .forms import VisaForm
 from django.shortcuts import render, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib import messages
