@@ -629,13 +629,12 @@ def semester_last_day():
     """
     Dict of strm -> last day of the semester's classes
     """
-    # this is: take the last day which is the last day of *lots* of classes. (There are many weirdos, but we want *the* last day.)
+    # Why 250? Because "SELECT * FROM psxlatitem WHERE fieldname='TIME_PERIOD'"
     db = SIMSConn()
     db.execute("""
         SELECT strm, end_dt
-        FROM (SELECT strm, end_dt, count(*) AS freq FROM ps_class_mtg_pat GROUP BY strm,end_dt)
-        WHERE freq>1000
-        ORDER BY end_dt""", ())
+        FROM ps_sess_time_perod
+        WHERE time_period=250 AND acad_career='UGRD' AND session_code='1'""", ())
     return dict(db)
 
 @cache_by_args
