@@ -11,8 +11,9 @@ application = get_wsgi_application()
 from django.conf import settings
 from django.core import serializers
 from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday, CourseOffering, Course, Member, MeetingTime
-from coredata.importer import import_semester_info, import_offerings, import_offering_members
+from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
 from coredata.queries import add_person, SIMSConn, cache_by_args
+from courselib.testing import TEST_COURSE_SLUG
 import itertools, random, string
 
 SEMESTER_CUTOFF = '1100' # semesters with label >= this will be included
@@ -143,9 +144,18 @@ def create_coredata():
     offerings = list(offerings)
     offerings.sort()
 
+    if not CourseOffering.objects.filter(slug=TEST_COURSE_SLUG):
+        o = CourseOffering.objects.filter(subject='CMPT', semester__name=import_strms()[0]) \
+            .order_by('number', 'section').first()
+        raise ValueError, "courselib.testing.TEST_COURSE_SLUG isn't an offering we have. Maybe use '%s'." % (o.slug)
+
     # import instructors
     for o in offerings:
         import_offering_members(o, students=False)
+
+    # make sure ggbaker is an instructor for TEST_COURSE_SLUG
+    ensure_member(Person.objects.get(userid='ggbaker'), CourseOffering.objects.get(slug=TEST_COURSE_SLUG),
+            "INST", 0, "AUTO", "NONS")
 
     # try to guess instructors' userids
     for p in Person.objects.filter(userid__isnull=True):
@@ -178,15 +188,20 @@ def create_coredata():
         p = Person(emplid=300000500+i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6), pref_first_name=pref)
         p.save()
 
+    # not really coredata, but handy for some tests
+    r = Role(person=Person.objects.get(userid='dzhao'), role='ADVS', unit=Unit.objects.get(slug='cmpt'))
+    r.save()
+
     return itertools.chain(
         SemesterWeek.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
         Holiday.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
         Unit.objects.all(),
         Course.objects.all(),
         CourseOffering.objects.all(),
-        Person.objects.exclude(first_name='.').order_by('emplid'), # not "Faculty, ."
+        Person.objects.order_by('emplid'),
         Member.objects.all(),
         MeetingTime.objects.all(),
+        [r],
     )
 
 def create_grades():
@@ -199,7 +214,7 @@ def create_grades():
         m.save()
 
         # students
-        for p in random.sample(undergrads, 10):
+        for p in random.sample(undergrads, 5):
             m = Member(person=p, role='STUD', offering=o, credits=3, career='UGRD', added_reason='AUTO')
             m.save()
 
@@ -219,8 +234,9 @@ def serialize_result(data_func, filename):
 def main():
     assert not settings.DISABLE_REPORTING_DB
     assert settings.SIMS_PASSWORD
+    assert Semester.objects.all().count() == 0, "Database must be empty before we start this."
 
-    serialize_result(create_true_core, 'initial_data')
+    serialize_result(create_true_core, 'basedata')
     serialize_result(create_coredata, 'coredata')
     # use/import no real emplids after this
     serialize_result(create_grades, 'grades')

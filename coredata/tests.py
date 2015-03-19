@@ -297,7 +297,7 @@ class CoredataTest(TestCase):
 
 
 class SlowCoredataTest(FastFixtureTestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata']
     
     def test_course_browser(self):
         client = Client()
@@ -309,10 +309,10 @@ class SlowCoredataTest(FastFixtureTestCase):
         response = basic_page_tests(self, client, url)
 
         # AJAX request for table data
-        url += '?tabledata=yes&data_type=json&iDisplayStart=0&iDisplayLength=25&iSortingCols=0'
+        url += '?tabledata=yes&data_type=json&iDisplayStart=0&iDisplayLength=10&iSortingCols=0'
         response = client.get(url)
         data = json.loads(response.content)
-        self.assertEquals(len(data['aaData']), 25)
+        self.assertEquals(len(data['aaData']), 10)
 
         # courseoffering detail page
         url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': TEST_COURSE_SLUG})
@@ -320,8 +320,7 @@ class SlowCoredataTest(FastFixtureTestCase):
     
     def test_ajax(self):
         client = Client()
-        # this takes like 20 seconds to run
-        #call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
+        call_command('update_index', 'coredata', verbosity=0) # make sure we have the same data in DB and haystack
 
         # test person autocomplete
         client.login_user("dzhao")
