@@ -13,8 +13,11 @@ from django.core import serializers
 from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday, CourseOffering, Course, Member, MeetingTime
 from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
 from coredata.queries import add_person, SIMSConn, cache_by_args
+from grades.models import NumericActivity
+from privacy.models import set_privacy_signed
 from courselib.testing import TEST_COURSE_SLUG
 import itertools, random, string
+import datetime
 
 SEMESTER_CUTOFF = '1100' # semesters with label >= this will be included
 
@@ -125,6 +128,9 @@ def create_units():
 
 
 def create_coredata():
+    """
+    Create enough of the coredata.models stuff to run basic tests
+    """
     create_units()
 
     # restore ggbaker's real emplid so import_offerings will match
@@ -135,6 +141,7 @@ def create_coredata():
     find_person('popowich')
     find_person('dixon')
     find_person('dzhao')
+    find_person('pba7')
 
     # import a limited set of course offerings
     offerings = import_offerings(import_semesters=import_strms, extra_where=
@@ -153,10 +160,6 @@ def create_coredata():
     for o in offerings:
         import_offering_members(o, students=False)
 
-    # make sure ggbaker is an instructor for TEST_COURSE_SLUG
-    ensure_member(Person.objects.get(userid='ggbaker'), CourseOffering.objects.get(slug=TEST_COURSE_SLUG),
-            "INST", 0, "AUTO", "NONS")
-
     # try to guess instructors' userids
     for p in Person.objects.filter(userid__isnull=True):
         p.userid = guess_userid(p.emplid)
@@ -168,7 +171,7 @@ def create_coredata():
 
     # create some fake undergrad/grad students
     for i in range(20):
-        userid = "0uuu%i" % (i)
+        userid = "0aaa%i" % (i)
         fname = randname(8)
         p = random.randint(1,2)
         if p == 1:
@@ -188,20 +191,34 @@ def create_coredata():
         p = Person(emplid=300000500+i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6), pref_first_name=pref)
         p.save()
 
-    # not really coredata, but handy for some tests
-    r = Role(person=Person.objects.get(userid='dzhao'), role='ADVS', unit=Unit.objects.get(slug='cmpt'))
-    r.save()
+    # some memberships/roles/etc assumed by tests
+    o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+    ensure_member(Person.objects.get(userid='ggbaker'), o, "INST", 0, "AUTO", "NONS")
+    ensure_member(Person.objects.get(userid='0ggg0'), o, "TA", 0, "AUTO", "NONS")
+    ensure_member(Person.objects.get(userid='0aaa0'), o, "STUD", 3, "AUTO", "UGRD")
+    ensure_member(Person.objects.get(userid='0aaa1'), o, "STUD", 3, "AUTO", "UGRD")
+
+    d = Person.objects.get(userid='dzhao')
+    set_privacy_signed(d)
+    r1 = Role(person=d, role='ADVS', unit=Unit.objects.get(slug='cmpt'))
+    r1.save()
+    r2 = Role(person=d, role='ADMN', unit=Unit.objects.get(slug='cmpt'))
+    r2.save()
+    r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'))
+    r3.save()
+
+    a = NumericActivity(offering=o, name='Assignment 1', short_name='A1', status='URLS', position=1, percent=10,
+        max_grade=10, due_date=(o.semester.end-datetime.timedelta(days=5)))
+    a.save()
 
     return itertools.chain(
         SemesterWeek.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
-        Holiday.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
         Unit.objects.all(),
         Course.objects.all(),
         CourseOffering.objects.all(),
         Person.objects.order_by('emplid'),
         Member.objects.all(),
-        MeetingTime.objects.all(),
-        [r],
+        [r1, r2, r3, a.activity_ptr, a],
     )
 
 def create_grades():
@@ -219,6 +236,8 @@ def create_grades():
             m.save()
 
     return itertools.chain(
+        Holiday.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
+        MeetingTime.objects.all(),
         Member.objects.filter(role__in=['TA', 'STUD']),
     )
 
