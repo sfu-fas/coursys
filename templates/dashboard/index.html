@@ -46,6 +46,7 @@ $(document).ready(function() {
     
     <li class="newsec"><a href="{% url "dashboard.views.config" %}"><i class="fa fa-li fa-wrench"></i> User Configuration</a></li>
     <li><a href="{% url "coredata.views.browse_courses" %}"><i class="fa fa-li fa-eye"></i> Browse Course Offerings</a></li>
+    <li><a href="{% url "visas.views.list_all_visas" %}"><i class="fa fa-li fa-plane"></i> Manage Visas</a></li>
     {% if excluded %}<li><a href="{% url "dashboard.views.index_full" %}"><i class="fa fa-li fa-archive"></i> View Older Courses</a></li>{% endif %}
     {% if staff_memberships %}
     <li><a href="{% url "dashboard.views.student_info" %}"><i class="fa fa-li fa-search"></i> Student Search</a></li>

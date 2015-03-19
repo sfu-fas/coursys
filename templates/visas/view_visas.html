@@ -10,6 +10,7 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{% static "style/visas.css" %}" type="text/css">
+<link rel="stylesheet" href="{% static "style/tacontracts.css" %}" type="text/css">
 <script type="text/javascript">
 $(document).ready(function() {
   $('#visas').dataTable( {
@@ -48,7 +49,7 @@ function confirmDelete(url) {
                 <th>End Date</th>
                 <th>Type</th>
                 <th>Validity</th>
-                <th>Edit</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -59,7 +60,14 @@ function confirmDelete(url) {
                     <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>
                     <td>{{ visa.status }}</td>
                     <td>{{ visa.get_validity }}</td>
-                    <td><a href="{% url "visas.views.edit_visa" visa_id=visa.id %}">Edit</a></td>
+                    <td>
+                        <form class="lineform" method="GET"
+                            action="{% url "visas.views.edit_visa" visa_id=visa.id %}">
+                            <button type='submit' class='btn' title="Edit Visa">
+                                <i class='fa fa-edit'></i>
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
