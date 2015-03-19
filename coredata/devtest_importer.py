@@ -116,6 +116,8 @@ def create_units():
     fas.save()
     ensc = Unit(label='ENSC', name='School of Engineering Science', parent=fas, acad_org='ENG SCI')
     ensc.save()
+    mse = Unit(label='MSE', name='School of Mechatronic Systems Engineering', parent=fas, acad_org='MECH SYS')
+    mse.save()
     cmpt = Unit(label='CMPT', name='School of Computing Science', parent=fas, acad_org='COMP SCI')
     cmpt.set_address(['9971 Applied Sciences Building', '8888 University Drive, Burnaby, BC', 'Canada V5A 1S6'])
     cmpt.set_email('csdept@sfu.ca')
@@ -140,6 +142,7 @@ def create_coredata():
     # import a few more people we definitely need later
     find_person('popowich')
     find_person('dixon')
+    find_person('diana')
     find_person('dzhao')
     find_person('pba7')
 
@@ -207,8 +210,9 @@ def create_coredata():
     r3 = Role(person=Person.objects.get(userid='pba7'), role='SYSA', unit=Unit.objects.get(slug='univ'))
     r3.save()
 
+    # ensures course appears in menu for students
     a = NumericActivity(offering=o, name='Assignment 1', short_name='A1', status='URLS', position=1, percent=10,
-        max_grade=10, due_date=(o.semester.end-datetime.timedelta(days=5)))
+        max_grade=10, due_date=(o.semester.start + datetime.timedelta(days=60)))
     a.save()
 
     return itertools.chain(
@@ -221,9 +225,100 @@ def create_coredata():
         [r1, r2, r3, a.activity_ptr, a],
     )
 
+def create_test_offering():
+    """
+    main test course: interesting data for grades, marking, submission, groups
+    """
+    from grades.models import Activity, LetterActivity, CalNumericActivity, CalLetterActivity
+    from submission.models import SubmissionComponent
+    from submission.models.code import CodeComponent
+    from submission.models.pdf import PDFComponent
+    from groups.models import Group, GroupMember
+    from marking.models import ActivityComponent
+
+    crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+
+    crs.set_labtut(True)
+    crs.set_url("http://www.cs.sfu.ca/CC/165/common/")
+    crs.set_taemail("cmpt-165-contact@sfu.ca")
+    crs.save()
+
+    # create example activities
+    a1 = NumericActivity.objects.get(offering=crs, slug='a1')
+    a2 = NumericActivity(offering=crs, name="Assignment 2", short_name="A2", status="URLS",
+        due_date=crs.semester.start + datetime.timedelta(days=70), percent=10, group=True,
+        max_grade=20, position=2)
+    a2.set_url("http://www.cs.sfu.ca/CC/165/common/a2")
+    a2.save()
+    pr = LetterActivity(offering=crs, name="Project", short_name="Proj", status="URLS",
+        due_date=crs.semester.start + datetime.timedelta(days=80), percent=40, group=True, position=3)
+    pr.save()
+    re = LetterActivity(offering=crs, name="Report", short_name="Rep", status="URLS",
+        due_date=crs.semester.start + datetime.timedelta(days=81), percent=10, group=False, position=4)
+    re.save()
+    ex = NumericActivity(offering=crs, name="Final Exam", short_name="Exam", status="URLS",
+        due_date=None, percent=30, group=False, max_grade=90, position=5)
+    ex.save()
+    to = CalNumericActivity(offering=crs, name="Final Percent", short_name="Perc", status="INVI",
+        due_date=None, percent=0, group=False, max_grade=100, formula="[[activitytotal]]", position=6)
+    to.save()
+    to = CalLetterActivity(offering=crs, name="Letter Grade", short_name="Letter", status="INVI",
+        due_date=None, percent=0, group=False, numeric_activity=to, position=6)
+    to.save()
+
+    # make A1 submittable and markable
+    s = CodeComponent(activity=a1, title="Code File", description="The code you're submitting.",
+        allowed=".py,.java")
+    s.save()
+    s = PDFComponent(activity=a1, title="Report", description="Report on what you did.",
+        specified_filename="report.pdf")
+    s.save()
+
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 1", description="Part 1 was done well and seems to work.", position=1)
+    m.save()
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2", description="Part 2 was done well and seems to work.", position=2)
+    m.save()
+
+    # create some groups
+    members = list(Member.objects.filter(offering=crs, role='STUD'))
+    random.shuffle(members)
+    m = members.pop()
+    g = Group(name="SomeGroup", courseoffering=crs, manager=m)
+    g.save()
+    for m in [m, members.pop()]:
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=a2)
+        gm.save()
+
+    m = members.pop()
+    g = Group(name="AnotherGroup", courseoffering=crs, manager=m)
+    g.save()
+    for m in [m, members.pop(), members.pop()]:
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=a2)
+        gm.save()
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=pr)
+        gm.save()
+
+    return itertools.chain(
+        Activity.objects.all(),
+        NumericActivity.objects.all(),
+        LetterActivity.objects.all(),
+        CalNumericActivity.objects.all(),
+        CalLetterActivity.objects.all(),
+        SubmissionComponent.objects.all(),
+        CodeComponent.objects.all(),
+        PDFComponent.objects.all(),
+        Group.objects.all(),
+        GroupMember.objects.all(),
+        ActivityComponent.objects.all(),
+    )
+
+
 def create_grades():
-    undergrads = list(Person.objects.filter(last_name='Student'))
-    grads = list(Person.objects.filter(last_name='Grad'))
+    """
+    Test data for grades, marking, submission, groups
+    """
+    undergrads = list(Person.objects.filter(last_name='Student').exclude(userid='0aaa0').exclude(userid='0aaa1'))
+    grads = list(Person.objects.filter(last_name='Grad').exclude(userid='0ggg0'))
     for o in CourseOffering.objects.all():
         # TA
         m = Member(person=random.choice(grads), role='TA', offering=o, credits=0, career='NONS', added_reason='TAC')
@@ -231,7 +326,10 @@ def create_grades():
         m.save()
 
         # students
-        for p in random.sample(undergrads, 5):
+        n = 4
+        if o.slug == TEST_COURSE_SLUG:
+            n = 8
+        for p in random.sample(undergrads, n):
             m = Member(person=p, role='STUD', offering=o, credits=3, career='UGRD', added_reason='AUTO')
             m.save()
 
@@ -239,6 +337,93 @@ def create_grades():
         Holiday.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
         MeetingTime.objects.all(),
         Member.objects.filter(role__in=['TA', 'STUD']),
+        create_test_offering(),
+    )
+
+
+def create_grad():
+    """
+    Test data for grad, ta, ra
+    """
+    from grad.models import GradProgram, GradStudent, GradProgramHistory, GradStatus
+
+    cmpt = Unit.objects.get(slug='cmpt')
+    ensc = Unit.objects.get(slug='ensc')
+    mse = Unit.objects.get(slug='mse')
+
+    # some admin roles
+    d = Person.objects.get(userid='dzhao')
+    r1 = Role(person=d, role='GRAD', unit=cmpt)
+    r1.save()
+    r2 = Role(person=d, role='FUND', unit=cmpt)
+    r2.save()
+    r3 = Role(person=d, role='TAAD', unit=cmpt)
+    r3.save()
+    r4 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt)
+    r4.save()
+
+    p = GradProgram(unit=cmpt, label='MSc Course', description='MSc Course option')
+    p.save()
+    p = GradProgram(unit=cmpt, label='MSc Proj', description='MSc Project option')
+    p.save()
+    p = GradProgram(unit=cmpt, label='MSc Thesis', description='MSc Thesis option')
+    p.save()
+    p = GradProgram(unit=cmpt, label='PhD', description='Doctor of Philosophy')
+    p.save()
+    p = GradProgram(unit=cmpt, label='Qualifying', description='Qualifying student')
+    p.save()
+    p = GradProgram(unit=cmpt, label='Special', description='Special Arrangements')
+    p.save()
+
+    grads = list(Person.objects.filter(last_name='Grad'))
+    programs = list(GradProgram.objects.all())
+    today = datetime.date.today()
+    starts = Semester.objects.filter(start__gt=today-datetime.timedelta(1000), start__lt=today)
+
+    # create GradStudents (and associated data)
+    for g in grads + random.sample(grads, 5): # put a few in two programs
+        p = random.choice(programs)
+        start = random.choice(starts)
+        sstart = start.start
+        if random.randint(1,2) == 1:
+            end = start.offset(random.randint(3,9))
+        else:
+            end = None
+        gs = GradStudent(person=g, program=p)
+        gs.save()
+
+        gph = GradProgramHistory(student=gs, program=p, start_semester=start)
+        gph.save()
+        # TODO: some program changes
+
+        s = GradStatus(student=gs, status='COMP', start=start, start_date=sstart-datetime.timedelta(days=100))
+        s.save()
+        if random.randint(1,4) == 1:
+            s = GradStatus(student=gs, status='REJE', start=start, start_date=sstart-datetime.timedelta(days=80))
+            s.save()
+        else:
+            s = GradStatus(student=gs, status='OFFO', start=start, start_date=sstart-datetime.timedelta(days=80))
+            s.save()
+            s = GradStatus(student=gs, status='ACTI', start=start, start_date=sstart)
+            s.save()
+            if end:
+                if random.randint(1,3):
+                    s = GradStatus(student=gs, status='WIDR', start=end, start_date=end.start)
+                    s.save()
+                else:
+                    s = GradStatus(student=gs, status='GRAD', start=end, start_date=end.start)
+                    s.save()
+
+        gs.update_status_fields()
+
+
+
+    return itertools.chain(
+        [r1, r2, r3, r4],
+        programs,
+        GradStudent.objects.all(),
+        GradProgramHistory.objects.all(),
+        GradStatus.objects.all(),
     )
 
 
@@ -259,6 +444,7 @@ def main():
     serialize_result(create_coredata, 'coredata')
     # use/import no real emplids after this
     serialize_result(create_grades, 'grades')
+    serialize_result(create_grad, 'grad')
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
