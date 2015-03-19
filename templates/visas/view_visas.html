@@ -48,6 +48,7 @@ function confirmDelete(url) {
                 <th>End Date</th>
                 <th>Type</th>
                 <th>Validity</th>
+                <th>Edit</th>
             </tr>
         </thead>
         <tbody>
@@ -58,6 +59,7 @@ function confirmDelete(url) {
                     <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>
                     <td>{{ visa.status }}</td>
                     <td>{{ visa.get_validity }}</td>
+                    <td><a href="{% url "visas.views.edit_visa" visa_id=visa.id %}">Edit</a></td>
                 </tr>
             {% endfor %}
         </tbody>
