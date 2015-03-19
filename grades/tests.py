@@ -38,7 +38,7 @@ test_formulas = [ # expression, correct-result pairs
         ]
 
 class GradesTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grades']
     
     def setUp(self):
         self.course_slug=TEST_COURSE_SLUG
@@ -214,9 +214,9 @@ class GradesTest(TestCase):
         Work through the site as an instructor
         """
         s, c = create_offering()
-        userid1 = "0bbb0"
-        userid2 = "0aaa0"
-        userid3 = "0aaa1"
+        userid1 = "0aaa0"
+        userid2 = "0aaa1"
+        userid3 = "0aaa2"
         userid4 = "ggbaker"
         for u in [userid1, userid2, userid3, userid4]:
             p = Person.objects.get(userid=u)
@@ -647,7 +647,7 @@ class GradesTest(TestCase):
 
 
 class APITests(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def _get_by_slug(self, data, slug):
         for d in data:
@@ -747,7 +747,7 @@ class APITests(TestCase):
 
 
 class PagesTests(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def test_course_level(self):
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)

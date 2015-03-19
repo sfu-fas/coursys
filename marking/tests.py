@@ -23,7 +23,7 @@ from courselib.testing import basic_page_tests, TEST_COURSE_SLUG, Client
 
 
 class BasicTest(TestCase):
-    fixtures = ['test_data']    
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -337,7 +337,7 @@ class BasicTest(TestCase):
         response = basic_page_tests(self, client, url)
 
 class TestImportFunctionsNumeric(TestCase):
-    fixtures = ['test_data']    
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -371,7 +371,7 @@ class TestImportFunctionsNumeric(TestCase):
         self.get_test_file(inName)
         data_to_return = {}
         with open(inName, 'r') as inp:
-	    err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, None)
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
@@ -382,7 +382,7 @@ class TestImportFunctionsNumeric(TestCase):
         bad_id = [n for n,_ in self.values if n not in self.userids] [0]
         data_to_return = {}
         with open(inName, 'r') as inp:
-	    err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, 'Error found in the file (row 2): Unmatched student number '
             'or user-id ({0}).'. format(bad_id))
         self.assertEqual(len(data_to_return), 0)
@@ -393,7 +393,7 @@ class TestImportFunctionsNumeric(TestCase):
         bad_emplid = [e for e,_ in self.values if int(e) not in self.emplids] [0]
         data_to_return = {}
         with open(inName, 'r') as inp:
-	    err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
         self.assertEqual(err, 'Error found in the file (row 1): Unmatched student number '
             'or user-id ({0}).'. format(bad_emplid))
         self.assertEqual(len(data_to_return), 0)
@@ -501,7 +501,7 @@ class TestImportFunctionsNumeric(TestCase):
 
 
 class TestImportFunctionsLetter(TestCase):
-    fixtures = ['test_data']    
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -549,7 +549,7 @@ class TestImportFunctionsLetter(TestCase):
         self.compare_grade_lists(data_to_return)
 
 class TestImportViews(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -592,7 +592,7 @@ class TestImportViews(TestCase):
         self.check_student_db_grade(num_grades[1], stud2, STUD2_GRADE)
 
 class TestImportViewsLet(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def setUp(self):
         self.c_slug = TEST_COURSE_SLUG
@@ -637,7 +637,7 @@ class TestImportViewsLet(TestCase):
 
 
 class TestMarkingImport(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grades']
     
     def setUp(self):
         self.client = Client()
@@ -653,25 +653,25 @@ class TestMarkingImport(TestCase):
         with open('marking/testfiles/marking_import1.json') as file:
             post_data = {'file':[file]}
             response = self.client.post(url, post_data)
-        
+
         self.assertEquals(response.status_code, 302)
         
         # check that the parts are there
         marks = StudentActivityMark.objects.filter(activity=self.act)
-        m = marks.get(numeric_grade__member__person__userid="0aaa9")
+        m = marks.get(numeric_grade__member__person__userid="0aaa1")
         self.assertEquals(m.numeric_grade.value, Decimal('3'))
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('3'))
-        self.assertEquals(mc.comment, "0aaa9 1")
+        self.assertEquals(mc.comment, "0aaa1 1")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('0'))
         self.assertEquals(mc.comment, "")
 
-        m = marks.get(numeric_grade__member__person__userid="0aaa8")
+        m = marks.get(numeric_grade__member__person__userid="0aaa2")
         self.assertAlmostEquals(float(m.numeric_grade.value), 3.6)
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('4'))
-        self.assertEquals(mc.comment, "0aaa8 1a")
+        self.assertEquals(mc.comment, "0aaa2 1a")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('0'))
         self.assertEquals(mc.comment, "")
@@ -684,23 +684,23 @@ class TestMarkingImport(TestCase):
         self.assertEquals(response.status_code, 302)
         
         marks = StudentActivityMark.objects.filter(activity=self.act)
-        m = marks.filter(numeric_grade__member__person__userid="0aaa9").latest('created_at')
+        m = marks.filter(numeric_grade__member__person__userid="0aaa1").latest('created_at')
         self.assertAlmostEquals(float(m.numeric_grade.value), 3.2)
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('3'))
-        self.assertEquals(mc.comment, "0aaa9 1")
+        self.assertEquals(mc.comment, "0aaa1 1")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('1'))
-        self.assertEquals(mc.comment, "0aaa9 2")
+        self.assertEquals(mc.comment, "0aaa1 2")
 
-        m = marks.filter(numeric_grade__member__person__userid="0aaa8").latest('created_at')
+        m = marks.filter(numeric_grade__member__person__userid="0aaa2").latest('created_at')
         self.assertAlmostEquals(float(m.numeric_grade.value), 6.3)
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('5'))
-        self.assertEquals(mc.comment, "0aaa8 1b")
+        self.assertEquals(mc.comment, "0aaa2 1b")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('2'))
-        self.assertEquals(mc.comment, "0aaa8 2")
+        self.assertEquals(mc.comment, "0aaa2 2")
 
         # test file attachment encoded in JSON
         with open('marking/testfiles/marking_import3.json') as file:
@@ -708,7 +708,7 @@ class TestMarkingImport(TestCase):
             response = self.client.post(url, post_data)
         self.assertEquals(response.status_code, 302)
         
-        marks = StudentActivityMark.objects.filter(activity=self.act, numeric_grade__member__person__userid="0aaa7")
+        marks = StudentActivityMark.objects.filter(activity=self.act, numeric_grade__member__person__userid="0aaa0")
         self.assertEqual(len(marks), 1)
         m = marks[0]
         self.assertEqual(m.file_mediatype, 'text/plain')

@@ -205,8 +205,6 @@ def create_coredata():
     o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
     ensure_member(Person.objects.get(userid='ggbaker'), o, "INST", 0, "AUTO", "NONS")
     ensure_member(Person.objects.get(userid='0ggg0'), o, "TA", 0, "AUTO", "NONS")
-    ensure_member(Person.objects.get(userid='0aaa0'), o, "STUD", 3, "AUTO", "UGRD")
-    ensure_member(Person.objects.get(userid='0aaa1'), o, "STUD", 3, "AUTO", "UGRD")
 
     d = Person.objects.get(userid='dzhao')
     set_privacy_signed(d)
@@ -333,10 +331,12 @@ def create_grades():
         m.save()
 
         # students
-        n = 4
         if o.slug == TEST_COURSE_SLUG:
-            n = 8
-        for p in random.sample(undergrads, n):
+            # there are some specific students we need in this offering for the marking/testfiles/* imports
+            students = set(random.sample(undergrads, 6) + list(Person.objects.filter(userid__in=['0aaa0', '0aaa1', '0aaa2'])))
+        else:
+            students = random.sample(undergrads, 4)
+        for p in students:
             m = Member(person=p, role='STUD', offering=o, credits=3, career='UGRD', added_reason='AUTO')
             m.save()
 
