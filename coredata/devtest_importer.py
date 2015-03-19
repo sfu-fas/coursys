@@ -10,7 +10,8 @@ application = get_wsgi_application()
 
 from django.conf import settings
 from django.core import serializers
-from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday, CourseOffering, Course, Member, MeetingTime
+from coredata.models import Person, Unit, Role, Semester, SemesterWeek, Holiday, CourseOffering, Course, Member, \
+    MeetingTime, CAMPUS_CHOICES, VISA_STATUSES
 from coredata.importer import import_semester_info, import_offerings, import_offering_members, ensure_member
 from coredata.queries import add_person, SIMSConn, cache_by_args
 from grades.models import NumericActivity
@@ -52,6 +53,8 @@ def randname(l):
         n = n + random.choice(string.ascii_lowercase)
     return n
 
+randnullbool = lambda:random.choice((False, True, None))
+randbool = lambda:random.choice((False, True))
 
 @cache_by_args
 def find_emplid(userid):
@@ -192,6 +195,10 @@ def create_coredata():
         else:
             pref = fname
         p = Person(emplid=300000500+i, userid=userid, last_name='Grad', first_name=fname, middle_name=randname(6), pref_first_name=pref)
+        p.config['gender'] = random.choice(('M','F','U'))
+        p.config['gpa'] = round(random.triangular(0.0, 4.33, 2.33), 2)
+        p.config['visa'] = random.choice([x for x,_ in VISA_STATUSES])
+        p.config['citizen'] = random.choice(('Canadian', 'OtherCountrian'))
         p.save()
 
     # some memberships/roles/etc assumed by tests
@@ -345,7 +352,8 @@ def create_grad():
     """
     Test data for grad, ta, ra
     """
-    from grad.models import GradProgram, GradStudent, GradProgramHistory, GradStatus
+    from grad.models import GradProgram, GradStudent, GradProgramHistory, GradStatus, ScholarshipType, Scholarship, \
+        OtherFunding, Promise, GradRequirement, CompletedRequirement, LetterTemplate, GradFlag, GradFlagValue, Supervisor
 
     cmpt = Unit.objects.get(slug='cmpt')
     ensc = Unit.objects.get(slug='ensc')
@@ -361,6 +369,32 @@ def create_grad():
     r3.save()
     r4 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt)
     r4.save()
+    roles = [r1, r2, r3, r4]
+
+    # departmental data
+    st1 = ScholarshipType(unit=cmpt, name='Scholarship-o-rama', eligible=False)
+    st1.save()
+    st2 = ScholarshipType(unit=cmpt, name='Generic Scholarship #8', eligible=True)
+    st2.save()
+    scholarship_types = [st1, st2]
+
+    templates = [
+                 {"unit": cmpt,
+                  "label": "offer",
+                  "content": "Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is good news. Really."
+                  },
+                 {"unit": cmpt,
+                  "label": "visa",
+                  "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is currently enrolled as a full time student in the {{program}} in the School of Computing Science at SFU."
+                  },
+                 {"unit": cmpt,
+                  "label": "Funding",
+                  "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is a student in the School of Computing Science's {{program}} program. {{He_She}} has been employed as follows:\r\n\r\n{% if tafunding %}Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ tafunding }}{% endif %}\r\n{% if rafunding %}Research assistants assist/provide research services to faculty. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ rafunding }}{% endif %}\r\n{% if scholarships %}{{title}} {{last_name}} has received the following scholarships:\r\n\r\n{{ scholarships }}{% endif %}\r\n\r\n{{title}} {{last_name}} is making satisfactory progress."
+                  },
+                 ]
+    for data in templates:
+        t = LetterTemplate(**data)
+        t.save()
 
     p = GradProgram(unit=cmpt, label='MSc Course', description='MSc Course option')
     p.save()
@@ -375,12 +409,24 @@ def create_grad():
     p = GradProgram(unit=cmpt, label='Special', description='Special Arrangements')
     p.save()
 
+    gr = GradRequirement(program=p, description='Achieved Speciality')
+    gr.save()
+    for p in GradProgram.objects.filter(unit=cmpt):
+        gr = GradRequirement(program=p, description='Found campus')
+        gr.save()
+
+    gf = GradFlag(unit=cmpt, label='Dual Degree Program')
+    gf.save()
+    gf = GradFlag(unit=cmpt, label='Co-op')
+    gf.save()
+
     grads = list(Person.objects.filter(last_name='Grad'))
     programs = list(GradProgram.objects.all())
     today = datetime.date.today()
     starts = Semester.objects.filter(start__gt=today-datetime.timedelta(1000), start__lt=today)
+    supervisors = list(set([m.person for m in Member.objects.filter(role='INST').select_related('person')]))
 
-    # create GradStudents (and associated data)
+    # create GradStudents (and associated data) in a vaguely realistic way
     for g in grads + random.sample(grads, 5): # put a few in two programs
         p = random.choice(programs)
         start = random.choice(starts)
@@ -389,12 +435,16 @@ def create_grad():
             end = start.offset(random.randint(3,9))
         else:
             end = None
-        gs = GradStudent(person=g, program=p)
+        gs = GradStudent(person=g, program=p, research_area=randname(8)+'ology',
+                campus=random.choice([x for x,_ in CAMPUS_CHOICES]), is_canadian=randnullbool())
         gs.save()
 
         gph = GradProgramHistory(student=gs, program=p, start_semester=start)
         gph.save()
-        # TODO: some program changes
+        if random.randint(1,3) == 1:
+            p2 = random.choice([p2 for p2 in programs if p != p2 and p.unit == p2.unit])
+            gph = GradProgramHistory(student=gs, program=p2, start_semester=start.offset(random.randint(1,4)))
+            gph.save()
 
         s = GradStatus(student=gs, status='COMP', start=start, start_date=sstart-datetime.timedelta(days=100))
         s.save()
@@ -416,14 +466,66 @@ def create_grad():
 
         gs.update_status_fields()
 
+        # give some money
+        sch = Scholarship(student=gs, scholarship_type=random.choice(scholarship_types))
+        sch.amount = 2000
+        sch.start_semester = start
+        sch.end_semester = start.offset(2)
+        sch.save()
+
+        of = OtherFunding(student=gs, semester=start.offset(3))
+        of.amount = 1300
+        of.description = "Money fell from the sky"
+        of.save()
+
+        # promise
+        p = Promise(student=gs, start_semester=start, end_semester=start.offset(2), amount=10000)
+        p.save()
+        p = Promise(student=gs, start_semester=start.offset(3), end_semester=start.offset(5), amount=10000)
+        p.save()
+
+        # flags
+        if random.randint(1,2) == 1:
+            cr = CompletedRequirement(requirement=gr, student=gs, semester=start.offset(1))
+            cr.save()
+
+        if random.randint(1,3) == 1:
+            gfv = GradFlagValue(flag=gf, student=gs, value=True)
+            gfv.save()
+
+        # supervisors
+        if random.randint(1,3) != 1:
+            p = random.choice(supervisors)
+            s = Supervisor(student=gs, supervisor=p, supervisor_type='POT')
+            s.save()
+            if random.randint(1,2) == 1:
+                s = Supervisor(student=gs, supervisor=p, supervisor_type='SEN')
+                s.save()
+                s = Supervisor(student=gs, supervisor=random.choice(supervisors), supervisor_type='COM')
+                s.save()
+                s = Supervisor(student=gs, supervisor=random.choice(supervisors), supervisor_type='COM')
+                s.save()
+
+
 
 
     return itertools.chain(
-        [r1, r2, r3, r4],
+        roles,
         programs,
+        scholarship_types,
+        GradRequirement.objects.all(),
+        LetterTemplate.objects.all(),
+        GradFlag.objects.all(),
+
         GradStudent.objects.all(),
         GradProgramHistory.objects.all(),
         GradStatus.objects.all(),
+        Scholarship.objects.all(),
+        OtherFunding.objects.all(),
+        Promise.objects.all(),
+        CompletedRequirement.objects.all(),
+        GradFlagValue.objects.all(),
+        Supervisor.objects.all(),
     )
 
 
