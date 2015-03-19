@@ -621,7 +621,7 @@ def semester_first_day():
     db.execute("""
         SELECT strm, sess_begin_dt
         FROM ps_session_tbl
-        WHERE acad_career='UGRD' AND strm>'1000' AND session_code='1'""", ())
+        WHERE acad_career='UGRD' AND session_code='1'""", ())
     return dict(db)
 
 @cache_by_args
