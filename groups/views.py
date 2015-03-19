@@ -160,9 +160,9 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
 
 @requires_course_staff_by_slug
 def view_group(request, course_slug, group_slug):
-    offering = get_object_or_404(CourseOffering, slug = course_slug)
-    group = get_object_or_404(Group, courseoffering = offering, slug = group_slug)
-    members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(Group, courseoffering=offering, slug=group_slug)
+    members = GroupMember.objects.filter(group=group).select_related('group', 'student', 'student__person', 'activity')
 
     info = _group_info(offering, group, members)
 
@@ -201,6 +201,10 @@ def group_data(request, course_slug):
     groups = Group.objects.filter(courseoffering=offering)
     allmembers = GroupMember.objects.filter(group__courseoffering=offering).select_related('group', 'student', 'student__person')
 
+    if 'activity' in request.GET:
+        activity = get_object_or_404(Activity, offering=offering, slug=request.GET['activity'])
+        allmembers = allmembers.filter(activity=activity)
+
     response = HttpResponse(content_type='text/plain; charset=utf-8')
     for g in groups:
         userids = set(m.student.person.userid_or_emplid() for m in allmembers if m.group == g)
@@ -220,17 +224,25 @@ def group_data(request, course_slug):
 def create(request, course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    group_manager=Member.objects.exclude(role="DROP").get(person = person, offering = course)
+
+    # allow 'activity=foo' in query string to suggest default selected for the form
+    if 'activity' in request.GET:
+        selected_activity = get_object_or_404(Activity, offering=course, slug=request.GET['activity'], status__in=['RLS','URLS'])
+    else:
+        selected_activity = None
+
+    group_manager = Member.objects.exclude(role="DROP").get(person = person, offering = course)
     groupForSemesterForm = GroupForSemesterForm()
     activities = Activity.objects.exclude(status='INVI').filter(offering=course, group=True, deleted=False)
     activityList = []
     for activity in activities:
-        activityForm = ActivityForm(prefix = activity.slug)
-        activityList.append({'activityForm': activityForm, 'name' : activity.name,\
-                             'percent' : activity.percent, 'due_date' : activity.due_date})
+        default = (not selected_activity) or (selected_activity and activity == selected_activity)
+        activityForm = ActivityForm(prefix=activity.slug, initial={'selected': default})
+        activityList.append({'activityForm': activityForm, 'name': activity.name,
+                             'percent': activity.percent, 'due_date': activity.due_date})
 
     if is_course_student_by_slug(request, course_slug):
-        return render_to_response('groups/create_student.html', \
+        return render_to_response('groups/create_student.html',
                                   {'manager':group_manager, 'course':course, 'groupForSemester':groupForSemesterForm, 'activityList':activityList},\
                                   context_instance = RequestContext(request))
 
@@ -244,7 +256,7 @@ def create(request, course_slug):
                                  'last_name' : student.person.last_name, 'userid' : student.person.userid,\
                                  'emplid' : student.person.emplid})
 
-        return render_to_response('groups/create_instructor.html', \
+        return render_to_response('groups/create_instructor.html',
                           {'manager':group_manager, 'course':course,'groupForSemester':groupForSemesterForm, 'activityList':activityList, \
                            'studentList':studentList}, context_instance = RequestContext(request))
     else:
@@ -288,7 +300,7 @@ def _validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course,
                         because you are already in the group: %s for %s."\
                                    % (activity.name, groupMember.group.name, activity.name)
                         messages.add_message(request, messages.ERROR, error_info)
-                    #if this group is created by instructor 
+                    #if this group is created by instructor
                     else: 
                         error_info = "Student %s %s (%s)can not be assigned to this new group for %s,\
                         because he/she is already in group %s for %s." \
