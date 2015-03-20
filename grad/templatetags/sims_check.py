@@ -3,9 +3,6 @@ from django.utils.html import mark_safe
 from django import template
 from grad.models import Supervisor
 
-# who can see these checks?
-ALLOWED_USERIDS = {'ggbaker',}
-
 register = template.Library()
 
 class SIMSCheckNode(template.Node):
@@ -17,11 +14,8 @@ class SIMSCheckNode(template.Node):
         gs = self.grad.resolve(context)
         user = self.user.resolve(context)
 
-        # don't reveal these widely yet
-        if not user or user.username not in ALLOWED_USERIDS:
+        if gs.program.unit.slug != 'ensc':
             return ''
-        #if gs.program.unit.slug == 'cmpt':
-        #    return ''
 
         obj = self.obj.resolve(context)
         if hasattr(obj, 'config') and 'imported_from' in obj.config and obj.config['imported_from']:
