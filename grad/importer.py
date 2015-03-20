@@ -867,15 +867,18 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
 
     # do the unconfirmed ones have any confirmed data associated? (implicitly ignoring manually-entered data on these fields)
     for GradModel in [GradProgramHistory, GradStatus, Supervisor]:
+        # TODO: raise if there are any
         print [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco) if 'imported_from' in s.config]
 
     # do they have any other data entered manually?
     for GradModel in [CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument]:
+        # TODO: move them to the "real" GradStudent object
         print [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco)]
 
     if not dry_run:
         for gs in gs_unco:
             gs.current_status = 'DELE'
+            # TODO: go for it
             #gs.save()
 
 
