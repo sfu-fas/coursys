@@ -75,13 +75,14 @@ STATUS_CHOICES = (
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed Special'), # Special Arrangements + GONE
+        ('DELE', 'Deleted Record'), # used to flag GradStudents as deleted
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
-STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE') # statuses we don't actually use anymore
+STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
 SHORT_STATUSES = dict([ # a shorter status description we can use in compact tables
         ('INCO', 'Incomp App'),
@@ -103,6 +104,7 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('NOND', 'Non-deg'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed'), # Special Arrangements + GONE
+        ('DELE', 'Deleted Record'),
 ])
 
 GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
@@ -173,8 +175,19 @@ def _active_semesters_display(pk):
     return res
 
 
+class GradStudentManager(models.Manager):
+    # never return deleted GradStudent objects
+    def get_queryset(self):
+        qs = super(GradStudentManager, self).get_queryset()
+        #qs = qs.filter(config__contains='imported_from')
+        qs = qs.exclude(current_status='DELE')
+        return qs
+
 
 class GradStudent(models.Model, ConditionalSaveMixin):
+    objects = GradStudentManager()
+    all_objects = models.Manager()
+
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     def autoslug(self):
@@ -183,7 +196,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         else:
             userid = str(self.person.emplid)
         return make_slug(userid + "-" + self.program.slug)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True, manager=all_objects)
     research_area = models.TextField('Research Area', blank=True)
     campus = models.CharField(max_length=5, choices=GRAD_CAMPUS_CHOICES, blank=True, db_index=True)
 
@@ -244,6 +257,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         ('qualifying_exam_location', "Location of qualifying exam"),
     ]
 
+
     def __unicode__(self):
         return u"%s, %s" % (self.person, self.program.label)
 
@@ -269,6 +283,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             Active statuses have precedence over Applicant statuses.
             if a student is Active in 1134 but Complete Application in 1137, they are Active.
         """
+        if self.current_status == 'DELE':
+            raise ValueError
+
         if semester == None:
             semester = Semester.current()
 
@@ -341,6 +358,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         Called by updates to statuses, and also by grad.tasks.update_statuses_to_current to reflect future statuses
         when the future actually comes.
         """
+        if self.current_status == 'DELE':
+            raise ValueError
         old = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
         self.start_semester = None
         self.end_semester = None

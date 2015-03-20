@@ -15,4 +15,4 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        rogue_grad_finder(args[0])
+        rogue_grad_finder(args[0], dry_run=options['dryrun'], verbosity=int(options['verbosity']))
