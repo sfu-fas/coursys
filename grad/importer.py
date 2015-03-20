@@ -849,10 +849,30 @@ def NEW_import_unit_grads(unit, dry_run, verbosity):
                     # only touch if it's from the unit we're trying to import
                     continue
                 c.update_local_data(verbosity=verbosity, dry_run=dry_run)
-                c.find_rogue_local_data(verbosity=verbosity, dry_run=True)
+                c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
 
-            timeline.find_rogue_local_data(verbosity=verbosity, dry_run=True)
+            timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
 
+
+
+from grad.models import CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument
+def rogue_grad_finder(unit_slug):
+    """
+    Examine grad programs for this student. Identify rogues that could be deleted.
+    """
+    gss = GradStudent.objects.filter(program__unit__slug=unit_slug)
+
+    # what GradStudents haven't been found in SIMS?
+    #gs_conf = [gs for gs in gss if 'imported_from' in gs.config]
+    gs_unco = [gs for gs in gss if 'imported_from' not in gs.config]
+
+    # do the unconfirmed ones have any confirmed data associated? (implicitly ignoring manually-entered data on these fields)
+    for GradModel in [GradProgramHistory, GradStatus, Supervisor]:
+        print [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco) if 'imported_from' in s.config]
+
+    # do they have any other data entered manually?
+    for GradModel in [CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument]:
+        print [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco)]
 
 
 

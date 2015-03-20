@@ -83,7 +83,10 @@ class SIMSConn(DBConn):
         elif feature_disabled('sims'):
             raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
 
-        import DB2
+        try:
+            import DB2
+        except ImportError:
+            raise SIMSProblem, "could not import DB2 module"
         SIMSConn.DatabaseError = DB2.DatabaseError
         SIMSConn.DB2Error = DB2.Error
         try:
@@ -145,8 +148,6 @@ def SIMS_problem_handler(func):
             return func(*args, **kwargs)
         except SIMSConn.DatabaseError as e:
             raise SIMSProblem, "could not connect to reporting database"
-        except ImportError:
-            raise SIMSProblem, "could not import DB2 module"
         except SIMSConn.DB2Error as e:
             raise SIMSProblem, "problem with reporting database connection"
 

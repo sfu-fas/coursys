@@ -1,11 +1,10 @@
 from django.core.management.base import BaseCommand
-from coredata.models import Unit
-from grad.importer import NEW_import_unit_grads
+from grad.importer import rogue_grad_finder
 from optparse import make_option
 
 class Command(BaseCommand):
     args = '<unit_slug>'
-    help = 'Import data from SIMS into our system for one unit\'s grad students'
+    help = 'Examine rogue GradStudent objects for this unit'
 
     option_list = BaseCommand.option_list + (
         make_option('--dry-run', '-n',
@@ -16,6 +15,4 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        unit_slug = args[0]
-
-        NEW_import_unit_grads(Unit.objects.get(slug=unit_slug), dry_run=options['dryrun'], verbosity=int(options['verbosity']))
+        rogue_grad_finder(args[0])
