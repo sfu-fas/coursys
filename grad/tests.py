@@ -19,6 +19,7 @@ class GradTest(TestCase):
         # find a grad student who is owned by CS for testing
         gs = GradStudent.objects.filter(program__unit__slug='cmpt')[0]
         self.gs_userid = gs.person.userid
+        self.gs = gs
 
     def test_grad_quicksearch(self):
         """
@@ -49,8 +50,8 @@ class GradTest(TestCase):
         
         response = client.get(response['location'])
         gradlist = response.context['grads']
-        self.assertEqual(len(gradlist), 1)
-        self.assertEqual(gradlist[0], GradStudent.objects.get(person__userid=self.gs_userid))
+        self.assertEqual(len(gradlist), GradStudent.objects.filter(person__userid=self.gs_userid).count())
+        self.assertIn(self.gs, gradlist)
 
     def test_that_grad_search_returns_200_ok(self):
         """
@@ -94,7 +95,7 @@ class GradTest(TestCase):
 
     def __make_test_grad(self):
         
-        gs = GradStudent.objects.get(person__userid=self.gs_userid)
+        gs = self.gs
         sem = Semester.current()
         
         # put some data there so there's something to see in the tests (also, the empty <tbody>s don't validate)
@@ -200,7 +201,7 @@ class GradTest(TestCase):
         """
         client = Client()
         client.login_user('dzhao')
-        gs = GradStudent.objects.get(person__userid=self.gs_userid)
+        gs = self.gs
 
         # get template text and make sure substitutions are made
         lt = LetterTemplate.objects.get(label="Funding")
