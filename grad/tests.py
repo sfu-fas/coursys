@@ -207,7 +207,7 @@ class GradTest(TestCase):
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         response = client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'M Grad is making satisfactory progress')
+        self.assertContains(response, gs.person.get_title() + ' ' + gs.person.last_name + ' is making satisfactory progress')
         content = unicode(response.content)
         
         # create a letter with that content

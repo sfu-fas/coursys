@@ -205,6 +205,8 @@ def create_coredata():
     o = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
     ensure_member(Person.objects.get(userid='ggbaker'), o, "INST", 0, "AUTO", "NONS")
     ensure_member(Person.objects.get(userid='0ggg0'), o, "TA", 0, "AUTO", "NONS")
+    ensure_member(Person.objects.get(userid='0aaa0'), o, "STUD", 3, "AUTO", "UGRD")
+    ensure_member(Person.objects.get(userid='0aaa1'), o, "STUD", 3, "AUTO", "UGRD")
 
     d = Person.objects.get(userid='dzhao')
     set_privacy_signed(d)
@@ -336,9 +338,9 @@ def create_grades():
             students = set(random.sample(undergrads, 6) + list(Person.objects.filter(userid__in=['0aaa0', '0aaa1', '0aaa2'])))
         else:
             students = random.sample(undergrads, 4)
+
         for p in students:
-            m = Member(person=p, role='STUD', offering=o, credits=3, career='UGRD', added_reason='AUTO')
-            m.save()
+            Member.objects.get_or_create(person=p, role='STUD', offering=o, credits=3, career='UGRD', added_reason='AUTO')
 
     return itertools.chain(
         Holiday.objects.filter(semester__name__gt=SEMESTER_CUTOFF),
@@ -485,11 +487,11 @@ def create_grad():
         p.save()
 
         # flags
-        if random.randint(1,2) == 1:
+        if random.randint(1,3) == 1:
             cr = CompletedRequirement(requirement=gr, student=gs, semester=start.offset(1))
             cr.save()
 
-        if random.randint(1,3) == 1:
+        if random.randint(1,4) == 1:
             gfv = GradFlagValue(flag=gf, student=gs, value=True)
             gfv.save()
 
@@ -503,11 +505,6 @@ def create_grad():
                 s.save()
                 s = Supervisor(student=gs, supervisor=random.choice(supervisors), supervisor_type='COM')
                 s.save()
-                s = Supervisor(student=gs, supervisor=random.choice(supervisors), supervisor_type='COM')
-                s.save()
-
-
-
 
     return itertools.chain(
         roles,
@@ -529,6 +526,61 @@ def create_grad():
     )
 
 
+def create_ta():
+    """
+    Build test data for the ta and tacontracts modules.
+    """
+    return itertools.chain()
+
+
+def create_onlineforms():
+    """
+    Build test data for the onlineforms module.
+    """
+    from onlineforms.models import FormGroup, FormGroupMember, Form, Sheet, Field
+    unit = Unit.objects.get(slug='cmpt')
+    fg = FormGroup(name="Admins", unit=unit)
+    fg.save()
+    FormGroupMember(formgroup=fg, person=Person.objects.get(userid='ggbaker')).save()
+    FormGroupMember(formgroup=fg, person=Person.objects.get(userid='dzhao')).save()
+
+    f1 = Form(title="Simple Form", owner=fg, unit=fg.unit, description="Simple test form.", initiators='ANY')
+    f1.save()
+    s1 = Sheet(form=f1, title="Initial sheet")
+    s1.save()
+    fld1 = Field(label='Favorite Color', sheet=s1, fieldtype='SMTX', config={"min_length": 1, "required": True, "max_length": "100", 'label': 'Favorite Color', "help_text":''})
+    fld1.save()
+    fld2 = Field(label='Reason', sheet=s1, fieldtype='MDTX', config={"min_length": 10, "required": True, "max_length": "400", 'label': 'Reason', "help_text":'Why?'})
+    fld2.save()
+    fld3 = Field(label='Second Favorite Color', sheet=s1, fieldtype='SMTX', config={"min_length": 1, "required": False, "max_length": "100", 'label': 'Second Favorite Color', "help_text":''})
+    fld3.save()
+
+    f2 = Form(title="Appeal Form", owner=fg, unit=fg.unit, description="An all-purpose appeal form to appeal things with", initiators='LOG', advisor_visible=True)
+    f2.save()
+    s2 = Sheet(form=f2, title="Student Appeal")
+    s2.save()
+    fld4 = Field(label='Appeal', sheet=s2, fieldtype='SMTX', config={"min_length": 1, "required": True, "max_length": "100", 'label': 'Appeal', "help_text":'What do you want to appeal?'})
+    fld4.save()
+    fld4 = Field(label='Reasons', sheet=s2, fieldtype='LGTX', config={"min_length": 1, "required": True, "max_length": "1000", 'label': 'Reasons', "help_text":'Why do you think you deserve it?'})
+    fld4.save()
+    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={ "required": False, 'label': 'Prediction', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
+    fld5.save()
+    s3 = Sheet(form=f2, title="Decision", can_view="ALL")
+    s3.save()
+    fld5 = Field(label='Decision', sheet=s3, fieldtype='RADI', config={ "required": True, 'label': 'Decision', "help_text":"Do you approve this appeal?", "choice_1": "Yes", "choice_2": "No", "choice_3": "See comments"})
+    fld5.save()
+    fld6 = Field(label='Comments', sheet=s3, fieldtype='MDTX', config={"min_length": 1, "required": False, "max_length": "1000", 'label': 'Comments', "help_text":'Any additional comments'})
+    fld6.save()
+
+    return itertools.chain(
+        FormGroup.objects.all(),
+        FormGroupMember.objects.all(),
+        Form.objects.all(),
+        Sheet.objects.all(),
+        Field.objects.all(),
+    )
+
+
 def serialize_result(data_func, filename):
     print "creating %s.json" % (filename)
     objs = data_func()
@@ -547,6 +599,8 @@ def main():
     # use/import no real emplids after this
     serialize_result(create_grades, 'grades')
     serialize_result(create_grad, 'grad')
+    serialize_result(create_onlineforms, 'onlineforms')
+    serialize_result(create_ta, 'ta')
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
