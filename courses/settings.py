@@ -129,6 +129,7 @@ TIME_ZONE = 'America/Vancouver'
 USE_I18N = False
 USE_L10N = False
 USE_TZ = False
+FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 #TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_ARGS = ['--exe',
             '--with-progressive',

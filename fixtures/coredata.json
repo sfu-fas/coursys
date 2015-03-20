@@ -1,0 +1,1859 @@
+[
+{
+ "fields": {
+  "monday": "2010-01-04",
+  "semester": 134,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 134
+},
+{
+ "fields": {
+  "monday": "2010-05-17",
+  "semester": 135,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 135
+},
+{
+ "fields": {
+  "monday": "2010-09-06",
+  "semester": 136,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 136
+},
+{
+ "fields": {
+  "monday": "2011-01-10",
+  "semester": 137,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 137
+},
+{
+ "fields": {
+  "monday": "2011-05-09",
+  "semester": 138,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 138
+},
+{
+ "fields": {
+  "monday": "2011-09-05",
+  "semester": 139,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 139
+},
+{
+ "fields": {
+  "monday": "2012-01-09",
+  "semester": 140,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 140
+},
+{
+ "fields": {
+  "monday": "2012-05-07",
+  "semester": 141,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 141
+},
+{
+ "fields": {
+  "monday": "2012-09-03",
+  "semester": 142,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 142
+},
+{
+ "fields": {
+  "monday": "2013-01-07",
+  "semester": 143,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 143
+},
+{
+ "fields": {
+  "monday": "2013-05-06",
+  "semester": 144,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 144
+},
+{
+ "fields": {
+  "monday": "2013-09-02",
+  "semester": 145,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 145
+},
+{
+ "fields": {
+  "monday": "2014-01-06",
+  "semester": 146,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 146
+},
+{
+ "fields": {
+  "monday": "2014-05-05",
+  "semester": 147,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 147
+},
+{
+ "fields": {
+  "monday": "2014-09-01",
+  "semester": 148,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 148
+},
+{
+ "fields": {
+  "monday": "2015-01-05",
+  "semester": 149,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 149
+},
+{
+ "fields": {
+  "monday": "2015-05-11",
+  "semester": 150,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 150
+},
+{
+ "fields": {
+  "monday": "2015-09-07",
+  "semester": 151,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 151
+},
+{
+ "fields": {
+  "monday": "2016-01-04",
+  "semester": 152,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 152
+},
+{
+ "fields": {
+  "monday": "2016-05-09",
+  "semester": 153,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 153
+},
+{
+ "fields": {
+  "monday": "2016-09-05",
+  "semester": 154,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 154
+},
+{
+ "fields": {
+  "monday": "2017-01-09",
+  "semester": 155,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 155
+},
+{
+ "fields": {
+  "monday": "2017-05-08",
+  "semester": 156,
+  "week": 1
+ },
+ "model": "coredata.semesterweek",
+ "pk": 156
+},
+{
+ "fields": {
+  "acad_org": "COMP SCI",
+  "config": "{\"deptid\":\"12345\",\"web\":\"http://www.cs.sfu.ca/\",\"fax\":\"778-782-3045\",\"tel\":\"778-782-4277\",\"informal_name\":\"Computing Science\",\"address\":[\"9971 Applied Sciences Building\",\"8888 University Drive, Burnaby, BC\",\"Canada V5A 1S6\"],\"email\":\"csdept@sfu.ca\"}",
+  "label": "CMPT",
+  "name": "School of Computing Science",
+  "parent": 2,
+  "slug": "cmpt"
+ },
+ "model": "coredata.unit",
+ "pk": 5
+},
+{
+ "fields": {
+  "acad_org": "ENG SCI",
+  "config": "{}",
+  "label": "ENSC",
+  "name": "School of Engineering Science",
+  "parent": 2,
+  "slug": "ensc"
+ },
+ "model": "coredata.unit",
+ "pk": 3
+},
+{
+ "fields": {
+  "acad_org": null,
+  "config": "{}",
+  "label": "FAS",
+  "name": "Faculty of Applied Sciences",
+  "parent": 1,
+  "slug": "fas"
+ },
+ "model": "coredata.unit",
+ "pk": 2
+},
+{
+ "fields": {
+  "acad_org": "MECH SYS",
+  "config": "{}",
+  "label": "MSE",
+  "name": "School of Mechatronic Systems Engineering",
+  "parent": 2,
+  "slug": "mse"
+ },
+ "model": "coredata.unit",
+ "pk": 4
+},
+{
+ "fields": {
+  "acad_org": null,
+  "config": "{}",
+  "label": "UNIV",
+  "name": "Simon Fraser University",
+  "parent": null,
+  "slug": "univ"
+ },
+ "model": "coredata.unit",
+ "pk": 1
+},
+{
+ "fields": {
+  "config": "{}",
+  "number": "120",
+  "slug": "cmpt-120",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming I"
+ },
+ "model": "coredata.course",
+ "pk": 1
+},
+{
+ "fields": {
+  "config": "{}",
+  "number": "125",
+  "slug": "cmpt-125",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming II"
+ },
+ "model": "coredata.course",
+ "pk": 2
+},
+{
+ "fields": {
+  "config": "{}",
+  "number": "126",
+  "slug": "cmpt-126",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci and Programming"
+ },
+ "model": "coredata.course",
+ "pk": 4
+},
+{
+ "fields": {
+  "config": "{}",
+  "number": "127",
+  "slug": "cmpt-127",
+  "subject": "CMPT",
+  "title": "Computing Laboratory"
+ },
+ "model": "coredata.course",
+ "pk": 3
+},
+{
+ "fields": {
+  "config": "{}",
+  "number": "100W",
+  "slug": "ensc-100w",
+  "subject": "ENSC",
+  "title": "Eng. Technology and Society"
+ },
+ "model": "coredata.course",
+ "pk": 6
+},
+{
+ "fields": {
+  "config": "{}",
+  "number": "105W",
+  "slug": "ensc-105w",
+  "subject": "ENSC",
+  "title": "Process of Prof. Writing"
+ },
+ "model": "coredata.course",
+ "pk": 5
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4429,
+  "component": "LEC",
+  "config": "{}",
+  "course": 6,
+  "crse_id": 14917,
+  "enrl_cap": 242,
+  "enrl_tot": 0,
+  "flags": "12",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "100W",
+  "owner": 3,
+  "section": "D100",
+  "semester": 151,
+  "slug": "2015fa-ensc-100w-d1",
+  "subject": "ENSC",
+  "title": "Eng. Technology and Society",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 9
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4407,
+  "component": "LEC",
+  "config": "{}",
+  "course": 5,
+  "crse_id": 16516,
+  "enrl_cap": 125,
+  "enrl_tot": 0,
+  "flags": "1",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "105W",
+  "owner": 3,
+  "section": "E100",
+  "semester": 151,
+  "slug": "2015fa-ensc-105w-e1",
+  "subject": "ENSC",
+  "title": "Process of Prof. Writing",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 7
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4426,
+  "component": "LEC",
+  "config": "{}",
+  "course": 5,
+  "crse_id": 16516,
+  "enrl_cap": 125,
+  "enrl_tot": 0,
+  "flags": "1",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "105W",
+  "owner": 3,
+  "section": "E200",
+  "semester": 151,
+  "slug": "2015fa-ensc-105w-e2",
+  "subject": "ENSC",
+  "title": "Process of Prof. Writing",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 8
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4513,
+  "component": "LEC",
+  "config": "{}",
+  "course": 1,
+  "crse_id": 14580,
+  "enrl_cap": 175,
+  "enrl_tot": 56,
+  "flags": "10",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "120",
+  "owner": 5,
+  "section": "D100",
+  "semester": 150,
+  "slug": "2015su-cmpt-120-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming I",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 10
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4514,
+  "component": "LEC",
+  "config": "{}",
+  "course": 2,
+  "crse_id": 14581,
+  "enrl_cap": 165,
+  "enrl_tot": 6,
+  "flags": "2",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "125",
+  "owner": 5,
+  "section": "D100",
+  "semester": 150,
+  "slug": "2015su-cmpt-125-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming II",
+  "units": 3,
+  "wait_tot": 10
+ },
+ "model": "coredata.courseoffering",
+ "pk": 11
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4515,
+  "component": "LEC",
+  "config": "{}",
+  "course": 4,
+  "crse_id": 14582,
+  "enrl_cap": 125,
+  "enrl_tot": 17,
+  "flags": "10",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "126",
+  "owner": 5,
+  "section": "D100",
+  "semester": 150,
+  "slug": "2015su-cmpt-126-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci and Programming",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 12
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4519,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 55,
+  "enrl_tot": 6,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "LAB1",
+  "semester": 150,
+  "slug": "2015su-cmpt-127-lab1",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 3
+ },
+ "model": "coredata.courseoffering",
+ "pk": 13
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4520,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 55,
+  "enrl_tot": 2,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "LAB2",
+  "semester": 150,
+  "slug": "2015su-cmpt-127-lab2",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 6
+ },
+ "model": "coredata.courseoffering",
+ "pk": 14
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 4521,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 55,
+  "enrl_tot": 0,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "LAB3",
+  "semester": 150,
+  "slug": "2015su-cmpt-127-lab3",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 2
+ },
+ "model": "coredata.courseoffering",
+ "pk": 15
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 6406,
+  "component": "LEC",
+  "config": "{}",
+  "course": 1,
+  "crse_id": 14580,
+  "enrl_cap": 182,
+  "enrl_tot": 182,
+  "flags": "10",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "120",
+  "owner": 5,
+  "section": "D100",
+  "semester": 149,
+  "slug": "2015sp-cmpt-120-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming I",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 1
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 6414,
+  "component": "LEC",
+  "config": "{}",
+  "course": 2,
+  "crse_id": 14581,
+  "enrl_cap": 192,
+  "enrl_tot": 175,
+  "flags": "2",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "125",
+  "owner": 5,
+  "section": "D100",
+  "semester": 149,
+  "slug": "2015sp-cmpt-125-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci/Programming II",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 2
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 6419,
+  "component": "LEC",
+  "config": "{}",
+  "course": 4,
+  "crse_id": 14582,
+  "enrl_cap": 95,
+  "enrl_tot": 65,
+  "flags": "10",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "126",
+  "owner": 5,
+  "section": "D100",
+  "semester": 149,
+  "slug": "2015sp-cmpt-126-d1",
+  "subject": "CMPT",
+  "title": "Intro.Cmpt.Sci and Programming",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 6
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 6415,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 64,
+  "enrl_tot": 71,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "LAB1",
+  "semester": 149,
+  "slug": "2015sp-cmpt-127-lab1",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 3
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 6416,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 64,
+  "enrl_tot": 66,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "LAB2",
+  "semester": 149,
+  "slug": "2015sp-cmpt-127-lab2",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 4
+},
+{
+ "fields": {
+  "campus": "BRNBY",
+  "class_nbr": 6417,
+  "component": "LAB",
+  "config": "{}",
+  "course": 3,
+  "crse_id": 17292,
+  "enrl_cap": 64,
+  "enrl_tot": 64,
+  "flags": "0",
+  "graded": true,
+  "instr_mode": "P",
+  "number": "127",
+  "owner": 5,
+  "section": "LAB3",
+  "semester": 149,
+  "slug": "2015sp-cmpt-127-lab3",
+  "subject": "CMPT",
+  "title": "Computing Laboratory",
+  "units": 3,
+  "wait_tot": 0
+ },
+ "model": "coredata.courseoffering",
+ "pk": 5
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000100,
+  "first_name": "Gregory",
+  "last_name": "Baker",
+  "middle_name": "Garnet",
+  "pref_first_name": "Gregory",
+  "temporary": false,
+  "title": null,
+  "userid": "ggbaker"
+ },
+ "model": "coredata.person",
+ "pk": 1
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000101,
+  "first_name": "Philippe",
+  "last_name": "Boutros",
+  "middle_name": "",
+  "pref_first_name": "Philippe",
+  "temporary": false,
+  "title": null,
+  "userid": "pba7"
+ },
+ "model": "coredata.person",
+ "pk": 6
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000102,
+  "first_name": "Diana",
+  "last_name": "Cukierman",
+  "middle_name": "Raquel",
+  "pref_first_name": "Diana",
+  "temporary": false,
+  "title": "Dr",
+  "userid": "diana"
+ },
+ "model": "coredata.person",
+ "pk": 4
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000103,
+  "first_name": "Anthony",
+  "last_name": "Dixon",
+  "middle_name": "",
+  "pref_first_name": "Anthony",
+  "temporary": false,
+  "title": null,
+  "userid": "dixon"
+ },
+ "model": "coredata.person",
+ "pk": 3
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000104,
+  "first_name": ".",
+  "last_name": "Faculty",
+  "middle_name": "",
+  "pref_first_name": ".",
+  "temporary": false,
+  "title": "",
+  "userid": null
+ },
+ "model": "coredata.person",
+ "pk": 11
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000105,
+  "first_name": "Jane",
+  "last_name": "Huang",
+  "middle_name": "Wei",
+  "pref_first_name": "Jane",
+  "temporary": false,
+  "title": "Dr",
+  "userid": "jwh9"
+ },
+ "model": "coredata.person",
+ "pk": 12
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000106,
+  "first_name": "John",
+  "last_name": "Jones",
+  "middle_name": "",
+  "pref_first_name": "John",
+  "temporary": false,
+  "title": "Dr",
+  "userid": "jones"
+ },
+ "model": "coredata.person",
+ "pk": 7
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000107,
+  "first_name": "Anne",
+  "last_name": "Lavergne",
+  "middle_name": "",
+  "pref_first_name": "Anne",
+  "temporary": false,
+  "title": "Miss",
+  "userid": "alavergn"
+ },
+ "model": "coredata.person",
+ "pk": 10
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000108,
+  "first_name": "Fred",
+  "last_name": "Popowich",
+  "middle_name": "",
+  "pref_first_name": "Fred",
+  "temporary": false,
+  "title": null,
+  "userid": "popowich"
+ },
+ "model": "coredata.person",
+ "pk": 2
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000109,
+  "first_name": "Michael",
+  "last_name": "Sjoerdsma",
+  "middle_name": "Henri",
+  "pref_first_name": "Michael",
+  "temporary": false,
+  "title": "Mr",
+  "userid": "mhs"
+ },
+ "model": "coredata.person",
+ "pk": 8
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000110,
+  "first_name": "Richard",
+  "last_name": "Vaughan",
+  "middle_name": "Terence",
+  "pref_first_name": "Richard",
+  "temporary": false,
+  "title": "",
+  "userid": "vaughan"
+ },
+ "model": "coredata.person",
+ "pk": 13
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 200000111,
+  "first_name": "Stephen",
+  "last_name": "Whitmore",
+  "middle_name": "",
+  "pref_first_name": "Stephen",
+  "temporary": false,
+  "title": "Mr",
+  "userid": "whitmore"
+ },
+ "model": "coredata.person",
+ "pk": 9
+},
+{
+ "fields": {
+  "config": "{\"privacy_signed\":true,\"privacy_version\":1,\"privacy_date\":\"2015-03-19\"}",
+  "emplid": 200000112,
+  "first_name": "DanYu",
+  "last_name": "Zhao",
+  "middle_name": "",
+  "pref_first_name": "DanYu",
+  "temporary": false,
+  "title": null,
+  "userid": "dzhao"
+ },
+ "model": "coredata.person",
+ "pk": 5
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000300,
+  "first_name": "Vtubehqb",
+  "last_name": "Student",
+  "middle_name": "Xmyhlq",
+  "pref_first_name": "Vtub",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa0"
+ },
+ "model": "coredata.person",
+ "pk": 14
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000301,
+  "first_name": "Ubpjrwke",
+  "last_name": "Student",
+  "middle_name": "Anlrfs",
+  "pref_first_name": "Ubpj",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa1"
+ },
+ "model": "coredata.person",
+ "pk": 16
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000302,
+  "first_name": "Yrlnaibc",
+  "last_name": "Student",
+  "middle_name": "Whneye",
+  "pref_first_name": "Yrlnaibc",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa2"
+ },
+ "model": "coredata.person",
+ "pk": 18
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000303,
+  "first_name": "Hstgucbx",
+  "last_name": "Student",
+  "middle_name": "Somhuu",
+  "pref_first_name": "Hstgucbx",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa3"
+ },
+ "model": "coredata.person",
+ "pk": 20
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000304,
+  "first_name": "Pgvsfrlo",
+  "last_name": "Student",
+  "middle_name": "Qyeuit",
+  "pref_first_name": "Pgvs",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa4"
+ },
+ "model": "coredata.person",
+ "pk": 22
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000305,
+  "first_name": "Gjgjvowy",
+  "last_name": "Student",
+  "middle_name": "Opyloi",
+  "pref_first_name": "Gjgjvowy",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa5"
+ },
+ "model": "coredata.person",
+ "pk": 24
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000306,
+  "first_name": "Tknwnxbu",
+  "last_name": "Student",
+  "middle_name": "Rrwdhs",
+  "pref_first_name": "Tknw",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa6"
+ },
+ "model": "coredata.person",
+ "pk": 26
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000307,
+  "first_name": "Jwucxpmk",
+  "last_name": "Student",
+  "middle_name": "Jdrvkz",
+  "pref_first_name": "Jwucxpmk",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa7"
+ },
+ "model": "coredata.person",
+ "pk": 28
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000308,
+  "first_name": "Egoceoiq",
+  "last_name": "Student",
+  "middle_name": "Garogi",
+  "pref_first_name": "Egoceoiq",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa8"
+ },
+ "model": "coredata.person",
+ "pk": 30
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000309,
+  "first_name": "Jhfuyqix",
+  "last_name": "Student",
+  "middle_name": "Wxmtxb",
+  "pref_first_name": "Jhfu",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa9"
+ },
+ "model": "coredata.person",
+ "pk": 32
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000310,
+  "first_name": "Fraaklvp",
+  "last_name": "Student",
+  "middle_name": "Rnbnpk",
+  "pref_first_name": "Fraaklvp",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa10"
+ },
+ "model": "coredata.person",
+ "pk": 34
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000311,
+  "first_name": "Vnbwnxxk",
+  "last_name": "Student",
+  "middle_name": "Kqatdv",
+  "pref_first_name": "Vnbwnxxk",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa11"
+ },
+ "model": "coredata.person",
+ "pk": 36
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000312,
+  "first_name": "Qnsqifxk",
+  "last_name": "Student",
+  "middle_name": "Bxbkmj",
+  "pref_first_name": "Qnsq",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa12"
+ },
+ "model": "coredata.person",
+ "pk": 38
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000313,
+  "first_name": "Awaslbsh",
+  "last_name": "Student",
+  "middle_name": "Qhcxon",
+  "pref_first_name": "Awaslbsh",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa13"
+ },
+ "model": "coredata.person",
+ "pk": 40
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000314,
+  "first_name": "Aogzgiuz",
+  "last_name": "Student",
+  "middle_name": "Poicls",
+  "pref_first_name": "Aogzgiuz",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa14"
+ },
+ "model": "coredata.person",
+ "pk": 42
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000315,
+  "first_name": "Lzxjvzir",
+  "last_name": "Student",
+  "middle_name": "Mpkwnb",
+  "pref_first_name": "Lzxj",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa15"
+ },
+ "model": "coredata.person",
+ "pk": 44
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000316,
+  "first_name": "Eqphurel",
+  "last_name": "Student",
+  "middle_name": "Zcmewz",
+  "pref_first_name": "Eqph",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa16"
+ },
+ "model": "coredata.person",
+ "pk": 46
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000317,
+  "first_name": "Zdkswary",
+  "last_name": "Student",
+  "middle_name": "Vhlvzt",
+  "pref_first_name": "Zdkswary",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa17"
+ },
+ "model": "coredata.person",
+ "pk": 48
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000318,
+  "first_name": "Qroerdgf",
+  "last_name": "Student",
+  "middle_name": "Hbccpf",
+  "pref_first_name": "Qroe",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa18"
+ },
+ "model": "coredata.person",
+ "pk": 50
+},
+{
+ "fields": {
+  "config": "{}",
+  "emplid": 300000319,
+  "first_name": "Bxhiahxg",
+  "last_name": "Student",
+  "middle_name": "Mxwqjl",
+  "pref_first_name": "Bxhiahxg",
+  "temporary": false,
+  "title": null,
+  "userid": "0aaa19"
+ },
+ "model": "coredata.person",
+ "pk": 52
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"U\",\"visa\":\"New CDN\",\"gpa\":2.17,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000500,
+  "first_name": "Ubaqdmmi",
+  "last_name": "Grad",
+  "middle_name": "Fdoukq",
+  "pref_first_name": "Ubaq",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg0"
+ },
+ "model": "coredata.person",
+ "pk": 15
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Unknown\",\"gpa\":2.66,\"citizen\":\"Canadian\"}",
+  "emplid": 300000501,
+  "first_name": "Aymhndmd",
+  "last_name": "Grad",
+  "middle_name": "Uzutjj",
+  "pref_first_name": "Aymhndmd",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg1"
+ },
+ "model": "coredata.person",
+ "pk": 17
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"U\",\"visa\":\"Visitor\",\"gpa\":4.14,\"citizen\":\"Canadian\"}",
+  "emplid": 300000502,
+  "first_name": "Enwjrjso",
+  "last_name": "Grad",
+  "middle_name": "Nlyawu",
+  "pref_first_name": "Enwjrjso",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg2"
+ },
+ "model": "coredata.person",
+ "pk": 19
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"No Visa St\",\"gpa\":1.62,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000503,
+  "first_name": "Ylxryeoe",
+  "last_name": "Grad",
+  "middle_name": "Otxjbj",
+  "pref_first_name": "Ylxryeoe",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg3"
+ },
+ "model": "coredata.person",
+ "pk": 21
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"U\",\"visa\":\"Student\",\"gpa\":3.96,\"citizen\":\"Canadian\"}",
+  "emplid": 300000504,
+  "first_name": "Zyguteau",
+  "last_name": "Grad",
+  "middle_name": "Tfqyzt",
+  "pref_first_name": "Zyguteau",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg4"
+ },
+ "model": "coredata.person",
+ "pk": 23
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Student\",\"gpa\":2.45,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000505,
+  "first_name": "Gfksuuho",
+  "last_name": "Grad",
+  "middle_name": "Uajkjx",
+  "pref_first_name": "Gfksuuho",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg5"
+ },
+ "model": "coredata.person",
+ "pk": 25
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"New CDN\",\"gpa\":2.79,\"citizen\":\"Canadian\"}",
+  "emplid": 300000506,
+  "first_name": "Ptuwzyea",
+  "last_name": "Grad",
+  "middle_name": "Vxzbcl",
+  "pref_first_name": "Ptuw",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg6"
+ },
+ "model": "coredata.person",
+ "pk": 27
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Unknown\",\"gpa\":2.64,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000507,
+  "first_name": "Amnuddfx",
+  "last_name": "Grad",
+  "middle_name": "Vjbxoc",
+  "pref_first_name": "Amnu",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg7"
+ },
+ "model": "coredata.person",
+ "pk": 29
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"M\",\"visa\":\"Diplomat\",\"gpa\":2.0,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000508,
+  "first_name": "Lgoznzer",
+  "last_name": "Grad",
+  "middle_name": "Gutmlt",
+  "pref_first_name": "Lgoznzer",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg8"
+ },
+ "model": "coredata.person",
+ "pk": 31
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Unknown\",\"gpa\":3.13,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000509,
+  "first_name": "Zfmlhwsg",
+  "last_name": "Grad",
+  "middle_name": "Ktovsm",
+  "pref_first_name": "Zfmlhwsg",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg9"
+ },
+ "model": "coredata.person",
+ "pk": 33
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Other\",\"gpa\":3.37,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000510,
+  "first_name": "Rconyapg",
+  "last_name": "Grad",
+  "middle_name": "Todqky",
+  "pref_first_name": "Rcon",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg10"
+ },
+ "model": "coredata.person",
+ "pk": 35
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Min Permit\",\"gpa\":3.12,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000511,
+  "first_name": "Fyxoywjw",
+  "last_name": "Grad",
+  "middle_name": "Vxwcaa",
+  "pref_first_name": "Fyxoywjw",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg11"
+ },
+ "model": "coredata.person",
+ "pk": 37
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"U\",\"visa\":\"Min Permit\",\"gpa\":2.18,\"citizen\":\"Canadian\"}",
+  "emplid": 300000512,
+  "first_name": "Uiqtyrmh",
+  "last_name": "Grad",
+  "middle_name": "Mstbpn",
+  "pref_first_name": "Uiqt",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg12"
+ },
+ "model": "coredata.person",
+ "pk": 39
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"U\",\"visa\":\"Unknown\",\"gpa\":1.17,\"citizen\":\"Canadian\"}",
+  "emplid": 300000513,
+  "first_name": "Nlhjtjlg",
+  "last_name": "Grad",
+  "middle_name": "Kzmbjt",
+  "pref_first_name": "Nlhjtjlg",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg13"
+ },
+ "model": "coredata.person",
+ "pk": 41
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"U\",\"visa\":\"Diplomat\",\"gpa\":2.38,\"citizen\":\"Canadian\"}",
+  "emplid": 300000514,
+  "first_name": "Sievpeac",
+  "last_name": "Grad",
+  "middle_name": "Ighimo",
+  "pref_first_name": "Sievpeac",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg14"
+ },
+ "model": "coredata.person",
+ "pk": 43
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"M\",\"visa\":\"Other\",\"gpa\":2.29,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000515,
+  "first_name": "Izvdtdfj",
+  "last_name": "Grad",
+  "middle_name": "Adgptm",
+  "pref_first_name": "Izvd",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg15"
+ },
+ "model": "coredata.person",
+ "pk": 45
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Unknown\",\"gpa\":1.9,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000516,
+  "first_name": "Aqxcdgzg",
+  "last_name": "Grad",
+  "middle_name": "Thpdlg",
+  "pref_first_name": "Aqxcdgzg",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg16"
+ },
+ "model": "coredata.person",
+ "pk": 47
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"Conv Refug\",\"gpa\":1.63,\"citizen\":\"Canadian\"}",
+  "emplid": 300000517,
+  "first_name": "Kijkxnjz",
+  "last_name": "Grad",
+  "middle_name": "Ardkje",
+  "pref_first_name": "Kijk",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg17"
+ },
+ "model": "coredata.person",
+ "pk": 49
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"M\",\"visa\":\"Unknown\",\"gpa\":1.98,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000518,
+  "first_name": "Qsimgwah",
+  "last_name": "Grad",
+  "middle_name": "Kzqsmc",
+  "pref_first_name": "Qsimgwah",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg18"
+ },
+ "model": "coredata.person",
+ "pk": 51
+},
+{
+ "fields": {
+  "config": "{\"gender\":\"F\",\"visa\":\"No Visa St\",\"gpa\":2.26,\"citizen\":\"OtherCountrian\"}",
+  "emplid": 300000519,
+  "first_name": "Vcjsalaa",
+  "last_name": "Grad",
+  "middle_name": "Miimjh",
+  "pref_first_name": "Vcjsalaa",
+  "temporary": false,
+  "title": null,
+  "userid": "0ggg19"
+ },
+ "model": "coredata.person",
+ "pk": 53
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 9,
+  "official_grade": null,
+  "person": 7,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 1
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 7,
+  "official_grade": null,
+  "person": 8,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 2
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 8,
+  "official_grade": null,
+  "person": 9,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 3
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 10,
+  "official_grade": null,
+  "person": 10,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 4
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 11,
+  "official_grade": null,
+  "person": 11,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 5
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 12,
+  "official_grade": null,
+  "person": 11,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 6
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 13,
+  "official_grade": null,
+  "person": 10,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 7
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 14,
+  "official_grade": null,
+  "person": 10,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 8
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 15,
+  "official_grade": null,
+  "person": 10,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 9
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 1,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 16
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 4,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 10
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 15,
+  "role": "TA"
+ },
+ "model": "coredata.member",
+ "pk": 17
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 16,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 19
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "UGRD",
+  "config": "{}",
+  "credits": 3,
+  "labtut_section": null,
+  "offering": 1,
+  "official_grade": null,
+  "person": 14,
+  "role": "STUD"
+ },
+ "model": "coredata.member",
+ "pk": 18
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 2,
+  "official_grade": null,
+  "person": 12,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 11
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 6,
+  "official_grade": null,
+  "person": 4,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 12
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 3,
+  "official_grade": null,
+  "person": 13,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 13
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 4,
+  "official_grade": null,
+  "person": 13,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 14
+},
+{
+ "fields": {
+  "added_reason": "AUTO",
+  "career": "NONS",
+  "config": "{}",
+  "credits": 0,
+  "labtut_section": null,
+  "offering": 5,
+  "official_grade": null,
+  "person": 13,
+  "role": "INST"
+ },
+ "model": "coredata.member",
+ "pk": 15
+},
+{
+ "fields": {
+  "config": "{}",
+  "person": 5,
+  "role": "ADVS",
+  "unit": 5
+ },
+ "model": "coredata.role",
+ "pk": 2
+},
+{
+ "fields": {
+  "config": "{}",
+  "person": 5,
+  "role": "ADMN",
+  "unit": 5
+ },
+ "model": "coredata.role",
+ "pk": 3
+},
+{
+ "fields": {
+  "config": "{}",
+  "person": 6,
+  "role": "SYSA",
+  "unit": 1
+ },
+ "model": "coredata.role",
+ "pk": 4
+},
+{
+ "fields": {
+  "config": "{}",
+  "deleted": false,
+  "due_date": "2015-03-07T00:00:00",
+  "group": false,
+  "name": "Assignment 1",
+  "offering": 1,
+  "percent": "10",
+  "position": 1,
+  "short_name": "A1",
+  "slug": "a1",
+  "status": "URLS"
+ },
+ "model": "grades.activity",
+ "pk": 1
+},
+{
+ "fields": {
+  "max_grade": 10
+ },
+ "model": "grades.numericactivity",
+ "pk": 1
+}
+]

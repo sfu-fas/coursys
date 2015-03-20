@@ -621,7 +621,7 @@ def semester_first_day():
     db.execute("""
         SELECT strm, sess_begin_dt
         FROM ps_session_tbl
-        WHERE acad_career='UGRD' AND strm>'1000' AND session_code='1'""", ())
+        WHERE acad_career='UGRD' AND session_code='1'""", ())
     return dict(db)
 
 @cache_by_args
@@ -659,11 +659,14 @@ def import_admin_email(source, message, subject='data import: intervention requi
     mail_admins(subject, '[%s checking in.]\n\n%s' % (source, message))
 
 @transaction.atomic
-def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
+def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, bootstrap=False):
     """
     Update information on Semester objects from SIMS
 
     Finding the reference is tricky. Try Googling 'sfu calendar {{year}} "academic dates"'
+
+    long_long_ago: import from the beginning of time
+    bootstrap: don't assume Semester.current() will work, for bootstrapping test data creation
     """
     output = []
     semester_start = semester_first_day()
@@ -671,9 +674,13 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
     semester_end['1161'] = '2016-04-11' # correct for wacky data in SIMS
     sims_holidays = [(datetime.datetime.strptime(d, "%Y-%m-%d").date(), h) for d,h in all_holidays()]
 
-    # we want semesters 5 years into the future: that's a realistic max horizon for grad promises
-    current = Semester.current()
-    strms = [current.offset_name(i) for i in range(15)]
+    if not bootstrap:
+        # we want semesters 5 years into the future: that's a realistic max horizon for grad promises
+        current = Semester.current()
+        strms = [current.offset_name(i) for i in range(15)]
+    else:
+        strms = []
+
     if long_long_ago:
         strms = sorted(list(set(strms) | set(semester_start.keys())))
     semesters = dict((s.name, s) for s in Semester.objects.filter(name__in=strms))
@@ -744,7 +751,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
                 sw.save()
 
         length = semester.end - semester.start
-        if length > datetime.timedelta(days=92) and len(weeks) < 2 \
+        if not bootstrap and length > datetime.timedelta(days=92) and len(weeks) < 2 \
                 and semester.start - datetime.date.today() < datetime.timedelta(days=365):
             # semester is longer than 13 weeks: insist that the user specify reading week reasonably-soon before the semester starts
             message = "Semester %s is long (%s) but has no reading week specified. Please have a look here: %s\n\nYou probably want to enter the Monday of week 5/6/7/8 as the Monday after reading week, a week later than it would otherwise be." % (strm, length, url)
@@ -752,7 +759,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False):
                 output.append('*** ' + message)
             else:
                 import_admin_email(source='coredata.importer.import_semester_info', message=message)
-        else:
+        elif not bootstrap:
             # also check that the last day of classes is at a coherent time. Might reveal problems with reading week specification.
             endweek,_ = semester.week_weekday(semester.end, weeks=weeks)
             if endweek not in [13, 14]:

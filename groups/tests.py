@@ -20,7 +20,7 @@ from grades.models import Activity
 from django.db.models import Q
 
 class GroupTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grades']
 
     def setUp(self):
         self.c_slug = '1114-cmpt-120-d100'

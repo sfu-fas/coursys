@@ -12,7 +12,7 @@ import datetime
 from nose.plugins.skip import Skip, SkipTest
 
 class AdvisorNotestest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata']
 
     def test_pages(self):
         client = Client()

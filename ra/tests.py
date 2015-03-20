@@ -1,16 +1,15 @@
-#from django.test import TestCase
 from testboost.testcase import FastFixtureTestCase as TestCase
 from courselib.testing import Client, test_views
 from ra.models import RAAppointment, Account, Project
 
 class RATest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'ta_ra']
     def test_pages(self):
         """
         Test basic page rendering
         """
         c = Client()
-        c.login_user('ggbaker')
+        c.login_user('dzhao')
 
         test_views(self, c, 'ra.views.', ['search', 'new', 'accounts_index', 'new_account', 'projects_index',
                                           'new_project', 'semester_config', 'browse'], {})
