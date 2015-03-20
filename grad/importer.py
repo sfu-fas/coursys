@@ -370,8 +370,8 @@ class ProgramStatusChange(GradHappening):
             if ph.program != self.grad_program:
                 # current program isn't what we found
                 # ... but is there maybe two program changes in one semester?
-                similar_history = [p for p in programs if p.start_semester.name == self.strm
-                        and ph.program == self.grad_program]
+                similar_history = [p for p in programs if p.start_semester == ph.start_semester
+                        and p.program == self.grad_program]
                 if similar_history:
                     ph = similar_history[0]
                 else:
@@ -380,16 +380,28 @@ class ProgramStatusChange(GradHappening):
             # no history: create
             need_ph = True
 
+        key = self.import_key()
+        existing_history = [p for p in programs if
+                'sims_source' in p.config and p.config['sims_source'] == key]
+        if existing_history:
+            need_ph = False
+
         if need_ph:
             if (verbosity and previous_history) or verbosity > 1:
                 # don't usually report first ever ProgramHistory because those are boring
                 print "Adding program change: %s in %s as of %s." % (self.emplid, self.grad_program.slug, self.strm)
             ph = GradProgramHistory(student=student_info['student'], program=self.grad_program,
                     start_semester=STRM_MAP[self.strm], starting=self.effdt)
-            ph.config['sims_source'] = self.import_key()
+            ph.config['sims_source'] = key
             student_info['programs'].append(ph)
+            student_info['programs'].sort(key=lambda p: (p.start_semester.name, p.starting))
             if not dry_run:
                 ph.save()
+        else:
+            if 'sims_source' not in ph.config:
+                ph.config['sims_source'] = key
+                if not dry_run:
+                    ph.save()
 
 
 
@@ -426,11 +438,17 @@ class GradSemester(GradHappening):
         statuses = student_info['statuses']
         semester = STRM_MAP[self.strm]
         effdt = semester.start
+        key = self.key()
 
         # Option 1: we're already active
         effective_statuses = [s for s in statuses if s.start.name <= self.strm
                 and (not s.start_date or s.start_date <= effdt)]
         if effective_statuses and effective_statuses[-1].status == 'ACTI':
+            s = effective_statuses[-1]
+            if 'sims_source' not in s.config:
+                s.config['sims_source'] = key
+                if not dry_run:
+                    s.save()
             return
 
         # Option 2: there's an active status this semester, but it's not the most recent
@@ -441,7 +459,7 @@ class GradSemester(GradHappening):
                 print "* Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = active_semester_statuses[-1]
             st.start_date = effdt
-            st.config['sims_source'] = self.key()
+            st.config['sims_source'] = key
             if not dry_run:
                 st.save()
         else:
@@ -450,7 +468,7 @@ class GradSemester(GradHappening):
                 print "Adding grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
                     start_date=effdt)
-            st.config['sims_source'] = self.key()
+            st.config['sims_source'] = key
             if not dry_run:
                 st.save()
             student_info['statuses'].append(st)
