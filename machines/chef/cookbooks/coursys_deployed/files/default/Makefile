@@ -22,7 +22,3 @@ chef:
 
 check_things:
 	LD_LIBRARY_PATH=/home/coursys/sqllib/lib64 ./manage.py check_things
-
-create_db:
-	echo "no" | python manage.py syncdb && python manage.py migrate && python manage.py loaddata test_data
-
