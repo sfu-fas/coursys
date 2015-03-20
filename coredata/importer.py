@@ -4,13 +4,15 @@ sys.path.append(".")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, get_reqmnt_designtn, import_person,\
-    userid_to_emplid, GRADFIELDS,REQMNT_DESIGNTN_FLAGS
-from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role
+    userid_to_emplid, cache_by_args, GRADFIELDS,REQMNT_DESIGNTN_FLAGS
+from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, Holiday
 from coredata.models import CombinedOffering, CAMPUSES, COMPONENTS, INSTR_MODE
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.conf import settings
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
+from django.core.mail import mail_admins
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
@@ -610,3 +612,182 @@ def import_one_semester(strm, extra_where='1=1'):
     for o in offerings:
         print o
         import_offering_members(o, students=False)
+
+
+@cache_by_args
+def semester_first_day():
+    " First day of classes"
+    db = SIMSConn()
+    db.execute("""
+        SELECT strm, sess_begin_dt
+        FROM ps_session_tbl
+        WHERE acad_career='UGRD' AND session_code='1'""", ())
+    return dict(db)
+
+@cache_by_args
+def semester_last_day():
+    """
+    Dict of strm -> last day of the semester's classes
+    """
+    # Why 250? Because "SELECT * FROM psxlatitem WHERE fieldname='TIME_PERIOD'"
+    db = SIMSConn()
+    db.execute("""
+        SELECT strm, end_dt
+        FROM ps_sess_time_perod
+        WHERE time_period=250 AND acad_career='UGRD' AND session_code='1'""", ())
+    return dict(db)
+
+@cache_by_args
+def all_holidays():
+    db = SIMSConn()
+    db.execute("""SELECT holiday, descr FROM ps_holiday_date WHERE holiday_hrs=24""", ())
+    return list(db)
+
+def first_monday(start):
+    weekday = start.weekday()
+    if weekday < 2:
+        # before wednesday: we start this week
+        return start - datetime.timedelta(days=weekday)
+    else:
+        # thursday/friday: this week is a loss
+        return start + datetime.timedelta(days=(7-weekday))
+
+def import_admin_email(source, message, subject='data import: intervention required'):
+    """
+    Message the admins about an import problem. Assumes we're in a context where stdout does us no good.
+    """
+    mail_admins(subject, '[%s checking in.]\n\n%s' % (source, message))
+
+@transaction.atomic
+def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, bootstrap=False):
+    """
+    Update information on Semester objects from SIMS
+
+    Finding the reference is tricky. Try Googling 'sfu calendar {{year}} "academic dates"'
+
+    long_long_ago: import from the beginning of time
+    bootstrap: don't assume Semester.current() will work, for bootstrapping test data creation
+    """
+    output = []
+    semester_start = semester_first_day()
+    semester_end = semester_last_day()
+    semester_end['1161'] = '2016-04-11' # correct for wacky data in SIMS
+    sims_holidays = [(datetime.datetime.strptime(d, "%Y-%m-%d").date(), h) for d,h in all_holidays()]
+
+    if not bootstrap:
+        # we want semesters 5 years into the future: that's a realistic max horizon for grad promises
+        current = Semester.current()
+        strms = [current.offset_name(i) for i in range(15)]
+    else:
+        strms = []
+
+    if long_long_ago:
+        strms = sorted(list(set(strms) | set(semester_start.keys())))
+    semesters = dict((s.name, s) for s in Semester.objects.filter(name__in=strms))
+
+    semester_weeks = itertools.groupby(
+                SemesterWeek.objects.filter(semester__name__in=strms).select_related('semester'),
+                lambda sw: sw.semester.name)
+    semester_weeks = dict((k,list(v)) for k,v in semester_weeks)
+
+    holidays = itertools.groupby(
+                Holiday.objects.filter(semester__name__in=strms, holiday_type='FULL').select_related('semester'),
+                lambda h: h.semester.name)
+    holidays = dict((k,list(v)) for k,v in holidays)
+
+    for strm in strms:
+        url = settings.BASE_ABS_URL + reverse('coredata.views.edit_semester', kwargs={'semester_name': strm})
+
+        # Semester object
+        try:
+            semester = semesters[strm]
+        except KeyError:
+            semester = Semester(name=strm)
+            semesters[strm] = semester
+            output.append("Creating %s." % (strm,))
+
+        # class start and end dates
+        try:
+            start = datetime.datetime.strptime(semester_start[strm], "%Y-%m-%d").date()
+        except KeyError:
+            # No data found about this semester: if there's a date already around, honour it
+            # Otherwise, guess "same day as this semester last year" which is probably wrong but close.
+            start = semester.start
+            if not semester.start:
+                lastyr = semesters[semester.offset_name(-3)]
+                start = lastyr.start.replace(year=lastyr.start.year+1)
+                output.append("Guessing start date for %s." % (strm,))
+
+        try:
+            end = datetime.datetime.strptime(semester_end[strm], "%Y-%m-%d").date()
+        except KeyError:
+            # no classes scheduled yet? Assume 13 weeks exactly
+            end = start + datetime.timedelta(days=91)
+
+        if semester.start != start:
+            output.append("Changing start date for %s from %s to %s." % (strm, semester.start, start))
+            semester.start = start
+        if semester.end != end:
+            output.append("Changing end date for %s from %s to %s." % (strm, semester.end, end))
+            semester.end = end
+
+        if not dry_run:
+            semester.save()
+
+        # SemesterWeeks
+        weeks = semester_weeks.get(strm, [])
+        if not weeks:
+            sw = SemesterWeek(semester=semester, week=1, monday=first_monday(start))
+            weeks.append(sw)
+            assert sw.monday.weekday() == 0
+            output.append("Creating week 1 for %s on %s." % (strm, sw.monday))
+            if not dry_run:
+                sw.save()
+        elif weeks[0].monday != first_monday(start):
+            sw = weeks[0]
+            sw.monday = first_monday(start)
+            output.append("Changing first Monday of %s to %s." % (strm, sw.monday))
+            if not dry_run:
+                sw.save()
+
+        length = semester.end - semester.start
+        if not bootstrap and length > datetime.timedelta(days=92) and len(weeks) < 2 \
+                and semester.start - datetime.date.today() < datetime.timedelta(days=365):
+            # semester is longer than 13 weeks: insist that the user specify reading week reasonably-soon before the semester starts
+            message = "Semester %s is long (%s) but has no reading week specified. Please have a look here: %s\n\nYou probably want to enter the Monday of week 5/6/7/8 as the Monday after reading week, a week later than it would otherwise be." % (strm, length, url)
+            if verbose:
+                output.append('*** ' + message)
+            else:
+                import_admin_email(source='coredata.importer.import_semester_info', message=message)
+        elif not bootstrap:
+            # also check that the last day of classes is at a coherent time. Might reveal problems with reading week specification.
+            endweek,_ = semester.week_weekday(semester.end, weeks=weeks)
+            if endweek not in [13, 14]:
+                message = "Semester %s ends in week %i (should be 13 or 14). That's weird. Have a look here to see if things are coherent: %s" % (strm, endweek, url)
+                if verbose:
+                    output.append('*** ' + message)
+                else:
+                    import_admin_email(source='coredata.importer.import_semester_info', message=message)
+
+        # Holidays
+        hs = holidays.get(strm, [])
+        h_start, h_end = Semester.start_end_dates(semester)
+        for dt, desc in [(d,h) for d,h in sims_holidays if h_start <= d <= h_end]:
+            existing = [h for h in hs if h.date == dt]
+            if existing:
+                holiday = existing[0]
+            else:
+                holiday = Holiday(semester=semester, date=dt, holiday_type='FULL')
+                output.append("Adding holiday %s on %s." % (desc, dt))
+
+            holiday.description = desc
+            if not dry_run:
+                holiday.save()
+
+
+
+    if verbose:
+        print '\n'.join(output)
+
+
+

@@ -80,7 +80,7 @@ class APIEndpointTester(object):
 
 
 class APITest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.faketime = 525942870

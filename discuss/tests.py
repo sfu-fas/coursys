@@ -1,4 +1,3 @@
-#from django.test import TestCase
 from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
 from courselib.testing import basic_page_tests
@@ -9,7 +8,7 @@ import random
 
 
 class SimpleTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata']
 
     def setUp(self):
         self.offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
@@ -76,10 +75,3 @@ class SimpleTest(TestCase):
         response = client.post(url)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(DiscussionMessage.objects.get(id=self.message.id).status, 'HID')
-        
-        
-
-
-
-
-        

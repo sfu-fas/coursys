@@ -270,7 +270,7 @@ class Semester(models.Model):
         ten_days_ago = today + datetime.timedelta(days=10)
         return self.end > month_ago and self.start < ten_days_ago
     
-    def week_weekday(self, dt):
+    def week_weekday(self, dt, weeks=None):
         """
         Given a datetime, return the week-of-semester and day-of-week (with 0=Monday).
         """
@@ -281,7 +281,8 @@ class Semester(models.Model):
             date = dt
 
         # find the "base": first known week before the given date
-        weeks = list(SemesterWeek.objects.filter(semester=self))
+        if not weeks:
+            weeks = list(SemesterWeek.objects.filter(semester=self))
         weeks.reverse()
         base = None
         for w in weeks:

@@ -1048,7 +1048,7 @@ class GradRequirement(models.Model):
     description = models.CharField(max_length=100)
     series = models.PositiveIntegerField(null=False, db_index=True, help_text='The category of requirement for searching by requirement, across programs')
     # .series is used to allow searching by type/series/category of requirement (e.g. "Completed Courses"),
-    # instead of requiring selection of a specifi GradRequirement in the search (which is too specific to a
+    # instead of requiring selection of a specific GradRequirement in the search (which is too specific to a
     # program).
     # Values of .series are automatically maintained in self.save
     created_at = models.DateTimeField(auto_now_add=True)

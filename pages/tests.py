@@ -76,7 +76,7 @@ contents3 = "This is just totally different content."
 whitespace = re.compile(r"\s+")
 
 class PagesTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata']
     def _get_creole(self):
         "Get a Creole class for some PageVersion for generic testing"
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)

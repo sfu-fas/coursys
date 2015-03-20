@@ -38,7 +38,7 @@ First, create an empty SQLite database and populate it with tables:
 We could stop here, but the site isn't too useful without test data. Good thing
 we have a big bale of it! 
 
-    python manage.py loaddata test_data
+    python manage.py loaddata fixtures/*.json
     python manage.py update_index
 
 If you're ever done something awful to your database, you can steamroll it
@@ -46,7 +46,7 @@ and rebuild it with
 
     rm db.sqlite
     python manage.py migrate
-    python manage.py loaddata test_data
+    python manage.py loaddata fixtures/*.json
     python manage.py update_index
 
 ## Start the Server

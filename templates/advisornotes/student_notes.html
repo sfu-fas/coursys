@@ -80,8 +80,8 @@
 </div>
 {% endblock %}
 
-{%block content%}
-<div class="table_container">
+{% block content %}
+{# <div class="idphoto studentinfo"><img src="{% url 'grades.views.student_photo' emplid=student.emplid %}" alt="" /></div>#}
     <table class="info">
         <tbody>
             <tr>
@@ -140,7 +140,6 @@
             {% endif %}
         </tbody>
     </table>
-</div>
 
 {% if items %}
 {% for item in items %}

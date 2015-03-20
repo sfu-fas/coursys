@@ -163,8 +163,8 @@ def financials(request, grad_slug, style='complete'):
         
         # promises (ending in this semester, so we display them in the right spot)
         try:
-            promise = promises_qs.get(end_semester=semester)
-        except Promise.DoesNotExist:
+            promise = promises_qs.filter(end_semester=semester)[0]
+        except IndexError:
             promise = None
         
         current_acad_year['total'] += semester_total

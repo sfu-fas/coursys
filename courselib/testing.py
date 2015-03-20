@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 # course with the test data
-TEST_COURSE_SLUG = '2014su-cmpt-165-c1'
+TEST_COURSE_SLUG = '2015sp-cmpt-120-d1'
 
 class CachedFixtureTestCase(TestCase):
     current_fixtures = None
@@ -100,11 +100,6 @@ def basic_page_tests(testcase, client, url, check_valid=True):
         validate_content(testcase, response.content, url)
     return response
 
-def test_auth(client, userid):
-    """
-    Login as this user for testing
-    """
-    client.get(reverse('dashboard.views.fake_login') + '?userid=' + 'ggbaker')
 
 def test_views(testcase, client, view_prefix, views, url_args, qs=None):
     """

@@ -24,21 +24,13 @@ class GroupNameForm(ModelForm):
 
 
 class ActivityForm(forms.Form):
-    selected = forms.BooleanField(label = 'Selected Activity:', required = False, initial = True)
+    selected = forms.BooleanField(label='Selected Activity:', required=False, initial=True)
     
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and instance.id:
             self.fields.widget.attrs['readonly'] = True
-    
-    #def clean_selected(self):
-    #    act_selected=self.cleaned_data['selected']
-    #    course_slug = self.prefix
-    #    if act_selected:
-    #        if Activity.objects.filter(offering__slug=self.course_slug,selected=act_selected):
-    #            raise forms.ValidationError(u'Activity already exists')
-    #    return act_selected
 
         
 class StudentForm(forms.Form):

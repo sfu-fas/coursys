@@ -1,14 +1,14 @@
 #from django.test import TestCase
 from testboost.testcase import FastFixtureTestCase as TestCase
 from courselib.testing import basic_page_tests, Client, test_views, TEST_COURSE_SLUG
-from ta.models import CourseDescription, TAPosting, TAApplication, CampusPreference, CoursePreference, TUG
+from ta.models import CourseDescription, TAPosting, TAApplication, TAContract, CampusPreference, CoursePreference, TUG
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, Role, Member
 from ra.models import Account
 from django.core.urlresolvers import reverse
 from datetime import date
 
 class ApplicationTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'ta_ra']
     def setUp(self):
         p1 = Person(emplid=210012345, userid="test1",
                 last_name="Lname", first_name="Fname", pref_first_name="Fn", middle_name="M")
@@ -103,7 +103,7 @@ class ApplicationTest(TestCase):
         c = Client()
 
         # TUG/instructor views
-        c.login_user('ggbaker')
+        c.login_user('dzhao')
         offering = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         ta = Member.objects.filter(offering=offering, role="TA")[0]
         test_views(self, c, 'ta.views.', ['new_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
@@ -116,7 +116,7 @@ class ApplicationTest(TestCase):
         test_views(self, c, 'ta.views.', ['view_tug', 'edit_tug'], {'course_slug': offering.slug, 'userid': ta.person.userid})
 
         # admin views
-        c.login_user('ggbaker')
+        c.login_user('dzhao')
         test_views(self, c, 'ta.views.', ['all_tugs_admin', 'view_postings'], {})
         post = TAPosting.objects.filter(unit__label='CMPT')[0]
         test_views(self, c, 'ta.views.', ['new_application', 'new_application_manual', 'view_all_applications',
@@ -126,15 +126,15 @@ class ApplicationTest(TestCase):
         test_views(self, c, 'ta.views.', ['assign_bus'],
                 {'post_slug': post.slug, 'course_slug': offering.slug})
 
-        app = TAApplication.objects.filter(posting=post)[0]
+        contr = TAContract.objects.filter(posting=post)[0]
         test_views(self, c, 'ta.views.', ['edit_application', 'view_application', 'preview_offer', 'view_contract',
                                           'edit_contract'],
-                   {'post_slug': post.slug, 'userid': app.person.userid})
+                   {'post_slug': post.slug, 'userid': contr.application.person.userid})
 
         # applicant views
-        c.login_user(app.person.userid)
+        c.login_user(contr.application.person.userid)
         test_views(self, c, 'ta.views.', ['accept_contract'],
-                   {'post_slug': post.slug, 'userid': app.person.userid})
+                   {'post_slug': post.slug, 'userid': contr.application.person.userid})
 
 
 

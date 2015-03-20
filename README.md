@@ -139,7 +139,7 @@ instead.
 When building models that may change in the future (pro-tip: this is most models)
 we often include an empty JSON field in the model. 
  
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
 
 When working with the config field, it's considered polite to include any fields
 that we might be storing in the config field as a comment. 
@@ -190,7 +190,7 @@ Let's imagine that we have a Model:
         location = models.CharField(max_length=100)
         opened = models.DateField()
         campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
-        config = JSONField(null=False, blank=False, default={})
+        config = JSONField(null=False, blank=False, default=dict)
 
 Now, if we want to take full advantage of Django's forms functionality, we'll
 have to create a Form:
@@ -217,7 +217,7 @@ There's a pretty standard view for dealing with a form like this:
     @login_required
     def new_restaurant(request):
         if request.method == 'POST':
-            form = CampusRestaurantForm(request, request.POST)
+            form = CampusRestaurantForm(request.POST)
             if form.is_valid():
                 restaurant = form.save(commit=False)
                 restaurant.save()
@@ -235,7 +235,7 @@ And with that in place, we can render the form into HTML, inside `new_restaurant
 using:
 
     {% load form_display %}
-    {{form|as_dl}}
+    {{ form|as_dl }}
 
 Which is good, but when we visit that page, it contains the config field, which
 we don't want to show to users. And we'd like to handle our DateTimeField with
@@ -270,8 +270,8 @@ Logic belongs in models before views, and views before templates.
 In a quote from Two Scoops of Django - 
 http://twoscoopspress.com/products/two-scoops-of-django-1-6 :
 
-> When deciding where to put a piece of code, we like to follow the �Fat Models, 
-> Helper Modules, Thin Views, Stupid Templates� approach.
+> When deciding where to put a piece of code, we like to follow the 'Fat Models,
+> Helper Modules, Thin Views, Stupid Templates' approach.
 
 > We recommend that you err on the side of putting more logic into anything but
 > views and templates.
@@ -284,7 +284,7 @@ http://twoscoopspress.com/products/two-scoops-of-django-1-6 :
 
 ### Testing
 
-Wherever possible, test your application in <yourapp>/tests.py
+Wherever possible, test your application in *yourapp*/tests.py
 
 Table of Contents
 -----------------
