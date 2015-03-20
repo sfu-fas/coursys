@@ -7,25 +7,26 @@ from grad.models import GradStudent, GradRequirement, GradProgram, Letter, Lette
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory, FinancialComment
 from grad.views.financials import STYLES
-from courselib.testing import basic_page_tests, test_auth, Client, test_views
+from courselib.testing import basic_page_tests, Client, test_views
 from grad.views.view import all_sections
 from django.http import QueryDict
 from grad.forms import SearchForm
 
 class GradTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'grad']
     
     def setUp(self):
         # find a grad student who is owned by CS for testing
         gs = GradStudent.objects.filter(program__unit__slug='cmpt')[0]
         self.gs_userid = gs.person.userid
+        self.gs = gs
 
     def test_grad_quicksearch(self):
         """
         Tests grad quicksearch (index page) functionality
         """
         client = Client()
-        test_auth(client, 'ggbaker')
+        client.login_user('dzhao')
         response = client.get(reverse('grad.views.index'))
         self.assertEqual(response.status_code, 200)
         
@@ -43,27 +44,27 @@ class GradTest(TestCase):
         self.assertTrue(response['location'].endswith( reverse('grad.views.view', kwargs={'grad_slug': grad_slug}) ))
 
         # search submit with non-slug redirects to "did you mean" page
-        response = client.get(reverse('grad.views.quick_search')+'?search=' + self.gs_userid[0:4])
+        response = client.get(reverse('grad.views.quick_search')+'?search=' + self.gs_userid)
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(response['location'].endswith( reverse('grad.views.not_found')+"?search=" + self.gs_userid[0:4] ))
+        self.assertTrue(response['location'].endswith( reverse('grad.views.not_found')+"?search=" + self.gs_userid ))
         
         response = client.get(response['location'])
         gradlist = response.context['grads']
-        self.assertEqual(len(gradlist), 1)
-        self.assertEqual(gradlist[0], GradStudent.objects.get(person__userid=self.gs_userid))
+        self.assertEqual(len(gradlist), GradStudent.objects.filter(person__userid=self.gs_userid).count())
+        self.assertIn(self.gs, gradlist)
 
     def test_that_grad_search_returns_200_ok(self):
         """
         Tests that /grad/search is available.
         """
         client = Client()
-        test_auth(client, 'ggbaker')
+        client.login_user('dzhao')
         response = client.get(reverse('grad.views.search'))
         self.assertEqual(response.status_code, 200)
     
     def test_that_grad_search_with_csv_option_returns_csv(self):
         client = Client()
-        test_auth(client, 'ggbaker')
+        client.login_user('dzhao')
         response = client.get(reverse('grad.views.search'), {'columns':'person.first_name', 'csv':'sure'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
@@ -73,7 +74,7 @@ class GradTest(TestCase):
         Check overall pages for the grad module and make sure they all load
         """
         client = Client()
-        test_auth(client, 'ggbaker')
+        client.login_user('dzhao')
 
         gs = self.__make_test_grad()
         prog = gs.program
@@ -94,7 +95,7 @@ class GradTest(TestCase):
 
     def __make_test_grad(self):
         
-        gs = GradStudent.objects.get(person__userid=self.gs_userid)
+        gs = self.gs
         sem = Semester.current()
         
         # put some data there so there's something to see in the tests (also, the empty <tbody>s don't validate)
@@ -123,7 +124,7 @@ class GradTest(TestCase):
         """
 
         client = Client()
-        test_auth(client, 'ggbaker')
+        client.login_user('dzhao')
         gs = self.__make_test_grad()
         lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
         lt.save()
@@ -199,15 +200,15 @@ class GradTest(TestCase):
         Check handling of letters for grad students
         """
         client = Client()
-        test_auth(client, 'ggbaker')
-        gs = GradStudent.objects.get(person__userid=self.gs_userid)
+        client.login_user('dzhao')
+        gs = self.gs
 
         # get template text and make sure substitutions are made
         lt = LetterTemplate.objects.get(label="Funding")
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         response = client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'M Grad is making satisfactory progress')
+        self.assertContains(response, gs.person.get_title() + ' ' + gs.person.last_name + ' is making satisfactory progress')
         content = unicode(response.content)
         
         # create a letter with that content
@@ -240,8 +241,8 @@ class GradTest(TestCase):
 
     def test_advanced_search_2(self):
         client = Client()
-        test_auth(client, 'ggbaker')
-        units = [r.unit for r in Role.objects.filter(person__userid='ggbaker', role='GRAD')]
+        client.login_user('dzhao')
+        units = [r.unit for r in Role.objects.filter(person__userid='dzhao', role='GRAD')]
 
         # basic search with the frontend
         url = reverse('grad.views.search', kwargs={})
@@ -293,9 +294,9 @@ class GradTest(TestCase):
 
     def test_advanced_search_3(self):
         client = Client()
-        test_auth(client, 'ggbaker')
+        client.login_user('dzhao')
         this_sem = Semester.current()
-        units = [r.unit for r in Role.objects.filter(person__userid='ggbaker', role='GRAD')]
+        units = [r.unit for r in Role.objects.filter(person__userid='dzhao', role='GRAD')]
 
         gs = self.__make_test_grad()
         gs.gradstatus_set.all().delete()
@@ -306,6 +307,7 @@ class GradTest(TestCase):
         s2.save()
         s3 = GradStatus(student=gs, status='LEAV', start=this_sem.offset(2))
         s3.save()
+        gs.update_status_fields()
 
         # test current-status searching
         form = SearchForm(QueryDict('student_status=ACTI&columns=person.emplid'))
@@ -334,7 +336,7 @@ class GradTest(TestCase):
 
     def test_grad_status(self):
         client = Client()
-        test_auth(client, 'ggbaker')
+        client.login_user('dzhao')
         this_sem = Semester.current()
 
         # clear the deck on this student's statuses

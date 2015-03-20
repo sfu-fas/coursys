@@ -60,7 +60,7 @@ This really SHOULD be a Chef script. But it isn't yet.
     rm -f $WORKSPACE/db.sqlite;
     yes "no" | /var/lib/jenkins/workspace/courses/courses_environment/bin/python manage.py syncdb;
     /var/lib/jenkins/workspace/courses/courses_environment/bin/python manage.py migrate;
-    /var/lib/jenkins/workspace/courses/courses_environment/bin/python manage.py loaddata test_data;
+    /var/lib/jenkins/workspace/courses/courses_environment/bin/python manage.py loaddata fixtures/*.json;
     /var/lib/jenkins/workspace/courses/courses_environment/bin/python manage.py test;
 
 - Run the build. It'll fail, but it'll check out the repo and create the workspace. 

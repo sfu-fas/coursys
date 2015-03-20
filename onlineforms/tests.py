@@ -1,4 +1,3 @@
-#from django.test import TestCase
 from testboost.testcase import FastFixtureTestCase as TestCase
 import django.db.transaction
 from django.db.utils import IntegrityError
@@ -19,7 +18,7 @@ def repeat_to_length(string_to_expand, length):
 
 
 class ModelTests(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'onlineforms']
 
     def setUp(self):
         self.unit = Unit.objects.get(label="CMPT")
@@ -122,7 +121,7 @@ class ModelTests(TestCase):
 
 
 class IntegrationTestCase(TestCase):
-    fixtures = ['test_data', 'onlineforms/extra_test_data']
+    fixtures = ['basedata', 'coredata', 'onlineforms', 'onlineforms/extra_test_data']
     def setUp(self):
         self.client = Client()
 
@@ -282,7 +281,7 @@ class IntegrationTestCase(TestCase):
 
 
 class ViewTestCase(TestCase):
-    fixtures = ['test_data', 'onlineforms/extra_test_data']
+    fixtures = ['basedata', 'coredata', 'onlineforms', 'onlineforms/extra_test_data']
     slug_data = {'formgroup_slug': "cmpt-admins",
                 'formsubmit_slug': "submission-comp-simple-form-2",
                 'form_slug': "comp-simple-form",
@@ -293,7 +292,7 @@ class ViewTestCase(TestCase):
 
     def setUp(self):
         self.client = Client()
-        logged_in_person = Person.objects.get(userid="ggbaker")
+        logged_in_person = Person.objects.get(userid="dzhao")
         self.client.login_user(logged_in_person.userid)
         # make sure the sheetsub is owned by the logged in user (to correct for wonky test data)
         sheetsub = SheetSubmission.objects.get(form_submission__slug=self.slug_data["formsubmit_slug"], slug=self.slug_data["sheetsubmit_slug"])
@@ -376,7 +375,7 @@ class ViewTestCase(TestCase):
 
 
 class MiscTests(TestCase):
-    fixtures = ['test_data', 'onlineforms/extra_test_data']
+    fixtures = ['basedata', 'coredata', 'onlineforms', 'onlineforms/extra_test_data']
 
     def test_sheet_submission_get_url(self):
         # arrange
@@ -407,7 +406,7 @@ class MiscTests(TestCase):
 
 
 class FieldTestCase(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata', 'onlineforms', 'onlineforms/extra_test_data']
     # one config file the should handle most fields
     standard_config = {"min_length": 1,
                         "max_length": 10,

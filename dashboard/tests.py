@@ -7,13 +7,11 @@ from django.core.urlresolvers import reverse
 import re, datetime
 
 class DashboardTest(TestCase):
-    fixtures = ['test_data']
-    def setUp(self):
-        self.c_slug = TEST_COURSE_SLUG
+    fixtures = ['basedata', 'coredata']
 
     def test_front_page(self):
         # log in as student in the course
-        userid = Member.objects.filter(offering__slug=self.c_slug, role="STUD")[0].person.userid
+        userid = Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role="STUD")[0].person.userid
         client = Client()
         client.login_user(userid)
 
@@ -21,7 +19,7 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 200)
         
         # this student is in this course: check for a link to its page (but it only appears after start of semester)
-        c = CourseOffering.objects.get(slug=self.c_slug)
+        c = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         if c.semester.start < datetime.date.today():
             self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
@@ -65,9 +63,9 @@ class DashboardTest(TestCase):
         Check the requires_course_staff_by_slug decorator.
         """
         # a URL and some members/non-members
-        url = reverse('marking.views.manage_activity_components', kwargs={'course_slug': self.c_slug, 'activity_slug': 'a1'})
+        url = reverse('grades.views.class_list', kwargs={'course_slug': TEST_COURSE_SLUG})
         instr = "ggbaker"
-        ta = "0grad1"
+        ta = Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='TA')[0].person.userid
         student = "0aaa0"
         nobody = "0bbb6"
         
@@ -99,10 +97,10 @@ class DashboardTest(TestCase):
         Test impersonation logic
         """
         client = Client()
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': self.c_slug})
+        url = reverse('groups.views.groupmanage', kwargs={'course_slug': TEST_COURSE_SLUG})
 
         # login as a sysadmin
-        client.login_user('sumo')
+        client.login_user('pba7')
         # not instructor, so can't really access
         response = client.get(url)
         self.assertEquals(response.status_code, 403)

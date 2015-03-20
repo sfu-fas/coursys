@@ -5,7 +5,7 @@ from courselib.testing import basic_page_tests, Client
 from coredata.models import Person
 
 class PrivacyTestCase(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['basedata', 'coredata']
 
     def test_workflow(self):
         """
