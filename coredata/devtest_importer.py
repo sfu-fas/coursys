@@ -1,6 +1,6 @@
 # importer to create fake data for development
 # suggestion execution:
-#   rm db.sqlite; ./manage.py migrate && python coredata/devtest_importer.py <emplid>
+#   rm db.sqlite; ./manage.py migrate && python coredata/devtest_importer.py
 
 import os, sys, socket
 from django.core.wsgi import get_wsgi_application
@@ -324,7 +324,7 @@ def create_grades():
     """
     Test data for grades, marking, submission, groups
     """
-    undergrads = list(Person.objects.filter(last_name='Student').exclude(userid='0aaa0').exclude(userid='0aaa1'))
+    undergrads = list(Person.objects.filter(last_name='Student'))
     grads = list(Person.objects.filter(last_name='Grad').exclude(userid='0ggg0'))
     for o in CourseOffering.objects.all():
         # TA
@@ -693,11 +693,11 @@ def serialize_result(data_func, filename):
     start = time.time()
     objs = data_func()
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
-    fh = open(filename + '.json', 'w')
+    fh = open('fixtures/' + filename + '.json', 'w')
     fh.write(data)
     fh.close()
     done = time.time()
-    print "(%.1f s)" % (done-start)
+    #print "(%.1f s)" % (done-start)
 
 def main():
     assert not settings.DISABLE_REPORTING_DB
