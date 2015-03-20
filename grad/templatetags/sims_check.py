@@ -19,7 +19,7 @@ class SIMSCheckNode(template.Node):
         if gs.program.unit.slug != 'ensc':
             return ''
 
-        if hasattr(obj, 'config') and 'imported_from' in obj.config and obj.config['imported_from']:
+        if hasattr(obj, 'config') and 'sims_source' in obj.config and obj.config['sims_source']:
             return mark_safe('<i class="fa fa-check sims_check_yes" title="Found in SIMS"></i>')
         elif isinstance(obj, Supervisor) and obj.supervisor_type == 'POT':
             # these aren't in SIMS ever so don't complain

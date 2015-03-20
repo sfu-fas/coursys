@@ -282,7 +282,7 @@ class ProgramStatusChange(GradHappening):
         # look for something previously imported from this
         key = self.import_key()
         existing = [s for s in statuses
-                if 'imported_from' in s.config and s.config['imported_from'] == key]
+                if 'sims_source' in s.config and s.config['sims_source'] == key]
         if existing:
             assert existing[0].status == self.status
             return existing[0]
@@ -291,7 +291,7 @@ class ProgramStatusChange(GradHappening):
         similar = [s for s in statuses
                 if s.start.name == self.strm
                 and s.status == self.status
-                and 'imported_from' not in s.config]
+                and 'sims_source' not in s.config]
 
         if similar:
             if len(similar) > 1:
@@ -308,7 +308,7 @@ class ProgramStatusChange(GradHappening):
         close_enough = [s for s in statuses
                 if s.start.offset_name(-1) <= self.strm <= s.start.offset_name(1)
                 and s.status == self.status
-                and 'imported_from' not in s.config
+                and 'sims_source' not in s.config
                 and not hasattr(s, 'found_in_import')]
         if close_enough:
             if verbosity > 2:
@@ -352,7 +352,7 @@ class ProgramStatusChange(GradHappening):
             assert st.status == self.status
             st.start = STRM_MAP[self.strm]
             st.start_date = self.effdt
-            st.config['imported_from'] = self.import_key()
+            st.config['sims_source'] = self.import_key()
 
             if not dry_run:
                 st.save_if_dirty()
@@ -386,7 +386,7 @@ class ProgramStatusChange(GradHappening):
                 print "Adding program change: %s in %s as of %s." % (self.emplid, self.grad_program.slug, self.strm)
             ph = GradProgramHistory(student=student_info['student'], program=self.grad_program,
                     start_semester=STRM_MAP[self.strm], starting=self.effdt)
-            ph.config['imported_from'] = self.import_key()
+            ph.config['sims_source'] = self.import_key()
             student_info['programs'].append(ph)
             if not dry_run:
                 ph.save()
@@ -441,7 +441,7 @@ class GradSemester(GradHappening):
                 print "* Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = active_semester_statuses[-1]
             st.start_date = effdt
-            st.config['imported_from'] = self.key()
+            st.config['sims_source'] = self.key()
             if not dry_run:
                 st.save()
         else:
@@ -450,7 +450,7 @@ class GradSemester(GradHappening):
                 print "Adding grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
                     start_date=effdt)
-            st.config['imported_from'] = self.key()
+            st.config['sims_source'] = self.key()
             if not dry_run:
                 st.save()
             student_info['statuses'].append(st)
@@ -525,9 +525,9 @@ class CommitteeMembership(GradHappening):
                 member.created_at = self.effdt
                 local_committee.append(member)
 
-        if 'imported_from' not in member.config:
+        if 'sims_source' not in member.config:
             # record (the first) place we found this fact
-            member.config['imported_from'] = key
+            member.config['sims_source'] = key
             # if it wasn't the product of a previous import it was hand-entered: take the effdt from SIMS
             member.created_at = self.effdt
 
@@ -628,7 +628,7 @@ class GradTimeline(object):
         extra_grads = existing_grads - found_grads
         if verbosity:
             for gs in extra_grads:
-                if 'imported_from' in gs.config:
+                if 'sims_source' in gs.config:
                     # trust us-from-the-past
                     continue
                 print 'Rogue grad student: %s in %s starting %s' % (self.emplid, gs.program.slug, gs.start_semester.name if gs.start_semester else '???')
@@ -702,7 +702,7 @@ class GradCareer(object):
 
     # program selection methods:
     def by_key(self, gs):
-        return gs.config.get('imported_from', 'none') == self.import_key()
+        return gs.config.get('sims_source', 'none') == self.import_key()
 
     def by_adm_appl_nbr(self, gs):
         return gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr
@@ -763,7 +763,7 @@ class GradCareer(object):
         Update local data for the GradStudent using what we found in SIMS
         """
         # make sure we can find it next time
-        self.gradstudent.config['imported_from'] = self.import_key()
+        self.gradstudent.config['sims_source'] = self.import_key()
         if self.adm_appl_nbr:
             self.gradstudent.config['adm_appl_nbr'] = self.adm_appl_nbr
 
@@ -796,9 +796,9 @@ class GradCareer(object):
         """
         Find any local data that doesn't seem to belong and report it.
         """
-        extra_statuses = [s for s in self.student_info['statuses'] if 'imported_from' not in s.config]
-        extra_programs = [p for p in self.student_info['programs'] if 'imported_from' not in p.config]
-        extra_committee = [c for c in self.student_info['committee'] if 'imported_from' not in c.config]
+        extra_statuses = [s for s in self.student_info['statuses'] if 'sims_source' not in s.config]
+        extra_programs = [p for p in self.student_info['programs'] if 'sims_source' not in p.config]
+        extra_committee = [c for c in self.student_info['committee'] if 'sims_source' not in c.config]
         if verbosity:
             for s in extra_statuses:
                 print "Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name)
@@ -862,11 +862,11 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
     gss = GradStudent.objects.filter(program__unit__slug=unit_slug)
 
     # what GradStudents haven't been found in SIMS?
-    gs_unco = [gs for gs in gss if 'imported_from' not in gs.config]
+    gs_unco = [gs for gs in gss if 'sims_source' not in gs.config]
 
     # do the unconfirmed ones have any confirmed data associated? (implicitly ignoring manually-entered data on these fields)
     for GradModel in [GradProgramHistory, GradStatus, Supervisor]:
-        res = [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco) if 'imported_from' in s.config]
+        res = [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco) if 'sims_source' in s.config]
         if res:
             raise ValueError, 'Found an unconfirmed %s for %s, who is rogue.' % (GradModel.__name__, s.student.slug)
 
