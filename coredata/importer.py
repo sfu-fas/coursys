@@ -16,7 +16,7 @@ from django.core.mail import mail_admins
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
-from grad.importer import create_or_update_student
+#from grad.importer import create_or_update_student
 from ra.models import RAAppointment
 import itertools, random
 
@@ -324,7 +324,7 @@ def get_person_grad(emplid, commit=True, force=False):
             and p.userid:
         return p
 
-    create_or_update_student(emplid)
+    #create_or_update_student(emplid)
 
     p.config['lastimportgrad'] = int(time.time())
     if commit:
