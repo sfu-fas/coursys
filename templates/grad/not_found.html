@@ -1,17 +1,6 @@
-{% extends "base.html" %}
+{% extends "grad/base.html" %}
 {% load getattribute %}
-{% block headextra %}
-<script type="text/javascript">
-	$(document).ready(function() {
-		$('#grads').dataTable({
-			"bJQueryUI" : true,
-			"aaSorting" : [[0, "asc"]],
-			"bPaginate": false,
-		});
-	});
-
-</script>
-{% endblock %}
+{% load sims_check %}
 
 {% block title %}Grad Quick Search{% endblock %}
 {% block h1 %}Grad Quick Search{% endblock %}
@@ -43,7 +32,7 @@
 				<td>{{g.person.first_name}}</td>
 				<td>{{g.person.emplid}}</td>
 				<td>{{g.person.userid}}</td>
-				<td>{{g.program.label}}</td>
+				<td>{{g.program.label}} {% sims_check g %}</td>
 				<td>{{g.start_semester.name}}</td>
 				<td><span class="sort">{{g.status_order}}</span>{{g.get_current_status_display}}</td>
                 <td>{{g.supervisor_names|join:"; "}}</td>

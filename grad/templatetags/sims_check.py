@@ -1,23 +1,24 @@
 from django import template
 from django.utils.html import mark_safe
 from django import template
-from grad.models import Supervisor
+from grad.models import GradStudent, Supervisor
 
 register = template.Library()
 
 class SIMSCheckNode(template.Node):
     def __init__(self, obj):
         self.obj = template.Variable(obj)
-        self.grad = template.Variable('grad')
-        self.user = template.Variable('user')
+
     def render(self, context):
-        gs = self.grad.resolve(context)
-        user = self.user.resolve(context)
+        obj = self.obj.resolve(context)
+        if isinstance(obj, GradStudent):
+            gs = obj
+        else:
+            gs = obj.student
 
         if gs.program.unit.slug != 'ensc':
             return ''
 
-        obj = self.obj.resolve(context)
         if hasattr(obj, 'config') and 'imported_from' in obj.config and obj.config['imported_from']:
             return mark_safe('<i class="fa fa-check sims_check_yes" title="Found in SIMS"></i>')
         elif isinstance(obj, Supervisor) and obj.supervisor_type == 'POT':
