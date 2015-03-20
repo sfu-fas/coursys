@@ -226,7 +226,6 @@ def view_tug(request, course_slug, userid):
                 'holiday_hours_per_bu': holiday_hours_per_bu,
                 'total_bu': total_bu
                 }
-        print context
         return render(request, 'ta/view_tug.html',context)
 
 

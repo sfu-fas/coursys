@@ -18,7 +18,7 @@ from grades.models import NumericActivity
 from privacy.models import set_privacy_signed
 from courselib.testing import TEST_COURSE_SLUG
 import itertools, random, string
-import datetime
+import datetime, time
 
 SEMESTER_CUTOFF = '1100' # semesters with label >= this will be included
 
@@ -365,13 +365,9 @@ def create_grad():
     d = Person.objects.get(userid='dzhao')
     r1 = Role(person=d, role='GRAD', unit=cmpt)
     r1.save()
-    r2 = Role(person=d, role='FUND', unit=cmpt)
+    r2 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt)
     r2.save()
-    r3 = Role(person=d, role='TAAD', unit=cmpt)
-    r3.save()
-    r4 = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=cmpt)
-    r4.save()
-    roles = [r1, r2, r3, r4]
+    roles = [r1, r2]
 
     # departmental data
     st1 = ScholarshipType(unit=cmpt, name='Scholarship-o-rama', eligible=False)
@@ -526,11 +522,122 @@ def create_grad():
     )
 
 
-def create_ta():
+
+def create_ta_ra():
     """
-    Build test data for the ta and tacontracts modules.
+    Build test data for the ta and ra modules.
     """
-    return itertools.chain()
+    from ta.models import CourseDescription, TAPosting, TAApplication, CoursePreference, TAContract, TACourse
+    from ta.models import TAKEN_CHOICES, EXPER_CHOICES
+    from ra.models import Account, Project, SemesterConfig, RAAppointment
+    from ra.models import HIRING_CATEGORY_CHOICES, HIRING_CATEGORY_DISABLED
+
+    # TAs
+    d = Person.objects.get(userid='dzhao')
+    unit = Unit.objects.get(slug='cmpt')
+    r1 = Role(person=d, role='TAAD', unit=unit)
+    r1.save()
+    r2 = Role(person=d, role='FUND', unit=unit)
+    r2.save()
+
+    s = Semester.current().next_semester()
+    admin = Person.objects.get(userid='dixon')
+    CourseDescription(unit=unit, description="Office/Marking", labtut=False).save()
+    CourseDescription(unit=unit, description="Office/Marking/Lab", labtut=True).save()
+
+    a = Account(account_number=12345, position_number=12345, title='MSc TA', unit=unit)
+    a.save()
+    a = Account(account_number=12346, position_number=12346, title='PhD TA', unit=unit)
+    a.save()
+    a = Account(account_number=12347, position_number=12347, title='External TA', unit=unit)
+    a.save()
+    a = Account(account_number=12348, position_number=12348, title='Undergrad TA', unit=unit)
+    a.save()
+
+    post = TAPosting(semester=s, unit=unit)
+    post.opens = s.start - datetime.timedelta(100)
+    post.closes = s.start - datetime.timedelta(20)
+    post.set_salary([972,972,972,972])
+    post.set_scholarship([135,340,0,0])
+    post.set_accounts([Account.objects.get(account_number=12345).id, Account.objects.get(account_number=12346).id, Account.objects.get(account_number=12347).id, Account.objects.get(account_number=12348).id])
+    post.set_start(s.start)
+    post.set_end(s.end)
+    post.set_deadline(s.start - datetime.timedelta(10))
+    post.set_payperiods(7.5)
+    post.set_contact(admin.id)
+    post.set_offer_text("This is **your** TA offer.\n\nThere are various conditions that are too numerous to list here.")
+    post.save()
+    offerings = list(post.selectable_offerings())
+
+    for p in Person.objects.filter(last_name='Grad'):
+        app = TAApplication(posting=post, person=p, category=random.choice(['GTA1','GTA2']), current_program='CMPT', sin='123456789',
+                            base_units=random.choice([3,4,5]))
+        app.save()
+        will_ta = []
+        for i,o in enumerate(random.sample(offerings, 5)):
+            t = random.choice(TAKEN_CHOICES)[0]
+            e = random.choice(EXPER_CHOICES)[0]
+            cp = CoursePreference(app=app, course=o.course, rank=i+1, taken=t, exper=e)
+            cp.save()
+
+            if random.random() < 0.07*(5-i):
+                will_ta.append(o)
+
+        if will_ta and random.random() < 0.75:
+            c = TAContract(status=random.choice(['NEW','OPN','ACC']))
+            c.first_assign(app, post)
+            c.save()
+            for o in will_ta:
+                tac = TACourse(course=o, contract=c, bu=app.base_units)
+                tac.description = tac.default_description()
+                tac.save()
+
+
+    # RAs
+    s = Semester.current()
+    superv = list(m.person for m in Member.objects.filter(role='INST').select_related('person'))
+    empl = list(itertools.chain(Person.objects.filter(last_name='Grad'), random.sample(Person.objects.filter(last_name='Student'), 10)))
+    cats = [c for c,d in HIRING_CATEGORY_CHOICES if c not in HIRING_CATEGORY_DISABLED]
+    config = SemesterConfig.get_config([unit], s)
+
+    acct = Account(account_number=12349, position_number=12349, title='NSERC RA', unit=unit)
+    acct.save()
+    proj1 = Project(project_number=987654, fund_number=31, unit=unit)
+    proj1.save()
+    proj2 = Project(project_number=876543, fund_number=13, unit=unit)
+    proj2.save()
+
+    for i in range(30):
+        p = random.choice(empl)
+        s = random.choice(superv)
+        c = random.choice(cats)
+        freq = random.choice(['B', 'L'])
+        if freq == 'B':
+            payargs = {'lump_sum_pay': 10000, 'biweekly_pay': 1250, 'pay_periods': 8, 'hourly_pay': 31, 'hours': 40}
+        else:
+            payargs = {'lump_sum_pay': 4000, 'biweekly_pay': 0, 'pay_periods': 8, 'hourly_pay': 0, 'hours': 0}
+        ra = RAAppointment(person=p, sin=123456789, hiring_faculty=s, unit=unit, hiring_category=c,
+                           project=random.choice([proj1,proj2]), account=acct, pay_frequency=freq,
+                           start_date=config.start_date(), end_date=config.end_date(),
+                           **payargs)
+        ra.set_use_hourly(random.choice([True, False]))
+        ra.save()
+
+
+
+    return itertools.chain(
+        [r1, r2],
+        Account.objects.all(),
+        Project.objects.all(),
+        SemesterConfig.objects.all(),
+        RAAppointment.objects.all(),
+        TAPosting.objects.all(),
+        CourseDescription.objects.all(),
+        TAApplication.objects.all(),
+        CoursePreference.objects.all(),
+        TAContract.objects.all(),
+        TACourse.objects.all(),
+    )
 
 
 def create_onlineforms():
@@ -563,11 +670,11 @@ def create_onlineforms():
     fld4.save()
     fld4 = Field(label='Reasons', sheet=s2, fieldtype='LGTX', config={"min_length": 1, "required": True, "max_length": "1000", 'label': 'Reasons', "help_text":'Why do you think you deserve it?'})
     fld4.save()
-    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={ "required": False, 'label': 'Prediction', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
+    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={"required": False, 'label': 'Prediction', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
     fld5.save()
     s3 = Sheet(form=f2, title="Decision", can_view="ALL")
     s3.save()
-    fld5 = Field(label='Decision', sheet=s3, fieldtype='RADI', config={ "required": True, 'label': 'Decision', "help_text":"Do you approve this appeal?", "choice_1": "Yes", "choice_2": "No", "choice_3": "See comments"})
+    fld5 = Field(label='Decision', sheet=s3, fieldtype='RADI', config={"required": True, 'label': 'Decision', "help_text":"Do you approve this appeal?", "choice_1": "Yes", "choice_2": "No", "choice_3": "See comments"})
     fld5.save()
     fld6 = Field(label='Comments', sheet=s3, fieldtype='MDTX', config={"min_length": 1, "required": False, "max_length": "1000", 'label': 'Comments', "help_text":'Any additional comments'})
     fld6.save()
@@ -583,11 +690,14 @@ def create_onlineforms():
 
 def serialize_result(data_func, filename):
     print "creating %s.json" % (filename)
+    start = time.time()
     objs = data_func()
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
     fh = open(filename + '.json', 'w')
     fh.write(data)
     fh.close()
+    done = time.time()
+    print "(%.1f s)" % (done-start)
 
 def main():
     assert not settings.DISABLE_REPORTING_DB
@@ -600,7 +710,7 @@ def main():
     serialize_result(create_grades, 'grades')
     serialize_result(create_grad, 'grad')
     serialize_result(create_onlineforms, 'onlineforms')
-    serialize_result(create_ta, 'ta')
+    serialize_result(create_ta_ra, 'ta_ra')
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
