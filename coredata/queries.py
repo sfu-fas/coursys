@@ -1,5 +1,6 @@
 from coredata.models import Person, Semester, SemesterWeek, CourseOffering
 from django.conf import settings
+from django.core.mail import mail_admins
 import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
@@ -1409,9 +1410,10 @@ def import_person(p, commit=True, grad_data=False):
 
     # don't deactivate userids that have been deactivated by the University
     if userid:
-        # but freak out if a userid changes
+        ## but freak out if a userid changes
         if p.userid and p.userid != userid:
-            raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
+            #raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
+            mail_admins('userid change', "Somebody's userid changed: %s became %s." % (p.userid, userid))
         p.userid = userid
 
     if grad_data:
@@ -1425,7 +1427,9 @@ def import_person(p, commit=True, grad_data=False):
 
     if commit:
         p.save()
-        # TODO: userid-changing functionality from importer._person_save?
+        # this might now throw an IntegrityError if the new userid is re-used for another person,
+        # but that's *never* supposed to happen, just like changing a userid. See commented-out code
+        # from importer._person_save if it starts happening.
 
     return p
 

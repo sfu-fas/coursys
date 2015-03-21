@@ -244,18 +244,20 @@ def import_offerings(extra_where='1=1', import_semesters=import_semesters, cance
 
 def _person_save(p):
     """
-    Save this person object, dealing with duplicate userid as appropriate
+    Save this person object
+    #, dealing with duplicate userid as appropriate
     """
-    try:
-        p.save_if_dirty()
-    except IntegrityError:
-        print "    Changed userid: " + p.userid
-        # other account with this userid must have been deactivated: update
-        other = Person.objects.get(userid=p.userid)
-        assert other.emplid != p.emplid
-        get_person(other.emplid)
+    #try:
+    p.save_if_dirty()
+    #except IntegrityError:
+        # this handles a userid re-assigned to a different person. That shouldn't happen anymore?
+        #print "    Changed userid: " + p.userid
+        ## other account with this userid must have been deactivated: update
+        #other = Person.objects.get(userid=p.userid)
+        #assert other.emplid != p.emplid
+        #get_person(other.emplid)
         # try again now
-        p.save()
+        #p.save()
 
 imported_people = {}
 IMPORT_THRESHOLD = 3600*24*7 # import personal info infrequently
