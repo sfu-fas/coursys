@@ -875,9 +875,9 @@ def import_unit_grads(unit, dry_run, verbosity):
 from grad.models import CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument
 def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
     """
-    Examine grad programs for this student. Identify rogues that could be deleted.
+    Examine grad students in this unit. Identify rogues that could be deleted.
     """
-    gss = GradStudent.objects.filter(program__unit__slug=unit_slug)
+    gss = GradStudent.objects.filter(program__unit__slug=unit_slug, start_semester__name__gte='1051')
 
     # what GradStudents haven't been found in SIMS?
     gs_unco = [gs for gs in gss if 'sims_source' not in gs.config]
