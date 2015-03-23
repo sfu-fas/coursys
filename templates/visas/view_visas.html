@@ -22,7 +22,7 @@ $(document).ready(function() {
   } );
 } );
 function confirmDelete(url) {
-  if ( confirm("Are you sure you want to delete this role?") ) {
+  if ( confirm("Are you sure you want to delete this visa?") ) {
     document.location = url;
   };
 }
@@ -61,6 +61,12 @@ function confirmDelete(url) {
                     <td>{{ visa.status }}</td>
                     <td>{{ visa.get_validity }}</td>
                     <td>
+                        <div class="lineform">
+                            <button type='submit' class='btn' title="Hide Visa"
+                                    onclick="confirmDelete('{% url "visas.views.delete_visa" visa_id=visa.id %}')">
+                                <i class='fa fa-trash-o'></i>
+                            </button>
+                        </div>
                         <form class="lineform" method="GET"
                             action="{% url "visas.views.edit_visa" visa_id=visa.id %}">
                             <button type='submit' class='btn' title="Edit Visa">

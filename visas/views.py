@@ -4,11 +4,12 @@ from .forms import VisaForm
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from log.models import LogEntry
 
 
 @requires_global_role("SYSA")
 def list_all_visas(request):
-    context = {'visa_list': Visa.objects.order_by('start_date')}
+    context = {'visa_list': Visa.objects.filter(hidden=False).order_by('start_date')}
     return render(request, 'visas/view_visas.html', context)
 
 
@@ -50,7 +51,20 @@ def edit_visa(request, visa_id):
     return render(request, 'visas/edit_visa.html', {'form': form, 'visa_id': visa_id})
 
 
-    
+@requires_global_role("SYSA")
+def delete_visa(request, visa_id):
+    visa = get_object_or_404(Visa, pk=visa_id)
+    messages.success(request, 'Hid visa for %s' % (visa.person.name()))
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+                 description= "deleted visa: %s" % (visa),
+                 related_object=visa.person
+                 )
+    l.save()
+
+    visa.hide()
+    visa.save()
+    return HttpResponseRedirect(reverse(list_all_visas))
 
 
 

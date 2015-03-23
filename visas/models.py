@@ -46,3 +46,6 @@ class Visa (models.Model):
 
     def __unicode__(self):
         return "%s, %s, %s" % (self.person, self.status, self.start_date)
+
+    def hide(self):
+        self.hidden = True
