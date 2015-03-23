@@ -65,7 +65,6 @@ def edit_visa(request, visa_id):
 def delete_visa(request, visa_id):
     visa = get_object_or_404(Visa, pk=visa_id)
     messages.success(request, 'Hid visa for %s' % (visa.person.name()))
-    #LOG EVENT#
     l = LogEntry(userid=request.user.username,
                  description="deleted visa: %s" % (visa),
                  related_object=visa.person

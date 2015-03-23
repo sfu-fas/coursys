@@ -26,7 +26,7 @@ class Visa (models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
     start_date = models.DateField('Start Date', default=timezone_today)
-    end_date = models.DateField('End Date', blank=True)
+    end_date = models.DateField('End Date', blank=True, null=True)
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
 
@@ -34,16 +34,16 @@ class Visa (models.Model):
 
     # Helper methods to display a proper status we can sort on
     def is_valid(self):
-        return self.start_date <= timezone_today() < self.end_date
+        return self.start_date <= timezone_today() and (self.end_date is not None and timezone_today() < self.end_date)
 
     def is_expired(self):
-        return timezone_today() > self.end_date
+        return self.end_date is not None and timezone_today() > self.end_date
 
     # If this visa will expire this semester, that may be important
     # A better business rule may be forthcoming.
     def is_almost_expired(self):
         current = Semester.current()
-        return (self.is_valid()) and (self.end_date < current.end)
+        return (self.is_valid()) and (self.end_date is not None and self.end_date < current.end)
 
     def get_validity(self):
         if self.is_expired():
@@ -52,7 +52,7 @@ class Visa (models.Model):
             return EXPIRY_STATUSES[1]
         if self.is_valid():
             return EXPIRY_STATUSES[2]
-        return "Unknown"  # Should be impossible, but defaulting to Valid is just wrong.
+        return "Unknown"  # We'll hit this if the end_date is null.
 
     def __unicode__(self):
         return "%s, %s, %s" % (self.person, self.status, self.start_date)
