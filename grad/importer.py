@@ -872,6 +872,24 @@ def import_unit_grads(unit, dry_run, verbosity):
 
 
 
+def find_true_home(obj, dry_run):
+    """
+    Find the true GradStudent where this object (on a rogue GradStudents) belongs.
+    """
+    old_gs = obj.student
+    new_gss = list(GradStudent.objects.filter(person=old_gs.person, program=old_gs.program, config__contains='sims_source'))
+    if len(new_gss) > 2:
+        raise ValueError, "Multiple matches for %s %s: please fix manually" % (old_gs.slug, obj.__class__.__name__)
+    elif len(new_gss) == 0:
+        raise ValueError, "No match for %s %s: please fix manually" % (old_gs.slug, obj.__class__.__name__)
+
+    new_gs = new_gss[0]
+    obj.student = new_gs
+    if not dry_run:
+        obj.save()
+
+
+
 from grad.models import CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument
 def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
     """
@@ -890,9 +908,11 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
 
     # do they have any other data entered manually?
     for GradModel in [CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument]:
-        res = [s.student.slug for s in GradModel.objects.filter(student__in=gs_unco)]
-        if res:
-            raise ValueError, 'Found a %s for %s, who is rogue.' % (GradModel.__name__, s.student.slug)
+        res = GradModel.objects.filter(student__in=gs_unco)
+        #if res:
+        #   raise ValueError, 'Found a %s for %s, who is rogue.' % (GradModel.__name__, s.student.slug)
+        for r in res:
+            find_true_home(r, dry_run=dry_run)
 
     if not dry_run:
         for gs in gs_unco:
