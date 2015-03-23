@@ -330,8 +330,8 @@ class ProgramStatusChange(GradHappening):
 
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        # grad status
-        if self.status:
+        # grad status: don't manage for CMPT
+        if self.status and self.grad_program.unit.slug != 'cmpt':
             statuses = student_info['statuses']
             if self.gradstatus:
                 st = self.gradstatus
@@ -361,6 +361,9 @@ class ProgramStatusChange(GradHappening):
             student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
 
         # program history
+        if self.grad_program.unit.slug == 'cmpt':
+            return
+
         programs = student_info['programs']
         previous_history = [p for p in programs if p.start_semester.name <= self.strm]
         need_ph = False
@@ -434,6 +437,9 @@ class GradSemester(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
+        if self.grad_program.unit.slug == 'cmpt':
+            return
+
         # make sure the student is "active" as of the start of this semester, since they're taking courses
         statuses = student_info['statuses']
         semester = STRM_MAP[self.strm]
@@ -514,6 +520,9 @@ class CommitteeMembership(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
+        if self.grad_program.unit.slug == 'cmpt':
+            return
+
         key = [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
         local_committee = student_info['committee']
         sup_type = COMMITTEE_MEMBER_MAP[self.committee_role]
@@ -641,6 +650,10 @@ class GradTimeline(object):
             c.sort_happenings()
 
     def find_rogue_local_data(self, verbosity, dry_run):
+        if self.unit.slug == 'cmpt':
+            # don't worry about these for now
+            return
+
         existing_grads = set(GradStudent.objects.filter(program__unit=self.unit, person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START).select_related('start_semester', 'program__unit'))
         found_grads = set(c.gradstudent for c in self.careers if c.gradstudent and c.gradstudent.id)
         extra_grads = existing_grads - found_grads
@@ -734,6 +747,18 @@ class GradCareer(object):
         return (self.last_program in GradCareer.reverse_program_map[gs.program]
                 and gs.start_semester
                 and gs.start_semester.offset_name(-2) <= self.admit_term <= gs.start_semester.offset_name(2)
+                and 'adm_appl_nbr' not in gs.config and 'sims_source' not in gs.config
+        )
+
+    def by_program_history(self, gs):
+        gph = GradProgramHistory.objects.filter(student=gs, program=GradCareer.program_map[self.last_program], start_semester=gs.start_semester)
+        return gph.exists()
+
+    def by_hail_mary(self, gs):
+        return (self.last_program in GradCareer.reverse_program_map[gs.program]
+                and (not gs.start_semester
+                    or gs.start_semester.offset_name(-4) <= self.admit_term <= gs.start_semester.offset_name(4))
+                and 'adm_appl_nbr' not in gs.config and 'sims_source' not in gs.config
         )
 
     GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches?)
@@ -741,6 +766,8 @@ class GradCareer(object):
         ('by_adm_appl_nbr', True),
         ('by_program_and_start', True),
         ('by_similar_program_and_start', True),
+        #('by_program_history', False),
+        #('by_hail_mary', False),
     ]
 
     def find_gradstudent(self, verbosity, dry_run):
@@ -759,6 +786,11 @@ class GradCareer(object):
                     return by_selector[-1]
                 else:
                     raise ValueError, "Multiple records found by %s for %s." % (method, self)
+
+        if GradCareer.program_map[self.last_program].unit.slug == 'cmpt' and self.admit_term < '1137':
+            # Don't try to probe the depths of history for CMPT. You'll hurt yourself.
+            # We have nice clean adm_appl_nbrs for 1137 onwards, so the reliable GS_SELECTORS will find the student
+            return
 
         if verbosity:
             print "New grad student career found: %s in %s starting %s." % (self.emplid, self.last_program, self.admit_term)
@@ -796,8 +828,6 @@ class GradCareer(object):
         }
         self.student_info = student_info
 
-        #print "  ", self.emplid, self.adm_appl_nbr, self.unit.slug, self.admit_term, self.gradstudent
-
         for h in self.happenings:
             # do this first for everything so a second pass can try harder to find things not matching in the first pass
             h.find_local_data(student_info, verbosity=verbosity)
@@ -817,6 +847,10 @@ class GradCareer(object):
         extra_statuses = [s for s in self.student_info['statuses'] if 'sims_source' not in s.config]
         extra_programs = [p for p in self.student_info['programs'] if 'sims_source' not in p.config]
         extra_committee = [c for c in self.student_info['committee'] if 'sims_source' not in c.config]
+        if self.unit.slug == 'cmpt':
+            # doesn't make sense for CMPT, since we're not importing everything else
+            return
+
         if verbosity:
             for s in extra_statuses:
                 print "Rogue grad status: %s was %s in %s" % (self.emplid, SHORT_STATUSES[s.status], s.start.name)
@@ -872,6 +906,11 @@ def import_unit_grads(unit, dry_run, verbosity):
 
 
 
+
+
+
+
+
 def find_true_home(obj, dry_run):
     """
     Find the true GradStudent where this object (on a rogue GradStudents) belongs.
@@ -887,8 +926,6 @@ def find_true_home(obj, dry_run):
     obj.student = new_gs
     if not dry_run:
         obj.save()
-
-
 
 from grad.models import CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment, GradFlagValue, ProgressReport, ExternalDocument
 def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
