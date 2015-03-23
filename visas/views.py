@@ -9,7 +9,7 @@ from log.models import LogEntry
 
 @requires_global_role("SYSA")
 def list_all_visas(request):
-    context = {'visa_list': Visa.objects.filter(hidden=False).order_by('start_date')}
+    context = {'visa_list': Visa.objects.visible}
     return render(request, 'visas/view_visas.html', context)
 
 
@@ -24,6 +24,11 @@ def new_visa(request):
                                  messages.SUCCESS,
                                  u'Visa was created.'
                                  )
+            l = LogEntry(userid=request.user.username,
+                         description="added visa: %s" % (visa),
+                         related_object=visa.person
+                         )
+            l.save()
 
             return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
     else:
@@ -43,6 +48,11 @@ def edit_visa(request, visa_id):
                                  messages.SUCCESS,
                                  u'Visa was successfully modified.'
                                  )
+            l = LogEntry(userid=request.user.username,
+                         description="edited visa: %s" % (visa),
+                         related_object=visa.person
+                         )
+            l.save()
 
             return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
     else:
@@ -57,7 +67,7 @@ def delete_visa(request, visa_id):
     messages.success(request, 'Hid visa for %s' % (visa.person.name()))
     #LOG EVENT#
     l = LogEntry(userid=request.user.username,
-                 description= "deleted visa: %s" % (visa),
+                 description="deleted visa: %s" % (visa),
                  related_object=visa.person
                  )
     l.save()

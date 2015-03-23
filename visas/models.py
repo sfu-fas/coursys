@@ -3,7 +3,8 @@ from coredata.models import VISA_STATUSES, Person
 from django.utils import timezone
 from courselib.json_fields import JSONField
 from coredata.models import Semester
-
+from django.db.models.query import QuerySet
+from model_utils.managers import PassThroughManager
 
 EXPIRY_STATUSES = ['Expired', 'Expiring Soon', 'Valid']
 
@@ -14,6 +15,13 @@ def timezone_today():
     # field default must be a callable (so it's the "today" of the request, not the "today" of the server startup)
     return timezone.now().date()
 
+
+class VisaQuerySet(QuerySet):
+
+        def visible(self):
+            return self.filter(hidden=False).order_by('start_date')
+
+
 class Visa (models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
@@ -21,6 +29,8 @@ class Visa (models.Model):
     end_date = models.DateField('End Date', blank=True)
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
+
+    objects = PassThroughManager.for_queryset_class(VisaQuerySet)()
 
     # Helper methods to display a proper status we can sort on
     def is_valid(self):
@@ -49,3 +59,4 @@ class Visa (models.Model):
 
     def hide(self):
         self.hidden = True
+
