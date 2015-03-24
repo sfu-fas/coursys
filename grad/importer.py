@@ -73,6 +73,19 @@ def grad_program_changes(acad_prog):
 
 @SIMS_problem_handler
 @cache_by_args
+def grad_appl_program_changes(acad_prog):
+    db = SIMSConn()
+    db.execute("""
+        SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
+            effdt, effseq, admit_term, exp_grad_term
+        FROM ps_adm_appl_prog
+        WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
+        ORDER BY effdt, effseq
+    """, (acad_prog, IMPORT_START_DATE, IMPORT_START_SEMESTER))
+    return list(db)
+
+@SIMS_problem_handler
+@cache_by_args
 def grad_semesters(emplid):
     db = SIMSConn()
     db.execute("""
@@ -181,6 +194,7 @@ class GradHappening(object):
             self.grad_program = GradHappening.program_map[self.acad_prog]
         except KeyError:
             self.grad_program = None
+
 
 
 class ProgramStatusChange(GradHappening):
@@ -407,7 +421,8 @@ class ProgramStatusChange(GradHappening):
                     ph.save()
 
 
-
+class ApplProgramChange(ProgramStatusChange):
+    pass
 
 class GradSemester(GradHappening):
     """
@@ -870,14 +885,24 @@ def import_unit_grads(unit, dry_run, verbosity):
 
     timelines = {}
     for acad_prog in acad_progs:
-        appls = grad_program_changes(acad_prog)
-        for a in appls:
-            emplid = a[0]
+        prog_changes = grad_program_changes(acad_prog)
+        for p in prog_changes:
+            emplid = p[0]
             timeline = timelines.get(emplid, None)
             if not timeline:
                 timeline = GradTimeline(emplid, unit)
                 timelines[emplid] = timeline
-            status = ProgramStatusChange(*a)
+            status = ProgramStatusChange(*p)
+            timeline.add(status)
+
+        appl_changes = grad_appl_program_changes(acad_prog)
+        for a in appl_changes:
+            emplid = p[0]
+            timeline = timelines.get(emplid, None)
+            if not timeline:
+                timeline = GradTimeline(emplid, unit)
+                timelines[emplid] = timeline
+            status = ApplProgramChange(*p)
             timeline.add(status)
 
 
