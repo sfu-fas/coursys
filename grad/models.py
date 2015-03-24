@@ -55,7 +55,6 @@ class GradProgram(models.Model):
             return ('???', '???')
 
 STATUS_CHOICES = (
-        ('APPL', 'Applicant'), # TODO: remove Applicant: not used in the real data
         ('INCO', 'Incomplete Application'),
         ('COMP', 'Complete Application'),
         ('INRE', 'Application In-Review'),
@@ -511,6 +510,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.current_status]
+    def get_short_current_status_display(self):
+        return SHORT_STATUSES[self.current_status]
 
     def sessional_courses(self):
         """
@@ -1143,17 +1144,19 @@ STATUS_ORDER = {
         'DECL': 3,
         'EXPI': 3,
         'CONF': 4,
+        'TRIN': 4,
         'CANC': 5,
         'ARIV': 5,
-        'APPL': 5,
         'ACTI': 6,
         'PART': 6,
         'LEAV': 7,
         'NOND': 7,
+        'TROU': 8,
         'WIDR': 8,
         'GRAD': 8,
         'GONE': 8,
         'ARSP': 8,
+        'DELE': 8,
         None: 9,
         }
 class GradStatus(models.Model, ConditionalSaveMixin):
