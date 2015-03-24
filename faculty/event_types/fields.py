@@ -94,7 +94,10 @@ class SemesterField(forms.DateField):
         self.widget = SemesterDateInput(semester_start=start)
 
         defaults = kwargs
-        defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right, e.g.: 1141')})
+        if 'help_text' in kwargs:
+            defaults.update({"help_text": kwargs['help_text']})
+        else:
+            defaults.update({"help_text": mark_safe('Select Date or enter semester code on the right, e.g.: 1141')})
         super(SemesterField, self).__init__(**defaults)
 
     def to_python(self, value):
