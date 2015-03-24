@@ -19,7 +19,7 @@ def timezone_today():
 class VisaQuerySet(QuerySet):
 
         def visible(self):
-            return self.filter(hidden=False).order_by('start_date')
+            return self.filter(hidden=False)
 
 
 class Visa (models.Model):
@@ -31,6 +31,9 @@ class Visa (models.Model):
     hidden = models.BooleanField(default=False, editable=False)
 
     objects = PassThroughManager.for_queryset_class(VisaQuerySet)()
+
+    class Meta:
+        ordering = ('start_date',)
 
     # Helper methods to display a proper status we can sort on
     def is_valid(self):
