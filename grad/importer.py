@@ -476,9 +476,14 @@ class GradSemester(GradHappening):
         active_semester_statuses = [s for s in statuses if s.start.name == self.strm and s.status == 'ACTI']
 
         if active_semester_statuses:
-            if verbosity > 1:
-                print "* Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
             st = active_semester_statuses[-1]
+            if 'sims_source' in st.config and st.config['sims_source'] == key:
+                # This happens for a couple of students with a 'confirmed acceptance' on the same effdt as the semester start
+                # Kick it to make it effective for this semester, but don't bother reporting it.
+                effdt = effdt + datetime.timedelta(days=1)
+            elif verbosity > 1:
+                print "* Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
+
             st.start_date = effdt
             st.config['sims_source'] = key
             if not dry_run:
