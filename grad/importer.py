@@ -902,12 +902,12 @@ def import_unit_grads(unit, dry_run, verbosity):
 
         appl_changes = grad_appl_program_changes(acad_prog)
         for a in appl_changes:
-            emplid = p[0]
+            emplid = a[0]
             timeline = timelines.get(emplid, None)
             if not timeline:
                 timeline = GradTimeline(emplid, unit)
                 timelines[emplid] = timeline
-            status = ApplProgramChange(*p)
+            status = ApplProgramChange(*a)
             timeline.add(status)
 
 
