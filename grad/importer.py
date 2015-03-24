@@ -5,8 +5,8 @@ from coredata.models import Semester, Unit
 from grad.models import GradProgram, GradStudent, Supervisor, GradStatus, GradProgramHistory
 from grad.models import STATUS_APPLICANT, SHORT_STATUSES, SUPERVISOR_TYPE
 import datetime
+import itertools
 from collections import defaultdict
-from pprint import pprint
 import intervaltree
 
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
@@ -351,7 +351,7 @@ class ProgramStatusChange(GradHappening):
 
     def update_local_data(self, student_info, verbosity, dry_run):
         # grad status: don't manage for CMPT
-        if self.status and self.grad_program.unit.slug != 'cmpt':
+        if self.status and self.unit.slug != 'cmpt':
             statuses = student_info['statuses']
             if self.gradstatus:
                 st = self.gradstatus
@@ -381,7 +381,10 @@ class ProgramStatusChange(GradHappening):
             student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
 
         # program history
-        if self.grad_program.unit.slug == 'cmpt':
+        if self.unit.slug == 'cmpt':
+            return
+        if not hasattr(self, 'grad_program'):
+            # CareerUnitChangeOut/CareerUnitChangeIN subclasses don't have grad_program, so the rest isn't relevant
             return
 
         programs = student_info['programs']
@@ -595,8 +598,9 @@ class CommitteeMembership(GradHappening):
 
 
 
-class CareerUnitChangeOut(GradHappening):
-    def __init__(self, emplid, adm_appl_nbr, unit, acad_prog, effdt):
+class CareerUnitChangeOut(ProgramStatusChange):
+    # inherits ProgramStatusChange so we can use the find_existing_status and find_similar_status functionality
+    def __init__(self, emplid, adm_appl_nbr, unit, otherunit, effdt):
         """
         Represents a transfer into or out of a unit within one grad career: since GradStudent is limited to one unit,
         we must split careers around unit transfers
@@ -606,19 +610,28 @@ class CareerUnitChangeOut(GradHappening):
         self.effdt = effdt
         self.stdnt_car_nbr = None
 
-        # for CareerUnitChangeOut these are the old unit/program; for CareerUnitChangeIn they are the new.
+        if self.inout() == 'out':
+            self.status = 'TROU'
+        else:
+            self.status = 'TRIN'
+
+        # CareerUnitChangeOut.unit is the old unit and otherunit is the new unit
+        # for CareerUnitChangeIn they are reversed.
         self.unit = unit
-        self.acad_prog = acad_prog
+        self.otherunit = otherunit
 
-        self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
-
         self.in_career = False
 
     def inout(self):
         return 'out'
-    def key(self):
-        return ['unit_change_'+self.inout(self), self.emplid, self.adm_appl_nbr, self.acad_prog, self.effdt]
+    def import_key(self):
+        return ['unit_change_'+self.inout(), self.emplid, self.adm_appl_nbr, self.effdt, self.unit.slug, self.otherunit.slug]
+
+    #def find_local_data(self, student_info, verbosity):
+        # inherited from ProgramStatusChange
+    #def update_local_data(self, student_info, verbosity, dry_run):
+        # inherited from ProgramStatusChange
 
 class CareerUnitChangeIn(CareerUnitChangeOut):
     def inout(self):
@@ -649,37 +662,6 @@ class GradTimeline(object):
             h = CommitteeMembership(*cm)
             self.add(h)
 
-    def add_unit_change_happenings(self):
-        self.sort_happenings()
-        last_unit = None
-        last_acad_prog = None
-        for h in self.happenings:
-            if isinstance(h, CareerUnitChangeOut) or isinstance(h, CareerUnitChangeIn):
-                # these were appended during this loop: ignore
-                pass
-
-            elif not h.unit:
-                pass
-
-            elif not last_unit:
-                last_unit = h.unit
-
-            elif last_unit != h.unit:
-                # found a unit change (but might also be a career change: we don't know yet)
-                print self.emplid, last_unit.slug, last_acad_prog, h.unit.slug, h.acad_prog, h
-                assert h.adm_appl_nbr
-                assert h.acad_prog
-                assert h.effdt
-                c_out = CareerUnitChangeOut(self.emplid, h.adm_appl_nbr, last_unit, last_acad_prog, h.effdt-datetime.timedelta(days=1))
-                c_in = CareerUnitChangeIn(self.emplid, h.adm_appl_nbr, h.unit, h.acad_prog, h.effdt)
-                self.happenings.append(c_out)
-                self.happenings.append(c_in)
-                last_unit = h.unit
-
-            last_acad_prog = h.acad_prog
-
-        self.sort_happenings()
-
     def split_careers(self, verbosity=1):
         """
         Take all of the happenings we found and split them into careers, with each representing one GradStudent object.
@@ -700,10 +682,12 @@ class GradTimeline(object):
 
             if h.adm_appl_nbr:
                 cs = [c for c in self.careers if c.unit == h.grad_program.unit and c.adm_appl_nbr == h.adm_appl_nbr]
-                if len(cs) == 1:
+                if len(cs) > 1:
+                    raise ValueError, str(cs)
+                elif len(cs) == 1:
                     c = cs[0]
                 else:
-                    c = GradCareer(self.emplid, h.adm_appl_nbr, h.grad_program.unit)
+                    c = GradCareer(self.emplid, h.adm_appl_nbr, h.app_stdnt_car_nbr, h.grad_program.unit)
                     self.careers.append(c)
 
                 c.add(h)
@@ -744,6 +728,29 @@ class GradTimeline(object):
         for c in self.careers:
             c.sort_happenings()
 
+        # Categorize the careers by adm_appl_nbr and acad_prog.stdnt_car_nbr: being the same means same program
+        # application event. If those were split between departments, then it's an inter-departmental transfer.
+        # Those should get transfer out/in happenings added.
+        adm_appl_groups = itertools.groupby(self.careers, lambda c: (c.adm_appl_nbr, c.app_stdnt_car_nbr))
+        for (adm_appl_nbr, app_stdnt_car_nbr), careers in adm_appl_groups:
+            careers = list(careers)
+            if len(careers) == 1:
+                continue
+
+            # sort by order they happen: heuristically, effdt of first happening in career
+            careers.sort(key=lambda c: c.happenings[0].effdt)
+
+            # we have an inter-department transfer: create transfer in/out happenings
+            for c_out, c_in in zip(careers, careers[1:]):
+                effdt = c_in.happenings[0].effdt
+                t_out = CareerUnitChangeOut(emplid=c_out.emplid, adm_appl_nbr=c_out.adm_appl_nbr, unit=c_out.unit,
+                        otherunit=c_in.unit, effdt=effdt-datetime.timedelta(days=1))
+                t_in = CareerUnitChangeIn(emplid=c_in.emplid, adm_appl_nbr=c_in.adm_appl_nbr, unit=c_in.unit,
+                        otherunit=c_out.unit, effdt=effdt)
+                c_out.happenings.append(t_out)
+                c_in.happenings.insert(0, t_in)
+
+
     def find_rogue_local_data(self, verbosity, dry_run):
         return
         if self.unit.slug == 'cmpt':
@@ -767,9 +774,10 @@ class GradCareer(object):
     program_map = None
     reverse_program_map = None
 
-    def __init__(self, emplid, adm_appl_nbr, unit):
+    def __init__(self, emplid, adm_appl_nbr, app_stdnt_car_nbr, unit):
         self.emplid = emplid
         self.adm_appl_nbr = adm_appl_nbr
+        self.app_stdnt_car_nbr = app_stdnt_car_nbr
         self.unit = unit
         self.happenings = []
         self.admit_term = None
@@ -977,18 +985,18 @@ def import_grads(dry_run, verbosity):
             status = ProgramStatusChange(*p)
             timeline.add(status)
 
-        appl_changes = grad_appl_program_changes(acad_prog)
-        for a in appl_changes:
-            emplid = a[0]
-            timeline = timelines.get(emplid, None)
-            if not timeline:
-                timeline = GradTimeline(emplid)
-                timelines[emplid] = timeline
-            status = ApplProgramChange(*a)
-            timeline.add(status)
+        #appl_changes = grad_appl_program_changes(acad_prog)
+        #for a in appl_changes:
+        #    emplid = a[0]
+        #    timeline = timelines.get(emplid, None)
+        #    if not timeline:
+        #        timeline = GradTimeline(emplid)
+        #        timelines[emplid] = timeline
+        #    status = ApplProgramChange(*a)
+        #    timeline.add(status)
 
     emplids = sorted(timelines.keys())
-    emplids = ['200012213', '200023877']
+    emplids = ['200023877', '301038983', '301072549', '301204525']
     for emplid in emplids:
         if emplid not in timelines:
             continue
@@ -996,19 +1004,12 @@ def import_grads(dry_run, verbosity):
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
         timeline.add_committee_happenings()
-        #timeline.add_unit_change_happenings()
         timeline.split_careers(verbosity=verbosity)
         with transaction.atomic(): # all or nothing for each person
             for c in timeline.careers:
-                print c
-                print c.happenings
-                continue
                 c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
                 if not c.gradstudent:
                     # we gave up on this because it's too old
-                    continue
-                if c.gradstudent.program.unit != unit:
-                    # only touch if it's from the unit we're trying to import
                     continue
                 c.update_local_data(verbosity=verbosity, dry_run=dry_run)
                 c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
