@@ -14,6 +14,9 @@ import intervaltree
 # TODO: GradStudent.create does things: use it
 # TODO: CMPT distinction between thesis/project/course in SIMS?
 
+# import grads from these units (but CMPT gets special treatment)
+IMPORT_UNIT_SLUGS = ['cmpt', 'ensc', 'mse']
+
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
 # ...even longer for dates of things that are startup-biased (like returning from leave)
@@ -192,8 +195,10 @@ class GradHappening(object):
 
         try:
             self.grad_program = GradHappening.program_map[self.acad_prog]
+            self.unit = self.grad_program.unit
         except KeyError:
             self.grad_program = None
+            self.unit = None
 
 
 
@@ -202,7 +207,8 @@ class ProgramStatusChange(GradHappening):
             prog_reason, effdt, effseq, admit_term, exp_grad_term):
         # argument order must match grad_program_changes query
         self.emplid = emplid
-        self.stdnt_car_nbr = None # these seem meaningless
+        self.stdnt_car_nbr = None
+        self.app_stdnt_car_nbr = stdnt_car_nbr
         self.adm_appl_nbr = adm_appl_nbr
         self.acad_prog = acad_prog
         self.effdt = datetime.datetime.strptime(effdt, '%Y-%m-%d').date()
@@ -437,6 +443,9 @@ class GradSemester(GradHappening):
         self.acad_prog = acad_prog_primary
         self.unt_taken_prgrss = unt_taken_prgrss
 
+        self.semester = STRM_MAP[self.strm]
+        self.effdt = self.semester.start
+
         self.acad_prog_to_gradprogram()
 
         self.adm_appl_nbr = None
@@ -457,8 +466,8 @@ class GradSemester(GradHappening):
 
         # make sure the student is "active" as of the start of this semester, since they're taking courses
         statuses = student_info['statuses']
-        semester = STRM_MAP[self.strm]
-        effdt = semester.start
+        semester = self.semester
+        effdt = self.effdt
         key = self.key()
 
         # Option 1: we're already active
@@ -586,10 +595,38 @@ class CommitteeMembership(GradHappening):
 
 
 
-class GradTimeline(object):
-    def __init__(self, emplid, unit):
+class CareerUnitChangeOut(GradHappening):
+    def __init__(self, emplid, adm_appl_nbr, unit, acad_prog, effdt):
+        """
+        Represents a transfer into or out of a unit within one grad career: since GradStudent is limited to one unit,
+        we must split careers around unit transfers
+        """
         self.emplid = emplid
+        self.adm_appl_nbr = adm_appl_nbr
+        self.effdt = effdt
+        self.stdnt_car_nbr = None
+
+        # for CareerUnitChangeOut these are the old unit/program; for CareerUnitChangeIn they are the new.
         self.unit = unit
+        self.acad_prog = acad_prog
+
+        self.acad_prog_to_gradprogram()
+        self.effdt_to_strm()
+
+        self.in_career = False
+
+    def inout(self):
+        return 'out'
+    def key(self):
+        return ['unit_change_'+self.inout(self), self.emplid, self.adm_appl_nbr, self.acad_prog, self.effdt]
+
+class CareerUnitChangeIn(CareerUnitChangeOut):
+    def inout(self):
+        return 'in'
+
+class GradTimeline(object):
+    def __init__(self, emplid):
+        self.emplid = emplid
         self.happenings = []
         self.careers = []
 
@@ -598,6 +635,9 @@ class GradTimeline(object):
 
     def add(self, happening):
         self.happenings.append(happening)
+
+    def sort_happenings(self):
+        self.happenings.sort(key=lambda h: (h.strm, h.effdt))
 
     def add_semester_happenings(self):
         for gs in grad_semesters(self.emplid):
@@ -609,6 +649,37 @@ class GradTimeline(object):
             h = CommitteeMembership(*cm)
             self.add(h)
 
+    def add_unit_change_happenings(self):
+        self.sort_happenings()
+        last_unit = None
+        last_acad_prog = None
+        for h in self.happenings:
+            if isinstance(h, CareerUnitChangeOut) or isinstance(h, CareerUnitChangeIn):
+                # these were appended during this loop: ignore
+                pass
+
+            elif not h.unit:
+                pass
+
+            elif not last_unit:
+                last_unit = h.unit
+
+            elif last_unit != h.unit:
+                # found a unit change (but might also be a career change: we don't know yet)
+                print self.emplid, last_unit.slug, last_acad_prog, h.unit.slug, h.acad_prog, h
+                assert h.adm_appl_nbr
+                assert h.acad_prog
+                assert h.effdt
+                c_out = CareerUnitChangeOut(self.emplid, h.adm_appl_nbr, last_unit, last_acad_prog, h.effdt-datetime.timedelta(days=1))
+                c_in = CareerUnitChangeIn(self.emplid, h.adm_appl_nbr, h.unit, h.acad_prog, h.effdt)
+                self.happenings.append(c_out)
+                self.happenings.append(c_in)
+                last_unit = h.unit
+
+            last_acad_prog = h.acad_prog
+
+        self.sort_happenings()
+
     def split_careers(self, verbosity=1):
         """
         Take all of the happenings we found and split them into careers, with each representing one GradStudent object.
@@ -617,11 +688,15 @@ class GradTimeline(object):
         careers have to be within one unit
         a career is usually started by applying for a program (or by transferring between units)
         """
-        # TODO: if we find multiple careeers with the same adm_appl_nbr (because of intra-unit transfer), create some "transferred out" and "transferred in" statuses
-        # pass 1: we know the adm_appl_nbr
+        # pass 1: we know the adm_appl_nbr or are transferring
         for h in self.happenings:
             if not h.grad_program:
                 continue
+
+#            if isinstance(h, CareerUnitChangeIn):
+#                # out to other unit: must start a new career owned by the new unit
+#                c = GradCareer(self.emplid, h.adm_appl_nbr, h.grad_program.unit)
+#               assert c.adm_appl_nbr
 
             if h.adm_appl_nbr:
                 cs = [c for c in self.careers if c.unit == h.grad_program.unit and c.adm_appl_nbr == h.adm_appl_nbr]
@@ -670,6 +745,7 @@ class GradTimeline(object):
             c.sort_happenings()
 
     def find_rogue_local_data(self, verbosity, dry_run):
+        return
         if self.unit.slug == 'cmpt':
             # don't worry about these for now
             return
@@ -739,7 +815,7 @@ class GradCareer(object):
         self.happenings.append(h)
 
     def sort_happenings(self):
-        self.happenings.sort(key=lambda h: h.strm)
+        self.happenings.sort(key=lambda h: (h.strm, h.effdt))
 
     def import_key(self):
         assert self.adm_appl_nbr
@@ -884,9 +960,10 @@ class GradCareer(object):
 
 
 
-def import_unit_grads(unit, dry_run, verbosity):
+def import_grads(dry_run, verbosity):
     prog_map = build_program_map()
-    acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit == unit]
+    import_units = Unit.objects.filter(slug__in=IMPORT_UNIT_SLUGS)
+    acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit in import_units]
 
     timelines = {}
     for acad_prog in acad_progs:
@@ -895,7 +972,7 @@ def import_unit_grads(unit, dry_run, verbosity):
             emplid = p[0]
             timeline = timelines.get(emplid, None)
             if not timeline:
-                timeline = GradTimeline(emplid, unit)
+                timeline = GradTimeline(emplid)
                 timelines[emplid] = timeline
             status = ProgramStatusChange(*p)
             timeline.add(status)
@@ -905,13 +982,13 @@ def import_unit_grads(unit, dry_run, verbosity):
             emplid = a[0]
             timeline = timelines.get(emplid, None)
             if not timeline:
-                timeline = GradTimeline(emplid, unit)
+                timeline = GradTimeline(emplid)
                 timelines[emplid] = timeline
             status = ApplProgramChange(*a)
             timeline.add(status)
 
-
     emplids = sorted(timelines.keys())
+    emplids = ['200012213', '200023877']
     for emplid in emplids:
         if emplid not in timelines:
             continue
@@ -919,9 +996,13 @@ def import_unit_grads(unit, dry_run, verbosity):
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
         timeline.add_committee_happenings()
+        #timeline.add_unit_change_happenings()
         timeline.split_careers(verbosity=verbosity)
         with transaction.atomic(): # all or nothing for each person
             for c in timeline.careers:
+                print c
+                print c.happenings
+                continue
                 c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
                 if not c.gradstudent:
                     # we gave up on this because it's too old

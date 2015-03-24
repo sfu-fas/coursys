@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from coredata.models import Unit
-from grad.importer import import_unit_grads
+from grad.importer import import_grads
 from optparse import make_option
 
 class Command(BaseCommand):
@@ -16,6 +16,4 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        unit_slug = args[0]
-
-        import_unit_grads(Unit.objects.get(slug=unit_slug), dry_run=options['dryrun'], verbosity=int(options['verbosity']))
+        import_grads(dry_run=options['dryrun'], verbosity=int(options['verbosity']))

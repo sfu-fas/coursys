@@ -75,6 +75,8 @@ STATUS_CHOICES = (
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed Special'), # Special Arrangements + GONE
+        ('TRIN', 'Transferred from another department'),
+        ('TROU', 'Transferred to another department'),
         ('DELE', 'Deleted Record'), # used to flag GradStudents as deleted
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
@@ -82,7 +84,7 @@ STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses th
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
-STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE') # statuses we don't let users enter
+STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
 SHORT_STATUSES = dict([ # a shorter status description we can use in compact tables
         ('INCO', 'Incomp App'),
@@ -104,6 +106,8 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('NOND', 'Non-deg'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed'), # Special Arrangements + GONE
+        ('TRIN', 'Transfer in'),
+        ('TROU', 'Transfer out'),
         ('DELE', 'Deleted Record'),
 ])
 
@@ -185,6 +189,12 @@ class GradStudentManager(models.Manager):
 
 
 class GradStudent(models.Model, ConditionalSaveMixin):
+    """
+    Represents one grad student "career".
+
+    (...within a single unit: transfers between units get multiple GradStudent objects so staff in each unit can see
+    the data they should, but not the rest.)
+    """
     objects = GradStudentManager()
     all_objects = models.Manager()
 
