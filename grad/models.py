@@ -1156,7 +1156,7 @@ STATUS_ORDER = {
         'GRAD': 8,
         'GONE': 8,
         'ARSP': 8,
-        'DELE': 8,
+        'DELE': 9,
         None: 9,
         }
 class GradStatus(models.Model, ConditionalSaveMixin):
@@ -1179,6 +1179,8 @@ class GradStatus(models.Model, ConditionalSaveMixin):
     hidden = models.BooleanField(null=False, db_index=True, default=False)
     config = JSONField(default=dict) # addition configuration
         # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
+        # 'in_from': for status=='TRIN', a Unit.slug where the student came from
+        # 'out_to': for status=='TROU', a Unit.slug where the student went
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."

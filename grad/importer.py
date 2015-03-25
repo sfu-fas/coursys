@@ -298,6 +298,10 @@ class ProgramStatusChange(GradHappening):
         # must be JSON-serializable (and comparable for equality after serializing/deserializing)
         return self.key
 
+    def status_config(self):
+        "Additional entries for GradStatus.config when updating"
+        return {}
+
     def find_existing_status(self, statuses, verbosity):
         # look for something previously imported from this
         key = self.import_key()
@@ -349,49 +353,56 @@ class ProgramStatusChange(GradHappening):
                 assert st.start == STRM_MAP[self.strm]
 
 
-    def update_local_data(self, student_info, verbosity, dry_run):
+    def update_status(self, student_info, verbosity, dry_run):
+        """
+        Find/update GradStatus object for this happening
+        """
         # grad status: don't manage for CMPT
-        if self.status and self.unit.slug != 'cmpt':
-            statuses = student_info['statuses']
-            if self.gradstatus:
-                st = self.gradstatus
-            else:
-                # try really hard to find a local status we can use for this: anything close not found
-                # by any find_local_data() call
-                st = self.find_similar_status(statuses, verbosity=verbosity)
-                if not st:
-                    # really not found: make a new one
-                    st = GradStatus(student=student_info['student'], status=self.status)
-                    statuses.append(st)
-                    if verbosity:
-                        print "Adding grad status: %s is '%s' as of %s." % (self.emplid, SHORT_STATUSES[self.status], self.strm)
-
-            self.gradstatus = st
-            self.gradstatus.found_in_import = True
-
-            assert st.status == self.status
-            st.start = STRM_MAP[self.strm]
-            st.start_date = self.effdt
-            st.config['sims_source'] = self.import_key()
-
-            if not dry_run:
-                st.save_if_dirty()
-
-            # re-sort if we added something, so we find things right on the next check
-            student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
-
-        # program history
         if self.unit.slug == 'cmpt':
             return
-        if not hasattr(self, 'grad_program'):
-            # CareerUnitChangeOut/CareerUnitChangeIN subclasses don't have grad_program, so the rest isn't relevant
+
+        statuses = student_info['statuses']
+        if self.gradstatus:
+            st = self.gradstatus
+        else:
+            # try really hard to find a local status we can use for this: anything close not found
+            # by any find_local_data() call
+            st = self.find_similar_status(statuses, verbosity=verbosity)
+            if not st:
+                # really not found: make a new one
+                st = GradStatus(student=student_info['student'], status=self.status)
+                statuses.append(st)
+                if verbosity:
+                    print "Adding grad status: %s is '%s' as of %s." % (self.emplid, SHORT_STATUSES[self.status], self.strm)
+
+        self.gradstatus = st
+        self.gradstatus.found_in_import = True
+
+        assert st.status == self.status
+        st.start = STRM_MAP[self.strm]
+        st.start_date = self.effdt
+        st.config['sims_source'] = self.import_key()
+        st.config.update(self.status_config())
+
+        if not dry_run:
+            st.save_if_dirty()
+
+        # re-sort if we added something, so we find things right on the next check
+        student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
+
+
+    def update_program_history(self, student_info, verbosity, dry_run):
+        """
+        Find/update GradProgramHistory object for this happening
+        """
+        if self.unit.slug == 'cmpt':
             return
 
         programs = student_info['programs']
         previous_history = [p for p in programs if p.start_semester.name <= self.strm]
         need_ph = False
         if previous_history:
-            # there is a previously-know program: make sure it matches
+            # there is a previously-known program: make sure it matches
             ph = previous_history[-1]
             if ph.program != self.grad_program:
                 # current program isn't what we found
@@ -402,9 +413,20 @@ class ProgramStatusChange(GradHappening):
                     ph = similar_history[0]
                 else:
                     need_ph = True
+
         else:
-            # no history: create
-            need_ph = True
+            # maybe the next-known program change is to the same program? If so, move it back.
+            next_history = [p for p in programs if p.start_semester.name > self.strm]
+            if next_history and next_history[0].program == self.grad_program:
+                if verbosity > 1:
+                    print "* Adjusting program change start: %s in %s as of %s." % (self.emplid, self.grad_program.slug, self.strm)
+                ph = next_history[0]
+                ph.start_semester = STRM_MAP[self.strm]
+                ph.starting = self.effdt
+                need_ph = False
+            else:
+                # no history: create
+                need_ph = True
 
         key = self.import_key()
         existing_history = [p for p in programs if
@@ -428,6 +450,14 @@ class ProgramStatusChange(GradHappening):
                 ph.config['sims_source'] = key
                 if not dry_run:
                     ph.save()
+
+
+    def update_local_data(self, student_info, verbosity, dry_run):
+        if self.status:
+            self.update_status(student_info, verbosity, dry_run)
+        if self.grad_program:
+            # CareerUnitChangeOut/CareerUnitChangeIn subclasses don't have grad_program
+            self.update_program_history(student_info, verbosity, dry_run)
 
 
 class ApplProgramChange(ProgramStatusChange):
@@ -600,7 +630,7 @@ class CommitteeMembership(GradHappening):
 
 class CareerUnitChangeOut(ProgramStatusChange):
     # inherits ProgramStatusChange so we can use the find_existing_status and find_similar_status functionality
-    def __init__(self, emplid, adm_appl_nbr, unit, otherunit, effdt):
+    def __init__(self, emplid, adm_appl_nbr, unit, otherunit, effdt, admit_term):
         """
         Represents a transfer into or out of a unit within one grad career: since GradStudent is limited to one unit,
         we must split careers around unit transfers
@@ -609,6 +639,7 @@ class CareerUnitChangeOut(ProgramStatusChange):
         self.adm_appl_nbr = adm_appl_nbr
         self.effdt = effdt
         self.stdnt_car_nbr = None
+        self.grad_program = None
 
         if self.inout() == 'out':
             self.status = 'TROU'
@@ -621,12 +652,17 @@ class CareerUnitChangeOut(ProgramStatusChange):
         self.otherunit = otherunit
 
         self.effdt_to_strm()
+        self.strm = max(admit_term, self.strm) # make sure transfer happens after any application-related statuses
         self.in_career = False
 
     def inout(self):
         return 'out'
     def import_key(self):
-        return ['unit_change_'+self.inout(), self.emplid, self.adm_appl_nbr, self.effdt, self.unit.slug, self.otherunit.slug]
+        return ['unit_change_'+self.inout(), self.emplid, self.adm_appl_nbr, str(self.effdt), self.unit.slug, self.otherunit.slug]
+
+    def status_config(self):
+        "Additional entries for GradStatus.config when updating"
+        return {'out_to': self.otherunit.slug}
 
     #def find_local_data(self, student_info, verbosity):
         # inherited from ProgramStatusChange
@@ -636,6 +672,11 @@ class CareerUnitChangeOut(ProgramStatusChange):
 class CareerUnitChangeIn(CareerUnitChangeOut):
     def inout(self):
         return 'in'
+
+    def status_config(self):
+        "Additional entries for GradStatus.config when updating"
+        return {'in_from': self.otherunit.slug}
+
 
 class GradTimeline(object):
     def __init__(self, emplid):
@@ -670,15 +711,10 @@ class GradTimeline(object):
         careers have to be within one unit
         a career is usually started by applying for a program (or by transferring between units)
         """
-        # pass 1: we know the adm_appl_nbr or are transferring
+        # pass 1: we know the adm_appl_nbr
         for h in self.happenings:
             if not h.grad_program:
                 continue
-
-#            if isinstance(h, CareerUnitChangeIn):
-#                # out to other unit: must start a new career owned by the new unit
-#                c = GradCareer(self.emplid, h.adm_appl_nbr, h.grad_program.unit)
-#               assert c.adm_appl_nbr
 
             if h.adm_appl_nbr:
                 cs = [c for c in self.careers if c.unit == h.grad_program.unit and c.adm_appl_nbr == h.adm_appl_nbr]
@@ -744,20 +780,21 @@ class GradTimeline(object):
             for c_out, c_in in zip(careers, careers[1:]):
                 effdt = c_in.happenings[0].effdt
                 t_out = CareerUnitChangeOut(emplid=c_out.emplid, adm_appl_nbr=c_out.adm_appl_nbr, unit=c_out.unit,
-                        otherunit=c_in.unit, effdt=effdt-datetime.timedelta(days=1))
+                        otherunit=c_in.unit, effdt=effdt, admit_term=c_out.admit_term)
                 t_in = CareerUnitChangeIn(emplid=c_in.emplid, adm_appl_nbr=c_in.adm_appl_nbr, unit=c_in.unit,
-                        otherunit=c_out.unit, effdt=effdt)
+                        otherunit=c_out.unit, effdt=effdt, admit_term=c_in.admit_term)
                 c_out.happenings.append(t_out)
                 c_in.happenings.insert(0, t_in)
 
 
     def find_rogue_local_data(self, verbosity, dry_run):
-        return
         if self.unit.slug == 'cmpt':
             # don't worry about these for now
             return
 
-        existing_grads = set(GradStudent.objects.filter(program__unit=self.unit, person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START).select_related('start_semester', 'program__unit'))
+        existing_grads = set(GradStudent.objects
+                .filter(program__unit=self.unit, person__emplid=self.emplid, start_semester__name__gt=RELEVANT_PROGRAM_START)
+                .select_related('start_semester', 'program__unit'))
         found_grads = set(c.gradstudent for c in self.careers if c.gradstudent and c.gradstudent.id)
         extra_grads = existing_grads - found_grads
         if verbosity:
@@ -875,7 +912,7 @@ class GradCareer(object):
     ]
 
     def find_gradstudent(self, verbosity, dry_run):
-        gss = GradStudent.objects.filter(person__emplid=self.emplid).select_related('start_semester', 'program__unit')
+        gss = GradStudent.objects.filter(person__emplid=self.emplid, program__unit=self.unit).select_related('start_semester', 'program__unit')
         gss = list(gss)
 
         if self.admit_term < RELEVANT_PROGRAM_START:
@@ -910,6 +947,10 @@ class GradCareer(object):
 
     def fill_gradstudent(self, verbosity, dry_run):
         gs = self.find_gradstudent(verbosity=verbosity, dry_run=dry_run)
+        units = set(GradProgramHistory.objects.filter(student=gs).values_list('program__unit', flat=True))
+        if len(units) > 1:
+            # TODO: this shouldn't be. May require manual cleanup (17 records in production).
+            pass
         self.gradstudent = gs
 
     def update_local_data(self, verbosity, dry_run):
@@ -996,7 +1037,7 @@ def import_grads(dry_run, verbosity):
         #    timeline.add(status)
 
     emplids = sorted(timelines.keys())
-    emplids = ['200023877', '301038983', '301072549', '301204525']
+    #emplids = ['200023877', '301038983', '301072549', '301204525', '301238443']
     for emplid in emplids:
         if emplid not in timelines:
             continue
@@ -1012,9 +1053,9 @@ def import_grads(dry_run, verbosity):
                     # we gave up on this because it's too old
                     continue
                 c.update_local_data(verbosity=verbosity, dry_run=dry_run)
-                c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+                #c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
 
-            timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+            #timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
 
 
 
@@ -1044,6 +1085,9 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
     """
     Examine grad students in this unit. Identify rogues that could be deleted.
     """
+    # other things that could be found and possibly purged:
+    # GradProgramHistory that's unconfirmed and to the program they're *already in*
+    # GradStatus on-leave that's unconfirmed and in-the-past-enough that it's not a recent manual entry
     gss = GradStudent.objects.filter(program__unit__slug=unit_slug, start_semester__name__gte='1051')
 
     # what GradStudents haven't been found in SIMS?
