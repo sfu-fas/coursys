@@ -335,8 +335,8 @@ class GradTest(TestCase):
 
 
     def test_grad_status(self):
-        self.assertEqual(set(dict(STATUS_CHOICES).keys()), set(SHORT_STATUSES.keys()))
-        self.assertEqual(set(STATUS_ORDER.keys())-set([None]), set(SHORT_STATUSES.keys()))
+        self.assertEqual(set(dict(STATUS_CHOICES).keys()) | set([None]), set(SHORT_STATUSES.keys()))
+        self.assertEqual(set(STATUS_ORDER.keys()), set(SHORT_STATUSES.keys()))
 
         client = Client()
         client.login_user('dzhao')
