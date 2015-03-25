@@ -273,12 +273,6 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
-        
-        # make sure we have a GradProgramHistory object corresponding to current state
-        #oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
-        #if not oldhist:
-        #    h = GradProgramHistory(student=self, program=self.program)
-        #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
 

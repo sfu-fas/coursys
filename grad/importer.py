@@ -402,9 +402,9 @@ class ProgramStatusChange(GradHappening):
 
         programs = student_info['programs']
         key = self.import_key()
-        if self.strm < self.admit_term:
-            # program change could happen before admit: we take those as effective admit term
-            strm = self.admit_term
+        if self.strm < student_info['real_admit_term']:
+            # program change could happen before admit: we take those as effective the student's admit term
+            strm = student_info['real_admit_term']
         else:
             strm = self.strm
 
@@ -430,7 +430,7 @@ class ProgramStatusChange(GradHappening):
                 if verbosity > 1:
                     print "* Adjusting program change start: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm)
                 ph = next_history[0]
-                ph.start_semester = STRM_MAP[self.strm]
+                ph.start_semester = STRM_MAP[strm]
                 ph.starting = self.effdt
                 need_ph = False
             else:
@@ -452,13 +452,12 @@ class ProgramStatusChange(GradHappening):
             ph.config['sims_source'] = key
             student_info['programs'].append(ph)
             student_info['programs'].sort(key=lambda p: (p.start_semester.name, p.starting))
-            if not dry_run:
-                ph.save()
         else:
             if 'sims_source' not in ph.config:
                 ph.config['sims_source'] = key
-                if not dry_run:
-                    ph.save()
+
+        if not dry_run:
+            ph.save_if_dirty()
 
 
     def update_local_data(self, student_info, verbosity, dry_run):
@@ -977,6 +976,7 @@ class GradCareer(object):
                 .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
             'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
                 .exclude(supervisor_type='POT')),
+            'real_admit_term': self.admit_term,
         }
         self.student_info = student_info
 
@@ -986,6 +986,18 @@ class GradCareer(object):
 
         for h in self.happenings:
             h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
+
+        # are there any GradProgramHistory objects happening before the student actually started (because they
+        # deferred)? If so, defer them too.
+        if self.unit.slug != 'cmpt':
+            premature_gph = GradProgramHistory.objects.filter(student=self.gradstudent,
+                                                              start_semester__name__lt=self.admit_term)
+            for gph in premature_gph:
+                gph.start_semester = STRM_MAP[self.admit_term]
+                if verbosity:
+                    print "Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term)
+                if not dry_run:
+                    gph.save()
 
         if not dry_run:
             self.gradstudent.update_status_fields()

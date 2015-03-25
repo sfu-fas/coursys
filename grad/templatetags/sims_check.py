@@ -1,7 +1,7 @@
 from django.utils.html import mark_safe, conditional_escape
 from django import template
 from grad.models import GradStudent, Supervisor
-
+import json
 register = template.Library()
 
 class SIMSCheckNode(template.Node):
@@ -28,7 +28,8 @@ class SIMSCheckNode(template.Node):
         if hasattr(obj, 'config') and 'sims_source' in obj.config and obj.config['sims_source']:
             tag = '<i class="fa fa-check sims_check_yes" title="Found in SIMS"></i>'
             if debug:
-                tag += ' <span style="font-size: 65%%;">%s</span>' % (conditional_escape(str(obj.config['sims_source'])))
+                tag += ' <span style="font-size: 65%%;">%s</span>' % \
+                       (conditional_escape(json.dumps(obj.config['sims_source'])))
         elif isinstance(obj, Supervisor) and obj.supervisor_type == 'POT':
             # these aren't in SIMS ever so don't complain
             tag = ''
