@@ -16,6 +16,8 @@ import intervaltree
 
 # import grads from these units (but CMPT gets special treatment)
 IMPORT_UNIT_SLUGS = ['cmpt', 'ensc', 'mse']
+# subset of STATUS_CHOICES that CMPT wants imported
+CMPT_IMPORT_STATUSES = []
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
@@ -336,7 +338,7 @@ class ProgramStatusChange(GradHappening):
                 and not hasattr(s, 'found_in_import')]
         if close_enough:
             if verbosity > 2:
-                print "* Found similar (but imperfect) status for %s is %s in %s" % (self.emplid, self.status, self.strm)
+                print "* Found similar (but imperfect) status for %s/%s is %s in %s" % (self.emplid, self.unit.slug, self.status, self.strm)
             return close_enough[0]
 
 
@@ -358,7 +360,7 @@ class ProgramStatusChange(GradHappening):
         Find/update GradStatus object for this happening
         """
         # grad status: don't manage for CMPT
-        if self.unit.slug == 'cmpt':
+        if self.unit.slug == 'cmpt' and self.status not in CMPT_IMPORT_STATUSES:
             return
 
         statuses = student_info['statuses']
@@ -373,7 +375,7 @@ class ProgramStatusChange(GradHappening):
                 st = GradStatus(student=student_info['student'], status=self.status)
                 statuses.append(st)
                 if verbosity:
-                    print "Adding grad status: %s is '%s' as of %s." % (self.emplid, SHORT_STATUSES[self.status], self.strm)
+                    print "Adding grad status: %s/%s is '%s' as of %s." % (self.emplid, self.unit.slug, SHORT_STATUSES[self.status], self.strm)
 
         self.gradstatus = st
         self.gradstatus.found_in_import = True
@@ -399,7 +401,14 @@ class ProgramStatusChange(GradHappening):
             return
 
         programs = student_info['programs']
-        previous_history = [p for p in programs if p.start_semester.name <= self.strm]
+        key = self.import_key()
+        if self.strm < self.admit_term:
+            # program change could happen before admit: we take those as effective admit term
+            strm = self.admit_term
+        else:
+            strm = self.strm
+
+        previous_history = [p for p in programs if p.start_semester.name <= strm]
         need_ph = False
         if previous_history:
             # there is a previously-known program: make sure it matches
@@ -416,10 +425,10 @@ class ProgramStatusChange(GradHappening):
 
         else:
             # maybe the next-known program change is to the same program? If so, move it back.
-            next_history = [p for p in programs if p.start_semester.name > self.strm]
+            next_history = [p for p in programs if p.start_semester.name > strm]
             if next_history and next_history[0].program == self.grad_program:
                 if verbosity > 1:
-                    print "* Adjusting program change start: %s in %s as of %s." % (self.emplid, self.grad_program.slug, self.strm)
+                    print "* Adjusting program change start: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm)
                 ph = next_history[0]
                 ph.start_semester = STRM_MAP[self.strm]
                 ph.starting = self.effdt
@@ -428,18 +437,18 @@ class ProgramStatusChange(GradHappening):
                 # no history: create
                 need_ph = True
 
-        key = self.import_key()
         existing_history = [p for p in programs if
                 'sims_source' in p.config and p.config['sims_source'] == key]
         if existing_history:
+            ph = existing_history[0]
             need_ph = False
 
         if need_ph:
             if (verbosity and previous_history) or verbosity > 1:
                 # don't usually report first ever ProgramHistory because those are boring
-                print "Adding program change: %s in %s as of %s." % (self.emplid, self.grad_program.slug, self.strm)
+                print "Adding program change: %s/%s in %s as of %s." % (self.emplid, self.unit.slug, self.grad_program.slug, strm)
             ph = GradProgramHistory(student=student_info['student'], program=self.grad_program,
-                    start_semester=STRM_MAP[self.strm], starting=self.effdt)
+                    start_semester=STRM_MAP[strm], starting=self.effdt)
             ph.config['sims_source'] = key
             student_info['programs'].append(ph)
             student_info['programs'].sort(key=lambda p: (p.start_semester.name, p.starting))
@@ -454,6 +463,7 @@ class ProgramStatusChange(GradHappening):
 
     def update_local_data(self, student_info, verbosity, dry_run):
         if self.status:
+            # could be just a program change, but no status
             self.update_status(student_info, verbosity, dry_run)
         if self.grad_program:
             # CareerUnitChangeOut/CareerUnitChangeIn subclasses don't have grad_program
@@ -494,7 +504,7 @@ class GradSemester(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        if self.grad_program.unit.slug == 'cmpt':
+        if self.grad_program.unit.slug == 'cmpt' and 'ACTI' not in CMPT_IMPORT_STATUSES:
             return
 
         # make sure the student is "active" as of the start of this semester, since they're taking courses
@@ -524,7 +534,7 @@ class GradSemester(GradHappening):
                 # Kick it to make it effective for this semester, but don't bother reporting it.
                 effdt = effdt + datetime.timedelta(days=1)
             elif verbosity > 1:
-                print "* Adjusting date of grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
+                print "* Adjusting date of grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm)
 
             st.start_date = effdt
             st.config['sims_source'] = key
@@ -533,7 +543,7 @@ class GradSemester(GradHappening):
         else:
             # Option 3: need to add an active status
             if verbosity:
-                print "Adding grad status: %s is '%s' as of %s (was taking courses)." % (self.emplid, SHORT_STATUSES['ACTI'], self.strm)
+                print "Adding grad status: %s/%s is '%s' as of %s (was taking courses)." % (self.emplid, self.unit.slug, SHORT_STATUSES['ACTI'], self.strm)
             st = GradStatus(student=student_info['student'], status='ACTI', start=semester,
                     start_date=effdt)
             st.config['sims_source'] = key
@@ -605,11 +615,11 @@ class CommitteeMembership(GradHappening):
             similar = [m for m in local_committee if m.supervisor == p]
             if len(similar) > 0:
                 if verbosity > 2:
-                    print "* Found similar (but imperfect) committee member for %s is a %s for %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid)
+                    print "* Found similar (but imperfect) committee member for %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug)
                 member = similar[0]
             else:
                 if verbosity:
-                    print "Adding committee member: %s is a %s for %s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid)
+                    print "Adding committee member: %s is a %s for %s/%s" % (p.name(), SUPERVISOR_TYPE[sup_type], self.emplid, self.unit.slug)
                 member = Supervisor(student=student_info['student'], supervisor=p, supervisor_type=sup_type)
                 member.created_at = self.effdt
                 local_committee.append(member)
@@ -664,10 +674,6 @@ class CareerUnitChangeOut(ProgramStatusChange):
         "Additional entries for GradStatus.config when updating"
         return {'out_to': self.otherunit.slug}
 
-    #def find_local_data(self, student_info, verbosity):
-        # inherited from ProgramStatusChange
-    #def update_local_data(self, student_info, verbosity, dry_run):
-        # inherited from ProgramStatusChange
 
 class CareerUnitChangeIn(CareerUnitChangeOut):
     def inout(self):
@@ -934,7 +940,7 @@ class GradCareer(object):
             return
 
         if verbosity:
-            print "New grad student career found: %s in %s starting %s." % (self.emplid, self.last_program, self.admit_term)
+            print "New grad student career found: %s/%s in %s starting %s." % (self.emplid, self.unit.slug, self.last_program, self.admit_term)
 
         # can't find anything in database: create new
         gs = GradStudent(person=add_person(self.emplid, commit=(not dry_run)))
@@ -949,8 +955,9 @@ class GradCareer(object):
         gs = self.find_gradstudent(verbosity=verbosity, dry_run=dry_run)
         units = set(GradProgramHistory.objects.filter(student=gs).values_list('program__unit', flat=True))
         if len(units) > 1:
-            # TODO: this shouldn't be. May require manual cleanup (17 records in production).
-            pass
+            # TODO: May require manual cleanup (a dozen or so records in production).
+            if verbosity:
+                print "Grad Student %s has programs in multiple units: that shouldn't be." % (gs.slug)
         self.gradstudent = gs
 
     def update_local_data(self, verbosity, dry_run):
@@ -1037,6 +1044,7 @@ def import_grads(dry_run, verbosity):
         #    timeline.add(status)
 
     emplids = sorted(timelines.keys())
+    emplids = ['301080623', '301137480']
     #emplids = ['200023877', '301038983', '301072549', '301204525', '301238443']
     for emplid in emplids:
         if emplid not in timelines:
