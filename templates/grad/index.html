@@ -53,7 +53,7 @@
 
 {% block content %}
 <p>You can view grad student records for {{units|pluralize:"this unit,these units"}}: 
-{% for u in units %}{{u.name}}{% if not forloop.last %},{% endif %}{% endfor %}.
+{% for u in units %}{{u.name}}{% if not forloop.last %}, {% endif %}{% endfor %}.
 </p>
 
 <form action="{% url "grad.views.quick_search" %}" method="get">
