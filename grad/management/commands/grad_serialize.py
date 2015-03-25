@@ -13,6 +13,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         unit_slugs = args
         units = Unit.objects.filter(slug__in=unit_slugs)
+        assert len(units) == len(unit_slugs)
 
         objs = list(units)
         objs.extend(Semester.objects.all())
