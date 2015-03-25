@@ -109,6 +109,7 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('TRIN', 'Transfer in'),
         ('TROU', 'Transfer out'),
         ('DELE', 'Deleted Record'),
+        (None, 'None'),
 ])
 
 GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
