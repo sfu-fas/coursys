@@ -761,13 +761,26 @@ class GradTimeline(object):
                 # If multiple, use the (often odd) stdnt_car_nbr to choose
                 # re-admits seem to have same stdnt_car_nbr, so use admit_term to guess
                 possible_careers = [c for c in self.careers if c.unit == h.unit and c.app_stdnt_car_nbr == h.app_stdnt_car_nbr and c.admit_term <= h.strm]
+                if len(possible_careers)>1 and h.prog_action in ['LEAV', 'RLOA', 'DISC', 'COMP', 'RADM']:
+                    # had to be activated for these to happen, so use that to decide
+                    possible_careers = [c for c in possible_careers if c.possibly_active_on(h.effdt)]
+
                 if len(possible_careers) == 1:
                     c = possible_careers[0]
                     c.add(h)
                 elif len(possible_careers) > 1:
-                    raise ValueError
-                #else:
-                #    # it's a new career, conjured out of the ether
+                    if h.prog_action == 'DATA' and not h.status:
+                        # these aren't really carrying info, so drop
+                        h.in_career = True
+                    else:
+                        raise ValueError, "Multiple career options for happening %s for %s. %s" % (h, self.emplid, possible_careers)
+                else:
+                    #print h.prog_action in ['LEAV', 'RLOA', 'DISC', 'RADM'], (h.prog_action, h.status)
+
+                    # make sure that "active program" filter didn't cause an inappropriate new career
+                    assert h.prog_action not in ['LEAV', 'RLOA', 'DISC', 'COMP']
+
+                    # it's a new career, conjured out of the ether
 
             if not h.in_career:
                 # no existing program: must be new.
