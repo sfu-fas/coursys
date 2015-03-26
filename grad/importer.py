@@ -111,7 +111,7 @@ def committee_members(emplid):
         FROM
             ps_stdnt_advr_hist st
             JOIN ps_committee com
-                ON (com.institution=st.institution AND com.committee_id=st.committee_id)
+                ON (com.institution=st.institution AND com.committee_id=st.committee_id AND st.effdt<=com.effdt)
             JOIN ps_committee_membr mem
                 ON (mem.institution=st.institution AND mem.committee_id=st.committee_id AND com.effdt=mem.effdt)
         WHERE
@@ -484,6 +484,7 @@ class GradSemester(GradHappening):
         self.withdraw_code = withdraw_code
         self.acad_prog = acad_prog_primary
         self.unt_taken_prgrss = unt_taken_prgrss
+        self.status = 'ACTI'
 
         self.semester = STRM_MAP[self.strm]
         self.effdt = self.semester.start
@@ -713,8 +714,14 @@ class GradTimeline(object):
         careers have to be within one unit
         a career is usually started by applying for a program (or by transferring between units)
         """
+
+        # handle committee memberships separately: if they select a committee after applying for a different program,
+        # we need to notice.
+        happenings = [h for h in self.happenings if not isinstance(h, CommitteeMembership)]
+        committee_happenings = [h for h in self.happenings if isinstance(h, CommitteeMembership)]
+
         # pass 1: we know the adm_appl_nbr
-        for h in self.happenings:
+        for h in happenings:
             if not h.grad_program:
                 continue
 
@@ -729,10 +736,11 @@ class GradTimeline(object):
                     self.careers.append(c)
 
                 c.add(h)
+                c.last_status_happening = h.effdt
                 h.in_career = True
 
-        # pass 2: look at admit_term
-        for h in self.happenings:
+        # pass 2: look at admit_term and program
+        for h in happenings:
             if h.in_career or not h.grad_program:
                 continue
 
@@ -747,7 +755,7 @@ class GradTimeline(object):
             h.in_career = True
 
         # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer their start
-        for h in self.happenings:
+        for h in happenings:
             if h.in_career or not h.grad_program:
                 continue
 
@@ -1115,6 +1123,7 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
     # other things that could be found and possibly purged:
     # GradProgramHistory that's unconfirmed and to the program they're *already in*
     # GradStatus on-leave that's unconfirmed and in-the-past-enough that it's not a recent manual entry
+    # There are Supervisors with external=='-None-' for CMPT: those can go.
     gss = GradStudent.objects.filter(program__unit__slug=unit_slug, start_semester__name__gte='1051')
 
     # what GradStudents haven't been found in SIMS?
