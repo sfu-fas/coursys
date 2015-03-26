@@ -173,8 +173,10 @@ class GradHappening(object):
         offset = DATE_OFFSET
         if hasattr(self, 'status') and self.status == 'ACTI':
             offset = DATE_OFFSET_START
+        elif isinstance(self, CommitteeMembership):
+            offset = datetime.timedelta(days=0)
 
-        if hasattr(self, 'status') and self.status == 'GRAD':
+        if hasattr(self, 'status') and self.status == 'GRAD' and self.exp_grad_term:
             # Graduation strm is explicitly in there
             strm = self.exp_grad_term
         elif hasattr(self, 'status') and self.status in STATUS_APPLICANT:
@@ -717,8 +719,10 @@ class GradTimeline(object):
 
         # handle committee memberships separately: if they select a committee after applying for a different program,
         # we need to notice.
-        happenings = [h for h in self.happenings if not isinstance(h, CommitteeMembership)]
-        committee_happenings = [h for h in self.happenings if isinstance(h, CommitteeMembership)]
+        #happenings = [h for h in self.happenings if not isinstance(h, CommitteeMembership)]
+        #committee_happenings = [h for h in self.happenings if isinstance(h, CommitteeMembership)]
+        self.sort_happenings()
+        happenings = self.happenings
 
         # pass 1: we know the adm_appl_nbr
         for h in happenings:
@@ -736,9 +740,32 @@ class GradTimeline(object):
                     self.careers.append(c)
 
                 c.add(h)
-                c.last_status_happening = h.effdt
                 h.in_career = True
 
+        # pass 2: what program are they actually in at that time?
+        for h in happenings:
+            if h.in_career or not h.grad_program:
+                continue
+
+            if len(self.careers) == 1:
+                # why kill ourselves if there's only one option?
+                c = self.careers[0]
+                c.add(h)
+                h.in_career = True
+                continue
+
+            possible_careers = [c for c in self.careers if c.unit == h.unit and c.possibly_active_on(h.effdt)]
+            if len(possible_careers) > 1:
+                raise ValueError, str((self.emplid, h, h.strm, possible_careers))
+            elif len(possible_careers) == 1:
+                c = possible_careers[0]
+                c.add(h)
+                h.in_career = True
+            #else:
+            #    raise ValueError, str((self.emplid, h, h.strm))
+
+
+        '''
         # pass 2: look at admit_term and program
         for h in happenings:
             if h.in_career or not h.grad_program:
@@ -767,7 +794,7 @@ class GradTimeline(object):
             c = possible_careers[-1]
             c.add(h)
             h.in_career = True
-
+        '''
         # Failures to categorize happenings into a career by this point seem to always have to do with an
         # older career that we're not importing. Those get dropped here.
 
@@ -875,6 +902,35 @@ class GradCareer(object):
     def import_key(self):
         assert self.adm_appl_nbr
         return [self.emplid, self.adm_appl_nbr, self.unit.slug]
+
+    def possibly_active_on(self, effdt):
+        """
+        Is this a date in which this career is conceivably active? i.e. might be taking courses or forming committees?
+        """
+        matr = [(h.effdt, h.admit_term) for h in self.happenings if isinstance(h, ProgramStatusChange) and h.prog_status == 'AC']
+        # doing things happens after you are admitted (in the finally-selected admit_term).
+        if not matr:
+            return False
+        matr_strm = max(matr)[1]
+        matr_effdt = max(matr)[0]
+        matr_dt = max(matr_effdt, STRM_MAP[matr_strm].start)
+        if matr_dt > effdt:
+            return False
+
+        grads = [h.effdt for h in self.happenings if h.effdt >= matr_dt and isinstance(h, ProgramStatusChange) and h.prog_status == 'CM']
+        # can do things up to graduation day TODO: should it be end of the graduation semester?
+        if grads:
+            return effdt <= max(grads)
+
+        ends = [h.effdt for h in self.happenings if h.effdt >= matr_dt and isinstance(h, ProgramStatusChange) and h.prog_status in ['CN', 'DC']]
+        if ends:
+            # can't do things if you bailed # TODO: should this be the last day of the semester?
+            end_dt = max(ends)
+            return effdt < end_dt
+
+        # ongoing program, so anything after admission
+        return True
+
 
     def check_stdnt_car_nbr(self, h):
         if not self.stdnt_car_nbr and h.stdnt_car_nbr:
