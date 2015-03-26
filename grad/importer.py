@@ -158,6 +158,7 @@ def build_reverse_program_map():
         rev_program_map[gradprog].append(acad_prog)
 
     cmptunit = Unit.objects.get(label="CMPT")
+    rev_program_map[GradProgram.objects.get(label="MSc Thesis", unit=cmptunit)].append('CPMCW')
     rev_program_map[GradProgram.objects.get(label="MSc Course", unit=cmptunit)].append('CPMSC')
     rev_program_map[GradProgram.objects.get(label="MSc Proj", unit=cmptunit)].append('CPMSC')
     return rev_program_map
@@ -254,7 +255,7 @@ class ProgramStatusChange(GradHappening):
             return 'DECL'
         elif st_ac == ('CN', 'WADM'):
             # cancelled application
-            return None
+            return 'CANC'
         elif st_ac == ('AD', 'ADMT'):
             return 'OFFO'
         elif st_ac == ('AD', 'COND'):
@@ -975,11 +976,10 @@ class GradCareer(object):
         return gs.config.get('sims_source', 'none') == self.import_key()
 
     def by_adm_appl_nbr(self, gs):
-        return (gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr
-                and GradCareer.program_map[self.last_program] == gs.program)
+        return (gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr)
 
     def by_program_and_start(self, gs):
-        return (GradCareer.program_map[self.last_program] == gs.program
+        return (self.last_program in GradCareer.reverse_program_map[gs.program]
                 and gs.start_semester
                 and gs.start_semester.name == self.admit_term)
 
@@ -1003,7 +1003,7 @@ class GradCareer(object):
 
     GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches?)
         ('by_key', False),
-        ('by_adm_appl_nbr', True),
+        ('by_adm_appl_nbr', False),
         ('by_program_and_start', True),
         ('by_similar_program_and_start', True),
         #('by_program_history', False),
@@ -1017,8 +1017,10 @@ class GradCareer(object):
         if self.admit_term < RELEVANT_PROGRAM_START:
             return
 
+        #print '---', self, self.unit.slug
         for method, multiple_okay in GradCareer.GS_SELECTORS:
             by_selector = [gs for gs in gss if getattr(self, method)(gs)]
+            #print self.emplid, method, by_selector
             if len(by_selector) == 1:
                 return by_selector[0]
             elif len(by_selector) > 1:
@@ -1050,7 +1052,7 @@ class GradCareer(object):
         if len(units) > 1:
             # TODO: May require manual cleanup (a dozen or so records in production).
             if verbosity:
-                print "Grad Student %s has programs in multiple units: that shouldn't be." % (gs.slug)
+                print "Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id)
         self.gradstudent = gs
 
     def update_local_data(self, verbosity, dry_run):
@@ -1120,23 +1122,74 @@ class GradCareer(object):
 
 
 def manual_cleanups(dry_run, verbosity):
-    # these are ugly cleanups of old data that make the real import work well and leave less junk to clean later
+    """
+    These are ugly cleanups of old data that make the real import work well and leave less junk to clean later.
+    """
     if dry_run:
         return
 
+    # GradStudents that ended up split between units
     GradProgramHistory.objects.filter(student__id=4849, program__unit__slug='mse').delete()
     GradStatus.objects.filter(student__id=4849, status='GRAD').delete()
     GradStudent.objects.get(id=4849).update_status_fields()
 
+    # ENSC -> CMPT and has real data from CMPT
+    GradProgramHistory.objects.filter(student__id=2484, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=2484).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=2697, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=2697).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=535, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=535).update_status_fields()
+
+    # ENSC -> MSE (where ENSC import already create the ENSC GradStudent: keep these for MSE)
+    GradProgramHistory.objects.filter(student__id=4811, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4811).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4812, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4812).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4851, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4851).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4870, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4870).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4820, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4820).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4821, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4821).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4823, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4823).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4894, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4894).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4831, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4831).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4833, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4833).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4897, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4897).update_status_fields()
+    GradProgramHistory.objects.filter(student__id=4839, program__unit__slug='ensc').delete()
+    GradStudent.objects.get(id=4839).update_status_fields()
+
+    GradProgramHistory.objects.filter(student__id=4817, program__unit__slug='ensc').delete()
+    gs = GradStudent.objects.get(id=4817)
+    gs.config['adm_appl_nbr'] = '00534543'
+    gs.save()
+    gs.update_status_fields()
+
+    # not-quite-right adm_appl_nbr from old import
+    gs = GradStudent.objects.get(id=4770)
+    gs.config['adm_appl_nbr'] = '00798960'
+    gs.save()
 
 
 
-def import_grads(dry_run, verbosity):
+
+
+
+def import_grads(dry_run, verbosity, import_emplids=None):
     prog_map = build_program_map()
     import_units = Unit.objects.filter(slug__in=IMPORT_UNIT_SLUGS)
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit in import_units]
 
-    manual_cleanups(verbosity=verbosity, dry_run=dry_run)
+    # always do these: safe and rest of the import gets weird without them.
+    manual_cleanups(verbosity=verbosity, dry_run=False)
 
     timelines = {}
     for acad_prog in acad_progs:
@@ -1160,7 +1213,11 @@ def import_grads(dry_run, verbosity):
         #    status = ApplProgramChange(*a)
         #    timeline.add(status)
 
-    emplids = sorted(timelines.keys())
+    if import_emplids:
+        emplids = import_emplids
+    else:
+        emplids = sorted(timelines.keys())
+
     for emplid in emplids:
         timeline = timelines[emplid]
         timeline.add_semester_happenings()

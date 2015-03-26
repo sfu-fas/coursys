@@ -16,4 +16,4 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        import_grads(dry_run=options['dryrun'], verbosity=int(options['verbosity']))
+        import_grads(dry_run=options['dryrun'], verbosity=int(options['verbosity']), import_emplids=args)
