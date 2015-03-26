@@ -598,9 +598,6 @@ class CommitteeMembership(GradHappening):
         local_committee = student_info['committee']
         sup_type = COMMITTEE_MEMBER_MAP[self.committee_role]
 
-        # should we be checking that the current local program and the committee program match up?
-        #print self.grad_program, student_info['student'].program_as_of(STRM_MAP[self.strm])
-
         if self.sup_emplid in CommitteeMembership.found_people:
             p = CommitteeMembership.found_people[self.sup_emplid]
         else:
@@ -882,7 +879,8 @@ class GradCareer(object):
         return gs.config.get('sims_source', 'none') == self.import_key()
 
     def by_adm_appl_nbr(self, gs):
-        return gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr
+        return (gs.config.get('adm_appl_nbr', 'none') == self.adm_appl_nbr
+                and GradCareer.program_map[self.last_program] == gs.program)
 
     def by_program_and_start(self, gs):
         return (GradCareer.program_map[self.last_program] == gs.program
@@ -1025,6 +1023,15 @@ class GradCareer(object):
 
 
 
+def manual_cleanups(dry_run, verbosity):
+    # these are ugly cleanups of old data that make the real import work well and leave less junk to clean later
+    if dry_run:
+        return
+
+    GradProgramHistory.objects.filter(student__id=4849, program__unit__slug='mse').delete()
+    GradStatus.objects.filter(student__id=4849, status='GRAD').delete()
+    GradStudent.objects.get(id=4849).update_status_fields()
+
 
 
 
@@ -1032,6 +1039,8 @@ def import_grads(dry_run, verbosity):
     prog_map = build_program_map()
     import_units = Unit.objects.filter(slug__in=IMPORT_UNIT_SLUGS)
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit in import_units]
+
+    manual_cleanups(verbosity=verbosity, dry_run=dry_run)
 
     timelines = {}
     for acad_prog in acad_progs:
@@ -1056,7 +1065,6 @@ def import_grads(dry_run, verbosity):
         #    timeline.add(status)
 
     emplids = sorted(timelines.keys())
-    #emplids = ['200023877', '301038983', '301072549', '301204525', '301238443']
     for emplid in emplids:
         if emplid not in timelines:
             continue
