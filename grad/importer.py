@@ -799,47 +799,20 @@ class GradTimeline(object):
                         c = possible_careers[-1]
                         c.add(h)
                     else:
+                        # admit failure in a few cases
                         if isinstance(h, CommitteeMembership):
-                            # Committee member added to one program after student changed to another: drop this one
+                            # Committee member added to one program after student changed to another: drop this one.
                             # Committee membership for student's new program should be in another happening.
                             h.in_career = True
-
+                        elif isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=365) < IMPORT_START_DATE:
+                            # student in classes just after the beginning of time: we missed the career
+                            h.in_career = True
 
 
         dropped = [h for h in happenings if not h.in_career]
         if dropped:
-            print '???', self.emplid, dropped
+            raise ValueError, 'Some happenings got dropped for %s! %s' % (self.emplid, dropped)
 
-        '''
-        # pass 2: look at admit_term and program
-        for h in happenings:
-            if h.in_career or not h.grad_program:
-                continue
-
-            possible_careers = [c for c in self.careers if c.unit == h.grad_program.unit and c.admit_term <= h.strm]
-            if not possible_careers:
-                continue
-
-            possible_careers.sort(key=lambda c: c.admit_term)
-            c = possible_careers[-1]
-            c.check_stdnt_car_nbr(h)
-            c.add(h)
-
-        # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer their start
-        for h in happenings:
-            if h.in_career or not h.grad_program:
-                continue
-
-            possible_careers = [c for c in self.careers if c.unit == h.grad_program.unit and c.first_admit_term <= h.strm]
-            if not possible_careers:
-                continue
-
-            possible_careers.sort(key=lambda c: c.admit_term)
-            c = possible_careers[-1]
-            c.add(h)
-        '''
-        # Failures to categorize happenings into a career by this point seem to always have to do with an
-        # older career that we're not importing. Those get dropped here.
 
         for c in self.careers:
             c.sort_happenings()
