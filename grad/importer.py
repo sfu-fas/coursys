@@ -228,7 +228,10 @@ class ProgramStatusChange(GradHappening):
         self.acad_prog_to_gradprogram()
         self.effdt_to_strm()
 
-        self.key = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
+        # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
+        self.oldkey = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
+        self.key = ['ps_acad_prog', emplid, 'GRAD', effdt, self.prog_status, self.prog_reason, self.acad_prog]
+        print self.key
 
         self.in_career = False
         self.gradstatus = None
@@ -310,11 +313,17 @@ class ProgramStatusChange(GradHappening):
     def find_existing_status(self, statuses, verbosity):
         # look for something previously imported from this
         key = self.import_key()
+        # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
+        # ... be sure to find the old ones and claim as our own.
         existing = [s for s in statuses
-                if 'sims_source' in s.config and s.config['sims_source'] == key]
+                if 'sims_source' in s.config and
+                ((s.config['sims_source'] == key)
+                 or (s.config['sims_source'] == self.oldkey and s.status==self.status))]
         if existing:
-            assert existing[0].status == self.status
-            return existing[0]
+            s = existing[0]
+            assert s.status == self.status
+            s.config['sims_source'] = key
+            return s
 
         # look for a real match in old data
         similar = [s for s in statuses
@@ -1050,9 +1059,8 @@ class GradCareer(object):
         gs = self.find_gradstudent(verbosity=verbosity, dry_run=dry_run)
         units = set(GradProgramHistory.objects.filter(student=gs).values_list('program__unit', flat=True))
         if len(units) > 1:
-            # TODO: May require manual cleanup (a dozen or so records in production).
             if verbosity:
-                print "Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id)
+                raise ValueError, "Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id)
         self.gradstudent = gs
 
     def update_local_data(self, verbosity, dry_run):
@@ -1129,6 +1137,7 @@ def manual_cleanups(dry_run, verbosity):
         return
 
     # GradStudents that ended up split between units
+
     GradProgramHistory.objects.filter(student__id=4849, program__unit__slug='mse').delete()
     GradStatus.objects.filter(student__id=4849, status='GRAD').delete()
     GradStudent.objects.get(id=4849).update_status_fields()
@@ -1140,6 +1149,10 @@ def manual_cleanups(dry_run, verbosity):
     GradStudent.objects.get(id=2697).update_status_fields()
     GradProgramHistory.objects.filter(student__id=535, program__unit__slug='ensc').delete()
     GradStudent.objects.get(id=535).update_status_fields()
+
+    # rogue CMPT programhistory with no basis in SIMS
+    GradProgramHistory.objects.filter(student__id=2417, program__unit__slug='cmpt').delete()
+    GradStudent.objects.get(id=2417).update_status_fields()
 
     # ENSC -> MSE (where ENSC import already create the ENSC GradStudent: keep these for MSE)
     GradProgramHistory.objects.filter(student__id=4811, program__unit__slug='ensc').delete()
@@ -1173,6 +1186,8 @@ def manual_cleanups(dry_run, verbosity):
     gs.save()
     gs.update_status_fields()
 
+    GradStudent.objects.get(id=5591).update_status_fields()
+
     # not-quite-right adm_appl_nbr from old import
     gs = GradStudent.objects.get(id=4770)
     gs.config['adm_appl_nbr'] = '00798960'
@@ -1203,15 +1218,15 @@ def import_grads(dry_run, verbosity, import_emplids=None):
             status = ProgramStatusChange(*p)
             timeline.add(status)
 
-        #appl_changes = grad_appl_program_changes(acad_prog)
-        #for a in appl_changes:
-        #    emplid = a[0]
-        #    timeline = timelines.get(emplid, None)
-        #    if not timeline:
-        #        timeline = GradTimeline(emplid)
-        #        timelines[emplid] = timeline
-        #    status = ApplProgramChange(*a)
-        #    timeline.add(status)
+        appl_changes = grad_appl_program_changes(acad_prog)
+        for a in appl_changes:
+            emplid = a[0]
+            timeline = timelines.get(emplid, None)
+            if not timeline:
+                timeline = GradTimeline(emplid)
+                timelines[emplid] = timeline
+            status = ApplProgramChange(*a)
+            timeline.add(status)
 
     if import_emplids:
         emplids = import_emplids
