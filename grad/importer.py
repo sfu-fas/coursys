@@ -588,7 +588,7 @@ class CommitteeMembership(GradHappening):
             self.sup_emplid = '200011069'
 
     def __repr__(self):
-        return "%s as %s" % (self.sup_emplid, self.committee_role)
+        return "%s as %s for %s" % (self.sup_emplid, self.committee_role, self.acad_prog)
 
     def find_local_data(self, student_info, verbosity):
         pass
@@ -722,13 +722,10 @@ class GradTimeline(object):
         #happenings = [h for h in self.happenings if not isinstance(h, CommitteeMembership)]
         #committee_happenings = [h for h in self.happenings if isinstance(h, CommitteeMembership)]
         self.sort_happenings()
-        happenings = self.happenings
+        happenings = [h for h in self.happenings if h.grad_program]
 
         # pass 1: we know the adm_appl_nbr
         for h in happenings:
-            if not h.grad_program:
-                continue
-
             if h.adm_appl_nbr:
                 cs = [c for c in self.careers if c.unit == h.unit and c.adm_appl_nbr == h.adm_appl_nbr]
                 if len(cs) > 1:
@@ -740,11 +737,10 @@ class GradTimeline(object):
                     self.careers.append(c)
 
                 c.add(h)
-                h.in_career = True
 
         # pass 2: make sure all ProgramStatusChange objects are somewhere, even without adm_appl_nbrs
         for h in happenings:
-            if h.in_career or not h.grad_program or not isinstance(h, ProgramStatusChange):
+            if h.in_career or not isinstance(h, ProgramStatusChange):
                 continue
 
             # assumption: if no adm_appl_nbr then they didn't apply but it's the same unit, so it's the same GradCareer
@@ -752,7 +748,6 @@ class GradTimeline(object):
             if len(possible_careers) == 1:
                 c = possible_careers[0]
                 c.add(h)
-                h.in_career = True
             elif len(possible_careers) > 1:
                 # If multiple, use the (often odd) stdnt_car_nbr to choose
                 # re-admits seem to have same stdnt_car_nbr, so use admit_term to guess
@@ -760,7 +755,6 @@ class GradTimeline(object):
                 if len(possible_careers) == 1:
                     c = possible_careers[0]
                     c.add(h)
-                    h.in_career = True
                 elif len(possible_careers) > 1:
                     raise ValueError
                 #else:
@@ -771,11 +765,10 @@ class GradTimeline(object):
                 c = GradCareer(self.emplid, h.adm_appl_nbr, h.app_stdnt_car_nbr, h.grad_program.unit)
                 self.careers.append(c)
                 c.add(h)
-                h.in_career = True
 
         # pass 3: what program are they actually in at that time?
         for h in happenings:
-            if h.in_career or not h.grad_program:
+            if h.in_career:
                 continue
 
             in_unit_careers = [c for c in self.careers if c.unit == h.unit]
@@ -783,27 +776,36 @@ class GradTimeline(object):
                 # why kill ourselves if there's only one option?
                 c = in_unit_careers[0]
                 c.add(h)
-                h.in_career = True
                 continue
 
-            possible_careers = [c for c in self.careers if c.unit == h.unit and c.possibly_active_on(h.effdt) and c.last_program == h.acad_prog]
-            if len(possible_careers) > 1:
-                # TODO: use stdnt_car_nbr here to disambiguate?
-                #needs to be program of last happening before this one
-                print h
-                print self.emplid, h.acad_prog, [c.last_program for c in possible_careers]
-                #raise ValueError, str((self.emplid, h, h.strm, possible_careers))
-            elif len(possible_careers) == 1:
-                c = possible_careers[0]
+            possible_careers = [c for c in self.careers if c.unit == h.unit and c.possibly_active_on(h.effdt) and c.program_as_of(h.effdt) == h.acad_prog]
+            if possible_careers:
+                # If active in the same program two or more times on this date, throw up hands and choose the last-begun.
+                possible_careers.sort(key=lambda c: c.admit_term)
+                c = possible_careers[-1]
                 c.add(h)
-                h.in_career = True
-            #else:
-            #    raise ValueError, str((self.emplid, h, h.strm))
+            else:
+                # Try harder to find somewhere to put this: were they in that program in the past?
+                possible_careers = [c for c in self.careers if c.unit == h.unit and c.program_as_of(h.effdt) == h.acad_prog and c.admit_term <= h.strm]
+                possible_careers.sort(key=lambda c: c.admit_term)
+                if possible_careers:
+                    c = possible_careers[-1]
+                    c.add(h)
+                else:
+                    # Try even harder: some where given grad committees before they even started
+                    possible_careers = [c for c in self.careers if c.unit == h.unit and c.last_program == h.acad_prog]
+                    possible_careers.sort(key=lambda c: c.admit_term)
+                    if possible_careers:
+                        c = possible_careers[-1]
+                        c.add(h)
+                    else:
+                        print [(c, c.program_as_of(h.effdt)) for c in self.careers if c.unit == h.unit]
+
 
 
         dropped = [h for h in happenings if not h.in_career]
-        #if dropped:
-        #    print '???', self.emplid, dropped
+        if dropped:
+            print '???', self.emplid, dropped
 
         '''
         # pass 2: look at admit_term and program
@@ -819,7 +821,6 @@ class GradTimeline(object):
             c = possible_careers[-1]
             c.check_stdnt_car_nbr(h)
             c.add(h)
-            h.in_career = True
 
         # pass 3: look at first_admit_term: some stdnt_car_terms happen but then they defer their start
         for h in happenings:
@@ -833,7 +834,6 @@ class GradTimeline(object):
             possible_careers.sort(key=lambda c: c.admit_term)
             c = possible_careers[-1]
             c.add(h)
-            h.in_career = True
         '''
         # Failures to categorize happenings into a career by this point seem to always have to do with an
         # older career that we're not importing. Those get dropped here.
@@ -936,6 +936,7 @@ class GradCareer(object):
             self.last_program = h.acad_prog
 
         self.happenings.append(h)
+        h.in_career = True
 
     def sort_happenings(self):
         self.happenings.sort(key=lambda h: (h.strm, h.effdt))
@@ -951,22 +952,22 @@ class GradCareer(object):
         """
         Is this a date in which this career is conceivably active? i.e. might be taking courses or forming committees?
         """
-        matr = [(h.effdt, h.admit_term) for h in self.happenings if isinstance(h, ProgramStatusChange) and h.prog_status == 'AC']
+        matr = [(h.effdt, h.admit_term) for h in self.happenings if isinstance(h, ProgramStatusChange) and h.prog_action in ['MATR', 'RADM']]
         # doing things happens after you are admitted (in the finally-selected admit_term).
         if not matr:
             return False
         matr_strm = max(matr)[1]
         matr_effdt = max(matr)[0]
-        matr_dt = max(matr_effdt, STRM_MAP[matr_strm].start)
+        matr_dt = STRM_MAP[matr_strm].start
         if matr_dt > effdt:
             return False
 
-        grads = [h.effdt for h in self.happenings if h.effdt >= matr_dt and isinstance(h, ProgramStatusChange) and h.prog_status == 'CM']
+        grads = [h.effdt for h in self.happenings if h.effdt >= matr_effdt and isinstance(h, ProgramStatusChange) and h.prog_status == 'CM']
         # can do things up to graduation day TODO: should it be end of the graduation semester?
         if grads:
             return effdt <= max(grads)
 
-        ends = [h.effdt for h in self.happenings if h.effdt >= matr_dt and isinstance(h, ProgramStatusChange) and h.prog_status in ['CN', 'DC']]
+        ends = [h.effdt for h in self.happenings if h.effdt >= matr_effdt and isinstance(h, ProgramStatusChange) and h.prog_status in ['CN', 'DC']]
         if ends:
             # can't do things if you bailed # TODO: should this be the last day of the semester?
             end_dt = max(ends)
@@ -974,6 +975,17 @@ class GradCareer(object):
 
         # ongoing program, so anything after admission
         return True
+
+    def program_as_of(self, effdt):
+        """
+        What acad_prog is this career in as of effdt?
+        """
+        statuses = [h for h in self.happenings if isinstance(h, ProgramStatusChange) and h.effdt <= effdt]
+        statuses.sort(key=lambda h: h.effdt)
+        if statuses:
+            return statuses[-1].acad_prog
+        else:
+            return None
 
 
     def check_stdnt_car_nbr(self, h):
@@ -1173,7 +1185,7 @@ def import_grads(dry_run, verbosity):
         #    timeline.add(status)
 
     emplids = sorted(timelines.keys())
-    #emplids = ['301129768']
+    #emplids = ['200019664']
     for emplid in emplids:
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
