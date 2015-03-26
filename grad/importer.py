@@ -799,7 +799,10 @@ class GradTimeline(object):
                         c = possible_careers[-1]
                         c.add(h)
                     else:
-                        print [(c, c.program_as_of(h.effdt)) for c in self.careers if c.unit == h.unit]
+                        if isinstance(h, CommitteeMembership):
+                            # Committee member added to one program after student changed to another: drop this one
+                            # Committee membership for student's new program should be in another happening.
+                            h.in_career = True
 
 
 
@@ -1185,7 +1188,6 @@ def import_grads(dry_run, verbosity):
         #    timeline.add(status)
 
     emplids = sorted(timelines.keys())
-    #emplids = ['200019664']
     for emplid in emplids:
         timeline = timelines[emplid]
         timeline.add_semester_happenings()
