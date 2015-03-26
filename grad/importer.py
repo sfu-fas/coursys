@@ -231,7 +231,6 @@ class ProgramStatusChange(GradHappening):
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
         self.oldkey = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
         self.key = ['ps_acad_prog', emplid, 'GRAD', effdt, self.prog_status, self.prog_reason, self.acad_prog]
-        print self.key
 
         self.in_career = False
         self.gradstatus = None
@@ -802,27 +801,34 @@ class GradTimeline(object):
                     c = possible_careers[-1]
                     c.add(h)
                 else:
-                    # Try even harder: some where given grad committees before they even started
-                    possible_careers = [c for c in self.careers if c.unit == h.unit and c.last_program == h.acad_prog]
-                    possible_careers.sort(key=lambda c: c.admit_term)
-                    if possible_careers:
-                        c = possible_careers[-1]
-                        c.add(h)
-                    else:
-                        # admit failure in a few cases
-                        if isinstance(h, CommitteeMembership):
-                            # Committee member added to one program after student changed to another: drop this one.
-                            # Committee membership for student's new program should be in another happening.
-                            h.in_career = True
-                        elif isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=365) < IMPORT_START_DATE:
-                            # student in classes just after the beginning of time: we missed the career
-                            h.in_career = True
+                    if isinstance(h, CommitteeMembership):
+                        # Try even harder: some where given grad committees before they even started
+                        possible_careers = [c for c in self.careers if c.unit == h.unit and c.last_program == h.acad_prog]
+                        possible_careers.sort(key=lambda c: c.admit_term)
+                        if possible_careers:
+                            c = possible_careers[-1]
+                            c.add(h)
+                    elif isinstance(h, GradSemester):
+                        # Try even harder: there is an occasional grad semester associated with a just-transferred-out program
+                        possible_careers = [c for c in self.careers if c.unit == h.unit and c.program_as_of(h.effdt-datetime.timedelta(days=7)) == h.acad_prog and c.admit_term <= h.strm]
+                        if possible_careers:
+                            c = possible_careers[-1]
+                            c.add(h)
+
+                    # admit failure in a few cases
+                    if not h.in_career and isinstance(h, CommitteeMembership):
+                        # Committee member added to one program after student changed to another: drop this one.
+                        # Committee membership for student's new program should be in another happening.
+                        h.in_career = True
+                    elif not h.in_career and isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=365) < IMPORT_START_DATE:
+                        # student in classes just after the beginning of time: we missed the career
+                        h.in_career = True
+
 
 
         dropped = [h for h in happenings if not h.in_career]
         if dropped:
             raise ValueError, 'Some happenings got dropped for %s! %s' % (self.emplid, dropped)
-
 
         for c in self.careers:
             c.sort_happenings()
