@@ -71,7 +71,7 @@ def grad_program_changes(acad_prog):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
+        SELECT 'ProgramStatusChange', emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
             effdt, effseq, admit_term, exp_grad_term
         FROM ps_acad_prog
         WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
@@ -90,7 +90,7 @@ def grad_appl_program_changes(acad_prog):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT prog.emplid, prog.stdnt_car_nbr, prog.adm_appl_nbr, prog.acad_prog, prog.prog_status, prog.prog_action, prog.prog_reason,
+        SELECT 'ApplProgramChange', prog.emplid, prog.stdnt_car_nbr, prog.adm_appl_nbr, prog.acad_prog, prog.prog_status, prog.prog_action, prog.prog_reason,
             prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term
         FROM ps_adm_appl_prog prog
             LEFT JOIN dbcsown.ps_adm_appl_data data
@@ -1334,39 +1334,46 @@ def import_grads(dry_run, verbosity, import_emplids=None):
     # always do these: safe and rest of the import gets weird without them.
     manual_cleanups(verbosity=verbosity, dry_run=False)
 
-    timelines = {}
+    # Get the basic program data we need to generate a Timeline object (JSONable so we can throw it in celery later)
+    # each entry is a tuple of ('ClassName', *init_args)
+    timeline_data = defaultdict(list)
     for acad_prog in acad_progs:
         prog_changes = grad_program_changes(acad_prog)
         for p in prog_changes:
-            emplid = p[0]
-            timeline = timelines.get(emplid, None)
-            if not timeline:
-                timeline = GradTimeline(emplid)
-                timelines[emplid] = timeline
-            status = ProgramStatusChange(*p)
-            timeline.add(status)
+            emplid = p[1]
+            d = timeline_data[emplid]
+            d.append(p)
 
         appl_changes = grad_appl_program_changes(acad_prog)
         for a in appl_changes:
-            emplid = a[0]
-            timeline = timelines.get(emplid, None)
-            if not timeline:
-                timeline = GradTimeline(emplid)
-                timelines[emplid] = timeline
-            status = ApplProgramChange(*a)
-            timeline.add(status)
+            emplid = a[1]
+            d = timeline_data[emplid]
+            d.append(a)
+
+    timeline_data = dict(timeline_data)
 
     if import_emplids:
         emplids = import_emplids
     else:
-        emplids = sorted(timelines.keys())
+        emplids = sorted(timeline_data.keys())
 
     for emplid in emplids:
-        timeline = timelines[emplid]
-        timeline.add_semester_happenings()
-        timeline.add_committee_happenings()
-        timeline.split_careers(verbosity=verbosity)
+        timeline = GradTimeline(emplid)
+        data = timeline_data[emplid]
+        for d in data:
+            if d[0] == 'ProgramStatusChange':
+                h = ProgramStatusChange(*(d[1:]))
+            elif d[0] == 'ApplProgramChange':
+                h = ApplProgramChange(*(d[1:]))
+            else:
+                raise ValueError
+
+            timeline.add(h)
+
         with transaction.atomic(): # all or nothing for each person
+            timeline.add_semester_happenings()
+            timeline.add_committee_happenings()
+            timeline.split_careers(verbosity=verbosity)
             for c in timeline.careers:
                 c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
                 if not c.gradstudent:
