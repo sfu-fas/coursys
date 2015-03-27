@@ -270,6 +270,7 @@ class ProgramStatusChange(GradHappening):
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
         self.oldkey = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
         self.key = ['ps_acad_prog', emplid, 'GRAD', effdt, self.prog_status, self.prog_reason, self.acad_prog]
+        # TODO: self.oldkey differs for ApplProgramChange objects since stdnt_car_nbr is different: if it gets processed first, there's a duplication.
 
         self.in_career = False
         self.gradstatus = None
@@ -486,7 +487,7 @@ class ProgramStatusChange(GradHappening):
 
         # make sure we don't duplicate: have a last look for an old import
         existing_history = [p for p in programs if
-                'sims_source' in p.config and (p.config['sims_source'] == key or s.config['sims_source'] == self.oldkey)]
+                'sims_source' in p.config and (p.config['sims_source'] == key or p.config['sims_source'] == self.oldkey)]
         if existing_history:
             ph = existing_history[0]
             need_ph = False
@@ -746,6 +747,17 @@ class CareerUnitChangeIn(CareerUnitChangeOut):
 
 
 class GradTimeline(object):
+    """
+    A complete timeline of all grad-student-related things that happened to this person.
+
+    ProgramStatusChange and ApplProgramChange are added as these objects are created (as part of deciding which people
+    we're interested in).
+
+    GradSemester and CommitteeMembership are added by methods here.
+
+    CareerUnitChangeOut and CareerUnitChangeIn are added after splitting the happenings into careers, when we know
+    that transferring between units is actually happening.
+    """
     def __init__(self, emplid):
         self.emplid = emplid
         self.happenings = []
@@ -781,8 +793,6 @@ class GradTimeline(object):
 
         # handle committee memberships separately: if they select a committee after applying for a different program,
         # we need to notice.
-        #happenings = [h for h in self.happenings if not isinstance(h, CommitteeMembership)]
-        #committee_happenings = [h for h in self.happenings if isinstance(h, CommitteeMembership)]
         self.sort_happenings()
         happenings = [h for h in self.happenings if h.grad_program]
 
@@ -899,9 +909,17 @@ class GradTimeline(object):
         for c in self.careers:
             c.sort_happenings()
 
-        # Categorize the careers by adm_appl_nbr and acad_prog.stdnt_car_nbr: being the same means same program
-        # application event. If those were split between departments, then it's an inter-departmental transfer.
-        # Those should get transfer out/in happenings added.
+        self.add_transfer_happenings()
+        self.junk_application_only_careers()
+
+
+    def add_transfer_happenings(self):
+        """
+        Categorize the careers by adm_appl_nbr and acad_prog.stdnt_car_nbr: being the same means same program
+        application event. If those were split between departments, then it's an inter-departmental transfer.
+
+        Those need transfer out/in happenings added.
+        """
         adm_appl_groups = itertools.groupby(self.careers, lambda c: (c.adm_appl_nbr, c.app_stdnt_car_nbr))
         for (adm_appl_nbr, app_stdnt_car_nbr), careers in adm_appl_groups:
             careers = list(careers)
@@ -922,7 +940,24 @@ class GradTimeline(object):
                 c_in.happenings.insert(0, t_in)
 
 
+    def junk_application_only_careers(self):
+        """
+        There are a lot of careers with just one ApplProgramChange representing the application (with no followup
+        decision). We don't really want those.
+        """
+        for c in self.careers:
+            c.application_only = False
+            if len(c.happenings) == 1:
+                h = c.happenings[0]
+                if isinstance(h, ApplProgramChange) and (h.prog_status, h.prog_action) == ('AP', 'APPL'):
+                    c.application_only = True
+
+        self.careers = [c for c in self.careers if not c.application_only]
+
     def find_rogue_local_data(self, verbosity, dry_run):
+        """
+        Look for things in the local data that don't seem to match reality.
+        """
         if self.unit.slug == 'cmpt':
             # don't worry about these for now
             return
@@ -943,6 +978,9 @@ class GradTimeline(object):
 
 
 class GradCareer(object):
+    """
+    One grad career as we understand it (a grad.models.GradStudent object).
+    """
     program_map = None
     reverse_program_map = None
 
@@ -953,7 +991,6 @@ class GradCareer(object):
         self.unit = unit
         self.happenings = []
         self.admit_term = None
-        self.first_admit_term = None
         self.stdnt_car_nbr = None
         self.last_program = None
 
@@ -970,6 +1007,9 @@ class GradCareer(object):
         return "%s@%s:%s" % (self.emplid, self.adm_appl_nbr, self.stdnt_car_nbr)
 
     def add(self, h):
+        """
+        Add happening to this career, and maintain the metadata we need.
+        """
         if h.adm_appl_nbr:
             if not self.adm_appl_nbr:
                 self.adm_appl_nbr = h.adm_appl_nbr
@@ -979,12 +1019,7 @@ class GradCareer(object):
             if self.adm_appl_nbr != h.adm_appl_nbr or (h.stdnt_car_nbr is not None and self.stdnt_car_nbr != h.stdnt_car_nbr):
                 raise ValueError
 
-        assert h.grad_program.unit == self.unit
-
-        if hasattr(h, 'admit_term'):
-            # record earliest-ever-proposed admit term we find
-            if self.first_admit_term is None or self.first_admit_term > h.admit_term:
-                self.first_admit_term = h.admit_term
+        assert h.unit == self.unit
 
         if hasattr(h, 'admit_term'):
             # record most-recent admit term we find
@@ -1021,13 +1056,13 @@ class GradCareer(object):
             return False
 
         grads = [h.effdt for h in self.happenings if h.effdt >= matr_effdt and isinstance(h, ProgramStatusChange) and h.prog_status == 'CM']
-        # can do things up to graduation day TODO: should it be end of the graduation semester?
+        # can do things up to graduation day
         if grads:
             return effdt <= max(grads)
 
         ends = [h.effdt for h in self.happenings if h.effdt >= matr_effdt and isinstance(h, ProgramStatusChange) and h.prog_status in ['CN', 'DC']]
         if ends:
-            # can't do things if you bailed # TODO: should this be the last day of the semester?
+            # can't do things if you bailed
             end_dt = max(ends)
             return effdt < end_dt
 
@@ -1044,13 +1079,6 @@ class GradCareer(object):
             return statuses[-1].acad_prog
         else:
             return None
-
-
-    def check_stdnt_car_nbr(self, h):
-        if not self.stdnt_car_nbr and h.stdnt_car_nbr:
-            self.stdnt_car_nbr = h.stdnt_car_nbr
-        #elif self.stdnt_car_nbr and h.stdnt_car_nbr and self.stdnt_car_nbr != h.stdnt_car_nbr:
-        #    raise ValueError
 
     # program selection methods:
     def by_key(self, gs):
@@ -1082,6 +1110,7 @@ class GradCareer(object):
                 and 'adm_appl_nbr' not in gs.config and 'sims_source' not in gs.config
         )
 
+    # ways we have to find a matching GradStudent, in decreasing order of rigidness
     GS_SELECTORS = [ # (method_name, is_okay_to_find_multiple_matches?)
         ('by_key', False),
         ('by_adm_appl_nbr', False),
@@ -1098,10 +1127,8 @@ class GradCareer(object):
         if self.admit_term < RELEVANT_PROGRAM_START:
             return
 
-        #print '---', self, self.unit.slug
         for method, multiple_okay in GradCareer.GS_SELECTORS:
             by_selector = [gs for gs in gss if getattr(self, method)(gs)]
-            #print self.emplid, method, by_selector
             if len(by_selector) == 1:
                 return by_selector[0]
             elif len(by_selector) > 1:
@@ -1129,6 +1156,7 @@ class GradCareer(object):
 
     def fill_gradstudent(self, verbosity, dry_run):
         gs = self.find_gradstudent(verbosity=verbosity, dry_run=dry_run)
+        # be extra sure we aren't seeing multiple-unit GradStudent objects
         units = set(GradProgramHistory.objects.filter(student=gs).values_list('program__unit', flat=True))
         if len(units) > 1:
             if verbosity:
@@ -1139,7 +1167,7 @@ class GradCareer(object):
         """
         Update local data for the GradStudent using what we found in SIMS
         """
-        # make sure we can find it next time
+        # make sure we can find it easily next time
         self.gradstudent.config['sims_source'] = self.import_key()
         if self.adm_appl_nbr:
             self.gradstudent.config['adm_appl_nbr'] = self.adm_appl_nbr
