@@ -25,7 +25,7 @@ DATE_OFFSET = datetime.timedelta(days=30)
 DATE_OFFSET_START = datetime.timedelta(days=90)
 ONE_DAY = datetime.timedelta(days=1)
 
-SIMS_SOURCE = 'sims_source2' # key in object.config to record where things came from
+SIMS_SOURCE = 'sims_source' # key in object.config to record where things came from
 
 def build_semester_lookup():
     """
@@ -1141,6 +1141,7 @@ class GradCareer(object):
 
         for method, multiple_okay in GradCareer.GS_SELECTORS:
             by_selector = [gs for gs in gss if getattr(self, method)(gs)]
+            #print method, by_selector
             if len(by_selector) == 1:
                 return by_selector[0]
             elif len(by_selector) > 1:
@@ -1301,6 +1302,7 @@ def manual_cleanups(dry_run, verbosity):
     gs.update_status_fields()
 
     GradStudent.objects.get(id=5591).update_status_fields()
+    GradStudent.objects.filter(id=10362).update(start_semester=STRM_MAP['1121'])
 
     # not-quite-right adm_appl_nbr from old import
     gs = GradStudent.objects.get(id=4770)
