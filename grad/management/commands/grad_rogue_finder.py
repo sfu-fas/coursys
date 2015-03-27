@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from grad.importer import rogue_grad_finder
+from grad.importer.rogues import rogue_grad_finder
 from optparse import make_option
 
 class Command(BaseCommand):

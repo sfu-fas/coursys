@@ -2,6 +2,8 @@ from .parameters import SIMS_SOURCE
 from grad.models import GradStudent, CompletedRequirement, Letter, Scholarship, OtherFunding, Promise, FinancialComment
 from grad.models import GradFlagValue, ProgressReport, ExternalDocument, GradProgramHistory, GradStatus, Supervisor
 
+# TODO: purge any GradStatus before a few semesters ago that isn't confirmed?
+
 def manual_cleanups(dry_run, verbosity):
     """
     These are cleanups of old data that make the real import work well and leave less junk to clean later.
@@ -27,7 +29,7 @@ def find_true_home(obj, dry_run):
     if not dry_run:
         obj.save()
 
-def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
+def rogue_gradstudents(unit_slug, dry_run, verbosity):
     """
     Examine grad students in this unit. Identify rogues that could be deleted.
     """
@@ -57,6 +59,37 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
             find_true_home(r, dry_run=dry_run)
 
     for gs in gs_unco:
+        if verbosity:
+            print "Soft-deleting %s." % (gs.slug)
         if not dry_run:
             gs.current_status = 'DELE'
             gs.save()
+
+def rogue_leaves(unit_slug, dry_run, verbosity):
+    """
+    On-leave events that were introduced by the old importer, likely in error
+    """
+    # TODO: removing these leaves many students with adjacent redundant ACTI statuses: clean those too
+    statuses = GradStatus.objects \
+            .filter(status='LEAV', student__program__unit__slug=unit_slug) \
+            .filter(student__config__contains=SIMS_SOURCE) \
+            .exclude(config__contains=SIMS_SOURCE) \
+            .select_related('student')
+
+    if not dry_run:
+        statuses.update(hidden=True)
+
+    students = sorted(list(set([s.student for s in statuses])), key=lambda s: s.slug)
+    for gs in students:
+        if verbosity:
+            print "Removing on-leave status(es) for %s." % (gs.slug)
+
+        if not dry_run:
+            gs.update_status_fields()
+
+
+
+def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
+    #rogue_gradstudents(unit_slug, dry_run=dry_run, verbosity=verbosity)
+    rogue_leaves(unit_slug, dry_run=dry_run, verbosity=verbosity)
+

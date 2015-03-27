@@ -15,7 +15,7 @@ or form a grad committee before you transfer into program (but after you applied
 Turns out you can, and a thousand other things.
 
 Part 4 is tricky because we want staff to be able to enter facts before they hit SIMS (sometimes there's a long lag,
-and they need them in-place before the paperworks makes it), and then confirm/polish once it's in SIMS. A lot of the
+and they need them in-place before the paperwork makes it), and then confirm/polish once it's in SIMS. A lot of the
 logic around this is trying to find the similar-enough fact that was manually entered and claiming it.
 """
 
