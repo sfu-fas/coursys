@@ -4,6 +4,8 @@ from grad.models import GradStudent, Supervisor
 import json
 register = template.Library()
 
+SIMS_SOURCE = 'sims_source'
+
 class SIMSCheckNode(template.Node):
     def __init__(self, obj):
         self.obj = template.Variable(obj)
@@ -16,7 +18,6 @@ class SIMSCheckNode(template.Node):
         if user and user.username == 'ggbaker':
             debug = True
 
-
         if isinstance(obj, GradStudent):
             gs = obj
         else:
@@ -25,11 +26,11 @@ class SIMSCheckNode(template.Node):
         if gs.program.unit.slug == 'cmpt' and not debug:
             return ''
 
-        if hasattr(obj, 'config') and 'sims_source' in obj.config and obj.config['sims_source']:
+        if hasattr(obj, 'config') and SIMS_SOURCE in obj.config and obj.config[SIMS_SOURCE]:
             tag = '<i class="fa fa-check sims_check_yes" title="Found in SIMS"></i>'
             if debug:
                 tag += ' <span style="font-size: 65%%;">%s</span>' % \
-                       (conditional_escape(json.dumps(obj.config['sims_source'])))
+                       (conditional_escape(json.dumps(obj.config[SIMS_SOURCE])))
         elif isinstance(obj, Supervisor) and obj.supervisor_type == 'POT':
             # these aren't in SIMS ever so don't complain
             tag = ''
