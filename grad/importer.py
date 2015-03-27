@@ -1,3 +1,24 @@
+"""
+All of the logic to handle import GradStudents (and GradProgramHistory, GradStatus, Supervisor) from SIMS into CourSys.
+
+The basic idea:
+ 1. Everything is brought in with various SIMS queries.
+ 2. This is used to construct various objects that represent "happenings": status changes, program changes, committee
+    members.
+ 3. Happenings are chopped up into "careers" that represent a unique application+unit. These correspond to GradStudent
+    objects.
+ 4. All of the happenings know how to updated themselves in CourSys: finding old versions of that fact if available and
+    creating/updating as necessary.
+
+All of this is surprisingly intricate, particularly 3. Did you know you can the same program three times concurrently,
+or form a grad committee before you transfer into program (but after you applied for it but abandoned the application)?
+Turns out you can, and a thousand other things.
+
+Part 4 is tricky because we want staff to be able to enter facts before they hit SIMS (sometimes there's a long lag,
+and they need them in-place before the paperworks makes it), and then confirm/polish once it's in SIMS. A lot of the
+logic around this is trying to find the similar-enough fact that was manually entered and claiming it.
+"""
+
 from django.db import transaction
 from django.conf import settings
 from coredata.queries import add_person, SIMSConn, SIMS_problem_handler, cache_by_args, get_supervisory_committee
@@ -1247,6 +1268,8 @@ class GradCareer(object):
 def manual_cleanups(dry_run, verbosity):
     """
     These are ugly cleanups of old data that make the real import work well and leave less junk to clean later.
+
+    Since this has been fired on production, it can be junked.
     """
     if dry_run:
         return
