@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from coredata.models import Unit
 from grad.importer import import_grads
 from optparse import make_option
 

@@ -104,23 +104,23 @@ def grad_appl_program_changes(acad_prog):
 
 @SIMS_problem_handler
 @cache_by_args
-def grad_semesters(emplid):
+def grad_semesters(emplids):
     """
     Semesters when the student was taking classes: use to mark them active (since sometimes ps_acad_prog doesn't).
     """
     db = SIMSConn()
     db.execute("""
-        SELECT emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss
+        SELECT 'GradSemester', emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss
         FROM ps_stdnt_car_term
-        WHERE acad_career='GRAD' AND emplid=%s AND strm>=%s
+        WHERE acad_career='GRAD' AND emplid in %s AND strm>=%s
             AND unt_taken_prgrss>0
         ORDER BY strm
-    """, (emplid, IMPORT_START_SEMESTER))
+    """, (emplids, IMPORT_START_SEMESTER))
     return list(db)
 
 @SIMS_problem_handler
 @cache_by_args
-def committee_members(emplid):
+def committee_members(emplids):
     """
     Grad committee members for this person.
 
@@ -128,7 +128,7 @@ def committee_members(emplid):
     """
     db = SIMSConn()
     db.execute("""
-        SELECT st.emplid, st.committee_id, st.acad_prog, com.effdt, com.committee_type, mem.emplid, mem.committee_role
+        SELECT 'CommitteeMembership', st.emplid, st.committee_id, st.acad_prog, com.effdt, com.committee_type, mem.emplid, mem.committee_role
         FROM
             ps_stdnt_advr_hist st
             JOIN ps_committee com
@@ -136,9 +136,9 @@ def committee_members(emplid):
             JOIN ps_committee_membr mem
                 ON (mem.institution=st.institution AND mem.committee_id=st.committee_id AND com.effdt=mem.effdt)
         WHERE
-            st.emplid=%s
+            st.emplid in %s
         ORDER BY com.effdt""",
-        (emplid,))
+        (emplids,))
     return list(db)
 
 
@@ -790,16 +790,6 @@ class GradTimeline(object):
     def sort_happenings(self):
         self.happenings.sort(key=lambda h: (h.strm, h.effdt))
 
-    def add_semester_happenings(self):
-        for gs in grad_semesters(self.emplid):
-            h = GradSemester(*gs)
-            self.add(h)
-
-    def add_committee_happenings(self):
-        for cm in committee_members(self.emplid):
-            h = CommitteeMembership(*cm)
-            self.add(h)
-
     def split_careers(self, verbosity=1):
         """
         Take all of the happenings we found and split them into careers, with each representing one GradStudent object.
@@ -914,7 +904,7 @@ class GradTimeline(object):
                         # Committee member added to one program after student changed to another: drop this one.
                         # Committee membership for student's new program should be in another happening.
                         h.in_career = True
-                    elif not h.in_career and isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=365) < IMPORT_START_DATE:
+                    elif not h.in_career and isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=730) < IMPORT_START_DATE:
                         # student in classes just after the beginning of time: we missed the career
                         h.in_career = True
 
@@ -1325,6 +1315,11 @@ def remove_sim_sources():
             o.save()
 
 
+def _batch_call(func, args, batchsize=500):
+    for i in xrange(0, len(args), batchsize):
+        batch = args[i:i+batchsize]
+        yield func(batch)
+
 
 def import_grads(dry_run, verbosity, import_emplids=None):
     prog_map = build_program_map()
@@ -1344,11 +1339,12 @@ def import_grads(dry_run, verbosity, import_emplids=None):
             d = timeline_data[emplid]
             d.append(p)
 
-        appl_changes = grad_appl_program_changes(acad_prog)
-        for a in appl_changes:
-            emplid = a[1]
-            d = timeline_data[emplid]
-            d.append(a)
+        # temporarily disable while we settle out everything else
+        #appl_changes = grad_appl_program_changes(acad_prog)
+        #for a in appl_changes:
+        #    emplid = a[1]
+        #    d = timeline_data[emplid]
+        #    d.append(a)
 
     timeline_data = dict(timeline_data)
 
@@ -1356,6 +1352,14 @@ def import_grads(dry_run, verbosity, import_emplids=None):
         emplids = import_emplids
     else:
         emplids = sorted(timeline_data.keys())
+
+    # fetch all of the grad/committee data now that we know who to fetch for
+    for r in itertools.chain(*_batch_call(grad_semesters, emplids)):
+        emplid = r[1]
+        timeline_data[emplid].append(r)
+    for r in itertools.chain(*_batch_call(committee_members, emplids)):
+        emplid = r[1]
+        timeline_data[emplid].append(r)
 
     for emplid in emplids:
         timeline = GradTimeline(emplid)
@@ -1365,14 +1369,16 @@ def import_grads(dry_run, verbosity, import_emplids=None):
                 h = ProgramStatusChange(*(d[1:]))
             elif d[0] == 'ApplProgramChange':
                 h = ApplProgramChange(*(d[1:]))
+            elif d[0] == 'GradSemester':
+                h = GradSemester(*(d[1:]))
+            elif d[0] == 'CommitteeMembership':
+                h = CommitteeMembership(*(d[1:]))
             else:
-                raise ValueError
+                raise ValueError, d[0]
 
             timeline.add(h)
 
         with transaction.atomic(): # all or nothing for each person
-            timeline.add_semester_happenings()
-            timeline.add_committee_happenings()
             timeline.split_careers(verbosity=verbosity)
             for c in timeline.careers:
                 c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
