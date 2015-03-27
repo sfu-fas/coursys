@@ -269,8 +269,7 @@ class ProgramStatusChange(GradHappening):
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
         self.oldkey = ['ps_acad_prog', emplid, 'GRAD', stdnt_car_nbr, effdt, effseq]
-        self.key = ['ps_acad_prog', emplid, 'GRAD', effdt, self.prog_status, self.prog_reason, self.acad_prog]
-        # TODO: self.oldkey differs for ApplProgramChange objects since stdnt_car_nbr is different: if it gets processed first, there's a duplication.
+        self.key = ['ps_acad_prog', emplid, effdt, self.prog_status, self.prog_reason, self.acad_prog]
 
         self.in_career = False
         self.gradstatus = None
@@ -343,6 +342,8 @@ class ProgramStatusChange(GradHappening):
 
     def import_key(self):
         return self.key
+    def appl_key(self):
+        return [self.strm, self.prog_status, self.prog_reason, self.acad_prog]
 
     def status_config(self):
         "Additional entries for GradStatus.config when updating"
@@ -351,6 +352,19 @@ class ProgramStatusChange(GradHappening):
     def find_existing_status(self, statuses, verbosity):
         # look for something previously imported from this record
         key = self.import_key()
+        # ApplProgramChange can be the same as a ProgramStatusChange except different effdt: let the one sorted first
+        # win, even if that means changing the sims_source (because ApplProgramChange has an earlier effdt, likely)
+        if self.status in STATUS_APPLICANT:
+            same_appl_key = [s for s in statuses
+                    if 'appl_key' in s.config and s.config['appl_key'] == self.appl_key()]
+            if same_appl_key:
+                if len(same_appl_key) > 1:
+                    raise ValueError, str(self.import_key())
+                s = same_appl_key[0]
+                s.config['sims_source'] = key
+                assert s.status == self.status
+                return s
+
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
         # ... be sure to find the old ones too.
         existing = [s for s in statuses
@@ -359,6 +373,7 @@ class ProgramStatusChange(GradHappening):
                  or (s.config['sims_source'] == self.oldkey and s.status==self.status))]
         if existing:
             s = existing[0]
+            s.config['sims_source'] = key
             assert s.status == self.status
             return s
 
@@ -434,6 +449,9 @@ class ProgramStatusChange(GradHappening):
         st.start_date = self.effdt
         st.config['sims_source'] = self.import_key()
         st.config.update(self.status_config())
+        if self.status in STATUS_APPLICANT:
+            # stash this so we can identify ApplProgramChange and ProgramStatusChange with different effdt
+            self.gradstatus.config['appl_key'] = self.appl_key()
 
         if not dry_run:
             st.save_if_dirty()
@@ -1032,7 +1050,9 @@ class GradCareer(object):
         h.in_career = True
 
     def sort_happenings(self):
-        self.happenings.sort(key=lambda h: (h.strm, h.effdt))
+        # sort ApplProgramChange after the corresponding ProgramStatusChange: let ProgramStatusChange win if they're on
+        # the same day.
+        self.happenings.sort(key=lambda h: (h.strm, h.effdt, 1 if isinstance(h, ApplProgramChange) else 0))
 
     def import_key(self):
         if self.adm_appl_nbr:
@@ -1172,6 +1192,8 @@ class GradCareer(object):
         if self.adm_appl_nbr:
             self.gradstudent.config['adm_appl_nbr'] = self.adm_appl_nbr
 
+        # TODO: get_mother_tongue, get_passport_issued_by, holds_resident_visa, get_research_area, get_email from grad.management.commands.new_grad_student
+
         student_info = {
             'student': self.gradstudent,
             'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
@@ -1294,7 +1316,13 @@ def manual_cleanups(dry_run, verbosity):
     gs.save()
 
 
-
+def remove_sim_sources():
+    for Model in [GradStudent, GradProgramHistory, GradStatus, Supervisor]:
+        sourced = Model.objects.filter(config__contains='sims_source')
+        for o in sourced:
+            print o
+            del o.config['sims_source']
+            o.save()
 
 
 
