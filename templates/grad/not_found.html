@@ -34,7 +34,7 @@
 				<td>{{g.person.userid}}</td>
 				<td>{{g.program.label}} {% sims_check g %}</td>
 				<td>{{g.start_semester.name}}</td>
-				<td><span class="sort">{{g.status_order}}</span>{{g.get_current_status_display}}</td>
+				<td><span class="sort">{{g.status_order}}</span>{{g.get_short_current_status_display}}</td>
                 <td>{{g.supervisor_names|join:"; "}}</td>
 			</tr>
 			{% endfor %}

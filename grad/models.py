@@ -55,7 +55,6 @@ class GradProgram(models.Model):
             return ('???', '???')
 
 STATUS_CHOICES = (
-        ('APPL', 'Applicant'), # TODO: remove Applicant: not used in the real data
         ('INCO', 'Incomplete Application'),
         ('COMP', 'Complete Application'),
         ('INRE', 'Application In-Review'),
@@ -275,12 +274,6 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
-        
-        # make sure we have a GradProgramHistory object corresponding to current state
-        #oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
-        #if not oldhist:
-        #    h = GradProgramHistory(student=self, program=self.program)
-        #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
 
@@ -512,6 +505,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.current_status]
+    def get_short_current_status_display(self):
+        return SHORT_STATUSES[self.current_status]
 
     def sessional_courses(self):
         """
@@ -1144,17 +1139,19 @@ STATUS_ORDER = {
         'DECL': 3,
         'EXPI': 3,
         'CONF': 4,
+        'TRIN': 4,
         'CANC': 5,
         'ARIV': 5,
-        'APPL': 5,
         'ACTI': 6,
         'PART': 6,
         'LEAV': 7,
         'NOND': 7,
+        'TROU': 8,
         'WIDR': 8,
         'GRAD': 8,
         'GONE': 8,
         'ARSP': 8,
+        'DELE': 9,
         None: 9,
         }
 class GradStatus(models.Model, ConditionalSaveMixin):
@@ -1177,6 +1174,8 @@ class GradStatus(models.Model, ConditionalSaveMixin):
     hidden = models.BooleanField(null=False, db_index=True, default=False)
     config = JSONField(default=dict) # addition configuration
         # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
+        # 'in_from': for status=='TRIN', a Unit.slug where the student came from
+        # 'out_to': for status=='TROU', a Unit.slug where the student went
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."

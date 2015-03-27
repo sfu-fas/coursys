@@ -1,11 +1,10 @@
 from django.core.management.base import BaseCommand
-from coredata.models import Unit
 from grad.importer import import_grads
 from optparse import make_option
 
 class Command(BaseCommand):
-    args = '<unit_slug>'
-    help = 'Import data from SIMS into our system for one unit\'s grad students'
+    args = '<emplids>'
+    help = 'Import data from SIMS into our system for all grad students (or just the given EMPLIDs)'
 
     option_list = BaseCommand.option_list + (
         make_option('--dry-run', '-n',
@@ -16,4 +15,4 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        import_grads(dry_run=options['dryrun'], verbosity=int(options['verbosity']))
+        import_grads(dry_run=options['dryrun'], verbosity=int(options['verbosity']), import_emplids=args)

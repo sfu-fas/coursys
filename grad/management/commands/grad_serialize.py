@@ -21,7 +21,7 @@ class Command(BaseCommand):
         for unit in units:
             objs.extend(unit.super_units())
             objs.extend(GradProgram.objects.filter(unit=unit))
-            gss = GradStudent.objects.filter(program__unit=unit).select_related('person')
+            gss = GradStudent.all_objects.filter(program__unit=unit).select_related('person')
             objs.extend(gss)
             objs.extend(GradProgramHistory.objects.filter(program__unit=unit))
             supervs = Supervisor.objects.filter(student__program__unit=unit).select_related('supervisor')
