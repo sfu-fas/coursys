@@ -7,7 +7,7 @@ The basic idea:
     members.
  3. Happenings are chopped up into "careers" that represent a unique application+unit. These correspond to GradStudent
     objects.
- 4. All of the happenings know how to updated themselves in CourSys: finding old versions of that fact if available and
+ 4. All of the happenings know how to update themselves in CourSys: finding old versions of that fact if available and
     creating/updating as necessary.
 
 All of this is surprisingly intricate, particularly 3. Did you know you can the same program three times concurrently,
@@ -1267,73 +1267,15 @@ class GradCareer(object):
 
 def manual_cleanups(dry_run, verbosity):
     """
-    These are ugly cleanups of old data that make the real import work well and leave less junk to clean later.
-
-    Since this has been fired on production, it can be junked.
+    These are cleanups of old data that make the real import work well and leave less junk to clean later.
     """
     if dry_run:
         return
 
-    # GradStudents that ended up split between units
-
-    GradProgramHistory.objects.filter(student__id=4849, program__unit__slug='mse').delete()
-    GradStatus.objects.filter(student__id=4849, status='GRAD').delete()
-    GradStudent.objects.get(id=4849).update_status_fields()
-
-    # ENSC -> CMPT and has real data from CMPT
-    GradProgramHistory.objects.filter(student__id=2484, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=2484).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=2697, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=2697).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=535, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=535).update_status_fields()
-
-    # rogue CMPT programhistory with no basis in SIMS
-    GradProgramHistory.objects.filter(student__id=2417, program__unit__slug='cmpt').delete()
-    GradStudent.objects.get(id=2417).update_status_fields()
-
-    # ENSC -> MSE (where ENSC import already create the ENSC GradStudent: keep these for MSE)
-    GradProgramHistory.objects.filter(student__id=4811, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4811).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4812, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4812).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4851, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4851).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4870, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4870).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4820, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4820).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4821, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4821).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4823, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4823).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4894, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4894).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4831, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4831).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4833, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4833).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4897, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4897).update_status_fields()
-    GradProgramHistory.objects.filter(student__id=4839, program__unit__slug='ensc').delete()
-    GradStudent.objects.get(id=4839).update_status_fields()
-
-    GradProgramHistory.objects.filter(student__id=4817, program__unit__slug='ensc').delete()
-    gs = GradStudent.objects.get(id=4817)
-    gs.config['adm_appl_nbr'] = '00534543'
-    gs.save()
-    gs.update_status_fields()
-
-    GradStudent.objects.get(id=5591).update_status_fields()
-    GradStudent.objects.filter(id=10362).update(start_semester=STRM_MAP['1121'])
-
-    # not-quite-right adm_appl_nbr from old import
-    gs = GradStudent.objects.get(id=4770)
-    gs.config['adm_appl_nbr'] = '00798960'
-    gs.save()
-
+    pass
 
 def _batch_call(func, args, batchsize=500):
+    "Call func(args), but breaking up args into manageable chunks."
     for i in xrange(0, len(args), batchsize):
         batch = args[i:i+batchsize]
         yield func(batch)
@@ -1440,6 +1382,8 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
     # GradProgramHistory that's unconfirmed and to the program they're *already in*
     # GradStatus on-leave that's unconfirmed and in-the-past-enough that it's not a recent manual entry
     # There are Supervisors with external=='-None-' for CMPT: those can go.
+    manual_cleanups(verbosity=verbosity, dry_run=False)
+
     gss = GradStudent.objects.filter(program__unit__slug=unit_slug, start_semester__name__gte='1051')
 
     # what GradStudents haven't been found in SIMS?
@@ -1459,7 +1403,7 @@ def rogue_grad_finder(unit_slug, dry_run=False, verbosity=1):
         for r in res:
             find_true_home(r, dry_run=dry_run)
 
-    if not dry_run:
-        for gs in gs_unco:
+    for gs in gs_unco:
+        if not dry_run:
             gs.current_status = 'DELE'
             gs.save()
