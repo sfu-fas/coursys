@@ -55,7 +55,6 @@ class GradProgram(models.Model):
             return ('???', '???')
 
 STATUS_CHOICES = (
-        ('APPL', 'Applicant'), # TODO: remove Applicant: not used in the real data
         ('INCO', 'Incomplete Application'),
         ('COMP', 'Complete Application'),
         ('INRE', 'Application In-Review'),
@@ -75,6 +74,8 @@ STATUS_CHOICES = (
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed Special'), # Special Arrangements + GONE
+        ('TRIN', 'Transferred from another department'),
+        ('TROU', 'Transferred to another department'),
         ('DELE', 'Deleted Record'), # used to flag GradStudents as deleted
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
@@ -82,7 +83,7 @@ STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses th
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
-STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE') # statuses we don't let users enter
+STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
 SHORT_STATUSES = dict([ # a shorter status description we can use in compact tables
         ('INCO', 'Incomp App'),
@@ -104,6 +105,8 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('NOND', 'Non-deg'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed'), # Special Arrangements + GONE
+        ('TRIN', 'Transfer in'),
+        ('TROU', 'Transfer out'),
         ('DELE', 'Deleted Record'),
         (None, 'None'),
 ])
@@ -186,6 +189,12 @@ class GradStudentManager(models.Manager):
 
 
 class GradStudent(models.Model, ConditionalSaveMixin):
+    """
+    Represents one grad student "career".
+
+    (...within a single unit: transfers between units get multiple GradStudent objects so staff in each unit can see
+    the data they should, but not the rest.)
+    """
     objects = GradStudentManager()
     all_objects = models.Manager()
 
@@ -265,12 +274,6 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
-        
-        # make sure we have a GradProgramHistory object corresponding to current state
-        #oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
-        #if not oldhist:
-        #    h = GradProgramHistory(student=self, program=self.program)
-        #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
 
@@ -502,6 +505,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.current_status]
+    def get_short_current_status_display(self):
+        return SHORT_STATUSES[self.current_status]
 
     def sessional_courses(self):
         """
@@ -1134,17 +1139,19 @@ STATUS_ORDER = {
         'DECL': 3,
         'EXPI': 3,
         'CONF': 4,
+        'TRIN': 4,
         'CANC': 5,
         'ARIV': 5,
-        'APPL': 5,
         'ACTI': 6,
         'PART': 6,
         'LEAV': 7,
         'NOND': 7,
+        'TROU': 8,
         'WIDR': 8,
         'GRAD': 8,
         'GONE': 8,
         'ARSP': 8,
+        'DELE': 9,
         None: 9,
         }
 class GradStatus(models.Model, ConditionalSaveMixin):
@@ -1167,6 +1174,8 @@ class GradStatus(models.Model, ConditionalSaveMixin):
     hidden = models.BooleanField(null=False, db_index=True, default=False)
     config = JSONField(default=dict) # addition configuration
         # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
+        # 'in_from': for status=='TRIN', a Unit.slug where the student came from
+        # 'out_to': for status=='TROU', a Unit.slug where the student went
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
