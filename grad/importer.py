@@ -1310,15 +1310,6 @@ def manual_cleanups(dry_run, verbosity):
     gs.save()
 
 
-def remove_sim_sources():
-    for Model in [GradStudent, GradProgramHistory, GradStatus, Supervisor]:
-        sourced = list(Model.objects.filter(config__contains=SIMS_SOURCE).order_by('id'))
-        for i, o in enumerate(sourced):
-            print o.__class__.__name__, i, len(sourced)
-            del o.config[SIMS_SOURCE]
-            o.save()
-
-
 def _batch_call(func, args, batchsize=500):
     for i in xrange(0, len(args), batchsize):
         batch = args[i:i+batchsize]

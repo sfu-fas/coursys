@@ -9,14 +9,14 @@ SIMS_SOURCE = 'sims_source'
 class SIMSCheckNode(template.Node):
     def __init__(self, obj):
         self.obj = template.Variable(obj)
-        self.user = template.Variable('user')
+        #self.user = template.Variable('user')
 
     def render(self, context):
         obj = self.obj.resolve(context)
-        user = self.user.resolve(context)
+        #user = self.user.resolve(context)
         debug = False
-        if user and user.username == 'ggbaker':
-            debug = True
+        #if user and user.username == 'ggbaker':
+        #    debug = True
 
         if isinstance(obj, GradStudent):
             gs = obj
