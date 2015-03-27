@@ -66,6 +66,9 @@ COMMITTEE_MEMBER_MAP = { # SIMS committee_role -> our Supervisor.supervisor_type
 @SIMS_problem_handler
 @cache_by_args
 def grad_program_changes(acad_prog):
+    """
+    Records from ps_acad_prog about students' progress in this program. Rows become ProgramStatusChange objects.
+    """
     db = SIMSConn()
     db.execute("""
         SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
@@ -79,19 +82,32 @@ def grad_program_changes(acad_prog):
 @SIMS_problem_handler
 @cache_by_args
 def grad_appl_program_changes(acad_prog):
+    """
+    ps_adm_appl_data records where the fee has actually been paid: we don't bother looking at them until then.
+    Rows become ApplProgramChange objects.
+
+    Many of these will duplicate ps_acad_prog: the ProgramStatusChange is smart enough to identify them.
+    """
     db = SIMSConn()
     db.execute("""
-        SELECT emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action, prog_reason,
-            effdt, effseq, admit_term, exp_grad_term
-        FROM ps_adm_appl_prog
-        WHERE acad_career='GRAD' AND acad_prog=%s AND effdt>=%s AND admit_term>=%s
-        ORDER BY effdt, effseq
+        SELECT prog.emplid, prog.stdnt_car_nbr, prog.adm_appl_nbr, prog.acad_prog, prog.prog_status, prog.prog_action, prog.prog_reason,
+            prog.effdt, prog.effseq, prog.admit_term, prog.exp_grad_term
+        FROM ps_adm_appl_prog prog
+            LEFT JOIN dbcsown.ps_adm_appl_data data
+                ON prog.emplid=data.emplid AND prog.acad_career=data.acad_career AND prog.stdnt_car_nbr=data.stdnt_car_nbr AND prog.adm_appl_nbr=data.adm_appl_nbr
+        WHERE prog.acad_career='GRAD' AND prog.acad_prog=%s AND prog.effdt>=%s AND prog.admit_term>=%s
+            AND ( data.appl_fee_status in ('REC', 'WVD')
+                OR data.adm_appl_ctr in ('GRAW') )
+        ORDER BY prog.effdt, prog.effseq
     """, (acad_prog, IMPORT_START_DATE, IMPORT_START_SEMESTER))
     return list(db)
 
 @SIMS_problem_handler
 @cache_by_args
 def grad_semesters(emplid):
+    """
+    Semesters when the student was taking classes: use to mark them active (since sometimes ps_acad_prog doesn't).
+    """
     db = SIMSConn()
     db.execute("""
         SELECT emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss
@@ -105,6 +121,11 @@ def grad_semesters(emplid):
 @SIMS_problem_handler
 @cache_by_args
 def committee_members(emplid):
+    """
+    Grad committee members for this person.
+
+    I suspect the JOIN is too broad: possibly should be maximizing effdt in ps_stdnt_advr_hist?
+    """
     db = SIMSConn()
     db.execute("""
         SELECT st.emplid, st.committee_id, st.acad_prog, com.effdt, com.committee_type, mem.emplid, mem.committee_role
@@ -152,6 +173,11 @@ def build_program_map():
     return program_map
 
 def build_reverse_program_map():
+    """
+    Reverse of the program map, returning lists of acad_prog that *might* be the source of one of our programs.
+
+    Needed because CMPT's flavours of masters aren't reflected in SIMS.
+    """
     program_map = build_program_map()
     rev_program_map = defaultdict(list)
     for acad_prog, gradprog in program_map.items():
@@ -195,6 +221,9 @@ class GradHappening(object):
         self.strm = strm
 
     def acad_prog_to_gradprogram(self):
+        """
+        Turn self.acad_prog into a GradProgram in self.grad_program if possible. Also set the unit that goes with it.
+        """
         if GradHappening.program_map is None:
             GradHappening.program_map = build_program_map()
 
@@ -205,9 +234,19 @@ class GradHappening(object):
             self.grad_program = None
             self.unit = None
 
+    def import_key(self):
+        """
+        Return a key that will uniquely identify this record so we can find it again later.
+
+        Must be JSON-serializable (and comparable for equality after serializing/deserializing)
+        """
+        raise NotImplementedError
 
 
 class ProgramStatusChange(GradHappening):
+    """
+    Record a row from ps_acad_prog
+    """
     def __init__(self, emplid, stdnt_car_nbr, adm_appl_nbr, acad_prog, prog_status, prog_action,
             prog_reason, effdt, effseq, admit_term, exp_grad_term):
         # argument order must match grad_program_changes query
@@ -257,7 +296,7 @@ class ProgramStatusChange(GradHappening):
             return 'DECL'
         elif st_ac == ('CN', 'WADM'):
             # cancelled application
-            return 'CANC'
+            return None
         elif st_ac == ('AD', 'ADMT'):
             return 'OFFO'
         elif st_ac == ('AD', 'COND'):
@@ -302,7 +341,6 @@ class ProgramStatusChange(GradHappening):
         raise KeyError, str((self.prog_status, self.prog_action, self.prog_reason))
 
     def import_key(self):
-        # must be JSON-serializable (and comparable for equality after serializing/deserializing)
         return self.key
 
     def status_config(self):
@@ -310,10 +348,10 @@ class ProgramStatusChange(GradHappening):
         return {}
 
     def find_existing_status(self, statuses, verbosity):
-        # look for something previously imported from this
+        # look for something previously imported from this record
         key = self.import_key()
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
-        # ... be sure to find the old ones and claim as our own.
+        # ... be sure to find the old ones too.
         existing = [s for s in statuses
                 if 'sims_source' in s.config and
                 ((s.config['sims_source'] == key)
@@ -321,7 +359,6 @@ class ProgramStatusChange(GradHappening):
         if existing:
             s = existing[0]
             assert s.status == self.status
-            s.config['sims_source'] = key
             return s
 
         # look for a real match in old data
@@ -378,7 +415,7 @@ class ProgramStatusChange(GradHappening):
         if self.gradstatus:
             st = self.gradstatus
         else:
-            # try really hard to find a local status we can use for this: anything close not found
+            # try harder to find a local status we can use for this: anything close not found
             # by any find_local_data() call
             st = self.find_similar_status(statuses, verbosity=verbosity)
             if not st:
@@ -443,13 +480,13 @@ class ProgramStatusChange(GradHappening):
                 ph = next_history[0]
                 ph.start_semester = STRM_MAP[strm]
                 ph.starting = self.effdt
-                need_ph = False
             else:
                 # no history: create
                 need_ph = True
 
+        # make sure we don't duplicate: have a last look for an old import
         existing_history = [p for p in programs if
-                'sims_source' in p.config and p.config['sims_source'] == key]
+                'sims_source' in p.config and (p.config['sims_source'] == key or s.config['sims_source'] == self.oldkey)]
         if existing_history:
             ph = existing_history[0]
             need_ph = False
@@ -464,7 +501,7 @@ class ProgramStatusChange(GradHappening):
             student_info['programs'].append(ph)
             student_info['programs'].sort(key=lambda p: (p.start_semester.name, p.starting))
         else:
-            if 'sims_source' not in ph.config:
+            if 'sims_source' not in ph.config or ph.config['sims_source'] == self.oldkey:
                 ph.config['sims_source'] = key
 
         if not dry_run:
@@ -476,16 +513,22 @@ class ProgramStatusChange(GradHappening):
             # could be just a program change, but no status
             self.update_status(student_info, verbosity, dry_run)
         if self.grad_program:
-            # CareerUnitChangeOut/CareerUnitChangeIn subclasses don't have grad_program
+            # CareerUnitChangeOut/CareerUnitChangeIn subclasses don't have grad_program and don't change program
             self.update_program_history(student_info, verbosity, dry_run)
 
 
 class ApplProgramChange(ProgramStatusChange):
-    pass
+    """
+    Like ProgramStatusChange except holding records from ps_adm_appl_prog.
+    """
+    pass  # I like subclasses.
+
 
 class GradSemester(GradHappening):
     """
-    Used to make sure we catch them being active: program status doesn't always record it.
+    Records a semester the student was taking classes (from ps_stdnt_car_term).
+
+    Used to make sure we catch them being active: ps_acad_prog doesn't always record it.
     """
     def __init__(self, emplid, strm, stdnt_car_nbr, withdraw_code, acad_prog_primary, unt_taken_prgrss):
         # argument order must match grad_semesters query
@@ -498,7 +541,7 @@ class GradSemester(GradHappening):
         self.status = 'ACTI'
 
         self.semester = STRM_MAP[self.strm]
-        self.effdt = self.semester.start
+        self.effdt = self.semester.start # taking classes starts at the start of classes
 
         self.acad_prog_to_gradprogram()
 
@@ -508,7 +551,7 @@ class GradSemester(GradHappening):
     def __repr__(self):
         return "%s in %s" % (self.withdraw_code, self.strm)
 
-    def key(self):
+    def import_key(self):
         return ['ps_stdnt_car_term', self.emplid, self.strm]
 
     def find_local_data(self, student_info, verbosity):
@@ -522,7 +565,7 @@ class GradSemester(GradHappening):
         statuses = student_info['statuses']
         semester = self.semester
         effdt = self.effdt
-        key = self.key()
+        key = self.import_key()
 
         # Option 1: we're already active
         effective_statuses = [s for s in statuses if s.start.name <= self.strm
@@ -537,7 +580,6 @@ class GradSemester(GradHappening):
 
         # Option 2: there's an active status this semester, but it's not the most recent
         active_semester_statuses = [s for s in statuses if s.start.name == self.strm and s.status == 'ACTI']
-
         if active_semester_statuses:
             st = active_semester_statuses[-1]
             if 'sims_source' in st.config and st.config['sims_source'] == key:
@@ -602,14 +644,18 @@ class CommitteeMembership(GradHappening):
     def find_local_data(self, student_info, verbosity):
         pass
 
+    def import_key(self):
+        return [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
+
     def update_local_data(self, student_info, verbosity, dry_run):
         if self.grad_program.unit.slug == 'cmpt':
             return
 
-        key = [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
+        key = self.import_key()
         local_committee = student_info['committee']
         sup_type = COMMITTEE_MEMBER_MAP[self.committee_role]
 
+        # cache People objects, so we don't query for them too much.
         if self.sup_emplid in CommitteeMembership.found_people:
             p = CommitteeMembership.found_people[self.sup_emplid]
         else:
@@ -639,7 +685,7 @@ class CommitteeMembership(GradHappening):
             member.created_at = self.effdt
 
         # TODO: try to match up external members with new real ones? That sounds hard.
-        # TODO: remove members if added by this import (in the past) and not found
+        # TODO: remove members if added by this import (in the past) and not found in the newest committee version
 
         if not dry_run:
             member.save_if_dirty()
@@ -647,6 +693,9 @@ class CommitteeMembership(GradHappening):
 
 
 class CareerUnitChangeOut(ProgramStatusChange):
+    """
+    Record a inter-unit transfer away from this program.
+    """
     # inherits ProgramStatusChange so we can use the find_existing_status and find_similar_status functionality
     def __init__(self, emplid, adm_appl_nbr, unit, otherunit, effdt, admit_term):
         """
@@ -658,6 +707,7 @@ class CareerUnitChangeOut(ProgramStatusChange):
         self.effdt = effdt
         self.stdnt_car_nbr = None
         self.grad_program = None
+        self.oldkey = None
 
         if self.inout() == 'out':
             self.status = 'TROU'
@@ -684,6 +734,9 @@ class CareerUnitChangeOut(ProgramStatusChange):
 
 
 class CareerUnitChangeIn(CareerUnitChangeOut):
+    """
+    Record a inter-unit transfer into this program.
+    """
     def inout(self):
         return 'in'
 
