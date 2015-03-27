@@ -24,7 +24,7 @@ def repo_name(offering, slug):
     name = offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-' + slug
     return name
 
-VISA_STATUSES = (
+VISA_STATUSES = ( # as taken from SIMS ps_visa_permit_tbl
         ('Perm Resid', 'Permanent Resident'),
         ('Student',    'Student Visa'),          # Student Authorization permitting study in Canada
         ('Diplomat',   'Diplomat'),              # Reciprocal domestic tuition may be extended to dependents of diplomats from certain countries (not all).
@@ -37,6 +37,7 @@ VISA_STATUSES = (
         ('Refugee',    'Refugee'),               # Refugee (status granted)
         ('Unknown',    'Non-Canadian, Status Unknown'), # Non-Canadian, Status Unknown (incl refugee claimants)
         ('No Visa St', 'Non-Canadian, No Visa Status'), # Non-Canadian, No Visa Status (student is studying outside Canada)
+        ('Live-in Ca', 'Live-in Caregiver'),
         )
 
 class Person(models.Model, ConditionalSaveMixin):
@@ -83,7 +84,7 @@ class Person(models.Model, ConditionalSaveMixin):
     addresses, _ = getter_setter('addresses')
     gpa, _ = getter_setter('gpa')
     ccredits, _ = getter_setter('ccredits')
-    # see grad.forms.VISA_STATUSES for list of possibilities
+    # see VISA_STATUSES above for list of possibilities
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
     sin, set_sin = getter_setter('sin')

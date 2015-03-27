@@ -1,4 +1,5 @@
 from .parameters import SIMS_SOURCE, DATE_OFFSET, DATE_OFFSET_START, RELEVANT_DATA_START, CMPT_IMPORT_STATUSES
+from .queries import translation_tables
 from .tools import semester_lookup, STRM_MAP
 
 from coredata.models import Unit
@@ -641,3 +642,29 @@ class CareerUnitChangeIn(CareerUnitChangeOut):
     def status_config(self):
         "Additional entries for GradStatus.config when updating"
         return {'in_from': self.otherunit.slug}
+
+
+class GradMetadata(GradHappening):
+    """
+    Information about the person: this applies to all Careers for this person.
+    """
+    # TODO: research area
+    trans_lang, trans_countries, trans_visas = None, None, None
+    def __init__(self, emplid, email, lang, citizen, visa):
+        if not GradMetadata.trans_lang:
+            GradMetadata.trans_lang, GradMetadata.trans_countries, GradMetadata.trans_visas = translation_tables()
+
+        self.emplid = emplid
+        self.email = email
+        self.lang = GradMetadata.trans_lang.get(lang, None)
+        self.citizen = GradMetadata.trans_countries.get(citizen, None)
+        vstatus, self.visa = GradMetadata.trans_visas.get(visa, (None, None))
+
+        self.strm = '0000'
+        self.effdt = datetime.date(1900, 1, 1)
+        self.grad_program = None
+
+        # they're Canadian for employment purposes if they're a citizen or on a 'resident' visa
+        self.is_canadian = citizen == 'CAN' or vstatus == 'R'
+
+

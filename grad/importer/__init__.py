@@ -20,8 +20,9 @@ logic around this is trying to find the similar-enough fact that was manually en
 """
 
 from .parameters import IMPORT_UNIT_SLUGS
-from .queries import grad_program_changes, grad_appl_program_changes, grad_semesters, committee_members
-from .happenings import build_program_map, ProgramStatusChange, ApplProgramChange, GradSemester, CommitteeMembership
+from .queries import grad_program_changes, grad_appl_program_changes, grad_semesters, committee_members, grad_metadata
+from .happenings import build_program_map, ProgramStatusChange, ApplProgramChange, GradSemester, CommitteeMembership, \
+    GradMetadata
 from .timeline import GradTimeline
 
 from django.db import transaction
@@ -33,7 +34,8 @@ from collections import defaultdict
 # TODO: adjust LEAV statuses depending on the NWD/WRD status from ps_stdnt_car_term?
 # TODO: GradStudent.create does things: use it
 # TODO: CMPT distinction between thesis/project/course in SIMS?
-
+# TODO: if transferred to another unit, copy the application/matriculation events over for better program history?
+# TODO: for CMPT create at least the initial GradProgramHistory and completed application status
 
 def manual_cleanups(dry_run, verbosity):
     """
@@ -89,6 +91,9 @@ def import_grads(dry_run, verbosity, import_emplids=None):
     for r in itertools.chain(*_batch_call(committee_members, emplids)):
         emplid = r[1]
         timeline_data[emplid].append(r)
+    for r in itertools.chain(*_batch_call(grad_metadata, emplids)):
+        emplid = r[1]
+        timeline_data[emplid].append(r)
 
     for emplid in emplids:
         timeline = GradTimeline(emplid)
@@ -102,6 +107,8 @@ def import_grads(dry_run, verbosity, import_emplids=None):
                 h = GradSemester(*(d[1:]))
             elif d[0] == 'CommitteeMembership':
                 h = CommitteeMembership(*(d[1:]))
+            elif d[0] == 'GradMetadata':
+                h = GradMetadata(*(d[1:]))
             else:
                 raise ValueError, d[0]
 

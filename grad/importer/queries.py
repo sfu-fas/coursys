@@ -78,3 +78,53 @@ def committee_members(emplids):
         ORDER BY com.effdt""",
         (emplids,))
     return list(db)
+
+@SIMS_problem_handler
+@cache_by_args
+def translation_tables():
+    """
+    Translation tables of SIMS values to english. Fetched once into a dict to save joining many things later.
+    """
+    db = SIMSConn()
+    db.execute("""
+        SELECT atbl.accomplishment, atbl.descr
+        FROM ps_accomp_tbl atbl
+        WHERE atbl.accomp_category='LNG'""", ())
+    langs = dict(db)
+
+    db.execute("""
+        SELECT country, descr FROM ps_country_tbl""", ())
+    countries = dict(db)
+
+    db.execute("""
+        SELECT visa_permit_type, visa_permit_class, descrshort FROM ps_visa_permit_tbl WHERE eff_status='A'""", ())
+    visas = dict((typ, (cls, desc)) for typ, cls, desc in db)
+
+    return langs, countries, visas
+
+@SIMS_problem_handler
+@cache_by_args
+def grad_metadata(emplids):
+    """
+    Metadata about a grad student: application email address, native language, citizenship, work visa status.
+
+    LEFT JOINs many things onto ps_personal_data to get lots out of the way in one query.
+    """
+    db = SIMSConn()
+    db.execute("""
+        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type
+        FROM ps_personal_data p
+        LEFT JOIN ps_email_addresses e
+            ON (p.emplid=e.emplid AND e.pref_email_flag='Y')
+        LEFT JOIN ps_accomplishments a
+            ON (a.emplid=p.emplid AND a.native_language='Y')
+        LEFT JOIN ps_citizenship cit
+            ON (cit.emplid=p.emplid)
+        LEFT JOIN ps_visa_pmt_data v
+            ON (p.emplid=v.emplid
+                AND v.effdt = (SELECT MAX(tmp.effdt)
+                    FROM ps_visa_pmt_data tmp
+                    WHERE tmp.emplid = v.emplid
+                    AND tmp.effdt <= current date ))
+        WHERE p.emplid IN %s""", (emplids,))
+    return list(db)
