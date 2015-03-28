@@ -1,6 +1,7 @@
 from .parameters import IMPORT_START_DATE, RELEVANT_PROGRAM_START, SIMS_SOURCE
 from .career import GradCareer
-from .happenings import ProgramStatusChange, CommitteeMembership, GradSemester, ApplProgramChange, CareerUnitChangeIn, CareerUnitChangeOut
+from .happenings import ProgramStatusChange, CommitteeMembership, GradSemester, ApplProgramChange, CareerUnitChangeIn,\
+    CareerUnitChangeOut, GradMetadata
 
 from grad.models import GradStudent
 import datetime, itertools
@@ -99,6 +100,16 @@ class GradTimeline(object):
                 c = GradCareer(self.emplid, h.adm_appl_nbr, h.app_stdnt_car_nbr, h.grad_program.unit)
                 self.careers.append(c)
                 c.add(h)
+
+        # pass 2.5: put GradMetadata happenings in *every* career since they're about the person, not program
+        for h in self.happenings:
+            if not isinstance(h, GradMetadata):
+                continue
+
+            for c in self.careers:
+                c.metadata = h
+            # the first row found should win because of the sort order
+            break
 
         # pass 3: what program are they actually in at that time?
         for h in happenings:

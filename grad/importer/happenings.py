@@ -647,16 +647,19 @@ class CareerUnitChangeIn(CareerUnitChangeOut):
 class GradMetadata(GradHappening):
     """
     Information about the person: this applies to all Careers for this person.
+
+    Not really treated like other happenings: becomes Career.metadata, not one of its happenings.
     """
     # TODO: research area
     trans_lang, trans_countries, trans_visas = None, None, None
-    def __init__(self, emplid, email, lang, citizen, visa):
+    def __init__(self, emplid, email, lang, citizen, visa, s1, s2):
         if not GradMetadata.trans_lang:
             GradMetadata.trans_lang, GradMetadata.trans_countries, GradMetadata.trans_visas = translation_tables()
 
         self.emplid = emplid
         self.email = email
         self.lang = GradMetadata.trans_lang.get(lang, None)
+        self.citcode = citizen
         self.citizen = GradMetadata.trans_countries.get(citizen, None)
         vstatus, self.visa = GradMetadata.trans_visas.get(visa, (None, None))
 
@@ -665,6 +668,41 @@ class GradMetadata(GradHappening):
         self.grad_program = None
 
         # they're Canadian for employment purposes if they're a citizen or on a 'resident' visa
-        self.is_canadian = citizen == 'CAN' or vstatus == 'R'
+        self.is_canadian = self.citcode == 'CAN' or vstatus == 'R'
+
+    def update_local_data(self, gs, verbosity, dry_run):
+        changed = []
+
+        # keep the first ever non-SFU preferred email as their applic_email
+        if self.email and not self.email.endswith('@sfu.ca') and not gs.config.get('applic_email', None):
+            gs.config['applic_email'] = self.email
+            changed.append('application email address')
+
+        # keep the most-recently found non-null for the other fields
+
+        if self.lang and self.lang != gs.mother_tongue:
+            gs.mother_tongue = self.lang
+            changed.append('language')
+
+        if self.citizen and self.citizen != gs.passport_issued_by:
+            gs.passport_issued_by = self.citizen
+            changed.append('citizenship')
+
+        if self.visa and self.visa != gs.person.config.get('visa', None):
+            gs.person.config['visa'] = self.visa
+            changed.append('visa')
+
+        if self.is_canadian != gs.is_canadian:
+            gs.is_canadian = self.is_canadian
+            changed.append('Canadianness')
+
+
+        if changed:
+            if verbosity > 1:
+                print "* Changed personal info for %s/%s: %s" % (self.emplid, gs.program.unit.slug, ', '.join(changed))
+            if not dry_run:
+                gs.save()
+                if 'visa' in changed:
+                    gs.person.save()
 
 

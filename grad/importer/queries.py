@@ -111,11 +111,16 @@ def grad_metadata(emplids):
     LEFT JOINs many things onto ps_personal_data to get lots out of the way in one query.
     """
     db = SIMSConn()
+    # The s1, s2 column are to sort so we get the "good" language/country first: let speaking English or being Canadian
+    # win (since they might be better for that student's TA/RA appointments later).
+    # Other sort orders just to make sure we get the same record tomorrow if there are other duplicates (visa can duplicate)
     db.execute("""
-        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type
+        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type,
+            case when (a.accomplishment='ENG') then 0 else 1 end s1,
+            case when (cit.country='CAN') then 0 else 1 end s2
         FROM ps_personal_data p
         LEFT JOIN ps_email_addresses e
-            ON (p.emplid=e.emplid AND e.pref_email_flag='Y')
+            ON (p.emplid=e.emplid AND e.pref_email_flag='Y' and e.e_addr_type<>'INAC')
         LEFT JOIN ps_accomplishments a
             ON (a.emplid=p.emplid AND a.native_language='Y')
         LEFT JOIN ps_citizenship cit
@@ -126,5 +131,6 @@ def grad_metadata(emplids):
                     FROM ps_visa_pmt_data tmp
                     WHERE tmp.emplid = v.emplid
                     AND tmp.effdt <= current date ))
-        WHERE p.emplid IN %s""", (emplids,))
+        WHERE p.emplid IN %s
+        ORDER BY s1, s2, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type""", (emplids,))
     return list(db)
