@@ -1,7 +1,7 @@
 from .parameters import IMPORT_START_DATE, RELEVANT_PROGRAM_START, SIMS_SOURCE
 from .career import GradCareer
 from .happenings import ProgramStatusChange, CommitteeMembership, GradSemester, ApplProgramChange, CareerUnitChangeIn,\
-    CareerUnitChangeOut, GradMetadata
+    CareerUnitChangeOut, GradMetadata, GradResearchArea
 
 from grad.models import GradStudent
 import datetime, itertools
@@ -48,15 +48,19 @@ class GradTimeline(object):
 
         # pass 1: we know the adm_appl_nbr
         for h in happenings:
-            if h.adm_appl_nbr:
+            if h.adm_appl_nbr and h.unit:
                 cs = [c for c in self.careers if c.unit == h.unit and c.adm_appl_nbr == h.adm_appl_nbr]
                 if len(cs) > 1:
                     raise ValueError, str(cs)
                 elif len(cs) == 1:
                     c = cs[0]
-                else:
-                    c = GradCareer(self.emplid, h.adm_appl_nbr, h.app_stdnt_car_nbr, h.grad_program.unit)
+                elif not isinstance(h, GradResearchArea): # don't let research area entries create careers: just toss.
+                    c = GradCareer(self.emplid, h.adm_appl_nbr, h.app_stdnt_car_nbr, h.unit)
                     self.careers.append(c)
+                else: #... and ignore research areas if there's no career for them by now. *Only* match by adm_appl_nbr.
+                    assert isinstance(h, GradResearchArea)
+                    h.in_career = True
+                    continue
 
                 c.add(h)
 
@@ -88,8 +92,6 @@ class GradTimeline(object):
                     else:
                         raise ValueError, "Multiple career options for happening %s for %s. %s" % (h, self.emplid, possible_careers)
                 else:
-                    #print h.prog_action in ['LEAV', 'RLOA', 'DISC', 'RADM'], (h.prog_action, h.status)
-
                     # make sure that "active program" filter didn't cause an inappropriate new career
                     assert h.prog_action not in ['LEAV', 'RLOA', 'DISC', 'COMP']
 
@@ -152,9 +154,10 @@ class GradTimeline(object):
                             c.add(h)
 
                     # admit failure in a few cases
-                    if not h.in_career and isinstance(h, CommitteeMembership):
+                    if not h.in_career and (isinstance(h, CommitteeMembership) or isinstance(h, GradResearchArea)):
                         # Committee member added to one program after student changed to another: drop this one.
                         # Committee membership for student's new program should be in another happening.
+                        # Research areas where we didn't find any other info can be dropped.
                         h.in_career = True
                     elif not h.in_career and isinstance(h, GradSemester) and h.effdt - datetime.timedelta(days=730) < IMPORT_START_DATE:
                         # student in classes just after the beginning of time: we missed the career

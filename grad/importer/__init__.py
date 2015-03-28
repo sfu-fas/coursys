@@ -20,9 +20,10 @@ logic around this is trying to find the similar-enough fact that was manually en
 """
 
 from .parameters import IMPORT_UNIT_SLUGS
-from .queries import grad_program_changes, grad_appl_program_changes, grad_semesters, committee_members, grad_metadata
+from .queries import grad_program_changes, grad_appl_program_changes, grad_semesters, committee_members, \
+    grad_metadata, research_areas
 from .happenings import build_program_map, ProgramStatusChange, ApplProgramChange, GradSemester, CommitteeMembership, \
-    GradMetadata
+    GradMetadata, GradResearchArea
 from .timeline import GradTimeline
 
 from django.db import transaction
@@ -94,6 +95,9 @@ def import_grads(dry_run, verbosity, import_emplids=None):
     for r in itertools.chain(*_batch_call(grad_metadata, emplids)):
         emplid = r[1]
         timeline_data[emplid].append(r)
+    for r in itertools.chain(*_batch_call(research_areas, emplids)):
+        emplid = r[1]
+        timeline_data[emplid].append(r)
 
     for emplid in emplids:
         timeline = GradTimeline(emplid)
@@ -109,6 +113,8 @@ def import_grads(dry_run, verbosity, import_emplids=None):
                 h = CommitteeMembership(*(d[1:]))
             elif d[0] == 'GradMetadata':
                 h = GradMetadata(*(d[1:]))
+            elif d[0] == 'GradResearchArea':
+                h = GradResearchArea(*(d[1:]))
             else:
                 raise ValueError, d[0]
 

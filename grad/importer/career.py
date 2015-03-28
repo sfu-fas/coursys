@@ -1,6 +1,6 @@
 from .parameters import SIMS_SOURCE, RELEVANT_PROGRAM_START
 from .happenings import build_program_map, build_reverse_program_map
-from .happenings import ProgramStatusChange, ApplProgramChange, GradMetadata
+from .happenings import ProgramStatusChange, ApplProgramChange, GradResearchArea
 from .tools import STRM_MAP
 
 from coredata.queries import add_person
@@ -27,6 +27,7 @@ class GradCareer(object):
         self.current_program = None # used to track program changes as we import
         self.student_info = None
         self.metadata = None
+        self.research_areas = set()
 
         if not GradCareer.program_map:
             GradCareer.program_map = build_program_map()
@@ -40,7 +41,7 @@ class GradCareer(object):
         """
         Add happening to this career, and maintain the metadata we need.
         """
-        if h.adm_appl_nbr:
+        if h.adm_appl_nbr and not isinstance(h, GradResearchArea):
             if not self.adm_appl_nbr:
                 self.adm_appl_nbr = h.adm_appl_nbr
             if self.stdnt_car_nbr is None:
@@ -205,12 +206,12 @@ class GradCareer(object):
         if self.adm_appl_nbr:
             self.gradstudent.config['adm_appl_nbr'] = self.adm_appl_nbr
 
-        # TODO: get_mother_tongue, get_passport_issued_by, holds_resident_visa, get_research_area, get_email from grad.management.commands.new_grad_student
         if self.metadata:
             self.metadata.update_local_data(self.gradstudent, verbosity=verbosity, dry_run=dry_run)
 
         student_info = {
             'student': self.gradstudent,
+            'career': self,
             'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
                 .select_related('start').order_by('start__name', 'start_date')),
             'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
@@ -227,6 +228,13 @@ class GradCareer(object):
 
         for h in self.happenings:
             h.update_local_data(student_info, verbosity=verbosity, dry_run=dry_run)
+
+        # research area: let anything manually entered/changed win.
+        if self.research_areas and not self.gradstudent.research_area:
+            r = ' | '.join(self.research_areas)
+            self.gradstudent.research_area = r + ' (from application)'
+            if verbosity > 1:
+                print "* Setting research area for %s/%s." % (self.emplid, self.unit.slug)
 
         # are there any GradProgramHistory objects happening before the student actually started (because they
         # deferred)? If so, defer them too.

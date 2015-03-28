@@ -81,7 +81,7 @@ def committee_members(emplids):
 
 @SIMS_problem_handler
 @cache_by_args
-def translation_tables():
+def metadata_translation_tables():
     """
     Translation tables of SIMS values to english. Fetched once into a dict to save joining many things later.
     """
@@ -101,6 +101,33 @@ def translation_tables():
     visas = dict((typ, (cls, desc)) for typ, cls, desc in db)
 
     return langs, countries, visas
+
+@SIMS_problem_handler
+@cache_by_args
+def research_translation_tables():
+    """
+    Translation tables of SIMS values to english. Fetched once into a dict to save joining many things later.
+    """
+    db = SIMSConn()
+    db.execute("""
+        SELECT acad_org, sfu_ga_res_area, descr50
+        FROM ps_sfu_ga_resareas areas
+        WHERE areas.eff_status='A'
+            AND areas.effdt = (SELECT max(effdt) FROM ps_sfu_ga_resareas tmp
+                WHERE areas.acad_org=tmp.acad_org AND areas.sfu_ga_res_area=tmp.sfu_ga_res_area)""", ())
+    areas = dict(((acad_org, area), descr) for acad_org, area, descr in db)
+
+
+    db.execute("""
+        SELECT acad_org, sfu_ga_res_area, sfu_ga_reschoices, descr50
+        FROM ps_sfu_ga_reschoic choices
+        WHERE choices.effdt = (SELECT max(effdt) FROM ps_sfu_ga_reschoic tmp
+            WHERE choices.acad_org=tmp.acad_org AND choices.sfu_ga_res_area=tmp.sfu_ga_res_area
+            AND choices.sfu_ga_reschoices=tmp.sfu_ga_reschoices)""", ())
+    choices = dict(((acad_org, area, choice), descr) for acad_org, area, choice, descr in db)
+
+    return areas, choices
+
 
 @SIMS_problem_handler
 @cache_by_args
@@ -133,4 +160,18 @@ def grad_metadata(emplids):
                     AND tmp.effdt <= current date ))
         WHERE p.emplid IN %s
         ORDER BY s1, s2, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type""", (emplids,))
+    return list(db)
+
+
+@SIMS_problem_handler
+@cache_by_args
+def research_areas(emplids):
+    """
+    Research areas from these students' applications.
+    """
+    db = SIMSConn()
+    db.execute("""
+        SELECT 'GradResearchArea', emplid, adm_appl_nbr, acad_org, sfu_ga_res_area, sfu_ga_reschoices
+        FROM ps_sfu_ga_res_det data
+        WHERE data.emplid in %s""", (emplids,))
     return list(db)

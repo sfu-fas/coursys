@@ -1,5 +1,5 @@
 from .parameters import SIMS_SOURCE, DATE_OFFSET, DATE_OFFSET_START, RELEVANT_DATA_START, CMPT_IMPORT_STATUSES
-from .queries import translation_tables
+from .queries import metadata_translation_tables, research_translation_tables
 from .tools import semester_lookup, STRM_MAP
 
 from coredata.models import Unit
@@ -644,17 +644,53 @@ class CareerUnitChangeIn(CareerUnitChangeOut):
         return {'in_from': self.otherunit.slug}
 
 
+class GradResearchArea(GradHappening):
+    """
+    The research area given by this student on his/her application
+    """
+    trans_areas, trans_choices, trans_acad_org = None, None, None
+    def __init__(self, emplid, adm_appl_nbr, acad_org, area, choice):
+        if not GradResearchArea.trans_areas:
+            GradMetadata.trans_areas, GradMetadata.trans_choices = research_translation_tables()
+            units = Unit.objects.exclude(acad_org__isnull=True).exclude(acad_org='')
+            GradResearchArea.trans_acad_org = dict((u.acad_org, u) for u in units)
+
+        self.emplid = emplid
+        self.adm_appl_nbr = adm_appl_nbr
+        self.acad_org = acad_org
+        self.area = area
+        self.choice = choice
+
+        self.unit = GradResearchArea.trans_acad_org.get(acad_org, None)
+
+        # sort them last so careers are made by acad_prog happenings, not this.
+        self.strm = '9999'
+        self.effdt = datetime.date(3000, 1, 1)
+        self.grad_program = True
+        self.stdnt_car_nbr = None
+        self.in_career = False
+
+    def find_local_data(self, student_info, verbosity):
+        pass
+
+    def update_local_data(self, student_info, verbosity, dry_run):
+        # collect the research areas in the career, so they're all together
+        career = student_info['career']
+        ch = GradMetadata.trans_choices.get((self.acad_org, self.area, self.choice), None)
+        if ch:
+            career.research_areas.add(ch)
+
+
 class GradMetadata(GradHappening):
     """
     Information about the person: this applies to all Careers for this person.
 
     Not really treated like other happenings: becomes Career.metadata, not one of its happenings.
     """
-    # TODO: research area
     trans_lang, trans_countries, trans_visas = None, None, None
     def __init__(self, emplid, email, lang, citizen, visa, s1, s2):
         if not GradMetadata.trans_lang:
-            GradMetadata.trans_lang, GradMetadata.trans_countries, GradMetadata.trans_visas = translation_tables()
+            GradMetadata.trans_lang, GradMetadata.trans_countries, GradMetadata.trans_visas = metadata_translation_tables()
 
         self.emplid = emplid
         self.email = email
