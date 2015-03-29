@@ -36,7 +36,7 @@ from collections import defaultdict
 # TODO: GradStudent.create does things: use it
 # TODO: CMPT distinction between thesis/project/course in SIMS?
 # TODO: if transferred to another unit, copy the application/matriculation events over for better program history?
-# TODO: for CMPT create at least the initial GradProgramHistory and completed application status
+# TODO: could set the CMPT DDP flag for relevant programs
 
 def manual_cleanups(dry_run, verbosity):
     """

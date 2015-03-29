@@ -123,7 +123,8 @@ class GradCareer(object):
     def by_program_and_start(self, gs):
         return (self.last_program in GradCareer.reverse_program_map[gs.program]
                 and gs.start_semester
-                and gs.start_semester.name == self.admit_term)
+                and gs.start_semester.name == self.admit_term
+                and 'adm_appl_nbr' not in gs.config and SIMS_SOURCE not in gs.config)
 
     def by_similar_program_and_start(self, gs):
         return (self.last_program in GradCareer.reverse_program_map[gs.program]
