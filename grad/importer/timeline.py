@@ -48,6 +48,11 @@ class GradTimeline(object):
 
         # pass 1: we know the adm_appl_nbr
         for h in happenings:
+            if isinstance(h, ApplProgramChange) and h.unit.slug != 'cmpt':
+                # other units don't care as much about applicants here: temporarily disable
+                h.in_career = True
+                continue
+
             if h.adm_appl_nbr and h.unit:
                 cs = [c for c in self.careers if c.unit == h.unit and c.adm_appl_nbr == h.adm_appl_nbr]
                 if len(cs) > 1:
@@ -212,7 +217,7 @@ class GradTimeline(object):
             c.application_only = False
             if len(c.happenings) == 1:
                 h = c.happenings[0]
-                if isinstance(h, ApplProgramChange) and (h.prog_status, h.prog_action) == ('AP', 'APPL'):
+                if isinstance(h, ApplProgramChange) and (h.prog_status, h.prog_action) == ('AP', 'APPL') and c.admit_term < '1157':
                     c.application_only = True
 
         self.careers = [c for c in self.careers if not c.application_only]

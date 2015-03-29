@@ -72,11 +72,11 @@ def import_grads(dry_run, verbosity, import_emplids=None):
             d.append(p)
 
         # temporarily disable while we settle out everything else
-        #appl_changes = grad_appl_program_changes(acad_prog)
-        #for a in appl_changes:
-        #    emplid = a[1]
-        #    d = timeline_data[emplid]
-        #    d.append(a)
+        appl_changes = grad_appl_program_changes(acad_prog)
+        for a in appl_changes:
+            emplid = a[1]
+            d = timeline_data[emplid]
+            d.append(a)
 
     timeline_data = dict(timeline_data)
 

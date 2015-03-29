@@ -1,4 +1,4 @@
-from .parameters import SIMS_SOURCE, RELEVANT_PROGRAM_START
+from .parameters import SIMS_SOURCE, RELEVANT_PROGRAM_START, CMPT_CUTOFF
 from .happenings import build_program_map, build_reverse_program_map
 from .happenings import ProgramStatusChange, ApplProgramChange, GradResearchArea
 from .tools import STRM_MAP
@@ -154,7 +154,7 @@ class GradCareer(object):
     ]
 
     def find_gradstudent(self, verbosity, dry_run):
-        gss = GradStudent.objects.filter(person__emplid=self.emplid, program__unit=self.unit).select_related('start_semester', 'program__unit')
+        gss = GradStudent.objects.filter(person__emplid=self.emplid, program__unit=self.unit).select_related('start_semester', 'program__unit', 'person')
         gss = list(gss)
 
         if self.admit_term < RELEVANT_PROGRAM_START:
@@ -171,9 +171,9 @@ class GradCareer(object):
                 else:
                     raise ValueError, "Multiple records found by %s for %s." % (method, self)
 
-        if GradCareer.program_map[self.last_program].unit.slug == 'cmpt' and self.admit_term < '1137':
+        if GradCareer.program_map[self.last_program].unit.slug == 'cmpt' and self.admit_term < CMPT_CUTOFF:
             # Don't try to probe the depths of history for CMPT. You'll hurt yourself.
-            # We have nice clean adm_appl_nbrs for 1137 onwards, so the reliable GS_SELECTORS will find the student
+            # We have nice clean adm_appl_nbrs for CMPT_CUTOFF onwards, so the reliable GS_SELECTORS will find the student
             return
 
         if verbosity:
@@ -247,6 +247,8 @@ class GradCareer(object):
                     print "Deferring program start for %s/%s to %s." % (self.emplid, self.unit.slug, self.admit_term)
                 if not dry_run:
                     gph.save()
+
+        # TODO: should we set GradStudent.config['start_semester'] here and be done with it?
 
         if not dry_run:
             self.gradstudent.update_status_fields()

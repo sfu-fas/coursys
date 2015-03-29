@@ -1,4 +1,4 @@
-from .parameters import SIMS_SOURCE, DATE_OFFSET, DATE_OFFSET_START, RELEVANT_DATA_START, CMPT_IMPORT_STATUSES
+from .parameters import SIMS_SOURCE, DATE_OFFSET, DATE_OFFSET_START, RELEVANT_DATA_START, CMPT_CUTOFF
 from .queries import metadata_translation_tables, research_translation_tables
 from .tools import semester_lookup, STRM_MAP
 
@@ -223,27 +223,37 @@ class ProgramStatusChange(GradHappening):
     def import_key(self):
         return self.key
     def appl_key(self):
-        return [self.strm, self.prog_status, self.prog_reason, self.acad_prog]
+        return [self.strm, self.prog_status, self.prog_action, self.acad_prog]
 
     def status_config(self):
         "Additional entries for GradStatus.config when updating"
         return {}
+
+    def find_same_appl_key(self, statuses):
+        if self.status not in STATUS_APPLICANT:
+            return None
+
+        key = self.import_key()
+        same_appl_key = [s for s in statuses
+                if 'appl_key' in s.config and s.config['appl_key'] == self.appl_key()]
+        if same_appl_key:
+            if len(same_appl_key) > 1:
+                print self.appl_key()
+                print same_appl_key
+                raise ValueError, str(key)
+            s = same_appl_key[0]
+            s.config[SIMS_SOURCE] = key
+            assert s.status == self.status
+            return s
 
     def find_existing_status(self, statuses, verbosity):
         # look for something previously imported from this record
         key = self.import_key()
         # ApplProgramChange can be the same as a ProgramStatusChange except different effdt: let the one sorted first
         # win, even if that means changing the sims_source (because ApplProgramChange has an earlier effdt, likely)
-        if self.status in STATUS_APPLICANT:
-            same_appl_key = [s for s in statuses
-                    if 'appl_key' in s.config and s.config['appl_key'] == self.appl_key()]
-            if same_appl_key:
-                if len(same_appl_key) > 1:
-                    raise ValueError, str(self.import_key())
-                s = same_appl_key[0]
-                s.config[SIMS_SOURCE] = key
-                assert s.status == self.status
-                return s
+        s = self.find_same_appl_key(statuses)
+        if s:
+            return s
 
         # had to change sims_source status for these so ps_acad_prog and ps_adm_appl_prog results would identify
         # ... be sure to find the old ones too.
@@ -303,14 +313,21 @@ class ProgramStatusChange(GradHappening):
         """
         Find/update GradStatus object for this happening
         """
-        # grad status: don't manage for CMPT
-        if self.unit.slug == 'cmpt' and self.status not in CMPT_IMPORT_STATUSES:
+        # don't manage for CMPT, except completed application status for recent applicants
+        if self.unit.slug == 'cmpt' and (self.status not in ['COMP'] or self.admit_term < CMPT_CUTOFF):
             return
 
         statuses = student_info['statuses']
         if self.gradstatus:
             st = self.gradstatus
         else:
+            # try again by appl_key, in case we created one already (where an event is duplicated in ps_adm_appl_prog and ps_acad_prog)
+            s = self.find_same_appl_key(statuses)
+            if s:
+                # TODO: what about next import? We'll oscillate?
+                # we didn't find it before, but it's there now: just created it so let it be.
+                return
+
             # try harder to find a local status we can use for this: anything close not found
             # by any find_local_data() call
             st = self.find_similar_status(statuses, verbosity=verbosity)
@@ -459,7 +476,7 @@ class GradSemester(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        if self.grad_program.unit.slug == 'cmpt' and 'ACTI' not in CMPT_IMPORT_STATUSES:
+        if self.grad_program.unit.slug == 'cmpt':
             return
 
         # make sure the student is "active" as of the start of this semester, since they're taking courses

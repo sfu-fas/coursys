@@ -3,8 +3,6 @@ from coredata.models import Semester
 
 # import grads from these units (but CMPT gets special treatment)
 IMPORT_UNIT_SLUGS = ['cmpt', 'ensc', 'mse']
-# subset of STATUS_CHOICES that CMPT wants imported
-CMPT_IMPORT_STATUSES = ['COMP']
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)
@@ -20,5 +18,8 @@ IMPORT_START_DATE = Semester.start_end_dates(Semester.objects.get(name=IMPORT_ST
 # if we find students starting before this semester, don't import
 RELEVANT_PROGRAM_START = '1031'
 
-# before this, we don't have Semester objects anyway, so throw up our hands (but could go earlier if there were semesters)
+# before this, we aren't going to worry about it.
 RELEVANT_DATA_START = datetime.date(1993, 9, 1)
+
+# be even more conservative for CMPT: this is when we started getting slightly cleaner data including adm_appl_nbr
+CMPT_CUTOFF = '1137'
