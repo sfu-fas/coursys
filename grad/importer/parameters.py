@@ -4,7 +4,7 @@ from coredata.models import Semester
 # import grads from these units (but CMPT gets special treatment)
 IMPORT_UNIT_SLUGS = ['cmpt', 'ensc', 'mse']
 # subset of STATUS_CHOICES that CMPT wants imported
-CMPT_IMPORT_STATUSES = []
+CMPT_IMPORT_STATUSES = ['COMP']
 
 # in ps_acad_prog dates within about this long of the semester start are actually things that happen next semester
 DATE_OFFSET = datetime.timedelta(days=30)

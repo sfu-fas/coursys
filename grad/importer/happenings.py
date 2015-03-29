@@ -344,10 +344,12 @@ class ProgramStatusChange(GradHappening):
         """
         Find/update GradProgramHistory object for this happening
         """
-        if self.unit.slug == 'cmpt':
+        programs = student_info['programs']
+
+        if self.unit.slug == 'cmpt' and programs:
+            # CMPT students get only their initial application gradprogramhistory filled in.
             return
 
-        programs = student_info['programs']
         key = self.import_key()
         if self.strm < student_info['real_admit_term']:
             # program change could happen before admit: we take those as effective the student's admit term
@@ -646,7 +648,9 @@ class CareerUnitChangeIn(CareerUnitChangeOut):
 
 class GradResearchArea(GradHappening):
     """
-    The research area given by this student on his/her application
+    The research area given by this student on his/her application.
+
+    There may be several of these: they end up joined together into a text field.
     """
     trans_areas, trans_choices, trans_acad_org = None, None, None
     def __init__(self, emplid, adm_appl_nbr, acad_org, area, choice):
