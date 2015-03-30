@@ -108,7 +108,7 @@ def import_grads(dry_run, verbosity, import_emplids=None):
     for r in itertools.chain(*_batch_call(committee_members, emplids)):
         emplid = r[1]
         timeline_data[emplid].append(r)
-    for r in itertools.chain(*_batch_call(grad_metadata, emplids)):
+    for r in itertools.chain(*_batch_call(grad_metadata, emplids, batchsize=50)):
         emplid = r[1]
         timeline_data[emplid].append(r)
     for r in itertools.chain(*_batch_call(research_areas, emplids)):
