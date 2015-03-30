@@ -64,6 +64,7 @@ from dashboard.models import NewsItem
 from log.models import LogEntry
 from coredata import importer
 from celery import chain
+from grad import importer as grad_importer
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, datetime, time
 import logging
@@ -107,6 +108,7 @@ def import_task():
         daily_cleanup.si(),
         fix_unknown_emplids.si(),
         get_role_people.si(),
+        import_grads.si(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
         #get_import_offerings_task(),
@@ -126,6 +128,11 @@ def fix_unknown_emplids():
 def get_role_people():
     logger.info('Importing people with roles')
     importer.get_role_people()
+
+@task(queue='sims')
+def import_grads():
+    logger.info('Importing grad data from SIMS')
+    grad_importer.import_grads(dry_run=False, verbosity=1)
 
 def get_update_grads_task():
     """

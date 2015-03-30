@@ -21,7 +21,7 @@ logic around this is trying to find the similar-enough fact that was manually en
 
 from .parameters import IMPORT_UNIT_SLUGS
 from .queries import grad_program_changes, grad_appl_program_changes, grad_semesters, committee_members, \
-    grad_metadata, research_areas
+    grad_metadata, research_areas, metadata_translation_tables
 from .happenings import build_program_map, ProgramStatusChange, ApplProgramChange, GradSemester, CommitteeMembership, \
     GradMetadata, GradResearchArea
 from .timeline import GradTimeline
@@ -33,10 +33,10 @@ from collections import defaultdict
 
 # TODO: some Supervisors were imported from cortez as external with "userid@sfu.ca". Ferret them out
 # TODO: adjust LEAV statuses depending on the NWD/WRD status from ps_stdnt_car_term?
-# TODO: GradStudent.create does things: use it
 # TODO: CMPT distinction between thesis/project/course in SIMS?
 # TODO: if transferred to another unit, copy the application/matriculation events over for better program history?
 # TODO: could set the CMPT DDP flag for relevant programs
+
 
 def manual_cleanups(dry_run, verbosity):
     """
@@ -46,17 +46,33 @@ def manual_cleanups(dry_run, verbosity):
         return
     pass
 
+
 def _batch_call(func, args, batchsize=500):
-    "Call func(args), but breaking up args into manageable chunks."
+    """
+    Call func(args), but breaking up args into manageable chunks.
+    """
     for i in xrange(0, len(args), batchsize):
         batch = args[i:i+batchsize]
         yield func(batch)
+
+
+def check_environment():
+    """
+    Check our world to make sure things are sane.
+    """
+    from coredata.models import VISA_STATUSES
+    _, _, visas = metadata_translation_tables()
+    const = set(dict(VISA_STATUSES).keys())
+    sims = set([v for _,v in visas.values()])
+    assert const == sims, "coredata.models.VISA_STATUSES doesn't match the possible visa values from SIMS"
 
 
 def import_grads(dry_run, verbosity, import_emplids=None):
     prog_map = build_program_map()
     import_units = Unit.objects.filter(slug__in=IMPORT_UNIT_SLUGS)
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit in import_units]
+
+    check_environment()
 
     # always do these: safe and rest of the import gets weird without them.
     manual_cleanups(verbosity=verbosity, dry_run=False)
@@ -131,9 +147,3 @@ def import_grads(dry_run, verbosity, import_emplids=None):
                 #c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
 
             #timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
-
-
-
-
-
-
