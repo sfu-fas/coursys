@@ -8,10 +8,11 @@ from django.utils.html import conditional_escape as escape
 
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
+from coredata.tasks import BEAT_TEST_FILE, BEAT_FILE_MAX_AGE
 from dashboard.photos import do_photo_fetch
 
 import celery
-import random, socket, subprocess, urllib2, os, stat
+import random, socket, subprocess, urllib2, os, stat, time
 
 
 def _last_component(s):
@@ -120,6 +121,16 @@ def deploy_checks():
         failed.append(('Celery task', 'celery DB tables missing'))
     except django.db.utils.OperationalError:
         failed.append(('Celery task', 'djkombu tables missing: try migrating'))
+
+    # celery beat
+    try:
+        beatfile_age = time.time() - os.stat(BEAT_TEST_FILE).st_mtime
+        if beatfile_age < BEAT_FILE_MAX_AGE:
+            passed.append(('Celery beat', 'okay'))
+        else:
+            failed.append(('Celery beat', 'marker file is old: celery beat likely not processing tasks'))
+    except OSError:
+        failed.append(('Celery beat', 'marker file is missing: celery beat likely not processing tasks'))
 
     # Django cache
     # (has a subprocess do something to make sure we're in a persistent shared cache, not DummyCache)
@@ -310,7 +321,10 @@ def celery_info():
     from celery.task.control import inspect
     i = inspect()
     info = []
-    for worker, tasks in i.active().items():
+    active = i.active()
+    if not active:
+        return [('Error', 'Could not insepct Celery: it may be down.')]
+    for worker, tasks in active.items():
         if tasks:
             taskstr = '; '.join("%s(*%s, **%s)" % (t['name'], t['args'], t['kwargs'])
                        for t in tasks)
@@ -369,4 +383,7 @@ def pip_info():
     return [('PIP freeze', mark_safe(result))]
 
 def csrpt_info():
-    return csrpt_update()
+    try:
+        return csrpt_update()
+    except SIMSProblem as e:
+        return [('SIMS problem', str(e))]
