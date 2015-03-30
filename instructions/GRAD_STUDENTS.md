@@ -48,68 +48,15 @@ GradProgramHistory entry in that GradStudent record to record the move.
 Bette completes her CMPT PhD, graduates, and leaves the university. This closes her GradStudent record.
 
 After all of these machinations, both Al and Bette have a CMPT PhD - but Al has three GradStudent records
-where Bette only has one. 
+where Bette only has one.
 
 ### Importing Grad Students
 
-So, it's the beginning of the semester, and you need to add some grad students to the system!
-
-We have a script that pulls GradStudent records automatically from SIMS. 
-
-Let's imagine that the current semester is 1157, and the unit is MSE
-
-Simply run: 
-
-    python manage.py new_grad_students --semester=1157 --unit=MSE
-
-It might ask you to reconcile some grad student records with records that already exist.
-95% of the time, new applications should mean new grad records, so the best option
-is almost always "N".
-
-The code for this lives in /grad/management/commands/new_grad_students.py. 
-
-This should work with MSE, ENSC, or CMPT. For units that aren't MSE, ENSC, or CMPT, 
-you may need to modify the code, which
-contains a _hard-coded_ mapping between SIMS program codes (like "MSEPH") and CourSys GradPrograms 
-(like GradProgram "Mechatronics PhD Program").
-
-GradProgram objects have a config object that can contain the SIMS program code - which
-means that maintaining a hardcoded mapping object is asinine, and this script could be
-easily refactored to not have to do that anymore. 
-
-_"Hey, wouldn't it be nice if this were automatic and scheduled?"_
-
-Yes, disembodied voice. Yes it would be. Integrating this with the automatic grad update functionality in grad/models.py
-would be a wonderful idea. 
-
-### The adm_appl_nbr
-
-In this code, the adm_appl_nbr - Admission Application Number - is used a lot. It's one of the few unique identifiers 
-in the SIMS data that we can use to separate students into separate GradStudent records, as it uniquely identifies
-a single student's set of application objects.
-
-### Automatically Updating Grad Students
+Grad records are created/updated daily as part of the regular import: [grad.importer](../grad/importer/) has the guts
+and effort has been made to comment it as well as possible.
 
 So, here's a strange thing that you probably need to know: CMPT manually keeps its grad students up to date, but 
-ENSC and MSE use a system that (mostly works and) just updates GradStudent status from SIMS. 
-
-A lot of the code for this is borrowed from the code for Importing Grad Students. Yep, they're good candidates for
-being combined with one another.
-
-The logical starting point for this exists within `grad.importer.create_or_update_student`, which is the core logic
-for building GradStudent objects. It is called regularly from coredata.importer.get_person_grad.
-
-This code leans heavily on: 
- * coredata.queries.find_or_generate_person : which finds or generates a Person object in the system that matches the emplid
- * coredata.queries.get_timeline : which tries to guess at the entire grad history of a student by calling a bunch of 
-    coredata.queries functions and mooshing their results together.
- * grad.importer.split_timeline_into_groups:  which tries to group the timeline into sets that would constitute a GradStudent
- * grad.importer.admission_records_to_grad_statuses: which converts SIMS admission codes into Grad Status codes.
- * grad.models.GradStudent.create : which creates a GradStudent object
- * coredata.queries.get_supervisory_committee : which, given a date range, tries to guess a supervisory committee
-
-Based on the number of times the words 'tries to guess' is used in that description, you might get the feeling that the
-automatic grad updater is less than infallible. You would be entirely correct. 
+ENSC and MSE use a system that (mostly works and) just updates GradStudent status from SIMS.
 
 ta and tacontracts
 ------------------
