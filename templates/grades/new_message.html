@@ -15,7 +15,7 @@ This news item will be sent to all members of {{course.name}} ({{course.semester
 <fieldset>
 {{form|as_dl}}
 </fieldset>
-<p><input class="submit" type="submit" value="Send" /></p>
+<p><input class="submit" type="submit" value="Send" onclick="return confirmSubmit('post this news item')" /></p>
 </form>
 
 {% endblock %}
