@@ -180,7 +180,7 @@ def update_group_repository(offering, g, instr=None, repos=None):
         userids.add(gm.student.person.userid)
 
     if offering.instr_rw_svn():
-        rw = userids + instr
+        rw = userids | instr
         ro = set()
     else:
         rw = userids
