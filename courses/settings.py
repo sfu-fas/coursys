@@ -151,7 +151,7 @@ if DEPLOY_MODE in ['production', 'proddev']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'CONN_MAX_AGE': 360,
+            #'CONN_MAX_AGE': 360,
             'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # actually needed only for initial table creation
         }
     }
