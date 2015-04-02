@@ -8,6 +8,7 @@ from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from courselib.json_fields import JSONField
 from courselib.text import normalize_newlines, many_newlines
+from courselib.conditional_save import ConditionalSaveMixin
 import itertools, datetime, os
 import coredata.queries
 from django.conf import settings
@@ -54,7 +55,6 @@ class GradProgram(models.Model):
             return ('???', '???')
 
 STATUS_CHOICES = (
-        ('APPL', 'Applicant'), # TODO: remove Applicant: not used in the real data
         ('INCO', 'Incomplete Application'),
         ('COMP', 'Complete Application'),
         ('INRE', 'Application In-Review'),
@@ -74,20 +74,23 @@ STATUS_CHOICES = (
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed Special'), # Special Arrangements + GONE
+        ('TRIN', 'Transferred from another department'),
+        ('TROU', 'Transferred to another department'),
+        ('DELE', 'Deleted Record'), # used to flag GradStudents as deleted
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
 STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
-STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE') # statuses we don't actually use anymore
+STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'ARIV', 'GONE', 'DELE', 'TRIN', 'TROU') # statuses we don't let users enter
 STATUS_REAL_PROGRAM = STATUS_CURRENTAPPLICANT + STATUS_ACTIVE + STATUS_INACTIVE # things to report for TAs
 SHORT_STATUSES = dict([ # a shorter status description we can use in compact tables
         ('INCO', 'Incomp App'),
         ('COMP', 'Complete App'),
         ('INRE', 'In-Review'),
         ('HOLD', 'Hold'),
-        ('OFFO', 'Out'),
+        ('OFFO', 'Offer'),
         ('REJE', 'Reject'),
         ('DECL', 'Declined'),
         ('EXPI', 'Expired'),
@@ -102,6 +105,10 @@ SHORT_STATUSES = dict([ # a shorter status description we can use in compact tab
         ('NOND', 'Non-deg'),
         ('GONE', 'Gone'),
         ('ARSP', 'Completed'), # Special Arrangements + GONE
+        ('TRIN', 'Transfer in'),
+        ('TROU', 'Transfer out'),
+        ('DELE', 'Deleted Record'),
+        (None, 'None'),
 ])
 
 GRAD_CAMPUS_CHOICES = CAMPUS_CHOICES + (('MULTI', 'Multiple Campuses'),)
@@ -172,8 +179,25 @@ def _active_semesters_display(pk):
     return res
 
 
+class GradStudentManager(models.Manager):
+    # never return deleted GradStudent objects
+    def get_queryset(self):
+        qs = super(GradStudentManager, self).get_queryset()
+        #qs = qs.filter(config__contains='sims_source')
+        qs = qs.exclude(current_status='DELE')
+        return qs
 
-class GradStudent(models.Model):
+
+class GradStudent(models.Model, ConditionalSaveMixin):
+    """
+    Represents one grad student "career".
+
+    (...within a single unit: transfers between units get multiple GradStudent objects so staff in each unit can see
+    the data they should, but not the rest.)
+    """
+    objects = GradStudentManager()
+    all_objects = models.Manager()
+
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     def autoslug(self):
@@ -182,7 +206,7 @@ class GradStudent(models.Model):
         else:
             userid = str(self.person.emplid)
         return make_slug(userid + "-" + self.program.slug)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True, manager=all_objects)
     research_area = models.TextField('Research Area', blank=True)
     campus = models.CharField(max_length=5, choices=GRAD_CAMPUS_CHOICES, blank=True, db_index=True)
 
@@ -202,7 +226,7 @@ class GradStudent(models.Model):
     end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem')
     current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
-    config = JSONField(default={}) # addition configuration
+    config = JSONField(default=dict) # addition configuration
         # 'sin': Social Insurance Number: no longer used. Now at self.person.sin()
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
@@ -243,18 +267,13 @@ class GradStudent(models.Model):
         ('qualifying_exam_location', "Location of qualifying exam"),
     ]
 
+
     def __unicode__(self):
         return u"%s, %s" % (self.person, self.program.label)
 
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
-        
-        # make sure we have a GradProgramHistory object corresponding to current state
-        #oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
-        #if not oldhist:
-        #    h = GradProgramHistory(student=self, program=self.program)
-        #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
 
@@ -268,6 +287,9 @@ class GradStudent(models.Model):
             Active statuses have precedence over Applicant statuses.
             if a student is Active in 1134 but Complete Application in 1137, they are Active.
         """
+        if self.current_status == 'DELE':
+            raise ValueError
+
         if semester == None:
             semester = Semester.current()
 
@@ -340,6 +362,8 @@ class GradStudent(models.Model):
         Called by updates to statuses, and also by grad.tasks.update_statuses_to_current to reflect future statuses
         when the future actually comes.
         """
+        if self.current_status == 'DELE':
+            raise ValueError
         old = (self.start_semester_id, self.end_semester_id, self.current_status, self.program_id)
         self.start_semester = None
         self.end_semester = None
@@ -481,6 +505,8 @@ class GradStudent(models.Model):
     def status_order(self):
         "For sorting by status"
         return STATUS_ORDER[self.current_status]
+    def get_short_current_status_display(self):
+        return SHORT_STATUSES[self.current_status]
 
     def sessional_courses(self):
         """
@@ -868,12 +894,14 @@ class GradStudent(models.Model):
             passport_issued_by=passport_issued_by,
             is_canadian=is_canadian)
         
-class GradProgramHistory(models.Model):
+class GradProgramHistory(models.Model, ConditionalSaveMixin):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     start_semester = models.ForeignKey(Semester, null=False, blank=False,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
+    config = JSONField(default=dict) # addition configuration
+        # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
     
     class Meta:
         ordering = ('-starting',)
@@ -950,6 +978,7 @@ SUPERVISOR_TYPE_CHOICES = [
     ('SFU', 'SFU Examiner'),
     ('POT', 'Potential Supervisor'),
     ]
+SUPERVISOR_TYPE = dict(SUPERVISOR_TYPE_CHOICES)
 SUPERVISOR_TYPE_ORDER = {
     'SEN': 1,
     'COS': 2,
@@ -961,7 +990,7 @@ SUPERVISOR_TYPE_ORDER = {
     'POTFalse': 3, # potential without committee
     }
 
-class Supervisor(models.Model):
+class Supervisor(models.Model, ConditionalSaveMixin):
     """
     Member (or potential member) of student's supervisory committee.
     """
@@ -974,14 +1003,15 @@ class Supervisor(models.Model):
     supervisor_type = models.CharField(max_length=3, blank=False, null=False, choices=SUPERVISOR_TYPE_CHOICES)
     removed = models.BooleanField(default=False)
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True) 
+    created_at = models.DateTimeField(default=datetime.datetime.now) # actually being used as an "effective as of"
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Committee member added by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Committee member modified by.', verbose_name='Last Modified By')
-    config = JSONField(default={}) # addition configuration
+    config = JSONField(default=dict) # addition configuration
         # 'email': Email address (for external)
         # 'contact': Address etc (for external)
         # 'attend': 'P'/'A'/'T' for attending in person/in abstentia/by teleconference (probably only for external)
+        # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
     defaults = {'email': None}
     email, set_email = getter_setter('email')
           
@@ -1109,20 +1139,22 @@ STATUS_ORDER = {
         'DECL': 3,
         'EXPI': 3,
         'CONF': 4,
+        'TRIN': 4,
         'CANC': 5,
         'ARIV': 5,
-        'APPL': 5,
         'ACTI': 6,
         'PART': 6,
         'LEAV': 7,
         'NOND': 7,
+        'TROU': 8,
         'WIDR': 8,
         'GRAD': 8,
         'GONE': 8,
         'ARSP': 8,
+        'DELE': 9,
         None: 9,
         }
-class GradStatus(models.Model):
+class GradStatus(models.Model, ConditionalSaveMixin):
     """
     A "status" for a grad student: what were they doing in this range of semesters?
     """
@@ -1140,6 +1172,10 @@ class GradStatus(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     # Set this flag if the status is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
+    config = JSONField(default=dict) # addition configuration
+        # 'sims_source': key indicating the SIMS record that imported to this, so we don't duplicate
+        # 'in_from': for status=='TRIN', a Unit.slug where the student came from
+        # 'out_to': for status=='TROU', a Unit.slug where the student went
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
@@ -1162,7 +1198,7 @@ class GradStatus(models.Model):
 
     
     def __unicode__(self):
-        return u"Grad Status: %s %s" % (self.status, self.student)
+        return u"Grad Status: %s %s in %s" % (self.student, self.status, self.start.name)
     
     def status_order(self):
         "For sorting by status"
@@ -1220,7 +1256,7 @@ class Letter(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
-    config = JSONField(default={}) # addition configuration for within the letter
+    config = JSONField(default=dict) # addition configuration for within the letter
         # data returned by grad.letter_info() is stored here.
         # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
     
@@ -1364,7 +1400,7 @@ class GradFlagValue(models.Model):
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)
     query = models.TextField()
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     
     class Meta:
         #unique_together = (('person', 'query'),)
@@ -1381,7 +1417,7 @@ class ProgressReport(models.Model):
                               db_index=True)
     removed = models.BooleanField(default=False)
     date = models.DateField(default=datetime.date.today)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
@@ -1417,7 +1453,7 @@ class ExternalDocument(models.Model):
                                       editable=False)
     removed = models.BooleanField(default=False)
     date = models.DateField(default=datetime.date.today)
-    config = JSONField(null=False, blank=False, default={})
+    config = JSONField(null=False, blank=False, default=dict)
     comments = models.TextField(blank=True, null=True)
     
     def __unicode__(self):

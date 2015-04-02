@@ -16,7 +16,7 @@ from django.core.mail import mail_admins
 from courselib.svn import update_offering_repositories
 from grades.models import LetterActivity
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
-from grad.importer import create_or_update_student
+#from grad.importer import create_or_update_student
 from ra.models import RAAppointment
 import itertools, random
 
@@ -244,18 +244,20 @@ def import_offerings(extra_where='1=1', import_semesters=import_semesters, cance
 
 def _person_save(p):
     """
-    Save this person object, dealing with duplicate userid as appropriate
+    Save this person object
+    #, dealing with duplicate userid as appropriate
     """
-    try:
-        p.save_if_dirty()
-    except IntegrityError:
-        print "    Changed userid: " + p.userid
-        # other account with this userid must have been deactivated: update
-        other = Person.objects.get(userid=p.userid)
-        assert other.emplid != p.emplid
-        get_person(other.emplid)
+    #try:
+    p.save_if_dirty()
+    #except IntegrityError:
+        # this handles a userid re-assigned to a different person. That shouldn't happen anymore?
+        #print "    Changed userid: " + p.userid
+        ## other account with this userid must have been deactivated: update
+        #other = Person.objects.get(userid=p.userid)
+        #assert other.emplid != p.emplid
+        #get_person(other.emplid)
         # try again now
-        p.save()
+        #p.save()
 
 imported_people = {}
 IMPORT_THRESHOLD = 3600*24*7 # import personal info infrequently
@@ -324,7 +326,7 @@ def get_person_grad(emplid, commit=True, force=False):
             and p.userid:
         return p
 
-    create_or_update_student(emplid)
+    #create_or_update_student(emplid)
 
     p.config['lastimportgrad'] = int(time.time())
     if commit:

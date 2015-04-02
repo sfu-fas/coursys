@@ -68,7 +68,7 @@ class Command(BaseCommand):
         create_fake_semester('1144')
         create_fake_semester('1147')
 
-        danyu = get_or_create_nosave(Person, userid='dzhao', first_name='Danyu', last_name='Zhao')
+        danyu = get_or_create_nosave(Person, userid='dzhao', first_name='DanYu', last_name='Zhao')
         danyu.emplid = 220000123
         danyu.save()
 

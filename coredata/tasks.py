@@ -4,6 +4,10 @@ from coredata.management.commands import backup_db
 from celery.task import task, periodic_task
 from celery.schedules import crontab
 
+# file a periodic task will leave, and the maximum age we'd be happy with
+BEAT_TEST_FILE = '/tmp/celery_beat_test'
+BEAT_FILE_MAX_AGE = 1200
+
 # hack around dealing with long chains https://github.com/celery/celery/issues/1078
 import sys
 sys.setrecursionlimit(10000)
@@ -24,10 +28,12 @@ def update_repository_task(*args, **kwargs):
 def ping(self): # used to check that celery is alive
     return True
 
-# uncomment to see if celery beat is running in the logs
-#@periodic_task(run_every=crontab(minute='*', hour='*'))
-#def beat_test():
-#    return True
+# a periodic job that has enough of an effect that we can see celerybeat working
+# (checked by ping_celery management command)
+@periodic_task(run_every=crontab(minute='*/5', hour='*'))
+def beat_test():
+    with file(BEAT_TEST_FILE, 'w') as fh:
+        fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
 
 @periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def backup_database():
@@ -64,6 +70,7 @@ from dashboard.models import NewsItem
 from log.models import LogEntry
 from coredata import importer
 from celery import chain
+from grad import importer as grad_importer
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
 import itertools, datetime, time
 import logging
@@ -107,6 +114,7 @@ def import_task():
         daily_cleanup.si(),
         fix_unknown_emplids.si(),
         get_role_people.si(),
+        import_grads.si(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
         #get_import_offerings_task(),
@@ -126,6 +134,11 @@ def fix_unknown_emplids():
 def get_role_people():
     logger.info('Importing people with roles')
     importer.get_role_people()
+
+@task(queue='sims')
+def import_grads():
+    logger.info('Importing grad data from SIMS')
+    grad_importer.import_grads(dry_run=False, verbosity=1)
 
 def get_update_grads_task():
     """

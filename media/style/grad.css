@@ -90,6 +90,13 @@ span.label {
   color: red;
 }
 
+.sims_check_yes {
+  color: #7382B5; /* grabbed from labels in SIMS */
+}
+.sims_check_no {
+  color: #b5464e;
+}
+
 table#financial {
 	width: 100%;
 }

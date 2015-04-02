@@ -228,7 +228,7 @@ class GradStatusForm(ModelForm):
         
     class Meta:
         model = GradStatus
-        exclude = ('student', 'created_by', 'hidden', 'end', 'start_date')
+        exclude = ('student', 'created_by', 'hidden', 'end', 'start_date', 'config')
         hidden = ('id')
         widgets = {
                    'notes': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
@@ -763,7 +763,7 @@ class SearchForm(forms.Form):
 
         if self.cleaned_data.get('supervisor', None):
             person_ids = self.cleaned_data['supervisor']
-            supervisors = Supervisor.objects.filter(supervisor__in=person_ids, supervisor_type='SEN', removed=False)
+            supervisors = Supervisor.objects.filter(supervisor__in=person_ids, supervisor_type__in=['SEN', 'COS'], removed=False)
             student_ids = [s.student_id for s in supervisors]
             manual_queries.append( Q(id__in=student_ids) )
 

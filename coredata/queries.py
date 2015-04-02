@@ -1,5 +1,6 @@
 from coredata.models import Person, Semester, SemesterWeek, CourseOffering
 from django.conf import settings
+from django.core.mail import mail_admins
 import django.db.transaction
 from django.core.cache import cache
 from django.utils.html import conditional_escape as e
@@ -83,7 +84,10 @@ class SIMSConn(DBConn):
         elif feature_disabled('sims'):
             raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
 
-        import DB2
+        try:
+            import DB2
+        except ImportError:
+            raise SIMSProblem, "could not import DB2 module"
         SIMSConn.DatabaseError = DB2.DatabaseError
         SIMSConn.DB2Error = DB2.Error
         try:
@@ -145,8 +149,6 @@ def SIMS_problem_handler(func):
             return func(*args, **kwargs)
         except SIMSConn.DatabaseError as e:
             raise SIMSProblem, "could not connect to reporting database"
-        except ImportError:
-            raise SIMSProblem, "could not import DB2 module"
         except SIMSConn.DB2Error as e:
             raise SIMSProblem, "problem with reporting database connection"
 
@@ -216,8 +218,18 @@ def find_person(emplid, get_userid=True):
             userid = None
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
 
+@cache_by_args
+@SIMS_problem_handler
+def find_external_email(emplid):
+    db = SIMSConn()
+    db.execute("SELECT email_addr FROM ps_email_addresses WHERE emplid=%s AND e_addr_type='WORK'",
+               (str(emplid),))
+    row = db.fetchone()
+    if row and not row[0].endswith('sfu.ca'):
+        return row[0]
 
-def add_person(emplid, commit=True, get_userid=True):
+
+def add_person(emplid, commit=True, get_userid=True, external_email=False):
     """
     Add a Person object based on the found SIMS data
     """
@@ -233,6 +245,14 @@ def add_person(emplid, commit=True, get_userid=True):
 
         p = Person(emplid=data['emplid'], last_name=data['last_name'], first_name=data['first_name'],
                    pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
+
+        if external_email:
+            # used for fetching grad committee members: includes non-SFU people and we want
+            # their non-SFU email address
+            e = find_external_email(emplid)
+            if e:
+                p.config['external_email'] = e
+
         if commit:
             p.save()
     return p
@@ -1077,7 +1097,7 @@ def get_adm_appl_nbrs( emplid ):
     return list(db)
     return [str(x[0]) for x in list(db)]
 
-def find_or_generate_person( emplid ):
+def find_or_generate_person(emplid):
     # return a Person object, even if you have to make it yourself
     # throws IntegrityError, SIMSProblem
     try:
@@ -1110,6 +1130,7 @@ def get_admission_records( emplid, adm_appl_nbr ):
     db.execute(query, (str(emplid), str(adm_appl_nbr)))
     return list(db)
 
+@SIMS_problem_handler
 def get_supervisory_committee(emplid, min_date=None, max_date=None):
     if not min_date:
         # I refuse to believe that the world existed before I was born
@@ -1389,9 +1410,10 @@ def import_person(p, commit=True, grad_data=False):
 
     # don't deactivate userids that have been deactivated by the University
     if userid:
-        # but freak out if a userid changes
+        ## but freak out if a userid changes
         if p.userid and p.userid != userid:
-            raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
+            #raise ValueError, "Somebody's userid changed? %s became %s." % (p.userid, userid)
+            mail_admins('userid change', "Somebody's userid changed: %s became %s." % (p.userid, userid))
         p.userid = userid
 
     if grad_data:
@@ -1405,7 +1427,9 @@ def import_person(p, commit=True, grad_data=False):
 
     if commit:
         p.save()
-        # TODO: userid-changing functionality from importer._person_save?
+        # this might now throw an IntegrityError if the new userid is re-used for another person,
+        # but that's *never* supposed to happen, just like changing a userid. See commented-out code
+        # from importer._person_save if it starts happening.
 
     return p
 

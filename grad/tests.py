@@ -5,7 +5,7 @@ import json, datetime
 from coredata.models import Person, Semester, Role
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
-        Promise, GradProgramHistory, FinancialComment
+        Promise, GradProgramHistory, FinancialComment, STATUS_ORDER, SHORT_STATUSES, STATUS_CHOICES
 from grad.views.financials import STYLES
 from courselib.testing import basic_page_tests, Client, test_views
 from grad.views.view import all_sections
@@ -335,6 +335,9 @@ class GradTest(TestCase):
 
 
     def test_grad_status(self):
+        self.assertEqual(set(dict(STATUS_CHOICES).keys()) | set([None]), set(SHORT_STATUSES.keys()))
+        self.assertEqual(set(STATUS_ORDER.keys()), set(SHORT_STATUSES.keys()))
+
         client = Client()
         client.login_user('dzhao')
         this_sem = Semester.current()

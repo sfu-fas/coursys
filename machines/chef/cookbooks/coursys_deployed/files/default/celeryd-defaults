@@ -1,6 +1,9 @@
 # Names of nodes to start
 CELERYD_NODES="worker fastworker photo sims"
 
+# the celery app to work with
+CELERY_APP="courses.celery"
+
 # Absolute or relative path to the 'celery' command:
 CELERY_BIN="python /home/coursys/courses/manage.py celery"
 
