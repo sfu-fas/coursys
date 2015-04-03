@@ -8,7 +8,6 @@ from django.utils.html import conditional_escape as escape
 
 from coredata.models import Semester, Unit
 from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_update
-from coredata.tasks import BEAT_TEST_FILE, BEAT_FILE_MAX_AGE
 from dashboard.photos import do_photo_fetch
 
 import celery
@@ -124,6 +123,7 @@ def deploy_checks():
 
     # celery beat
     try:
+        from coredata.tasks import BEAT_TEST_FILE, BEAT_FILE_MAX_AGE
         beatfile_age = time.time() - os.stat(BEAT_TEST_FILE).st_mtime
         if beatfile_age < BEAT_FILE_MAX_AGE:
             passed.append(('Celery beat', 'okay'))
