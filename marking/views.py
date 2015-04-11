@@ -737,8 +737,8 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
 def mark_summary_group(request, course_slug, activity_slug, group_slug):
     if is_course_staff_by_slug(request, course_slug):
         is_staff = True
-    elif is_course_student_by_slug(request, course_slug):
-        is_staff = False
+    #elif is_course_student_by_slug(request, course_slug):
+    #    is_staff = False
     else:
         return ForbiddenResponse(request)
     
@@ -747,7 +747,7 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
     group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
      
     if not is_staff:
-        gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.userid)
+        gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.username)
         if not gm:
             return ForbiddenResponse(request)
      
