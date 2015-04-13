@@ -253,6 +253,11 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
             if e:
                 p.config['external_email'] = e
 
+        if data['userid']:
+            ps = Person.objects.filter(userid=data['userid'])
+            if ps:
+                raise ValueError, 'Possibly re-used userid %r?' % (data['userid'])
+
         if commit:
             p.save()
     return p
