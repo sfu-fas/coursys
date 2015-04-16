@@ -81,6 +81,15 @@ class SingleCourseQuery(DB2_Query):
     default_arguments = {'subject': 'CMPT', 'catalog_nbr': '120', 'exclude_list': exclude_list}
     
     def __init__(self, query_args, include_current=False):
+        """
+        Runs a query to get every student who has ever taken a given class.
+
+        :param query_args: The arguments that should contain at least the subject and course number
+        :type query_args: dict
+        :param include_current: A flag to set if you also want to get the students who are currently taking the course.
+        :type include_current: bool
+        """
+
         if 'subject' not in query_args:
             query_args['subject'] = SingleCourseQuery.default_arguments['subject']
         if 'catalog_nbr' not in query_args:
