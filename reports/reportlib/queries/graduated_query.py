@@ -30,15 +30,22 @@ class GraduatedStudentQuery(DB2_Query):
         plan.emplid = degree.emplid
     WHERE 
         degree.completion_term >= $start_semester AND
-        degree.completion_term <= $end_semester
+        degree.completion_term <= $end_semester AND
+        degree.emplid in $emplids AND
+        plan.COMPLETION_TERM != ''
         """)
-    default_arguments = { 
+    default_arguments = {
         'start_semester': current_semester().increment(-3),
-        'end_semester': current_semester(), 
-        'programs': ['CMPT']
+        'end_semester': current_semester(),
+        'programs': ['CMPT'],
+        'emplids': ['301008183', '301050395']
         }
     
     def __init__(self, query_args):
+        # Add all arguments that are in default_arguments but not in our query_args
+        for arg in GraduatedStudentQuery.default_arguments.keys():
+            if arg not in query_args:
+                query_args[arg] = GraduatedStudentQuery.default_arguments[arg]
         self.title = "Graduated Student Query - " + \
             Semester(query_args["start_semester"]).long_form() + " to " + \
             Semester(query_args["end_semester"]).long_form()

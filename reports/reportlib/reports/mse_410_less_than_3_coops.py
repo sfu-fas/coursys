@@ -1,5 +1,5 @@
 from ..report import Report
-from ..queries import SingleCourseQuery, StudentsTotalCreditsQuery
+from ..queries import SingleCourseStrmQuery, StudentsTotalCreditsQuery
 
 
 class Mse410LessThan3CoopsReport (Report):
@@ -23,11 +23,11 @@ class Mse410LessThan3CoopsReport (Report):
         def run(self):
 
             # Queries
-            students_in_mse_410_query = SingleCourseQuery({'subject': 'MSE', 'catalog_nbr': '410'}, include_current=True)
+            students_in_mse_410_query = SingleCourseStrmQuery({'subject': 'MSE', 'catalog_nbr': '410'}, include_current=True)
             students_in_mse_410 = students_in_mse_410_query.result()
 
             # For now, let's assume that MSE 493 is Co-Op 3.  This has to be verified, though.
-            students_in_mse_493_query = SingleCourseQuery({'subject': 'MSE', 'catalog_nbr': '493'}, include_current=True)
+            students_in_mse_493_query = SingleCourseStrmQuery({'subject': 'MSE', 'catalog_nbr': '493'}, include_current=True)
             students_in_mse_493 = students_in_mse_493_query.result()
 
             # Filters
@@ -51,9 +51,9 @@ class Mse410LessThan3CoopsReport (Report):
 
             emplids = students_in_mse_410.column_as_list("EMPLID")
             students_credits_query = StudentsTotalCreditsQuery({'emplids': emplids})
-            credits = students_credits_query.result()
-            students_in_mse_410.left_join(credits, "EMPLID")
+            student_credits = students_credits_query.result()
+            students_in_mse_410.left_join(student_credits, "EMPLID")
             students_in_mse_410.filter(too_few_credits)
 
-            #The final output
+            # The final output
             self.artifacts.append(students_in_mse_410)
