@@ -3,6 +3,7 @@ from ..semester import Semester, current_semester
 
 import string
 
+
 class GraduatedStudentQuery(DB2_Query):
     title = "Graduated Student Query"
     description = "Given a list of students, fetch a list of graduations." 
@@ -34,6 +35,7 @@ class GraduatedStudentQuery(DB2_Query):
         degree.emplid in $emplids AND
         plan.COMPLETION_TERM != ''
         """)
+
     default_arguments = {
         'start_semester': current_semester().increment(-3),
         'end_semester': current_semester(),
