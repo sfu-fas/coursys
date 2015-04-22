@@ -37,13 +37,19 @@ class GraduatedStudentQuery(DB2_Query):
         """)
 
     default_arguments = {
-        'start_semester': current_semester().increment(-3),
-        'end_semester': current_semester(),
+        'start_semester': str(current_semester().increment(-3)),
+        'end_semester': str(current_semester()),
         'programs': ['CMPT'],
         'emplids': ['301008183', '301050395']
         }
     
     def __init__(self, query_args):
+        """
+        Run a query to get every completed graduation given a list of students and programs.
+
+        :param query_args:  The arguments that should contain programs and students, and, optionally, start and end semesters.
+        :type query_args: dict
+        """
         # Add all arguments that are in default_arguments but not in our query_args
         for arg in GraduatedStudentQuery.default_arguments.keys():
             if arg not in query_args:

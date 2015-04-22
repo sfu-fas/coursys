@@ -1,5 +1,5 @@
 from ..report import Report
-from ..queries import SingleCourseStrmQuery, StudentsTotalCreditsQuery
+from ..queries import SingleCourseStrmQuery, StudentsTotalCreditsQuery, GraduatedStudentQuery
 
 
 class Mse410LessThan3CoopsReport (Report):
@@ -13,9 +13,7 @@ class Mse410LessThan3CoopsReport (Report):
         with a Co-Op term, which is not allowed.
         """
 
-        # TODO:  Still need to eliminate the graduates, and change the first query to return the matching smstr.
-
-        title = "MSE 410 With Less than 3 Co-Op terms"
+        title = "MSE 410 With Less than 3 Co-Op terms and more than 110 credits"
         description = "Returns a list of students who have taken MSE 410, but who haven't done 3 co-op terms yet " \
                       "and have more than 110 credits, so they risk attempting to graduate soon."
         MAX_ALLOWABLE_CREDITS = 110
@@ -43,6 +41,12 @@ class Mse410LessThan3CoopsReport (Report):
                 except KeyError:
                     print "No emplid in the given row."
 
+            def graduated(row_map):
+                try:
+                    return students_graduated.contains("EMPLID", row_map["EMPLID"])
+                except KeyError:
+                    print "No emplid in the given row."
+
             # We want to remove all people in 410 who have ever taken 493.
             students_in_mse_410.filter(did_3_coops)
 
@@ -54,6 +58,17 @@ class Mse410LessThan3CoopsReport (Report):
             student_credits = students_credits_query.result()
             students_in_mse_410.left_join(student_credits, "EMPLID")
             students_in_mse_410.filter(too_few_credits)
+
+            # Let's check those remaining students for graduations.  MSE 410 only started getting offered in semester
+            # 1141.
+            # Also, we're going to have to make some assumptions here.  If you completed an academic program for ENG,
+            # MSE, or MSE2, we're going to assume you're not doing another MSE degree.
+            emplids = students_in_mse_410.column_as_list("EMPLID")
+            students_graduated_query = GraduatedStudentQuery({'emplids': emplids, 'programs': ['ENG', 'MSE', 'MSE2'],
+                                                              'start_semester': '1141'})
+            students_graduated = students_graduated_query.result()
+
+            students_in_mse_410.filter(graduated)
 
             # The final output
             self.artifacts.append(students_in_mse_410)
