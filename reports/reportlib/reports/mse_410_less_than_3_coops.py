@@ -37,13 +37,13 @@ class Mse410LessThan3CoopsReport (Report):
 
             def did_3_coops(row_map):
                 try:
-                    return students_in_mse_493.contains("EMPLID", row_map["EMPLID"])
+                    return not students_in_mse_493.contains("EMPLID", row_map["EMPLID"])
                 except KeyError:
                     print "No emplid in the given row."
 
             def graduated(row_map):
                 try:
-                    return students_graduated.contains("EMPLID", row_map["EMPLID"])
+                    return not students_graduated.contains("EMPLID", row_map["EMPLID"])
                 except KeyError:
                     print "No emplid in the given row."
 
