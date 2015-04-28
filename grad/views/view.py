@@ -8,6 +8,7 @@ from grad.models import GradStudent, Supervisor, GradStatus, \
         FinancialComment, ProgressReport, ExternalDocument
 from tacontracts.models import TAContract
 from ta.models import TAContract as OldTAContract
+from visas.models import Visa
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -51,7 +52,7 @@ def _can_view_student(request, grad_slug, funding=False):
 all_sections = ['general', 'supervisors', 'status', 'requirements', 
                 'scholarships', 'otherfunding', 'promises', 'progressreports',
                 'tacontracts',
-                'financialcomments', 'letters', 'documents']
+                'financialcomments', 'letters', 'documents', 'visas']
 
 @login_required
 def view(request, grad_slug, section=None):
@@ -84,7 +85,7 @@ def view(request, grad_slug, section=None):
     if 'section' in request.GET:
         # page sections fetched by AJAX calls
         section = request.GET['section']
-        
+
     if section:
         if section not in all_sections:
             return NotFoundResponse(request)
@@ -163,6 +164,11 @@ def view(request, grad_slug, section=None):
                                                         .order_by('date')
             context['documents'] = documents
             return render(request, 'grad/view__documents.html', context)
+
+        elif section == 'visas':
+            visas = Visa.objects.filter(person=grad.person).order_by('start_date')
+            context['visas'] = visas
+            return render(request, 'grad/view__visas.html', context)
 
         else:
             raise ValueError, "Not all sections handled by view code: " + repr(section)
