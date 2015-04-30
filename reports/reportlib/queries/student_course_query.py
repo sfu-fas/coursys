@@ -2,7 +2,6 @@ from ..db2_query import DB2_Query, Unescaped
 from ..semester import Semester, current_semester
 
 import string
-import copy
 
 
 class StudentCourseQuery(DB2_Query):
