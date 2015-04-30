@@ -70,7 +70,7 @@
   	        <a href="{% url "ta.views.view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
         {% endif %}
   	{% else %}
-      {% if data.is_instr %}
+      {% if data.is_instr or admin %}
       <a href="{% url "ta.views.new_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create TUG</a>
       {% endif %}
   	{% endif %}
