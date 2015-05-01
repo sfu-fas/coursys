@@ -21,12 +21,20 @@ class Mse410LessThan3CoopsReport (Report):
         def run(self):
 
             # Queries
-            students_in_mse_410_query = SingleCourseStrmQuery({'subject': 'MSE', 'catalog_nbr': '410'}, include_current=True)
+            students_in_mse_410_query = SingleCourseStrmQuery({'subject': 'MSE', 'catalog_nbr': '410'},
+                                                              include_current=True)
             students_in_mse_410 = students_in_mse_410_query.result()
 
             # For now, let's assume that MSE 493 is Co-Op 3.  This has to be verified, though.
-            students_in_mse_493_query = SingleCourseStrmQuery({'subject': 'MSE', 'catalog_nbr': '493'}, include_current=True)
+            students_in_mse_493_query = SingleCourseStrmQuery({'subject': 'MSE', 'catalog_nbr': '493'},
+                                                              include_current=True)
             students_in_mse_493 = students_in_mse_493_query.result()
+
+            # After revision, we need to also remove students who have taken MSE 494
+            students_in_mse_494_query = SingleCourseStrmQuery({'subject': 'MSE', 'catalog_nbr': '494'},
+                                                              include_current=True)
+
+            students_in_mse_494 = students_in_mse_494_query.result()
 
             # Filters
             def too_few_credits(row_map):
@@ -37,7 +45,8 @@ class Mse410LessThan3CoopsReport (Report):
 
             def did_3_coops(row_map):
                 try:
-                    return not students_in_mse_493.contains("EMPLID", row_map["EMPLID"])
+                    return not (students_in_mse_493.contains("EMPLID", row_map["EMPLID"]) or
+                                students_in_mse_494.contains("EMPLID", row_map["EMPLID"]))
                 except KeyError:
                     print "No emplid in the given row."
 
@@ -47,7 +56,7 @@ class Mse410LessThan3CoopsReport (Report):
                 except KeyError:
                     print "No emplid in the given row."
 
-            # We want to remove all people in 410 who have ever taken 493.
+            # We want to remove all people in 410 who have ever taken 493 or 494.
             students_in_mse_410.filter(did_3_coops)
 
             # For those who are left now, let's fetch their total cumulative credits
