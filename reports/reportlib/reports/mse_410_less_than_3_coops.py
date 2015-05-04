@@ -1,5 +1,5 @@
 from ..report import Report
-from ..queries import SingleCourseStrmQuery, StudentsTotalCreditsQuery, GraduatedStudentQuery
+from ..queries import SingleCourseStrmQuery, StudentsTotalCreditsQuery, GraduatedStudentQuery, NameQuery, EmailQuery
 
 
 class Mse410LessThan3CoopsReport (Report):
@@ -36,6 +36,18 @@ class Mse410LessThan3CoopsReport (Report):
 
             students_in_mse_494 = students_in_mse_494_query.result()
 
+            # These are cached queries, so it shouldn't be *too* expensive to run them.
+            # see bad_first_semester.py
+
+            email_query = EmailQuery()
+            email = email_query.result()
+            email.filter( EmailQuery.campus_email )
+
+            name_query = NameQuery()
+            names = name_query.result()
+
+            students_in_mse_410.left_join( names, "EMPLID" )
+            students_in_mse_410.left_join( email, "EMPLID" )
             # Filters
             def too_few_credits(row_map):
                 try:
