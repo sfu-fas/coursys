@@ -18,7 +18,7 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
-    'aaSorting': [[2, 'asc']],
+    'aaSorting': [[2, 'asc']]
   } );
 } );
 function confirmDelete(url) {
@@ -78,6 +78,9 @@ function confirmDelete(url) {
             {% endfor %}
         </tbody>
     </table>
+    <a href="{% url 'visas.views.download_visas_csv' %}">
+        <i class="fa fa-li fa-download"></i> Download CSV
+    </a>
 {% else %}
     <h2>There are no visas to display.</h2>
 {% endif %}
