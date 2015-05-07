@@ -30,7 +30,7 @@ $(document).ready(function() {
     {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url "grad.views.index" %}"><i class="fa fa-li fa-group"></i> Grad Students</a></li>{% endif %}
 
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra.views.search" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li><a href="{% url "ta.views.all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
+    {% if 'ADMN' in roles or 'TAAD' in roles %}<li><a href="{% url "ta.views.all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
 
     {% if form_groups %}<li class='newsec'><a href="{% url "onlineforms.views.index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>{% endif %}
     {% if 'TAAD' in roles %}<li><a href="{% url "ta.views.view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
