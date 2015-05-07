@@ -28,6 +28,18 @@
 {{ celery|panel_info }}
 {% endif %}
 
+{% if tasks %}
+<h2 id="tasks">Manually Start Periodic Tasks</h2>
+<form action="" method="post">{% csrf_token %}
+<ul>
+  <li><input type="hidden" name="tasks" value="yes" />
+      <input type="submit" name="daily" value="Main Daily Import" /></li>
+  <li><input type="submit" name="grad" value="Grad Student Import" /></li>
+  <li><input type="submit" name="visits" value="Advisor Visits Update" /></li>
+</ul>
+</form>
+{% endif %}
+
 {% if pip %}
 {{ pip|panel_info }}
 {% endif %}
@@ -66,3 +78,4 @@ $(document).ready(function() {
     </td>
 </table>
 {% endif %}
+

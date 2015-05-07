@@ -350,6 +350,8 @@ def admin_panel(request):
         elif request.GET['content'] == 'celery':
             data = panel.celery_info()
             return render(request, 'coredata/admin_panel_tab.html', {'celery': data})
+        elif request.GET['content'] == 'tasks':
+            return render(request, 'coredata/admin_panel_tab.html', {'tasks': True})
         elif request.GET['content'] == 'request':
             import pprint
             return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request)})
@@ -364,13 +366,29 @@ def admin_panel(request):
         elif request.GET['content'] == 'csrpt':
             data = panel.csrpt_info()
             return render(request, 'coredata/admin_panel_tab.html', {'csrpt': data})
-    elif request.method == 'POST' and 'email' in request.POST:
-        email = request.POST['email']
-        success, res = panel.send_test_email(email)
-        if success:
-            messages.success(request, res)
-        else:
-            messages.error(request, res)
+    elif request.method == 'POST':
+        if 'email' in request.POST:
+            email = request.POST['email']
+            success, res = panel.send_test_email(email)
+            if success:
+                messages.success(request, res)
+            else:
+                messages.error(request, res)
+        elif 'tasks' in request.POST:
+            if 'grad' in request.POST:
+                from coredata.tasks import import_task
+                import_task.apply_async()
+                messages.success(request, 'Daily import task started.')
+            elif 'visits' in request.POST:
+                from advisornotes.tasks import program_info_for_advisorvisits
+                program_info_for_advisorvisits.apply_async()
+                messages.success(request, 'Advisor visit task started.')
+            elif 'grad' in request.POST:
+                from coredata.tasks import import_grads
+                from grad.tasks import update_statuses_to_current
+                update_statuses_to_current.apply_async()
+                import_grads.apply_async()
+                messages.success(request, 'Grad update and import tasks started.')
 
     context = {
         'loadavg': os.getloadavg()
