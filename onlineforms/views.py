@@ -168,7 +168,9 @@ def admin_assign_nonsfu(request, form_slug, formsubmit_slug):
 def admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     return _admin_assign(request, form_slug=form_slug, formsubmit_slug=formsubmit_slug, assign_to_sfu_account=True)
 
-@retry_transaction()
+
+# Commented out to try to solve sheets getting assigned twice without user interaction
+# @retry_transaction()
 def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=True):
     """
     Give a sheet on this formsubmission to a user
