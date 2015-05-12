@@ -1,6 +1,8 @@
 import sys, os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
+from django.core.wsgi import get_wsgi_application
 sys.path.append('.')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
+application = get_wsgi_application()
 
 from oauth_provider.models import Consumer
 from oauth_provider.consts import ACCEPTED
