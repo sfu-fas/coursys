@@ -111,6 +111,7 @@ AUTHENTICATION_BACKENDS = (
 OAUTH_AUTHORIZE_VIEW = 'api.views.oauth_authorize'
 OAUTH_CALLBACK_VIEW = 'api.views.oauth_callback'
 OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
+OAUTH_UNSAFE_REDIRECTS = True
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         #'rest_framework.authentication.BasicAuthentication',
