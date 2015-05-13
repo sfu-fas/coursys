@@ -144,7 +144,7 @@ class CareerQuerySet(models.query.QuerySet):
 
         start = semester.start_date
         end = semester.end_date
-
+        
         end_okay = Q(end_date__isnull=True) | Q(end_date__lte=end) & Q(end_date__gte=start)
         return self.exclude(status='D').filter(start_date__gte=start).filter(end_okay)
 

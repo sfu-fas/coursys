@@ -17,8 +17,8 @@ class AcadProgsOwnedByUnit(DB2_Query):
 
 
 class DegreeAcadProgs(DB2_Query):
-    title = "ACAD_PROGs that are grant particular degrees"
-    description = "Finds all ACAD_PROG that are grant a degree: probably BASc for Engineering programs"
+    title = "ACAD_PROGs that grant particular degrees"
+    description = "Finds all ACAD_PROG that grant a degree: probably BASc for Engineering programs"
     query = string.Template("""
         SELECT DISTINCT acad_prog
         FROM ps_acad_prog_tbl

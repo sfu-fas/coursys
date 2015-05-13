@@ -262,6 +262,10 @@ class TAContract(models.Model):
     sin = models.CharField(max_length=30, 
                            verbose_name="SIN",
                            help_text="Social Insurance Number - 000000000 if unknown")
+
+    # We want do add some sort of accountability for checking visas.  Don't
+    # allow printing of the contract if this box hasn't been checked.
+    visa_verified = models.BooleanField(default=False, help_text="I have verified this TA's visa information")
     deadline_for_acceptance = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()

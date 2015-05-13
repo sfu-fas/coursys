@@ -1,11 +1,17 @@
 package "git"
 package "libxslt1-dev"
 package "python"
-package "python-pip"
+#package "python-pip"
+package "python-setuptools"
 package "python-dev"
 package "python-lxml"
 package "sqlite3"
 package "zlib1g-dev"
+
+#install the proper pip
+execute "install_proper_pip" do
+    command "easy_install pip"
+end
 
 # pip install any listed requirements
 execute "install_pip_requirements" do

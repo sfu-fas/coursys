@@ -1,0 +1,21 @@
+<div class="datatable_container datatable">
+	<table class="display">
+		<thead>
+			<tr>
+				<th>Start Date</th>
+                <th>End Date</th>
+                <th>Type</th>
+                <th>Validity</th>
+            </tr>
+            <tbody>
+                {% for visa in visas %}
+                    <tr {% if visa.is_expired %} class="visaexpired" {% endif %} {% if visa.is_almost_expired %} class="visaalmostexpired" {% endif %}>
+                        <td><span class="sort">{{ visa.start_date.isoformat }}</span>{{ visa.start_date }}</td>
+                        <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>
+                        <td>{{ visa.status }}</td>
+                        <td>{{ visa.get_validity }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+</div>

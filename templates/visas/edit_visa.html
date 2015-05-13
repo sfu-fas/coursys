@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Edit Visa{% endblock %}
+{% block h1 %}Edit Visa{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "visas.views.list_all_visas" %}">Visas</a></li>
+<li>Edit Visa</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url "visas.views.edit_visa" visa_id=visa_id%}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Visa" />
+    </p>
+</form>
+{% endblock %}
+

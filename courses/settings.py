@@ -88,6 +88,7 @@ INSTALLED_APPS = (
     'gpaconvert',
     'tacontracts',
     'api',
+    'visas',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django.contrib.sessions.middleware.SessionMiddleware',

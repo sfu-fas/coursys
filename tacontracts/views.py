@@ -486,6 +486,15 @@ def print_contract(request, unit_slug, semester, contract_slug):
                                  category__hiring_semester=hiring_semester,
                                  slug=contract_slug,
                                  category__account__unit__in=request.units)
+    # If no one has ever checked the 'I've verified the visa info for this person'
+    # box, let's stop them from printing.  We don't want to send this anywhere, but
+    # it's just for our own peace of mind.
+    if not contract.visa_verified:
+        messages.error(request, 'You must verify the TA\'s visa information before printing')
+        return HttpResponseRedirect(reverse('tacontracts.views.view_contract',
+                                            kwargs={'unit_slug': unit_slug,
+                                                    'semester': semester,
+                                                    'contract_slug': contract_slug}))
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % \
                                         (contract.slug, contract.person.userid)

@@ -18,6 +18,7 @@ from ra.urls import ra_patterns
 from reports.urls import report_patterns
 from ta.urls import ta_patterns, tug_patterns
 from tacontracts.urls import tacontract_patterns
+from visas.urls import visas_pattern
 
 from api.urls import api_patterns
 
@@ -68,6 +69,7 @@ urlpatterns = [
     url(r'^tacontracts/', include(tacontract_patterns)),
     url(r'^tugs/', include(tug_patterns)),
     url(r'^my_grads/$', 'grad.views.supervisor_index'),
+    url(r'^visas/', include(visas_pattern)),
 
     # redirect old mobile URLs to rightful locations
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),

@@ -82,6 +82,10 @@ $(document).ready(function() {
             <td>{{contract.tssu_appointment|yesno|capfirst}}</td>
         </tr>
         <tr>
+            <th>Visa Verified</th>
+            <td>{{ contract.visa_verified|yesno|capfirst }}</td>
+        </tr>
+        <tr>
             <th>Comments</th>
             <td>{{contract.comments|linebreaks}}</td>
         </tr>

@@ -7,6 +7,7 @@ version           "1.4.5"
 recipe            "apt", "Runs apt-get update during compile phase and sets up preseed directories"
 recipe            "apt::cacher-ng", "Set up an apt-cacher-ng caching proxy"
 recipe            "apt::cacher-client", "Client for the apt::cacher-ng caching proxy"
+name              "apt"
 
 %w{ ubuntu debian }.each do |os|
   supports os
