@@ -42,11 +42,12 @@ class Visa (models.Model):
     def is_expired(self):
         return self.end_date is not None and timezone_today() > self.end_date
 
-    # If this visa will expire this semester, that may be important
-    # A better business rule may be forthcoming.
+    # If this visa will expire before the end of next semester, that may be important
+    # We are checking the next semester because TA/RA contracts are usually drawn up
+    # near the end of a semester for the next semester.
     def is_almost_expired(self):
-        current = Semester.current()
-        return (self.is_valid()) and (self.end_date is not None and self.end_date < current.end)
+        next_semester = Semester.next_starting()
+        return (self.is_valid()) and (self.end_date is not None and self.end_date < next_semester.end)
 
     def get_validity(self):
         if self.is_expired():
