@@ -3,6 +3,7 @@ from ..semester import Semester, current_semester
 
 import string
 
+
 class GraduatedStudentQuery(DB2_Query):
     title = "Graduated Student Query"
     description = "Given a list of students, fetch a list of graduations." 
@@ -30,15 +31,29 @@ class GraduatedStudentQuery(DB2_Query):
         plan.emplid = degree.emplid
     WHERE 
         degree.completion_term >= $start_semester AND
-        degree.completion_term <= $end_semester
+        degree.completion_term <= $end_semester AND
+        degree.emplid in $emplids AND
+        plan.COMPLETION_TERM != ''
         """)
-    default_arguments = { 
-        'start_semester': current_semester().increment(-3),
-        'end_semester': current_semester(), 
-        'programs': ['CMPT']
+
+    default_arguments = {
+        'start_semester': str(current_semester().increment(-3)),
+        'end_semester': str(current_semester()),
+        'programs': ['CMPT'],
+        'emplids': ['301008183', '301050395']
         }
     
     def __init__(self, query_args):
+        """
+        Run a query to get every completed graduation given a list of students and programs.
+
+        :param query_args:  The arguments that should contain programs and students, and, optionally, start and end semesters.
+        :type query_args: dict
+        """
+        # Add all arguments that are in default_arguments but not in our query_args
+        for arg in GraduatedStudentQuery.default_arguments.keys():
+            if arg not in query_args:
+                query_args[arg] = GraduatedStudentQuery.default_arguments[arg]
         self.title = "Graduated Student Query - " + \
             Semester(query_args["start_semester"]).long_form() + " to " + \
             Semester(query_args["end_semester"]).long_form()
