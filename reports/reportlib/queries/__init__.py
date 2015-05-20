@@ -6,4 +6,5 @@ from program_and_plan import *
 from gpa_query import *
 from graduated_query import * 
 from course_offering import *
+from student_credit_queries import *
 

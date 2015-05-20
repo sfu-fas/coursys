@@ -323,7 +323,7 @@ def celery_info():
     info = []
     active = i.active()
     if not active:
-        return [('Error', 'Could not insepct Celery: it may be down.')]
+        return [('Error', 'Could not inspect Celery: it may be down.')]
     for worker, tasks in active.items():
         if tasks:
             taskstr = '; '.join("%s(*%s, **%s)" % (t['name'], t['args'], t['kwargs'])

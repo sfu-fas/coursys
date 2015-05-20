@@ -115,7 +115,11 @@ class ReportLoadingException( Exception ):
 
 def report_map(report_location, logger):
     """
-        Given a report location - "fas_with_email.py" - import that file and load the report. 
+        Given a report location - "fas_with_email.py" - import that file and load the report.
+
+        A report file must contain exactly one class. This class must derive from the "Report" object and the class's
+        name _must_ end in Report -
+        i.e. "class HadABadDayReport(Report): "
     """
     report_without_extension = report_location[:-3]
     try:
