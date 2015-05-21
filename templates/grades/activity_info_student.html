@@ -95,7 +95,7 @@
             {% if grade.comment %} 
             <tr>
             	<th scope="row">Grade Comment</th>
-                <td>{{grade.comment|linebreaks}}</td>
+                <td>{{grade.comment|linebreaks|urlize}}</td>
             </tr>
             {% endif %}
 
