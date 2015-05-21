@@ -201,6 +201,11 @@ end
 
 
 # configure NGINX
+execute "dh group" do
+    # generate unique DH group, per https://weakdh.org/sysadmin.html
+    command "openssl dhparam -out /etc/nginx/dhparams.pem 2048"
+    creates("/etc/nginx/dhparams.pem")
+end
 cookbook_file "nginx_default.conf" do
     path "/etc/nginx/sites-available/default"
     action :create
