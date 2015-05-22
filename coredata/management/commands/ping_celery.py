@@ -7,7 +7,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         t = ping.apply_async()
         try:
-            res = t.get(timeout=10)
+            res = t.get(timeout=30)
         except celery.exceptions.TimeoutError:
             print "Celery task didn't complete: Celery may be down."
             return
