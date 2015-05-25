@@ -162,8 +162,8 @@ def __get_contract_info(member):
     """
     Find TUG-related information about this contract (if we can)
     """
-    crses = list(TACourse.objects.filter(course=member.offering, contract__application__person=member.person)) \
-        + list(NewTACourse.objects.filter(course=member.offering, contract__person=member.person))
+    crses = list(TACourse.objects.filter(course=member.offering, contract__application__person=member.person).exclude(contract__status='CAN')) \
+        + list(NewTACourse.objects.filter(course=member.offering, contract__person=member.person).exclude(contract__status='CAN'))
     if crses:
         return crses[0]
     else:
