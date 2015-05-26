@@ -196,7 +196,6 @@ def view_tug(request, course_slug, userid):
             holiday_hours_per_bu = contract_info.holiday_hours_per_bu
             hours_per_bu = contract_info.hours
             total_bu = contract_info.total_bu
-            expired = False
             max_hours = contract_info.hours
         else:
             bu = tug.base_units
@@ -205,13 +204,11 @@ def view_tug(request, course_slug, userid):
             holiday_hours_per_bu = HOLIDAY_HOURS_PER_BU
             hours_per_bu = HOURS_PER_BU
             total_bu = tug.base_units + LAB_BONUS_DECIMAL
-            expired = tug.expired()
             max_hours = tug.base_units * HOURS_PER_BU
         
         context = {'tug': tug, 
                 'ta':member, 
                 'course':course, 
-                'expired':expired,
                 'bu': bu,
                 'max_hours': max_hours, 
                 'total_hours':total_hours,

@@ -64,18 +64,14 @@
   <td>
   	{% if data.tug %}
   	<span class="sort">{{ data.tug.last_update.isoformat }}</span>
-        {% if data.tug.expired %}
-  	        <a class='warning' href="{% url "ta.views.view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Invalidated by BU Change</a>
-        {% else %}
-  	        <a href="{% url "ta.views.view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
-        {% endif %}
+        <a href="{% url "ta.views.view_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
   	{% else %}
       {% if data.is_instr or admin %}
       <a href="{% url "ta.views.new_tug" course_slug=data.ta.offering.slug userid=data.ta.person.userid_or_emplid %}">Create TUG</a>
       {% endif %}
   	{% endif %}
   </td>
-  <td>
+  <td class="{% if data.ta.bu and data.tug and data.ta.bu != data.tug.base_units %}over{% endif %}">
   	{% if data.ta.bu %}{{data.ta.bu}}{% else %}?{% endif %}
   	{% if data.tug %}({{data.tug.base_units}} in TUG){% endif %}
   </td>

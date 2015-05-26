@@ -138,15 +138,6 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
                     url=self.get_absolute_url())
             n.save()
 
-    def expired( self ):
-        if len(self.member.tacourse.all()) > 0:
-            # new TA contract rules
-            return False
-        if self.member.offering.labtut():
-            return 'bu' in self.member.config and self.base_units != self.member.bu() - LAB_BONUS_DECIMAL
-        else:
-            return 'bu' in self.member.config and self.base_units != self.member.bu()
-            
     def get_absolute_url(self):
         return reverse('ta.views.view_tug', kwargs={
                 'course_slug': self.member.offering.slug, 
