@@ -67,6 +67,11 @@
 
 {% block content %}
     <div class="form_container">
+        {% if not has_sheets %}
+        <div>
+            There are no sheets to assign.  This form only contains the initial sheet.  The initial sheet is not meant to be used except as an entry point to the form.
+        </div>
+        {% else %}
         <form action="" method="post" id="assignform">{% csrf_token %}
             <fieldset>
                 <legend>Assignee Information</legend>
@@ -76,5 +81,6 @@
                 </ul>
             </fieldset>
         </form>
+        {% endif %}
     </div>
 {% endblock %}

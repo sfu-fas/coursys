@@ -189,7 +189,7 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
                        .order_by('order')
         default_sheet = later_sheets[0] if later_sheets else None
 
-        sheets = Sheet.objects.filter(form=form_submission.form, active=True)
+        sheets = Sheet.objects.filter(form=form_submission.form, active=True, is_initial=False)
         assign_args = {'data': request.POST or None,
                         'query_set': sheets,
                         'initial': {'sheet': default_sheet}}
@@ -244,7 +244,7 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
              for s, ssc in frequent_fillers))
 
         context = {'form': form, 'form_submission': form_submission, 'assign_to_sfu_account': assign_to_sfu_account,
-                   'frequent_fillers': mark_safe(json.dumps(frequent_fillers))}
+                   'frequent_fillers': mark_safe(json.dumps(frequent_fillers)), 'has_sheets': sheets.count() > 0}
         return render(request, "onlineforms/admin/admin_assign.html", context)
 
 
