@@ -25,8 +25,8 @@ class VisaQuerySet(QuerySet):
 class Visa (models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
-    start_date = models.DateField('Start Date', default=timezone_today)
-    end_date = models.DateField('End Date', blank=True, null=True)
+    start_date = models.DateField('Start Date', default=timezone_today, help_text='First day of visa validity')
+    end_date = models.DateField('End Date', blank=True, null=True, help_text='Expiry of the visa (if known)')
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
 
