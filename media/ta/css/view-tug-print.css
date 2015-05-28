@@ -86,3 +86,27 @@ table th {
   line-height: 1.25em;
 }
 
+.newpage {
+    page-break-before: always;
+    page-break-inside: avoid;
+}
+
+.centre {
+    text-align: center;
+}
+
+.ul {
+    text-decoration: underline;
+}
+
+.topgap {
+    padding-top: 20px;
+}
+
+.bigtopgap {
+    padding-top: 40px;
+}
+
+.bigbottomgap {
+    padding-bottom: 40px;
+}
