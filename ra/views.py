@@ -7,7 +7,7 @@ from django.conf import settings
 from ra.models import RAAppointment, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm
 from grad.forms import possible_supervisors
-from coredata.models import Person, Role, Semester
+from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import find_userid_or_emplid, get_query
@@ -66,8 +66,8 @@ def found(request):
 @requires_role("FUND")
 def student_appointments(request, userid):
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units, deleted=False).order_by("-created_at")
-    grads = GradStudent.objects.filter(person=student, program__unit__in=request.units)
+    appointments = RAAppointment.objects.filter(person=student, unit__in=Unit.sub_units(request.units), deleted=False).order_by("-created_at")
+    grads = GradStudent.objects.filter(person=student, program__unit__in=Unit.sub_units(request.units))
     context = {'appointments': appointments, 'student': student,
                'grads': grads}
     return render(request, 'ra/student_appointments.html', context)
@@ -403,7 +403,7 @@ def search_scholarships_by_student(request, student_id):
 
 @requires_role("FUND")
 def browse(request):
-    units = request.units
+    units = Unit.sub_units(request.units)
     hiring_choices = [('all', 'All')] + possible_supervisors(units)
     project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
     account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
@@ -514,7 +514,7 @@ def person_info(request):
         
         # GradPrograms
         emplid = request.GET['emplid']
-        grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units)
+        grads = GradStudent.objects.filter(person__emplid=emplid, program__unit__in=Unit.sub_units(request.units))
         for gs in grads:
             pdata = {
                      'program': gs.program.label,
