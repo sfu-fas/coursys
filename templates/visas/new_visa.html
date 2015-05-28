@@ -10,6 +10,23 @@
 <li>Add New Visa</li>
 {% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#id_person').each(function() {
+        $(this).autocomplete({
+          source: '/data/students',
+          minLength: 2,
+          select: function(event, ui){
+            $(this).data("val", ui.item.value);
+          }
+        });
+      });
+} );
+
+</script>
+{% endblock %}
+
 {% block content %}
 <form action="{% url "visas.views.new_visa" %}" method="post">
     {% csrf_token %}

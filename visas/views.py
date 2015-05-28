@@ -59,7 +59,9 @@ def edit_visa(request, visa_id):
 
             return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
     else:
-        form = VisaForm(instance=visa)
+        # The initial value needs to be the person's emplid in the form.
+        # Django defaults to the pk, which is not human readable.
+        form = VisaForm(instance=visa, initial={'person': visa.person.emplid})
 
     return render(request, 'visas/edit_visa.html', {'form': form, 'visa_id': visa_id})
 
