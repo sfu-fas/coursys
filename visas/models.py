@@ -1,10 +1,13 @@
 from django.db import models
-from coredata.models import VISA_STATUSES, Person
+from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person
 from django.utils import timezone
 from courselib.json_fields import JSONField
 from coredata.models import Semester
 from django.db.models.query import QuerySet
 from model_utils.managers import PassThroughManager
+
+# "citizen" isn't truly a visa status, but it's something we want to track here.
+VISA_STATUSES = (('Citizen', 'Citizen'),) + REAL_VISA_STATUSES
 
 EXPIRY_STATUSES = ['Expired', 'Expiring Soon', 'Valid']
 
@@ -22,7 +25,7 @@ class VisaQuerySet(QuerySet):
             return self.filter(hidden=False)
 
 
-class Visa (models.Model):
+class Visa(models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
     start_date = models.DateField('Start Date', default=timezone_today, help_text='First day of visa validity')
@@ -63,4 +66,23 @@ class Visa (models.Model):
 
     def hide(self):
         self.hidden = True
+
+    @staticmethod
+    def import_for(people):
+        """
+        Get visa status for these people from SIMS
+        """
+        from grad.importer.queries import grad_metadata, metadata_translation_tables
+
+        _, countries, visas = metadata_translation_tables()
+        data = grad_metadata([p.emplid for p in people])
+        for d in data:
+            emplid = d[1]
+            country = d[4]
+            visatype = d[5]
+            if country == 'CAN':
+                # Canadian citizen and be done with it.
+                print emplid, 'Citizen'
+            elif visatype:
+                print emplid, visas.get(visatype, None)
 
