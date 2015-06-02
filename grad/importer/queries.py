@@ -142,7 +142,7 @@ def grad_metadata(emplids):
     # win (since they might be better for that student's TA/RA appointments later).
     # Other sort orders just to make sure we get the same record tomorrow if there are other duplicates (visa can duplicate)
     db.execute("""
-        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type,
+        SELECT 'GradMetadata', p.emplid, e.email_addr, a.accomplishment, cit.country, v.visa_permit_type, v.effdt,
             case when (a.accomplishment='ENG') then 0 else 1 end s1,
             case when (cit.country='CAN') then 0 else 1 end s2
         FROM ps_personal_data p

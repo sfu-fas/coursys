@@ -709,7 +709,7 @@ class GradMetadata(GradHappening):
     Not really treated like other happenings: becomes Career.metadata, not one of its happenings.
     """
     trans_lang, trans_countries, trans_visas = None, None, None
-    def __init__(self, emplid, email, lang, citizen, visa, s1, s2):
+    def __init__(self, emplid, email, lang, citizen, visa, _, s1, s2):
         if not GradMetadata.trans_lang:
             GradMetadata.trans_lang, GradMetadata.trans_countries, GradMetadata.trans_visas = metadata_translation_tables()
 
