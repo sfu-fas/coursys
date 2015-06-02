@@ -12,19 +12,19 @@ import unicodecsv as csv
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
-def list_all_visas(request, emplid=''):
-    person = ''
+def list_all_visas(request, emplid=None):
     if emplid:
         person = Person.objects.get(find_userid_or_emplid(emplid))
         visa_list = Visa.objects.visible_given_user(person)
     else:
+        person = None
         visa_list = Visa.objects.visible
     context = {'visa_list': visa_list, 'person': person}
     return render(request, 'visas/view_visas.html', context)
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
-def new_visa(request, emplid=''):
+def new_visa(request, emplid=None):
     if request.method == 'POST':
         form = VisaForm(request.POST)
         if form.is_valid():
