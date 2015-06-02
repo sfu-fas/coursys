@@ -166,7 +166,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__documents.html', context)
 
         elif section == 'visas':
-            visas = Visa.get_visas(grad.person)
+            visas = Visa.get_visas([grad.person])
             context['visas'] = visas
             return render(request, 'grad/view__visas.html', context)
 

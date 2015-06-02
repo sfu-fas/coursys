@@ -8,7 +8,7 @@ register = template.Library()
 
 @register.filter
 def display_visas(person):
-    visas = Visa.get_visas(person)
+    visas = Visa.get_visas([person])
     if visas.count() > 1:
         result = '<a href="%s">More than one visa found</a>' % reverse('visas.views.list_all_visas', kwargs={'emplid':person.userid_or_emplid()})
         return mark_safe(result)

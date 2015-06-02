@@ -90,13 +90,13 @@ class Visa (models.Model):
                 print emplid, visas.get(visatype, None)
 
     @staticmethod
-    def get_visas(person):
+    def get_visas(people):
         """
-        Returns all visible visas for a given person
+        Returns all visible visas for given people
 
-        :param Person person: The person we are querying for visa information
-        :type: Person
+        :param Person people: The people we are querying for visa information
+        :type: list of Person
         :return: A list of visas
         :rtype: list
         """
-        return Visa.objects.filter(person=person).order_by('start_date')
+        return Visa.objects.filter(person__in=people).visible().order_by('start_date')
