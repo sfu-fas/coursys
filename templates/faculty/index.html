@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
+{% load visa_display %}
 
 {% block title %}Faculty Management{% endblock %}
 {% block h1 %}Faculty Management{% endblock %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{% static "style/visas.css" %}" type="text/css">
 <script type="text/javascript" src="{% static 'js/faculty.js' %}"></script>
 <script type="text/javascript">
 $(document).ready(function() {
@@ -66,11 +68,12 @@ $(document).ready(function() {
 {% include 'faculty/_unit_form.html' %}
 
 <table id="facultytable" class="facultytable display">
-  <thead><tr><th scope="col">Name</th><th scope="col">Rank</th><th scope="col">Unit</th></tr></thead>
+  <thead><tr><th scope="col">Name</th><th>Visa Information</th><th scope="col">Rank</th><th scope="col">Unit</th></tr></thead>
   <tbody>
   {% for person,units,ranks in fac_roles %}
   <tr class="{% for u in units %}{{ u.label }} {% endfor %}">
   <td><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
+  <td>{{ person|display_visas }}</td>
   <td>{{ ranks }}</td>
   <td>
       {% for u in units %}{{ u.informal_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
