@@ -31,6 +31,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
+    flag_config_key = 'fellowships'
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}

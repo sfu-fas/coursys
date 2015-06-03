@@ -73,6 +73,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'COMMITTEE'
     NAME = 'Committee Member'
+    flag_config_key = 'committees'
 
     TO_HTML_TEMPLATE = '''
         {% extends 'faculty/event_base.html' %}{% load event_display %}{% block dl %}

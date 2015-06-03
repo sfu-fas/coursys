@@ -43,7 +43,6 @@ from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
-from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 
@@ -1509,13 +1508,14 @@ def view_attachment(request, userid, event_slug, attach_slug):
 
     handler = event.get_handler()
     if not handler.can_view(viewer):
-       raise PermissionDenied("Not allowed to view this attachment")
+        raise PermissionDenied("Not allowed to view this attachment")
 
     filename = attachment.contents.name.rsplit('/')[-1]
     resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
     resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
     resp['Content-Length'] = attachment.contents.size
     return resp
+
 
 @requires_role('ADMN')
 def download_attachment(request, userid, event_slug, attach_slug):
@@ -1541,32 +1541,26 @@ def download_attachment(request, userid, event_slug, attach_slug):
 
 @requires_role('ADMN')
 def manage_event_index(request):
-    types = [
-        {'slug': key.lower(), 'name': Handler.NAME, 'is_instant': Handler.IS_INSTANT,
-         'affects_teaching': 'affects_teaching' in Handler.FLAGS,
-         'affects_salary': 'affects_salary' in Handler.FLAGS}
-        for key, Handler in EVENT_TYPE_CHOICES]
-
+    types = _get_event_types()
     context = {
-               'events': types,
-               }
+        'events': types,
+        }
     return render(request, 'faculty/manage_events_index.html', context)
 
 @requires_role('ADMN')
 def memo_templates(request, event_type):
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=event_type.upper(), hidden=False)
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+    Handler = event_type_object[1]
 
-    if event_type == "fellow":
-        ecs = EventConfig.objects.filter(event_type=FellowshipEventHandler.EVENT_TYPE, unit__in=Unit.sub_units(request.units))
-    else:
-        ecs = None
+    # flag configuration, if relevant
+    flags = Handler.config_flags(Unit.sub_units(request.units))
 
     context = {
                'templates': templates,
                'event_type_slug':event_type,
-               'event_name': event_type_object[1].NAME,
-               'flags': ecs,
+               'event_name': Handler.NAME,
+               'flags': flags,
                }
     return render(request, 'faculty/memo_templates.html', context)
 
@@ -1575,17 +1569,17 @@ def new_event_flag(request, event_type):
     unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
     in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
     event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+    Handler = _get_Handler_or_404(event_type)
 
     if request.method == 'POST':
         form = EventFlagForm(request.POST)
         form.fields['unit'].choices = unit_choices
+        # TODO: validate that flag_short is unique
         if form.is_valid():
             unit_obj = Unit.objects.get(id=request.POST.get("unit"))
-            ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type='FELLOW')
-            if 'fellowships' in ec.config:
-                ec.config['fellowships'] = ec.config['fellowships'] + [(request.POST.get("flag_short"), request.POST.get("flag"), 'ACTIVE')]
-            else:
-                ec.config = {'fellowships': [(request.POST.get("flag_short"), request.POST.get("flag"), 'ACTIVE')]}
+            ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type=Handler.EVENT_TYPE)
+            ec.config[Handler.flag_config_key] = ec.config.get(Handler.flag_config_key, []) \
+                    + [(request.POST.get("flag_short"), request.POST.get("flag"), 'ACTIVE')]
             ec.save()
             return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
     else:

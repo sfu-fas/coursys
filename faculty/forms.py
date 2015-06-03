@@ -86,6 +86,7 @@ class AttachmentForm(forms.ModelForm):
 
 class TextAttachmentForm(forms.ModelForm):
     text_contents = forms.CharField(required=True, widget=forms.Textarea(attrs={'rows': 15, 'cols': 70}))
+
     class Meta:
         model = DocumentAttachment
         exclude = ("career_event", "created_by", "contents")

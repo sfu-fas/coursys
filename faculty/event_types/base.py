@@ -183,7 +183,6 @@ class CareerEventHandlerBase(object):
             event.end_date = next_event.start_date - datetime.timedelta(days=1)
             event.save(editor, call_from_handler=True)
 
-
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
         self.set_handler_specific_data()
@@ -248,6 +247,7 @@ class CareerEventHandlerBase(object):
         return ret
 
     # Stuff involving permissions
+
     def permission(self, editor):
         """
         This editor's permission level with respect to this faculty member.
@@ -440,6 +440,21 @@ class CareerEventHandlerBase(object):
             rng = ReportingSemester.range(self.event.start_date, datetime.date.today())
         return len(list(rng))
 
+    # event config
+
+    flag_config_key = None # if set, EventConfig.config[flag_config_key] should be a list of even flag tuples
+
+    @classmethod
+    def config_flags(cls, units):
+        """
+        Return a list of the event flag configuration options (for these units). Return None if not applicable.
+        """
+        if not cls.flag_config_key:
+            return None
+
+        from faculty.models import EventConfig
+        ecs = EventConfig.objects.filter(event_type=cls.EVENT_TYPE, unit__in=units).select_related('unit')
+        return [(ec.unit, ec.config.get(cls.flag_config_key, [])) for ec in ecs]
 
     # Optionally override these
 
