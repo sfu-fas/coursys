@@ -33,8 +33,10 @@ from ra.models import RAAppointment
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
 from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
-from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
-from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm, NewRoleForm
+from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
+    ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
+from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm, \
+    NewRoleForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -44,6 +46,7 @@ from faculty.event_types.choices import Choices
 from faculty.event_types.awards import FellowshipEventHandler
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
     """
@@ -61,14 +64,12 @@ def _get_event_or_404(units, **kwargs):
     instance = get_object_or_404(CareerEvent, unit__id__in=subunit_ids, **kwargs)
     return instance
 
-def _get_tempgrants(units, **kwargs):
-    subunit_ids = Unit.sub_unit_ids(units)
-    grants = TempGrant.objects.filter(unit__id__in=subunit_ids, **kwargs)
 
 def _get_grants(units, **kwargs):
     subunit_ids = Unit.sub_unit_ids(units)
     grants = Grant.objects.active().filter(unit__id__in=subunit_ids, **kwargs)
     return grants
+
 
 def _get_Handler_or_404(handler_slug):
     handler_slug = handler_slug.upper()
@@ -98,11 +99,11 @@ def index(request):
     fac_roles = Role.objects.filter(role='FAC', unit__in=sub_units).select_related('person', 'unit').order_by('person')
 
     fac_roles_gone = [r for r in fac_roles if r.gone]
-    fac_roles_gone = itertools.groupby(fac_roles_gone, key=lambda r: r.person)
+    fac_roles_gone = itertools.groupby(fac_roles_gone, key=lambda ro: ro.person)
     fac_roles_gone = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles_gone]
 
     fac_roles = [r for r in fac_roles if not r.gone]
-    fac_roles = itertools.groupby(fac_roles, key=lambda r: r.person)
+    fac_roles = itertools.groupby(fac_roles, key=lambda ro: ro.person)
     fac_roles = [(p, [r.unit for r in roles], CareerEvent.current_ranks(p)) for p, roles in fac_roles]
 
     editor = get_object_or_404(Person, userid=request.user.username)
@@ -116,6 +117,7 @@ def index(request):
         'fac_roles_gone': fac_roles_gone,
         'queued_events': len(events),
         'filterform': filterform,
+        'viewvisas': request.GET.get('viewvisas', False)
     }
     return render(request, 'faculty/index.html', context)
 
@@ -186,6 +188,7 @@ def search_events(request, event_type):
     }
     return render(request, 'faculty/search_form.html', context)
 
+
 @requires_role('ADMN')
 @transaction.atomic
 def manage_faculty_roles(request):
@@ -245,7 +248,7 @@ def salary_index(request):
 
     else:
         date = datetime.date.today()
-        initial = { 'date': date }
+        initial = {'date': date}
         form = GetSalaryForm(initial=initial)
 
     fac_roles_pay = _salary_index_data(request, date)
@@ -262,7 +265,6 @@ def salary_index(request):
 def _salary_index_data(request, date):
     sub_unit_ids = Unit.sub_unit_ids(request.units)
     fac_roles_pay = Role.objects.filter(role='FAC', unit__id__in=sub_unit_ids).select_related('person', 'unit')
-    #fac_roles_pay = itertools.groupby(fac_roles_pay, key=lambda r: r.person)
     fac_pay_summary = []
 
     for role in fac_roles_pay:
@@ -278,9 +280,9 @@ def _salary_index_data(request, date):
             salary_fraction_total = salary_fraction_total*event.salary_fraction
             add_bonus_total += event.add_bonus
 
-        #get most recent step and rank from base_salary
+        # get most recent step and rank from base_salary
         recent_salary_update = FacultySummary(person).recent_salary(date, units=[unit])
-        if recent_salary_update != None:
+        if recent_salary_update is not None:
             try:
                 step = recent_salary_update.config["step"]
             except KeyError:
@@ -296,7 +298,8 @@ def _salary_index_data(request, date):
 
         current_salary = FacultySummary(person).salary(date, units=[unit])
 
-        fac_pay_summary += [(person, unit.informal_name(), current_salary, add_salary_total, salary_fraction_total, add_bonus_total, step, rank)]
+        fac_pay_summary += [(person, unit.informal_name(), current_salary, add_salary_total, salary_fraction_total,
+                             add_bonus_total, step, rank)]
 
     return fac_pay_summary
 
@@ -358,8 +361,8 @@ def fallout_report(request):
     else:
         end_date = datetime.date.today()
         start_date = datetime.date(end_date.year, 1, 1)
-        initial = { 'start_date': start_date,
-                    'end_date': end_date }
+        initial = {'start_date': start_date,
+                   'end_date': end_date}
         form = DateRangeForm(initial=initial)
 
     table = _fallout_report_data(request, start_date, end_date)
@@ -395,8 +398,9 @@ def _fallout_report_data(request, start_date, end_date):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(unit.label, p, event, days, salary, fraction, fallout )]
+                table += [(unit.label, p, event, days, salary, fraction, fallout)]
     return table
+
 
 @requires_role('ADMN')
 def fallout_report_csv(request):
@@ -541,7 +545,6 @@ def teaching_capacity(request):
                     entries.append((semester, person, credits, load, capacity))
 
             collected_units.append((unit, entries, total_capacity))
-
 
     return render(request, 'faculty/reports/teaching_capacity.html', context)
 

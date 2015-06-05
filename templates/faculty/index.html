@@ -55,6 +55,15 @@ $(document).ready(function() {
     <li>
       <a href="{% url 'faculty.views.course_accreditation' %}"><i class="fa fa-li fa-flag"></i> Courses by Instructor Accreditation</a>
     </li>
+    {% if not viewvisas %}
+    <li>
+        <a href="{% url 'faculty.views.index' %}?viewvisas=True"><i class="fa fa-li fa-plane"></i>View Visa Information</a>
+    </li>
+    {% else %}
+    <li>
+        <a href="{% url 'faculty.views.index' %}"><i class="fa fa-li fa-users"></i>View Rank and Unit</a>
+    </li>
+    {% endif %}
   </ul>
 </div>
 {% endblock %}
@@ -68,16 +77,18 @@ $(document).ready(function() {
 {% include 'faculty/_unit_form.html' %}
 
 <table id="facultytable" class="facultytable display">
-  <thead><tr><th scope="col">Name</th><th>Visa Information</th><th scope="col">Rank</th><th scope="col">Unit</th></tr></thead>
+  <thead><tr><th scope="col">Name</th>{% if viewvisas %}<th>Visa Information</th>{% else %}<th scope="col">Rank</th><th scope="col">Unit</th>{% endif %}</tr></thead>
   <tbody>
   {% for person,units,ranks in fac_roles %}
   <tr class="{% for u in units %}{{ u.label }} {% endfor %}">
   <td><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{person.sortname}}</a></td>
-  <td>{{ person|display_visas }}</td>
+  {% if viewvisas %}<td>{{ person|display_visas }}</td>
+  {% else %}
   <td>{{ ranks }}</td>
   <td>
       {% for u in units %}{{ u.informal_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
   </td>
+  {% endif %}
   </tr>
   {% endfor %}
   </tbody>
