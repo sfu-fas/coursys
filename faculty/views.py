@@ -35,7 +35,7 @@ from faculty.models import Grant, TempGrant, GrantOwner
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
-from faculty.forms import SearchForm, EventFilterForm, EventFlagForm, GrantForm, GrantImportForm, UnitFilterForm, \
+from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
     NewRoleForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
@@ -1537,7 +1537,7 @@ def download_attachment(request, userid, event_slug, attach_slug):
 
 
 ###############################################################################
-# Creating and editing Memo Templates
+# Configuring event types, and managing memo templates
 
 @requires_role('ADMN')
 def manage_event_index(request):
@@ -1548,51 +1548,44 @@ def manage_event_index(request):
     return render(request, 'faculty/manage_events_index.html', context)
 
 @requires_role('ADMN')
-def memo_templates(request, event_type):
+def event_config(request, event_type):
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=event_type.upper(), hidden=False)
     event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
     Handler = event_type_object[1]
 
-    # flag configuration, if relevant
-    flags = Handler.config_flags(Unit.sub_units(request.units))
-
     context = {
-               'templates': templates,
-               'event_type_slug':event_type,
-               'event_name': Handler.NAME,
-               'flags': flags,
-               }
-    return render(request, 'faculty/memo_templates.html', context)
+        'templates': templates,
+        'event_type_slug':event_type,
+        'event_name': Handler.NAME,
+        'config_name': Handler.config_name,
+        }
+    return render(request, 'faculty/event_config.html', context)
 
 @requires_role('ADMN')
-def new_event_flag(request, event_type):
-    unit_choices = [(u.id, u.name) for u in Unit.sub_units(request.units)]
-    in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
+@transaction.atomic
+def event_config_add(request, event_type):
     event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
     Handler = _get_Handler_or_404(event_type)
 
+    in_unit = list(request.units)[0] # pick a unit this user is in as the default owner
+
     if request.method == 'POST':
-        form = EventFlagForm(request.POST)
-        form.fields['unit'].choices = unit_choices
-        # TODO: validate that flag_short is unique
+        form = Handler.get_config_item_form(units=request.units, data=request.POST)
         if form.is_valid():
-            unit_obj = Unit.objects.get(id=request.POST.get("unit"))
-            ec, _ = EventConfig.objects.get_or_create(unit=unit_obj, event_type=Handler.EVENT_TYPE)
-            ec.config[Handler.flag_config_key] = ec.config.get(Handler.flag_config_key, []) \
-                    + [(request.POST.get("flag_short"), request.POST.get("flag"), 'ACTIVE')]
-            ec.save()
-            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
+            form.save_config()
+            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
     else:
-        form = EventFlagForm(initial={'unit': in_unit.id})
-        form.fields['unit'].choices = unit_choices
+        form = Handler.get_config_item_form(units=request.units, initial={'unit': in_unit.id})
 
     context = {
-               'form': form,
-               'event_type_slug': event_type,
-               'event_name': event_type_object[1].NAME
-               }
-    return render(request, 'faculty/event_flag.html', context)
+        'form': form,
+        'event_type_slug': event_type,
+        'event_name': event_type_object[1].NAME,
+        'config_name': Handler.config_name,
+        }
+    return render(request, 'faculty/event_config_add.html', context)
 
+'''
 @require_POST
 @requires_role('ADMN')
 def delete_event_flag(request, event_type, unit, flag):
@@ -1608,7 +1601,8 @@ def delete_event_flag(request, event_type, unit, flag):
     ec.config['fellowships'] = list_flags
     ec.save()
 
-    return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
+    return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
+'''
 
 @requires_role('ADMN')
 def new_memo_template(request, event_type):
@@ -1626,7 +1620,7 @@ def new_memo_template(request, event_type):
             f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Created memo template %s for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(initial={'unit': in_unit})
         form.fields['unit'].choices = unit_choices
@@ -1668,7 +1662,7 @@ def manage_memo_template(request, event_type, slug):
             f.event_type = event_type.upper()
             f.save()
             messages.success(request, "Updated %s template for %s." % (form.instance.label, form.instance.unit))
-            return HttpResponseRedirect(reverse(memo_templates, kwargs={'event_type':event_type}))
+            return HttpResponseRedirect(reverse(event_config, kwargs={'event_type':event_type}))
     else:
         form = MemoTemplateForm(instance=memo_template)
         form.fields['unit'].choices = unit_choices

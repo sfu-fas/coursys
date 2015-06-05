@@ -31,7 +31,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
-    flag_config_key = 'fellowships'
+    config_name = 'Fellowship'
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -84,6 +84,26 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
                 raise forms.ValidationError("That fellowship is not owned by the selected unit.")
 
             return data
+
+    class ConfigItemForm(CareerEventHandlerBase.ConfigItemForm):
+        flag_short = forms.CharField(label='Fellowship short form', help_text='e.g. LEEF')
+        flag = forms.CharField(label='Fellowship full name', help_text='e.g. Leef Chair')
+
+        def clean_flag_short(self):
+            """
+            Make sure the flag is globally-unique.
+            """
+            flag_short = self.cleaned_data['flag_short']
+            FellowshipEventHandler.ConfigItemForm.check_unique_key('FELLOW', 'fellowships', flag_short, 'fellowship')
+            return flag_short
+
+        def save_config(self):
+            from faculty.models import EventConfig
+            ec, _ = EventConfig.objects.get_or_create(unit=self.unit_object, event_type='FELLOW')
+            fellows = ec.config.get('fellowships', [])
+            fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], 'ACTIVE'])
+            ec.config['fellowships'] = fellows
+            ec.save()
 
     SEARCH_RULES = {
         'position': FellowshipPositionSearchRule,

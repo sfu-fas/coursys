@@ -91,11 +91,6 @@ class TextAttachmentForm(forms.ModelForm):
         model = DocumentAttachment
         exclude = ("career_event", "created_by", "contents")
 
-class EventFlagForm(forms.Form):
-    flag_short = forms.CharField(label='Flag short form', help_text='e.g. LEEF')
-    flag = forms.CharField(label='Flag full name', help_text='e.g. Leef Chair')
-    unit = forms.ChoiceField()
-
 class MemoTemplateForm(forms.ModelForm):
     class Meta:
         model = MemoTemplate

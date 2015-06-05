@@ -79,11 +79,11 @@ faculty_patterns = [ # prefix: /faculty/
 
     # Event Management
     url(r'^event-management$', 'faculty.views.manage_event_index', name="faculty_events_manage_index"),
-    url(r'^event-management/' + EVENT_TYPE + '/memo-templates$', 'faculty.views.memo_templates', name="template_index"),
-    url(r'^event-management/' + EVENT_TYPE + '/memo-templates/new$', 'faculty.views.new_memo_template', name="faculty_create_template"),
-    url(r'^event-management/' + EVENT_TYPE + '/memo-templates/new-flag$', 'faculty.views.new_event_flag', name="faculty_create_flag"),
-    url(r'^event-management/' + EVENT_TYPE + '/memo-templates/(?P<unit>\w+)/(?P<flag>\w+)/delete-flag$', 'faculty.views.delete_event_flag', name="faculty_delete_flag"),
-    url(r'^event-management/' + EVENT_TYPE + '/memo-templates/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name="faculty_manage_template"),
+    url(r'^event-management/' + EVENT_TYPE + '/$', 'faculty.views.event_config', name="template_index"),
+    url(r'^event-management/' + EVENT_TYPE + '/new-memo$', 'faculty.views.new_memo_template', name="faculty_create_template"),
+    url(r'^event-management/' + EVENT_TYPE + '/memos/(?P<slug>' + SLUG_RE + ')/manage$', 'faculty.views.manage_memo_template', name="faculty_manage_template"),
+    url(r'^event-management/' + EVENT_TYPE + '/new-config$', 'faculty.views.event_config_add', name="faculty_create_flag"),
+    #url(r'^event-management/' + EVENT_TYPE + '/memo-templates/(?P<unit>\w+)/(?P<flag>\w+)/delete-flag$', 'faculty.views.delete_event_flag', name="faculty_delete_flag"),
 
     # Grant Stuff
     url(r'^grants/$', 'faculty.views.grant_index', name="grants_index"),

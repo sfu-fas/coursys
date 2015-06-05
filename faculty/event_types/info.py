@@ -73,7 +73,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'COMMITTEE'
     NAME = 'Committee Member'
-    flag_config_key = 'committees'
+    config_name = 'Committee'
 
     TO_HTML_TEMPLATE = '''
         {% extends 'faculty/event_base.html' %}{% load event_display %}{% block dl %}
@@ -96,6 +96,26 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
         'committee_name',
         'committee_unit',
     ]
+
+    class ConfigItemForm(CareerEventHandlerBase.ConfigItemForm):
+        flag_short = forms.CharField(label='Committee short form', help_text='e.g. UGRAD')
+        flag = forms.CharField(label='Committee full name', help_text='e.g. Undergraduate Program Committee')
+
+        def clean_flag_short(self):
+            """
+            Make sure the flag is globally-unique.
+            """
+            flag_short = self.cleaned_data['flag_short']
+            CommitteeMemberHandler.ConfigItemForm.check_unique_key('COMMITTEEE', 'committees', flag_short, 'committee')
+            return flag_short
+
+        def save_config(self):
+            from faculty.models import EventConfig
+            ec, _ = EventConfig.objects.get_or_create(unit=self.unit_object, event_type='FELLOW')
+            fellows = ec.config.get('committees', [])
+            fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], 'ACTIVE'])
+            ec.config['committees'] = fellows
+            ec.save()
 
     def get_committee_unit_display(self):
         unit = self.get_config('committee_unit', '')

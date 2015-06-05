@@ -365,6 +365,53 @@ class CareerEventHandlerBase(object):
         form.legend = cls.NAME
         return form
 
+    config_name = None
+
+    class ConfigItemForm(forms.Form):
+        unit = forms.ChoiceField(help_text='Unit that owns this option (faculty members within this unit will have '
+                'this option presented)')
+
+        def __init__(self, units, *args, **kwargs):
+            super(CareerEventHandlerBase.ConfigItemForm, self).__init__(*args, **kwargs)
+            unit_choices = [(u.id, u.name) for u in Unit.sub_units(units)]
+            self.fields['unit'].choices = unit_choices
+
+        def clean(self):
+            data = self.cleaned_data
+            # stash the unit object forward for save_config
+            unit = Unit.objects.get(id=data['unit'])
+            self.unit_object = unit
+            return data
+
+        @classmethod
+        def check_unique_key(cls, event_type, config_key, value, config_name):
+            """
+            Check that this value is unique in EvenConfig[event_type~=event_type].config[config_key] first elements.
+            """
+            from faculty.models import EventConfig
+            existing = itertools.chain.from_iterable(
+                (f[0] for f in fl)
+                for fl
+                in (
+                    ec.config.get(config_key, [])
+                    for ec
+                    in EventConfig.objects.filter(event_type=event_type))
+            )
+            if value in existing:
+                raise forms.ValidationError('This short form has been used by another %s: they must be unique.'
+                        % (config_name,))
+
+        def save_config(self):
+            """
+            Save the form to a config object owned by the selected unit.
+            """
+            raise NotImplementedError()
+
+    @classmethod
+    def get_config_item_form(cls, units, **kwargs):
+        form = cls.ConfigItemForm(units=units, **kwargs)
+        return form
+
     # Stuff relating to HTML display
 
     def get_display(self, field, default='unknown'):
