@@ -1,6 +1,7 @@
 import fractions
 
 from django import forms
+from django.template import Context, Template
 
 from coredata.models import Unit
 
@@ -100,22 +101,56 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
     class ConfigItemForm(CareerEventHandlerBase.ConfigItemForm):
         flag_short = forms.CharField(label='Committee short form', help_text='e.g. UGRAD')
         flag = forms.CharField(label='Committee full name', help_text='e.g. Undergraduate Program Committee')
+        ctte_unit = forms.ChoiceField(label="Committee Unit", help_text='Unit where the committee lives')
+
+        def __init__(self, units, *args, **kwargs):
+            super(CommitteeMemberHandler.ConfigItemForm, self).__init__(units, *args, **kwargs)
+            unit_choices = [(u.id, u.name) for u in Unit.objects.all()]
+            self.fields['ctte_unit'].choices = unit_choices
 
         def clean_flag_short(self):
             """
             Make sure the flag is globally-unique.
             """
             flag_short = self.cleaned_data['flag_short']
-            CommitteeMemberHandler.ConfigItemForm.check_unique_key('COMMITTEEE', 'committees', flag_short, 'committee')
+            CommitteeMemberHandler.ConfigItemForm.check_unique_key('COMMITTEE', 'committees', flag_short, 'committee')
             return flag_short
 
         def save_config(self):
             from faculty.models import EventConfig
-            ec, _ = EventConfig.objects.get_or_create(unit=self.unit_object, event_type='FELLOW')
+            ec, _ = EventConfig.objects.get_or_create(unit=self.unit_object, event_type='COMMITTEE')
             fellows = ec.config.get('committees', [])
-            fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], 'ACTIVE'])
+            fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], self.cleaned_data['ctte_unit'], 'ACTIVE'])
             ec.config['committees'] = fellows
             ec.save()
+
+    DISPLAY_TEMPLATE = Template("""
+        <h2 id="config">Configured Committees</h2>
+        <table class="display" id="config_table">
+        <thead><tr><th scope="col">Committee Name</th><th scope="col">Committee Unit</th><th scope="col">Member Unit</th><!--<th scope="col">Action</th>--></tr></thead>
+        <tbody>
+            {% for unit, short, name, ctteunit, active in committees %}
+            {% if active == 'ACTIVE' %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ ctteunit.informal_name }}</td>
+                <td>{{ unit.informal_name }}</td>
+                <!--<td><a href="{ url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+        </table>""")
+
+    @classmethod
+    def config_display(cls, units):
+        committees = list(cls.all_config_fields(Unit.sub_units(units), 'committees'))
+        unit_lookup = dict((str(u.id), u) for u in Unit.objects.all())
+        for c in committees:
+            c[3] = unit_lookup[c[3]]
+        context = Context({'committees': committees})
+        return cls.DISPLAY_TEMPLATE.render(context)
+
 
     def get_committee_unit_display(self):
         unit = self.get_config('committee_unit', '')

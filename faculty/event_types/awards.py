@@ -1,7 +1,9 @@
 import itertools
 
 from django import forms
+from django.template import Context, Template
 from cache_utils.decorators import cached
+from coredata.models import Unit
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
@@ -104,6 +106,29 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], 'ACTIVE'])
             ec.config['fellowships'] = fellows
             ec.save()
+
+    DISPLAY_TEMPLATE = Template("""
+        <h2 id="config">Configured Fellowships</h2>
+        <table class="display" id="config_table">
+        <thead><tr><th scope="col">Fellowship Name</th><th scope="col">Unit</th><!--<th scope="col">Action</th>--></tr></thead>
+        <tbody>
+            {% for unit, short, name, active in fellowships %}
+            {% if active == 'ACTIVE' %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ unit.informal_name }}</td>
+                <!--<td><a href="{ url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+        </table>""")
+
+    @classmethod
+    def config_display(cls, units):
+        fellowships = cls.all_config_fields(Unit.sub_units(units), 'fellowships')
+        context = Context({'fellowships': fellowships})
+        return cls.DISPLAY_TEMPLATE.render(context)
 
     SEARCH_RULES = {
         'position': FellowshipPositionSearchRule,

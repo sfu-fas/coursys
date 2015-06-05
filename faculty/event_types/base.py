@@ -365,6 +365,8 @@ class CareerEventHandlerBase(object):
         form.legend = cls.NAME
         return form
 
+    # event configuration
+
     config_name = None
 
     class ConfigItemForm(forms.Form):
@@ -395,7 +397,8 @@ class CareerEventHandlerBase(object):
                 in (
                     ec.config.get(config_key, [])
                     for ec
-                    in EventConfig.objects.filter(event_type=event_type))
+                    in EventConfig.objects.filter(event_type=event_type)
+                )
             )
             if value in existing:
                 raise forms.ValidationError('This short form has been used by another %s: they must be unique.'
@@ -411,6 +414,23 @@ class CareerEventHandlerBase(object):
     def get_config_item_form(cls, units, **kwargs):
         form = cls.ConfigItemForm(units=units, **kwargs)
         return form
+
+    @classmethod
+    def all_config_fields(cls, units, field):
+        """
+        Look up EventConfig.config[field] for each unit. Returns an iterable of [unit,] + config_val lists.
+        """
+        from faculty.models import EventConfig
+        configs = EventConfig.objects.filter(unit__in=units, event_type=cls.EVENT_TYPE)
+        unit_cfs = (([cfg.unit] + e for e in cfg.config.get(field, [])) for cfg in configs)
+        return itertools.chain.from_iterable(unit_cfs)
+
+    @classmethod
+    def config_display(cls, units):
+        """
+        Get all of the configuration items for these units
+        """
+        return None
 
     # Stuff relating to HTML display
 

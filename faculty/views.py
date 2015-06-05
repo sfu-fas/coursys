@@ -1550,14 +1550,16 @@ def manage_event_index(request):
 @requires_role('ADMN')
 def event_config(request, event_type):
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=event_type.upper(), hidden=False)
-    event_type_object = next((key, Hanlder) for (key, Hanlder) in EVENT_TYPE_CHOICES if key.lower() == event_type)
+    event_type_object = next((key, Handler) for (key, Handler) in EVENT_TYPE_CHOICES if key.lower() == event_type)
     Handler = event_type_object[1]
+    config_display = Handler.config_display(request.units)
 
     context = {
         'templates': templates,
         'event_type_slug':event_type,
         'event_name': Handler.NAME,
         'config_name': Handler.config_name,
+        'config_display': config_display,
         }
     return render(request, 'faculty/event_config.html', context)
 

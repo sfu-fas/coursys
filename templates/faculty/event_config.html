@@ -52,31 +52,8 @@
 <p>There are no templates for this event type. <a href="{% url 'faculty.views.new_memo_template' event_type=event_type_slug %}">Create one now.</a></p>
 {% endif %}
 
-{% if False %}
-<h2>Event Flags</h2>
-<div class="table_container">
-	<table class="display" id="memo_templates">
-		<thead>
-			<tr>
-				<th scope="col">Flag Name</th>
-				<th scope="col">Unit</th>
-				<!--<th scope="col">Action</th>-->
-			</tr>
-		</thead>
-		<tbody>
-			{% for unit, values in flags %}
-			{% for value in values%}
-			<tr>
-				{% if value.2 == 'ACTIVE' %}
-				<td>{{value.1}}</td>
-				<td>{{unit.informal_name}}</td>
-				<!--<td><a href="{ url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=unit.label flag=value.0 }">Delete</a></td>-->
-				{% endif %}
-			</tr>
-			{% endfor %}
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
+{% if config_display %}
+{{ config_display }}
 {% endif %}
+
 {% endblock %} 
