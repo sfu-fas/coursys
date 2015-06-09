@@ -48,8 +48,6 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def get_fellowship_choices(cls, units, only_active=False):
         """
         Get the fellowship choices from EventConfig in these units, or superunits of them.
-
-        Since we look at superunits, we should be ensuring that the key is globally-unique.
         """
         from faculty.models import EventConfig
         superunits = [u.super_units() for u in units] + [units]

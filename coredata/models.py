@@ -1202,26 +1202,30 @@ class Unit(models.Model):
         ids = cls.sub_unit_ids(units, by_id=by_id)
         return Unit.objects.filter(id__in=ids)
 
-
     def __super_units(self):
         if not self.parent:
             return []
         else:
             return [self.parent] + self.parent.super_units()
             
-    def super_units(self):
+    def super_units(self, include_self=False):
         """
         Units directly above this in the heirarchy
         """
         key = 'superunits-' + self.slug
         res = cache.get(key)
         if res:
-            return res
+            if include_self:
+                return res + [self]
+            else:
+                return res
         else:
             res = self.__super_units()
             cache.set(key, res, 24*3600)
-            return res
-        
+            if include_self:
+                return res + [self]
+            else:
+                return res
 
 
 ROLE_CHOICES = (

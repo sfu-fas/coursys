@@ -204,7 +204,7 @@ class CareerEventHandlerBase(object):
         self.post_save()
 
     def get_config(self, name, default=None):
-        raw_value = self.event.config.get(name)
+        raw_value = self.event.config.get(name, 'missing-config')
         field = self.CONFIG_FIELDS[name]
 
         try:
@@ -214,7 +214,7 @@ class CareerEventHandlerBase(object):
                 else:
                     return default
             else:
-                    return field.to_python(raw_value)
+                return field.to_python(raw_value)
         except forms.ValidationError:
             # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
             #      the config field, then it was most likely valid when the event was created.
