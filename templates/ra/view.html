@@ -35,6 +35,7 @@
     <tr><th>First Name:</th><td>{{ student.first_name }}</td></tr>
     <tr><th>Email:</th><td>{{ student.email_mailto }}</td></tr>
     <tr><th>SIN:</th><td>{{ appointment.sin }}</td></tr>
+    <tr><th>Visa Verified:</th><td>{{ appointment.visa_verified|yesno|capfirst }}</td></tr>
     <tr><th>Department:</th><td>{{ appointment.account.unit.name }}</td></tr>
   </table>
 </div>
