@@ -204,7 +204,7 @@ class CareerEventHandlerBase(object):
         self.post_save()
 
     def get_config(self, name, default=None):
-        raw_value = self.event.config.get(name, 'missing-config')
+        raw_value = self.event.config.get(name)
         field = self.CONFIG_FIELDS[name]
 
         try:

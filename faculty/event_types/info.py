@@ -1,7 +1,12 @@
 import fractions, itertools
+from cache_utils.decorators import cached
 
 from django import forms
 from django.template import Context, Template
+from django.utils.safestring import mark_safe, SafeText
+from django.utils.html import conditional_escape as escape
+from django.core.urlresolvers import reverse
+from django.utils.functional import lazy
 
 from coredata.models import Unit
 
@@ -69,6 +74,12 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         org_name = self.get_config('org_name')
         return 'Affiliated with {}'.format(org_name)
 
+def _committee_helptext():
+    "Lazily generate the helptext so reverse isn't called until it is possible."
+    url = reverse('faculty.views.event_config', kwargs={'event_type': 'committee'})
+    h = mark_safe(u'More committees can be added on the <a href="%s">configuration</a> page' % (escape(url)))
+    return h
+committee_helptext = lazy(_committee_helptext, SafeText)
 
 class CommitteeMemberHandler(CareerEventHandlerBase):
 
@@ -90,7 +101,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
         #committee_name = forms.CharField(label='Committee Name', max_length=255)
         #committee_unit = forms.ModelChoiceField(label='Committee Unit',
         #                                        queryset=Unit.objects.all())
-        committee = forms.ChoiceField(label='Committee', choices=[])
+        committee = forms.ChoiceField(label='Committee', choices=[], help_text=committee_helptext())
 
         def post_init(self):
             # set the allowed position choices from the config from allowed units
@@ -103,7 +114,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
         Get the committee choices from EventConfig in these units, or superunits of them.
         """
         from faculty.models import EventConfig
-        unit_lookup = dict((str(u.id), u) for u in Unit.objects.all())
+        unit_lookup = CommitteeMemberHandler._unit_lookup()
 
         superunits = [u.super_units() for u in units] + [units]
         superunits =  set(u for sublist in superunits for u in sublist) # flatten list of lists
@@ -114,20 +125,50 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
         choices = ((short, '%s (%s)' % (long, unit_lookup[unit].label)) for short,long,unit,status in choices)
         return choices
 
+    class CommitteeSearchRule(search.ChoiceSearchRule):
+        def make_value_field(self, viewer, member_units):
+            field = super(CommitteeMemberHandler.CommitteeSearchRule, self).make_value_field(viewer, member_units)
+            choices = CommitteeMemberHandler.get_committee_choices(member_units)
+            field.choices.extend(choices)
+            return field
+
     SEARCH_RULES = {
-        'committee_name': search.StringSearchRule,
-        'committee_unit': search.ChoiceSearchRule,
+        'committee': CommitteeSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
         'committee',
     ]
 
+    @staticmethod
+    @cached(24*3600)
+    def _unit_lookup():
+        unit_lookup = dict((str(u.id), u) for u in Unit.objects.all())
+        return unit_lookup
+
+    @staticmethod
+    @cached(24*3600)
+    def _committee_lookup():
+        from faculty.models import EventConfig
+        unit_lookup = CommitteeMemberHandler._unit_lookup()
+        ecs = EventConfig.objects.filter(event_type=CommitteeMemberHandler.EVENT_TYPE)
+        cttes = [ec.config.get('committees', []) for ec in ecs]
+        return dict((c[0], (c[1], unit_lookup[c[2]])) for c in itertools.chain.from_iterable(cttes))
+
+    def get_committee_display(self):
+        ctte_lookup = CommitteeMemberHandler._committee_lookup()
+        try:
+            ctte, unit = ctte_lookup[self.get_config('committee')]
+        except KeyError:
+            return 'unknown committee'
+        return "%s (%s)" % (ctte, unit.label)
+
     def get_display(self, field):
+        # let failure be soft while we migrate from old to new data
         if field in ['committee_name', 'committee_unit']:
             if field in self.event.config:
                 return self.event.config[field]
             else:
-                return '*obs*'
+                return '???'
         else:
             return super(CommitteeMemberHandler, self).get_display(field)
 
@@ -156,6 +197,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
             fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], self.cleaned_data['ctte_unit'], 'ACTIVE'])
             ec.config['committees'] = fellows
             ec.save()
+            CommitteeMemberHandler._committee_lookup.invalidate()
 
     DISPLAY_TEMPLATE = Template("""
         <h2 id="config">Configured Committees</h2>
@@ -178,7 +220,7 @@ class CommitteeMemberHandler(CareerEventHandlerBase):
     @classmethod
     def config_display(cls, units):
         committees = list(cls.all_config_fields(Unit.sub_units(units), 'committees'))
-        unit_lookup = dict((str(u.id), u) for u in Unit.objects.all())
+        unit_lookup = CommitteeMemberHandler._unit_lookup()
         for c in committees:
             c[3] = unit_lookup[c[3]]
         context = Context({'committees': committees})

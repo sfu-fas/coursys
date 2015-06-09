@@ -2,6 +2,7 @@ import copy
 import operator
 
 from django import forms
+from django.utils.safestring import mark_safe
 from django.forms.forms import pretty_name
 
 
@@ -82,7 +83,7 @@ class ChoiceSearchRule(SearchRule):
         field = super(ChoiceSearchRule, self).make_value_field(viewer, member_units)
 
         if self.field.required and not isinstance(self.field, forms.ModelChoiceField):
-            field.choices = (('', '----'),) + tuple(field.choices)
+            field.choices = (('', mark_safe('&mdash;')),) + tuple(field.choices)
         field.initial = ''
 
         return field
