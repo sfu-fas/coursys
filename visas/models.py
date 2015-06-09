@@ -24,8 +24,11 @@ class VisaQuerySet(QuerySet):
         def visible(self):
             return self.filter(hidden=False)
 
+        def visible_given_user(self, person):
+            return self.filter(hidden=False, person=person)
 
-class Visa(models.Model):
+
+class Visa (models.Model):
     person = models.ForeignKey(Person, null=False, blank=False)
     status = models.CharField(max_length=50, choices=VISA_STATUSES, default='')
     start_date = models.DateField('Start Date', default=timezone_today, help_text='First day of visa validity')
@@ -86,3 +89,14 @@ class Visa(models.Model):
             elif visatype:
                 print emplid, visas.get(visatype, None)
 
+    @staticmethod
+    def get_visas(person):
+        """
+        Returns all visible visas for a given person
+
+        :param Person person: The person we are querying for visa information
+        :type: Person
+        :return: A list of visas
+        :rtype: list
+        """
+        return Visa.objects.filter(person=person).order_by('start_date')

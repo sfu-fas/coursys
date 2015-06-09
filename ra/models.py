@@ -106,6 +106,8 @@ class RAAppointment(models.Model):
     """
     person = models.ForeignKey(Person, help_text='The RA who is being appointed.', null=False, blank=False, related_name='ra_person')
     sin = models.PositiveIntegerField(null=True, blank=True)
+    # We want do add some sort of accountability for checking visas.
+    visa_verified = models.BooleanField(default=False, help_text='I have verified this RA\'s visa information')
     hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty')
     unit = models.ForeignKey(Unit, help_text='The unit that owns the appointment', null=False, blank=False)
     hiring_category = models.CharField(max_length=4, choices=HIRING_CATEGORY_CHOICES, default='GRA')

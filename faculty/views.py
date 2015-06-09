@@ -116,6 +116,7 @@ def index(request):
         'fac_roles_gone': fac_roles_gone,
         'queued_events': len(events),
         'filterform': filterform,
+        'viewvisas': request.GET.get('viewvisas', False)
     }
     return render(request, 'faculty/index.html', context)
 

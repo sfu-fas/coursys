@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+{% load visa_display %}
 
-{% block title %}Visas{% endblock %}
-{% block h1 %}Visas{% endblock %}
+{% block title %}Visas{% if person %} for {{ person }}{% endif %}{% endblock %}
+{% block h1 %}Visas{% if person %} for {{ person }}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>Visas</li>
+<li>Visas{% if person %} for {{ person }}{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -54,7 +55,7 @@ function confirmDelete(url) {
         </thead>
         <tbody>
             {% for visa in visa_list %}
-                <tr {% if visa.is_expired %} class="visaexpired" {% endif %} {% if visa.is_almost_expired %} class="visaalmostexpired" {% endif %}>
+                <tr {{ visa|add_visa_display_class }}>
                     <td>{{ visa.person }}</td>
                     <td><span class="sort">{{ visa.start_date.isoformat }}</span>{{ visa.start_date }}</td>
                     <td><span class="sort">{{ visa.end_date.isoformat }}</span>{{ visa.end_date }}</td>

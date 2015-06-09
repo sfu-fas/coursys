@@ -6,17 +6,25 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from log.models import LogEntry
 from datetime import datetime
+from courselib.search import find_userid_or_emplid
+from coredata.models import Person
 import unicodecsv as csv
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
-def list_all_visas(request):
-    context = {'visa_list': Visa.objects.visible}
+def list_all_visas(request, emplid=None):
+    if emplid:
+        person = Person.objects.get(find_userid_or_emplid(emplid))
+        visa_list = Visa.objects.visible_given_user(person)
+    else:
+        person = None
+        visa_list = Visa.objects.visible
+    context = {'visa_list': visa_list, 'person': person}
     return render(request, 'visas/view_visas.html', context)
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
-def new_visa(request):
+def new_visa(request, emplid=None):
     if request.method == 'POST':
         form = VisaForm(request.POST)
         if form.is_valid():
@@ -34,7 +42,11 @@ def new_visa(request):
 
             return HttpResponseRedirect(reverse('visas.views.list_all_visas'))
     else:
-        form = VisaForm()
+        if emplid:
+            person = Person.objects.get(find_userid_or_emplid(emplid))
+            form = VisaForm(initial={'person':person})
+        else:
+            form = VisaForm()
 
     return render(request, 'visas/new_visa.html', {'form': form})
 
