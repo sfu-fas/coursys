@@ -71,15 +71,20 @@ function refresh() {
 function browser_ready(my_url) {
   restore_form();
   table = $('#courses').dataTable( {
-    'bJQueryUI': true,
-    'sPaginationType': 'full_numbers',
-    'iDisplayLength' : 20,
-    'aaSorting': [[0,'desc'],[1,'asc']],
-    'bProcessing': true,
-    'bServerSide': true,
-    'sPaginationType': "full_numbers",
-    'iDisplayLength' : 25,
+    'jQueryUI': true,
+    'pagingType': 'full_numbers',
+    'pageLength' : 20,
+    'order': [[0,'desc'],[1,'asc']],
+    'processing': true,
+    'serverSide': true,
     'sAjaxSource': my_url + '?tabledata=yes',
+    'columns': [
+      null,
+      null,
+      null,
+      {'orderable': false},
+      null,
+     ],
     'fnServerParams': function ( aoData ) {
       aoData.push.apply(aoData, server_params());
     },
