@@ -828,7 +828,6 @@ class OfferingDataJson(BaseDatatableView):
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
-
         subject = GET.get('subject', None)
         if subject:
             qs = qs.filter(subject=subject)
@@ -839,7 +838,7 @@ class OfferingDataJson(BaseDatatableView):
             
         section = GET.get('section', None)
         if section:
-            qs = qs.filter(section__startswith=section)
+            qs = qs.filter(section__istartswith=section)
 
         instructor = GET.get('instructor', None)
         if instructor:
@@ -866,7 +865,6 @@ class OfferingDataJson(BaseDatatableView):
             offering_qs = SearchQuerySet().models(CourseOffering).filter(title=title)[:500]
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
-
 
         wqb = GET.getlist('wqb')
         for f in wqb:
