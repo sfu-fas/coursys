@@ -114,6 +114,10 @@
             {% endif %}
             {% if nonstudent %}
             <tr>
+                <th>Email Address</th>
+                <td>{{ student.email_address|default:"&mdash;" }}</td>
+            </tr>
+            <tr>
                 <th>High School</th>
                 <td>{{ student.high_school|default:"&mdash;" }}</td>
             </tr>

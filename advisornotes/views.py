@@ -123,7 +123,10 @@ def _email_student_note(note):
     """
     subject = "SFU Advising Note"
     from_email = note.advisor.email()
-    email = note.student.email()
+    if note.student is not None:
+        email = note.student.email()
+    else:
+        email = note.nonstudent.email()
     content = wrap(note.text, 72)
     attach = []
     if note.file_attachment:
@@ -158,7 +161,7 @@ def new_note(request, userid):
                 upfile = request.FILES['file_attachment']
                 note.file_mediatype = upfile.content_type
 
-            if isinstance(student, Person) and form.cleaned_data['email_student']:
+            if form.cleaned_data['email_student']:
                 _email_student_note(note)
                 note.emailed = True
 
@@ -684,6 +687,11 @@ def merge_nonstudent(request, nonstudent_slug):
                 student.set_nonstudent_colg(nonstudent.college)
             if nonstudent.notes:
                 student.set_nonstudent_notes(nonstudent.notes)
+            # If we had an email address for this nonstudent, store it in the application email address, like
+            # for a grad student.  We really don't have a better place to store this.  The other option would be
+            # to drop it altogether.
+            if nonstudent.email_address:
+                student.config['applic_email'] = nonstudent.email_address
             nonstudent.delete()
             student.save()
             l = LogEntry(userid=request.user.username,
