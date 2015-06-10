@@ -11,17 +11,10 @@ import datetime
 
 TEXT_WIDTH = 70
 
-class _AdvisorNoteFormNonstudent(forms.ModelForm):
-    class Meta:
-        model = AdvisorNote
-        exclude = ('hidden', 'emailed', 'created_at', 'config')
-        widgets = {
-                'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})
-                }
+class _AdvisorNoteForm(forms.ModelForm):
 
-
-class _AdvisorNoteFormStudent(_AdvisorNoteFormNonstudent):
-    email_student = forms.BooleanField(required=False, help_text="Should the student be emailed the contents of this note?")
+    email_student = forms.BooleanField(required=False,
+                                       help_text="Should the student be emailed the contents of this note?")
 
     def clean_email_student(self):
         email = self.cleaned_data['email_student']
@@ -29,18 +22,17 @@ class _AdvisorNoteFormStudent(_AdvisorNoteFormNonstudent):
             raise ValidationError("We don't have an email address for this student: cannot email them here.")
         return email
 
+    class Meta:
+        model = AdvisorNote
+        exclude = ('hidden', 'emailed', 'created_at', 'config')
+        widgets = {'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})}
+
 
 def advisor_note_factory(student, post_data=None, files=None, initial=None, instance=None):
     """
     Factory method to return the proper form for a student/nonstudent
     """
-    if isinstance(student, Person):
-        form = _AdvisorNoteFormStudent(post_data, files, initial=initial, instance=instance)
-    elif isinstance(student, NonStudent):
-        form = _AdvisorNoteFormNonstudent(post_data, files, initial=initial, instance=instance)
-    else:
-        raise ValueError
-
+    form = _AdvisorNoteForm(post_data, files, initial=initial, instance=instance)
     form.student = student
     return form
 

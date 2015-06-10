@@ -28,12 +28,13 @@ def attachment_upload_to(instance, filename):
 
 class NonStudent(models.Model):
     """
-    For a person (propspective student) who isn't part of the university
+    For a person (prospective student) who isn't part of the university
     """
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    email_address = models.EmailField(null=True, blank=True, help_text="Needed only if you want to copy the student on notes")
     high_school = models.CharField(max_length=32, null=True, blank=True)
     college = models.CharField(max_length=32, null=True, blank=True)
     start_year = models.IntegerField(null=True, blank=True, help_text="The predicted/potential start year")
@@ -63,6 +64,8 @@ class NonStudent(models.Model):
     def __hash__(self):
         return self.unique_tuple().__hash__()
 
+    def email(self):
+        return self.email_address
 
 class AdvisorNote(models.Model):
     """
