@@ -401,7 +401,7 @@ def search_scholarships_by_student(request, student_id):
     json.dump(data, response, indent=1)
     return response
 
-#@requires_role("FUND")
+@requires_role("FUND")
 def browse(request):
     if 'tabledata' in request.GET:
         return _browser_data(request)
@@ -420,11 +420,12 @@ class RADataJson(BaseDatatableView):
         print col_list
 
     def filter_queryset(self, qs):
-        print qs
+        # limit to those visible to this user
+        qs = qs.filter(unit__in=Unit.sub_units(self.request.units))
         return qs
 
     def ordering(self, qs):
-        # failure if superclass method is allowed to do things. That's a bad sign.
+        # failure if superclass method is allowed to do things. Should get fixed.
         return qs
 
     def render_column(self, ra, column):
