@@ -401,8 +401,41 @@ def search_scholarships_by_student(request, student_id):
     json.dump(data, response, indent=1)
     return response
 
-@requires_role("FUND")
+#@requires_role("FUND")
 def browse(request):
+    if 'tabledata' in request.GET:
+        return _browser_data(request)
+
+    context = {}
+    return render(request, 'ra/browse.html', context)
+
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+class RADataJson(BaseDatatableView):
+    model = RAAppointment
+    columns = ['person', 'hiring_faculty', 'project', 'account', 'start_date', 'end_date', 'lump_sum_pay']
+    max_display_length = 500
+
+    def set_columns(self, col_list):
+        print col_list
+
+    def filter_queryset(self, qs):
+        print qs
+        return qs
+
+    def ordering(self, qs):
+        # failure if superclass method is allowed to do things. That's a bad sign.
+        return qs
+
+    def render_column(self, ra, column):
+        if column == 'lump_sum_pay':
+            return "${:,}".format(ra.lump_sum_pay)
+        return unicode(getattr(ra, column))
+
+_browser_data = RADataJson.as_view()
+
+@requires_role("FUND")
+def XXX_browse(request):
     units = Unit.sub_units(request.units)
     hiring_choices = [('all', 'All')] + possible_supervisors(units)
     project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]

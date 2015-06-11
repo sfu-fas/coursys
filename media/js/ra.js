@@ -156,6 +156,26 @@ function get_person_info(emplid) {
 	})
 }
 
+var table;
+
+function server_params() {
+	// build the extra GET parameters that will go in the datatables data request (by inspecting the filter form)
+	var params = [];
+	return params;
+}
+
+function ra_browser_setup(my_url) {
+  table = $('#ra_table').dataTable( {
+    'jQueryUI': true,
+    'pagingType': 'full_numbers',
+    'pageLength' : 20,
+    //'order': [[0,'asc'],[4,'desc']],
+    'processing': true,
+    'serverSide': true,
+    'sAjaxSource': my_url + '?tabledata=yes',
+  } );
+
+}
 
 $(document).ready(function() {
   name_label = document.createElement("span");
@@ -176,8 +196,10 @@ $(document).ready(function() {
   $("#id_person").change(update_person);
   $("#id_start_date").change(update_pay_periods);
   $("#id_end_date").change(update_pay_periods);
-  update_pay_periods();
-  if ( emplid ) {
+  if ( typeof payperiods_url !== 'undefined' ) {
+    update_pay_periods();
+  }
+  if ( typeof emplid !== 'undefined' ) {
   	get_person_info(emplid);
   }
 });
