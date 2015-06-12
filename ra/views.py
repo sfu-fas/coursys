@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from django.template.defaultfilters import date as datefilter
 from django.conf import settings
+from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm
 from grad.forms import possible_supervisors
@@ -414,23 +415,29 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 class RADataJson(BaseDatatableView):
     model = RAAppointment
     columns = ['person', 'hiring_faculty', 'project', 'account', 'start_date', 'end_date', 'lump_sum_pay']
+    order_columns = [
+        ['person__last_name', 'person__first_name'],
+        ['hiring_faculty__last_name', 'hiring_faculty__first_name'],
+        'project__project_number',
+        'account__account_number',
+        'start_date',
+        'end_date',
+        'lump_sum_pay',
+    ]
     max_display_length = 500
-
-    def set_columns(self, col_list):
-        print col_list
 
     def filter_queryset(self, qs):
         # limit to those visible to this user
         qs = qs.filter(unit__in=Unit.sub_units(self.request.units))
         return qs
 
-    def ordering(self, qs):
-        # failure if superclass method is allowed to do things. Should get fixed.
-        return qs
-
     def render_column(self, ra, column):
         if column == 'lump_sum_pay':
             return "${:,}".format(ra.lump_sum_pay)
+        elif column == 'person':
+            url = reverse('ra.views.view', kwargs={'ra_slug': ra.slug})
+            name = ra.person.sortname()
+            return u'<a href="%s">%s</a>' % (escape(url), escape(name))
         return unicode(getattr(ra, column))
 
 _browser_data = RADataJson.as_view()
