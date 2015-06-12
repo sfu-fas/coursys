@@ -5,6 +5,7 @@ from haystack.query import SearchQuerySet
 from coredata.models import Person, CourseOffering, Member
 from pages.models import Page, PageVersion
 from discuss.models import DiscussionTopic, DiscussionMessage
+from ra.models import RAAppointment
 
 import logging
 logger = logging.getLogger(__name__)
@@ -67,6 +68,14 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
             members = Member.objects.filter(person=instance, role__in=['STUD', 'INST'])
             for m in members:
                 self.handle_save(sender=Member, instance=m, **kwargs)
+
+        elif sender == RAAppointment:
+            logger.debug('Reindexing RAAppointment %s' % (instance))
+            if instance.deleted:
+                # deleted contract
+                self.handle_delete(sender=sender, instance=instance, **kwargs)
+            else:
+                super(SelectiveRealtimeSignalProcessor, self).handle_save(sender=sender, instance=instance, **kwargs)
 
         #else:
         #    ignore everything else, since we don't care.

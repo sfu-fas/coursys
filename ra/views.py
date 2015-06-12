@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from django.template.defaultfilters import date as datefilter
 from django.conf import settings
+from django.db.models import Q
 from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, Project, Account, SemesterConfig
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm
@@ -16,6 +17,10 @@ from grad.models import GradStudent, Scholarship
 from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+from haystack.query import SearchQuerySet
+
 
 import json, datetime, urllib
 
@@ -411,7 +416,6 @@ def browse(request):
     return render(request, 'ra/browse.html', context)
 
 
-from django_datatables_view.base_datatable_view import BaseDatatableView
 class RADataJson(BaseDatatableView):
     model = RAAppointment
     columns = ['person', 'hiring_faculty', 'project', 'account', 'start_date', 'end_date', 'lump_sum_pay']
@@ -427,15 +431,27 @@ class RADataJson(BaseDatatableView):
     max_display_length = 500
 
     def filter_queryset(self, qs):
+        GET = self.request.GET
+
         # limit to those visible to this user
         qs = qs.filter(unit__in=Unit.sub_units(self.request.units))
+        qs = qs.exclude(deleted=True)
+
+        # search box
+        srch = GET.get('sSearch', None)
+        if srch:
+            # get RA set from haystack, and use it to limit our query
+            ra_qs = SearchQuerySet().models(RAAppointment).filter(text=srch)[:500]
+            ra_pks = (r.pk for r in ra_qs if r is not None)
+            qs = qs.filter(pk__in=ra_pks)
+
         return qs
 
     def render_column(self, ra, column):
         if column == 'lump_sum_pay':
             return "${:,}".format(ra.lump_sum_pay)
         elif column == 'person':
-            url = reverse('ra.views.view', kwargs={'ra_slug': ra.slug})
+            url = ra.get_absolute_url()
             name = ra.person.sortname()
             return u'<a href="%s">%s</a>' % (escape(url), escape(name))
         return unicode(getattr(ra, column))

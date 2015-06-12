@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.urlresolvers import reverse
 from coredata.models import Person, Unit, Semester
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
@@ -154,7 +155,10 @@ class RAAppointment(models.Model):
             self.person.set_sin(self.sin)
             self.person.save()
         super(RAAppointment, self).save(*args, **kwargs)
-    
+
+    def get_absolute_url(self):
+        return reverse('ra.views.view', kwargs={'ra_slug': self.slug})
+
     def default_letter_text(self):
         """
         Default text for the letter (for editing, or use if not set)
