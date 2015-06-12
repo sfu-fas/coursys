@@ -13,7 +13,7 @@ class RAIndex(indexes.SearchIndex, indexes.Indexable):
 
     def index_queryset(self, using=None):
         return self.get_model().objects.exclude(deleted=True) \
-            .select_related('person', 'hiring_faculty', 'project', 'account')
+            .select_related('person', 'hiring_faculty', 'project', 'account', 'unit')
 
     def prepare_text(self, ra):
         pieces = [
@@ -24,6 +24,8 @@ class RAIndex(indexes.SearchIndex, indexes.Indexable):
             unicode(ra.account.account_number),
             unicode(ra.account.position_number),
             unicode(ra.lump_sum_pay),
+            ra.unit.label,
+            ra.unit.name,
         ]
         return '\n'.join(pieces)
 

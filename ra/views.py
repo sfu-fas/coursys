@@ -418,10 +418,11 @@ def browse(request):
 
 class RADataJson(BaseDatatableView):
     model = RAAppointment
-    columns = ['person', 'hiring_faculty', 'project', 'account', 'start_date', 'end_date', 'lump_sum_pay']
+    columns = ['person', 'hiring_faculty', 'unit', 'project', 'account', 'start_date', 'end_date', 'lump_sum_pay']
     order_columns = [
         ['person__last_name', 'person__first_name'],
         ['hiring_faculty__last_name', 'hiring_faculty__first_name'],
+        'unit__label'
         'project__project_number',
         'account__account_number',
         'start_date',
@@ -429,6 +430,12 @@ class RADataJson(BaseDatatableView):
         'lump_sum_pay',
     ]
     max_display_length = 500
+
+    def get_initial_queryset(self):
+        qs = super(RADataJson, self).get_initial_queryset()
+        # do some select related because we'll need them for display later
+        qs = qs.select_related('person', 'hiring_faculty', 'unit')
+        return qs
 
     def filter_queryset(self, qs):
         GET = self.request.GET
@@ -440,10 +447,16 @@ class RADataJson(BaseDatatableView):
         # search box
         srch = GET.get('sSearch', None)
         if srch:
-            # get RA set from haystack, and use it to limit our query
+            # get RA set from haystack, and use it to limit our query.
             ra_qs = SearchQuerySet().models(RAAppointment).filter(text=srch)[:500]
-            ra_pks = (r.pk for r in ra_qs if r is not None)
-            qs = qs.filter(pk__in=ra_pks)
+            ra_qs = [r for r in ra_qs if r is not None]
+            if ra_qs:
+                # ignore very low scores: elasticsearch grabs too much sometimes
+                max_score = max(r.score for r in ra_qs)
+                ra_pks = (r.pk for r in ra_qs if r.score > max_score/5)
+                qs = qs.filter(pk__in=ra_pks)
+            else:
+                qs = qs.none()
 
         return qs
 
@@ -454,6 +467,9 @@ class RADataJson(BaseDatatableView):
             url = ra.get_absolute_url()
             name = ra.person.sortname()
             return u'<a href="%s">%s</a>' % (escape(url), escape(name))
+        elif column == 'unit':
+            return ra.unit.label
+
         return unicode(getattr(ra, column))
 
 _browser_data = RADataJson.as_view()
