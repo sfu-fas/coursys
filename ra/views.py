@@ -422,7 +422,7 @@ class RADataJson(BaseDatatableView):
     order_columns = [
         ['person__last_name', 'person__first_name'],
         ['hiring_faculty__last_name', 'hiring_faculty__first_name'],
-        'unit__label'
+        'unit__label',
         'project__project_number',
         'account__account_number',
         'start_date',
