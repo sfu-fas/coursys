@@ -471,7 +471,7 @@ def salary_summary(request, userid):
         if form.is_valid():
             date = request.GET.get('date', None)
         else:
-            date = date = datetime.date.today()
+            date = datetime.date.today()
 
     else:
         date = datetime.date.today()
