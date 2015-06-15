@@ -186,35 +186,18 @@ class HyperlinkCollectionField(fields.Field):
         result = {}
         for link in self.hyperlink_data:
             label = link['label']
-            result[label] = 'this is broken and I apologise.'
+            kwargs = copy.copy(link)
+            del kwargs['label']
+
+            field = relations.HyperlinkedRelatedField(read_only=True, **kwargs)
+            # fake the request into the context so the URL can be constructed
+            field._context = {'request': self.context.get('request', None)}
+            result[label] = field.to_representation(value)
         return result
 
     def get_attribute(self, instance):
         # fake this out to prevent an exception trying to get data we don't care about
         return instance
-
-class OLD_HyperlinkCollectionField(fields.Field):
-    """
-    Field to represent a collection of links to related views. Used for HATEOAS-style self-documenting.
-
-    Constructor arguments are a 'label', and kwargs to a HyperlinkedIdentityField.
-    """
-    def __init__(self, data, help_text='links to additional information about this object', **kwargs):
-        super(HyperlinkCollectionField, self).__init__(help_text=help_text, **kwargs)
-        self.data = data
-        self.label = None
-
-    def field_to_native(self, obj, field_name):
-        result = {}
-        for link in self.data:
-            label = link['label']
-            kwargs = copy.copy(link)
-            del kwargs['label']
-
-            field = relations.HyperlinkedIdentityField(**kwargs)
-            field.initialize(self.parent, label)
-            result[label] = field.field_to_native(obj, label)
-        return result
 
 
 system_tz = pytz.timezone(settings.TIME_ZONE)
