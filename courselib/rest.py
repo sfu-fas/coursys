@@ -177,6 +177,23 @@ class CacheMixin(object):
 
 
 class HyperlinkCollectionField(fields.Field):
+    def __init__(self, hyperlink_data, help_text='links to additional information about this object', **kwargs):
+        super(HyperlinkCollectionField, self).__init__( read_only=True, help_text=help_text, **kwargs)
+        self.hyperlink_data = hyperlink_data
+        self.label = None
+
+    def to_representation(self, value):
+        result = {}
+        for link in self.hyperlink_data:
+            label = link['label']
+            result[label] = 'this is broken and I apologise.'
+        return result
+
+    def get_attribute(self, instance):
+        # fake this out to prevent an exception trying to get data we don't care about
+        return instance
+
+class OLD_HyperlinkCollectionField(fields.Field):
     """
     Field to represent a collection of links to related views. Used for HATEOAS-style self-documenting.
 
@@ -191,7 +208,7 @@ class HyperlinkCollectionField(fields.Field):
         result = {}
         for link in self.data:
             label = link['label']
-            kwargs = copy.copy(link)    
+            kwargs = copy.copy(link)
             del kwargs['label']
 
             field = relations.HyperlinkedIdentityField(**kwargs)

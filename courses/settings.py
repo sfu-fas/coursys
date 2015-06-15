@@ -114,9 +114,8 @@ OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
 OAUTH_UNSAFE_REDIRECTS = True
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.OAuthAuthentication',
+        'rest_framework_oauth.authentication.OAuthAuthentication',
     )
 }
 SWAGGER_SETTINGS = { "api_version": '1' }
