@@ -62,6 +62,7 @@ DUMMY_SINS = ['999999999', '000000000', '123456789']
 class HiringSemesterQuerySet(QuerySet):
     def visible(self, units):
         return self.filter(unit__in=units)
+
     def semester(self, semester_name, units):
         return self.filter(unit__in=units, 
                            semester=Semester.objects.get(name=semester_name))
@@ -76,12 +77,14 @@ class TAContractQuerySet(QuerySet):
     def visible(self, hiring_semester):
         return self.filter(category__hiring_semester=hiring_semester)\
                     .select_related('category')\
-                    .select_related('email_receipt')\
                     .prefetch_related('course')
+
     def draft(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='NEW')
+
     def signed(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='SGN')
+
     def cancelled(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='CAN')
 
@@ -209,7 +212,6 @@ class TACategory(models.Model):
     def __unicode__(self):
         return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), 
                                   unicode(self.title), unicode(self.account))
-
 
     @property
     def frozen(self):

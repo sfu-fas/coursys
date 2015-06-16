@@ -713,6 +713,7 @@ def activity_marks_from_JSON(activity, userid, data):
             else:
                 raise ValidationError(u'Mark component "%s" not found in record for "%s".' % (slug, recordid))
 
+            print "...", am.__dict__
             cm = ActivityComponentMark(activity_mark=am, activity_component=comp)
             activity_component_marks.append(cm)
 

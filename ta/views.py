@@ -577,7 +577,7 @@ def print_all_applications(request,post_slug):
     for application in applications:
         application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
         application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
-        application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+        application.campuses = CampusPreference.objects.filter(app=application)
         application.contracts = TAContract.objects.filter(application=application)
 
     context = {
@@ -604,10 +604,9 @@ def print_all_applications_by_course(request,post_slug):
         for application in applications_for_this_offering:
             application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
             application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
-            application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+            application.campuses = CampusPreference.objects.filter(app=application)
             application.contracts = TAContract.objects.filter(application=application)
             offering.applications.append(application)
-            
 
     context = {
             'offerings': offerings,
@@ -631,7 +630,7 @@ def view_application(request, post_slug, userid):
    
     courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
-    campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+    campuses = CampusPreference.objects.filter(app=application)
     contracts = TAContract.objects.filter(application=application)
     experience = TACourse.objects.filter(contract__application__person=application.person) \
             .exclude(contract__application=application).select_related('course__semester')
