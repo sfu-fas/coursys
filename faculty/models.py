@@ -610,7 +610,7 @@ class Grant(models.Model):
     title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
     label = models.CharField(max_length=255, help_text="for identification from FAST import", db_index=True)
-    owners = models.ManyToManyField(Person, through='GrantOwner', blank=False, null=True, help_text='Who owns/controls this grant?')
+    owners = models.ManyToManyField(Person, through='GrantOwner', blank=False, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
@@ -684,7 +684,8 @@ class GrantBalance(models.Model):
 
 
 class FacultyMemberInfo(models.Model):
-    person = models.ForeignKey(Person, unique=True, related_name='+')
+    #person = models.ForeignKey(Person, unique=True, related_name='+')
+    person = models.OneToOneField(Person, related_name='+')
     title = models.CharField(max_length=50)
     birthday = models.DateField(verbose_name="Birthdate", null=True, blank=True)
     office_number = models.CharField('Office', max_length=20, null=True, blank=True)

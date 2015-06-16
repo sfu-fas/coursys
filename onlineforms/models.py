@@ -925,7 +925,7 @@ def attachment_upload_to(instance, filename):
 
     
 class FieldSubmissionFile(models.Model):
-    field_submission = models.ForeignKey(FieldSubmission, unique=True)
+    field_submission = models.OneToOneField(FieldSubmission)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     file_attachment = models.FileField(storage=FormSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
