@@ -149,10 +149,10 @@ class Client(OriginalClient):
 
         # Create a fake request to store login details.
         request = HttpRequest()
-        if self.session:
-            request.session = self.session
-        else:
-            request.session = engine.SessionStore()
+        #if self.session:
+        #    request.session = self.session
+        #else:
+        request.session = engine.SessionStore()
         login(request, user)
 
         # Set the cookie to represent the session.
