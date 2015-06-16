@@ -1,4 +1,3 @@
-
 from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
 from forms import EmailForm, ResolutionForm, AlertUpdateForm, EmailResolutionForm
 from courselib.auth import requires_role, HttpResponseRedirect, \
@@ -13,7 +12,7 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 from log.models import LogEntry
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.template import Template, Context
 from django.core.mail import send_mail
 import rest

@@ -7,7 +7,6 @@ from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.template import Template, Context
-from django.forms.util import ErrorList
 
 # Third-Party
 import unicodecsv as csv

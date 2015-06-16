@@ -13,7 +13,7 @@ from django.contrib import messages
 from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.db import transaction
 from courselib.db import retry_transaction
 from courselib.search import find_userid_or_emplid

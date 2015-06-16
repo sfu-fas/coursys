@@ -2,7 +2,6 @@ from django.forms import ModelForm
 from django import forms
 from grades.models import Activity
 from coredata.models import Person
-from django.forms.util import flatatt
 from groups.models import Group
 
 class GroupNameForm(ModelForm):

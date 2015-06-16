@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ExternalDocumentForm
 from django.core.urlresolvers import reverse
-from django.forms.util import ErrorList
 from log.models import LogEntry
 
 @requires_role("GRAD", get_only=["GRPD"])
