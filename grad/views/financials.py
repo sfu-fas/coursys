@@ -31,7 +31,6 @@ def financials(request, grad_slug, style='complete'):
     contracts = TAContract.objects.filter(application__person=grad.person).exclude(status__in=STATUSES_NOT_TAING).select_related('posting__semester')
     other_contracts = NewTAContract.objects.filter(person=grad.person, status__in=['NEW', 'SGN'])\
                     .select_related('category')\
-                    .select_related('email_receipt')\
                     .prefetch_related('course')
     appointments = RAAppointment.objects.filter(person=grad.person, deleted=False)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')

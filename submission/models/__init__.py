@@ -45,9 +45,9 @@ def select_all_components(activity, include_deleted=False):
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for Type in ALL_TYPE_CLASSES:
         if include_deleted:
-            comps = list(Type.Component.objects.filter(activity=activity))
+            comps = list(Type.Component.objects.filter(activity_id=activity.id))
         else:
-            comps = list(Type.Component.objects.filter(activity=activity, deleted=False))
+            comps = list(Type.Component.objects.filter(activity_id=activity.id, deleted=False))
         components.extend( (c for c in comps if c.id not in found) )
         found.update( (c.id for c in comps) )
 

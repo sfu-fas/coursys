@@ -184,8 +184,6 @@ class SubmissionTest(TestCase):
             ftypem = filetype(fh)
             self.assertEqual(ftype, ftypem)
 
-
-
     def test_group_submission_view(self):
         """
         test if group submission can be viewed by group member and non group member

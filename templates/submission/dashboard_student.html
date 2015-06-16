@@ -23,9 +23,6 @@
 
 {% block content%}
 
-{% ifequal submitted_pair|length 0 %}
-    {# there is no component #}
-{% else %}
         <div class="table_container">
         <table class="info">
             {% block studentinfo %}{% if activity.group %}<tr><th scope="row">Last Submitter:</th><td>{{student.name}}</td></tr>{% endif %}{% endblock %}
@@ -103,7 +100,5 @@
         {% endifequal %}
         {% endfor %}
         {% endif %}
-
-{% endifequal %}
 
 {% endblock %}
