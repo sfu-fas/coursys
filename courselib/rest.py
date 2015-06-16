@@ -115,7 +115,6 @@ class CacheMixin(object):
     def _timeout(self):
         return self.cache_hours * 3600
 
-
     @property
     def default_response_headers(self):
         # shouldn't be necessary since we're setting "cache-control: private" and delivering by HTTPS, but be sure
@@ -169,7 +168,9 @@ class CacheMixin(object):
         return self.cached_response(handler, request, *args, **kwargs)
 
     def head(self, request, *args, **kwargs):
-        if hasattr(self, 'cached_head'):
+        if hasattr(self, 'cached_get') and not hasattr(self, 'cached_head'):
+            handler = self.cached_get
+        elif hasattr(self, 'cached_head'):
             handler = self.cached_head
         else:
             handler = super(CacheMixin, self).head
