@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     #'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'test_without_migrations',
     #'south',
     'compressor',
     'haystack',
