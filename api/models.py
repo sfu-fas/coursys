@@ -9,8 +9,8 @@ from time import time
 
 PERMISSION_CHOICES = [
     ('courses', 'View the courses you are enrolled in'),
-    ('grades', 'View the marks you have received in your courses')
-    ('groups', 'Group memberships in your courses')
+    ('grades', 'View the marks you have received in your courses'),
+    ('groups', 'Group memberships in your courses'),
 ]
 PERMISSION_OPTIONS = dict(PERMISSION_CHOICES)
 
