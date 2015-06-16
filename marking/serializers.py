@@ -16,7 +16,7 @@ class MarkComponentSerializer(serializers.ModelSerializer):
 
 
 class MarkDetailSerializer(serializers.ModelSerializer):
-    components = MarkComponentSerializer(many=True)
+    components = MarkComponentSerializer(many=True, read_only=True)
     grade = serializers.DecimalField(
         max_digits=ActivityMark._meta.get_field_by_name('mark')[0].max_digits,
         decimal_places=ActivityMark._meta.get_field_by_name('mark')[0].decimal_places,

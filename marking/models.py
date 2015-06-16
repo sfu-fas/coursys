@@ -374,7 +374,7 @@ def get_activity_mark_for_student(activity, student_membership, include_all=Fals
     
     # the mark maybe assigned directly to this student 
     try:
-        num_grade = NumericGrade.objects.get(activity=activity, member=student_membership)
+        num_grade = NumericGrade.objects.get(activity_id=activity.id, member=student_membership)
     except NumericGrade.DoesNotExist:
         return None
     std_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
@@ -383,7 +383,7 @@ def get_activity_mark_for_student(activity, student_membership, include_all=Fals
         current_mark = std_marks.latest('created_at')
         
     # the mark maybe assigned to this student via the group this student participates for this activity       
-    group_mems = GroupMember.objects.filter(student=student_membership, activity=activity, confirmed=True).select_related('group')
+    group_mems = GroupMember.objects.filter(student=student_membership, activity_id=activity.id, confirmed=True).select_related('group')
     
     if group_mems.count() > 0:
         group = group_mems[0].group # there should be only one group this student is in
@@ -465,7 +465,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             save_copied_activity(new_activity, Class, course_copy_to)
         
             # should only apply to NumericActivity: others have no ActivityComponents
-            for activity_component in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False):
+            for activity_component in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False):
                 new_activity_component = copy.deepcopy(activity_component)
                 new_activity_component.id = None
                 new_activity_component.pk = None
@@ -599,7 +599,7 @@ def activity_marks_from_JSON(activity, userid, data):
 
     # All the ActivityMark and ActivityComponentMark objects get built here:
     # we basically have to do this work to validate anyway.
-    components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
+    components = ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)
     components = dict((ac.slug, ac) for ac in components)
     activity_marks = []
     activity_component_marks = []
@@ -620,7 +620,7 @@ def activity_marks_from_JSON(activity, userid, data):
                 group = Group.objects.get(slug=markdata['group'], courseoffering=activity.offering)
             except Group.DoesNotExist:
                 raise ValidationError(u'Group with id "%s" not found.' % (markdata['group']))
-            am = GroupActivityMark(activity=activity, numeric_activity=activity, group=group, created_by=userid)
+            am = GroupActivityMark(activity_id=activity.id, numeric_activity_id=activity.id, group=group, created_by=userid)
             recordid = markdata['group']
 
         elif 'userid' in markdata:
@@ -629,7 +629,7 @@ def activity_marks_from_JSON(activity, userid, data):
                 member = Member.objects.get(person__userid=markdata['userid'], offering=activity.offering, role="STUD")
             except Member.DoesNotExist:
                 raise ValidationError(u'Userid %s not in course.' % (markdata['userid']))
-            am = StudentActivityMark(activity=activity, created_by=userid)
+            am = StudentActivityMark(activity_id=activity.id, created_by=userid)
             recordid = markdata['userid']
         else:
             raise ValidationError(u'Must specify "userid" or "group" for mark.')
@@ -774,24 +774,24 @@ def activity_marks_from_JSON(activity, userid, data):
         am.mark = mark_total
         value = mark_total
         if isinstance(am, StudentActivityMark):
-            grades = NumericGrade.objects.filter(activity=activity, member=member)
+            grades = NumericGrade.objects.filter(activity_id=activity.id, member=member)
             if grades:
                 numeric_grade = grades[0]
                 numeric_grade.flag = "GRAD"
             else:
-                numeric_grade = NumericGrade(activity=activity, member=member, flag="GRAD")
+                numeric_grade = NumericGrade(activity_id=activity.id, member=member, flag="GRAD")
 
             numeric_grade.value = value
             am.numeric_grade = numeric_grade
             numeric_grades.append(numeric_grade)
 
         else:
-            group_members = GroupMember.objects.filter(group=group, activity=activity, confirmed=True)
+            group_members = GroupMember.objects.filter(group=group, activity_id=activity.id, confirmed=True)
             for g_member in group_members:
                 try:            
-                    ngrade = NumericGrade.objects.get(activity=activity, member=g_member.student)
+                    ngrade = NumericGrade.objects.get(activity_id=activity.id, member=g_member.student)
                 except NumericGrade.DoesNotExist: 
-                    ngrade = NumericGrade(activity=activity, member=g_member.student)
+                    ngrade = NumericGrade(activity_id=activity.id, member=g_member.student)
                 ngrade.value = value
                 ngrade.flag = 'GRAD'
                 numeric_grades.append(ngrade)

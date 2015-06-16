@@ -25,6 +25,7 @@ class DashboardTest(TestCase):
 
         validate_content(self, response.content, "index page")
 
+
     def test_course_page(self):
         """
         Check out a course front-page

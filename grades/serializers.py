@@ -47,7 +47,7 @@ class GradeMarkSerializer(serializers.Serializer):
     def get_grade(self, a):
         self._get_grade(a)
         if a.grade:
-            return a.grade.grade
+            return unicode(a.grade.grade)
         else:
             return None
 

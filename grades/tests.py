@@ -143,7 +143,6 @@ class GradesTest(TestCase):
         tree = parse(expr, c, ca)
         res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 7.229166666)
-        
 
     def test_activities(self):
         """
@@ -731,7 +730,7 @@ class APITests(TestCase):
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
             data = json.loads(resp.content)
-            self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2')
+            self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2.00')
             self.assertEqual(self._get_by_slug(data, 'rep')['grade'], 'A')
             self.assertEqual(self._get_by_slug(data, 'a1')['details']['overall_comment'], 'thecomment')
             self.assertIsNone(self._get_by_slug(data, 'rep')['details']) # letter grades have no marking
