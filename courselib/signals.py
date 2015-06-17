@@ -1,11 +1,8 @@
 from haystack.signals import RealtimeSignalProcessor
 from haystack.exceptions import NotHandled
 from haystack.query import SearchQuerySet
-
-from coredata.models import Person, CourseOffering, Member
-from pages.models import Page, PageVersion
-from discuss.models import DiscussionTopic, DiscussionMessage
-from ra.models import RAAppointment
+from django.apps import apps
+get_model = apps.get_model
 
 import logging
 logger = logging.getLogger(__name__)
@@ -15,6 +12,15 @@ class SelectiveRealtimeSignalProcessor(RealtimeSignalProcessor):
     Index changes in real time, but in the specific way we need them updated.
     """
     def handle_save(self, sender, instance, **kwargs):
+        Person = get_model('coredata', 'Person')
+        CourseOffering = get_model('coredata', 'CourseOffering')
+        Member = get_model('coredata', 'Member')
+        Page = get_model('pages', 'Page')
+        PageVersion = get_model('pages', 'PageVersion')
+        DiscussionTopic = get_model('discuss', 'DiscussionTopic')
+        DiscussionMessage = get_model('discuss', 'DiscussionMessage')
+        RAAppointment = get_model('ra', 'RAAppointment')
+
         if sender == Page:
             # reindex object in the standard way
             logger.debug('Reindexing Page %s' % (instance))
