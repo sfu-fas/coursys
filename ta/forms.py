@@ -1,7 +1,7 @@
 import re
 from django import forms
 from django.forms.utils import ErrorList
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 from coredata.models import Member
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
         CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES
@@ -119,7 +119,7 @@ class TUGForm(forms.ModelForm):
         
     def __construct_subforms(self, data, initial, instance):
         # this function is a simplification/clarification of this one liner:
-        # return SortedDict((field, klass(prefix=field, data=data, 
+        # return OrderedDict((field, klass(prefix=field, data=data,
         #  initial=(instance.config[field] if instance and field in instance.config 
         #  else initial[field] if initial and field in initial else None), 
         #  label=TUG.config_meta[field]['label'] if field in TUG.config_meta else '')) 
@@ -142,7 +142,7 @@ class TUGForm(forms.ModelForm):
         elif initial:
             get_initial = lambda field:initial.get(field, None)
         
-        return SortedDict(
+        return OrderedDict(
                 (field, 
                  klass(prefix=field, data=data, 
                        initial=get_initial(field),
@@ -163,7 +163,7 @@ class TUGForm(forms.ModelForm):
     def clean(self):
         data = super(TUGForm, self).clean()
         get_data = lambda subform: subform.cleaned_data if subform.cleaned_data else subform.initial
-        try: data['config'] = SortedDict((field, get_data(self.subforms[field])) 
+        try: data['config'] = OrderedDict((field, get_data(self.subforms[field]))
                 for field in TUG.all_fields)
         except AttributeError:
             raise forms.ValidationError([])
