@@ -34,6 +34,14 @@ class LowGPAOrNoCoOpReport(Report):
         students_in_ensc_196_query = SingleCourseQuery({'subject': 'ENSC', 'catalog_nbr': '196'}, include_current=True)
         students_in_ensc_196 = students_in_ensc_196_query.result()
         students_in_ensc_196_emplids = set(students_in_ensc_196.column_as_list('EMPLID'))
+        
+        students_in_mse_195_query = SingleCourseQuery({'subject': 'MSE', 'catalog_nbr': '195'}, include_current=True)
+        students_in_mse_195 = students_in_mse_195_query.result()
+        students_in_mse_195_emplids = set(students_in_mse_195.column_as_list('EMPLID'))
+
+        students_in_mse_196_query = SingleCourseQuery({'subject': 'MSE', 'catalog_nbr': '196'}, include_current=True)
+        students_in_mse_196 = students_in_mse_196_query.result()
+        students_in_mse_196_emplids = set(students_in_mse_196.column_as_list('EMPLID'))
 
 
         # These are cached queries, so it shouldn't be *too* expensive to run them.
@@ -62,7 +70,9 @@ class LowGPAOrNoCoOpReport(Report):
 
         ensc_students.filter(too_few_credits)
         ensc_students.compute_column('AT_LEAST_ONE_CO_OP', lambda x: x['EMPLID'] in students_in_ensc_195_emplids
-                                     or x['EMPLID'] in students_in_ensc_196_emplids)
+                                     or x['EMPLID'] in students_in_ensc_196_emplids
+                                     or x['EMPLID'] in students_in_mse_195_emplids
+                                     or x['EMPLID'] in students_in_mse_196_emplids)
 
         # Remove people with too high a GPA who have taken at least one Co-Op term.  That should
         # leave us only the ones we want to address.
