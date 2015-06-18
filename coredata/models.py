@@ -16,7 +16,6 @@ from django.utils.html import escape
 from bitfield import BitField
 import fractions
 
-
 def repo_name(offering, slug):
     """
     Label for a SVN repository
