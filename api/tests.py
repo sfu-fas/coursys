@@ -148,6 +148,12 @@ class APITest(TestCase):
         perms = ConsumerInfo.allowed_permissions(self.token)
         self.assertEqual(perms, [])
 
+    def test_head_request(self):
+        "Make sure HEAD requests work with the cache mixin"
+        self.client.login_user('ggbaker')
+        url = reverse('api.APIRoot', kwargs={})
+        resp = self.client.head(url)
+
     def test_all_endpoints(self):
         client = self.client
         client.login_user("ggbaker")
