@@ -60,7 +60,7 @@ class IsOfferingMember(permissions.BasePermission):
 
         return bool(view.member)
 
-from django.core.cache import get_cache
+from django.core.cache import caches
 from django.utils.encoding import force_bytes, iri_to_uri
 from django.utils.cache import patch_response_headers, patch_cache_control
 from rest_framework.response import Response
@@ -84,7 +84,7 @@ class CacheMixin(object):
         # borrowed from FetchFromCacheMiddleware
         self.key_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
         self.cache_alias = settings.CACHE_MIDDLEWARE_ALIAS
-        self.cache = get_cache(self.cache_alias)
+        self.cache = caches[self.cache_alias]
 
     def _get_cache_key(self, request):
         """
