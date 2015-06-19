@@ -8,6 +8,7 @@ import copy
 from django.db import models
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.apps.registry import apps
 
 from autoslug import AutoSlugField
 from bitfield import BitField
@@ -192,7 +193,7 @@ class CareerQuerySet(models.query.QuerySet):
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerEventManager(models.Manager):
     def get_queryset(self):
-        model = models.get_model('faculty', 'CareerEvent')
+        model = apps.get_model('faculty', 'CareerEvent')
         return CareerQuerySet(model)
 
     def __getattr__(self, attr, *args):
