@@ -584,11 +584,13 @@ def copyCourseSetup(course_copy_from, course_copy_to):
 
 
 from django.forms import ValidationError
-def activity_marks_from_JSON(activity, userid, data):
+def activity_marks_from_JSON(activity, userid, data, save=False):
     """
     Build ActivityMark and ActivityComponentMark objects from imported JSON data.
     
-    Return three lists: all ActivityMarks and all ActivityComponentMark and all NumericGrades *all not yet saved*.
+    Since validating the input involves almost all of the work of saving the data, this function handles both. It is
+    called once from is_valid with save==False to check everything, and again with save==True to actually do the work.
+    Redundant yes, but it lets is_valid actually do its job without side effects.
     """
     if not isinstance(data, dict):
         raise ValidationError(u'Outer JSON data structure must be an object.')
@@ -601,9 +603,6 @@ def activity_marks_from_JSON(activity, userid, data):
     # we basically have to do this work to validate anyway.
     components = ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)
     components = dict((ac.slug, ac) for ac in components)
-    activity_marks = []
-    activity_component_marks = []
-    numeric_grades = []
     found = set()
     combine = False # are we combining these marks with existing (as opposed to overwriting)?
     if 'combine' in data and bool(data['combine']):
@@ -649,7 +648,7 @@ def activity_marks_from_JSON(activity, userid, data):
             except NumericGrade.DoesNotExist:
                 old_am = None
 
-        activity_marks.append(am)
+        acms = [] # ActivityComponentMarks we will create for am
 
         # build ActivityComponentMarks
         found_comp_slugs = set()
@@ -708,13 +707,13 @@ def activity_marks_from_JSON(activity, userid, data):
                 comp = components[slug]
                 found_comp_slugs.add(slug)
             elif slug in components:
-                # shouldn't happend because JSON lib forces unique keys, but let's be extra safe...
+                # shouldn't happen because JSON lib forces unique keys, but let's be extra safe...
                 raise ValidationError(u'Multiple values given for "%s" in record for "%s".' % (slug, recordid))
             else:
                 raise ValidationError(u'Mark component "%s" not found in record for "%s".' % (slug, recordid))
 
-            cm = ActivityComponentMark(activity_mark=am, activity_component=comp)
-            activity_component_marks.append(cm)
+            cm = ActivityComponentMark(activity_component=comp)
+            acms.append(cm) # can't set activity_mark yet since it doesn't have an id
 
             componentdata = markdata[slug]
             if not isinstance(componentdata, dict):
@@ -729,20 +728,22 @@ def activity_marks_from_JSON(activity, userid, data):
                 raise ValidationError(u'Value for "mark" must be numeric for "%s" in record for "%s".' % (comp.title, recordid))
 
             cm.value = value
+
             mark_total += float(componentdata['mark'])
-            if 'comment' in componentdata:
+            if 'comment' in componentdata and save:
                 cm.comment = unicode(componentdata['comment'])
 
         for slug in set(components.keys()) - found_comp_slugs:
             # handle missing components
-            cm = ActivityComponentMark(activity_mark=am, activity_component=components[slug])
-            activity_component_marks.append(cm)
+            cm = ActivityComponentMark(activity_component=components[slug])
+            acms.append(cm) # can't set activity_mark yet since it doesn't have an id
+
             if combine and old_am:
                 old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
+                mark_total += float(old_cm.value)
                 cm.value = old_cm.value
                 cm.comment = old_cm.comment
-                mark_total += float(cm.value)
-            else:                
+            else:
                 cm.value = decimal.Decimal(0)
                 cm.comment = ''
 
@@ -751,8 +752,9 @@ def activity_marks_from_JSON(activity, userid, data):
             # new attachment
             if not (file_filename and file_data and file_mediatype):
                 raise ValidationError(u'Must specify all or none of "attach_type", "attach_filename", "attach_data" in record for "%s"' % (recordid))
-            am.file_attachment.save(name=file_filename, content=ContentFile(file_data), save=False)
             am.file_mediatype = file_mediatype
+            if save:
+                am.file_attachment.save(name=file_filename, content=ContentFile(file_data), save=False)
         elif combine and old_am:
             # recycle old
             am.file_attachment = old_am.file_attachment
@@ -772,6 +774,7 @@ def activity_marks_from_JSON(activity, userid, data):
         
         # put the total mark and numeric grade objects in place
         am.mark = mark_total
+
         value = mark_total
         if isinstance(am, StudentActivityMark):
             grades = NumericGrade.objects.filter(activity_id=activity.id, member=member)
@@ -782,8 +785,9 @@ def activity_marks_from_JSON(activity, userid, data):
                 numeric_grade = NumericGrade(activity_id=activity.id, member=member, flag="GRAD")
 
             numeric_grade.value = value
-            am.numeric_grade = numeric_grade
-            numeric_grades.append(numeric_grade)
+            if save:
+                numeric_grade.save(entered_by=userid)
+                am.numeric_grade = numeric_grade
 
         else:
             group_members = GroupMember.objects.filter(group=group, activity_id=activity.id, confirmed=True)
@@ -794,7 +798,13 @@ def activity_marks_from_JSON(activity, userid, data):
                     ngrade = NumericGrade(activity_id=activity.id, member=g_member.student)
                 ngrade.value = value
                 ngrade.flag = 'GRAD'
-                numeric_grades.append(ngrade)
+                if save:
+                    ngrade.save(entered_by=userid)
 
-    return (activity_marks, activity_component_marks, numeric_grades)
+        if save:
+            am.save()
+            for cm in acms:
+                cm.activity_mark = am
+                cm.save()
 
+    return found

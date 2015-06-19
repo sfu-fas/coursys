@@ -228,7 +228,10 @@ class ImportMarkFileForm(forms.Form):
         except ValueError as e:
             raise forms.ValidationError(u'JSON decoding error.  Exception was: "' + str(e) + '"')
 
-        return activity_marks_from_JSON(self.activity, self.userid, data)
+        # actually parse the input to see if it's valid
+        activity_marks_from_JSON(self.activity, self.userid, data, save=False)
+
+        return data
 
 
 class ActivityRenameForm(forms.Form):

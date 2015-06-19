@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from models import ActivityComponent, CommonProblem, ActivityComponentMark
 from models import GroupActivityMark, GroupActivityMark_LetterGrade, StudentActivityMark
 from models import get_activity_mark_by_id, get_activity_mark_for_student, get_group_mark_by_id, get_group_mark
-from models import copyCourseSetup, neaten_activity_positions
+from models import copyCourseSetup, neaten_activity_positions, activity_marks_from_JSON
 from coredata.models import Person, CourseOffering, Member
 from grades.models import FLAGS, Activity, NumericActivity, NumericGrade
 from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN, get_entry_person
@@ -1607,39 +1607,9 @@ def import_marks(request, course_slug, activity_slug):
         if request.method == 'POST':
             form = ImportMarkFileForm(data=request.POST, files=request.FILES, activity=activity, userid=request.user.username)
             if form.is_valid():
-                entered_by = get_entry_person(request.user.username)
-                # validation function builds all the objects we need: just save them now that we know everything is okay.
-                ams, amcs, ngs = form.cleaned_data['file']
-                count = 0
-                for ng in ngs:
-                    # save temporarily so we have ids for foreign keys
-                    ng.flag = 'NOGR'
-                    ng.save(entered_by=None, is_temporary=True)
+                found = activity_marks_from_JSON(activity, request.user.username, form.cleaned_data['file'], save=True)
 
-                for am in ams:
-                    if isinstance(am, StudentActivityMark):
-                        am.numeric_grade = am.numeric_grade
-                        #LOG EVENT
-                        l = LogEntry(userid=request.user.username,
-                              description=(u"Imported marking info for student %s on %s in %s") % (am.numeric_grade.member.person.userid, activity, course),
-                              related_object=activity)
-                        l.save()
-                    else:
-                        #LOG EVENT
-                        l = LogEntry(userid=request.user.username,
-                              description=(u"Imported marking info for group %s on %s in %s") % (am.group.slug, activity, course),
-                              related_object=activity)
-                        l.save()
-
-                    am.setMark(am.mark, entered_by=entered_by) # deal with the GradeHistory and other details
-                    am.save()
-                    count += 1
-
-                for amc in amcs:
-                    amc.activity_mark = amc.activity_mark
-                    amc.save()
-
-                messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (count))
+                messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (len(found)))
                 
                 return _redirct_response(request, course_slug, activity_slug)
         else:

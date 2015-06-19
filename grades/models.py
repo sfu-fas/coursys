@@ -138,8 +138,7 @@ class Activity(models.Model):
 
             # newly-released grades: create news items
             send_grade_released_news(self.id)
-            
-        
+
         if old and old.group and not self.group:
             # activity changed group -> individual. Clean out any group memberships
             from groups.models import GroupMember
@@ -167,7 +166,6 @@ class Activity(models.Model):
             self.slug = None
             self.save()
 
-
     def display_label(self):
         if self.percent:
             return "%s (%s%%)" % (self.name, self.percent)
@@ -185,6 +183,7 @@ class Activity(models.Model):
         String representing grade for this student
         """
         return self.display_grade_visible(student, 'INST')
+
     def get_status_display(self):
         """
         Override to provide better string for not-yet-due case.
@@ -275,14 +274,16 @@ class NumericActivity(Activity):
     Activity with a numeric mark
     """
     max_grade = models.DecimalField(max_digits=8, decimal_places=2)
-    
 
     class Meta:
         verbose_name_plural = "numeric activities"
+
     def type_long(self):
         return "Numeric Graded"
+
     def is_numeric(self):
         return True
+
     def is_calculated(self):
         return False
 
@@ -314,10 +315,13 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
+
     def type_long(self):
         return "Letter Graded"
+
     def is_numeric(self):
         return False
+
     def is_calculated(self):
         return False
 
@@ -350,10 +354,13 @@ class CalNumericActivity(NumericActivity):
 
     def is_calculated(self):
         return True
+
     class Meta:
         verbose_name_plural = "cal numeric activities"
+
     def type_long(self):
         return "Calculated Numeric Grade"
+
     def formula_display(self):
         from grades.formulas import display_formula
         activities = all_activities_filter(self.offering)
@@ -369,6 +376,7 @@ class CalLetterActivity(LetterActivity):
 
     def is_calculated(self):
         return True
+
     def is_numeric(self):
         return False
     
@@ -376,6 +384,7 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
+
     def type_long(self):
         return "Calculated Letter Grade"
     
@@ -498,7 +507,6 @@ class NumericGrade(models.Model):
             return '%s/%s' % (self.value, self.activity.max_grade)
         else:
             return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
-        
 
     def save(self, entered_by, mark=None, newsitem=True, group=None, is_temporary=False):
         """Save the grade.

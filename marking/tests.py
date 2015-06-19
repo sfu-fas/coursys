@@ -675,8 +675,7 @@ class TestMarkingImport(TestCase):
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('0'))
         self.assertEquals(mc.comment, "")
-        
-        
+
         # post second file: should be combined with first.
         with open('marking/testfiles/marking_import2.json') as file:
             post_data = {'file':[file]}
