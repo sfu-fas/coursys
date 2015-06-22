@@ -1,5 +1,6 @@
 from oauth_provider.utils import get_oauth_request
 from oauth_provider.models import Token
+from rest_framework_oauth.authentication import OAuthAuthentication
 from api.models import ConsumerInfo
 from rest_framework import permissions, authentication, fields, relations
 
@@ -28,7 +29,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             # CAS authenticated: the world is your oyster
             return True
 
-        elif isinstance(authenticator, authentication.OAuthAuthentication):
+        elif isinstance(authenticator, OAuthAuthentication):
             # OAuth authenticated: check that the consumer is allowed to do these things
 
             # re-find the Token, since it isn't stashed in the request
