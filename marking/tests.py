@@ -372,7 +372,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, None)
+        self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
 
@@ -383,9 +383,9 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, 'Error found in the file (row 2): Unmatched student number '
-            'or user-id ({0}).'. format(bad_id))
-        self.assertEqual(len(data_to_return), 0)
+        self.assertEqual(err, ['Error found in the file (row 2): Unmatched student number '
+            'or user-id ({0}).'. format(bad_id)])
+        self.assertEqual(len(data_to_return), 2)
 
     def test_import_grades_old_format_unknown_emplid(self):
         inName = 'marking/testfiles/oldformat_unk_emplid.csv'
@@ -394,8 +394,8 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, 'Error found in the file (row 1): Unmatched student number '
-            'or user-id ({0}).'. format(bad_emplid))
+        self.assertIn('Error found in the file (row 1): Unmatched student number '
+                      'or user-id ({0}).'. format(bad_emplid), err)
         self.assertEqual(len(data_to_return), 0)
 
     def test_import_grades_new_format(self):
@@ -405,7 +405,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, None)
+        self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
 
@@ -416,7 +416,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, None)
+        self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values)-1)
 
     def test_import_grades_new_format_junk_cols(self):
@@ -428,7 +428,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, None)
+        self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
 
@@ -445,17 +445,20 @@ class TestImportFunctionsNumeric(TestCase):
         inName = 'marking/testfiles/newformat_missing_uid_col.csv'
         data_to_return = {}
         with open(inName, 'r') as inp:
-             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, 'Error found in the file (row 1): Unmatched student number or user-id (Junk1).')
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertIn('Error found in the file (row 1): Unmatched student number or user-id (Junk1).', err)
+        self.assertIn('Error found in the file (row 2): Unmatched student number or user-id (w1).', err)
+        self.assertIn('Error found in the file (row 3): Unmatched student number or user-id (w2).', err)
         self.assertEqual(len(data_to_return), 0)
+
 
     def test_import_grades_new_format_missing_act_col(self):
         inName = 'marking/testfiles/newformat_missing_act_col.csv'
         data_to_return = {}
         with open(inName, 'r') as inp:
              err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, 'Error in file header line:  No '
-            'column labelled for activity {0}.'.format(self.a1.short_name))
+        self.assertIn('Error in file header line:  No '
+            'column labelled for activity {0}.'.format(self.a1.short_name), err)
         self.assertEqual(len(data_to_return), 0)
 
     def test_import_grades_new_format_dup_act_col(self):
@@ -463,8 +466,8 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, 'Error in file header line:  Two columns '
-            'labelled {0}.'.format(self.a1.short_name))
+        self.assertIn('Error in file header line:  Two columns '
+            'labelled {0}.'.format(self.a1.short_name), err)
         self.assertEqual(len(data_to_return), 0)
 
     def test_import_grades_new_format_missing_values(self):
@@ -477,7 +480,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, None)
+        self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
 
@@ -486,8 +489,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err,
-            'File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text.')
+        self.assertIn('File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text.', err)
         self.assertEqual(len(data_to_return), 0)
 
     def test_import_grades_new_format_utf8_bom(self):
@@ -495,8 +497,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err,
-            'File contains bad UTF-8 data: make sure it has been saved as UTF-8 text.')
+        self.assertIn('File contains bad UTF-8 data: make sure it has been saved as UTF-8 text.', err)
         self.assertEqual(len(data_to_return), 0)
 
 
@@ -534,7 +535,7 @@ class TestImportFunctionsLetter(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, None)
+        self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
         
@@ -544,7 +545,7 @@ class TestImportFunctionsLetter(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, None)
+        self.assertEqual(err, [])
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
 
