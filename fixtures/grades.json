@@ -4367,7 +4367,7 @@
   "max_mark": "5.00",
   "numeric_activity": 1,
   "position": 1,
-  "slug": "part",
+  "slug": "part-1",
   "title": "Part \u2780"
  },
  "model": "marking.activitycomponent",

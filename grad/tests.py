@@ -193,8 +193,7 @@ class GradTest(TestCase):
         url = reverse('grad.views.new_letter', kwargs={'grad_slug': gs.slug, 'letter_template_slug': lt.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
-        
+
     def test_grad_letters(self):
         """
         Check handling of letters for grad students
@@ -209,7 +208,7 @@ class GradTest(TestCase):
         response = client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, gs.person.get_title() + ' ' + gs.person.last_name + ' is making satisfactory progress')
-        content = unicode(response.content)
+        content = response.content.decode('utf-8')
         
         # create a letter with that content
         l = Letter(student=gs, date=datetime.date.today(), to_lines="The Student\nSFU", template=lt, created_by='ggbaker', content=content)
@@ -221,8 +220,7 @@ class GradTest(TestCase):
         url = reverse('grad.views.copy_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
-        
+
     def test_advanced_search_1(self):
         """
         Basics of the advanced search toolkit

@@ -1,4 +1,5 @@
-#from django.test import TestCase
+# coding=utf-8
+
 from testboost.testcase import FastFixtureTestCase as TestCase
 from grades.formulas import parse, cols_used, eval_parse, EvalException, ParseException
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, \
@@ -200,7 +201,7 @@ class GradesTest(TestCase):
         client = Client()
         client.login_user("0aaa0")
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, "Gregory Baker")
+        self.assertContains(response, u"Gregorʏ (Greg) Baker")
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         response = basic_page_tests(self, client, a.get_absolute_url())

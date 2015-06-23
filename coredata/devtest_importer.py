@@ -286,7 +286,7 @@ def create_test_offering():
         specified_filename="report.pdf")
     s.save()
 
-    m = ActivityComponent(numeric_activity=a1, max_mark=5, title=u"Part ➀", description="Part ➀ was done well and seems to work.", position=1)
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title=u"Part ➀", description="Part ➀ was done well and seems to work.", position=1, slug='part-1')
     m.save()
     m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2", description="Part 2 was done well and seems to work.", position=2)
     m.save()
