@@ -29,7 +29,7 @@ class GradProgram(models.Model):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
         return make_slug(sluglabel)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('unit',))
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('unit',))
     class Meta:
         unique_together = (('unit', 'label'),)
     def __unicode__ (self):
@@ -206,7 +206,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         else:
             userid = str(self.person.emplid)
         return make_slug(userid + "-" + self.program.slug)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True, manager=all_objects)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True, manager=all_objects)
     research_area = models.TextField('Research Area', blank=True)
     campus = models.CharField(max_length=5, choices=GRAD_CAMPUS_CHOICES, blank=True, db_index=True)
 
@@ -1238,7 +1238,7 @@ class LetterTemplate(models.Model):
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)  
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False)
     class Meta:
         unique_together = ('unit', 'label')      
     def __unicode__(self):
@@ -1266,7 +1266,7 @@ class Letter(models.Model):
 
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     def __unicode__(self):
         return u"%s letter for %s" % (self.template.label, self.student)
     def save(self, *args, **kwargs):

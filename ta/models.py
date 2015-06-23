@@ -169,8 +169,8 @@ class TAPosting(models.Model):
     closes = models.DateField(help_text='Closing date for the posting')
     def autoslug(self):
         return make_slug(self.semester.slugform() + "-" + self.unit.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'salary': default pay rates per BU for each GTA1, GTA2, UTA, EXT: ['1.00', '2.00', '3.00', '4.00']
         # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
         # 'accounts': default accounts for GTA1, GTA2, UTA, EXT (ra.models.Account.id values)

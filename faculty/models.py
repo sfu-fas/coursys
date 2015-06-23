@@ -423,7 +423,7 @@ class MemoTemplate(models.Model):
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return u"%s in %s" % (self.label, self.unit)
@@ -473,7 +473,7 @@ class Memo(models.Model):
             return make_slug(self.career_event.slug + "-" + self.template.label)
         else:
             return make_slug(self.career_event.slug + "-memo")
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('career_event',))
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('career_event',))
 
     def __unicode__(self):
         return u"%s memo for %s" % (self.template.label, self.career_event)

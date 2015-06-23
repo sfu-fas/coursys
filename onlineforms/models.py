@@ -209,8 +209,8 @@ class FormGroup(models.Model):
     members = models.ManyToManyField(Person, through='FormGroupMember') #
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
     class Meta:
         unique_together = (("unit", "name"),)
@@ -304,8 +304,8 @@ class Form(models.Model, _FormCoherenceMixin):
     advisor_visible = models.BooleanField(default=False, help_text="Should submissions be visible to advisors in this unit?")
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.title)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
         # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
 
     defaults = {'loginprompt': True}
@@ -506,11 +506,11 @@ class Sheet(models.Model, _FormCoherenceMixin):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
     
     def autoslug(self):
         return make_slug(self.title)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='form')
 
     #class Meta:
     #    unique_together = (('form', 'order'),)
@@ -582,14 +582,14 @@ class Field(models.Model, _FormCoherenceMixin):
     # specifies the order within a sheet
     order = models.PositiveIntegerField()
     fieldtype = models.CharField(max_length=4, choices=FIELD_TYPE_CHOICES, default="SMTX")
-    config = JSONField(null=False, blank=False, default={}) # configuration as required by the fieldtype. Must include 'required'
+    config = JSONField(null=False, blank=False, default=dict) # configuration as required by the fieldtype. Must include 'required'
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     def autoslug(self):
         return make_slug(self.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='sheet')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='sheet')
 
     def __unicode__(self):
         return u"%s, %s" % (self.sheet, self.label)
@@ -633,8 +633,8 @@ class FormSubmission(models.Model):
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
         return self.initiator.identifier()
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='form')
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
         # 'summary': summary of the form entered when closing it
         # 'emailed': True if the initiator was emailed when the form was closed
         # 'closer': coredata.Person.id of the person that marked the formsub as DONE
@@ -709,8 +709,8 @@ class SheetSubmission(models.Model):
     # key = models.CharField()
     def autoslug(self):
         return self.filler.identifier()
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='form_submission')
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
         # 'assigner': the user who assigned this sheet to the filler (Person.id value)
         # 'assign_note': optional note provided for asignee when sheet was assigned by admin
         # 'assign_comment': optional comment provided by admin about the formsubmission

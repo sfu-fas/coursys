@@ -58,7 +58,7 @@ class DiscussionTopic(models.Model):
     author = models.ForeignKey(Member)
     def autoslug(self):
         return make_slug(self.title)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=['offering'])
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['offering'])
     config = JSONField(null=False, blank=False, default={})
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
@@ -160,7 +160,7 @@ class DiscussionMessage(models.Model):
     author = models.ForeignKey(Member)
     def autoslug(self):
         return make_slug(self.author.person.userid)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=['topic'])
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=['topic'])
     config = JSONField(null=False, blank=False, default={})
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)

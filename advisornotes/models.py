@@ -43,7 +43,7 @@ class NonStudent(models.Model):
 
     def autoslug(self):
         return make_slug(self.first_name + ' ' + self.last_name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
@@ -147,7 +147,7 @@ class Artifact(models.Model):
     def autoslug(self):
         return make_slug(self.unit.label + '-' + self.name)
 
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 

@@ -32,7 +32,7 @@ class ActivityComponent(models.Model):
     deleted = models.BooleanField(null=False, db_index=True, default=False)
     def autoslug(self):
         return make_slug(self.title)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='numeric_activity')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='numeric_activity')
     
     def __unicode__(self):        
         return self.title

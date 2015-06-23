@@ -183,7 +183,7 @@ class DisciplineGroup(models.Model):
     offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with")
     def autoslug(self):
         return make_slug(self.name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
     
     def __unicode__(self):
         return "%s in %s" % (self.name, self.offering)
@@ -215,7 +215,7 @@ class DisciplineCaseBase(models.Model):
     notes_public = models.TextField(blank=True, null=True, verbose_name="Public Notes", help_text='Notes about the case (public notes, '+TEXTILENOTE+').')
     def autoslug(self):
         return self.student.userid
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
     group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).")
     
 

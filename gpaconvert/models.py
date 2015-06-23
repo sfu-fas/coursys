@@ -70,7 +70,7 @@ class GradeSource(models.Model):
 
     def _auto_slug(self):
         return make_slug("%s-%s" % (self.institution, self.country))
-    slug = AutoSlugField(populate_from=_auto_slug, null=False, editable=False)
+    slug = AutoSlugField(populate_from='_auto_slug', null=False, editable=False)
 
     objects = GradeSourceManager()
 

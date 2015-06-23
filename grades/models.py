@@ -75,7 +75,7 @@ class Activity(models.Model):
     short_name = models.CharField(max_length=15, db_index=True, help_text='Short-form name of the activity.')
     def autoslug(self):
         return make_slug(self.short_name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering', manager=objects,
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering', manager=objects,
                          help_text='String that identifies this activity within the course offering')
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(null=True, help_text='Activity due date')

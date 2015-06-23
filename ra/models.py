@@ -53,7 +53,7 @@ class Project(models.Model):
     fund_number = models.PositiveIntegerField()
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.project_number))
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False)
     
     class Meta:
@@ -75,7 +75,7 @@ class Account(models.Model):
     title = models.CharField(max_length=60)
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False)
 
     class Meta:
@@ -136,10 +136,10 @@ class RAAppointment(models.Model):
         else:
             ident = unicode(self.person.emplid)
         return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + ident)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
     defaults = {'use_hourly': False}
     use_hourly, set_use_hourly = getter_setter('use_hourly')
 

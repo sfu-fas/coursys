@@ -198,14 +198,14 @@ class TACategory(models.Model):
     # ensc-gta2
     def autoslug(self):
         return make_slug(self.account.unit.label + '-' + unicode(self.code))
-    slug = AutoSlugField(populate_from=autoslug, 
+    slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
                          unique=True)
     created = models.DateTimeField(default=datetime.datetime.now,
                                    editable=False)
     hidden = models.BooleanField(default=False, editable=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
     objects = PassThroughManager.for_queryset_class(TACategoryQuerySet)()
     
@@ -290,14 +290,14 @@ class TAContract(models.Model):
     def autoslug(self):
         return make_slug(self.person.first_name + '-' + self.person.last_name \
                             + "-" + unicode(self.pay_start))
-    slug = AutoSlugField(populate_from=autoslug, 
+    slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
                          unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     created_by = models.CharField(max_length=20, null=False, blank=False, \
                                   editable=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     objects = PassThroughManager.for_queryset_class(TAContractQuerySet)()
    
@@ -544,11 +544,11 @@ class TACourse(models.Model):
         curtis-lassam-2014-09-01 
         """
         return make_slug(self.course.slug)
-    slug = AutoSlugField(populate_from=autoslug, 
+    slug = AutoSlugField(populate_from='autoslug', 
                          null=False, 
                          editable=False, 
                          unique=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     class Meta:
         unique_together = (('contract', 'course'),)

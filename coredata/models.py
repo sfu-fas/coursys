@@ -506,7 +506,7 @@ class Course(models.Model, ConditionalSaveMixin):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
     def autoslug(self):
         return make_slug(self.subject + '-' + self.number)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     
     class Meta:
         unique_together = (('subject', 'number'),)
@@ -663,7 +663,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         else:
             words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
         return '-'.join(words)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     class Meta:
         ordering = ['-semester', 'subject', 'number', 'section']
@@ -1121,7 +1121,7 @@ class Unit(models.Model):
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
     def autoslug(self):
         return self.label.lower()
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # 'address': list of (3) lines in mailing address (default: SFU main address)
         # 'email': contact email address (may be None)
