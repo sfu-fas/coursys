@@ -1,6 +1,9 @@
+# coding=utf-8
+
 # importer to create fake data for development
 # suggestion execution:
-#   rm db.sqlite; ./manage.py migrate && python coredata/devtest_importer.py
+#   rm db.sqlite && ./manage.py migrate && cp db.sqlite db.empty
+#   rm fixtures/*; cp db.empty db.sqlite && python coredata/devtest_importer.py
 
 import os, sys, socket
 from django.core.wsgi import get_wsgi_application
@@ -50,7 +53,7 @@ def randname(l):
     """
     n = random.choice(string.ascii_uppercase)
     for _ in range(l-1):
-        n = n + random.choice(string.ascii_lowercase)
+        n = n + random.choice(string.ascii_lowercase + u'àêïõú')
     return n
 
 randnullbool = lambda:random.choice((False, True, None))
@@ -100,6 +103,8 @@ def create_true_core():
     import_semester_info(dry_run=False, verbose=False, long_long_ago=True, bootstrap=True)
     p = find_person('ggbaker')
     p.emplid = '200000100'
+    p.first_name = u'Gregorʏ'
+    p.pref_first_name = 'Greg'
     p.save()
     u = Unit(label='UNIV', name='Simon Fraser University')
     u.save()
@@ -218,7 +223,7 @@ def create_coredata():
     r3.save()
 
     # ensures course appears in menu for students
-    a = NumericActivity(offering=o, name='Assignment 1', short_name='A1', status='URLS', position=1, percent=10,
+    a = NumericActivity(offering=o, name=u'Assignmenț 1', short_name='A1', status='URLS', position=1, percent=10,
         max_grade=10, due_date=(o.semester.start + datetime.timedelta(days=60)))
     a.save()
 
@@ -274,14 +279,14 @@ def create_test_offering():
     to.save()
 
     # make A1 submittable and markable
-    s = CodeComponent(activity=a1, title="Code File", description="The code you're submitting.",
+    s = CodeComponent(activity=a1, title=u"Cöde File", description="The code you're submitting.",
         allowed=".py,.java")
     s.save()
     s = PDFComponent(activity=a1, title="Report", description="Report on what you did.",
         specified_filename="report.pdf")
     s.save()
 
-    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 1", description="Part 1 was done well and seems to work.", position=1)
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title=u"Part ➀", description="Part ➀ was done well and seems to work.", position=1)
     m.save()
     m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2", description="Part 2 was done well and seems to work.", position=2)
     m.save()
@@ -379,7 +384,7 @@ def create_grad():
     templates = [
                  {"unit": cmpt,
                   "label": "offer",
-                  "content": "Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is good news. Really."
+                  "content": u"Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is gööd news. Really."
                   },
                  {"unit": cmpt,
                   "label": "visa",
@@ -565,7 +570,7 @@ def create_ta_ra():
     post.set_deadline(s.start - datetime.timedelta(10))
     post.set_payperiods(7.5)
     post.set_contact(admin.id)
-    post.set_offer_text("This is **your** TA offer.\n\nThere are various conditions that are too numerous to list here.")
+    post.set_offer_text("This is **your** TA öffer.\n\nThere are various conditions that are töö numerous to list here.")
     post.save()
     offerings = list(post.selectable_offerings())
 
@@ -591,7 +596,6 @@ def create_ta_ra():
                 tac = TACourse(course=o, contract=c, bu=app.base_units)
                 tac.description = tac.default_description()
                 tac.save()
-
 
     # RAs
     s = Semester.current()
@@ -622,8 +626,6 @@ def create_ta_ra():
                            **payargs)
         ra.set_use_hourly(random.choice([True, False]))
         ra.save()
-
-
 
     return itertools.chain(
         [r1, r2],
@@ -670,7 +672,7 @@ def create_onlineforms():
     fld4.save()
     fld4 = Field(label='Reasons', sheet=s2, fieldtype='LGTX', config={"min_length": 1, "required": True, "max_length": "1000", 'label': 'Reasons', "help_text":'Why do you think you deserve it?'})
     fld4.save()
-    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={"required": False, 'label': 'Prediction', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
+    fld5 = Field(label='Prediction', sheet=s2, fieldtype='RADI', config={"required": False, 'label': u'Predictiŏn', "help_text":"Do you think it's likely this will be approved?", "choice_1": "Yes", "choice_2": "No", "choice_3": "Huh?"})
     fld5.save()
     s3 = Sheet(form=f2, title="Decision", can_view="ALL")
     s3.save()
