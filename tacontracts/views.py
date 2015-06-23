@@ -653,7 +653,7 @@ def contracts_csv(request, unit_slug, semester):
                      'Hourly Rate', 'Standard Hours', 'Scholarship Rate Code',
                      'Semester Scholarship Salary Pay Rate', 
                      'Biweekly Scholarship Salary Pay Rate', 'Lump Sum Amount',
-                     'Lump Sum Hours', 'Scholarship Lump Sum'])
+                     'Lump Sum Hours', 'Scholarship Lump Sum', 'Course(s)'])
     
     seq = hiring_semester.next_export_seq()
     batchid = '%s_%s_%02i' % (hiring_semester.unit.label, 
@@ -671,6 +671,9 @@ def contracts_csv(request, unit_slug, semester):
         schol_total = c.scholarship_pay
         if prep_units == 0:
             prep_units = ''
+
+        # Build a string of all course offerings tied to this contract to add to the results.
+        course_list_string = ', '.join([unicode.encode(ta_course.course.name()) for ta_course in c.course.all()])
         
         row = []
         #Batch ID
@@ -732,6 +735,8 @@ def contracts_csv(request, unit_slug, semester):
         #Biweekly Scholarship Salary Pay Rate, Lump Sum Amount
         #Lump Sum Hours, Scholarship Lump Sum
         row.extend(['','','',''])
+        # Course(s)
+        row.append(course_list_string)
 
         writer.writerow(row)
     
