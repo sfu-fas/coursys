@@ -6,6 +6,7 @@ from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from pages.models import ParserFor
+from django.forms.utils import ErrorList
 
 class DividerFieldWidget(forms.TextInput):
     def render(self, name, value, attrs=None):
@@ -245,7 +246,7 @@ class DynamicForm(forms.Form):
                 field.initial = cleaned_data
             except forms.ValidationError, e:
                 #self.errors[name] = ", ".join(e.messages)
-                self.errors[name] = forms.util.ErrorList(e.messages)
+                self.errors[name] = ErrorList(e.messages)
                 if str(name) in post_data:
                     field.initial = post_data[str(name)]
                 else:
