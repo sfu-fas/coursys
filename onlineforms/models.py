@@ -798,15 +798,13 @@ class SheetSubmission(models.Model):
             fs.set_summary('Automatically closed by system after being dormant %i days.' % (days))
             fs.save()
 
-
-
     @classmethod
     def waiting_sheets_by_user(cls):
         min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
         sheet_subs = SheetSubmission.objects.exclude(status='DONE').exclude(status='REJE') \
                 .exclude(given_at__gt=min_age) \
                 .order_by('filler__id') \
-                .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'form_submission__form__initiator', 'sheet')
+                .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'form_submission__initiator', 'form_submission__form', 'sheet')
         return itertools.groupby(sheet_subs, lambda ss: ss.filler)
 
     @classmethod

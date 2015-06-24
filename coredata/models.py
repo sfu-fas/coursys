@@ -914,8 +914,8 @@ class Member(models.Model, ConditionalSaveMixin):
     def bu(self):
         return decimal.Decimal(unicode(self.raw_bu()))
 
-    @classmethod
-    def get_memberships(cls, userid):
+    @staticmethod
+    def get_memberships(userid):
         """
         Get course memberships for this userid that we want to display on their menu. return list of Member objects and
         a boolean indicating whether or not there were temporal exclusions (so the "course history" link is relevant).
