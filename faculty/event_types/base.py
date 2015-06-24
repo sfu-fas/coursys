@@ -117,6 +117,15 @@ class BaseEntryForm(forms.Form):
         "Hook to do setup of the form"
         pass
 
+    def clean_end_date(self):
+        start_date = self.cleaned_data['start_date']
+        end_date = self.cleaned_data['end_date']
+        if not end_date:
+            return
+        if start_date > end_date:
+            raise forms.ValidationError('End date cannot be before the start date.')
+        return end_date
+
 
 class CareerEventHandlerBase(object):
 
