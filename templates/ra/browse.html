@@ -21,6 +21,8 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+<form action="" id="filterform">{{ form.as_ul }}</form>
+
 <table class="display" id="ra_table">
 <thead>
 <tr><th scope="col">RA Name</th><th scope="col">Faculty Name</th><th scope="col">Unit</th>

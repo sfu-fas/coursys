@@ -89,9 +89,7 @@ class RASearchForm(forms.Form):
     search = StudentField()
 
 class RABrowseForm(forms.Form):
-    hiring_faculty = forms.ChoiceField(choices=[])
-    account = forms.ChoiceField(choices=[])
-    project = forms.ChoiceField(choices=[])
+    current = forms.BooleanField(label='Only current appointments', initial=True, help_text='Appointments active now (or within two weeks).')
 
 class AccountForm(forms.ModelForm):
     class Meta:

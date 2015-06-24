@@ -94,7 +94,7 @@ def _appointment_defaults(units, emplid=None):
 #New RA Appointment
 @requires_role("FUND")
 def new(request):
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units)
     if request.method == 'POST':
         data = request.POST.copy()
         if data['pay_frequency'] == 'L':
@@ -136,7 +136,7 @@ def new_student(request, userid):
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80 }
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=student.emplid)
     gss = GradStudent.objects.filter(person=student)
     if gss:
         gradstudent = gss[0]
@@ -276,7 +276,7 @@ def delete_ra(request, ra_slug):
 
 
 
-#Methods relating to Account creation. These are all straight forward.
+# Methods relating to Account creation. These are all straight forward.
 @requires_role(["FUND", "TAAD", "GRAD"])
 def new_account(request):
     accountform = AccountForm(request.POST or None)
@@ -410,9 +410,10 @@ def search_scholarships_by_student(request, student_id):
 @requires_role("FUND")
 def browse(request):
     if 'tabledata' in request.GET:
-        return _browser_data(request)
+        return RADataJson.as_view()(request)
 
-    context = {}
+    form = RABrowseForm()
+    context = {'form': form}
     return render(request, 'ra/browse.html', context)
 
 
@@ -444,6 +445,13 @@ class RADataJson(BaseDatatableView):
         qs = qs.filter(unit__in=Unit.sub_units(self.request.units))
         qs = qs.exclude(deleted=True)
 
+        # "current" contracts filter
+        if 'current' in GET and GET['current'] == 'yes':
+            today = datetime.date.today()
+            slack = 14 # number of days to fudge the start/end
+            qs = qs.filter(start_date__lte=today + datetime.timedelta(days=slack),
+                           end_date__gte=today - datetime.timedelta(days=slack))
+
         # search box
         srch = GET.get('sSearch', None)
         if srch:
@@ -472,59 +480,6 @@ class RADataJson(BaseDatatableView):
 
         return unicode(getattr(ra, column))
 
-_browser_data = RADataJson.as_view()
-
-@requires_role("FUND")
-def XXX_browse(request):
-    units = Unit.sub_units(request.units)
-    hiring_choices = [('all', 'All')] + possible_supervisors(units)
-    project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
-    account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
-    if 'data' in request.GET:
-        # AJAX query for data
-        ras = RAAppointment.objects.filter(unit__in=units, deleted=False) \
-                .select_related('person', 'hiring_faculty', 'project', 'account')
-        if 'hiring_faculty' in request.GET and request.GET['hiring_faculty'] != 'all':
-            ras = ras.filter(hiring_faculty__id=request.GET['hiring_faculty'])
-        if 'project' in request.GET and request.GET['project'] != 'all':
-            ras = ras.filter(project__id=request.GET['project'], project__unit__in=units)
-        if 'account' in request.GET and request.GET['account'] != 'all':
-            ras = ras.filter(account__id=request.GET['account'], account__unit__in=units)
-
-        truncated = False
-        if ras.count() > 200:
-            ras = ras[:200]
-            truncated = True
-        data = []
-        for ra in ras:
-            radata = {
-                'slug': ra.slug,
-                'name': ra.person.sortname(),
-                'hiring': ra.hiring_faculty.sortname(),
-                'project': unicode(ra.project),
-                'project_hidden': ra.project.hidden,
-                'account': unicode(ra.account),
-                'account_hidden': ra.account.hidden,
-                'start': datefilter(ra.start_date, settings.GRAD_DATE_FORMAT),
-                'end': datefilter(ra.end_date, settings.GRAD_DATE_FORMAT),
-                'amount': '$'+unicode(ra.lump_sum_pay),
-                }
-            data.append(radata)
-        
-        response = HttpResponse(content_type="application/json")
-        json.dump({'truncated': truncated, 'data': data}, response, indent=1)
-        return response
-
-    else:
-        # request for page
-        form = RABrowseForm()
-        form.fields['hiring_faculty'].choices = hiring_choices
-        form.fields['account'].choices = account_choices
-        form.fields['project'].choices = project_choices
-        context = {
-            'form': form
-            }
-        return render(request, 'ra/browse.html', context)
 
 def pay_periods(request):
     """

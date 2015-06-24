@@ -158,23 +158,30 @@ function get_person_info(emplid) {
 
 var table;
 
-function server_params() {
-	// build the extra GET parameters that will go in the datatables data request (by inspecting the filter form)
-	var params = [];
-	return params;
+function handle_form_change() {
+  table.fnDraw();
 }
 
 function ra_browser_setup(my_url) {
+  $('#filterform label[for=id_current]').css('display', 'inline');
   table = $('#ra_table').dataTable( {
     'jQueryUI': true,
     'pagingType': 'full_numbers',
     'pageLength' : 20,
-    //'order': [[0,'asc'],[4,'desc']],
     'processing': true,
     'serverSide': true,
     'sAjaxSource': my_url + '?tabledata=yes',
+    'fnServerData': function ( sSource, aoData, fnCallback ) {
+      // check and honour the filter flag
+      if ( $('#id_current').is(':checked') ) {
+        aoData.push( { "name": "current", "value": "yes" } );
+      }
+      $.getJSON( sSource, aoData, function (json) {
+        fnCallback(json);
+      } );
+    },
   } );
-
+  $('#filterform').change(handle_form_change);
 }
 
 $(document).ready(function() {

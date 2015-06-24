@@ -1053,6 +1053,11 @@ div#main .artifact-note p {
   font-weight: bold;
   margin: 0;
 }
+#filterform li label {
+  display: block;
+  font-weight: bold;
+  margin: 0;
+}
 #filterform li span.field label {
   display: inline;
   font-weight: normal;
