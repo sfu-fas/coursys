@@ -20,6 +20,7 @@ from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from pages.models import Page, ACL_ROLES
+from ra.models import RAAppointment
 from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
@@ -40,9 +41,10 @@ def index(request):
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
-    is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).count() > 0
-    has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
-    form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
+    is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).exists()
+    has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).exists()
+    form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
+    has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
 
     #messages.add_message(request, messages.SUCCESS, 'Success message.')
     #messages.add_message(request, messages.WARNING, 'Warning message.')
@@ -54,7 +56,8 @@ def index(request):
                 'news_list': news_list, 
                 'roles': roles, 
                 'is_grad':is_grad,
-                'has_grads': has_grads, 
+                'has_grads': has_grads,
+                'has_ras': has_ras,
                 'excluded': excluded, 
                 'form_groups': form_groups}
     return render(request, "dashboard/index.html", context)
