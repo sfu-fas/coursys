@@ -16,9 +16,9 @@ $(document).ready(function() {
 
 {% block subbreadcrumbs %}
 {% if supervisor_only %}
-<li>RA Appointments</li>
+<li>RAs</li>
 {% else %}
-<li><a href="{% url "ra.views.search" %}">RA Appointments</a></li>
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
 {% endif %}
 <li>Browse</li>
 {% endblock %}

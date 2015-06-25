@@ -8,8 +8,12 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
+{% if supervisor_only %}
+<li>RAs</li><li>{{ student.name }}</li>
+{% else %}
 <li><a href="{% url "ra.views.search" %}">RAs</a></li>
 <li><a href="{% url "ra.views.student_appointments" userid=appointment.person.emplid %}">{{ student.name }}</a></li>
+{% endif %}
 <li>{{ appointment.account.title }} starting {{ appointment.start_date }}</li>
 {% endblock %}
 

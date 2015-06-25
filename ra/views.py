@@ -240,11 +240,14 @@ def edit_letter(request, ra_slug):
 
 
 #View RA Appointment
-@requires_role("FUND")
+@_can_view_ras()
 def view(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment,
+        Q(unit__in=Unit.sub_units(request.units)) | Q(hiring_faculty__userid=request.user.username),
+        slug=ra_slug, deleted=False)
     student = appointment.person
-    return render(request, 'ra/view.html', {'appointment': appointment, 'student': student})
+    return render(request, 'ra/view.html',
+        {'appointment': appointment, 'student': student, 'supervisor_only': not request.units})
 
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
