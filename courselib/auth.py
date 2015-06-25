@@ -97,10 +97,10 @@ def has_role(role, request, get_only=None, **kwargs):
         else:
             allowed.append(get_only)
         
-    roles = Role.objects.filter(person__userid=request.user.username, role__in=allowed)
+    roles = Role.objects.filter(person__userid=request.user.username, role__in=allowed).select_related('unit')
     request.units = set(r.unit for r in roles)
     count = roles.count()
-    return count>0
+    return count > 0
 
 def requires_global_role(role, login_url=None):
     """

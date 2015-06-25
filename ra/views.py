@@ -11,7 +11,7 @@ from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterFor
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
-from courselib.auth import requires_role, ForbiddenResponse
+from courselib.auth import requires_role, has_role, ForbiddenResponse, user_passes_test
 from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from log.models import LogEntry
@@ -21,8 +21,22 @@ from django import forms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from haystack.query import SearchQuerySet
 
-
 import json, datetime, urllib
+
+def _can_view_ras():
+    """
+    Allows access to funding admins, and supervisors of (any) RA.
+
+    Request object gets .units and .is_supervisor set along the way.
+    """
+    def auth_test(request, **kwargs):
+        supervisor = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username).exists()
+        request.is_supervisor = supervisor
+        return has_role('FUND', request, **kwargs) or supervisor
+
+    actual_decorator = user_passes_test(auth_test)
+    return actual_decorator
+
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -407,13 +421,13 @@ def search_scholarships_by_student(request, student_id):
     json.dump(data, response, indent=1)
     return response
 
-@requires_role("FUND")
+@_can_view_ras()
 def browse(request):
     if 'tabledata' in request.GET:
         return RADataJson.as_view()(request)
 
     form = RABrowseForm()
-    context = {'form': form}
+    context = {'form': form, 'supervisor_only': not request.units}
     return render(request, 'ra/browse.html', context)
 
 
@@ -442,7 +456,10 @@ class RADataJson(BaseDatatableView):
         GET = self.request.GET
 
         # limit to those visible to this user
-        qs = qs.filter(unit__in=Unit.sub_units(self.request.units))
+        qs = qs.filter(
+            Q(unit__in=Unit.sub_units(self.request.units))
+            | Q(hiring_faculty__userid=self.request.user.username)
+        )
         qs = qs.exclude(deleted=True)
 
         # "current" contracts filter
