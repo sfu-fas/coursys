@@ -62,7 +62,7 @@ def found(request):
     people = Person.objects.filter(studentQuery)[:200]
     for p in people:
         # decorate with RAAppointment count
-        p.ras = RAAppointment.objects.filter(person=p, deleted=False).count()
+        p.ras = RAAppointment.objects.filter(unit__in=Unit.sub_units(request.units), person=p, deleted=False).count()
 
     context = {'people': people}
     return render(request, 'ra/found.html', context)
@@ -154,7 +154,7 @@ def new_student(request, userid):
 #Edit RA Appointment
 @requires_role("FUND")
 def edit(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)    
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=appointment.person.emplid)
     if request.method == 'POST':
         data = request.POST.copy()
@@ -190,7 +190,7 @@ def edit(request, ra_slug):
 #Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
 @requires_role("FUND")
 def reappoint(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     semester = Semester.next_starting()
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
@@ -208,7 +208,7 @@ def reappoint(request, ra_slug):
 
 @requires_role("FUND")
 def edit_letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
 
     if request.method == 'POST':
         form = RALetterForm(request.POST, instance=appointment)
@@ -235,7 +235,7 @@ def view(request, ra_slug):
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
 def form(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
     ra_form(appointment, response)
@@ -243,7 +243,7 @@ def form(request, ra_slug):
 
 @requires_role("FUND")
 def letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=Unit.sub_units(request.units))
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
@@ -261,7 +261,7 @@ def letter(request, ra_slug):
 
 @requires_role("FUND")
 def delete_ra(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
     if request.method == 'POST':
         appointment.deleted = True
         appointment.save()
@@ -298,7 +298,7 @@ def accounts_index(request):
 
 @requires_role(["FUND", "TAAD", "GRAD"])
 def edit_account(request, account_slug):
-    account = get_object_or_404(Account, slug=account_slug)
+    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
     if request.method == 'POST':
         accountform = AccountForm(request.POST, instance=account)
         if accountform.is_valid():
@@ -312,7 +312,7 @@ def edit_account(request, account_slug):
 
 @requires_role("FUND")
 def remove_account(request, account_slug):
-    account = get_object_or_404(Account, slug=account_slug)
+    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
     account.delete()
     messages.success(request, "Removed account %s." % str(account.account_number))
     l = LogEntry(userid=request.user.username,
@@ -343,7 +343,7 @@ def projects_index(request):
 
 @requires_role("FUND")
 def edit_project(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug)
+    project = get_object_or_404(Project, slug=project_slug, unit__in=request.units)
     if request.method == 'POST':
         projectform = ProjectForm(request.POST, instance=project)
         if projectform.is_valid():
@@ -357,7 +357,7 @@ def edit_project(request, project_slug):
 
 @requires_role("FUND")
 def remove_project(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug)
+    project = get_object_or_404(Project, slug=project_slug, unit__in=request.units)
     project.delete()
     messages.success(request, "Removed project %s." % str(project.project_number))
     l = LogEntry(userid=request.user.username,
