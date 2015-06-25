@@ -10,19 +10,24 @@
 <script src="{% static 'js/ra.js' %}"></script>
 <script>
 $(document).ready(function() {
-	ra_browser_setup("{% url 'ra.views.browse' %}");
+  ra_browser_setup("{% url 'ra.views.browse' %}");
 });
 </script>{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "ra.views.search" %}">RA Appointments</a></li>
-<li>Browse</li>{% endblock %}
+{% block subbreadcrumbs %}
+{% if supervisor_only %}
+<li>RAs</li>
+{% else %}
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+{% endif %}
+<li>Browse</li>
+{% endblock %}
 
 {% block actions %}
 {% endblock %}
 
 {% block content %}
 <form action="" id="filterform">{{ form.as_ul }}</form>
-
 <table class="display" id="ra_table">
 <thead>
 <tr><th scope="col">RA Name</th><th scope="col">Faculty Name</th><th scope="col">Unit</th>
