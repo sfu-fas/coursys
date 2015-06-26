@@ -41,7 +41,7 @@ Vagrant.configure("2") do |config|
       mount_options: ["dmode=777,fmode=777"]
 
   config.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", "2048"]
+      v.customize ["modifyvm", :id, "--memory", "8192"]
       v.customize ["modifyvm", :id, "--cpus", "2"]
   end
 
