@@ -118,8 +118,10 @@ class BaseEntryForm(forms.Form):
         pass
 
     def clean_end_date(self):
-        start_date = self.cleaned_data['start_date']
+        start_date = self.cleaned_data.get('start_date', None)
         end_date = self.cleaned_data['end_date']
+        if not start_date:
+            return end_date
         if not end_date:
             return
         if start_date > end_date:
