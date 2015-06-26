@@ -189,6 +189,15 @@ class FormFiller(models.Model):
             return self.nonSFUFormFiller.email() \
                    .replace('@', '-').replace('.', '-')
 
+    def emplid(self):
+        """
+        If this is an SFU user, return the emplid, otherwise, nothing.
+        """
+        if self.sfuFormFiller:
+            return self.sfuFormFiller.emplid
+        else:
+            return None
+
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
@@ -419,6 +428,7 @@ class Form(models.Model, _FormCoherenceMixin):
         for sid, info in sheet_info.iteritems():
             headers.append(info['title'].upper())
             headers.append(None)
+            headers.append('ID')
             if info['is_initial']:
                 headers.append('Initiated')
             for fid, finfo in info['fields'].iteritems():
@@ -457,10 +467,12 @@ class Form(models.Model, _FormCoherenceMixin):
                     ss = winning_sheetsub[(formsub.id, sid)]
                     row.append(ss.filler.name())
                     row.append(ss.filler.email())
+                    row.append(ss.filler.emplid())
                     if not last_completed or ss.completed_at > last_completed:
                         last_completed = ss.completed_at
                 else:
                     ss = None
+                    row.append(None)
                     row.append(None)
                     row.append(None)
 
