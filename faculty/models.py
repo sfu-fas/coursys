@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.apps.registry import apps
+from django.utils import timezone
 
 from autoslug import AutoSlugField
 from bitfield import BitField
@@ -456,15 +457,14 @@ class Memo(models.Model):
 
     template = models.ForeignKey(MemoTemplate, null=True)
     memo_text = models.TextField(help_text="I.e. 'Congratulations on ... '")
-    #salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
-    #closing = models.CharField(max_length=100, default="Sincerely")
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+')
     hidden = models.BooleanField(default=False)
-    config = JSONField(default={})  # addition configuration for within the memo
-    # XXX: 'use_sig': use the from_person's signature if it exists?
-    #                 (Users set False when a real legal signature is required.
+    config = JSONField(default={})  # addition configuration for the memo
+    # 'use_sig': use the from_person's signature if it exists?
+    #            (Users set False when a real legal signature is required.)
+    # 'pdf_generated': set to True if a PDF has ever been created for this memo (used to decide if it's editable)
 
     use_sig = config_property('use_sig', default=True)
 
@@ -493,10 +493,20 @@ class Memo(models.Model):
         """
         Return a string indicating why this memo cannot be edited, or None.
         """
-        return "you can never edit memos"
+        age = timezone.now() - self.created_at
+        if age > datetime.timedelta(minutes=15):
+            return 'memo is more than 15 minutes old'
+        #elif self.config.get('pdf_generated', False):
+        #    return 'PDF has been generated, so we assume it was sent'
+        return None
 
     def write_pdf(self, response):
         from dashboard.letters import OfficialLetter, MemoContents
+
+        # record the fact that it was generated (for editability checking)
+        self.config['pdf_generated'] = True
+        self.save()
+
         doc = OfficialLetter(response, unit=self.unit)
         l = MemoContents(to_addr_lines=self.to_lines.split("\n"),
                         from_name_lines=self.from_lines.split("\n"),

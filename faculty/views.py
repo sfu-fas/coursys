@@ -1794,6 +1794,7 @@ def manage_memo(request, userid, event_slug, memo_slug):
             with transaction.atomic():
                 f = form.save(commit=False)
                 f.career_event = instance
+                f.config['pdf_generated'] = False
                 uneditable_reason = memo.uneditable_reason()
                 if uneditable_reason:
                     orig_pk = f.pk
