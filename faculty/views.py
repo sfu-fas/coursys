@@ -1078,7 +1078,7 @@ def view_event(request, userid, event_slug):
     person, member_units = _get_faculty_or_404(request.units, userid)
     instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
     editor = get_object_or_404(Person, userid=request.user.username)
-    memos = Memo.objects.filter(career_event=instance, hidden=False)
+    memos = Memo.objects.filter(career_event=instance)
     templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=instance.event_type, hidden=False)
 
     handler = instance.get_handler()
@@ -1791,10 +1791,20 @@ def manage_memo(request, userid, event_slug, memo_slug):
     if request.method == 'POST':
         form = MemoForm(request.POST, instance=memo)
         if form.is_valid():
-            f = form.save(commit=False)
-            f.career_event = instance
-            f.save()
-            messages.success(request, "Updated memo.")
+            with transaction.atomic():
+                f = form.save(commit=False)
+                f.career_event = instance
+                f.config['pdf_generated'] = False
+                uneditable_reason = memo.uneditable_reason()
+                if uneditable_reason:
+                    orig_pk = f.pk
+                    f.pk = None
+                    f.save()
+                    Memo.objects.filter(pk=orig_pk).update(hidden=True)
+                    messages.success(request, "Saved new version of memo.")
+                else:
+                    f.save()
+                    messages.success(request, "Edited memo.")
             return HttpResponseRedirect(reverse(view_event, kwargs={'userid':userid, 'event_slug':event_slug}))
     else:
         form = MemoForm(instance=memo)

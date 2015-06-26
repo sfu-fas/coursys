@@ -546,7 +546,7 @@ def preview_form(request, form_slug):
         form.fromFields(fields)
         sheet_forms.append(form)
 
-    context = {'form': form, 'owner_form': owner_form, 'sheet_forms': sheet_forms}
+    context = {'owner_form': owner_form, 'sheet_forms': sheet_forms}
     return render(request, "onlineforms/preview_form.html", context)
 
 @requires_form_admin_by_slug()
