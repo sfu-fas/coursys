@@ -72,8 +72,7 @@ class Command(BaseCommand):
         danyu.emplid = 220000123
         danyu.save()
 
-        greg = get_or_create_nosave(Person, userid='ggbaker', first_name='Gregory', last_name='Baker')
-        greg.emplid = 220000124
+        greg = get_or_create_nosave(Person, userid='ggbaker')
         greg.save()
 
         diana = get_or_create_nosave(Person, userid='diana', first_name='Diana', last_name='Cukierman')
@@ -106,7 +105,6 @@ class Command(BaseCommand):
         m, _ = Member.objects.get_or_create(person=greg, offering=o, role='INST')
         m.added_reason = 'AUTO'
         m.save()
-
 
     def department_data(self):
         danyu = Person.objects.get(userid='dzhao')
@@ -246,7 +244,6 @@ class Command(BaseCommand):
         e.config = {'position': 'BBYM', 'add_salary': 0, 'add_pay': 10000, 'teaching_credit': 0}
         h.save(editor=editor)
 
-
         # out-of-unit events: Dean's office staff should see MSE stuff
         e, h = event_get_or_create(person=farid, unit=mse, event_type='SALARY', start_date=date(2000,9,1),
                                 status='A')
@@ -277,7 +274,6 @@ class Command(BaseCommand):
                                 status='A')
         e.config = {'load': 2}
         h.save(editor=editor)
-
 
         # some grants
         tg, _ = TempGrant.objects.get_or_create(label="Cukierman startup", initial=4000, project_code='13-12345',

@@ -489,6 +489,12 @@ class Memo(models.Model):
         self.memo_text = many_newlines.sub('\n\n', self.memo_text)
         super(Memo, self).save(*args, **kwargs)
 
+    def uneditable_reason(self):
+        """
+        Return a string indicating why this memo cannot be edited, or None.
+        """
+        return "you can never edit memos"
+
     def write_pdf(self, response):
         from dashboard.letters import OfficialLetter, MemoContents
         doc = OfficialLetter(response, unit=self.unit)
