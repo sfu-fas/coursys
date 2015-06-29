@@ -162,6 +162,9 @@ class CacheMixin(object):
         return response
 
     def get(self, request, *args, **kwargs):
+        """
+        Return the correct cached HEAD response.
+        """
         if hasattr(self, 'cached_get'):
             handler = self.cached_get
         else:
@@ -169,12 +172,21 @@ class CacheMixin(object):
         return self.cached_response(handler, request, *args, **kwargs)
 
     def head(self, request, *args, **kwargs):
+        """
+        Return the correct cached HEAD response.
+
+        Imitate the logic in django.views.generic.base.View.as_view.view which uses .get() in place of .head() if it's
+        not there.
+        """
+        spr = super(CacheMixin, self)
         if hasattr(self, 'cached_get') and not hasattr(self, 'cached_head'):
             handler = self.cached_get
         elif hasattr(self, 'cached_head'):
             handler = self.cached_head
+        elif hasattr(spr, 'get') and not hasattr(spr, 'head'):
+            handler = spr.get
         else:
-            handler = super(CacheMixin, self).head
+            handler = spr.head
         return self.cached_response(handler, request, *args, **kwargs)
 
 
