@@ -34,10 +34,10 @@ class CourseOfferingSerializer(ShortCourseOfferingSerializer):
             'lookup_url_kwarg': 'course_slug',
         },
     ]
-    url = serializers.Field(help_text='course homepage URL, if set by instructor')
+    url = serializers.ReadOnlyField(help_text='course homepage URL, if set by instructor')
     instructors = serializers.SerializerMethodField()
     tas = serializers.SerializerMethodField()
-    contact_email = serializers.Field(source='taemail', help_text='Contact email for the TAs, if set by instructor')
+    contact_email = serializers.ReadOnlyField(source='taemail', help_text='Contact email for the TAs, if set by instructor')
     links = HyperlinkCollectionField(link_data, help_text='Links to additional information')
 
     class Meta(ShortCourseOfferingSerializer.Meta):
@@ -47,5 +47,6 @@ class CourseOfferingSerializer(ShortCourseOfferingSerializer):
 
     def get_instructors(self, o):
         return [{'fname': p.real_pref_first(), 'lname': p.last_name, 'email': p.email()} for p in o.instructors()]
+
     def get_tas(self, o):
         return [{'fname': p.real_pref_first(), 'lname': p.last_name, 'email': p.email()} for p in o.tas()]
