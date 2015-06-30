@@ -101,6 +101,7 @@ DEFAULT_LETTER_LUMPSUM = ["""This is to confirm remuneration of work performed a
 DEFAULT_LETTER_BIWEEKLY = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation."""] \
                          + DEFAULT_LETTER
 
+
 class RAAppointment(models.Model):
     """
     This stores information about a (Research Assistant)s application and pay.
@@ -162,6 +163,9 @@ class RAAppointment(models.Model):
     def default_letter_text(self):
         """
         Default text for the letter (for editing, or use if not set)
+
+        NOTE:  This is going to go away shortly after the method below this is fully
+        implemented.
         """
         substitutions = {
             'start_date': self.start_date.strftime("%B %d, %Y"),
@@ -174,6 +178,26 @@ class RAAppointment(models.Model):
         else:
             text = DEFAULT_LETTER_LUMPSUM
         return '\n\n'.join(text) % substitutions
+
+    def build_letter_text(self, selection):
+        """
+        This takes the value passed from the letter selector menu and builds the appropriate
+        default letter based on that.
+        """
+        substitutions = {
+            'start_date': self.start_date.strftime("%B %d, %Y"),
+            'end_date': self.end_date.strftime("%B %d, %Y"),
+            'lump_sum_pay': self.lump_sum_pay,
+            'biweekly_pay': self.biweekly_pay,
+            }
+        if self.pay_frequency == 'B':
+            if selection == '1':
+                letter_text = '\n\n'.join(DEFAULT_LETTER_BIWEEKLY) % substitutions
+        else:
+            if selection == '1':
+                letter_text = '\n\n'.join(DEFAULT_LETTER_LUMPSUM) % substitutions
+        self.offer_letter_text = letter_text
+        self.save()
     
     def letter_paragraphs(self):
         """
