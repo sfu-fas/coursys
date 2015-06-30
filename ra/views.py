@@ -242,7 +242,7 @@ def edit_letter(request, ra_slug):
 @requires_role("FUND")
 def select_letter(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
-    letter_choices = [('1', "Standard Letter"), ('2', "Non SFU Student Letter"), ('3', "Post-Doc Letter")]
+    letter_choices = RAAppointment.letter_choices(request.units)
     if request.method == 'POST':
         filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
         if filled_form.is_valid():

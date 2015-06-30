@@ -88,19 +88,23 @@ class Account(models.Model):
         self.save()
 
 
-DEFAULT_LETTER = [
+DEFAULT_LETTER = '\n\n'.join([
         """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
         """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
         """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation.""",
         """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
         """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
         """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
-    ]
-DEFAULT_LETTER_LUMPSUM = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s."""] \
-                         + DEFAULT_LETTER
-DEFAULT_LETTER_BIWEEKLY = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation."""] \
+    ])
+DEFAULT_LETTER_LUMPSUM = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s.\n\n" + DEFAULT_LETTER
+DEFAULT_LETTER_BIWEEKLY = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation.\n\n" \
                          + DEFAULT_LETTER
 
+# user-available choices for letters: {key: (name, lumpsum text, biweekly text)}
+DEFAULT_LETTERS = {
+    'DEFAULT': ('Default RA Letter', DEFAULT_LETTER_LUMPSUM, DEFAULT_LETTER_BIWEEKLY),
+    'SOMEOTHER': ('Some other RA Letter', 'Thank you... once.', 'Thank you, biweekly.'),
+} # note to self: if allowing future configuration per-unit, make sure the keys are globally-unique.
 
 class RAAppointment(models.Model):
     """
@@ -179,6 +183,15 @@ class RAAppointment(models.Model):
             text = DEFAULT_LETTER_LUMPSUM
         return '\n\n'.join(text) % substitutions
 
+    @staticmethod
+    def letter_choices(units):
+        """
+        Return a form choices list for RA letter templates in these units.
+
+        Ignores the units for now: we want to allow configurability later.
+        """
+        return [(key, label) for (key, (label, _, _)) in DEFAULT_LETTERS.items()]
+
     def build_letter_text(self, selection):
         """
         This takes the value passed from the letter selector menu and builds the appropriate
@@ -190,12 +203,15 @@ class RAAppointment(models.Model):
             'lump_sum_pay': self.lump_sum_pay,
             'biweekly_pay': self.biweekly_pay,
             }
+
+        _, lumpsum_text, biweekly_text =  DEFAULT_LETTERS[selection]
+
         if self.pay_frequency == 'B':
-            if selection == '1':
-                letter_text = '\n\n'.join(DEFAULT_LETTER_BIWEEKLY) % substitutions
+            text = biweekly_text
         else:
-            if selection == '1':
-                letter_text = '\n\n'.join(DEFAULT_LETTER_LUMPSUM) % substitutions
+            text = lumpsum_text
+
+        letter_text = text % substitutions
         self.offer_letter_text = letter_text
         self.save()
     
