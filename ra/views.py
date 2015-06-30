@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, Project, Account, SemesterConfig
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, LetterSelectForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
@@ -17,6 +17,7 @@ from grad.models import GradStudent, Scholarship
 from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
+
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from haystack.query import SearchQuerySet
@@ -232,11 +233,25 @@ def edit_letter(request, ra_slug):
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': appointment.person.userid})))
     else:
         if not appointment.offer_letter_text:
-            appointment.offer_letter_text = appointment.default_letter_text()
+            return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug})))
         form = RALetterForm(instance=appointment)
     
     context = {'appointment': appointment, 'form': form}
     return render(request, 'ra/edit_letter.html', context)
+
+@requires_role("FUND")
+def select_letter(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+    letter_choices = [('1', "Standard Letter"), ('2', "Non SFU Student Letter"), ('3', "Post-Doc Letter")]
+    if request.method == 'POST':
+        filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
+        if filled_form.is_valid():
+            appointment.build_letter_text(filled_form.cleaned_data['letter_choice'])
+        return HttpResponseRedirect(reverse(edit_letter, kwargs=({'ra_slug': ra_slug})))
+
+    newform = LetterSelectForm(choices=letter_choices)
+    context = {'form': newform, 'form_ra_slug': ra_slug}
+    return render(request, 'ra/select_letter.html', context)
 
 
 #View RA Appointment

@@ -62,6 +62,12 @@ class RALetterForm(forms.ModelForm):
                    'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 70}),
                    }
 
+class LetterSelectForm(forms.Form):
+
+    def __init__(self, choices=[], *args, **kwargs):
+        super(LetterSelectForm, self).__init__(*args, **kwargs)
+        self.fields["letter_choice"] = forms.ChoiceField(required=True, choices=choices)
+
 
 class StudentSelect(forms.Select):
     input_type = 'text'

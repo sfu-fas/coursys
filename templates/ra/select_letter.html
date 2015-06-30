@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Select Letter{% endblock %}
+{% block h1 %}Select Letter{% endblock %}
+
+{% block content %}
+  <div class="form_container">
+    <div>This person does not have a letter for their RA appointment yet.  Choose one of the following options to generate the correct letter for this RA.</div>
+    <form action="{% url "ra.views.select_letter" ra_slug=form_ra_slug %}" method="POST">{% csrf_token %}
+        <fieldset>
+            {{ form }}
+            <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+  </div>
+{% endblock %}
