@@ -8,7 +8,7 @@
 {% block content %}
     <div>This person does not have a letter for their RA appointment yet.  Choose one of the following options to generate the correct letter for this RA.</div>
     <form action="{% url "ra.views.select_letter" ra_slug=form_ra_slug %}" method="GET">
-            {{ form }}
+            {{ form|as_dl }}
             <p><input type="submit" class="submit" value="Submit" /></p>
     </form>
 {% endblock %}

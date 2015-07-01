@@ -4,6 +4,7 @@ from ra.models import RAAppointment, Account, Project
 
 class RATest(TestCase):
     fixtures = ['basedata', 'coredata', 'ta_ra']
+
     def test_pages(self):
         """
         Test basic page rendering
@@ -18,7 +19,8 @@ class RATest(TestCase):
         ra = RAAppointment.objects.filter(unit__label='CMPT')[0]
         p = ra.person
         test_views(self, c, 'ra.views.', ['student_appointments', 'new_student'], {'userid': p.userid})
-        test_views(self, c, 'ra.views.', ['edit', 'reappoint', 'edit_letter', 'view',], {'ra_slug': ra.slug})
+        test_views(self, c, 'ra.views.', ['edit', 'reappoint', 'view',], {'ra_slug': ra.slug})
+        test_views(self, c, 'ra.views.', ['edit_letter'], {'ra_slug': ra.slug, 'letter_choice': 'DEFAULT'})
 
         acct = Account.objects.filter(unit__label='CMPT')[0]
         test_views(self, c, 'ra.views.', ['edit_account'], {'account_slug': acct.slug})
