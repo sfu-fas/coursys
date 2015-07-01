@@ -222,7 +222,7 @@ def reappoint(request, ra_slug):
     return render(request, 'ra/new.html', { 'raform': raform, 'appointment': appointment })
 
 @requires_role("FUND")
-def edit_letter(request, ra_slug):
+def edit_letter(request, ra_slug, letter_choice=None):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
 
     if request.method == 'POST':
@@ -232,9 +232,13 @@ def edit_letter(request, ra_slug):
             messages.success(request, 'Updated RA Letter Text for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': appointment.person.userid})))
     else:
-        if not appointment.offer_letter_text:
+        if not appointment.offer_letter_text and not letter_choice:
             return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug})))
-        form = RALetterForm(instance=appointment)
+        elif not appointment.offer_letter_text:
+            initial = {'offer_letter_text': appointment.build_letter_text(letter_choice)}
+        else:
+            initial = {}
+        form = RALetterForm(instance=appointment, initial=initial)
     
     context = {'appointment': appointment, 'form': form}
     return render(request, 'ra/edit_letter.html', context)
@@ -243,14 +247,14 @@ def edit_letter(request, ra_slug):
 def select_letter(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     letter_choices = RAAppointment.letter_choices(request.units)
-    if request.method == 'POST':
-        filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
-        if filled_form.is_valid():
-            appointment.build_letter_text(filled_form.cleaned_data['letter_choice'])
-        return HttpResponseRedirect(reverse(edit_letter, kwargs=({'ra_slug': ra_slug})))
-
-    newform = LetterSelectForm(choices=letter_choices)
-    context = {'form': newform, 'form_ra_slug': ra_slug}
+    if 'letter_choice' in request.GET:
+        form = LetterSelectForm(data=request.GET, choices=letter_choices)
+        if form.is_valid():
+            kwargs ={'ra_slug': ra_slug, 'letter_choice': form.cleaned_data['letter_choice']}
+            return HttpResponseRedirect(reverse(edit_letter, kwargs=kwargs))
+    else:
+        form = LetterSelectForm(choices=letter_choices)
+    context = {'form': form, 'form_ra_slug': ra_slug}
     return render(request, 'ra/select_letter.html', context)
 
 
