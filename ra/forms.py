@@ -63,10 +63,11 @@ class RALetterForm(forms.ModelForm):
                    }
 
 class LetterSelectForm(forms.Form):
+    letter_choice = forms.ChoiceField(required=True)
 
     def __init__(self, choices=[], *args, **kwargs):
         super(LetterSelectForm, self).__init__(*args, **kwargs)
-        self.fields["letter_choice"] = forms.ChoiceField(required=True, choices=choices)
+        self.fields["letter_choice"].choices = choices
 
 
 class StudentSelect(forms.Select):

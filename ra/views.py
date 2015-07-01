@@ -233,8 +233,13 @@ def edit_letter(request, ra_slug, letter_choice=None):
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': appointment.person.userid})))
     else:
         if not appointment.offer_letter_text and not letter_choice:
-            return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug})))
-        elif not appointment.offer_letter_text:
+            letter_choices = RAAppointment.letter_choices(request.units)
+            if len(letter_choices) == 1: # why make them select from one?
+                letter_choice = letter_choices[0][0]
+            else:
+                return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug})))
+
+        if not appointment.offer_letter_text:
             initial = {'offer_letter_text': appointment.build_letter_text(letter_choice)}
         else:
             initial = {}
