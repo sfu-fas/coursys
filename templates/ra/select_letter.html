@@ -6,13 +6,9 @@
 {% block h1 %}Select Letter{% endblock %}
 
 {% block content %}
-  <div class="form_container">
     <div>This person does not have a letter for their RA appointment yet.  Choose one of the following options to generate the correct letter for this RA.</div>
-    <form action="{% url "ra.views.select_letter" ra_slug=form_ra_slug %}" method="POST">{% csrf_token %}
-        <fieldset>
+    <form action="{% url "ra.views.select_letter" ra_slug=form_ra_slug %}" method="GET">
             {{ form }}
             <p><input type="submit" class="submit" value="Submit" /></p>
-        </fieldset>
     </form>
-  </div>
 {% endblock %}

@@ -100,7 +100,7 @@ DEFAULT_LETTER_LUMPSUM = "This is to confirm remuneration of work performed as a
 DEFAULT_LETTER_BIWEEKLY = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation.\n\n" \
                          + DEFAULT_LETTER
 
-# user-available choices for letters: {key: (name, lumpsum text, biweekly text)}
+# user-available choices for letters: {key: (name, lumpsum text, biweekly text)}. Key must be URL-safe text
 DEFAULT_LETTERS = {
     'DEFAULT': ('Default RA Letter', DEFAULT_LETTER_LUMPSUM, DEFAULT_LETTER_BIWEEKLY),
     'SOMEOTHER': ('Some other RA Letter', 'Thank you... once.', 'Thank you, biweekly.'),
@@ -212,9 +212,8 @@ class RAAppointment(models.Model):
             text = lumpsum_text
 
         letter_text = text % substitutions
-        self.offer_letter_text = letter_text
-        self.save()
-    
+        return letter_text
+
     def letter_paragraphs(self):
         """
         Return list of paragraphs in the letter (for PDF creation)
