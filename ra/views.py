@@ -222,7 +222,7 @@ def reappoint(request, ra_slug):
     return render(request, 'ra/new.html', { 'raform': raform, 'appointment': appointment })
 
 @requires_role("FUND")
-def edit_letter(request, ra_slug, letter_choice=None):
+def edit_letter(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
 
     if request.method == 'POST':
@@ -232,35 +232,35 @@ def edit_letter(request, ra_slug, letter_choice=None):
             messages.success(request, 'Updated RA Letter Text for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': appointment.person.userid})))
     else:
-        if not appointment.offer_letter_text and not letter_choice:
+        if not appointment.offer_letter_text:
             letter_choices = RAAppointment.letter_choices(request.units)
             if len(letter_choices) == 1: # why make them select from one?
-                letter_choice = letter_choices[0][0]
+                appointment.build_letter_text(letter_choices[0][0])
             else:
                 return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug})))
-
-        if not appointment.offer_letter_text:
-            initial = {'offer_letter_text': appointment.build_letter_text(letter_choice)}
-        else:
-            initial = {}
-        form = RALetterForm(instance=appointment, initial=initial)
+        form = RALetterForm(instance=appointment)
     
     context = {'appointment': appointment, 'form': form}
     return render(request, 'ra/edit_letter.html', context)
 
+# If we don't have an appointment letter yet, pick one.
 @requires_role("FUND")
-def select_letter(request, ra_slug):
+def select_letter(request, ra_slug, print_only=None):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     letter_choices = RAAppointment.letter_choices(request.units)
-    if 'letter_choice' in request.GET:
-        form = LetterSelectForm(data=request.GET, choices=letter_choices)
-        if form.is_valid():
-            kwargs ={'ra_slug': ra_slug, 'letter_choice': form.cleaned_data['letter_choice']}
-            return HttpResponseRedirect(reverse(edit_letter, kwargs=kwargs))
+    if request.method == 'POST':
+        filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
+        if filled_form.is_valid():
+            appointment.build_letter_text(filled_form.cleaned_data['letter_choice'])
+        if print_only == 'print':
+            return HttpResponseRedirect(reverse(letter, kwargs=({'ra_slug': ra_slug})))
+        else:
+            return HttpResponseRedirect(reverse(edit_letter, kwargs=({'ra_slug': ra_slug})))
+
     else:
-        form = LetterSelectForm(choices=letter_choices)
-    context = {'form': form, 'form_ra_slug': ra_slug}
-    return render(request, 'ra/select_letter.html', context)
+        new_form = LetterSelectForm(choices=letter_choices)
+        context = {'form': new_form, 'ra_slug': ra_slug, 'print_only': print_only}
+        return render(request, 'ra/select_letter.html', context)
 
 
 #View RA Appointment
@@ -285,6 +285,12 @@ def form(request, ra_slug):
 @requires_role("FUND")
 def letter(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=Unit.sub_units(request.units))
+    if not appointment.offer_letter_text:
+        letter_choices = RAAppointment.letter_choices(request.units)
+        if len(letter_choices) == 1:  # why make them select from one?
+            appointment.build_letter_text(letter_choices[0][0])
+        else:
+            return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug, 'print_only': 'print'})))
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
