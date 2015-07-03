@@ -25,9 +25,9 @@ ra_patterns = [ # prefix /ra/
     url(r'^' + RA_SLUG + '/letter$', 'ra.views.letter'),
     url(r'^' + RA_SLUG + '/edit$', 'ra.views.edit'),
     url(r'^' + RA_SLUG + '/edit_letter$', 'ra.views.edit_letter'),
-    url(r'^' + RA_SLUG + '/edit_letter/(?P<letter_choice>' + SLUG_RE + ')$', 'ra.views.edit_letter'),
     url(r'^' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
     url(r'^' + RA_SLUG + '/delete$', 'ra.views.delete_ra'),
-    url(r'^' + RA_SLUG + '/select_letter', 'ra.views.select_letter'),
+    url(r'^' + RA_SLUG + '/select_letter$', 'ra.views.select_letter'),
+    url(r'^' + RA_SLUG + '/select_letter/' + '(?P<print_only>[\w\-]+)' + '$', 'ra.views.select_letter')
 
 ]

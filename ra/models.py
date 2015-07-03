@@ -204,7 +204,7 @@ class RAAppointment(models.Model):
             'biweekly_pay': self.biweekly_pay,
             }
 
-        _, lumpsum_text, biweekly_text =  DEFAULT_LETTERS[selection]
+        _, lumpsum_text, biweekly_text = DEFAULT_LETTERS[selection]
 
         if self.pay_frequency == 'B':
             text = biweekly_text
@@ -212,13 +212,14 @@ class RAAppointment(models.Model):
             text = lumpsum_text
 
         letter_text = text % substitutions
-        return letter_text
+        self.offer_letter_text = letter_text
+        self.save()
 
     def letter_paragraphs(self):
         """
         Return list of paragraphs in the letter (for PDF creation)
         """
-        text = self.offer_letter_text or self.default_letter_text()
+        text = self.offer_letter_text
         text = normalize_newlines(text)
         return text.split("\n\n") 
     

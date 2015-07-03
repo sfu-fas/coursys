@@ -63,7 +63,7 @@ class RALetterForm(forms.ModelForm):
                    }
 
 class LetterSelectForm(forms.Form):
-    letter_choice = forms.ChoiceField(required=True)
+    letter_choice = forms.ChoiceField(label='Select a letter', required=True, help_text='Please select the appropriate letter template for this RA.')
 
     def __init__(self, choices=[], *args, **kwargs):
         super(LetterSelectForm, self).__init__(*args, **kwargs)
