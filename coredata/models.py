@@ -1326,7 +1326,7 @@ class CombinedOffering(models.Model):
     title = models.CharField(max_length=30)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
 
-    offerings = models.ManyToManyField(CourseOffering, related_name='+')
+    offerings = models.ManyToManyField(CourseOffering)
         # actually a Many-to-One, but don't want to junk CourseOffering up with another ForeignKey
 
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
