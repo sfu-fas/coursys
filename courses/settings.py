@@ -169,6 +169,9 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
+    if getattr(secrets, 'MORE_DATABASES', None):
+        DATABASES.update(secrets.MORE_DATABASES)
+
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
 else:
