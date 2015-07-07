@@ -202,7 +202,6 @@ def deploy_checks():
     else:
         passed.append(('Emplid API', 'okay'))
 
-
     # certificates
     bad_cert = 0
     res = _check_cert('/etc/stunnel/stunnel.pem')
@@ -219,7 +218,7 @@ def deploy_checks():
         bad_cert += 1
 
     if bad_cert == 0:
-        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/'))
+        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
     # SVN database
     if settings.SVN_DB_CONNECT:
