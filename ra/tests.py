@@ -20,8 +20,7 @@ class RATest(TestCase):
         p = ra.person
         test_views(self, c, 'ra.views.', ['student_appointments', 'new_student'], {'userid': p.userid})
         test_views(self, c, 'ra.views.', ['edit', 'reappoint', 'view',], {'ra_slug': ra.slug})
-        # The following test won't pass, since this would give a 302 to the edit_letter view
-        # test_views(self, c, 'ra.views.', ['edit_letter'], {'ra_slug': ra.slug})
+        test_views(self, c, 'ra.views.', ['edit_letter'], {'ra_slug': ra.slug})
 
         acct = Account.objects.filter(unit__label='CMPT')[0]
         test_views(self, c, 'ra.views.', ['edit_account'], {'account_slug': acct.slug})
