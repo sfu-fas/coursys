@@ -237,24 +237,6 @@ def deploy_checks():
     else:
         failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
 
-    # AMAINT database
-    if settings.AMAINT_DB_PASSWORD:
-        from coredata.importer import AMAINTConn
-        import MySQLdb
-        try:
-            db = AMAINTConn()
-            db.execute("SELECT count(*) FROM idMap", ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('AMAINT database', 'okay'))
-            else:
-                failed.append(('AMAINT database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('AMAINT database', "can't connect to database"))
-    else:
-        failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
-
-
     # file creation in the necessary places
     dirs_to_check = [
         (settings.DB_BACKUP_DIR, 'DB backup dir'),

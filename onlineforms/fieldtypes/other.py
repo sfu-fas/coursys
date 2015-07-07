@@ -203,19 +203,26 @@ class SemesterField(FieldBase):
         return self.SemesterConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        queryset = Semester.objects.all().order_by('name')
+        current = Semester.current()
+        # always limit to 10 years on either side of today: that seems like a reasonable window
+        queryset = Semester.objects \
+            .filter(name__gte=current.offset_name(-30), name__lte=current.offset_name(30)) \
+            .order_by('name')
         allowed = self.config.get('allowed_semesters', 'AL')
-        current = Semester.current().name
         if allowed == 'AL':
-            pass
+            initial = current.name
         elif allowed == 'LT':
-            queryset = queryset.filter(name__lt=current).order_by('-name')
+            queryset = queryset.filter(name__lt=current.name).order_by('-name')
+            initial = current.offset_name(-1)
         elif allowed == 'LE':
-            queryset = queryset.filter(name__lte=current).order_by('-name')
+            queryset = queryset.filter(name__lte=current.name).order_by('-name')
+            initial = current.name
         elif allowed == 'GT':
-            queryset = queryset.filter(name__gt=current)
+            queryset = queryset.filter(name__gt=current.name)
+            initial = current.offset_name(1)
         elif allowed == 'GE':
-            queryset = queryset.filter(name__gte=current)
+            queryset = queryset.filter(name__gte=current.name)
+            initial = current.name
 
         the_choices = [(s.name, s.label()) for s in queryset]
 
@@ -223,11 +230,16 @@ class SemesterField(FieldBase):
         if self.config.get('format', 'D') == 'R':
             widget = forms.RadioSelect
 
-        c = forms.ChoiceField(required=self.config['required'],
+        required = self.config['required']
+        if not required:
+            initial = None
+
+        c = forms.ChoiceField(required=required,
             label=self.config['label'],
             help_text=self.config['help_text'],
             choices=the_choices,
-            widget=widget,)
+            widget=widget,
+            initial=initial)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['info']

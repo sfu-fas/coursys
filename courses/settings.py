@@ -321,7 +321,6 @@ SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
 SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
-AMAINT_DB_PASSWORD = getattr(secrets, 'AMAINT_DB_PASSWORD', '')
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 
 DATE_FORMAT = "D N d Y"

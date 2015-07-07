@@ -211,7 +211,7 @@ def find_person(emplid, get_userid=True):
                (str(emplid),))
 
     for emplid, last_name, first_name, middle_name in db:
-        # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
+        # use emails to guess userid: if not found, leave unset and hope the userid API has it on next nightly update
         if get_userid:
             userid = userid_from_sims(emplid)
         else:
@@ -1397,7 +1397,7 @@ def build_person(emplid, userid=None):
 
 def import_person(p, commit=True, grad_data=False):
     """
-    Import SIMS/AMAINT information about this Person. Return the Person or None if they can't be found.
+    Import SIMS (+ userid) information about this Person. Return the Person or None if they can't be found.
     """
     last_name, first_name, middle_name, pref_first_name, title = get_names(p.emplid)
     if last_name is None:
