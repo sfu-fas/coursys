@@ -163,7 +163,7 @@ class CacheMixin(object):
 
     def get(self, request, *args, **kwargs):
         """
-        Return the correct cached HEAD response.
+        Return the correct cached GET response.
         """
         if hasattr(self, 'cached_get'):
             handler = self.cached_get
