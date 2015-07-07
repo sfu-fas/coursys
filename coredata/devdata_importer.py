@@ -12,7 +12,7 @@ from django.core import serializers
 from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff, fix_emplid
 from demodata_importer import fake_emplid, fake_emplids, create_classes, create_fake_semester, create_grads
 from demodata_importer import create_grad_templ, create_more_data, create_form_data, create_ta_data, create_ra_data
-from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES, ComputingAccount
+from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES
 from dashboard.models import UserConfig
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
 from submission.models.base import SubmissionComponent
