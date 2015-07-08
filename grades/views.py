@@ -667,9 +667,10 @@ def add_cal_letter_activity(request, course_slug):
                     position = aggr_dict['position__max'] + 1
 
                 if form.cleaned_data['exam_activity'] == '0':
-                    exam_activity = None
+                    exam_activity_id = None
                 else:
                     exam_activity = Activity.objects.get(pk=form.cleaned_data['exam_activity'])
+                    exam_activity_id = exam_activity.id
 
                 config = {
                         'showstats': form.cleaned_data['showstats'],
@@ -677,14 +678,14 @@ def add_cal_letter_activity(request, course_slug):
                         'url': form.cleaned_data['url'],
                         }
                 CalLetterActivity.objects.create(name=form.cleaned_data['name'],
-                                                short_name=form.cleaned_data['short_name'],
-                                                status=form.cleaned_data['status'],
-                                                numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
-                                                exam_activity_id=exam_activity.id,
-                                                offering=course, 
-                                                position=position,
-                                                group=False,
-                                                config=config)
+                                                 short_name=form.cleaned_data['short_name'],
+                                                 status=form.cleaned_data['status'],
+                                                 numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
+                                                 exam_activity_id=exam_activity_id,
+                                                 offering=course,
+                                                 position=position,
+                                                 group=False,
+                                                 config=config)
             except NotImplementedError:
                 return NotFoundResponse(request)
             
