@@ -87,7 +87,7 @@ class Account(models.Model):
         self.hidden = True
         self.save()
 
-
+#  The built-in default letter templates
 DEFAULT_LETTER = '\n\n'.join([
         """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
         """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
@@ -95,16 +95,40 @@ DEFAULT_LETTER = '\n\n'.join([
         """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
         """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
         """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
-    ])
+        ])
 DEFAULT_LETTER_LUMPSUM = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s.\n\n" + DEFAULT_LETTER
 DEFAULT_LETTER_BIWEEKLY = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation.\n\n" \
-                         + DEFAULT_LETTER
+    + DEFAULT_LETTER
+
+DEFAULT_LETTER_NON_STUDENT = '\n\n'.join([
+        """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
+        """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
+        """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
+        """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
+        """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
+        ])
+DEFAULT_LETTER_NON_STUDENT_LUMPSUM = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s and subject to all statutory income tax and benefit deductions.\n\n" + DEFAULT_LETTER_NON_STUDENT
+DEFAULT_LETTER_NON_STUDENT_BIWEEKLY = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation and subject to all statutory income tax and benefit deductions.\n\n" \
+    + DEFAULT_LETTER_NON_STUDENT
+
+DEFAULT_LETTER_POSTDOC = '\n\n'.join([
+        """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
+        """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
+        """Basic Benefits: further details are in SFU Policies and Procedures R 50.02 and 50.03, which can be found on the SFU website.""",
+        """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
+        """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
+        ])
+DEFAULT_LETTER_POSTDOC_LUMPSUM = "This is to confirm remuneration of work performed as a Postdoctoral Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s and subject to all statutory income tax and benefit deductions.\n\n" + DEFAULT_LETTER_POSTDOC
+DEFAULT_LETTER_POSTDOC_BIWEEKLY = "This is to confirm remuneration of work performed as a Postdoctoral Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation and subject to all statutory income tax and benefit deductions.\n\n" \
+    + DEFAULT_LETTER_POSTDOC
 
 # user-available choices for letters: {key: (name, lumpsum text, biweekly text)}. Key must be URL-safe text
 DEFAULT_LETTERS = {
-    'DEFAULT': ('Default RA Letter', DEFAULT_LETTER_LUMPSUM, DEFAULT_LETTER_BIWEEKLY),
-    'SOMEOTHER': ('Some other RA Letter', 'Thank you... once.', 'Thank you, biweekly.'),
-} # note to self: if allowing future configuration per-unit, make sure the keys are globally-unique.
+    'DEFAULT': ('Standard RA Letter', DEFAULT_LETTER_LUMPSUM, DEFAULT_LETTER_BIWEEKLY),
+    'NONSTUDENT': ('RA Letter for Non-Student', DEFAULT_LETTER_NON_STUDENT_LUMPSUM,
+                   DEFAULT_LETTER_NON_STUDENT_BIWEEKLY),
+    'POSTDOC': ('RA Letter for Post-Doc', DEFAULT_LETTER_POSTDOC_LUMPSUM, DEFAULT_LETTER_POSTDOC_BIWEEKLY),
+}   # note to self: if allowing future configuration per-unit, make sure the keys are globally-unique.
 
 class RAAppointment(models.Model):
     """
