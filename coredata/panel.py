@@ -202,7 +202,6 @@ def deploy_checks():
     else:
         passed.append(('Emplid API', 'okay'))
 
-
     # certificates
     bad_cert = 0
     res = _check_cert('/etc/stunnel/stunnel.pem')
@@ -219,7 +218,7 @@ def deploy_checks():
         bad_cert += 1
 
     if bad_cert == 0:
-        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/'))
+        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
     # SVN database
     if settings.SVN_DB_CONNECT:
@@ -237,24 +236,6 @@ def deploy_checks():
             failed.append(('SVN database', "can't connect to database"))
     else:
         failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
-
-    # AMAINT database
-    if settings.AMAINT_DB_PASSWORD:
-        from coredata.importer import AMAINTConn
-        import MySQLdb
-        try:
-            db = AMAINTConn()
-            db.execute("SELECT count(*) FROM idMap", ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('AMAINT database', 'okay'))
-            else:
-                failed.append(('AMAINT database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('AMAINT database', "can't connect to database"))
-    else:
-        failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
-
 
     # file creation in the necessary places
     dirs_to_check = [

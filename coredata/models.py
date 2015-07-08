@@ -1295,18 +1295,6 @@ class Role(models.Model):
     def all_roles(cls, userid):
         return set((r.role for r in Role.objects.filter(person__userid=userid)))
 
-    
-class ComputingAccount(models.Model):
-    """
-    A model to represent userid <-> emplid mappings.
-    
-    Complete table imported from AMAINT so we can lookup online. i.e. if the user
-    has an active computing account, there should be an entry here. (There is no
-    such guarantee for Person.)
-    """
-    emplid = models.PositiveIntegerField(primary_key=True, unique=True, null=False)
-    userid = models.CharField(max_length=8, unique=True, null=False, db_index=True)
-
 
 class CombinedOffering(models.Model):
     """
@@ -1326,7 +1314,7 @@ class CombinedOffering(models.Model):
     title = models.CharField(max_length=30)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
 
-    offerings = models.ManyToManyField(CourseOffering, related_name='+')
+    offerings = models.ManyToManyField(CourseOffering)
         # actually a Many-to-One, but don't want to junk CourseOffering up with another ForeignKey
 
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff

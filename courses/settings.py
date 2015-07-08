@@ -169,6 +169,9 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
+    if getattr(secrets, 'MORE_DATABASES', None):
+        DATABASES.update(secrets.MORE_DATABASES)
+
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
 else:
@@ -318,7 +321,6 @@ SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
 SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
-AMAINT_DB_PASSWORD = getattr(secrets, 'AMAINT_DB_PASSWORD', '')
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 
 DATE_FORMAT = "D N d Y"
