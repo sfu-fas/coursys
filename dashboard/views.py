@@ -826,7 +826,8 @@ def view_doc(request, doc_slug):
 @cache_page(60 * 60 * 6)
 def courses_json(request, semester):
     courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN") \
-              .select_related('semester')
+        .exclude(flags=CourseOffering.flags.combined) \
+        .select_related('semester').prefetch_related('meetingtime_set', 'member_set')
     resp = HttpResponse(content_type="application/json")
     resp['Content-Disposition'] = 'inline; filename="' + semester + '.json"'
     crs_data = (c.export_dict() for c in courses)
