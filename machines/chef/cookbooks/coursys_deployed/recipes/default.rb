@@ -213,6 +213,9 @@ end
 service "nginx" do
   action :restart
 end
+cookbook_file "error503.html" do
+    path "/usr/share/nginx/html/error503.html"
+end
 
 # purge supervisord
 #execute "uninstall-supervisord" do

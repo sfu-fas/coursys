@@ -10,7 +10,7 @@ run:
 big-restart: restart
 	sudo /etc/init.d/nginx reload
 	sudo /etc/init.d/celeryd restart
-	./manage.py collectstatic
+	echo yes | ./manage.py collectstatic
 
 pull:
 	git pull
