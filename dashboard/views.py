@@ -825,12 +825,19 @@ def view_doc(request, doc_slug):
 @gzip_page
 @cache_page(60 * 60 * 6)
 def courses_json(request, semester):
-    courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN") \
-        .exclude(flags=CourseOffering.flags.combined) \
-        .select_related('semester').prefetch_related('meetingtime_set', 'member_set')
+    offerings = CourseOffering.objects.filter(semester__name=semester)\
+        .exclude(component="CAN").exclude(flags=CourseOffering.flags.combined) \
+        .select_related('semester').prefetch_related('meetingtime_set')
+    instructors = Member.objects.filter(role='INST', offering__semester__name=semester).select_related('person')
+    instr_by_offeringid = dict(
+        (oid, list(instr))
+        for oid, instr
+        in itertools.groupby(instructors, lambda m: m.offering_id)
+    )
+
     resp = HttpResponse(content_type="application/json")
     resp['Content-Disposition'] = 'inline; filename="' + semester + '.json"'
-    crs_data = (c.export_dict() for c in courses)
+    crs_data = (o.export_dict(instructors=instr_by_offeringid.get(o.id, [])) for o in offerings)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
 

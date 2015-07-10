@@ -805,11 +805,15 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
             and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
                  or (self.semester.name >= "1121" and self.number >= "200"))
 
-    
-    def export_dict(self):
+    def export_dict(self, instructors=None):
         """
-        Produce dictionary of data about offering that can be serialized as JSON
+        Produce dictionary of data about offering that can be serialized as JSON.
+
+        May optionally pass as list of instructors (Member objects) if known, to save the query here.
         """
+        if instructors is None:
+            instructors = self.member_set.filter(role="INST").select_related('person')
+
         d = {}
         d['subject'] = self.subject
         d['number'] = self.number
@@ -819,7 +823,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         d['title'] = self.title
         d['campus'] = self.campus
         d['meetingtimes'] = [m.export_dict() for m in self.meetingtime_set.all()]
-        d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST").select_related('person')]
+        d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in instructors]
         d['wqb'] = [desc for flag,desc in WQB_FLAGS if getattr(self.flags, flag)]
         d['class_nbr'] = self.class_nbr
         return d
