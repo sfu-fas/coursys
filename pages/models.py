@@ -535,7 +535,8 @@ def _pagelist(offering, pageversion, macro, environ, prefix=None):
         li = creoleparser.core.bldr.tag.__getattr__('li')(link)
         elements.append(li)
     return creoleparser.core.bldr.tag.__getattr__('ul')(elements, **{'class': 'filelist'})
-    
+
+
 class ParserFor(object):
     """
     Class to hold the creoleparser objects for a particular CourseOffering.
@@ -548,8 +549,10 @@ class ParserFor(object):
         
         def duedate_macro(macro, environ, *act_name):
             return _duedate(self.offering, '%A %B %d %Y', macro, environ, *act_name)
+
         def duedatetime_macro(macro, environ, *act_name):
             return _duedate(self.offering, '%A %B %d %Y, %H:%M', macro, environ, *act_name)
+
         def pagelist_macro(macro, environ, prefix=None):
             return _pagelist(self.offering, self.pageversion, macro, environ, prefix)
 
@@ -587,13 +590,12 @@ class ParserFor(object):
         
         self.parser = creoleparser.core.Parser(CreoleDialect)
         self.text2html = self.parser.render
-        
 
 
 def brushes_used(parse):
     """
-	All SyntaxHighlighter brush code files used in this wikitext.
-	"""
+    All SyntaxHighlighter brush code files used in this wikitext.
+    """
     res = set()
     if hasattr(parse, 'children'):
         # recurse

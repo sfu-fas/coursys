@@ -67,7 +67,10 @@ def check_environment():
     assert const == sims, "coredata.models.VISA_STATUSES doesn't match the possible visa values from SIMS"
 
 
-def import_grads(dry_run, verbosity, import_emplids=None):
+def get_timelines(verbosity, import_emplids=None):
+    """
+    Get all timeline data for programs we care about.
+    """
     prog_map = build_program_map()
     import_units = Unit.objects.filter(slug__in=IMPORT_UNIT_SLUGS)
     acad_progs = [acad_prog for acad_prog, program in prog_map.iteritems() if program.unit in import_units]
@@ -80,10 +83,13 @@ def import_grads(dry_run, verbosity, import_emplids=None):
     # Get the basic program data we need to generate a Timeline object (JSONable so we can throw it in celery later)
     # each entry is a tuple of ('ClassName', *init_args)
     timeline_data = defaultdict(list)
+    import_emplids = set(import_emplids)
     for acad_prog in acad_progs:
         prog_changes = grad_program_changes(acad_prog)
         for p in prog_changes:
             emplid = p[1]
+            if import_emplids and emplid not in import_emplids:
+                continue
             d = timeline_data[emplid]
             d.append(p)
 
@@ -91,6 +97,8 @@ def import_grads(dry_run, verbosity, import_emplids=None):
         appl_changes = grad_appl_program_changes(acad_prog)
         for a in appl_changes:
             emplid = a[1]
+            if import_emplids and emplid not in import_emplids:
+                continue
             d = timeline_data[emplid]
             d.append(a)
 
@@ -115,7 +123,14 @@ def import_grads(dry_run, verbosity, import_emplids=None):
         emplid = r[1]
         timeline_data[emplid].append(r)
 
-    for emplid in emplids:
+    return timeline_data
+
+
+def import_timelines(timeline_data, dry_run, verbosity):
+    """
+    Process the timeline data into our database.
+    """
+    for emplid in timeline_data.iterkeys():
         timeline = GradTimeline(emplid)
         data = timeline_data[emplid]
         for d in data:
@@ -147,3 +162,9 @@ def import_grads(dry_run, verbosity, import_emplids=None):
                 #c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
 
             #timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+
+
+def import_grads(dry_run, verbosity, import_emplids=None):
+    timeline_data = get_timelines(verbosity=verbosity, import_emplids=import_emplids)
+    import_timelines(timeline_data, dry_run=dry_run, verbosity=verbosity)
+
