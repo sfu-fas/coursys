@@ -105,7 +105,7 @@ def get_timelines(verbosity, import_emplids=None):
     timeline_data = dict(timeline_data)
 
     if import_emplids:
-        emplids = import_emplids
+        emplids = list(import_emplids)
     else:
         emplids = sorted(timeline_data.keys())
 
