@@ -126,42 +126,49 @@ def get_timelines(verbosity, import_emplids=None):
     return timeline_data
 
 
+def build_timeline(emplid, data):
+    timeline = GradTimeline(emplid)
+    for d in data:
+        if d[0] == 'ProgramStatusChange':
+            h = ProgramStatusChange(*(d[1:]))
+        elif d[0] == 'ApplProgramChange':
+            h = ApplProgramChange(*(d[1:]))
+        elif d[0] == 'GradSemester':
+            h = GradSemester(*(d[1:]))
+        elif d[0] == 'CommitteeMembership':
+            h = CommitteeMembership(*(d[1:]))
+        elif d[0] == 'GradMetadata':
+            h = GradMetadata(*(d[1:]))
+        elif d[0] == 'GradResearchArea':
+            h = GradResearchArea(*(d[1:]))
+        else:
+            raise ValueError, d[0]
+
+        timeline.add(h)
+
+    return timeline
+
+def import_timeline(timeline, dry_run, verbosity):
+    with transaction.atomic(): # all or nothing for each person
+        timeline.split_careers(verbosity=verbosity)
+        for c in timeline.careers:
+            c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
+            if not c.gradstudent:
+                # we gave up on this because it's too old
+                continue
+            c.update_local_data(verbosity=verbosity, dry_run=dry_run)
+            #c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+
+        #timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+
+
 def import_timelines(timeline_data, dry_run, verbosity):
     """
     Process the timeline data into our database.
     """
-    for emplid in timeline_data.iterkeys():
-        timeline = GradTimeline(emplid)
-        data = timeline_data[emplid]
-        for d in data:
-            if d[0] == 'ProgramStatusChange':
-                h = ProgramStatusChange(*(d[1:]))
-            elif d[0] == 'ApplProgramChange':
-                h = ApplProgramChange(*(d[1:]))
-            elif d[0] == 'GradSemester':
-                h = GradSemester(*(d[1:]))
-            elif d[0] == 'CommitteeMembership':
-                h = CommitteeMembership(*(d[1:]))
-            elif d[0] == 'GradMetadata':
-                h = GradMetadata(*(d[1:]))
-            elif d[0] == 'GradResearchArea':
-                h = GradResearchArea(*(d[1:]))
-            else:
-                raise ValueError, d[0]
-
-            timeline.add(h)
-
-        with transaction.atomic(): # all or nothing for each person
-            timeline.split_careers(verbosity=verbosity)
-            for c in timeline.careers:
-                c.fill_gradstudent(verbosity=verbosity, dry_run=dry_run)
-                if not c.gradstudent:
-                    # we gave up on this because it's too old
-                    continue
-                c.update_local_data(verbosity=verbosity, dry_run=dry_run)
-                #c.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
-
-            #timeline.find_rogue_local_data(verbosity=verbosity, dry_run=dry_run)
+    for emplid, data in timeline_data.iteritems():
+        timeline = build_timeline(emplid, data)
+        import_timeline(timeline, dry_run=dry_run, verbosity=verbosity)
 
 
 def import_grads(dry_run, verbosity, import_emplids=None):
