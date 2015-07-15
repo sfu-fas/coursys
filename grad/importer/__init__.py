@@ -83,7 +83,8 @@ def get_timelines(verbosity, import_emplids=None):
     # Get the basic program data we need to generate a Timeline object (JSONable so we can throw it in celery later)
     # each entry is a tuple of ('ClassName', *init_args)
     timeline_data = defaultdict(list)
-    import_emplids = set(import_emplids)
+    if import_emplids:
+        import_emplids = set(import_emplids)
     for acad_prog in acad_progs:
         prog_changes = grad_program_changes(acad_prog)
         for p in prog_changes:
