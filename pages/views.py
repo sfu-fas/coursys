@@ -334,12 +334,11 @@ def convert_content(request, course_slug, page_label=None):
             pv = page.current_version()
         else:
             # create temporary Page for conversion during creation
-            p = Page(offering=offering)
-            pv = PageVersion(page=p)
+            pv = PageVersion()
         
         pv.wikitext = data
         pv.diff_from = None
-        result = {'data': pv.html_contents()}
+        result = {'data': pv.html_contents(offering=offering)}
         return HttpResponse(json.dumps(result), content_type="application/json")
     else:
         # convert HTML to wikitext

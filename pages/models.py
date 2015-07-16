@@ -249,9 +249,12 @@ class PageVersion(models.Model):
         super(PageVersion, self).__init__(*args, **kwargs)
         self.Creole = None
     
-    def get_creole(self):
+    def get_creole(self, offering=None):
         if not self.Creole:
-            self.Creole = ParserFor(self.page.offering, self)
+            if offering:
+                self.Creole = ParserFor(offering, self)
+            else:
+                self.Creole = ParserFor(self.page.offering, self)
     
     def previous_version(self):
         """
@@ -318,7 +321,6 @@ class PageVersion(models.Model):
 
         return "\n".join(lines)
 
-    
     def diff_to(self, other):
         """
         Turn this version into a diff based on the other version (if apprpriate).
@@ -386,8 +388,6 @@ class PageVersion(models.Model):
         # other cache cleanup
         cache.delete(self.wikitext_cache_key())
         cache.delete(self.page.version_cache_key())
-        
-
 
     def __unicode__(self):
         return unicode(self.page) + '@' + unicode(self.created_at)
@@ -397,9 +397,12 @@ class PageVersion(models.Model):
         Is this PageVersion a file attachment (as opposed to a Wiki page)?
         """
         return bool(self.file_attachment)
-    def html_contents(self):
+
+    def html_contents(self, offering=None):
         """
         Return the HTML version of this version's wikitext.
+
+        offering argument only required if self.page isn't set: used when doing a speculative conversion of unsaved content.
         
         Cached to save frequent conversion.
         """
@@ -408,7 +411,7 @@ class PageVersion(models.Model):
         if html:
             return mark_safe(html)
         else:
-            self.get_creole()
+            self.get_creole(offering=offering)
             html = self.Creole.text2html(self.get_wikitext())
             cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
