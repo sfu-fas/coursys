@@ -297,7 +297,7 @@ def _salary_index_data(request, date):
 
         current_salary = FacultySummary(person).salary(date, units=[unit])
 
-        fac_pay_summary += [(person, unit.informal_name(), current_salary, add_salary_total, salary_fraction_total,
+        fac_pay_summary += [(person, unit, current_salary, add_salary_total, salary_fraction_total,
                              add_bonus_total, step, rank)]
 
     return fac_pay_summary
@@ -328,12 +328,12 @@ def salary_index_csv(request):
         'Total Pay',
     ])
 
-    for person, units, pay, salary, fraction, bonus, step, rank in _salary_index_data(request, date):
+    for person, unit, pay, salary, fraction, bonus, step, rank in _salary_index_data(request, date):
         csv.writerow([
             person.name(),
             rank,
             step,
-            units,
+            unit.informal_name(),
             salary,
             _csvfrac(fraction),
             bonus,
