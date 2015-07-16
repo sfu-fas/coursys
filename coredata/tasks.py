@@ -41,7 +41,7 @@ def backup_database():
         # if we're not on the "real" database, then don't bother with regular backups
         backup_db.Command().handle(clean_old=True)
 
-@periodic_task(run_every=crontab(minute=0, hour='*/3'))
+@periodic_task(run_every=crontab(minute=0, hour='*'))
 def check_sims_connection():
     from coredata.queries import SIMSConn, SIMSProblem
     db = SIMSConn()
