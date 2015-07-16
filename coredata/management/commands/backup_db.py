@@ -29,7 +29,7 @@ class Command(BaseCommand):
             sslarg = ''
 
         dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip',
-                                raw_args='--skip-extended-insert' + sslarg)
+                                raw_args='--single-transaction --skip-extended-insert' + sslarg)
 
         if options['clean_old']:
             dates_covered = set()
