@@ -25,6 +25,7 @@ class MonitoringMiddleware(object):
 
 
 
+import sys
 from courselib.auth import HttpError
 try:
     from MySQLdb import OperationalError
