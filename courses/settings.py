@@ -325,11 +325,11 @@ SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 
-PIWIK_URL = getattr(localsettings, 'PIWIK_URL', None)
-PIWIK_TOKEN = getattr(localsettings, 'PIWIK_TOKEN', None)
-PIWIK_SITEID = 1
+PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
+PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
+PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
 PIWIK_CELERY = USE_CELERY
-PIWIK_CELERY_TASK_KWARGS = {'queue': 'fast', 'rate_limit': '5/s', 'max_retries': 5, 'default_retry_delay': 180}
+PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 5, 'default_retry_delay': 180}
 PIWIK_FAIL_SILENTLY = True
 
 DATE_FORMAT = "D N d Y"

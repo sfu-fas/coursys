@@ -5,9 +5,6 @@
 #DISABLE_REPORTING_DB=False
 #ALLOWED_HOSTS = ['localhost']
 #FORCE_MEMCACHED = True
-#PIWIK_URL = 'https://.../piwik/piwik.php'
-#PIWIK_TOKEN = '123456789abcdef' # find at Piwik -> user -> API
-#PIWIK_SITEID = 1
 
 LOGGING = {
     'version': 1,
