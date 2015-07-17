@@ -98,12 +98,12 @@ class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
     IS_EXCLUSIVE = True
 
     TO_HTML_TEMPLATE = """
-        {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        {% extends "faculty/event_base.html" %}{% load event_display %}{% load humanize %}{% block dl %}
         <dt>Rank &amp; Step</dt><dd>{{ handler|get_display:"rank" }}, step {{ handler|get_display:"step" }}</dd>
-        <dt>Base salary</dt><dd>${{ handler|get_display:"base_salary"|floatformat:2 }}</dd>
-        <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2 }}</dd>
-        <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2 }}</dd>
-        <dt>Total</dt><dd>${{ total|floatformat:2 }}</dd>
+        <dt>Base salary</dt><dd>${{ handler|get_display:"base_salary"|floatformat:2|intcomma}}</dd>
+        <dt>Add salary</dt><dd>${{ handler|get_display:"add_salary"|floatformat:2|intcomma }}</dd>
+        <dt>Add pay</dt><dd>${{ handler|get_display:"add_pay"|floatformat:2|intcomma }}</dd>
+        <dt>Total</dt><dd>${{ total|floatformat:2|intcomma }}</dd>
         <!--<dt>Biweekly</dt><dd>${{ biweekly|floatformat:2 }}</dd>-->
         {% endblock %}
     """

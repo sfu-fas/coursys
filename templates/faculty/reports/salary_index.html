@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 {% block title %}Faculty Salaries{% endblock %}
 {% block h1 %}Faculty Salaries{% endblock %}
 
@@ -28,14 +29,14 @@ $(document).ready(function() {
     $('.rowdata').each(function() {
         sum += Number($(this).text());
     });
-    $('#salary_sum').text("Total: $" + sum.toFixed(2))
+    $('#salary_sum').text("Total: $" + numberWithCommas(sum))
   });
   event_filter_update('faculty_salary_table');
   var sum = 0;
   $('.rowdata').each(function() {
       sum += Number($(this).text());
   });
-  $('#salary_sum').text("Total: $" + sum.toFixed(2))
+  $('#salary_sum').text("Total: $" + numberWithCommas(sum))
 } );
 </script>
 {% endblock %}
@@ -79,14 +80,14 @@ $(document).ready(function() {
     <th scope="col">Total Pay</th>
   </tr></thead>
   <tbody>
-  {% for person,units,pay,salary,fraction,bonus,step,rank in fac_roles_pay %}
-  <tr class="{{ units }}">
+  {% for person,unit,pay,salary,fraction,bonus,step,rank in fac_roles_pay %}
+  <tr class="{{ unit.label }}">
   <td><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}">{{ person.sortname }}</a></td>
-  <td>{{ units }}</td>
-  <td>${{ salary}}</td>
+  <td>{{ unit.informal_name }}</td>
+  <td>${{ salary|intcomma }}</td>
   <td>{{ fraction}}</td>
   <td>${{ bonus }}</td>
-  <td><span class="rowdata">{{ pay }}</span> ${{ pay }}</td>
+  <td><span class="rowdata">{{ pay }}</span> ${{ pay|intcomma }}</td>
   </tr>
   {% endfor %}
   </tbody>

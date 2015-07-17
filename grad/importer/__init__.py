@@ -174,5 +174,6 @@ def import_timelines(timeline_data, dry_run, verbosity):
 
 def import_grads(dry_run, verbosity, import_emplids=None):
     timeline_data = get_timelines(verbosity=verbosity, import_emplids=import_emplids)
+    # note: it would be perfectly fine to break up timeline_data into smaller chunks and run import_timelines as subtasks
     import_timelines(timeline_data, dry_run=dry_run, verbosity=verbosity)
 
