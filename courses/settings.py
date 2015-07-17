@@ -329,7 +329,8 @@ PIWIK_URL = getattr(localsettings, 'PIWIK_URL', None)
 PIWIK_TOKEN = getattr(localsettings, 'PIWIK_TOKEN', None)
 PIWIK_SITEID = 1
 PIWIK_CELERY = USE_CELERY
-PIWIK_CELERY_TASK_KWARGS = {'queue': 'fast', 'rate_limit': '5/s'}
+PIWIK_CELERY_TASK_KWARGS = {'queue': 'fast', 'rate_limit': '5/s', 'max_retries': 5, 'default_retry_delay': 180}
+PIWIK_FAIL_SILENTLY = True
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"

@@ -1,6 +1,9 @@
 from piwikapi.tracking import PiwikTracker
 from piwikapi.tests.request import FakeRequest
 from ipware.ip import get_real_ip
+from socket import error as SocketError
+import urllib2
+import time, datetime, pytz
 import hashlib
 
 from .conf import settings
@@ -10,6 +13,7 @@ SESSION_COOKIE_NAME = settings.SESSION_COOKIE_NAME
 PIWIK_SITEID = settings.PIWIK_SITEID
 PIWIK_URL = settings.PIWIK_URL
 PIWIK_TOKEN = settings.PIWIK_TOKEN
+PIWIK_FAIL_SILENTLY = settings.PIWIK_FAIL_SILENTLY
 
 try:
     from .tasks import track_page_view_task
@@ -18,6 +22,10 @@ except ValueError:
     track_page_view_task = None
 
 USE_CELERY = track_page_view_task and settings.PIWIK_CELERY
+
+# errors that might be thrown by the API call that variously mean "bad network thing".
+urllib_errors = (urllib2.URLError, urllib2.HTTPError, SocketError, IOError)
+
 
 class PiwikTrackerLogic(object):
     """
@@ -41,12 +49,14 @@ class PiwikTrackerLogic(object):
             'headers': headers,
             'title': None,
             'userid': userid,
+            'reqtime': time.time(),
             'session_key': request.COOKIES.get(SESSION_COOKIE_NAME, None),
             'status_code': response.status_code if response else None,
         }
         return kwargs
 
-    def do_track_page_view(self, headers, title=None, userid=None, session_key=None, status_code=None):
+    def do_track_page_view(self, headers, reqtime=None, title=None, userid=None, session_key=None, status_code=None,
+                fail_silently=PIWIK_FAIL_SILENTLY):
         """
         Actually record the page view with Piwik: do the actual work with kwargs from self.get_track_kwargs
         """
@@ -62,13 +72,21 @@ class PiwikTrackerLogic(object):
             visitor_id = hashlib.sha512(session_key).hexdigest()[0:PiwikTracker.LENGTH_VISITOR_ID]
             pt.set_visitor_id(visitor_id)
 
+        if reqtime:
+            dt = datetime.datetime.fromtimestamp(reqtime, pytz.utc)
+            pt.set_force_visit_date_time(dt)
+
         if userid:
             pt.set_custom_variable(1, 'userid', userid, scope='visit')
 
         if status_code:
             pt.set_custom_variable(2, 'status_code', status_code, scope='page')
 
-        pt.do_track_page_view(title)
+        try:
+            pt.do_track_page_view(title)
+        except urllib_errors:
+            if not fail_silently:
+                raise
 
     def track_page_view(self, request, response=None):
         """

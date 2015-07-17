@@ -8,6 +8,7 @@ class PiwikAppConf(AppConf):
     TRACKING_LOGIC = 'piwik_middleware.tracking'
     CELERY = False
     CELERY_TASK_KWARGS = {}
+    FAIL_SILENTLY = False
 
     class Meta:
         prefix = 'piwik'
