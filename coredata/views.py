@@ -336,7 +336,7 @@ def add_combined_offering(request, pk):
 def admin_panel(request):
     if 'content' in request.GET:
         if request.GET['content'] == 'deploy_checks':
-            passed, failed = panel.deploy_checks()
+            passed, failed = panel.deploy_checks(request=request)
             return render(request, 'coredata/admin_panel_tab.html', {'passed': passed, 'failed': failed})
         elif request.GET['content'] == 'settings_info':
             data = panel.settings_info()

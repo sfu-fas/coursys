@@ -72,7 +72,7 @@ def settings_info():
     return info
 
 
-def deploy_checks():
+def deploy_checks(request=None):
     passed = []
     failed = []
 
@@ -201,6 +201,24 @@ def deploy_checks():
         failed.append(('Emplid API', 'incorrect emplid returned'))
     else:
         passed.append(('Emplid API', 'okay'))
+
+    # Piwik API
+    if not request:
+        failed.append(('Piwik API', "can only check in web frontend with valid request object"))
+    elif not settings.PIWIK_URL or not settings.PIWIK_TOKEN:
+        failed.append(('Piwik API', "not configured in secrets.py"))
+    else:
+        # try to re-log this request in piwik and see what happens
+        from piwik_middleware.tracking import PiwikTrackerLogic, urllib_errors
+        tracking_logic = PiwikTrackerLogic()
+        kwargs = tracking_logic.get_track_kwargs(request)
+        try:
+            tracking_logic.do_track_page_view(fail_silently=False, **kwargs)
+        except urllib_errors as e:
+            failed.append(('Piwik API', "API call failed: %s" % (e)))
+        else:
+            passed.append(('Piwik API', 'okay'))
+
 
     # certificates
     bad_cert = 0
