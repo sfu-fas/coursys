@@ -375,7 +375,7 @@ def admin_panel(request):
             else:
                 messages.error(request, res)
         elif 'tasks' in request.POST:
-            if 'grad' in request.POST:
+            if 'daily' in request.POST:
                 from coredata.tasks import import_task
                 import_task.apply_async()
                 messages.success(request, 'Daily import task started.')
