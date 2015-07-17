@@ -63,3 +63,68 @@ class ExceptionIgnorer(object):
         elif isinstance(exception, AssertionError) and "The Django CAS middleware requires authentication middleware" in format:
             # wacky authentication thing that means the database is missing, or something
             return HttpError(request, status=500, title="Database Error", error="Unable to connect to database.")
+
+
+
+from piwikapi.tracking import PiwikTracker
+from piwikapi.tests.request import FakeRequest
+from ipware.ip import get_real_ip
+import copy, hashlib
+PIWIK_URL = settings.PIWIK_URL
+PIWIK_TOKEN = settings.PIWIK_TOKEN
+
+
+class PiwikMiddleware(object):
+    @staticmethod
+    def track_page_view(headers, ip, title, userid, visitor_id):
+        """
+        Actually record the page view.
+
+        Separated the real work so we can throw it in Celery.
+        """
+        req = FakeRequest(headers)
+        pt = PiwikTracker(1, req) # 1 is the Piwik site id
+        pt.set_api_url(PIWIK_URL)
+        pt.set_ip(ip)
+        pt.set_token_auth(PIWIK_TOKEN)
+        if visitor_id:
+            pt.set_visitor_id(visitor_id)
+        if userid:
+            pt.set_custom_variable(1, 'userid', userid, scope='visit')
+        pt.do_track_page_view(title)
+
+    def process_response(self, request, response):
+        if not PIWIK_URL or not PIWIK_TOKEN:
+            # URL and TOKEN must be set to get us anywhere
+            return
+
+        headers = {}
+        for k,v in request.META.iteritems():
+            if not k.startswith('wsgi.'):
+                headers[k] = v
+        headers['HTTPS'] = request.is_secure()
+
+        ip = get_real_ip(request)
+        title = None
+        if request.user.is_authenticated():
+            userid = request.user.username
+        else:
+            userid = None
+
+        session_key = request.COOKIES.get(settings.SESSION_COOKIE_NAME, None)
+        if session_key:
+            visitor_id = hashlib.sha512(session_key).hexdigest()[0:PiwikTracker.LENGTH_VISITOR_ID]
+        else:
+            visitor_id = None
+
+        kwargs = {
+            'headers': headers,
+            'ip': ip,
+            'title': title,
+            'userid': userid,
+            'visitor_id': visitor_id,
+        }
+        PiwikMiddleware.track_page_view(**kwargs)
+
+        return response
+
