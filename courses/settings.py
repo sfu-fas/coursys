@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'oauth_provider',
     'rest_framework_swagger',
+    'piwik_middleware',
 
     'coredata',
     'dashboard',
@@ -99,7 +100,7 @@ MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'courselib.middleware.ExceptionIgnorer',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
-    'courselib.middleware.PiwikMiddleware',
+    'piwik_middleware.middleware.PiwikMiddleware',
 )
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'templates'),
@@ -323,9 +324,12 @@ SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
+
 PIWIK_URL = getattr(localsettings, 'PIWIK_URL', None)
 PIWIK_TOKEN = getattr(localsettings, 'PIWIK_TOKEN', None)
-PIWIK_SITEID = getattr(localsettings, 'PIWIK_SITEID', 1)
+PIWIK_SITEID = 1
+PIWIK_CELERY = USE_CELERY
+PIWIK_CELERY_TASK_KWARGS = {'queue': 'fast', 'rate_limit': '5/s'}
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"

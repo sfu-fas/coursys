@@ -1,0 +1,85 @@
+from piwikapi.tracking import PiwikTracker
+from piwikapi.tests.request import FakeRequest
+from ipware.ip import get_real_ip
+import hashlib
+
+from .conf import settings
+
+SESSION_COOKIE_NAME = settings.SESSION_COOKIE_NAME
+
+PIWIK_SITEID = settings.PIWIK_SITEID
+PIWIK_URL = settings.PIWIK_URL
+PIWIK_TOKEN = settings.PIWIK_TOKEN
+
+try:
+    from .tasks import track_page_view_task
+except ValueError:
+    # if we don't have the celery module around, the import will fail
+    track_page_view_task = None
+
+USE_CELERY = track_page_view_task and settings.PIWIK_CELERY
+
+class PiwikTrackerLogic(object):
+    """
+    Logic associated with recording hits to Piwik.
+
+    This module is referenced by settings.PIWIK_TRACKING_LOGIC and can be overridden/subclassed to modify behaviour.
+    """
+    def get_track_kwargs(self, request, response=None):
+        """
+        Get kwargs that can be passed to the TRACKING_FUNCTION (track_page_view by default).
+
+        Return value must be JSON serializable if settings.PIWIK_USE_CELERY.
+        """
+        # copy the META members that might actually be HTTP headers
+        headers = dict((k,v) for k,v in request.META.iteritems() if isinstance(v, basestring))
+        headers['HTTPS'] = request.is_secure()
+
+        userid = request.user.username if request.user.is_authenticated() else None
+
+        kwargs = {
+            'headers': headers,
+            'title': None,
+            'userid': userid,
+            'session_key': request.COOKIES.get(SESSION_COOKIE_NAME, None),
+            'status_code': response.status_code if response else None,
+        }
+        return kwargs
+
+    def do_track_page_view(self, headers, title=None, userid=None, session_key=None, status_code=None):
+        """
+        Actually record the page view with Piwik: do the actual work with kwargs from self.get_track_kwargs
+        """
+        request = FakeRequest(headers)
+        pt = PiwikTracker(PIWIK_SITEID, request)
+
+        pt.set_api_url(PIWIK_URL)
+        pt.set_token_auth(PIWIK_TOKEN)
+
+        pt.set_ip(get_real_ip(request))
+
+        if session_key:
+            visitor_id = hashlib.sha512(session_key).hexdigest()[0:PiwikTracker.LENGTH_VISITOR_ID]
+            pt.set_visitor_id(visitor_id)
+
+        if userid:
+            pt.set_custom_variable(1, 'userid', userid, scope='visit')
+
+        if status_code:
+            pt.set_custom_variable(2, 'status_code', status_code, scope='page')
+
+        pt.do_track_page_view(title)
+
+    def track_page_view(self, request, response=None):
+        """
+        Record a page view in Piwik.
+        """
+        if not PIWIK_URL or not PIWIK_TOKEN:
+            # URL and TOKEN must be set to get us anywhere
+            return
+
+        kwargs = self.get_track_kwargs(request, response)
+        if USE_CELERY:
+            track_page_view_task.delay(kwargs)
+        else:
+            self.do_track_page_view(**kwargs)
