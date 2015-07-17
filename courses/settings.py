@@ -325,6 +325,7 @@ SIMS_DB_SCHEMA = "dbcsown"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 PIWIK_URL = getattr(localsettings, 'PIWIK_URL', None)
 PIWIK_TOKEN = getattr(localsettings, 'PIWIK_TOKEN', None)
+PIWIK_SITEID = getattr(localsettings, 'PIWIK_SITEID', 1)
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"

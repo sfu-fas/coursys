@@ -69,28 +69,35 @@ class ExceptionIgnorer(object):
 from piwikapi.tracking import PiwikTracker
 from piwikapi.tests.request import FakeRequest
 from ipware.ip import get_real_ip
-import copy, hashlib
+import hashlib
 PIWIK_URL = settings.PIWIK_URL
 PIWIK_TOKEN = settings.PIWIK_TOKEN
-
+PIWIK_SITEID = settings.PIWIK_SITEID
 
 class PiwikMiddleware(object):
     @staticmethod
-    def track_page_view(headers, ip, title, userid, visitor_id):
+    def track_page_view(headers, title=None, userid=None, session_key=None, status_code=None):
         """
         Actually record the page view.
 
         Separated the real work so we can throw it in Celery.
         """
         req = FakeRequest(headers)
-        pt = PiwikTracker(1, req) # 1 is the Piwik site id
+        pt = PiwikTracker(PIWIK_SITEID, req)
         pt.set_api_url(PIWIK_URL)
-        pt.set_ip(ip)
+        pt.set_ip(get_real_ip(req))
         pt.set_token_auth(PIWIK_TOKEN)
-        if visitor_id:
+
+        if session_key:
+            visitor_id = hashlib.sha512(session_key).hexdigest()[0:PiwikTracker.LENGTH_VISITOR_ID]
             pt.set_visitor_id(visitor_id)
+
         if userid:
             pt.set_custom_variable(1, 'userid', userid, scope='visit')
+
+        if status_code:
+            pt.set_custom_variable(2, 'status_code', status_code, scope='page')
+
         pt.do_track_page_view(title)
 
     def process_response(self, request, response):
@@ -98,31 +105,18 @@ class PiwikMiddleware(object):
             # URL and TOKEN must be set to get us anywhere
             return
 
-        headers = {}
-        for k,v in request.META.iteritems():
-            if not k.startswith('wsgi.'):
-                headers[k] = v
+        # copy the META members that might actually be HTTP headers
+        headers = dict((k,v) for k,v in request.META.iteritems() if isinstance(v, basestring))
         headers['HTTPS'] = request.is_secure()
 
-        ip = get_real_ip(request)
-        title = None
-        if request.user.is_authenticated():
-            userid = request.user.username
-        else:
-            userid = None
-
-        session_key = request.COOKIES.get(settings.SESSION_COOKIE_NAME, None)
-        if session_key:
-            visitor_id = hashlib.sha512(session_key).hexdigest()[0:PiwikTracker.LENGTH_VISITOR_ID]
-        else:
-            visitor_id = None
+        userid = request.user.username if request.user.is_authenticated() else None
 
         kwargs = {
             'headers': headers,
-            'ip': ip,
-            'title': title,
+            'title': None,
             'userid': userid,
-            'visitor_id': visitor_id,
+            'session_key': request.COOKIES.get(settings.SESSION_COOKIE_NAME, None),
+            'status_code': response.status_code,
         }
         PiwikMiddleware.track_page_view(**kwargs)
 
