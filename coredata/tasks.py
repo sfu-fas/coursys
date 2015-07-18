@@ -35,13 +35,13 @@ def beat_test():
     with file(BEAT_TEST_FILE, 'w') as fh:
         fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
 
-@periodic_task(run_every=crontab(minute=0, hour='*/3'))
+@periodic_task(run_every=crontab(minute=0, hour='*'))
 def backup_database():
     if settings.DO_IMPORTING_HERE:
         # if we're not on the "real" database, then don't bother with regular backups
         backup_db.Command().handle(clean_old=True)
 
-@periodic_task(run_every=crontab(minute=0, hour='*'))
+@periodic_task(run_every=crontab(minute=0, hour='*/3'))
 def check_sims_connection():
     from coredata.queries import SIMSConn, SIMSProblem
     db = SIMSConn()
