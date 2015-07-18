@@ -151,7 +151,6 @@ class FormFiller(models.Model):
         email = FormFiller.form_email(person)
         return u"%s <%s>" % (person.name(), email)
 
-
     def getFormFiller(self):
         if self.sfuFormFiller:
             return self.sfuFormFiller
@@ -1059,7 +1058,7 @@ class FormLogEntry(models.Model):
         if user and filler:
             raise ValueError, 'Cannot set both user and filler.'
         elif filler and not user:
-            if filler.isSFUPerson:
+            if filler.isSFUPerson():
                 user = filler.sfuFormFiller
                 externalFiller = None
             else:
