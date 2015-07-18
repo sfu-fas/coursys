@@ -15,6 +15,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
+from django.utils import timezone
 import datetime, random, hashlib, itertools, collections
 
 # choices for Form.initiator field
@@ -92,6 +93,13 @@ SUBMISSION_STATUS = [
 FORM_SUBMISSION_STATUS = [
         ('PEND', "The document is still being worked on"),
         ] + SUBMISSION_STATUS
+
+STATUS_DESCR = {
+    'WAIT': 'waiting for admin',
+    'DONE': 'done',
+    'REJE': 'returned incomplete',
+    'PEND': 'waiting to be filled in',
+}
 
 class NonSFUFormFiller(models.Model):
     """
@@ -657,11 +665,19 @@ class FormSubmission(models.Model):
     closer_id, set_closer = getter_setter('closer')
 
     def update_status(self):
-        sheet_submissions = SheetSubmission.objects.filter(form_submission=self) 
+        sheet_submissions = SheetSubmission.objects.filter(form_submission=self)
+        orig_status = self.status
         if all(sheet_sub.status in ['DONE', 'REJE'] for sheet_sub in sheet_submissions):
             self.status = 'PEND'
         else:
             self.status = 'WAIT'
+
+        if orig_status != self.status:
+            # log status change
+            FormLogEntry.create(form_submission=self, sheet_submission=None, user=None, category='AUTO',
+                    description=u'System changed form status from "%s" to "%s".'
+                                % (STATUS_DESCR[orig_status], STATUS_DESCR[self.status]))
+
         self.save()
 
     def __unicode__(self):
@@ -693,6 +709,10 @@ class FormSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
+        FormLogEntry.create(form_submission=self, sheet_submission=None, user=None, category='MAIL',
+                    description=u'Notified %s that form submission was completed by %s.'
+                                % (to, from_email))
+
     def email_notify_new_owner(self, request, admin):
         plaintext = get_template('onlineforms/emails/notify_new_owner.txt')
         html = get_template('onlineforms/emails/notify_new_owner.html')
@@ -709,6 +729,10 @@ class FormSubmission(models.Model):
                 headers={'X-coursys-topic': 'onlineforms'})
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
+
+        FormLogEntry.create(form_submission=self, sheet_submission=None, user=None, category='MAIL',
+                    description=u'Notified %s that form submission was transferred to them.'
+                                % (to, from_email))
 
 
 class SheetSubmission(models.Model):
@@ -758,6 +782,7 @@ class SheetSubmission(models.Model):
             return Person.objects.get(id=assigner_id)
         else:
             return None
+
     def set_assigner(self, assigner):
         self.set_assigner_id(assigner.id)
 
@@ -810,6 +835,9 @@ class SheetSubmission(models.Model):
             fs.set_summary('Automatically closed by system after being dormant %i days.' % (days))
             fs.save()
 
+            FormLogEntry.create(sheet_submission=ss, user=None, category='AUTO',
+                        description=u'Automatically closed dormant form submission.')
+
     @classmethod
     def waiting_sheets_by_user(cls):
         min_age = datetime.datetime.now() - datetime.timedelta(hours=24)
@@ -840,6 +868,10 @@ class SheetSubmission(models.Model):
                     s.secret = secrets[0]
                 else:
                     s.secret = None
+
+                FormLogEntry.create(sheet_submission=s, user=None, category='MAIL',
+                        description=u'Reminded %s of waiting sheet.' % (filler.email()))
+
             context = Context({'full_url': full_url,
                     'filler': filler, 'sheets': list(sheets), 'BASE_ABS_URL': settings.BASE_ABS_URL})
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [filler.email()],
@@ -861,7 +893,6 @@ class SheetSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
-
     def email_assigned(self, request, admin, assignee):
         full_url = request.build_absolute_uri(self.get_submission_url())
         context = {'username': admin.name(), 'assignee': assignee.name(), 'sheeturl': full_url, 'sheetsub': self}
@@ -869,13 +900,18 @@ class SheetSubmission(models.Model):
         self._send_email(request, 'sheet_assigned', subject, FormFiller.form_full_email(admin),
                          [assignee.full_email()], context)
 
-    
+        FormLogEntry.create(sheet_submission=self, user=admin, category='MAIL',
+                        description=u'Notified %s that they were assigned a sheet.' % (assignee.full_email(),))
+
     def email_started(self, request):
         full_url = request.build_absolute_uri(self.get_submission_url())
         context = {'initiator': self.filler.name(), 'sheeturl': full_url, 'sheetsub': self}
         subject = u'%s submission incomplete' % (self.sheet.form.title)
         self._send_email(request, 'nonsfu_sheet_started', subject,
                          settings.DEFAULT_FROM_EMAIL, [self.filler.full_email()], context)
+
+        FormLogEntry.create(sheet_submission=self, user=None, category='MAIL',
+                        description=u'Notified %s that they saved an incomplete sheet.' % (self.filler.full_email(),))
 
     def email_submitted(self, request, rejected=False):
         full_url = request.build_absolute_uri(reverse('onlineforms.views.view_submission',
@@ -887,6 +923,9 @@ class SheetSubmission(models.Model):
         self._send_email(request, 'sheet_submitted', subject,
                          settings.DEFAULT_FROM_EMAIL, self.sheet.form.owner.notify_emails(), context)
 
+        FormLogEntry.create(sheet_submission=self, user=None, category='MAIL',
+                description=u'Notified group %s that %s %s their sheet.' % (self.sheet.form.owner.name,
+                        'rejected' if rejected else 'completed', self.filler.full_email()))
 
     def email_returned(self, request, admin):
         context = {'admin': admin, 'sheetsub': self}
@@ -972,7 +1011,47 @@ class SheetSubmissionSecretUrl(models.Model):
                 attempt = str(random.randint(1000,900000000))
         return attempt
 
-    
+FORMLOG_CATEGORIES = [
+    ('AUTO', 'Automatic change by system'),
+    ('MAIL', 'Email notification sent'),
+#    ('', ''),
+#    ('', ''),
+#    ('', ''),
+]
+
+class FormLogEntry(models.Model):
+    """
+    Model to represent a thing that happened to FormSubmission, so we can show the user a unified history.
+    """
+    form_submission = models.ForeignKey(FormSubmission, null=False)
+    sheet_submission = models.ForeignKey(SheetSubmission, null=True)
+    user = models.ForeignKey(Person, null=True, help_text='User who took the action/made the change') # null for system-cause events
+    timestamp = models.DateTimeField(default=timezone.now)
+    category = models.CharField(max_length=4, choices=FORMLOG_CATEGORIES)
+    description = models.CharField(max_length=255, help_text="Description of the action/change")
+    config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
+
+    @classmethod
+    def create(cls, user, category, description, form_submission=None, sheet_submission=None):
+        """
+        Create and save a FormLogEntry.
+        """
+        if not form_submission:
+            if sheet_submission and sheet_submission.form_submission:
+                form_submission = sheet_submission.form_submission
+            else:
+                raise ValueError, 'Must pass either sheet_submission or form_submission so we have the FormSubmission.'
+
+        le = FormLogEntry(form_submission=form_submission, sheet_submission=sheet_submission, user=user,
+                category=category, description=description)
+        le.save()
+        print '>>>', le
+        return le
+
+    def __unicode__(self):
+        return u'Log formsub %s sheetsub %s by %s: "%s"' % (self.form_submission_id, self.sheet_submission_id,
+                self.user.userid_or_emplid() if self.user else '-', self.description)
+
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
 

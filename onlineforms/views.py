@@ -1,17 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
-from django import forms
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.conf import settings
 from django.core.urlresolvers import reverse
 import django.db.transaction
 from django.db.models import Q, Count
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
+from courselib.auth import ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
     requires_formgroup, login_redirect
 from courselib.db import retry_transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,7 +19,7 @@ from onlineforms.forms import FormForm,NewFormForm, SheetForm, FieldForm, Dynami
     AdminAssignFormForm_nonsfu, AdminAssignSheetForm_nonsfu, CloseFormForm, ChangeOwnerForm, AdminReturnForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, FIELD_TYPES, neaten_field_positions, FormGroup, FormGroupMember, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
-from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, reorder_sheet_fields
+from onlineforms.models import FormFiller, SheetSubmissionSecretUrl, FormLogEntry, reorder_sheet_fields
 
 from coredata.models import Person, Role, Unit
 from log.models import LogEntry
@@ -1105,7 +1103,6 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 # TODO: show in display-only mode instead?
                 messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
                 return HttpResponseRedirect(reverse(index))
-                #return NotFoundResponse(request, errormsg='This sheet has already been completed and cannot be edited further')
 
             # check that they can access this sheet
             formFiller = sheet_submission.filler
