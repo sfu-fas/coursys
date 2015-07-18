@@ -213,6 +213,9 @@ def _admin_assign(request, form_slug, formsubmit_slug, assign_to_sfu_account=Tru
 
             sheet_submission.save()
 
+            FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
+                    description=u'Assigned sheet to %s.' % (formFiller.full_email()))
+
             # create an alternate URL, if necessary
             if not assign_to_sfu_account:
                 SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
@@ -280,10 +283,14 @@ def _admin_assign_any(request, assign_to_sfu_account=True):
             form_submission = FormSubmission.objects.create(form=form,
                                 initiator=formFiller,
                                 owner=form.owner,
-                                status='WAIT')
+                                status='NEW')
             sheet_submission = SheetSubmission.objects.create(form_submission=form_submission,
                 sheet=form.initial_sheet,
                 filler=formFiller)
+
+            FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
+                    description=u'Assigned initial sheet to %s.' % (formFiller.full_email()))
+
             # create an alternate URL, if necessary
             if not assign_to_sfu_account:
                 SheetSubmissionSecretUrl.objects.create(sheet_submission=sheet_submission)
@@ -321,12 +328,15 @@ def admin_change_owner(request, form_slug, formsubmit_slug):
                 form_submission.email_notify_new_owner(request, admin)
                 form_submission.save()
 
+                FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
+                    description=u'Gave ownership to group "%s".' % (new_g.name,))
+
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                     description=(u"Gave ownership of form sub %s; %s to %s" % (form_submission.form.slug, form_submission.slug, new_g.name)),
                     related_object=form_submission)
                 l.save()
-                messages.success(request, u'Form given to %s.' % (new_g.name))
+                messages.success(request, u'Form given to group "%s".' % (new_g.name))
                 return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
         else:
@@ -351,6 +361,9 @@ def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
                 sheet_submission.status = 'WAIT'
                 sheet_submission.set_return_reason(reason)
                 sheet_submission.save()
+
+                FormLogEntry.create(sheet_submission=sheet_submission, user=admin, category='ADMN',
+                    description=u'Returned sheet to %s.' % (sheet_submission.filler.full_email(),))
 
                 sheet_submission.email_returned(request, admin)
 
@@ -473,7 +486,6 @@ def view_form(request, form_slug):
         return HttpResponseRedirect(
             reverse(view_form, kwargs={'form_slug':form.slug }))
 
-    
     context = {'form': form, 'sheets': sheets}
     return render(request, "onlineforms/view_form.html", context)       
 
@@ -956,8 +968,12 @@ def view_submission(request, form_slug, formsubmit_slug):
                 if email:
                     form_submission.email_notify_completed(request, admin)
                     messages.success(request, 'Form submission marked as completed; initiator informed by email.')
+                    FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
+                        description=u'Marked form completed (and emailed notifying user).')
                 else:
                     messages.success(request, 'Form submission marked as completed.')
+                    FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
+                        description=u'Marked form completed (but user was not emailed through system).')
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -972,6 +988,9 @@ def view_submission(request, form_slug, formsubmit_slug):
             close_form = None
 
         can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
+
+        #for le in FormLogEntry.objects.filter(form_submission=form_submission):
+        #    print '+', le.timestamp, le
         
         context = {
                    'form': form_submission.form,
@@ -1008,11 +1027,16 @@ def _reject_sheet(request, sheetsub):
             sheetsub.set_reject_reason(request.POST['reject_reason'])
         sheetsub.status = 'REJE'
         sheetsub.save()
+
         if sheetsub.sheet.is_initial:
+            FormLogEntry.create(sheet_submission=sheetsub, filler=sheetsub.filler, category='FILL',
+                    description=u'Discarded initial sheet.')
             fs = sheetsub.form_submission
             fs.status = 'REJE'
             fs.save()
         else:
+            FormLogEntry.create(sheet_submission=sheetsub, filler=sheetsub.filler, category='FILL',
+                    description=u'Returned sheet without completing.')
             sheetsub.email_submitted(request, rejected=True)
 
         l = LogEntry(userid=request.user.username,
@@ -1078,7 +1102,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             try:
                 loggedin_user = Person.objects.get(userid=request.user.username)
             except Person.DoesNotExist:
-                return ForbiddenResponse(request, u"The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact helpdesk@cs.sfu.ca for assistance." % (request.user.username))
+                return ForbiddenResponse(request, u"The userid '%s' isn't known to this system. If this is a 'role' account, please log in under your primary SFU userid. Otherwise, please contact coursys-help@sfu.ca for assistance." % (request.user.username))
             logentry_userid = loggedin_user.userid
             nonSFUFormFillerForm = None
         else:
@@ -1147,7 +1171,6 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                     if not formFiller:
                         # we don't have a form filler from above (could be initial sheet submission)
                         # if they provided a non-SFU form use that info, otherwise grab their logged in credentials
-                        formFiller = None
                         if 'add-nonsfu' in request.POST and sheet.is_initial and owner_form.initiators == "ANY":
                             nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
                             if nonSFUFormFillerForm.is_valid():
@@ -1174,7 +1197,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                         # we have a form filler, the data is valid, create the formsubmission and sheetsubmission objects if necessary
                         if not(form_submission):
                             # create the form submission
-                            form_submission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
+                            form_submission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner, status='NEW')
                             form_submission.save()
                             #LOG EVENT#
                             l = LogEntry(userid=logentry_userid,
@@ -1227,12 +1250,6 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                         new_file_submission.file_mediatype = new_file.content_type
                                         new_file_submission.save()
 
-                                #LOG EVENT#
-                                #l = LogEntry(userid=logentry_userid,
-                                #    description=(u"Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
-                                #    related_object=fieldSubmission)
-                                #l.save()
-
                         # cleanup for each submit-mode
                         if 'save' in request.POST:
                             # refill the form with the new data
@@ -1262,6 +1279,9 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                     'sheet_slug': sheet.slug,
                                     'sheetsubmit_slug': sheet_submission.slug})
 
+                            FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='FILL',
+                                    description=u'Saved sheet "%s" (without submitting).' % (sheet_submission.sheet.title))
+
                             messages.success(request, 'All fields without errors were saved. Use this page\'s URL to edit this submission in the future.')
                             return HttpResponseRedirect(access_url)
                         elif 'submit' in request.POST:
@@ -1274,6 +1294,9 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             l.save()
                             
                             sheet_submission.email_submitted(request)
+
+                            FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='FILL',
+                                    description=u'Submitted sheet "%s".' % (sheet_submission.sheet.title))
 
                             messages.success(request, u'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                             return HttpResponseRedirect(reverse(index))

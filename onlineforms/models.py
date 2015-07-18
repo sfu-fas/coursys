@@ -85,20 +85,21 @@ FIELD_TYPE_MODELS = {
 
 # mapping of different statuses the forms can be in
 SUBMISSION_STATUS = [
-        ('WAIT', "Waiting for the owner to send it to someone else or change status to \"done\""),
+        ('WAIT', "Waiting for the user to complete their sheet"),
         ('DONE', "No further action required"),
         ('REJE', "Returned incomplete"),
         ]
         
 FORM_SUBMISSION_STATUS = [
-        ('PEND', "The document is still being worked on"),
+        ('PEND', "Waiting for the owner to assign a sheet or mark the form completed"),
         ] + SUBMISSION_STATUS
 
 STATUS_DESCR = {
-    'WAIT': 'waiting for admin',
+    'WAIT': 'waiting to be filled in',
     'DONE': 'done',
     'REJE': 'returned incomplete',
-    'PEND': 'waiting to be filled in',
+    'PEND': 'waiting for admin',
+    'NEW': 'newly-created form', # fake value so we can log the new form -> waiting transition correctly
 }
 
 class NonSFUFormFiller(models.Model):
@@ -674,7 +675,7 @@ class FormSubmission(models.Model):
 
         if orig_status != self.status:
             # log status change
-            FormLogEntry.create(form_submission=self, sheet_submission=None, user=None, category='AUTO',
+            FormLogEntry.create(form_submission=self, category='AUTO',
                     description=u'System changed form status from "%s" to "%s".'
                                 % (STATUS_DESCR[orig_status], STATUS_DESCR[self.status]))
 
@@ -709,7 +710,7 @@ class FormSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
-        FormLogEntry.create(form_submission=self, sheet_submission=None, user=None, category='MAIL',
+        FormLogEntry.create(form_submission=self, category='MAIL',
                     description=u'Notified %s that form submission was completed by %s.'
                                 % (to, from_email))
 
@@ -730,9 +731,9 @@ class FormSubmission(models.Model):
         msg.attach_alternative(html.render(email_context), "text/html")
         msg.send()
 
-        FormLogEntry.create(form_submission=self, sheet_submission=None, user=None, category='MAIL',
-                    description=u'Notified %s that form submission was transferred to them.'
-                                % (to, from_email))
+        FormLogEntry.create(form_submission=self, category='MAIL',
+                    description=u'Notified group "%s" that form submission was transferred to them.'
+                                % (self.owner.name,))
 
 
 class SheetSubmission(models.Model):
@@ -835,7 +836,7 @@ class SheetSubmission(models.Model):
             fs.set_summary('Automatically closed by system after being dormant %i days.' % (days))
             fs.save()
 
-            FormLogEntry.create(sheet_submission=ss, user=None, category='AUTO',
+            FormLogEntry.create(sheet_submission=ss, category='SYST',
                         description=u'Automatically closed dormant form submission.')
 
     @classmethod
@@ -869,7 +870,7 @@ class SheetSubmission(models.Model):
                 else:
                     s.secret = None
 
-                FormLogEntry.create(sheet_submission=s, user=None, category='MAIL',
+                FormLogEntry.create(sheet_submission=s, category='MAIL',
                         description=u'Reminded %s of waiting sheet.' % (filler.email()))
 
             context = Context({'full_url': full_url,
@@ -900,7 +901,7 @@ class SheetSubmission(models.Model):
         self._send_email(request, 'sheet_assigned', subject, FormFiller.form_full_email(admin),
                          [assignee.full_email()], context)
 
-        FormLogEntry.create(sheet_submission=self, user=admin, category='MAIL',
+        FormLogEntry.create(sheet_submission=self, category='MAIL',
                         description=u'Notified %s that they were assigned a sheet.' % (assignee.full_email(),))
 
     def email_started(self, request):
@@ -910,7 +911,7 @@ class SheetSubmission(models.Model):
         self._send_email(request, 'nonsfu_sheet_started', subject,
                          settings.DEFAULT_FROM_EMAIL, [self.filler.full_email()], context)
 
-        FormLogEntry.create(sheet_submission=self, user=None, category='MAIL',
+        FormLogEntry.create(sheet_submission=self, category='MAIL',
                         description=u'Notified %s that they saved an incomplete sheet.' % (self.filler.full_email(),))
 
     def email_submitted(self, request, rejected=False):
@@ -923,15 +924,17 @@ class SheetSubmission(models.Model):
         self._send_email(request, 'sheet_submitted', subject,
                          settings.DEFAULT_FROM_EMAIL, self.sheet.form.owner.notify_emails(), context)
 
-        FormLogEntry.create(sheet_submission=self, user=None, category='MAIL',
-                description=u'Notified group %s that %s %s their sheet.' % (self.sheet.form.owner.name,
-                        'rejected' if rejected else 'completed', self.filler.full_email()))
+        FormLogEntry.create(sheet_submission=self, category='MAIL',
+                description=u'Notified group "%s" that %s %s their sheet.' % (self.sheet.form.owner.name,
+                        self.filler.full_email(), 'rejected' if rejected else 'completed'))
 
     def email_returned(self, request, admin):
         context = {'admin': admin, 'sheetsub': self}
         self._send_email(request, 'sheet_returned', u'%s submission returned' % (self.sheet.title),
                          FormFiller.form_full_email(admin), [self.filler.full_email()], context)
 
+        FormLogEntry.create(sheet_submission=self, category='MAIL',
+                description=u'Notified %s of returned sheet.' % (self.filler.full_email(),))
 
 
 class FieldSubmission(models.Model):
@@ -1012,11 +1015,11 @@ class SheetSubmissionSecretUrl(models.Model):
         return attempt
 
 FORMLOG_CATEGORIES = [
-    ('AUTO', 'Automatic change by system'),
+    ('AUTO', 'Automatic update'), # ... that is probably for internal record-keeping only.
+    ('SYST', 'Automatic change by system'), # ... that the end-users might care about.
     ('MAIL', 'Email notification sent'),
-#    ('', ''),
-#    ('', ''),
-#    ('', ''),
+    ('ADMN', 'Administrative action'),
+    ('FILL', 'User action'),
 ]
 
 class FormLogEntry(models.Model):
@@ -1025,16 +1028,27 @@ class FormLogEntry(models.Model):
     """
     form_submission = models.ForeignKey(FormSubmission, null=False)
     sheet_submission = models.ForeignKey(SheetSubmission, null=True)
-    user = models.ForeignKey(Person, null=True, help_text='User who took the action/made the change') # null for system-cause events
+
+    # one of user and externalFiller should always be null; both null == system-caused event.
+    user = models.ForeignKey(Person, null=True, help_text='User who took the action/made the change')
+    externalFiller = models.ForeignKey(NonSFUFormFiller, null=True)
+
     timestamp = models.DateTimeField(default=timezone.now)
     category = models.CharField(max_length=4, choices=FORMLOG_CATEGORIES)
     description = models.CharField(max_length=255, help_text="Description of the action/change")
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
 
+    class Meta:
+        ordering = ('timestamp',)
+
     @classmethod
-    def create(cls, user, category, description, form_submission=None, sheet_submission=None):
+    def create(cls, category, description, user=None, filler=None, form_submission=None, sheet_submission=None):
         """
         Create and save a FormLogEntry.
+
+        May specify either form_submission or sheet_submission (and then form_submission is implied).
+
+        May specify either user (a Person) or filler (a FormFiller) or neither (for system event).
         """
         if not form_submission:
             if sheet_submission and sheet_submission.form_submission:
@@ -1042,15 +1056,37 @@ class FormLogEntry(models.Model):
             else:
                 raise ValueError, 'Must pass either sheet_submission or form_submission so we have the FormSubmission.'
 
+        if user and filler:
+            raise ValueError, 'Cannot set both user and filler.'
+        elif filler and not user:
+            if filler.isSFUPerson:
+                user = filler.sfuFormFiller
+                externalFiller = None
+            else:
+                user = None
+                externalFiller = filler.nonSFUFormFiller
+        else:
+            externalFiller = None
+
         le = FormLogEntry(form_submission=form_submission, sheet_submission=sheet_submission, user=user,
-                category=category, description=description)
+                externalFiller=externalFiller, category=category, description=description)
         le.save()
-        print '>>>', le
         return le
 
     def __unicode__(self):
-        return u'Log formsub %s sheetsub %s by %s: "%s"' % (self.form_submission_id, self.sheet_submission_id,
-                self.user.userid_or_emplid() if self.user else '-', self.description)
+        return u'Log %s formsub %s sheetsub %s by %s: "%s"' % (self.category, self.form_submission_id,
+                self.sheet_submission_id, self.identifier(), self.description)
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because its job is to exist."
+
+    def identifier(self):
+        if self.user:
+            return self.user.userid_or_emplid()
+        elif self.externalFiller:
+            return self.externalFiller.email_address
+        else:
+            return '*system*'
 
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
