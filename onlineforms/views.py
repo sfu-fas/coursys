@@ -969,7 +969,7 @@ def view_submission(request, form_slug, formsubmit_slug):
                     form_submission.email_notify_completed(request, admin)
                     messages.success(request, 'Form submission marked as completed; initiator informed by email.')
                     FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
-                        description=u'Marked form completed (and emailed notifying user).')
+                        description=u'Marked form completed (and emailed to notify user).')
                 else:
                     messages.success(request, 'Form submission marked as completed.')
                     FormLogEntry.create(form_submission=form_submission, user=admin, category='ADMN',
@@ -989,13 +989,18 @@ def view_submission(request, form_slug, formsubmit_slug):
 
         can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
 
-        #for le in FormLogEntry.objects.filter(form_submission=form_submission):
-        #    print '+', le.timestamp, le
-        
+        logentries = FormLogEntry.objects.filter(form_submission=form_submission) \
+                .exclude(category__in=['AUTO', 'MAIL', 'SAVE']) \
+                .select_related('user', 'externalFiller', 'sheet_submission__sheet')
+
+        # combine (SheetSubmission, [FieldSubmissions]) and (FormLogEntry, _) objects into a unified chronology
+        formsub_activity = list(sheet_submissions) + [(le, 'FormLogEntry') for le in logentries]
+        formsub_activity.sort(key=lambda a: a[0].completed_at)
+
         context = {
                    'form': form_submission.form,
                    'form_sub': form_submission,
-                   'sheet_submissions': sheet_submissions,
+                   'formsub_activity': formsub_activity,
                    'form_slug': form_slug,
                    'formsubmit_slug': formsubmit_slug,
                    'is_advisor': is_advisor,
@@ -1279,8 +1284,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                                     'sheet_slug': sheet.slug,
                                     'sheetsubmit_slug': sheet_submission.slug})
 
-                            FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='FILL',
-                                    description=u'Saved sheet "%s" (without submitting).' % (sheet_submission.sheet.title))
+                            FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='SAVE',
+                                    description=u'Saved sheet without submitting.')
 
                             messages.success(request, 'All fields without errors were saved. Use this page\'s URL to edit this submission in the future.')
                             return HttpResponseRedirect(access_url)
@@ -1296,7 +1301,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                             sheet_submission.email_submitted(request)
 
                             FormLogEntry.create(sheet_submission=sheet_submission, filler=formFiller, category='FILL',
-                                    description=u'Submitted sheet "%s".' % (sheet_submission.sheet.title))
+                                    description=u'Submitted sheet.')
 
                             messages.success(request, u'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
                             return HttpResponseRedirect(reverse(index))

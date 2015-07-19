@@ -836,7 +836,7 @@ class SheetSubmission(models.Model):
             fs.save()
 
             FormLogEntry.create(sheet_submission=ss, category='SYST',
-                        description=u'Automatically closed dormant form submission.')
+                        description=u'Automatically closed dormant draft form.')
 
     @classmethod
     def waiting_sheets_by_user(cls):
@@ -1019,6 +1019,7 @@ FORMLOG_CATEGORIES = [
     ('MAIL', 'Email notification sent'),
     ('ADMN', 'Administrative action'),
     ('FILL', 'User action'),
+    ('SAVE', 'Saved draft'),
 ]
 
 class FormLogEntry(models.Model):
@@ -1078,6 +1079,15 @@ class FormLogEntry(models.Model):
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because its job is to exist."
+
+    @property
+    def completed_at(self):
+        """
+        Fake a .completed_at so we can sort these and SheetSubmissions by obj.completed_at.
+
+        Fudge a little later to make sure log entries are displayed after the completed sheet, not before.
+        """
+        return self.timestamp + datetime.timedelta(seconds=1)
 
     def identifier(self):
         if self.user:

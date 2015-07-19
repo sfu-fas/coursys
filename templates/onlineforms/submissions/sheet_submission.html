@@ -35,7 +35,7 @@ $(document).ready(function() {
         {% endif %}
 
         {% if filled_sheets %}
-            {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=filled_sheets %}
+            {% include "onlineforms/admin/view_sheet.html" with formsub_activity=filled_sheets %}
         {% endif %}
 
         {% if sheet %}

@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('timestamp', models.DateTimeField(default=django.utils.timezone.now)),
-                ('category', models.CharField(max_length=4, choices=[(b'AUTO', b'Automatic update'), (b'SYST', b'Automatic change by system'), (b'MAIL', b'Email notification sent'), (b'ADMN', b'Administrative action'), (b'FILL', b'User action')])),
+                ('category', models.CharField(max_length=4, choices=[(b'AUTO', b'Automatic update'), (b'SYST', b'Automatic change by system'), (b'MAIL', b'Email notification sent'), (b'ADMN', b'Administrative action'), (b'FILL', b'User action'), (b'SAVE', b'Saved draft')])),
                 ('description', models.CharField(help_text=b'Description of the action/change', max_length=255)),
                 ('config', courselib.json_fields.JSONField(default=dict)),
                 ('externalFiller', models.ForeignKey(to='onlineforms.NonSFUFormFiller', null=True)),

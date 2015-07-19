@@ -1,7 +1,17 @@
-{# be sure to include this if using this fragment: <link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />  #}
+{# be sure to include this if using this fragment: <link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />  #}
 
-{% for sheet_sub, fields in sheet_submissions %}
-	<form class="sheetsub sheetsub-{{ sheet_sub.status }}" action="">
+{% for sheet_sub, fields in formsub_activity %}
+{% if fields == 'FormLogEntry' %}{# it's a FormLogEntry, not a SheetSubmission #}
+    {% with logentry=sheet_sub %}
+    <p class="formlogentry">
+        {{ logentry.timestamp }} by {{ logentry.identifier }}: {{ logentry.description }}
+        {% if logentry.sheet_submission %}
+        (sheet <a href="#sheetsub-{{ logentry.sheet_submission.id }}">{{ logentry.sheet_submission.sheet.title }}</a>)
+        {% endif %}
+    </p>
+    {% endwith %}
+{% else %}
+	<form class="sheetsub sheetsub-{{ sheet_sub.status }}" id="sheetsub-{{ sheet_sub.id }}" action="">
 		<fieldset class="view_fieldset">
 			<legend>{{ sheet_sub.sheet.title }}</legend>
             {% if sheet_sub.assign_comment %}
@@ -51,4 +61,5 @@
 			{% endif %}
 		</fieldset>
 	</form>
+{% endif %}
 {% endfor %}
