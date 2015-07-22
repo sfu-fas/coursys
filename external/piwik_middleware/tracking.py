@@ -41,7 +41,11 @@ class PiwikTrackerLogic(object):
         Return value must be JSON serializable if settings.PIWIK_USE_CELERY.
         """
         # copy the META members that might actually be HTTP headers
-        headers = dict((k,v) for k,v in request.META.iteritems() if isinstance(v, basestring))
+        headers = dict(
+            (unicode(k), unicode(v))
+            for k,v in request.META.iteritems()
+            if isinstance(k, basestring) and isinstance(v, basestring)
+        )
         headers['HTTPS'] = request.is_secure()
 
         userid = request.user.username if hasattr(request, 'user') and request.user.is_authenticated() else None
