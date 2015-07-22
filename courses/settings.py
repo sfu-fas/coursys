@@ -329,7 +329,7 @@ PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
 PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
 PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
 PIWIK_CELERY = USE_CELERY
-PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 5, 'default_retry_delay': 180}
+PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 6, 'default_retry_delay': 600}
 PIWIK_FAIL_SILENTLY = True
 PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
 

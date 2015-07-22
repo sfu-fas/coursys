@@ -42,9 +42,9 @@ class PiwikTrackerLogic(object):
         """
         # copy the META members that might actually be HTTP headers
         headers = dict(
-            (unicode(k), unicode(v))
+            (k, v)
             for k,v in request.META.iteritems()
-            if isinstance(k, basestring) and isinstance(v, basestring)
+            if isinstance(k, str) and isinstance(v, str)
         )
         headers['HTTPS'] = request.is_secure()
 
