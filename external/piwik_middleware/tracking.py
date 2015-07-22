@@ -44,7 +44,7 @@ class PiwikTrackerLogic(object):
         headers = dict((k,v) for k,v in request.META.iteritems() if isinstance(v, basestring))
         headers['HTTPS'] = request.is_secure()
 
-        userid = request.user.username if request.user.is_authenticated() else None
+        userid = request.user.username if hasattr(request, 'user') and request.user.is_authenticated() else None
 
         kwargs = {
             'headers': headers,
