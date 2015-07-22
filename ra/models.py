@@ -7,7 +7,11 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
 from courselib.text import normalize_newlines
+from django.template.loader import get_template
+from django.template import Context
+from django.core.mail import EmailMultiAlternatives
 import datetime
+
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -188,24 +192,9 @@ class RAAppointment(models.Model):
     def get_absolute_url(self):
         return reverse('ra.views.view', kwargs={'ra_slug': self.slug})
 
-    def default_letter_text(self):
-        """
-        Default text for the letter (for editing, or use if not set)
-
-        NOTE:  This is going to go away shortly after the method below this is fully
-        implemented.
-        """
-        substitutions = {
-            'start_date': self.start_date.strftime("%B %d, %Y"),
-            'end_date': self.end_date.strftime("%B %d, %Y"),
-            'lump_sum_pay': self.lump_sum_pay,
-            'biweekly_pay': self.biweekly_pay,
-            }
-        if self.pay_frequency == 'B':
-            text = DEFAULT_LETTER_BIWEEKLY
-        else:
-            text = DEFAULT_LETTER_LUMPSUM
-        return '\n\n'.join(text) % substitutions
+    def mark_reminded(self):
+        self.config['reminded'] = True
+        self.save()
 
     @staticmethod
     def letter_choices(units):
@@ -304,6 +293,39 @@ class RAAppointment(models.Model):
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1
+
+    @classmethod
+    def expiring_appointments(cls):
+        """
+        Get the list of RA Appointments that will expire in the next few weeks so we can send a reminder email
+        """
+        today = datetime.datetime.now()
+        min_age = datetime.datetime.now() + datetime.timedelta(days=14)
+        expiring_ras = RAAppointment.objects.filter(end_date__gt=today, end_date__lte=min_age)
+        ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
+        return ras
+
+    @classmethod
+    def email_expiring_ras(cls):
+        """
+        Emails the supervisors of the RAs who have appointments that are about to expire.
+        """
+        subject = 'RA appointment expiry reminder'
+        from_email = "nobody@courses.cs.sfu.ca"
+
+        expiring_ras = cls.expiring_appointments()
+        template = get_template('ra/emails/reminder.txt')
+
+        for raappt in expiring_ras:
+            supervisor = raappt.hiring_faculty
+            context = Context({'supervisor': supervisor, 'raappt': raappt})
+
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [supervisor.email()],
+                                         headers={'X-coursys-topic': 'ra'})
+            msg.send()
+            raappt.mark_reminded()
+
+
 
 
 

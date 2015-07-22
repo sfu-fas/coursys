@@ -1,0 +1,9 @@
+Hello, {{ supervisor.name }},
+
+This is a friendly reminder that one of your RAs has an appointment that is expiring in the near future.
+In order to ensure everything gets done in due time, please make sure there is a new appointment, if needed, for the following RA:
+
+{{ raappt.person }} expiring on {{ raappt.end_date }}
+
+
+You will NOT get this reminder again.
