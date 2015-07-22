@@ -331,6 +331,7 @@ PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
 PIWIK_CELERY = USE_CELERY
 PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 5, 'default_retry_delay': 180}
 PIWIK_FAIL_SILENTLY = True
+PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"

@@ -14,6 +14,7 @@ PIWIK_SITEID = settings.PIWIK_SITEID
 PIWIK_URL = settings.PIWIK_URL
 PIWIK_TOKEN = settings.PIWIK_TOKEN
 PIWIK_FAIL_SILENTLY = settings.PIWIK_FAIL_SILENTLY
+PIWIK_FORCE_HOST = settings.PIWIK_FORCE_HOST
 
 try:
     from .tasks import track_page_view_task
@@ -50,7 +51,7 @@ class PiwikTrackerLogic(object):
             'title': None,
             'userid': userid,
             'reqtime': time.time(),
-            'session_key': request.COOKIES.get(SESSION_COOKIE_NAME, None),
+            #'session_key': request.COOKIES.get(SESSION_COOKIE_NAME, None),
             'status_code': response.status_code if response else None,
         }
         return kwargs
@@ -81,6 +82,9 @@ class PiwikTrackerLogic(object):
 
         if status_code:
             pt.set_custom_variable(2, 'status_code', status_code, scope='page')
+
+        if PIWIK_FORCE_HOST:
+            pt._set_host(PIWIK_FORCE_HOST)
 
         try:
             pt.do_track_page_view(title)

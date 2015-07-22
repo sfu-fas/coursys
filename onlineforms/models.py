@@ -1050,6 +1050,8 @@ class FormLogEntry(models.Model):
 
         May specify either user (a Person) or filler (a FormFiller) or neither (for system event).
         """
+        # TODO: do we really need to save category__in=['AUTO', 'MAIL', 'SAVE'] since they are never displayed?
+
         if not form_submission:
             if sheet_submission and sheet_submission.form_submission:
                 form_submission = sheet_submission.form_submission
