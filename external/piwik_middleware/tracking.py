@@ -44,7 +44,7 @@ class PiwikTrackerLogic(object):
         headers = dict(
             (k, v.decode('cp1250')) # There have been some wacky bytes in headers. Make sure they can be JSON serialized
             for k,v in request.META.iteritems()
-            if isinstance(k, str) and isinstance(v, str)
+            if isinstance(k, basestring) and isinstance(v, basestring)
         )
         headers['HTTPS'] = request.is_secure()
 
