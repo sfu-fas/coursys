@@ -6,6 +6,7 @@ ACCT_PASSWD = 'somepassword'
 package "libapache2-mod-php5"
 package "php5-mysql"
 package "php5-gd"
+package "php5-geoip"
 
 service "apache2" do
   supports :restart => true, :reload => true

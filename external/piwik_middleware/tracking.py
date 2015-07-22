@@ -42,7 +42,7 @@ class PiwikTrackerLogic(object):
         """
         # copy the META members that might actually be HTTP headers
         headers = dict(
-            (k, v)
+            (k, v.decode('cp1250')) # There have been some wacky bytes in headers. Make sure they can be JSON serialized
             for k,v in request.META.iteritems()
             if isinstance(k, str) and isinstance(v, str)
         )
