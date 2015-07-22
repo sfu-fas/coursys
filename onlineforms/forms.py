@@ -40,12 +40,23 @@ class EmployeeSearchForm(forms.Form):
 
 # Manage forms
 class FormForm(ModelForm):
+    loginprompt = forms.BooleanField(required=False, initial=True, label='Login prompt',
+        help_text='Should non-logged-in users be prompted to log in? Uncheck this if you expect most users to be external to SFU.')
+
     class Meta:
         model = Form
         exclude = ('active', 'original', 'unit', 'config')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
+
+    def __init__(self, *args, **kwargs):
+        super(FormForm, self).__init__(*args, **kwargs)
+        self.initial['loginprompt'] = self.instance.loginprompt()
+
+    def save(self, *args, **kwargs):
+        self.instance.set_loginprompt(self.cleaned_data['loginprompt'])
+        return super(FormForm, self).save(*args, **kwargs)
 
     # get instance of the FormForm    
     def _get(self):
