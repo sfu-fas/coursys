@@ -42,7 +42,6 @@ fieldset label.sublabel {
 }
 
 p.formlogentry {
-  display: none;
   font-size: 80%;
   margin: 0;
   font-style: italic;
