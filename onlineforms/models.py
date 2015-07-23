@@ -693,6 +693,10 @@ class FormSubmission(models.Model):
             return None
     
     def last_sheet_completion(self):
+        if hasattr(self, 'last_sheet_dt'):
+            # use the one annotated in here by .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
+            return self.last_sheet_dt
+
         return self.sheetsubmission_set.all().aggregate(Max('completed_at'))['completed_at__max']
 
     def email_notify_completed(self, request, admin):

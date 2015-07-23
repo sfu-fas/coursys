@@ -180,7 +180,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
 CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
         + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \
-        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn, cc.units_minimum'
+        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn, cc.units_minimum' # cc.course_title_long
 CLASS_TBL_QUERY = """
 SELECT """ + CLASS_TBL_FIELDS + """
 FROM ps_class_tbl ct

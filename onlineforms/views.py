@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
+from django.db.models import Max
 from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -146,13 +147,19 @@ def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_groups = FormGroup.objects.filter(members=admin)
     if form_groups:
-        pend_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='PEND').select_related('initiator__nonSFUFormFiller', 'initiator__nonSFUFormFiller', 'form')
-        
+        pend_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='PEND') \
+                .annotate(last_sheet_dt=Max('sheetsubmission__completed_at')) \
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+
         #Waiting submissions
-        wait_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='WAIT').select_related('initiator__nonSFUFormFiller', 'initiator__nonSFUFormFiller', 'form')
-        for wait_sub in wait_submissions:
-            last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub, status='WAIT').select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller').latest('given_at')
-            wait_sub.assigned_to = last_sheet_assigned
+        wait_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='WAIT') \
+                .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller', 'form')
+        wait_lookup = dict((fs.id, fs) for fs in wait_submissions)
+        wait_ss = SheetSubmission.objects.filter(form_submission__in=wait_submissions).order_by('given_at') \
+                .select_related('filler__sfuFormFiller', 'filler__nonSFUFormFiller', 'sheet')
+        # .assigned_to will be the most recently given_at sheetsub after this
+        for ss in wait_ss:
+            wait_lookup[ss.form_submission_id].assigned_to = ss
 
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
