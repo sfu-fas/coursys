@@ -1,5 +1,5 @@
 from django.core.checks import Error
-from django.db.utils import OperationalError
+from django.db.utils import OperationalError, ProgrammingError
 from bitfield import BitField
 
 def _add_error(errors, msg, ident):
@@ -25,8 +25,8 @@ def bitfield_check(app_configs, **kwargs):
     # find an offering that should be returned by a "flag" query
     try:
         o = CourseOffering.objects.filter(flags=1).first()
-    except OperationalError:
-        # probably means no DB migrationed yet: let it slide.
+    except (OperationalError, ProgrammingError):
+        # probably means no DB migration yet: let it slide.
         return []
     if o is None:
         # no data there to check
