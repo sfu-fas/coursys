@@ -31,12 +31,12 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
-from faculty.models import Grant, TempGrant, GrantOwner
+from faculty.models import Grant, TempGrant, GrantOwner, Position
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
-    NewRoleForm
+    NewRoleForm, PositionForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -45,6 +45,8 @@ from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+
+from log.models import LogEntry
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -733,6 +735,80 @@ def course_accreditation_csv(request):
 
     return HttpResponseBadRequest(form.errors)
 
+
+@requires_role('ADMN')
+def new_position(request):
+    units = Unit.sub_units(request.units)
+    unit_choices = [(u.id, u.name) for u in units]
+    if request.method == 'POST':
+        form = PositionForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            position = form.save(commit=False)
+            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
+                position.config['teaching_load']=request.POST['teaching_load']
+            position.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Position was created.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="added position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+
+    else:
+        form = PositionForm()
+        form.fields['unit'].choices = unit_choices
+
+    return render(request, 'faculty/new_position.html', {'form': form})
+
+@requires_role('ADMN')
+def edit_position(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    if request.method == 'POST':
+        form = PositionForm(request.POST, instance=position)
+        if form.is_valid():
+            position = form.save(commit=False)
+            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
+                position.config['teaching_load']=request.POST['teaching_load']
+            position.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully edited position.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Edited position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+    else:
+        form = PositionForm(instance=position)
+        form.fields['teaching_load'].initial = position.get_load_display()
+    return render(request, 'faculty/edit_position.html', {'form': form, 'position_id': position_id})
+
+@requires_role('ADMN')
+def delete_position(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    position.hide()
+    position.save()
+    messages.add_message(request, messages.SUCCESS, u'Succesfully hid position.')
+    l = LogEntry(userid=request.user.username, description="Hid position %s" % position, related_object=position)
+    l.save()
+    return HttpResponseRedirect(reverse(list_positions))
+
+
+@requires_role('ADMN')
+def list_positions(request):
+    sub_units = Unit.sub_units(request.units)
+    positions = Position.objects.visible_by_unit(sub_units)
+    context = {'positions': positions}
+    return render(request, 'faculty/view_positions.html', context)
 
 ###############################################################################
 # Display/summary views for a faculty member

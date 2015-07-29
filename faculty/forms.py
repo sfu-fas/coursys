@@ -6,14 +6,17 @@ from django.utils.translation import ugettext as _
 from coredata.models import Semester, Unit, Person, Role
 from coredata.forms import PersonField
 
-from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
 from faculty.models import FacultyMemberInfo
 from faculty.models import Grant
 from faculty.models import Memo
 from faculty.models import MemoTemplate
+from faculty.models import Position
+from faculty.models import RANK_CHOICES
 from faculty.util import ReportingSemester
+from faculty.event_types.fields import SemesterField
 
 from collections import OrderedDict
 
@@ -272,3 +275,25 @@ class FacultyMemberInfoForm(forms.ModelForm):
         if title.endswith('.'):
             title = title[:-1]
         return title
+
+
+
+
+
+class PositionForm(forms.ModelForm):
+    title = forms.CharField(required=False)
+    projected_start_date = SemesterField(semester_start=True, required=False)
+    teaching_load = FractionField(label="Teaching Load", required=False, help_text="Teaching load per year")
+    base_salary = AddSalaryField(required=False)
+    add_salary = AddSalaryField(required=False)
+    add_pay = AddPayField(required=False)
+    position_number = forms.CharField(max_length=6, required=False)
+    rank = forms.ChoiceField(choices=RANK_CHOICES, required=False)
+    step = forms.DecimalField(max_digits=2, decimal_places=0, required=False)
+
+    class Meta:
+        exclude = []
+        model = Position
+        widgets = {
+            'position_number': forms.TextInput(attrs={'size': '6'})
+                  }

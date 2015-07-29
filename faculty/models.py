@@ -46,6 +46,7 @@ from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
 from faculty.event_types.teaching import OneInNineHandler
 from faculty.util import ReportingSemester
+from faculty.event_types.career import RANK_CHOICES
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -718,3 +719,53 @@ class FacultyMemberInfo(models.Model):
     def get_absolute_url(self):
         return reverse('faculty.views.faculty_member_info',
                        args=[self.person.userid_or_emplid()])
+
+
+def timezone_today():
+    """
+    Return the timezone-aware version of datetime.date.today()
+
+    :return: Today's date corrected for timezones
+    """
+    return timezone.now().date()
+
+
+class PositionManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+    def visible_by_unit(self, units):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False).filter(unit__in=units)
+
+
+class Position(models.Model):
+    title = models.CharField(max_length=100)
+    projected_start_date = models.DateField('Projected Start Date', default=timezone_today)
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    position_number = models.CharField(max_length=8, )
+    rank = models.CharField(choices=RANK_CHOICES, max_length=50)
+    step = models.DecimalField(max_digits=2, decimal_places=0)
+    base_salary = models.DecimalField(decimal_places=2, max_digits=10)
+    add_salary = models.DecimalField(decimal_places=2, max_digits=10)
+    add_pay = models.DecimalField(decimal_places=2, max_digits=10)
+    config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = PositionManager()
+
+    def __unicode__(self):
+        return "%s, %s" % (self.title, self.projected_start_date)
+
+    def hide(self):
+        self.hidden = True
+
+    class Meta:
+        ordering = ('projected_start_date', 'title')
+
+    def get_load_display(self):
+        if 'teaching_load' in self.config:
+            return self.config['teaching_load']
+        else:
+            return 0

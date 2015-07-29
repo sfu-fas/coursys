@@ -96,4 +96,10 @@ faculty_patterns = [ # prefix: /faculty/
 
     # faculty-member hierarchy
     url(r'^' + USERID_OR_EMPLID + '/', include(faculty_member_patterns)),
+
+    # Positions
+    url(r'^positions/$', 'faculty.views.list_positions'),
+    url(r'^positions/new_position$', 'faculty.views.new_position'),
+    url(r'^positions/(?P<position_id>\d+)/edit_position/$', 'faculty.views.edit_position'),
+    url(r'^positions/(?P<position_id>\d+)/delete_position/$', 'faculty.views.delete_position'),
 ]
