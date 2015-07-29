@@ -28,6 +28,7 @@ from icalendar import Calendar, Event
 from featureflags.flags import uses_feature
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery, Exact, Clean
+from xml.etree.ElementTree import ParseError
 from ipware import ip
 import pytz
 import itertools
@@ -154,6 +155,8 @@ def login(request, next_page=None, required=False):
                 user = None
             else:
                 raise IOError, "The errno is %r: %s." % (e.errno, unicode(e))
+        except ParseError:
+            user = None
 
         if user is not None:
             auth.login(request, user)
