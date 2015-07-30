@@ -160,6 +160,12 @@ if DEPLOY_MODE in ['production', 'proddev']:
         }
     }
 
+    # Celery (and other long-idle manage.py tasks) can't have CONN_MAX_AGE set. Only set for gunicorn processes.
+    # See https://code.djangoproject.com/ticket/21597
+    gunicorn_process = 'SERVER_SOFTWARE' in os.environ and os.environ['SERVER_SOFTWARE'].startswith('gunicorn/')
+    if gunicorn_process:
+        DATABASES['default']['CONN_MAX_AGE'] = 3600
+
     if DEPLOY_MODE == 'proddev':
         DATABASES['default'].update({
             'NAME': 'coursys',
