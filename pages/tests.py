@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-#from django.test import TestCase
 from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
-from pages.models import Page, PageVersion, brushes_used
+from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL
 from coredata.models import CourseOffering, Member, Person
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
 import re
@@ -217,7 +216,6 @@ class PagesTest(TestCase):
         """
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         memb = Member.objects.get(offering=crs, person__userid="ggbaker")
-        person = Person.objects.get(userid='ggbaker')
 
         p = Page(offering=crs, label="Index")
         p.save()
@@ -238,4 +236,31 @@ class PagesTest(TestCase):
         test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
                 {'course_slug': crs.slug, 'page_label': 'OtherPage'})
 
+    def test_macros(self):
+        """
+        Test macro behaviour
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=crs, person__userid="ggbaker")
+
+        p = Page(offering=crs, label="Index")
+        p.save()
+        v = PageVersion(page=p, title="Index Page", wikitext="one +two+ three +four+", editor=memb)
+        v.save()
+
+        # no macros defined: rendered as-is
+        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+
+        mp = Page(offering=crs, label=MACRO_LABEL)
+        mp.save()
+        mv = PageVersion(page=mp, title="Macros", wikitext="two: 22\nfour: 4444", editor=memb)
+        mv.save()
+
+        # macros defined: should be substituted
+        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one 22 three 4444</p>")
+
+        mp.safely_delete()
+
+        # macros disappear: back to original
+        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
 

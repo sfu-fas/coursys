@@ -39,9 +39,20 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+
+{% if is_macro_page %}
+<div class="helptext">
+<p>This is the page of macro expansions for this course offering. The &ldquo;content&rdquo; should be like this:</p>
+<blockquote><pre>MACRO_NAME: text to actually place on the page
+ANOTHER_MACRO: some other replacement text</pre></blockquote>
+<p>Then on any page for this course, the text <code>+MACRO_NAME+</code> and <code>+ANOTHER_MACRO+</code> will be replaced with the text above.
+Macro names (before the colon) cannot contain spaces; replacements (after the colon) can be any text, including wiki markup.</p>
+</div>
+{% else %}
 {% if kind != "File" %}
 <a href="javascript:do_wysiwyg()" id="wysiwyg-on" style="display:none">Switch to WYSIWYG editing</a>
 <a href="javascript:do_wiki()" id="wiki-on" style="display:none">Switch to wikitext editing</a>
+{% endif %}
 {% endif %}
 
 <form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
