@@ -292,6 +292,7 @@ if USE_CELERY:
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
     CELERY_BEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+    CELERYD_TASK_SOFT_TIME_LIMIT = 600
 
     CELERY_DEFAULT_QUEUE = 'batch'
     CELERY_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
