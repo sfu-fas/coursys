@@ -9,7 +9,7 @@ logger = get_task_logger(__name__)
 app = Celery()
 app.config_from_object(settings)
 
-@app.task(bind=True, **settings.PIWIK_CELERY_TASK_KWARGS)
+@app.task(bind=True, ignore_result=True, **settings.PIWIK_CELERY_TASK_KWARGS)
 def track_page_view_task(self, kwargs):
     """
     Task to handle recording a request in Piwik asynchronously.
