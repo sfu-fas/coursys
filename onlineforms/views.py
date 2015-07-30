@@ -405,11 +405,9 @@ def admin_completed(request):
 @requires_formgroup()
 def admin_completed_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug, owner__in=request.formgroups)
-    formsubs = FormSubmission.objects.filter(form=form, status='DONE')
-    for fs in formsubs:
-        latest_sumbission = SheetSubmission.objects.filter(form_submission=fs).latest('completed_at')
-        fs.completed_at = latest_sumbission.completed_at
-        # forms with status=='REJE' were thrown away incomplete by the initiator, so aren't displayed
+    formsubs = FormSubmission.objects.filter(form=form, status='DONE') \
+           .select_related('initiator__sfuFormFiller', 'initiator__nonSFUFormFiller') \
+           .annotate(last_sheet_dt=Max('sheetsubmission__completed_at'))
 
     context = {'form': form, 'formsubs': formsubs}
     return render(request, "onlineforms/admin/admin_completed_form.html", context)
