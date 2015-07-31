@@ -152,7 +152,7 @@ class Person(models.Model, ConditionalSaveMixin):
             return None
     def userid_or_emplid(self):
         "userid if possible or emplid if not: inverse of find_userid_or_emplid searching"
-        return self.userid or self.emplid
+        return self.userid or str(self.emplid)
 
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))

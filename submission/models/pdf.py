@@ -32,11 +32,11 @@ class SubmittedPDF(SubmittedComponent):
     def get_filename(self):
         return os.path.split(self.pdf.name)[1]
 
-    def download_response(self):
+    def download_response(self, **kwargs):
         response = HttpResponse(content_type="application/pdf")
         self.sendfile(self.pdf, response)
         return response
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         filename = self.file_filename(self.pdf, prefix)
         zipfile.write(self.pdf.path, filename)
 

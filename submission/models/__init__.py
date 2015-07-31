@@ -6,15 +6,12 @@ import StringIO
 import unicodecsv as csv
 from datetime import datetime
 
-from django.db import models
-from django.shortcuts import get_object_or_404
 from django.core.servers.basehttp import FileWrapper
 from django.http import StreamingHttpResponse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
 from coredata.models import Person
-from groups.models import Group,GroupMember
-from autoslug import AutoSlugField
+from groups.models import GroupMember
 
 from url import URL
 from archive import Archive
@@ -24,8 +21,9 @@ from word import Word
 from image import Image
 from office import Office
 from codefile import Codefile
+from gittag import GitTag
 
-ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Codefile, Word, Image, Office]
+ALL_TYPE_CLASSES = [Archive, Code, Codefile, GitTag, Image, Office, PDF, URL, Word]
 
 def find_type_by_label(label):
     """
@@ -184,14 +182,14 @@ def get_submit_time_and_owner(activity, pair_list):
         late = submit_time - activity.due_date
     return late, submit_time, owner
 
-def _add_submission_to_zip(zipf, submission, components, prefix=""):
+def _add_submission_to_zip(zipf, submission, components, prefix="", slug=None):
     """
     Add this submission to the zip file, with associated components.
     """
     for component, sub in components:
         if sub:
             try:
-                sub.add_to_zip(zipf, prefix=prefix)
+                sub.add_to_zip(zipf, prefix=prefix, slug=slug)
             except OSError as e:
                 if e.errno == errno.ENOENT:
                     # Missing file? How did that come up once in five years?
@@ -235,7 +233,7 @@ def generate_submission_contents(activity, z, prefix=''):
         last_sub = max([s.created_at for s in submission])
         sub_time[slug] = last_sub
         submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
-        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=prefix+slug)
+        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=prefix+slug, slug=slug)
     
     # produce summary of submission datetimes
     slugs = sub_time.keys()
@@ -277,7 +275,7 @@ def generate_zip_file(submission, submitted_components):
     os.close(handle)
     z = zipfile.ZipFile(filename, 'w')
     
-    _add_submission_to_zip(z, submission, submitted_components)
+    _add_submission_to_zip(z, submission, submitted_components, slug=submission.file_slug())
 
     z.close()
 
