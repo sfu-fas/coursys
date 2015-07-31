@@ -572,13 +572,17 @@ def view_all_applications(request,post_slug):
 @requires_role("TAAD")
 def print_all_applications(request,post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    applications = TAApplication.objects.filter(posting=posting)
+    applications = TAApplication.objects.filter(posting=posting).order_by('person')
 
     for application in applications:
         application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
         application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
         application.campuses = CampusPreference.objects.filter(app=application)
         application.contracts = TAContract.objects.filter(application=application)
+        application.previous_experience = TACourse.objects.filter(contract__application__person=application.person) \
+            .exclude(contract__application=application).select_related('course__semester')
+        application.grad_programs = GradStudent.objects \
+             .filter(program__unit__in=request.units, person=application.person)
 
     context = {
             'applications': applications,
@@ -602,10 +606,17 @@ def print_all_applications_by_course(request,post_slug):
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for application in applications_for_this_offering:
-            application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
-            application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
-            application.campuses = CampusPreference.objects.filter(app=application)
-            application.contracts = TAContract.objects.filter(application=application)
+            if not hasattr(application, 'extra_data_done'):
+                application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+                application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+                application.campuses = CampusPreference.objects.filter(app=application)
+                application.contracts = TAContract.objects.filter(application=application)
+                application.previous_experience = TACourse.objects.filter(contract__application__person=application.person) \
+                    .exclude(contract__application=application).select_related('course__semester')
+                application.grad_programs = GradStudent.objects \
+                     .filter(program__unit__in=request.units, person=application.person)
+                application.extra_data_done = True
+
             offering.applications.append(application)
 
     context = {
@@ -627,25 +638,26 @@ def view_application(request, post_slug, userid):
             return ForbiddenResponse(request, 'You cannot access this application')
         elif application.posting.unit not in units:
             return ForbiddenResponse(request, 'You cannot access this application')
+    else:
+        units = [application.posting.unit]
    
-    courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
-    skills = SkillLevel.objects.filter(app=application).select_related('skill')
-    campuses = CampusPreference.objects.filter(app=application)
-    contracts = TAContract.objects.filter(application=application)
-    experience = TACourse.objects.filter(contract__application__person=application.person) \
+    application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+    application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+    application.campuses = CampusPreference.objects.filter(app=application)
+    application.contracts = TAContract.objects.filter(application=application)
+    application.previous_experience = TACourse.objects.filter(contract__application__person=application.person) \
             .exclude(contract__application=application).select_related('course__semester')
-    if roles and contracts:
-        contract = contracts[0]
+    application.grad_programs = GradStudent.objects \
+                 .filter(program__unit__in=units, person=application.person)
+
+    if roles and application.courses:
+        contract = application.courses[0]
     else:
         contract = None
 
     context = {
             'application':application,
-            'courses':courses,
-            'skills': skills,
-            'campuses': campuses,
             'contract': contract,
-            'experience': experience,
             }
     return render(request, 'ta/view_application.html', context)
 
