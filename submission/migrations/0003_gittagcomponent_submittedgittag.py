@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+import submission.models.gittag
 
 
 class Migration(migrations.Migration):
@@ -24,7 +25,7 @@ class Migration(migrations.Migration):
             name='SubmittedGitTag',
             fields=[
                 ('submittedcomponent_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='submission.SubmittedComponent')),
-                ('url', models.CharField(help_text=b'Clone URL for your repository, like "https://server/user/repo.git" or "git@server:user/repo.git".', max_length=500, verbose_name=b'Repository URL')),
+                ('url', submission.models.gittag.GitURLField(help_text=b'Clone URL for your repository, like "https://server/user/repo.git" or "git@server:user/repo.git".', max_length=500, verbose_name=b'Repository URL')),
                 ('tag', models.CharField(help_text=b'The tag you\'re submitting: created like "git tag submitted_code; git push origin --tags"', max_length=200, verbose_name=b'Tag name')),
                 ('component', models.ForeignKey(to='submission.GitTagComponent')),
             ],
