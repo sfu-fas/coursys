@@ -97,7 +97,7 @@ dl.inline dt, dl.inline dd {
 dl.inline dt {
   clear: left;
   margin-top: 0;
-  min-width: 8em;
+  min-width: 9em;
 }
 dl.inline dt:after {
   content: ':';
@@ -107,6 +107,9 @@ dl.inline.dlform dt:after {
 }
 dl.inline dd {
   margin: 0 2em;
+}
+dl.inline p.helptext {
+  margin-top: 0;
 }
 
 legend {

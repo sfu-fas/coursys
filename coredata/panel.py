@@ -11,7 +11,7 @@ from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_upda
 from dashboard.photos import do_photo_fetch
 
 import celery
-import random, socket, subprocess, urllib2, os, stat, time
+import random, socket, subprocess, urllib2, os, stat, time, copy, pprint
 
 
 def _last_component(s):
@@ -60,14 +60,20 @@ def _check_file_create(directory):
 def settings_info():
     info = []
     info.append(('Deploy mode', settings.DEPLOY_MODE))
-    info.append(('Database engine', _last_component(settings.DATABASES['default']['ENGINE'])))
-    info.append(('Cache backend', _last_component(settings.CACHES['default']['BACKEND'])))
-    info.append(('Haystack engine', _last_component(settings.HAYSTACK_CONNECTIONS['default']['ENGINE'])))
-    info.append(('Email backend', '.'.join(settings.EMAIL_BACKEND.split('.')[-2:])))
+    info.append(('Database engine', settings.DATABASES['default']['ENGINE']))
+    info.append(('Cache backend', settings.CACHES['default']['BACKEND']))
+    info.append(('Haystack engine', settings.HAYSTACK_CONNECTIONS['default']['ENGINE']))
+    info.append(('Email backend', settings.EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_EMAIL') and settings.CELERY_EMAIL:
-        info.append(('Celery email backend', '.'.join(settings.CELERY_EMAIL_BACKEND.split('.')[-2:])))
+        info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
     if hasattr(settings, 'BROKER_URL'):
         info.append(('Celery broker', settings.BROKER_URL.split(':')[0]))
+
+    DATABASES = copy.deepcopy(settings.DATABASES)
+    for d in DATABASES:
+        if 'PASSWORD' in DATABASES[d]:
+            DATABASES[d]['PASSWORD'] = '*****'
+    info.append(('DATABASES',  mark_safe('<pre>'+escape(pprint.pformat(DATABASES))+'</pre>')))
 
     return info
 

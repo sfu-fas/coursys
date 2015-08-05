@@ -37,7 +37,10 @@ ACL_ROLES = { # reverse of MEMBER_ROLES: what ACLs is this Member allowed to acc
         'DROP': set(['ALL']),
         }
 
+MACRO_LABEL = 'MACROS' # special page that contain macro expansions for other pages
+
 label_re = re.compile("^[\w\-_\.]+$")
+macroline_re = re.compile("^(?P<key>\w+):\s*(?P<value>.*)\s*$")
 
 PageFilesStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 def attachment_upload_to(instance, filename):
@@ -76,6 +79,7 @@ class Page(models.Model):
     
     def save(self, *args, **kwargs):
         assert self.label_okay(self.label) is None
+        self.expire_offering_cache()
         super(Page, self).save(*args, **kwargs)
 
     def releasedate(self):
@@ -84,29 +88,45 @@ class Page(models.Model):
             return None
         else:
             return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+
     def editdate(self):
         d = self.editdate_txt()
         if d is None:
             return None
         else:
             return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+
     def set_releasedate(self, val):
         if isinstance(val, datetime.date):
             val = val.strftime("%Y-%m-%d")
         self.set_releasedate_txt(val)
+
     def set_editdate(self, val):
         if isinstance(val, datetime.date):
             val = val.strftime("%Y-%m-%d")
         self.set_editdate_txt(val)
-            
 
     def get_absolute_url(self):
         if self.label == 'Index':
             return reverse('pages.views.index_page', kwargs={'course_slug': self.offering.slug})
         else:
             return reverse('pages.views.view_page', kwargs={'course_slug': self.offering.slug, 'page_label': self.label})
+
     def version_cache_key(self):
         return "page-curver-" + str(self.id)
+
+    def macro_cache_key(self):
+        return "MACROS-" + str(self.offering_id)
+
+    def expire_offering_cache(self):
+        # invalidate cache for all pages in this offering: makes sure current page, and all <<filelist>> are up to date
+        for pv in PageVersion.objects.filter(page__offering=self.offering):
+            cache.delete(pv.html_cache_key())
+            cache.delete(pv.wikitext_cache_key())
+        # other cache cleanup
+        cache.delete(self.version_cache_key())
+        cache.delete(self.macro_cache_key())
+
     def label_okay(self, label):
         """
         Check to make sure this label is acceptable (okay characters)
@@ -132,7 +152,7 @@ class Page(models.Model):
             return v
         else:
             v = PageVersion.objects.filter(page=self).select_related('editor__person').latest('created_at')
-            cache.set(key, v, 3600) # expired when a PageVersion is saved
+            cache.set(key, v, 24*3600) # expired when a PageVersion is saved
             return v
 
     def safely_delete(self):
@@ -155,10 +175,8 @@ class Page(models.Model):
             self.can_write = 'NONE'
             self.save()
 
-
-
-    @classmethod
-    def adjust_acl_release(cls, acl_value, date):
+    @staticmethod
+    def adjust_acl_release(acl_value, date):
         """
         Adjust the access control value appropriately, taking the release date into account.
         """
@@ -179,6 +197,7 @@ class Page(models.Model):
 
     def release_message(self):
         return self._release_message(self.releasedate(), self.can_read, "viewable")
+
     def _release_message(self, date, acl_value, attrib):
         today = datetime.date.today()
         if not date:
@@ -188,7 +207,6 @@ class Page(models.Model):
         else:
             #return "This page was made %s automatically on %s." % (attrib, date)
             return None
-
 
 
 class PageVersion(models.Model):
@@ -224,7 +242,7 @@ class PageVersion(models.Model):
         return "page-html-" + str(self.id)
     def wikitext_cache_key(self):
         return "page-wikitext-" + str(self.id)
-    
+
     def get_wikitext(self):
         """
         Return this version's wikitext (reconstructing from diffs if necessary).
@@ -244,7 +262,7 @@ class PageVersion(models.Model):
                 return wikitext
 
         return self.wikitext
-    
+
     def __init__(self, *args, **kwargs):
         super(PageVersion, self).__init__(*args, **kwargs)
         self.Creole = None
@@ -381,13 +399,7 @@ class PageVersion(models.Model):
             if prev:
                 prev.diff_to(self)
 
-        # invalidate cache for all pages in this offering: makes sure current page, and all <<filelist>> are up to date
-        for pv in PageVersion.objects.filter(page__offering=self.page.offering):
-            key = pv.html_cache_key()
-            cache.delete(key)
-        # other cache cleanup
-        cache.delete(self.wikitext_cache_key())
-        cache.delete(self.page.version_cache_key())
+        self.page.expire_offering_cache()
 
     def __unicode__(self):
         return unicode(self.page) + '@' + unicode(self.created_at)
@@ -398,9 +410,49 @@ class PageVersion(models.Model):
         """
         return bool(self.file_attachment)
 
+    @staticmethod
+    def _offering_macros(offering):
+        """
+        Do the actual work of constructing the macro dict for this offering
+        """
+        try:
+            pv = PageVersion.objects.filter(page__offering=offering, page__label=MACRO_LABEL).latest('created_at')
+        except PageVersion.DoesNotExist:
+            return {}
+
+        macros = {}
+        for line in pv.get_wikitext().splitlines(True):
+            m = macroline_re.match(line)
+            if m:
+                macros[m.group('key')] = m.group('value')
+        return macros
+
+    def offering_macros(self):
+        """
+        Return a dict of macros for this page's offering (caches _offering_macros).
+        """
+        offering = self.Creole.offering
+        key = self.page.macro_cache_key()
+        macros = cache.get(key)
+        if macros is not None:
+            return macros
+        else:
+            macros = PageVersion._offering_macros(offering)
+            cache.set(key, macros, 24*3600) # expired when a page is saved
+            return macros
+
+    def substitute_macros(self, wikitext):
+        """
+        Substitute our macros into the wikitext.
+        """
+        macros = self.offering_macros()
+        for macro, replacement in macros.iteritems():
+            wikitext = wikitext.replace('+' + macro + '+', replacement)
+        return wikitext
+
     def html_contents(self, offering=None):
         """
-        Return the HTML version of this version's wikitext.
+        Return the HTML version of this version's wikitext (with macros substituted if available)
 
         offering argument only required if self.page isn't set: used when doing a speculative conversion of unsaved content.
         
@@ -412,7 +464,8 @@ class PageVersion(models.Model):
             return mark_safe(html)
         else:
             self.get_creole(offering=offering)
-            html = self.Creole.text2html(self.get_wikitext())
+            wikitext = self.get_wikitext()
+            html = self.Creole.text2html(self.substitute_macros(wikitext))
             cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
 

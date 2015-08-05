@@ -43,7 +43,7 @@
             {% for form_sub in formsubs %}
                 <tr>
                     <td><a href="{% url "onlineforms.views.view_submission" form_slug=form_sub.form.slug form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">{{ form_sub.initiator }}</a></td>
-                    <td><span class="sort">{{ form_sub.completed_at.isoformat }}</span>{{ form_sub.completed_at }}</td>
+                    <td><span class="sort">{{ form_sub.last_sheet_completion.isoformat }}</span>{{ form_sub.last_sheet_completion }}</td>
                 </tr>
               {% endfor %}
         </table>

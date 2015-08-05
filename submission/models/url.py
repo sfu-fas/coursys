@@ -29,12 +29,13 @@ class SubmittedURL(SubmittedComponent):
     def get_filename_display(self):
         return "link"
     
-    def download_response(self):
-        response = HttpResponse(content_type="text/html")
-        response.write("""<title>%s</title><a href="%s">%s</a>""" % (escape(self.component.title), escape(self.url), escape(self.url)))
+    def download_response(self, **kwargs):
+        response = HttpResponse(content_type="text/html;charset=utf-8")
+        content = u"""<title>%s</title><a href="%s">%s</a>""" % (escape(self.component.title), escape(self.url), escape(self.url))
+        response.write(content.encode('utf-8'))
         return response
 
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL='
         if unicode(self.url).find("://") == -1:
             content += "http://"

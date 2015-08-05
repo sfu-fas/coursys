@@ -1,0 +1,74 @@
+  <h3 id="general">General Information</h3>
+  {% if application.late %}
+    <p>This application was submitted late.  <a href="{% url "ta.views.update_application" post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
+  {% endif %}
+  <table class="info">
+    <tr><th scope="row">Name</th><td>{{ application.person.name }} &lt;{{application.person.email_mailto}}&gt;</td></tr>
+    <tr><th scope="row">Student Number</th><td>{{ application.person.emplid }} </td></tr>
+    <tr><th scope="row">Semester</th><td>{{ application.posting.semester }}</td></tr>
+    <tr><th scope="row">Category</th><td>{{ application.get_category_display }}</td></tr>
+    <tr><th scope="row">Base Units</th><td>{{ application.base_units }}</td></tr>
+    <tr><th scope="row">Current Program</th><td>{{ application.current_program|linebreaksbr }}
+      {% for g in application.grad_programs %}
+      <br />
+      <a href="{% url "grad.views.view" grad_slug=g.slug %}">{{g}} - {{g.get_current_status_display}}</a>
+      {% endfor %}
+    </td></tr>
+    <tr><th scope="row">Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
+    <tr><th scope="row">Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
+  </table>
+
+  {% if application.config.extra_questions %}
+    <h2 id="extra">Extra Questions</h2>
+    {% for question, answer in application.config.extra_questions.items %}
+        <p><strong>{{ question }}:</strong> {{answer }}</p>
+    {% endfor %}
+  {% endif %}
+
+  <h3>Courses Applied for</h3>
+  <table class="info">
+    <tr>
+      <th scope="col">Course</th>
+      <th scope="col">Taken</th>
+      <th scope="col">Experience</th>
+    </tr>
+      {% for course in application.courses %}
+        <tr>
+          <td>{{ course.course }}</td>
+          <td>{{ course.get_taken_display }}</td>
+          <td>{{ course.get_exper_display }}</td>
+        </tr>
+      {% endfor %}
+   </table>
+
+  {% if campuses %}
+  <h3>Campus Preference</h3>
+  <table class="info">
+      {% for campus in application.campuses %}
+        <tr><th scope="row">{{ campus.get_campus_display }}</th><td>{{ campus.get_pref_display }}</td></tr>
+      {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if skills %}
+  <h3>Skills</h3>
+  <table class="info">
+      {% for skill in application.skills %}
+        <tr><th scope="row">{{ skill.skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
+      {% endfor %}
+  </table>
+  {% endif %}
+
+  <h3>Previous TA Experience</h3>
+  {% if application.previous_experience %}
+  <table class="info">
+      <tr><th scope="col">Course</th><th scope="col">Semester</th><th scope="col">BU</th></tr>
+      {% for tacrs in application.previous_experience %}
+        <tr><td>{{ tacrs.course.name }}</td><td>{{ tacrs.course.semester.label }}</td><td>{{ tacrs.bu }}</td></tr>
+      {% endfor %}
+  </table>
+  {% else %}
+  <p class="empty">None known.</p>
+  {% endif %}

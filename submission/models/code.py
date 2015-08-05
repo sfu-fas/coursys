@@ -83,11 +83,11 @@ class SubmittedCode(SubmittedComponent):
     def get_filename(self):
         return os.path.split(self.code.name)[1]
 
-    def download_response(self):
+    def download_response(self, **kwargs):
         response = HttpResponse(content_type="text/plain")
         self.sendfile(self.code, response)
         return response
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         filename = self.file_filename(self.code, prefix)
         zipfile.write(self.code.path, filename)
 
