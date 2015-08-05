@@ -296,4 +296,12 @@ class PositionForm(forms.ModelForm):
         model = Position
         widgets = {
             'position_number': forms.TextInput(attrs={'size': '6'})
-                  }
+            }
+
+
+class PositionPickerForm(forms.Form):
+    position_choice = forms.ChoiceField(label='Select a position', required=True, help_text='Please select the position from which to fill the wizard.')
+
+    def __init__(self, choices=[], *args, **kwargs):
+        super(PositionPickerForm, self).__init__(*args, **kwargs)
+        self.fields['position_choice'].choices = choices

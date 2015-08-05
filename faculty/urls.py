@@ -26,9 +26,11 @@ faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/
     # Person Specific Actions
     url(r'^summary$', 'faculty.views.summary', name="faculty_summary"),
     url(r'^setup$', 'faculty.views.faculty_wizard', name="faculty_wizard"),
+    url(r'^setup/(?P<position>\d+)$', 'faculty.views.faculty_wizard'),
     url(r'^otherinfo$', 'faculty.views.otherinfo', name="faculty_otherinfo"),
     url(r'^new-event$', 'faculty.views.event_type_list', name="faculty_event_types"),
     url(r'^new-event/(?P<event_type>' + SLUG_RE + ')$', 'faculty.views.create_event', name="faculty_create_event"),
+    url(r'^setup/pick_position$', 'faculty.views.pick_position', name="faculty_pick_position"),
 
     url(r'^timeline$', 'faculty.views.timeline'),
     url(r'^timeline.json$', 'faculty.views.timeline_json'),

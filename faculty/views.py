@@ -36,7 +36,7 @@ from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
-    NewRoleForm, PositionForm
+    NewRoleForm, PositionForm, PositionPickerForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -1433,13 +1433,12 @@ def change_event_status(request, userid, event_slug):
 
 @requires_role('ADMN')
 @transaction.atomic
-def faculty_wizard(request, userid):
+def faculty_wizard(request, userid, position=None):
     """
     Initial wizard for a user, set up basic events (appointment, base salary, normal teaching load).
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
-
     Handler_appoint = _get_Handler_or_404('APPOINT')
     Handler_salary = _get_Handler_or_404('SALARY')
     Handler_load = _get_Handler_or_404('NORM_TEACH')
@@ -1507,10 +1506,42 @@ def faculty_wizard(request, userid):
         del form_salary.fields['unit'], form_load.fields['unit']
         del form_appoint.fields['leaving_reason']
 
+        # If a position was passed in from the position picker, set the initial values of the desired fields accordingly
+        if position:
+            position = get_object_or_404(Position, pk=position)
+            form_appoint.fields['start_date'].initial = position.projected_start_date
+            form_appoint.fields['unit'].initial = position.unit
+            form_appoint.fields['position_number'].initial = position.position_number
+            form_salary.fields['rank'].initial = position.rank
+            form_salary.fields['step'].initial = position.step
+            form_salary.fields['base_salary'].initial = position.base_salary
+            form_salary.fields['add_salary'].initial = position.add_salary
+            form_salary.fields['add_pay'].initial = position.add_pay
+            #TODO:  Figure out how we really want to store/retrieve this field.
+            form_load.fields['load'].initial = position.get_load_display()
+
+
         form_list = [form_appoint, form_salary, form_load]
         context.update({"event_form": form_list})
 
     return render(request, 'faculty/faculty_wizard.html', context)
+
+@requires_role('ADMN')
+def pick_position(request, userid):
+    units = Unit.sub_unit_ids(request.units)
+    positions = Position.objects.visible_by_unit(units)
+    position_choices = [(p.id, p) for p in positions]
+    if request.method == 'POST':
+        filled_form = PositionPickerForm(data=request.POST, choices=position_choices)
+        if filled_form.is_valid():
+            position = filled_form.cleaned_data['position_choice']
+            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid, 'position': position})))
+        else:
+            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid})))
+    else:
+        new_form = PositionPickerForm(choices=position_choices)
+        context = {'form': new_form, 'userid': userid, 'positions': position_choices}
+        return render(request, 'faculty/position_picker.html', context)
 
 
 ###############################################################################
