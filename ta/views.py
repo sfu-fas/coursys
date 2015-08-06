@@ -1724,7 +1724,7 @@ def instr_offers(request):
     offerings = [m.offering for m in members]
     tacrses = TACourse.objects.filter(course__in=offerings, bu__gt=0,
                                       contract__status__in=['OPN','REJ','ACC','SGN']) \
-                              .select_related('contract__application__person', 'offering')
+                              .select_related('contract__application__person')
 
     for crs in tacrses:
         p = crs.contract.application.person
