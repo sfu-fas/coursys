@@ -47,6 +47,7 @@ from faculty.event_types.teaching import NormalTeachingLoadHandler
 from faculty.event_types.teaching import OneInNineHandler
 from faculty.util import ReportingSemester
 from faculty.event_types.career import RANK_CHOICES
+from fractions import Fraction
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -766,6 +767,7 @@ class Position(models.Model):
 
     def get_load_display(self):
         if 'teaching_load' in self.config:
-            return self.config['teaching_load']
+            return unicode(Fraction(self.config['teaching_load']))
+
         else:
             return 0

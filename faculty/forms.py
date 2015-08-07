@@ -6,7 +6,7 @@ from django.utils.translation import ugettext as _
 from coredata.models import Semester, Unit, Person, Role
 from coredata.forms import PersonField
 
-from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
 from faculty.models import FacultyMemberInfo
@@ -283,7 +283,7 @@ class FacultyMemberInfoForm(forms.ModelForm):
 class PositionForm(forms.ModelForm):
     title = forms.CharField(required=False)
     projected_start_date = SemesterField(semester_start=True, required=False)
-    teaching_load = FractionField(label="Teaching Load", required=False, help_text="Teaching load per year")
+    teaching_load = AnnualTeachingCreditField(label="Teaching Load", required=False)
     base_salary = AddSalaryField(required=False)
     add_salary = AddSalaryField(required=False)
     add_pay = AddPayField(required=False)

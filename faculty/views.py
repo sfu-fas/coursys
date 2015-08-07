@@ -746,7 +746,7 @@ def new_position(request):
         if form.is_valid():
             position = form.save(commit=False)
             if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
-                position.config['teaching_load']=request.POST['teaching_load']
+                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -774,7 +774,7 @@ def edit_position(request, position_id):
         if form.is_valid():
             position = form.save(commit=False)
             if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
-                position.config['teaching_load']=request.POST['teaching_load']
+                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -1517,7 +1517,6 @@ def faculty_wizard(request, userid, position=None):
             form_salary.fields['base_salary'].initial = position.base_salary
             form_salary.fields['add_salary'].initial = position.add_salary
             form_salary.fields['add_pay'].initial = position.add_pay
-            #TODO:  Figure out how we really want to store/retrieve this field.
             form_load.fields['load'].initial = position.get_load_display()
 
 
