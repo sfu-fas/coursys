@@ -46,16 +46,19 @@ def _create_news(person, url, from_user, accept_deadline):
     gradstudents = GradStudent.get_canonical(person)
     if len(gradstudents) > 0:
         gradstudent = gradstudents[0]
-        senior_supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type='SEN')
+        # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
+        #  supervisors, so we'll just get all of those and grab the first one.
+        supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'])
         supervisor_url = reverse('ta.views.instr_offers')
-        if len(senior_supervisors) > 0:
-            senior_supervisor = senior_supervisors[0].supervisor
-            n = NewsItem( user=senior_supervisor,
-                            source_app="ta_contract",
-                            title=u"TA Contract Offer for %s" % person,
-                            url=supervisor_url,
-                            author=from_user,
-                            content="Your student %s has been offered a TA contract." % person );
+        if len(supervisors) > 0:
+            supervisor = supervisors[0].supervisor
+            n = NewsItem(user=supervisor,
+                         source_app="ta_contract",
+                         title=u"TA Contract Offer for %s" % person,
+                         url=supervisor_url,
+                         author=from_user,
+                         content="Your student %s has been offered a TA contract." % person
+                         )
             n.save()
 
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
