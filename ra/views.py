@@ -553,9 +553,9 @@ def pay_periods(request):
         else:
             # move start/end into Mon-Fri work week
             if st.weekday() == 5:
-                en += 2*day
+                st += 2*day
             elif st.weekday() == 6:
-                en += day
+                st += day
             if en.weekday() == 5:
                 en -= day
             elif en.weekday() == 6:
