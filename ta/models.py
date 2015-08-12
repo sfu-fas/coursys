@@ -538,6 +538,14 @@ class TAContract(models.Model):
         from tacontracts.models import TAContract as NewTAContract
         NewTAContract.update_ta_members(self.application.person, self.posting.semester_id)
 
+        # If the status of this contract is Cancelled or Rejected, find all the TACourses
+        # it applies to and set their BUs to 0.
+        if self.status in ('CAN', 'REJ'):
+            courses = TACourse.objects.filter(contract=self)
+            for course in courses:
+                course.bu = 0
+                course.save()
+
 
     def first_assign(self, application, posting):
         self.application = application
@@ -555,6 +563,8 @@ class TAContract(models.Model):
 
     def bu(self):
         courses = TACourse.objects.filter(contract=self)
+        if self.status in ('CAN', 'REJ'):
+            return 0
         return sum( [course.bu for course in courses] )
 
     def total_bu(self):

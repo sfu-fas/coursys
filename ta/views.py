@@ -699,7 +699,7 @@ def assign_tas(request, post_slug):
     # decorate offerings with currently-assigned TAs
     all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract__application__person')
     for o in all_offerings:
-        o.assigned = [crs for crs in all_assignments if crs.course==o]
+        o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]
     
     # ignore excluded courses
     excl = set(posting.excluded())
