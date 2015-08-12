@@ -852,7 +852,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         if semester == None:
             semester = Semester.current() 
 
-        student_records = GradStudent.objects.filter(person=person)
+        student_records = GradStudent.objects.filter(person=person).order_by('-start_semester')
 
         students_and_statuses = [(gs, gs.status_as_of(semester)) for gs in student_records]
 
@@ -865,14 +865,15 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         def intersect( l1, l2 ):
             return bool(set(l1) & set(l2))
 
-        if (intersect( STATUS_ACTIVE, statuses ) or 
-            intersect( STATUS_APPLICANT, statuses ) or 
-            'LEAV' in statuses):
-            students_and_statuses = [(student, status) for student, status in 
-                                        students_and_statuses if 
-                                        status not in STATUS_INACTIVE]
+        if intersect(STATUS_ACTIVE, statuses):
+            return [student for (student, status) in students_and_statuses if status in STATUS_ACTIVE]
+        elif intersect(STATUS_APPLICANT, statuses):
+            return [student for (student, status) in students_and_statuses if status in STATUS_APPLICANT]
+        elif 'LEAV' in statuses:
+            return [student for (student, status) in students_and_statuses if status == 'LEAV']
+        else:
+            return [student for (student, status) in students_and_statuses]
 
-        return student_records
 
     @classmethod
     def create( cls, person, program ):
