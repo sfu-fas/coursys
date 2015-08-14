@@ -1,5 +1,27 @@
 var table;
 
+function build_calendar(url, y, m ,d) {
+	$('#calendar').fullCalendar({
+    	header: {
+      		left: 'prev,next today',
+	      	center: 'title',
+      		right: 'month,agendaWeek'
+    	},
+    	events: {
+      		url: url,
+	      	cache: true,
+      		ignoreTimezone: false,
+    	},
+    	height: 500,
+    	firstHour: 8,
+    	slotMinutes: 60,
+    	defaultView: 'agendaWeek',
+    	year: y,
+    	month: m,
+    	day: d,
+  	})
+}
+
 // from http://stackoverflow.com/questions/9235304/how-to-replace-the-location-hash-and-only-keep-the-last-history-entry
 (function(namespace) { // Closure to protect local variable "var hash"
     if ('replaceState' in history) { // Yay, supported!
