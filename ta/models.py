@@ -589,7 +589,7 @@ class TAContract(models.Model):
 
     @property
     def total(self):
-        return self.total_pay + self.scholarship_pay
+        return self.total_pay() + self.scholarship_pay()
 
 
 class CourseDescription(models.Model):
