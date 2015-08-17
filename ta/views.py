@@ -986,7 +986,7 @@ def contracts_csv(request, post_slug):
                      'Lump Sum Hours', 'Scholarship Lump Sum'])
     
     contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']) \
-                .select_related('semester', 'application__person')
+                .select_related('application__person')
     seq = posting.next_export_seq()
     batchid = '%s_%s_%02i' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"), seq)
     for c in contracts:
