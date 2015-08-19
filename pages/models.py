@@ -620,7 +620,7 @@ class ParserFor(object):
                      }
         else:
             nb_macros = None
-        CreoleBase = creoleparser.creole11_base(non_bodied_macros=nb_macros)
+        CreoleBase = creoleparser.creole11_base(non_bodied_macros=nb_macros, add_heading_ids='h-')
 
         class CreoleDialect(CreoleBase):
             codeblock = CodeBlock()
