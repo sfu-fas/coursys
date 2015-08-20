@@ -68,7 +68,9 @@ class Page(models.Model):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # p.config['releasedate']: date after which is page is visible
         # p.config['editdate']: date after which is page is editable
-    
+        # p.config['migrated_to']: if this page was migrated to a new location, the new (offering.slug, page.label)
+        # p.config['migrated_from']: if this page was migrated from an old location, the old (offering.slug, page.label)
+
     defaults = {'releasedate': None, 'editdate': None}
     releasedate_txt, set_releasedate_txt = getter_setter('releasedate')
     editdate_txt, set_editdate_txt = getter_setter('editdate')
