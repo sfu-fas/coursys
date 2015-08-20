@@ -85,7 +85,7 @@ class Mse410LessThan3CoopsReport (Report):
             # Also, we're going to have to make some assumptions here.  If you completed an academic program for ENG,
             # MSE, or MSE2, we're going to assume you're not doing another MSE degree.
             emplids = students_in_mse_410.column_as_list("EMPLID")
-            students_graduated_query = GraduatedStudentQuery({'emplids': emplids, 'programs': ['ENSC', 'ENG', 'MSE', 'MSE2'],
+            students_graduated_query = GraduatedStudentQuery({'emplids': emplids, 'programs': ['ENSC', 'ENSC2', 'ENBUX', 'ENG', 'MSE', 'MSE2'],
                                                               'start_semester': '1141'})
             students_graduated = students_graduated_query.result()
 
