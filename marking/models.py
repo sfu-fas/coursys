@@ -514,11 +514,11 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 activity.exam_activity = a
             
             activity.save()
-        
-        
+
         # copy the Pages
         from pages.models import Page, PageFilesStorage, attachment_upload_to
-        for p in Page.objects.filter(offering=course_copy_from):
+        copy_pages = Page.objects.filter(offering=course_copy_from).exclude(can_read='NONE', can_write='NONE')
+        for p in copy_pages:
             new_p = copy.deepcopy(p)
             new_p.id = None
             new_p.pk = None
@@ -543,7 +543,14 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 new_date = course_copy_to.semester.duedate(week, wkday, None)
                 new_p.set_editdate(new_date)
 
+            # record that the page was migrated
+            new_p.config['migrated_from'] = [course_copy_from.slug, p.label]
+            if 'migrated_to' in new_p.config:
+                del new_p.config['migrated_to']
             new_p.save()
+
+            p.config['migrated_to'] = [course_copy_to.slug, new_p.label]
+            p.save()
 
             v = p.current_version()
             new_v = copy.deepcopy(v)
