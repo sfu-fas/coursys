@@ -36,6 +36,11 @@ class Mse410LessThan3CoopsReport (Report):
 
             students_in_mse_494 = students_in_mse_494_query.result()
 
+            students_in_ensc_395_query = SingleCourseStrmQuery({'subject': 'ENSC', 'catalog_nbr': '395'},
+                                                         include_current=True)
+
+            students_in_ensc_395 = students_in_ensc_395_query.result()
+
             # These are cached queries, so it shouldn't be *too* expensive to run them.
             # see bad_first_semester.py
 
@@ -58,7 +63,8 @@ class Mse410LessThan3CoopsReport (Report):
             def did_3_coops(row_map):
                 try:
                     return not (students_in_mse_493.contains("EMPLID", row_map["EMPLID"]) or
-                                students_in_mse_494.contains("EMPLID", row_map["EMPLID"]))
+                                students_in_mse_494.contains("EMPLID", row_map["EMPLID"]) or
+                                students_in_ensc_395.contains("EMPLID", row_map["EMPLID"]))
                 except KeyError:
                     print "No emplid in the given row."
 
