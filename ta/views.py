@@ -57,7 +57,7 @@ def _create_news(person, url, from_user, accept_deadline):
                          title=u"TA Contract Offer for %s" % person,
                          url=supervisor_url,
                          author=from_user,
-                         content="Your student %s has been offered a TA contract." % person
+                         content=u"Your student %s has been offered a TA contract." % person
                          )
             n.save()
 
@@ -1046,10 +1046,8 @@ def accept_contract(request, post_slug, userid, preview=False):
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
     schol_bi = _format_currency(schol_sem / pp)
-    
-    
-    if request.method == "POST":
 
+    if request.method == "POST":
         form = TAAcceptanceForm(request.POST, instance=contract)
         if form.is_valid():
             contract = form.save(commit=False)
@@ -1071,8 +1069,7 @@ def accept_contract(request, post_slug, userid, preview=False):
             return HttpResponseRedirect(reverse(accept_contract, args=(post_slug,userid)))
     else:   
         form = TAContractForm(instance=contract) 
-        
-    
+
     context = { 'contract':contract, 
                 'courses':courses,
                 'pay':_format_currency(contract.pay_per_bu),
