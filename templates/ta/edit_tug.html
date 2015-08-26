@@ -2,11 +2,10 @@
 
 {% block headextra %}
 <script type="text/javascript">
-//<![CDATA[
 $(document).ready(function() {
   $("h3.instructions").collapsible();
 });
-//]]></script>
+</script>
 {% endblock %}
 
 {% block title %}Edit Time Use Guideline{% endblock %}
@@ -18,9 +17,7 @@ $(document).ready(function() {
 <li>Edit TUG for {{ta.name}}</li>{% endblock %}
 
 {% block content %}
-<div class="form_container">
-<form action="" method="post">{% csrf_token %}
-<fieldset id="edit-time-use-guideline">
+<form action="" method="post" id="edit-time-use-guideline">{% csrf_token %}
 
 <p>TA Name: {{ta.name}}</p>
 <p>Course: {{course}}</p>
@@ -54,7 +51,6 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
 </table>
 {{ form.config_form.management_form }}
 <p><input class='submit' type="submit" value="Save TUG" /></p>
-</fieldset>
 </form>
 </div>
 
@@ -128,7 +124,6 @@ factors affecting workload occur:
     reasons of the decision in writing, with a copy to the Union.
   </li>
 </ul>
-</div>
 
 <script type="text/javascript" src="{{STATIC_URL}}js/ta.js"></script>
 <script type="text/javascript">
