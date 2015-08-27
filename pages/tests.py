@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
-from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL
+from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor
 from coredata.models import CourseOffering, Member, Person
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
 import re
@@ -264,3 +264,19 @@ class PagesTest(TestCase):
         # macros disappear: back to original
         self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
 
+    def test_entity(self):
+        """
+        test creole extension for HTML entities
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        p = ParserFor(crs)
+
+        # things that should be entities
+        inp = u'&amp; &NotRightTriangle; &#8935; &#x1D54B;'
+        outp = u'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
+        self.assertEquals(p.text2html(inp).strip(), outp)
+
+        # things that should NOT be entities
+        inp = u'&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
+        outp = u'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
+        self.assertEquals(p.text2html(inp).strip(), outp)

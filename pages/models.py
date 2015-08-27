@@ -496,6 +496,7 @@ models.signals.post_save.connect(clear_offering_cache)
 
 import genshi
 from brush_map import brush_code
+from genshi.core import Markup
 
 brushre = r"[\w\-#]+"
 brush_class_re = re.compile(r'brush:\s+(' + brushre + ')')
@@ -516,6 +517,19 @@ class AbbrAcronym(creoleparser.elements.InlineElement):
                    creoleparser.core.fragmentize(abbr,
                        self.child_elements,
                        element_store, environ), title=title)
+
+class HTMLEntity(creoleparser.elements.InlineElement):
+    # Allows HTML elements to be passed through
+    def __init__(self):
+        super(HTMLEntity, self).__init__('span', ['&',';'])
+        self.regexp = re.compile(self.re_string())
+
+    def re_string(self):
+        return '&([A-Za-z]\w{1,24}|#\d{2,7}|#[Xx][0-9a-zA-Z]{2,6});'
+
+    def _build(self,mo,element_store, environ):
+        content = mo.group(1)
+        return creoleparser.core.bldr.tag.__getattr__('span')(Markup('&' + content + ';'))
 
 
 class CodeBlock(creoleparser.elements.BlockElement):
@@ -627,6 +641,7 @@ class ParserFor(object):
         class CreoleDialect(CreoleBase):
             codeblock = CodeBlock()
             abbracronym = AbbrAcronym()
+            htmlentity = HTMLEntity()
             strikethrough = creoleparser.elements.InlineElement('del','--')
             
             def __init__(self):
@@ -638,6 +653,7 @@ class ParserFor(object):
                 inline = super(CreoleDialect, self).inline_elements
                 inline.append(self.abbracronym)
                 inline.append(self.strikethrough)
+                inline.append(self.htmlentity)
                 return inline
 
             @property
