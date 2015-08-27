@@ -433,13 +433,15 @@ class TAApplication(models.Model):
     
     def course_assigned_display(self):
         crs = []
-        tacrss = TACourse.objects.filter(contract__application=self).select_related('course')
+        tacrss = TACourse.objects.filter(contract__application=self).exclude(contract__status__in=['CAN', 'REJ'])\
+            .select_related('course')
         for tacrs in tacrss:
             crs.append(tacrs.course.subject + ' ' + tacrs.course.number)
         return ', '.join(crs)
     
     def base_units_assigned(self):
-        crs = TACourse.objects.filter(contract__application=self).aggregate(Sum('bu'))
+        crs = TACourse.objects.filter(contract__application=self).exclude(contract__status__in=['CAN', 'REJ'])\
+            .aggregate(Sum('bu'))
         return crs['bu__sum']
 
 PREFERENCE_CHOICES = (
@@ -565,17 +567,19 @@ class TAContract(models.Model):
         courses = TACourse.objects.filter(contract=self)
         if self.status in ('CAN', 'REJ'):
             return 0
-        return sum( [course.bu for course in courses] )
+        return sum([course.bu for course in courses])
 
     def total_bu(self):
         courses = TACourse.objects.filter(contract=self)
         if self.status in ('CAN', 'REJ'):
             return 0
-        return sum( [course.total_bu for course in courses] )
+        return sum([course.total_bu for course in courses])
 
     def prep_bu(self):
         courses = TACourse.objects.filter(contract=self)
-        return sum( [course.prep_bu for course in courses] )
+        if self.status in ('CAN', 'REJ'):
+            return 0
+        return sum([course.prep_bu for course in courses])
 
     def total_pay(self):
         return decimal.Decimal(self.bu()) * self.pay_per_bu
@@ -624,7 +628,12 @@ class TACourse(models.Model):
         Return the prep BUs for this assignment
         """
         if self.has_labtut():
-            return LAB_BONUS_DECIMAL
+            # If the contract that is attached to this course has been cancelled/rejected, there
+            # really aren't any BUs that are really used here.
+            if self.contract.status in ('CAN', 'REJ'):
+                return 0
+            else:
+                return LAB_BONUS_DECIMAL
         else:
             return 0
 
@@ -633,7 +642,12 @@ class TACourse(models.Model):
         """
         Return the total BUs for this assignment
         """
-        return self.bu + self.prep_bu
+        # If the contract that is attached to this course has been cancelled/rejected, there
+        # really aren't any BUs that are really used here.
+        if self.contract.status in ('CAN', 'REJ'):
+                return 0
+        else:
+            return self.bu + self.prep_bu
 
     @property
     def hours(self):
