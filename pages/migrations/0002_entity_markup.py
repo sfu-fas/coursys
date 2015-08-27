@@ -24,7 +24,8 @@ def escape_entity(txt):
     return ''.join(chars), changes
 
 def escape_page_entities(apps, schema_editor):
-    PageVersion = apps.get_model("pages", "PageVersion")
+    # I know I'm not supposed to import like this, but signals that are active need the real class...
+    from pages.models import PageVersion
     for pv in PageVersion.objects.all():
         if pv.wikitext:
             pv.wikitext, changes = escape_entity(pv.wikitext)
