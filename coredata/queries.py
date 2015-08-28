@@ -1296,8 +1296,8 @@ def outlines_data_json(offering):
     except (urllib2.HTTPError, urllib2.URLError, timeout):
         data = {'internal_error': 'could not retrieve outline data from API'}
 
-    if 'info' in data and 'nodePath' in data['info']:
-        data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['nodePath']
+    if 'info' in data and 'outlinePath' in data['info']:
+        data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['outlinePath']
 
     return json.dumps(data, indent=1)
 

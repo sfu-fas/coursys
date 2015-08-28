@@ -118,6 +118,9 @@ class GitTag:
         class Meta:
             model = GitTagComponent
             fields = ['title', 'description', 'prefix', 'deleted']
+            widgets = {
+                'prefix': forms.TextInput(attrs={'style':'width:30em'}),
+            }
 
         def __init__(self, *args, **kwargs):
             super(GitTag.ComponentForm, self).__init__(*args, **kwargs)

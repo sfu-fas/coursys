@@ -1,9 +1,10 @@
 Hello, {{ supervisor.name }},
 
-This is a friendly reminder that one of your RAs has an appointment that is expiring in the near future.
-In order to ensure everything gets done in due time, please make sure there is a new appointment, if needed, for the following RA:
+This is a friendly reminder that one of your RAs has an appointment that is expiring in the near future:
+{{ raappt.person }} expiring on {{ raappt.end_date }}.
 
-{{ raappt.person }} expiring on {{ raappt.end_date }}
+If you wish to renew this appointment, please start the process to ensure everything gets done in time.
+If a renewal is not needed, or if the process has already been started, please feel free to ignore this email.
 
 
 You will NOT get this reminder again.

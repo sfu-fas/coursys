@@ -46,16 +46,19 @@ def _create_news(person, url, from_user, accept_deadline):
     gradstudents = GradStudent.get_canonical(person)
     if len(gradstudents) > 0:
         gradstudent = gradstudents[0]
-        senior_supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type='SEN')
+        # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
+        #  supervisors, so we'll just get all of those and grab the first one.
+        supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'])
         supervisor_url = reverse('ta.views.instr_offers')
-        if len(senior_supervisors) > 0:
-            senior_supervisor = senior_supervisors[0].supervisor
-            n = NewsItem( user=senior_supervisor,
-                            source_app="ta_contract",
-                            title=u"TA Contract Offer for %s" % person,
-                            url=supervisor_url,
-                            author=from_user,
-                            content="Your student %s has been offered a TA contract." % person );
+        if len(supervisors) > 0:
+            supervisor = supervisors[0].supervisor
+            n = NewsItem(user=supervisor,
+                         source_app="ta_contract",
+                         title=u"TA Contract Offer for %s" % person,
+                         url=supervisor_url,
+                         author=from_user,
+                         content=u"Your student %s has been offered a TA contract." % person
+                         )
             n.save()
 
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
@@ -696,7 +699,7 @@ def assign_tas(request, post_slug):
     # decorate offerings with currently-assigned TAs
     all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract__application__person')
     for o in all_offerings:
-        o.assigned = [crs for crs in all_assignments if crs.course==o]
+        o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]
     
     # ignore excluded courses
     excl = set(posting.excluded())
@@ -983,7 +986,7 @@ def contracts_csv(request, post_slug):
                      'Lump Sum Hours', 'Scholarship Lump Sum'])
     
     contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']) \
-                .select_related('semester', 'application__person')
+                .select_related('application__person')
     seq = posting.next_export_seq()
     batchid = '%s_%s_%02i' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"), seq)
     for c in contracts:
@@ -1043,10 +1046,8 @@ def accept_contract(request, post_slug, userid, preview=False):
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
     schol_bi = _format_currency(schol_sem / pp)
-    
-    
-    if request.method == "POST":
 
+    if request.method == "POST":
         form = TAAcceptanceForm(request.POST, instance=contract)
         if form.is_valid():
             contract = form.save(commit=False)
@@ -1068,8 +1069,7 @@ def accept_contract(request, post_slug, userid, preview=False):
             return HttpResponseRedirect(reverse(accept_contract, args=(post_slug,userid)))
     else:   
         form = TAContractForm(instance=contract) 
-        
-    
+
     context = { 'contract':contract, 
                 'courses':courses,
                 'pay':_format_currency(contract.pay_per_bu),

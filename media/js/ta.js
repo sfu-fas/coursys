@@ -112,6 +112,6 @@ function sum_jquery(node){
 }
 
 function updateTotalHours(){
-	$('#totalHours').html(sum_jquery($("input[id$='-total']")));
-	$('#weeklyHours').html(sum_jquery($("input[id$='-weekly']")));
+	$('#totalHours').html(sum_jquery($("input[id$='-total']")).toFixed(1));
+	$('#weeklyHours').html(sum_jquery($("input[id$='-weekly']")).toFixed(1));
 }
