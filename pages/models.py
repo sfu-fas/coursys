@@ -560,6 +560,21 @@ class CodeBlock(creoleparser.elements.BlockElement):
                         element_store, environ, remove_escapes=False),
             class_="brush: "+lang)
 
+def _find_activity(offering, arg_string):
+    """
+    Find activity from the arg_string from a macro. Return error message string if it can't be found.
+    """
+    act_name = arg_string.strip()
+    attrs = {}
+    acts = Activity.objects.filter(offering=offering, deleted=False).filter(models.Q(name=act_name) | models.Q(short_name=act_name))
+    if len(acts) == 0:
+        return u'[No activity "%s"]' % (act_name)
+    elif len(acts) > 1:
+        return u'[There is both a name and short name "%s"]' % (act_name)
+    else:
+        return acts[0]
+        due = act.due_date
+
 local_tz = pytz.timezone(settings.TIME_ZONE)
 def _duedate(offering, dateformat, macro, environ, *act_name):
     """
@@ -567,28 +582,37 @@ def _duedate(offering, dateformat, macro, environ, *act_name):
     
     Must be created in a closure by ParserFor with offering set (since that
     doesn't come from the parser).
-    """    
-    act_name = macro['arg_string'].strip()
+    """
+    act = _find_activity(offering, macro['arg_string'])
     attrs = {}
-    acts = Activity.objects.filter(offering=offering, deleted=False).filter(models.Q(name=act_name) | models.Q(short_name=act_name))
-    if len(acts) == 0:
-        text = '[No activity "%s"]' % (act_name)
-        attrs['class'] = 'empty'
-    elif len(acts) > 1:
-        text = '[There is both a name and short name "%s"]' % (act_name)
-        attrs['class'] = 'empty'
-    else:
-        act = acts[0]
+    if isinstance(act, Activity):
         due = act.due_date
-        if not due:
-            text = '["%s" has no due date specified]' % (act_name)
-            attrs['class'] = 'empty'
-        else:
+        if due:
             iso8601 = local_tz.localize(due).isoformat()
             text = act.due_date.strftime(dateformat)
             attrs['title'] = iso8601
+        else:
+            text = u'["%s" has no due date specified]' % (act.name)
+            attrs['class'] = 'empty'
+    else:
+        # error
+        text = act
+        attrs['class'] = 'empty'
 
     return creoleparser.core.bldr.tag.__getattr__('span')(text, **attrs)
+
+def _activitylink(offering, macro, environ, *act_name):
+    act = _find_activity(offering, macro['arg_string'])
+    attrs = {}
+    if isinstance(act, Activity):
+        text = act.name
+        attrs['href'] = act.get_absolute_url()
+    else:
+        # error
+        text = act
+        attrs['class'] = 'empty'
+
+    return creoleparser.core.bldr.tag.__getattr__('a')(text, **attrs)
 
 def _pagelist(offering, pageversion, macro, environ, prefix=None):
     # all pages [with the given prefix] for this offering
@@ -625,6 +649,9 @@ class ParserFor(object):
         def duedatetime_macro(macro, environ, *act_name):
             return _duedate(self.offering, '%A %B %d %Y, %H:%M', macro, environ, *act_name)
 
+        def activitylink_macro(macro, environ, *act_name):
+            return _activitylink(self.offering, macro, environ, *act_name)
+
         def pagelist_macro(macro, environ, prefix=None):
             return _pagelist(self.offering, self.pageversion, macro, environ, prefix)
 
@@ -633,6 +660,7 @@ class ParserFor(object):
                      'duedate': duedate_macro,
                      'duedatetime': duedatetime_macro,
                      'pagelist': pagelist_macro,
+                     'activitylink': activitylink_macro,
                      }
         else:
             nb_macros = None

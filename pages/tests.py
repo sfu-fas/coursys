@@ -3,6 +3,7 @@ from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
 from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor
 from coredata.models import CourseOffering, Member, Person
+from grades.models import Activity
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
 import re
 
@@ -266,7 +267,7 @@ class PagesTest(TestCase):
 
     def test_entity(self):
         """
-        test creole extension for HTML entities
+        Test creole extension for HTML entities
         """
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         p = ParserFor(crs)
@@ -280,3 +281,21 @@ class PagesTest(TestCase):
         inp = u'&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
         outp = u'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
         self.assertEquals(p.text2html(inp).strip(), outp)
+
+    def test_extensions(self):
+        """
+        Test creole macros we have defined
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        p = ParserFor(crs)
+        a1 = Activity.objects.get(offering=crs, slug='a1')
+
+        html = p.text2html('one <<duedate A1>> two')
+        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y') + '<', html)
+
+        html = p.text2html('one <<duedatetime A1>> two')
+        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y, %H:%M') + '<', html)
+
+        html = p.text2html(u'one <<activitylink A1>> two')
+        link = u'<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
+        self.assertIn(link.encode('utf-8'), html)
