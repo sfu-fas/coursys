@@ -1483,7 +1483,7 @@ def generate_csv(request, post_slug):
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
-    
+
     # collect all course preferences in a sensible way
     course_prefs = {}
     prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
@@ -1501,11 +1501,12 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus',
+           'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*9 + [str(o.campus) for o in offerings]
+    off = ['']*11 + [str(o.campus) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
@@ -1537,8 +1538,21 @@ def generate_csv(request, post_slug):
                 campuspref += cp.campus[0].upper()
             elif cp.pref == 'WIL':
                 campuspref += cp.campus[0].lower()
-        
-        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem, app.base_units, campuspref]
+
+        # Get all TAContracts that match this posting and application, then the matching TACourses
+        # so we can find out if a course/courses have been assigned to this TA
+
+        assigned_courses = ''
+        assigned_bus = ''
+        ta_contracts = TAContract.objects.filter(posting=posting, application=app).exclude(status__in=['CAN', 'REJ'])
+        if len(ta_contracts) > 0:
+            ta_courses = TACourse.objects.filter(contract__in=ta_contracts)
+            if len(ta_courses) > 0:
+                assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
+                assigned_bus = sum([t.total_bu for t in ta_courses])
+
+        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem,
+               app.base_units, campuspref, assigned_courses, assigned_bus]
         
         for off in offerings:
             crs = off.course
