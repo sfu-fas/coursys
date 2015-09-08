@@ -1177,6 +1177,25 @@ def view_event(request, userid, event_slug):
     }
     return render(request, 'faculty/view_event.html', context)
 
+@requires_role('ADMN')
+def generate_pdf(request, userid, event_slug, pdf_key):
+    """
+    Generate the PDF for a given event, faculty member, and PDF type (dictated by the handler)
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    editor = get_object_or_404(Person, userid=request.user.username)
+    #memos = Memo.objects.filter(career_event=instance)
+    #templates = MemoTemplate.objects.filter(unit__in=Unit.sub_units(request.units), event_type=instance.event_type, hidden=False)
+
+    handler = instance.get_handler()
+    if not handler.can_view(editor):
+        raise PermissionDenied("'%s' not allowed to view this event" % editor)
+
+    if pdf_key not in handler.PDFS:
+        raise PermissionDenied("No such PDF for this handler")
+
+    return handler.generate_pdf(pdf_key)
 
 @requires_role('ADMN')
 def timeline(request, userid):

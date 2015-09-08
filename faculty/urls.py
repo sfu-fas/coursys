@@ -20,6 +20,7 @@ event_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/events/EVENT_SLUG/
     url(r'^_get_text/(?P<memo_template_id>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_text', name="faculty_event_memo_manage"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_pdf', name="faculty_event_memo_pdf"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name="faculty_event_view_memo"),
+    url(r'^generate_pdf/(?P<pdf_key>' + SLUG_RE + ')' + '$', 'faculty.views.generate_pdf', name="faculty_handler_generate_pdf")
 ]
 
 faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/

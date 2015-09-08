@@ -51,6 +51,9 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         {% endblock %}
     """
 
+    PDFS = {'yellow1': 'Yellow Form for Tenure Track',
+            'yellow2': 'Yellow Form for Limited Term'}
+
     class EntryForm(BaseEntryForm):
 
         LEAVING_CHOICES = Choices(
@@ -85,6 +88,14 @@ class AppointmentEventHandler(CareerEventHandlerBase):
 
     def short_summary(self):
         return "Appointment to position"
+
+    def generate_pdf(self, key):
+        # TODO: Create the matching PDFs and return them
+        if key == 'yellow1':
+            return
+        if key == 'yellow2':
+            return
+
 
 
 class SalaryBaseEventHandler(CareerEventHandlerBase, SalaryCareerEvent):
