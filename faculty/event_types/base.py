@@ -564,12 +564,17 @@ class CareerEventHandlerBase(object):
         """
         pass
 
-    def generate_pdf(self, key):
+    def generate_pdf(self, key, person):
         """
         A method to generate a PDF from the PDF dictionary in the class.
         This needs to be implemented in each derived class that has extra PDFs.
+
         :param key: The key for the PDF from the handler's PDF list
-        :return:
+        :type key: String
+        :param person: The person whom this event applies to
+        :type person: Person
+        :return: The PDF form
+        :rtype: HttpResponse
         """
         raise NotImplementedError("This needs to be implemented in the derived class")
 

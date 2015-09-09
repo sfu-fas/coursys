@@ -2155,7 +2155,48 @@ def fasnet_forms(grads, outfile):
     doc.save()
 
 
+class YellowFormTenure(object):
+    def __init__(self, outfile):
+        """
+        Create Yellow form for a tenure position in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
 
+    def save(self):
+        self.c.save()
+
+    def draw_form(self, careerevent, person):
+        self.c.setStrokeColor(black)
+        self.c.drawString(0, 0, "Testing Tenure")
+        self.c.showPage()
+
+
+def yellow_form_tenure(careerevent, person, outfile):
+    doc = YellowFormTenure(outfile)
+    doc.draw_form(careerevent, person)
+    doc.save()
+
+
+class YellowFormLimited(object):
+    def __init__(self, outfile):
+        """
+        Create Yellow form for a limited term position in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def save(self):
+        self.c.save()
+
+    def draw_form(self, careerevent, person):
+        self.c.setStrokeColor(black)
+        self.c.drawString(0, 0, "Testing limited term")
+        self.c.showPage()
+
+
+def yellow_form_limited(careerevent, person, outfile):
+    doc = YellowFormLimited(outfile)
+    doc.draw_form(careerevent, person)
+    doc.save()
 
 
 

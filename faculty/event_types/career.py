@@ -3,6 +3,7 @@ import itertools
 
 from django import forms
 from django.utils.safestring import mark_safe
+from django.http import HttpResponse
 
 from faculty.event_types import fields, search
 from faculty.event_types.base import BaseEntryForm
@@ -11,6 +12,7 @@ from faculty.event_types.choices import Choices
 from faculty.event_types.base import SalaryAdjust, TeachingAdjust
 from faculty.event_types.mixins import TeachingCareerEvent, SalaryCareerEvent
 from faculty.event_types.constants import SALARY_STEPS_CHOICES
+from dashboard.letters import yellow_form_limited, yellow_form_tenure
 
 RANK_CHOICES = Choices(
     ('LLEC', 'Limited-Term Lecturer'),
@@ -89,12 +91,17 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     def short_summary(self):
         return "Appointment to position"
 
-    def generate_pdf(self, key):
-        # TODO: Create the matching PDFs and return them
+    def generate_pdf(self, key, person):
+        response = HttpResponse(content_type="application/pdf")
+        response['Content-Disposition'] = 'inline; filename="yellowform.pdf"'
         if key == 'yellow1':
-            return
+            yellow_form_tenure(self, person, response)
+            return response
         if key == 'yellow2':
-            return
+            yellow_form_limited(self, person, response)
+            return response
+
+
 
 
 
