@@ -150,7 +150,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
         """
         Total number of hours assigned
         """
-        return sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total']))
+        return round(sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total'])), 2)
 
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),

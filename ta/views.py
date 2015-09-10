@@ -190,6 +190,7 @@ def view_tug(request, course_slug, userid):
         tug = get_object_or_404(TUG, member=member)
         iterable_fields = [(_, params) for _, params in tug.config.iteritems() if hasattr(params, '__iter__') ]
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
+        total_hours = round(total_hours, 2)
 
         contract_info = __get_contract_info(member)
         if contract_info:
