@@ -2155,19 +2155,270 @@ def fasnet_forms(grads, outfile):
     doc.save()
 
 
-class YellowFormTenure(object):
+class YellowForm(object):
     def __init__(self, outfile):
         """
-        Create Yellow form for a tenure position in the file object (which could be a Django HttpResponse).
+        Create Yellow form in the file object (which could be a Django HttpResponse).
+        This is the base class, there are two subclasses for either the tenure form or the limited term form
         """
         self.c = canvas.Canvas(outfile, pagesize=letter)
 
     def save(self):
         self.c.save()
 
+    def checkbox(self, x, y, filled=0):
+        self.c.rect(x*mm, y*mm, 3.1*mm, 3.8*mm, fill=filled)
+
+    def header_label(self, x, y, content):
+        self.c.setFont("Helvetica-Bold", 9)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def header_label_italics(self, x, y, content):
+        self.c.setFont("Helvetica-BoldOblique", 8)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label(self, x, y, content):
+        self.c.setFont("Helvetica", 9)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label_mid(self, x, y, content):
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label_small(self, x, y, content):
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_label(self, x, y, content):
+        self.c.setFont("Helvetica", 6)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_small_label(self, x, y, content):
+        self.c.setFont("Helvetica", 5)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_tiny_label(self, x, y, content):
+        self.c.setFont("Helvetica", 4)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def double_line(self, x1, y1, x2, y2):
+        self.c.line(x1*mm, y1*mm, x2*mm, y2*mm)
+        self.c.line(x1*mm, y1*mm-0.5*mm, x2*mm, y2*mm-0.5*mm)
+
+
+class YellowFormTenure(YellowForm):
+
     def draw_form(self, careerevent, person):
+        x_origin=15*mm
+        y_origin=12*mm
+        x_max=190*mm
+        self.c.translate(x_origin, y_origin) # origin = lower-left of the main box
         self.c.setStrokeColor(black)
-        self.c.drawString(0, 0, "Testing Tenure")
+        # Header
+        self.header_label_italics(0, 254, 'UPDATED FORM: JULY 9, 1997')
+        self.header_label_italics(87, 254, 'SUBMIT ORIGINAL (TYPED) YELLOW FORM TO VICE PRESIDENT ACADEMIC')
+        self.c.rect(-2*mm, 245*mm, 194*mm, 5*mm)
+        self.header_label(36, 246.5, 'RECOMMENDATION FOR APPOINTMENT')
+        self.header_label(109, 246.5, 'TENURE TRACK FACULTY')
+
+
+        # Personal information
+        self.header_label(0, 240, 'PERSONAL INFORMATION:')
+        self.c.line(0, 239.5*mm, 42*mm, 239.5*mm)
+        self.label(0, 235, 'Surname:')
+        self.label(81, 235, 'Given:')
+        self.label(144, 235, 'Preferred:')
+        self.c.line(16*mm, 234.5*mm, 71*mm, 234.5*mm)
+        self.c.line(90*mm, 234.5*mm, 139*mm, 234.5*mm)
+        self.c.line(158*mm, 234.5*mm, 190*mm, 234.5*mm)
+        self.label(0, 227, 'Canadian SIN:')
+        self.label(81, 227, 'Date of Birth: ')
+        self.label(102, 227, 'Yr')
+        self.label(117, 227, 'Mo')
+        self.label(134, 227, 'Day')
+        self.label(148, 227, 'Gender:')
+        self.label(163.5, 227, 'M')
+        self.label(175, 227, 'F')
+        self.c.line(30*mm, 228.5*mm, 32*mm, 228.5*mm)
+        self.c.line(38*mm, 228.5*mm, 40*mm, 228.5*mm)
+        self.c.line(107*mm, 226.5*mm, 117*mm, 226.5*mm)
+        self.c.line(124*mm, 226.5*mm, 133*mm, 226.5*mm)
+        self.c.line(140*mm, 226.5*mm, 147*mm, 226.5*mm)
+        self.checkbox(169, 226)
+        self.checkbox(180, 226)
+        self.label(0, 219.5, 'Is the Candidate a Canadian Citizen or Permanent Resident?')
+        self.label(95, 219.5, 'Yes')
+        self.label(111, 219.5, 'No')
+        self.checkbox(104, 219)
+        self.checkbox(120, 219)
+        self.label(0, 214, 'Country of Citizenship:')
+        self.c.line(38*mm, 213.5*mm, x_max, 213.5*mm)
+        self.label(0, 208, 'Mailing Address:')
+        self.c.line(38*mm, 207.5*mm, x_max, 207.5*mm)
+        self.label(0, 203, 'Telephone:')
+        self.label(83, 203, 'HOUSEHOLD moved from:')
+        self.c.line(33*mm, 204.5*mm, 35*mm, 204.5*mm)
+        self.c.line(20*mm, 202.5*mm, 76*mm, 202.5*mm)
+        self.c.line(121*mm, 202.5*mm, x_max, 202.5*mm)
+        self.subscript_label(22, 199, '(area code)')
+        self.subscript_label(148.5, 199, '(City/Country)')
+        self.label_small(3, 192, 'DEGREES HELD')
+        self.label_small(25, 192, 'YEAR OF DEGREE')
+        self.label_small(75, 192, 'INSTITUTION')
+        self.label_small(100, 192, 'CITY/COUNTRY')
+        self.label_small(153, 192, 'DEGREE VERIFICATION')
+        self.c.line(3*mm, 191.5*mm, 22*mm, 191.5*mm)
+        self.c.line(25*mm, 191.5*mm, 47*mm, 191.5*mm)
+        self.c.line(75*mm, 191.5*mm, 119*mm, 191.5*mm)
+        self.c.line(153*mm, 191.5*mm, 181.5*mm, 191.5*mm)
+        self.subscript_label(5, 188, '(or in progress)')
+        self.subscript_small_label(30, 188, '(mark "Cand."')
+        self.subscript_small_label(25.5, 186.5, 'if degree not yet complete)')
+        self.label(147, 182, 'Yes')
+        self.label(157, 182, 'No')
+        self.label(170, 182, 'by')
+        self.c.line(2*mm, 181.5*mm, 23.5*mm, 181.5*mm)
+        self.c.line(25*mm, 181.5*mm, 47.5*mm, 181.5*mm)
+        self.c.line(49*mm, 181.5*mm, 145*mm, 181.5*mm)
+        self.c.line(174*mm, 181.5*mm, 187*mm, 181.5*mm)
+        self.subscript_tiny_label(9.5, 179.5, '(Highest)')
+        self.checkbox(153.5, 181.5)
+        self.checkbox(162.5, 181.5)
+        self.label(147, 176.5, 'Yes')
+        self.label(157, 176.5, 'No')
+        self.label(170.5, 176.5, 'by')
+        self.c.line(2*mm, 176*mm, 23.5*mm, 176*mm)
+        self.c.line(25*mm, 176*mm, 47.5*mm, 176*mm)
+        self.c.line(49*mm, 176*mm, 145*mm, 176*mm)
+        self.c.line(174*mm, 176*mm, 187*mm, 176*mm)
+        self.checkbox(153.5, 176)
+        self.checkbox(162.5, 176)
+        self.label(147, 171, 'Yes')
+        self.label(157, 171, 'No')
+        self.label(170, 171, 'by')
+        self.c.line(2*mm, 170.5*mm, 23.5*mm, 170.5*mm)
+        self.c.line(25*mm, 170.5*mm, 47.5*mm, 170.5*mm)
+        self.c.line(49*mm, 170.5*mm, 145*mm, 170.5*mm)
+        self.c.line(174*mm, 170.5*mm, 187*mm, 170.5*mm)
+        self.checkbox(153.5, 170.5)
+        self.checkbox(162.5, 170.5)
+        self.c.rect(0*mm, 168*mm, 190*mm, 29*mm)
+
+        self.label(0, 162, 'Present position:')
+        self.label(134.5, 162, 'Salary: $')
+        self.c.line(27*mm, 161.5*mm, 131*mm, 161.5*mm)
+        self.c.line(147*mm, 161.5*mm, x_max, 161.5*mm)
+        self.label(0, 156, 'Institution:')
+        self.c.line(27*mm, 155.5*mm, x_max, 155.5*mm)
+        self.subscript_tiny_label(155.5, 153.5, '(City/Country)')
+
+        self.label(0,149, 'Principal subject taught (see Stats Canada codes):')
+        self.label(144, 149, 'Code:')
+        self.c.line(74*mm, 148.5*mm, 139*mm, 148*mm)
+        self.c.line(153*mm, 148*mm, x_max, 148*mm)
+
+        self.label(0, 142, 'Candidate has held position at SFU before: ')
+        self.label(68.5, 142, 'Yes')
+        self.label(84, 142, 'No')
+        self.label(93.5, 142, 'If yes give details:')
+        self.checkbox(74.5, 141)
+        self.checkbox(88.5, 141)
+        self.c.line(123*mm, 141*mm, x_max, 141*mm)
+
+        self.label(0, 136, 'Previous position #:')
+        self.c.line(32*mm, 135*mm, 82*mm, 135*mm)
+        self.c.line(88*mm, 135*mm, x_max, 135*mm)
+
+        self.double_line(0, 131.5, 190, 131.5)
+
+        # Appointment Information
+        self.header_label(0,127.5, 'APPOINTMENT INFORMATION')
+        self.c.line(0, 127*mm, 47*mm, 127*mm)
+        self.label(0, 122, 'Dept: (Home):')
+        self.label(101, 122, '(2')
+        self.label(106, 122, 'Dept):')
+        self.subscript_tiny_label(103.7, 123.6, 'nd')
+        self.c.line(24*mm, 121.5*mm, 98*mm, 121.5*mm)
+        self.c.line(114*mm, 121.5*mm, x_max, 121.5*mm)
+        self.label_mid(114, 118, 'If start date is not September 1')
+        self.label_mid(153.5, 118, ', which year will be')
+        self.label_mid(114, 115.5, 'considered start date for renewal & tenure?')
+        self.subscript_tiny_label(152.2, 119.2, 'st')
+        self.label(0, 115.5, 'Start Date:')
+        self.label(19, 115.5, 'Yr')
+        self.label(32, 115.5, 'Mo')
+        self.label(44, 115.5, 'Day')
+        self.label(60.5, 115.5, 'End Date: Yr')
+        self.label(89, 115.5, 'Mo')
+        self.label(100.5, 115.5, 'Day')
+        self.c.line(22*mm, 115*mm, 31.5*mm, 115*mm)
+        self.c.line(36.5*mm, 115*mm, 43*mm, 115*mm)
+        self.c.line(49*mm, 115*mm, 57*mm, 115*mm)
+        self.c.line(79*mm, 115*mm, 88.5*mm, 115*mm)
+        self.c.line(93*mm, 115*mm, 100*mm, 115*mm)
+        self.c.line(106*mm, 115*mm, 114*mm, 115*mm)
+        self.c.line(180*mm, 115*mm, x_max, 115*mm)
+
+        self.label(0, 107.5, 'Full-Time')
+        self.label(20, 107.5, 'Part-time')
+        self.label(52.5, 107.5, '%')
+        self.label(57, 107.5, 'Is this a replacement position?')
+        self.label(104.5, 107.5, 'Yes')
+        self.label(122.5, 107.5, 'CFL Position')
+        self.label(143.5, 107.5, '#(1):')
+        self.label(166, 107.5, 'FTE')
+        self.label(184, 107.5, '%')
+        self.label(143.5, 104, '#(2):')
+        self.label(166, 104, 'FTE')
+        self.label(184, 104, '%')
+        self.checkbox(14.5, 107)
+        self.checkbox(35, 107)
+        self.c.line(43*mm, 107*mm, 52*mm, 107*mm)
+        self.checkbox(112, 107)
+        self.c.line(150*mm, 107*mm, 161*mm, 107*mm)
+        self.c.line(172.5*mm, 107*mm, 183.5*mm, 107*mm)
+        self.c.line(150*mm, 103.5*mm, 161*mm, 103.5*mm)
+        self.c.line(172.5*mm, 103.5*mm, 183.5*mm, 103.5*mm)
+
+        self.label(0, 100, 'Rank:')
+        self.label(37, 100, 'Step:')
+        self.label(81, 100, 'Market Dif:  $')
+        self.label(131.5, 100, 'Start-up:  $')
+        self.c.line(9.5*mm, 99.5*mm, 35*mm, 99.5*mm)
+        self.c.line(44.5*mm, 99.5*mm, 79.5*mm, 99.5*mm)
+        self.c.line(99.5*mm, 99.5*mm, 130*mm, 99.5*mm)
+        self.c.line(148*mm, 99.5*mm, 182*mm, 99.5*mm)
+
+        self.label(0, 94.5, 'Request appointment be concluded by:')
+        self.label(118, 94.5, 'Number of teaching semesters credit, if any,')
+        self.label(3, 90.5, 'normal route')
+        self.label(32, 90.5, 'or expedited route')
+        self.checkbox(24, 90)
+        self.checkbox(62, 90)
+
+        self.header_label(0, 84.5, 'ATTACHMENTS:')
+        self.c.line(0, 84*mm, 25*mm, 84*mm)
+
+        self.label(4.5, 79, 'Detailed recommendation for appointment')
+        self.label(82, 79, 'Search procedures')
+        self.label(144, 79, 'Advertisements')
+        self.checkbox(0.5, 78.5)
+        self.checkbox(78, 78.5)
+        self.checkbox(140, 78.5)
+        self.label(4.5, 73.5, 'CV\'s of shortlisted candidates')
+        self.label(82, 73.5, 'Statement of employment equity')
+        self.checkbox(0.5, 73)
+        self.checkbox(78, 73)
+        self.label(4.5, 68, 'Letter of reference for shortlisted candidates')
+        self.label(82, 68, 'Assessment of teaching competence')
+        self.checkbox(0.5, 67.5)
+        self.checkbox(78, 67.5)
+
+        self.double_line(0, 64.5, 190, 64.5)
+
+        # Approval
+
+        # Private use
         self.c.showPage()
 
 
@@ -2177,19 +2428,10 @@ def yellow_form_tenure(careerevent, person, outfile):
     doc.save()
 
 
-class YellowFormLimited(object):
-    def __init__(self, outfile):
-        """
-        Create Yellow form for a limited term position in the file object (which could be a Django HttpResponse).
-        """
-        self.c = canvas.Canvas(outfile, pagesize=letter)
-
-    def save(self):
-        self.c.save()
+class YellowFormLimited(YellowForm):
 
     def draw_form(self, careerevent, person):
         self.c.setStrokeColor(black)
-        self.c.drawString(0, 0, "Testing limited term")
         self.c.showPage()
 
 
