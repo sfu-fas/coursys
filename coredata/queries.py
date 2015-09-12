@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
 import re, hashlib, datetime, string, urllib, urllib2, httplib, time, json
-from socket import timeout
+import socket
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -1293,7 +1293,7 @@ def outlines_data_json(offering):
         data = json.loads(jsondata)
     except ValueError:
         data = {'internal_error': 'could not decode JSON'}
-    except (urllib2.HTTPError, urllib2.URLError, timeout):
+    except (urllib2.HTTPError, urllib2.URLError, socket.timeout, socket.error):
         data = {'internal_error': 'could not retrieve outline data from API'}
 
     if 'info' in data and 'outlinePath' in data['info']:
@@ -1325,7 +1325,7 @@ def userid_to_emplid(userid):
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException, timeout):
+    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException, socket.timeout, socket.error):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
