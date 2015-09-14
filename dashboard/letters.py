@@ -2214,13 +2214,15 @@ class YellowFormTenure(YellowForm):
         x_max=190*mm
         self.c.translate(x_origin, y_origin) # origin = lower-left of the main box
         self.c.setStrokeColor(black)
+
+        # Blank form
+
         # Header
         self.header_label_italics(0, 254, 'UPDATED FORM: JULY 9, 1997')
         self.header_label_italics(87, 254, 'SUBMIT ORIGINAL (TYPED) YELLOW FORM TO VICE PRESIDENT ACADEMIC')
         self.c.rect(-2*mm, 245*mm, 194*mm, 5*mm)
         self.header_label(36, 246.5, 'RECOMMENDATION FOR APPOINTMENT')
         self.header_label(109, 246.5, 'TENURE TRACK FACULTY')
-
 
         # Personal information
         self.header_label(0, 240, 'PERSONAL INFORMATION:')
@@ -2498,8 +2500,26 @@ def yellow_form_tenure(careerevent, person, outfile):
 
 class YellowFormLimited(YellowForm):
 
+    def checkbox(self, x, y, filled=0):
+        self.c.circle(x*mm, y*mm, 1*mm, fill=filled)
+
     def draw_form(self, careerevent, person):
+
+        x_origin=13*mm
+        y_origin=12*mm
+        x_max=191*mm
+        self.c.translate(x_origin, y_origin) # origin = lower-left of the main box
         self.c.setStrokeColor(black)
+
+        # Header
+
+        # Personal Information
+
+        # Position Information
+
+        # Approved
+
+        # Private use
         self.c.showPage()
 
 
