@@ -158,6 +158,7 @@ class CareerEventHandlerBase(object):
     CONFIG_FIELDS = {}
     SEARCH_RULE_INSTANCES = []
     FLAGS = []
+    PDFS = {}
 
     def __init__(self, event):
         self.event = event
@@ -562,5 +563,19 @@ class CareerEventHandlerBase(object):
 
         """
         pass
+
+    def generate_pdf(self, key):
+        """
+        A method to generate a PDF from the PDF dictionary in the class.
+        This needs to be implemented in each derived class that has extra PDFs.
+
+        :param key: The key for the PDF from the handler's PDF list
+        :type key: String
+        :return: The PDF form
+        :rtype: HttpResponse
+        """
+        raise NotImplementedError("This needs to be implemented in the derived class")
+
+
 
 

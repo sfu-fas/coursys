@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}New Position{% endblock %}
+{% block h1 %}New Position{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty Management</a></li>
+<li><a href="{% url "faculty.views.list_positions" %}">Positions</a></li>
+<li>New Position</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url "faculty.views.new_position" %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add New Position">
+    </p>
+</form>
+{% endblock %}

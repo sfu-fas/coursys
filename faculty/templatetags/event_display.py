@@ -111,3 +111,11 @@ def fraction_display(val):
             res += ' ' + unicode(remainder)
 
     return res
+
+
+@register.filter
+def get_item(dictionary, key):
+    """
+    See: http://stackoverflow.com/questions/8000022/django-template-how-to-lookup-a-dictionary-value-with-a-variable
+    """
+    return dictionary.get(key)

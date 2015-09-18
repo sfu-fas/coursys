@@ -31,12 +31,12 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
-from faculty.models import Grant, TempGrant, GrantOwner
+from faculty.models import Grant, TempGrant, GrantOwner, Position
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
-    NewRoleForm
+    NewRoleForm, PositionForm, PositionPickerForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -45,6 +45,8 @@ from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+
+from log.models import LogEntry
 
 
 def _get_faculty_or_404(allowed_units, userid_or_emplid):
@@ -734,6 +736,80 @@ def course_accreditation_csv(request):
     return HttpResponseBadRequest(form.errors)
 
 
+@requires_role('ADMN')
+def new_position(request):
+    units = Unit.sub_units(request.units)
+    unit_choices = [(u.id, u.name) for u in units]
+    if request.method == 'POST':
+        form = PositionForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            position = form.save(commit=False)
+            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
+                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
+            position.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Position was created.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="added position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+
+    else:
+        form = PositionForm()
+        form.fields['unit'].choices = unit_choices
+
+    return render(request, 'faculty/new_position.html', {'form': form})
+
+@requires_role('ADMN')
+def edit_position(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    if request.method == 'POST':
+        form = PositionForm(request.POST, instance=position)
+        if form.is_valid():
+            position = form.save(commit=False)
+            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
+                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
+            position.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully edited position.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Edited position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+    else:
+        form = PositionForm(instance=position)
+        form.fields['teaching_load'].initial = position.get_load_display()
+    return render(request, 'faculty/edit_position.html', {'form': form, 'position_id': position_id})
+
+@requires_role('ADMN')
+def delete_position(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    position.hide()
+    position.save()
+    messages.add_message(request, messages.SUCCESS, u'Succesfully hid position.')
+    l = LogEntry(userid=request.user.username, description="Hid position %s" % position, related_object=position)
+    l.save()
+    return HttpResponseRedirect(reverse(list_positions))
+
+
+@requires_role('ADMN')
+def list_positions(request):
+    sub_units = Unit.sub_units(request.units)
+    positions = Position.objects.visible_by_unit(sub_units)
+    context = {'positions': positions}
+    return render(request, 'faculty/view_positions.html', context)
+
 ###############################################################################
 # Display/summary views for a faculty member
 
@@ -1101,6 +1177,23 @@ def view_event(request, userid, event_slug):
     }
     return render(request, 'faculty/view_event.html', context)
 
+@requires_role('ADMN')
+def generate_pdf(request, userid, event_slug, pdf_key):
+    """
+    Generate the PDF for a given event, faculty member, and PDF type (dictated by the handler)
+    """
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    handler = instance.get_handler()
+    if not handler.can_view(editor):
+        raise PermissionDenied("'%s' not allowed to view this event" % editor)
+
+    if pdf_key not in handler.PDFS:
+        raise PermissionDenied("No such PDF for this handler")
+
+    return handler.generate_pdf(pdf_key)
 
 @requires_role('ADMN')
 def timeline(request, userid):
@@ -1357,13 +1450,12 @@ def change_event_status(request, userid, event_slug):
 
 @requires_role('ADMN')
 @transaction.atomic
-def faculty_wizard(request, userid):
+def faculty_wizard(request, userid, position=None):
     """
     Initial wizard for a user, set up basic events (appointment, base salary, normal teaching load).
     """
     person, member_units = _get_faculty_or_404(request.units, userid)
     editor = get_object_or_404(Person, userid=request.user.username)
-
     Handler_appoint = _get_Handler_or_404('APPOINT')
     Handler_salary = _get_Handler_or_404('SALARY')
     Handler_load = _get_Handler_or_404('NORM_TEACH')
@@ -1431,10 +1523,41 @@ def faculty_wizard(request, userid):
         del form_salary.fields['unit'], form_load.fields['unit']
         del form_appoint.fields['leaving_reason']
 
+        # If a position was passed in from the position picker, set the initial values of the desired fields accordingly
+        if position:
+            position = get_object_or_404(Position, pk=position)
+            form_appoint.fields['start_date'].initial = position.projected_start_date
+            form_appoint.fields['unit'].initial = position.unit
+            form_appoint.fields['position_number'].initial = position.position_number
+            form_salary.fields['rank'].initial = position.rank
+            form_salary.fields['step'].initial = position.step
+            form_salary.fields['base_salary'].initial = position.base_salary
+            form_salary.fields['add_salary'].initial = position.add_salary
+            form_salary.fields['add_pay'].initial = position.add_pay
+            form_load.fields['load'].initial = position.get_load_display()
+
+
         form_list = [form_appoint, form_salary, form_load]
         context.update({"event_form": form_list})
 
     return render(request, 'faculty/faculty_wizard.html', context)
+
+@requires_role('ADMN')
+def pick_position(request, userid):
+    units = Unit.sub_unit_ids(request.units)
+    positions = Position.objects.visible_by_unit(units)
+    position_choices = [(p.id, p) for p in positions]
+    if request.method == 'POST':
+        filled_form = PositionPickerForm(data=request.POST, choices=position_choices)
+        if filled_form.is_valid():
+            position = filled_form.cleaned_data['position_choice']
+            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid, 'position': position})))
+        else:
+            return HttpResponseRedirect(reverse(faculty_wizard, kwargs=({'userid': userid})))
+    else:
+        new_form = PositionPickerForm(choices=position_choices)
+        context = {'form': new_form, 'userid': userid, 'positions': position_choices}
+        return render(request, 'faculty/position_picker.html', context)
 
 
 ###############################################################################
