@@ -1193,7 +1193,7 @@ def generate_pdf(request, userid, event_slug, pdf_key):
     if pdf_key not in handler.PDFS:
         raise PermissionDenied("No such PDF for this handler")
 
-    return handler.generate_pdf(pdf_key, person)
+    return handler.generate_pdf(pdf_key)
 
 @requires_role('ADMN')
 def timeline(request, userid):

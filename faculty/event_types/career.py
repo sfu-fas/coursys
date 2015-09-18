@@ -91,14 +91,14 @@ class AppointmentEventHandler(CareerEventHandlerBase):
     def short_summary(self):
         return "Appointment to position"
 
-    def generate_pdf(self, key, person):
+    def generate_pdf(self, key):
         response = HttpResponse(content_type="application/pdf")
         response['Content-Disposition'] = 'inline; filename="yellowform.pdf"'
         if key == 'yellow1':
-            yellow_form_tenure(self, person, response)
+            yellow_form_tenure(self, response)
             return response
         if key == 'yellow2':
-            yellow_form_limited(self, person, response)
+            yellow_form_limited(self, response)
             return response
 
 

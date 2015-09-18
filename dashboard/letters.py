@@ -22,6 +22,7 @@ from dashboard.models import Signature
 from coredata.models import Semester
 from grad.models import STATUS_APPLICANT
 
+
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
 white = CMYKColor(0, 0, 0, 0)
@@ -2213,16 +2214,25 @@ class YellowForm(object):
         self.c.line(x1*mm, y*mm, x2*mm, y*mm)
 
 
+    def label_filled(self, x, y, content):
+        self.c.setFont("Courier", 9)
+        self.c.drawString(x*mm, y*mm, content)
+
+
 class YellowFormTenure(YellowForm):
 
-    def draw_form(self, careerevent, person):
+    def draw_form(self, careerevent):
+
+        # We have to put this import here to avoid a circular import problem.
+        # This is horrible, but the best solution without refactoring everything.
+        from faculty.models import FacultyMemberInfo, CareerEvent
+        event = careerevent.event
+        person = event.person
         x_origin=15*mm
         y_origin=12*mm
         x_max=190
         self.c.translate(x_origin, y_origin) # origin = lower-left of the main box
         self.c.setStrokeColor(black)
-
-        # Blank form
 
         # Header
         self.header_label_italics(0, 254, 'UPDATED FORM: JULY 9, 1997')
@@ -2238,8 +2248,11 @@ class YellowFormTenure(YellowForm):
         self.label(81, 235, 'Given:')
         self.label(144, 235, 'Preferred:')
         self.hline(16, 71, 234.5)
+        self.label_filled(17, 235, person.last_name)
         self.hline(90, 139, 234.5)
+        self.label_filled(91, 235, person.first_name)
         self.hline(158, x_max, 234.5)
+        self.label_filled(159, 235, person.pref_first_name)
         self.label(0, 227, 'Canadian SIN:')
         self.label(81, 227, 'Date of Birth: ')
         self.label(102, 227, 'Yr')
@@ -2253,8 +2266,22 @@ class YellowFormTenure(YellowForm):
         self.hline(107, 117, 226.5)
         self.hline(124, 133, 226.5)
         self.hline(140, 147, 226.5)
-        self.checkbox(169, 226)
-        self.checkbox(180, 226)
+        # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
+        sin = person.sin()
+        if len(sin) == 9:
+            self.label_filled(24, 227, sin[0:3])
+            self.label_filled(32.5, 227, sin[3:6])
+            self.label_filled(40.5, 227, sin[6:9])
+        # See if we have a FacultyMemberInfo record for this person so we may have a birthdate.
+        if(FacultyMemberInfo.objects.filter(person=person)).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            if dob:
+                self.label_filled(108, 227, str(dob.year))
+                self.label_filled(127, 227, str(dob.month))
+                self.label_filled(143, 227, str(dob.day))
+        self.checkbox(169, 226, person.gender()=='M')
+        self.checkbox(180, 226, person.gender()=='F')
         self.label(0, 219.5, 'Is the Candidate a Canadian Citizen or Permanent Resident?')
         self.label(95, 219.5, 'Yes')
         self.label(111, 219.5, 'No')
@@ -2348,6 +2375,7 @@ class YellowFormTenure(YellowForm):
         self.label(106, 122, 'Dept):')
         self.subscript_tiny_label(103.7, 123.6, 'nd')
         self.hline(24, 98, 121.5)
+        self.label_filled(25, 122, event.unit.informal_name())
         self.hline(114, x_max, 121.5)
         self.label_mid(114, 118, 'If start date is not September 1')
         self.label_mid(153.5, 118, ', which year will be')
@@ -2367,7 +2395,15 @@ class YellowFormTenure(YellowForm):
         self.hline(93, 100, 115)
         self.hline(106, 114, 115)
         self.hline(180, x_max, 115)
-
+        # Let's add the start and end dates if we have any
+        if event.start_date:
+            self.label_filled(23.5, 115.5, str(event.start_date.year))
+            self.label_filled(38.5, 115.5, str(event.start_date.month))
+            self.label_filled(51, 115.5, str(event.start_date.day))
+        if event.end_date:
+            self.label_filled(80.5, 115.5, str(event.end_date.year))
+            self.label_filled(95, 115.5, str(event.end_date.month))
+            self.label_filled(108, 115.5, str(event.end_date.day))
         self.label(0, 107.5, 'Full-Time')
         self.label(20, 107.5, 'Part-time')
         self.label(52.5, 107.5, '%')
@@ -2380,7 +2416,7 @@ class YellowFormTenure(YellowForm):
         self.label(143.5, 104, '#(2):')
         self.label(166, 104, 'FTE')
         self.label(184, 104, '%')
-        self.checkbox(14.5, 107)
+        self.checkbox(14.5, 107, True)
         self.checkbox(35, 107)
         self.hline(43, 52, 107)
         self.checkbox(112, 107)
@@ -2388,15 +2424,32 @@ class YellowFormTenure(YellowForm):
         self.hline(172.5, 183.5, 107)
         self.hline(150, 161, 103.5)
         self.hline(172.5, 183.5, 103.5)
+        self.label_filled(174, 107.5, '100')
+        self.label_filled(150.5, 107.5, event.config.get('position_number'))
 
         self.label(0, 100, 'Rank:')
-        self.label(37, 100, 'Step:')
+        self.label(66, 100, 'Step:')
         self.label(81, 100, 'Market Dif:  $')
         self.label(131.5, 100, 'Start-up:  $')
-        self.hline(9.5, 35, 99.5)
-        self.hline(44.5, 79.5, 99.5)
+        self.hline(9.5, 64.5, 99.5)
+        self.hline(73.5, 79.5, 99.5)
         self.hline(99.5, 130, 99.5)
         self.hline(148, 182, 99.5)
+
+        # Let's get the current salary event(s) for this person so we can get the rank and step
+        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY', unit=event.unit).effective_now()
+        if salaries:
+            # There should only be one of these effective in this unit, but just in case
+            s = salaries[0]
+            self.label_filled(9.5, 100, s.get_handler().get_rank_display())
+            self.label_filled(74, 100, s.config.get('step'))
+
+        stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=event.unit).effective_now()
+        for stipend in stipends:
+            if stipend.config.get('source') == 'MARKETDIFF':
+                self.label_filled(101, 100, stipend.config.get('amount'))
+                break
+
 
         self.label(0, 94.5, 'Request appointment be concluded by:')
         self.label(118, 94.5, 'Number of teaching semesters credit, if any,')
@@ -2496,12 +2549,14 @@ class YellowFormTenure(YellowForm):
         self.label(67, 0, 'c) Reimbursement outside North America')
         self.label(139, 0, 'Amount $')
         self.hline(153, x_max, -0.5)
+
+        # All done, let's show the form.
         self.c.showPage()
 
 
-def yellow_form_tenure(careerevent, person, outfile):
+def yellow_form_tenure(careerevent, outfile):
     doc = YellowFormTenure(outfile)
-    doc.draw_form(careerevent, person)
+    doc.draw_form(careerevent)
     doc.save()
 
 
@@ -2510,8 +2565,13 @@ class YellowFormLimited(YellowForm):
     def checkbox(self, x, y, filled=0):
         self.c.circle(x*mm, y*mm + 1*mm, 1*mm, fill=filled)
 
-    def draw_form(self, careerevent, person):
+    def draw_form(self, careerevent):
 
+        # We have to put this import here to avoid a circular import problem.
+        # This is horrible, but the best solution right now.
+        from faculty.models import FacultyMemberInfo, CareerEvent
+        event = careerevent.event
+        person = event.person
         x_origin=13*mm
         y_origin=12*mm
         x_max=191
@@ -2550,8 +2610,11 @@ class YellowFormLimited(YellowForm):
         self.label(81, 230.5, 'Given:')
         self.label(145, 230.5, 'Preferred:')
         self.hline(16, 76.5, 230)
+        self.label_filled(17, 230.5, person.last_name)
         self.hline(91, 140, 230)
+        self.label_filled(92, 230.5, person.first_name)
         self.hline(159, 191, 230)
+        self.label_filled(160, 230.5, person.pref_first_name)
         self.label(0.5, 223, 'Canadian SIN:')
         self.label(81.5, 223, 'Date of Birth:')
         self.label(102.5, 223, 'Yr')
@@ -2563,13 +2626,28 @@ class YellowFormLimited(YellowForm):
         self.hline(35, 37, 224)
         self.hline(47.5, 49.5, 224)
         self.hline(24, 35, 222.5)
-        self.hline(37, 47.5,222.5)
+        self.hline(37, 47.5, 222.5)
         self.hline(49.5, 60, 222.5)
         self.hline(108, 117.5, 222.5)
         self.hline(124.5, 133.5, 222.5)
         self.hline(141.5, 147.5, 222.5)
-        self.checkbox(171.5, 223)
-        self.checkbox(183.5, 223)
+        # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
+        sin = person.sin()
+        if len(sin) == 9:
+            self.label_filled(26, 223.5, sin[0:3])
+            self.label_filled(39, 223.5, sin[3:6])
+            self.label_filled(51.5, 223.5, sin[6:9])
+
+        # See if we have a FacultyMemberInfo record for this person so we may have a birthdate.
+        if(FacultyMemberInfo.objects.filter(person=person)).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            if dob:
+                self.label_filled(109, 223, str(dob.year))
+                self.label_filled(127, 223, str(dob.month))
+                self.label_filled(143, 223, str(dob.day))
+        self.checkbox(171.5, 223, person.gender() == 'M')
+        self.checkbox(183.5, 223, person.gender() == 'F')
         self.label(0.5, 215, 'Is Candidate a Canadian Citizen or Cdn. Permanent Resident?')
         self.label(94, 215, 'Yes')
         self.label(111, 215, 'No')
@@ -2634,6 +2712,7 @@ class YellowFormLimited(YellowForm):
         self.label(110, 136, 'Dept:')
         self.subscript_tiny_label(107.7, 137.5, 'nd')
         self.hline(24, 98.5, 135.5)
+        self.label_filled(25, 136, event.unit.informal_name())
         self.hline(118, 191, 135.5)
         self.label(1, 129.5, 'Start Date:')
         self.label(19.5, 129.5, 'Yr')
@@ -2645,10 +2724,19 @@ class YellowFormLimited(YellowForm):
         self.label(105, 129.5, 'Day')
         self.hline(22.5, 32, 129)
         self.hline(37, 43.5, 129)
-        self.hline(49.5, 53, 129)
+        self.hline(49.5, 58, 129)
         self.hline(80, 89, 129)
         self.hline(94, 100.5, 129)
-        self.hline(110, 117.5, 129)
+        self.hline(110, 118, 129)
+        # Let's add the start and end dates if we have any
+        if event.start_date:
+            self.label_filled(24, 129.5, str(event.start_date.year))
+            self.label_filled(39.5, 129.5, str(event.start_date.month))
+            self.label_filled(52.5, 129.5, str(event.start_date.day))
+        if event.end_date:
+            self.label_filled(81.5, 129.5, str(event.end_date.year))
+            self.label_filled(96.5, 129.5, str(event.end_date.month))
+            self.label_filled(112.5, 129.5, str(event.end_date.day))
         self.label(1,121.5, 'Full-time')
         self.label(19.5, 121.5, 'Part-Time')
         self.label(53, 121.5, '%')
@@ -2656,11 +2744,13 @@ class YellowFormLimited(YellowForm):
         self.label(104.5, 121.5, 'Yes')
         self.label(129.5, 121.5, 'Position')
         self.label(144.5, 121.5, '# :')
-        self.checkbox(15.5, 121.5)
+        self.checkbox(15.5, 121.5, True)
         self.checkbox(35.5, 121.5)
         self.checkbox(113, 121.5)
         self.hline(43, 52.5, 121)
         self.hline(151, 191, 121)
+        self.label_filled(44.5, 121.5, '100')
+        self.label_filled(152, 121.5, event.config.get('position_number'))
         self.label(1, 114.5, 'New Position ?')
         self.label(27.5, 114.5, 'Yes')
         self.label(45, 114.5, 'Fund')
@@ -2675,6 +2765,15 @@ class YellowFormLimited(YellowForm):
         self.label(120.5, 105.5, 'Step:')
         self.hline(10, 80, 105)
         self.hline(130.5, 191, 105)
+
+        # Let's get the current salary event(s) for this person
+        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY', unit=event.unit).effective_now()
+        if salaries:
+            # There should only be one of these effective in this unit, but just in case
+            s = salaries[0]
+            self.label_filled(11, 105.5, s.get_handler().get_rank_display())
+            self.label_filled(131, 105.5, s.config.get('step'))
+
         self.label(1, 100, 'Principal subject taught (see Stats Canada codes) :')
         self.subscript_label(165, 102, 'VPA USE ONLY :')
         self.header_label(153, 99.5, '/')
@@ -2779,11 +2878,12 @@ class YellowFormLimited(YellowForm):
         self.label(139.5, 1, 'Amount: $')
         self.hline(154.5, 191, 0)
 
+
         # All done, show the page
         self.c.showPage()
 
 
-def yellow_form_limited(careerevent, person, outfile):
+def yellow_form_limited(careerevent,  outfile):
     doc = YellowFormLimited(outfile)
-    doc.draw_form(careerevent, person)
+    doc.draw_form(careerevent)
     doc.save()
