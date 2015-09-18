@@ -28,6 +28,12 @@
     {% for t in templates %}
     <li><a href="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{ t.label|title }} Memo</a></li>
     {% endfor %}
+
+    {% if handler.PDFS %}
+    {% for k in handler.PDFS %}
+    <li><a href="{% url 'faculty.views.generate_pdf' userid=person.userid_or_emplid event_slug=event.slug pdf_key=k %}">{{ handler.PDFS|get_item:k }}</a></li>
+    {% endfor %}
+    {% endif %}
     </ul>
 </div>
 {% endblock %}

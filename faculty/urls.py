@@ -20,15 +20,18 @@ event_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/events/EVENT_SLUG/
     url(r'^_get_text/(?P<memo_template_id>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_text', name="faculty_event_memo_manage"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_pdf', name="faculty_event_memo_pdf"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name="faculty_event_view_memo"),
+    url(r'^generate_pdf/(?P<pdf_key>' + SLUG_RE + ')' + '$', 'faculty.views.generate_pdf', name="faculty_handler_generate_pdf")
 ]
 
 faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/
     # Person Specific Actions
     url(r'^summary$', 'faculty.views.summary', name="faculty_summary"),
     url(r'^setup$', 'faculty.views.faculty_wizard', name="faculty_wizard"),
+    url(r'^setup/(?P<position>\d+)$', 'faculty.views.faculty_wizard'),
     url(r'^otherinfo$', 'faculty.views.otherinfo', name="faculty_otherinfo"),
     url(r'^new-event$', 'faculty.views.event_type_list', name="faculty_event_types"),
     url(r'^new-event/(?P<event_type>' + SLUG_RE + ')$', 'faculty.views.create_event', name="faculty_create_event"),
+    url(r'^setup/pick_position$', 'faculty.views.pick_position', name="faculty_pick_position"),
 
     url(r'^timeline$', 'faculty.views.timeline'),
     url(r'^timeline.json$', 'faculty.views.timeline_json'),
@@ -96,4 +99,10 @@ faculty_patterns = [ # prefix: /faculty/
 
     # faculty-member hierarchy
     url(r'^' + USERID_OR_EMPLID + '/', include(faculty_member_patterns)),
+
+    # Positions
+    url(r'^positions/$', 'faculty.views.list_positions'),
+    url(r'^positions/new_position$', 'faculty.views.new_position'),
+    url(r'^positions/(?P<position_id>\d+)/edit_position/$', 'faculty.views.edit_position'),
+    url(r'^positions/(?P<position_id>\d+)/delete_position/$', 'faculty.views.delete_position'),
 ]
