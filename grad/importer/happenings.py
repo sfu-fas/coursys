@@ -306,7 +306,7 @@ class ProgramStatusChange(GradHappening):
             if self.gradstatus:
                 self.gradstatus.found_in_import = True
                 assert st.status == self.status
-                assert st.start == STRM_MAP[self.strm]
+                assert (st.start == STRM_MAP[self.strm]) or ('sims_source' in st.config and st.config['sims_source'] == self.import_key())
 
 
     def update_status(self, student_info, verbosity, dry_run):
