@@ -198,6 +198,20 @@ class GradCareer(object):
                 raise ValueError, "Grad Student %s (%i) has programs in multiple units: that shouldn't be." % (gs.slug, gs.id)
         self.gradstudent = gs
 
+    def get_student_info(self):
+        student_info = {
+            'student': self.gradstudent,
+            'career': self,
+            'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
+                .select_related('start').order_by('start__name', 'start_date')),
+            'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
+                .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
+            'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
+                .exclude(supervisor_type='POT')),
+            'real_admit_term': self.admit_term,
+        }
+        return student_info
+
     def update_local_data(self, verbosity, dry_run):
         """
         Update local data for the GradStudent using what we found in SIMS
@@ -210,17 +224,7 @@ class GradCareer(object):
         if self.metadata:
             self.metadata.update_local_data(self.gradstudent, verbosity=verbosity, dry_run=dry_run)
 
-        student_info = {
-            'student': self.gradstudent,
-            'career': self,
-            'statuses': list(GradStatus.objects.filter(student=self.gradstudent)
-                .select_related('start').order_by('start__name', 'start_date')),
-            'programs': list(GradProgramHistory.objects.filter(student=self.gradstudent)
-                .select_related('start_semester', 'program').order_by('start_semester__name', 'starting')),
-            'committee': list(Supervisor.objects.filter(student=self.gradstudent, removed=False) \
-                .exclude(supervisor_type='POT')),
-            'real_admit_term': self.admit_term,
-        }
+        student_info = self.get_student_info()
         self.student_info = student_info
 
         for h in self.happenings:
