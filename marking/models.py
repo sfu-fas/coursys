@@ -424,6 +424,11 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
         week, wkday = source_course_offering.semester.week_weekday(source_activity.due_date)
         new_due_date = target_course_offering.semester.duedate(week, wkday, source_activity.due_date)
         new_activity.due_date = new_due_date
+
+    if 'url' in new_activity.config:
+        # if offering slug is in URL, replace it, to heuristically adapt to moved course pages.
+        new_activity.config['url'] = new_activity.config['url'].replace(source_course_offering.slug, target_course_offering.slug)
+
     return new_activity
 
 def save_copied_activity(target_activity, model, target_course_offering):
@@ -454,6 +459,10 @@ def copyCourseSetup(course_copy_from, course_copy_to):
         for f in course_copy_from.copy_config_fields:
             if f in course_copy_from.config:
                 course_copy_to.config[f] = course_copy_from.config[f]
+
+        if 'url' in course_copy_to.config:
+            # if slug is in URL, replace it, to heuristically adapt to moved course pages.
+            course_copy_to.config['url'] = course_copy_to.config['url'].replace(course_copy_from.slug, course_copy_to.slug)
         course_copy_to.save()
 
         # copy Activities (and related content)
