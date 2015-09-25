@@ -453,7 +453,7 @@ class TAContract(models.Model):
 
     @property
     def should_be_added_to_the_course(self):
-        return (self.status == "SGN" or self.accepted_by_student == True)
+        return (self.status == "SGN" or self.accepted_by_student == True) and not (self.status == "CAN")
 
     @classmethod
     def update_ta_members(cls, person, semester_id):
