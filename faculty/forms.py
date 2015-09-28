@@ -9,7 +9,7 @@ from coredata.forms import PersonField
 from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
-from faculty.models import FacultyMemberInfo
+from faculty.models import FacultyMemberInfo, FacultyMemberAcademicInfo
 from faculty.models import Grant
 from faculty.models import Memo
 from faculty.models import MemoTemplate
@@ -275,6 +275,19 @@ class FacultyMemberInfoForm(forms.ModelForm):
         if title.endswith('.'):
             title = title[:-1]
         return title
+
+
+class FacultyMemberAcademicInfoForm(forms.ModelForm):
+
+    class Meta:
+        model = FacultyMemberAcademicInfo
+        exclude = ('person',)
+
+        widgets = {
+            'year1': forms.TextInput(attrs={'size': '5'}),
+            'year2': forms.TextInput(attrs={'size': '5'}),
+            'year3': forms.TextInput(attrs={'size': '5'}),
+        }
 
 
 

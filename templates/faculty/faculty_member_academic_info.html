@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% load event_display %}
+{% load form_display %}
+
+{% block title %}Academic Info: {{ person.name }}{% endblock %}
+{% block h1 %}Academic Info: {{ person.name }}{% endblock %}
+
+{% block headextra %}
+<style>
+#last-updated {
+  display: block;
+  text-align: right;
+  width: 100%;
+}
+</style>
+{% endblock %}
+
+{% block actions %}
+{% if can_modify %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul class="fa-ul">
+    <li>
+      <a href="{% url 'faculty.views.edit_faculty_member_academic_info' userid=person.userid_or_emplid %}">
+        {% if info %}
+        <i class="fa fa-li fa-edit"></i> Edit Academic Info
+        {% else %}
+        <i class="fa fa-li fa-plus"></i> Set Academic Info
+        {% endif %}
+      </a>
+    </li>
+  </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>Contact Info</li>
+{% endblock %}
+
+{% block content %}
+{% if info %}
+<dl>
+  <dt>Degree</dt>
+  <dd>{{ info.degree1 }}</dd>
+
+  <dt>Year</dt>
+  <dd>{{ info.year1 }}</dd>
+
+  <dt>Insistution</dt>
+  <dd>{{ info.institution1 }}</dd>
+
+  <dt>City/Country</dt>
+  <dd>{{ info.location1 }}</dd>
+
+  <dt>Degree</dt>
+  <dd>{{ info.degree2 }}</dd>
+
+  <dt>Year</dt>
+  <dd>{{ info.year2 }}</dd>
+
+  <dt>Insistution</dt>
+  <dd>{{ info.institution2 }}</dd>
+
+  <dt>City/Country</dt>
+  <dd>{{ info.location2 }}</dd>
+
+  <dt>Degree</dt>
+  <dd>{{ info.degree3 }}</dd>
+
+  <dt>Year</dt>
+  <dd>{{ info.year3 }}</dd>
+
+  <dt>Insistution</dt>
+  <dd>{{ info.institution3 }}</dd>
+
+  <dt>City/Country</dt>
+  <dd>{{ info.location3 }}</dd>
+
+</dl>
+
+<span id="last-updated">last updated: {{ info.last_updated|naturaltime }}</span>
+{% else %}
+No contact information found.
+{% endif %}
+{% endblock %}

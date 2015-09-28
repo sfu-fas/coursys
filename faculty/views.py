@@ -31,14 +31,14 @@ from grad.models import Supervisor
 from ra.models import RAAppointment
 
 from faculty.models import CareerEvent, MemoTemplate, Memo, EventConfig, FacultyMemberInfo
-from faculty.models import Grant, TempGrant, GrantOwner, Position
+from faculty.models import Grant, TempGrant, GrantOwner, Position, FacultyMemberAcademicInfo
 from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
-    ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
+    ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm, FacultyMemberAcademicInfoForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
     NewRoleForm, PositionForm, PositionPickerForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
-from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
+from faculty.forms import FacultyMemberInfoForm, FacultyMemberAcademicInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
@@ -1297,6 +1297,45 @@ def edit_faculty_member_info(request, userid):
     }
     return render(request, 'faculty/edit_faculty_member_info.html', context)
 
+@requires_role('ADMN')
+def faculty_member_academic_info(request, userid):
+    person, _ = _get_faculty_or_404(request.units, userid)
+    info = FacultyMemberAcademicInfo.objects.filter(person=person).first()
+
+    can_modify = True
+
+    context = {
+        'person': person,
+        'info': info,
+        'can_modify': can_modify,
+    }
+    return render(request, 'faculty/faculty_member_academic_info.html', context)
+
+
+@requires_role('ADMN')
+@transaction.atomic
+def edit_faculty_member_academic_info(request, userid):
+    person, _ = _get_faculty_or_404(request.units, userid)
+
+    info = (FacultyMemberAcademicInfo.objects.filter(person=person).first()
+            or FacultyMemberAcademicInfo(person=person))
+
+    if request.POST:
+        form = FacultyMemberAcademicInfoForm(request.POST, instance=info)
+
+        if form.is_valid():
+            new_info = form.save()
+
+            messages.success(request, 'Academic information was saved successfully.')
+            return HttpResponseRedirect(new_info.get_absolute_url())
+    else:
+        form = FacultyMemberAcademicInfoForm(instance=info)
+
+    context = {
+        'person': person,
+        'form': form,
+    }
+    return render(request, 'faculty/edit_faculty_member_academic_info.html', context)
 
 @requires_role('ADMN')
 @transaction.atomic

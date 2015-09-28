@@ -722,6 +722,33 @@ class FacultyMemberInfo(models.Model):
                        args=[self.person.userid_or_emplid()])
 
 
+class FacultyMemberAcademicInfo(models.Model):
+    person = models.OneToOneField(Person)
+    degree1 = models.CharField('Degree 1', max_length=12, null=True, blank=True, help_text='Highest Degree')
+    year1 = models.CharField('Year', max_length=5, null=True, blank=True,
+                             help_text='Mark "Cand." if degree is not yet complete')
+    institution1 = models.CharField('Institution', max_length=30, null=True, blank=True)
+    location1 = models.CharField('City/Country', max_length=25, null=True, blank=True)
+    degree2 = models.CharField('Degree 2', max_length=12, null=True, blank=True)
+    year2 = models.CharField('Year', max_length=5, null=True, blank=True,
+                             help_text='Mark "Cand." if degree is not yet complete')
+    institution2 = models.CharField('Institution', max_length=30, null=True, blank=True)
+    location2 = models.CharField('City/Country', max_length=25, null=True, blank=True)
+    degree3 = models.CharField('Degree 3', max_length=12, null=True, blank=True)
+    year3 = models.CharField('Year', max_length=5, null=True, blank=True,
+                             help_text='Mark "Cand." if degree is not yet complete')
+    institution3 = models.CharField('Institution', max_length=30, null=True, blank=True)
+    location3 = models.CharField('City/Country', max_length=25, null=True, blank=True)
+
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'<FacultyMemberAcademicInfo({})>'.format(self.person)
+
+    def get_absolute_url(self):
+        return reverse('faculty.views.faculty_member_academic_info',
+                       args=[self.person.userid_or_emplid()])
+
 def timezone_today():
     """
     Return the timezone-aware version of datetime.date.today()

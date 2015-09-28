@@ -39,6 +39,9 @@ faculty_member_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/
     url(r'^contact-info$', 'faculty.views.faculty_member_info'),
     url(r'^contact-info/edit$', 'faculty.views.edit_faculty_member_info'),
 
+    url(r'^academic-info$', 'faculty.views.faculty_member_academic_info'),
+    url(r'^academic-info/edit$', 'faculty.views.edit_faculty_member_academic_info'),
+
     url(r'^teaching_credit_override/' + COURSE_SLUG + '$', 'faculty.views.teaching_credit_override'),
     url(r'^salary$', 'faculty.views.salary_summary'),
 

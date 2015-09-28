@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_display %}
+
+{% block title %}Academic Info: {{ person.name }}{% endblock %}
+{% block h1 %}Academic Info: {{ person.name }}{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty</a></li>
+<li><a href="{% url "faculty.views.summary" userid=person.userid_or_emplid %}">{{ person.name }}</a></li>
+<li>
+  <a href="{% url 'faculty.views.faculty_member_academic_info' userid=person.userid_or_emplid %}">
+    Academic Info
+  </a>
+</li>
+<li>Edit</li>
+{% endblock %}
+
+{% block content %}
+<div class="form_container">
+  <form action="" method="POST">
+    {% csrf_token %}
+    <fieldset>
+      {{ form|as_dl }}
+    </fieldset>
+    <input type="submit" class="submit" value="Save" />
+  </form>
+</div>
+{% endblock %}

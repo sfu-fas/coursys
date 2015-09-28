@@ -44,6 +44,11 @@ $(document).ready(function() {
       <i class="fa fa-li fa-user"></i> Contact Info
     </a>
   </li>
+  <li>
+    <a href="{% url 'faculty.views.faculty_member_academic_info' userid=person.userid_or_emplid %}">
+      <i class="fa fa-li fa-graduation-cap"></i> Academic Info
+    </a>
+  </li>
     <li class="newsec"><a href="{% url 'faculty.views.teaching_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-book"></i> Teaching Summary</a></li>
     <li><a href="{% url 'faculty.views.study_leave_credits' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-rocket"></i> Study Leave Credits</a></li>
     <li><a href="{% url 'faculty.views.salary_summary' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-money"></i> Salary Info</a></li>
