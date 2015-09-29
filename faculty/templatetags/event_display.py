@@ -18,6 +18,9 @@ def get_config(event, field):
 def get_display(handler, field):
     return handler.get_display(field)
 
+@register.filter
+def get_display_blank(handler, field):
+    return handler.get_display(field, '')
 
 @register.filter
 def get_editor_role(event, editor):

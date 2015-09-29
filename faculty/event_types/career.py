@@ -49,7 +49,17 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
         <dt>Position Number</dt><dd>{{ handler|get_display:"position_number" }}</dd>
         <dt>Leaving Reason</dt><dd>{{ handler|get_display:"leaving_reason" }}</dd>
-        <dt>Spousal hire</dt><dd>{{ handler|get_display:"spousal_hire"|yesno }}</dd>
+        <dt>Spousal Hire</dt><dd>{{ handler|get_display:"spousal_hire"|yesno }}</dd>
+
+        <dt>Degrees Held</dt>
+        <dd>{{ handler|get_display_blank:"degree1" }} {{ handler|get_display_blank:"year1" }}
+        {{ handler|get_display_blank:"institution1" }} {{ handler|get_display_blank:"location1" }}<br>
+        <dd>{{ handler|get_display_blank:"degree2" }} {{ handler|get_display_blank:"year2" }}
+        {{ handler|get_display_blank:"institution2" }} {{ handler|get_display_blank:"location2" }}<br>
+        <dd>{{ handler|get_display_blank:"degree3" }}  {{ handler|get_display_blank:"year3" }}
+        {{ handler|get_display_blank:"institution3" }} {{ handler|get_display_blank:"location3" }}
+
+
         {% endblock %}
     """
 
@@ -73,6 +83,21 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         position_number = forms.CharField(initial='', required=False, widget=forms.TextInput(attrs={'size': '6'}))
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
+        degree1 = forms.CharField(max_length=12, help_text='Highest', required=False, label='Degree',
+                                  widget=forms.TextInput(attrs={'size': '13'}))
+        year1 = forms.CharField(max_length=5, required=False, label='Year', widget=forms.TextInput(attrs={'size': '5'}))
+        institution1 = forms.CharField(max_length=25, required=False, label='Institution')
+        location1 = forms.CharField(max_length=23, required=False, label='City/Country')
+        degree2 = forms.CharField(max_length=12, help_text='Highest', required=False, label='Degree',
+                                  widget=forms.TextInput(attrs={'size': '13'}))
+        year2 = forms.CharField(max_length=5, required=False, label='Year', widget=forms.TextInput(attrs={'size': '5'}))
+        institution2 = forms.CharField(max_length=25, required=False, label='Institution')
+        location2 = forms.CharField(max_length=23, required=False, label='City/Country')
+        degree3 = forms.CharField(max_length=12, help_text='Highest', required=False, label='Degree',
+                                  widget=forms.TextInput(attrs={'size': '13'}))
+        year3 = forms.CharField(max_length=5, required=False, label='Year', widget=forms.TextInput(attrs={'size': '5'}))
+        institution3 = forms.CharField(max_length=25, required=False, label='Institution')
+        location3 = forms.CharField(max_length=23, required=False, label='City/Country')
 
     SEARCH_RULES = {
         'position_number': search.StringSearchRule,
