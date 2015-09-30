@@ -51,14 +51,17 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         <dt>Leaving Reason</dt><dd>{{ handler|get_display:"leaving_reason" }}</dd>
         <dt>Spousal Hire</dt><dd>{{ handler|get_display:"spousal_hire"|yesno }}</dd>
 
+        {% if handler|get_config:"degree1" != 'unknown' and  handler|get_config:"degree1" != ''%}
         <dt>Degrees Held</dt>
-        <dd>{{ handler|get_display_blank:"degree1" }} {{ handler|get_display_blank:"year1" }}
-        {{ handler|get_display_blank:"institution1" }} {{ handler|get_display_blank:"location1" }}<br>
-        <dd>{{ handler|get_display_blank:"degree2" }} {{ handler|get_display_blank:"year2" }}
-        {{ handler|get_display_blank:"institution2" }} {{ handler|get_display_blank:"location2" }}<br>
-        <dd>{{ handler|get_display_blank:"degree3" }}  {{ handler|get_display_blank:"year3" }}
-        {{ handler|get_display_blank:"institution3" }} {{ handler|get_display_blank:"location3" }}
-
+        <dd>{{ handler|get_display:"degree1" }}, {{ handler|get_display:"year1" }},
+        {{ handler|get_display:"institution1" }}, {{ handler|get_display:"location1" }}
+        {% if handler|get_config:"degree2" != 'unknown' and handler|get_config:"degree2" != ''%}<br>
+        <dd>{{ handler|get_display:"degree2" }}, {{ handler|get_display:"year2" }},
+        {{ handler|get_display:"institution2" }}, {{ handler|get_display:"location2" }}{% endif %}
+        {% if handler|get_config:"degree3" != 'unknown' and handler|get_config:"degree3" != '' %}<br>
+        <dd>{{ handler|get_display:"degree3" }},  {{ handler|get_display:"year3" }},
+        {{ handler|get_display:"institution3" }}, {{ handler|get_display:"location3" }}{% endif %}
+        {% endif %}
 
         {% endblock %}
     """
