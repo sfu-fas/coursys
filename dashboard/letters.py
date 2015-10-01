@@ -2317,13 +2317,17 @@ class YellowFormTenure(YellowForm):
         self.label(157, 182, 'No')
         self.label(170, 182, 'by')
         self.hline(2, 23.5, 181.5)
-        self.label_filled_centred(12.5, 182, event.config.get('degree1'))
+        if 'degree1' in event.config:
+            self.label_filled_centred(12.5, 182, event.config.get('degree1'))
         self.hline(25, 47.5, 181.5)
-        self.label_filled_centred(36, 182, event.config.get('year1'))
+        if 'year1' in event.config:
+            self.label_filled_centred(36, 182, event.config.get('year1'))
         self.hline(49, 145, 181.5)
-        self.label_filled(49, 182, event.config.get('institution1'))
+        if 'institution1' in event.config:
+            self.label_filled(49, 182, event.config.get('institution1'))
         self.hline(174, 187, 181.5)
-        self.label_filled(100, 182, event.config.get('location1'))
+        if 'location1' in event.config:
+            self.label_filled(100, 182, event.config.get('location1'))
         self.subscript_tiny_label(9.5, 180, '(Highest)')
         self.checkbox(153.5, 181.5)
         self.checkbox(162.5, 181.5)
@@ -2334,10 +2338,14 @@ class YellowFormTenure(YellowForm):
         self.hline(25, 47.5, 176)
         self.hline(49, 145, 176)
         self.hline(174, 187, 176)
-        self.label_filled_centred(12.5, 176.5, event.config.get('degree2'))
-        self.label_filled_centred(36, 176.5, event.config.get('year2'))
-        self.label_filled(49, 176.5, event.config.get('institution2'))
-        self.label_filled(100, 176.5, event.config.get('location2'))
+        if 'degree2' in event.config:
+            self.label_filled_centred(12.5, 176.5, event.config.get('degree2'))
+        if 'year2' in event.config:
+            self.label_filled_centred(36, 176.5, event.config.get('year2'))
+        if 'institution2' in event.config:
+            self.label_filled(49, 176.5, event.config.get('institution2'))
+        if 'location2' in event.config:
+            self.label_filled(100, 176.5, event.config.get('location2'))
         self.checkbox(153.5, 176)
         self.checkbox(162.5, 176)
         self.label(147, 171, 'Yes')
@@ -2347,10 +2355,14 @@ class YellowFormTenure(YellowForm):
         self.hline(25, 47.5, 170.5)
         self.hline(49, 145, 170.5)
         self.hline(174, 187, 170.5)
-        self.label_filled_centred(12.5, 171, event.config.get('degree3'))
-        self.label_filled_centred(36, 171, event.config.get('year3'))
-        self.label_filled(49, 171, event.config.get('institution3'))
-        self.label_filled(100, 171, event.config.get('location3'))
+        if 'degree3' in event.config:
+            self.label_filled_centred(12.5, 171, event.config.get('degree3'))
+        if 'year3' in event.config:
+            self.label_filled_centred(36, 171, event.config.get('year3'))
+        if 'institution3' in event.config:
+            self.label_filled(49, 171, event.config.get('institution3'))
+        if 'location3' in event.config:
+            self.label_filled(100, 171, event.config.get('location3'))
         self.checkbox(153.5, 170.5)
         self.checkbox(162.5, 170.5)
         self.c.rect(0*mm, 168*mm, 190*mm, 29*mm)
@@ -2699,29 +2711,41 @@ class YellowFormLimited(YellowForm):
         self.hline(26, 48, 176)
         self.hline(49.5, 146, 176)
         self.hline(148, 189, 176)
-        self.label_filled_centred(13, 176.5, event.config.get('degree1'))
-        self.label_filled_centred(36, 176.5, event.config.get('year1'))
-        self.label_filled(49.5, 176.5, event.config.get('institution1'))
-        self.label_filled(101, 176.5, event.config.get('location1'))
+        if 'degree1' in event.config:
+            self.label_filled_centred(13, 176.5, event.config.get('degree1'))
+        if 'year1' in event.config:
+            self.label_filled_centred(36, 176.5, event.config.get('year1'))
+        if 'institution1' in event.config:
+            self.label_filled(49.5, 176.5, event.config.get('institution1'))
+        if 'location1' in event.config:
+            self.label_filled(101, 176.5, event.config.get('location1'))
         self.subscript_tiny_label(10, 174.5, '(Highest)')
         self.label(146, 171, '/')
         self.hline(2, 24, 170.5)
         self.hline(26, 48, 170.5)
         self.hline(49.5, 146, 170.5)
         self.hline(148, 189, 170.5)
-        self.label_filled_centred(13, 171, event.config.get('degree2'))
-        self.label_filled_centred(36, 171, event.config.get('year2'))
-        self.label_filled(49.5, 171, event.config.get('institution2'))
-        self.label_filled(101, 171, event.config.get('location2'))
+        if 'degree2' in event.config:
+            self.label_filled_centred(13, 171, event.config.get('degree2'))
+        if 'year2' in event.config:
+            self.label_filled_centred(36, 171, event.config.get('year2'))
+        if 'institution2' in event.config:
+            self.label_filled(49.5, 171, event.config.get('institution2'))
+        if 'location2' in event.config:
+            self.label_filled(101, 171, event.config.get('location2'))
         self.label(146, 165.5, '/')
         self.hline(2, 24, 165)
         self.hline(26, 48, 165)
         self.hline(49.5, 146, 165)
         self.hline(148, 189, 165)
-        self.label_filled_centred(13, 165.5, event.config.get('degree3'))
-        self.label_filled_centred(36, 165.5, event.config.get('year3'))
-        self.label_filled(49.5, 165.5, event.config.get('institution3'))
-        self.label_filled(101, 165.5, event.config.get('location3'))
+        if 'degree3' in event.config:
+            self.label_filled_centred(13, 165.5, event.config.get('degree3'))
+        if 'year3' in event.config:
+            self.label_filled_centred(36, 165.5, event.config.get('year3'))
+        if 'institution3' in event.config:
+            self.label_filled(49.5, 165.5, event.config.get('institution3'))
+        if 'location3' in event.config:
+            self.label_filled(101, 165.5, event.config.get('location3'))
         self.label(0.5, 156.5, 'Present position:')
         self.label(135, 156.5, 'Salary: $')
         self.hline(27, 132, 156)
