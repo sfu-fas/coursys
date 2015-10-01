@@ -64,7 +64,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'oauth_provider',
     'rest_framework_swagger',
-    'piwik_middleware',
+    #'piwik_middleware',
 
     'coredata',
     'dashboard',
@@ -100,7 +100,7 @@ MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'courselib.middleware.ExceptionIgnorer',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
-    'piwik_middleware.middleware.PiwikMiddleware',
+    #'piwik_middleware.middleware.PiwikMiddleware',
 )
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'templates'),
@@ -332,13 +332,13 @@ SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
 
-PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
-PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
-PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
-PIWIK_CELERY = USE_CELERY
-PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 6, 'default_retry_delay': 600}
-PIWIK_FAIL_SILENTLY = True
-PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
+#PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
+#PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
+#PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
+#PIWIK_CELERY = USE_CELERY
+#PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 6, 'default_retry_delay': 600}
+#PIWIK_FAIL_SILENTLY = True
+#PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
