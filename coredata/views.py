@@ -785,7 +785,7 @@ class OfferingDataJson(BaseDatatableView):
 
     def render_column(self, offering, column):
         if column == 'coursecode':
-            txt = '%s %s %s' % (offering.subject, offering.number, offering.section)
+            txt = u'%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
             url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': offering.slug})
             col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
         elif column == 'instructors':
@@ -796,6 +796,8 @@ class OfferingDataJson(BaseDatatableView):
             col = '%i/%i' % (offering.enrl_tot, offering.enrl_cap)
             if offering.wait_tot:
                 col += ' (+%i)' % (offering.wait_tot,)
+        elif column == 'semester':
+            col = unicode(offering.semester).replace(u' ', u'\u00a0') # nbsp
         elif hasattr(offering, 'get_%s_display' % column):
             # it's a choice field
             col = getattr(offering, 'get_%s_display' % column)()
