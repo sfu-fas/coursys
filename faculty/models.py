@@ -15,7 +15,7 @@ from autoslug import AutoSlugField
 from bitfield import BitField
 from courselib.json_fields import JSONField
 
-from coredata.models import Unit, Person, Semester, Role
+from coredata.models import Unit, Person, Semester, Role, AnyPerson
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
@@ -753,6 +753,7 @@ class Position(models.Model):
     add_pay = models.DecimalField(decimal_places=2, max_digits=10)
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
+    any_person = models.ForeignKey(AnyPerson, null=True, blank=True)
 
     objects = PositionManager()
 
@@ -768,6 +769,13 @@ class Position(models.Model):
     def get_load_display(self):
         if 'teaching_load' in self.config:
             return unicode(Fraction(self.config['teaching_load']))
+
+        else:
+            return 0
+
+    def get_load_display_corrected(self):
+        if 'teaching_load' in self.config:
+            return unicode(Fraction(self.config['teaching_load'])*3)
 
         else:
             return 0

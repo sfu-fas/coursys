@@ -105,4 +105,8 @@ faculty_patterns = [ # prefix: /faculty/
     url(r'^positions/new_position$', 'faculty.views.new_position'),
     url(r'^positions/(?P<position_id>\d+)/edit_position/$', 'faculty.views.edit_position'),
     url(r'^positions/(?P<position_id>\d+)/delete_position/$', 'faculty.views.delete_position'),
+    url(r'^positions/(?P<position_id>\d+)/view_position/$', 'faculty.views.view_position'),
+    url(r'^positions/(?P<position_id>\d+)/assign_position_entry/$', 'faculty.views.assign_position_entry'),
+    url(r'^positions/(?P<position_id>\d+)/assign_position_person/$', 'faculty.views.assign_position_person'),
+    url(r'^positions/(?P<position_id>\d+)/assign_position_futureperson/$', 'faculty.views.assign_position_futureperson'),
 ]

@@ -186,6 +186,39 @@ class Person(models.Model, ConditionalSaveMixin):
         return "tmp-"+str(Person.next_available_temp_emplid())[5:]
 
 
+class FuturePerson(models.Model):
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
+    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=4, null=True, blank=True)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+
+class RoleAccount(models.Model):
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
+    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=4, null=True, blank=True)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True, unique=True,
+                              verbose_name="User ID",
+        help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
+
+
+class AnyPerson(models.Model):
+    person = models.ForeignKey(Person, null=True)
+    future_person = models.ForeignKey(FuturePerson, null=True)
+    role_account = models.ForeignKey(RoleAccount, null=True)
+
+    def get_person(self):
+        return self.person or self.role_account or self.future_person
+
+
 class Semester(models.Model):
     """
     A semester object: not imported, must be created manually.

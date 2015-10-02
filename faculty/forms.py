@@ -292,7 +292,8 @@ class PositionForm(forms.ModelForm):
     step = forms.DecimalField(max_digits=2, decimal_places=0, required=False)
 
     class Meta:
-        exclude = []
+        fields = ['title', 'projected_start_date', 'unit', 'position_number', 'rank', 'step',
+                  'base_salary', 'add_salary', 'add_pay']
         model = Position
         widgets = {
             'position_number': forms.TextInput(attrs={'size': '6'})
@@ -305,3 +306,11 @@ class PositionPickerForm(forms.Form):
     def __init__(self, choices=[], *args, **kwargs):
         super(PositionPickerForm, self).__init__(*args, **kwargs)
         self.fields['position_choice'].choices = choices
+
+
+class PositionPersonForm(forms.Form):
+    person = PersonField(label="Emplid", help_text="or type to search")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(PositionPersonForm, self).is_valid(*args, **kwargs)

@@ -53,7 +53,7 @@ function confirmDelete(url) {
         </thead>
         {% for position in positions %}
             <tr>
-                <td>{{ position.title }}</td>
+                <td><a href="{% url 'faculty.views.view_position' position_id=position.id %}">{{ position.title }}</a></td>
                 <td>{{ position.projected_start_date }}</td>
                 <td>{{ position.position_number }}</td>
                 <td>{{ position.unit }}</td>

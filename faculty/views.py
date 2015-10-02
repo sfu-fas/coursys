@@ -36,7 +36,7 @@ from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
-    NewRoleForm, PositionForm, PositionPickerForm
+    NewRoleForm, PositionForm, PositionPickerForm, PositionPersonForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -45,6 +45,7 @@ from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
+from coredata.models import AnyPerson
 
 from log.models import LogEntry
 
@@ -767,6 +768,11 @@ def new_position(request):
     return render(request, 'faculty/new_position.html', {'form': form})
 
 @requires_role('ADMN')
+def view_position(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    return render(request, 'faculty/view_position.html', {'position': position})
+
+@requires_role('ADMN')
 def edit_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
@@ -809,6 +815,51 @@ def list_positions(request):
     positions = Position.objects.visible_by_unit(sub_units)
     context = {'positions': positions}
     return render(request, 'faculty/view_positions.html', context)
+
+
+@requires_role('ADMN')
+def assign_position_entry(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    return render(request, 'faculty/assign_position_entry.html', {'position': position})
+
+
+@requires_role('ADMN')
+def assign_position_person(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    if request.method == 'POST':
+        form = PositionPersonForm(request.POST)
+        if form.is_valid():
+            if 'person' in request.POST and request.POST['person'] is not None:
+                person = form.cleaned_data['person']
+                if AnyPerson.objects.filter(person=person).first():
+                    any_person = AnyPerson.objects.filter(person=person).first()
+                    position.any_person = any_person
+                else:
+                    a = AnyPerson(person=person)
+                    a.save()
+                    position.any_person=a
+                position.save()
+                messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully assigned person to position.'
+                                 )
+                l = LogEntry(userid=request.user.username,
+                             description="Edited position: %s" % position,
+                            related_object=position
+                            )
+                l.save()
+
+                return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+
+    else:
+        form = PositionPersonForm()
+    return render(request, 'faculty/assign_position_person.html', {'form': form, 'position_id': position_id})
+
+
+@requires_role('ADMN')
+def assign_position_futureperson(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    return render(request, 'faculty/assign_position_futureperson.html', {'position': position})
 
 ###############################################################################
 # Display/summary views for a faculty member
