@@ -651,9 +651,10 @@ def neaten_activity_positions(course):
     update all positions to consecutive integers: seems possible to get identical positions in some cases
     """
     count = 1
-    for a in Activity.objects.filter(offering=course).order_by('position'):
-        a.position = count
-        a.save()
+    for a in Activity.objects.filter(offering=course, deleted=False).order_by('position'):
+        if a.position != count:
+            a.position = count
+            a.save()
         count += 1
 
 LETTER_POSITION = {
