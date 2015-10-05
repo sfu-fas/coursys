@@ -26,7 +26,7 @@ from django.template.base import Template
 from django.template.context import Context
 from courselib.search import find_userid_or_emplid
 
-from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
+from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester, FuturePerson
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
@@ -36,7 +36,7 @@ from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
-    NewRoleForm, PositionForm, PositionPickerForm, PositionPersonForm
+    NewRoleForm, PositionForm, PositionPickerForm, PositionPersonForm, FuturePersonForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -114,12 +114,15 @@ def index(request):
     events = [h for h in events if h.can_approve(editor)]
     filterform = UnitFilterForm(sub_units)
 
+    future_people = FuturePerson.objects.all()
+
     context = {
         'fac_roles': fac_roles,
         'fac_roles_gone': fac_roles_gone,
         'queued_events': len(events),
         'filterform': filterform,
-        'viewvisas': request.GET.get('viewvisas', False)
+        'viewvisas': request.GET.get('viewvisas', False),
+        'future_people': future_people
     }
     return render(request, 'faculty/index.html', context)
 
@@ -845,8 +848,8 @@ def assign_position_person(request, position_id):
                                  )
                 l = LogEntry(userid=request.user.username,
                              description="Edited position: %s" % position,
-                            related_object=position
-                            )
+                             related_object=position
+                             )
                 l.save()
 
                 return HttpResponseRedirect(reverse('faculty.views.list_positions'))
@@ -859,7 +862,28 @@ def assign_position_person(request, position_id):
 @requires_role('ADMN')
 def assign_position_futureperson(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
-    return render(request, 'faculty/assign_position_futureperson.html', {'position': position})
+    if request.method == 'POST':
+        form = FuturePersonForm(request.POST)
+        if form.is_valid():
+            new_future_person = form.save(commit=False)
+            new_future_person.save()
+            a = AnyPerson(future_person=new_future_person)
+            a.save()
+            position.any_person=a
+            position.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully assigned person to position.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Edited position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+    else:
+        form = FuturePersonForm()
+    return render(request, 'faculty/assign_position_futureperson.html', {'form': form, 'position_id': position_id})
 
 ###############################################################################
 # Display/summary views for a faculty member

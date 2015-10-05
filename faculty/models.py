@@ -745,15 +745,27 @@ class Position(models.Model):
     title = models.CharField(max_length=100)
     projected_start_date = models.DateField('Projected Start Date', default=timezone_today)
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    position_number = models.CharField(max_length=8, )
+    position_number = models.CharField(max_length=8)
     rank = models.CharField(choices=RANK_CHOICES, max_length=50)
-    step = models.DecimalField(max_digits=2, decimal_places=0)
+    step = models.DecimalField(max_digits=3, decimal_places=1)
     base_salary = models.DecimalField(decimal_places=2, max_digits=10)
     add_salary = models.DecimalField(decimal_places=2, max_digits=10)
     add_pay = models.DecimalField(decimal_places=2, max_digits=10)
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
     any_person = models.ForeignKey(AnyPerson, null=True, blank=True)
+    degree1 = models.CharField(max_length=12, default='')
+    year1 = models.CharField(max_length=5, default='')
+    institution1 = models.CharField(max_length=25, default='')
+    location1 = models.CharField(max_length=23, default='')
+    degree2 = models.CharField(max_length=12, default='')
+    year2 = models.CharField(max_length=5, default='')
+    institution2 = models.CharField(max_length=25, default='')
+    location2 = models.CharField(max_length=23, default='')
+    degree3 = models.CharField(max_length=12, default='')
+    year3 = models.CharField(max_length=5, default='')
+    institution3 = models.CharField(max_length=25, default='')
+    location3 = models.CharField(max_length=23, default='')
 
     objects = PositionManager()
 
@@ -767,6 +779,10 @@ class Position(models.Model):
         ordering = ('projected_start_date', 'title')
 
     def get_load_display(self):
+        """
+        Called if you're going to insert this in another AnnualTeachingCreditField,
+        like when we populate the onboarding wizard with this value.
+        """
         if 'teaching_load' in self.config:
             return unicode(Fraction(self.config['teaching_load']))
 
@@ -774,6 +790,9 @@ class Position(models.Model):
             return 0
 
     def get_load_display_corrected(self):
+        """
+        Called if you're purely going to display the value, as when displaying the contents of the position.
+        """
         if 'teaching_load' in self.config:
             return unicode(Fraction(self.config['teaching_load'])*3)
 

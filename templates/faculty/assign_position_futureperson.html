@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+{% load humanize %}
+
+{% block title %}{{ position.title }}{% endblock %}
+{% block h1 %}{{ position.title }}{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty Management</a></li>
+<li><a href="{% url 'faculty.views.list_positions' %}">Positions</a></li>
+<li><a href="{% url 'faculty.views.view_position' position_id=position_id %}">View Position</a></li>
+<li>Assign Person</li>
+<li>{{ position.title }}</li>
+{% endblock %}
+
+
+{% block content %}
+    <form action="{% url "faculty.views.assign_position_futureperson" position_id=position_id%}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Assign Candidate" />
+    </p>
+</form>
+{% endblock %}

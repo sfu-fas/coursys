@@ -3,7 +3,7 @@ from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 from django.utils.translation import ugettext as _
 
-from coredata.models import Semester, Unit, Person, Role
+from coredata.models import Semester, Unit, Person, Role, FuturePerson
 from coredata.forms import PersonField
 
 from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
@@ -277,9 +277,6 @@ class FacultyMemberInfoForm(forms.ModelForm):
         return title
 
 
-
-
-
 class PositionForm(forms.ModelForm):
     title = forms.CharField(required=False)
     projected_start_date = SemesterField(semester_start=True, required=False)
@@ -289,7 +286,7 @@ class PositionForm(forms.ModelForm):
     add_pay = AddPayField(required=False)
     position_number = forms.CharField(max_length=6, required=False)
     rank = forms.ChoiceField(choices=RANK_CHOICES, required=False)
-    step = forms.DecimalField(max_digits=2, decimal_places=0, required=False)
+    step = forms.DecimalField(max_digits=3, decimal_places=1, required=False)
 
     class Meta:
         fields = ['title', 'projected_start_date', 'unit', 'position_number', 'rank', 'step',
@@ -314,3 +311,16 @@ class PositionPersonForm(forms.Form):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(PositionPersonForm, self).is_valid(*args, **kwargs)
+
+
+class FuturePersonForm(forms.ModelForm):
+    last_name = forms.CharField(max_length=32)
+    first_name = forms.CharField(max_length=32)
+    middle_name = forms.CharField(max_length=32, required=False)
+    pref_first_name = forms.CharField(max_length=32, required=False)
+    title = forms.CharField(max_length=4, required=False)
+    email = forms.EmailField(required=False)
+
+    class Meta:
+        model = FuturePerson
+        exclude = ['config']

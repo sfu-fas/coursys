@@ -192,10 +192,14 @@ class FuturePerson(models.Model):
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    email = models.EmailField(null=True, blank=True)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
 
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
+
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
 
 
 class RoleAccount(models.Model):
@@ -209,6 +213,12 @@ class RoleAccount(models.Model):
                               verbose_name="User ID",
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
 
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
 
 class AnyPerson(models.Model):
     person = models.ForeignKey(Person, null=True)
@@ -217,6 +227,9 @@ class AnyPerson(models.Model):
 
     def get_person(self):
         return self.person or self.role_account or self.future_person
+
+    def __unicode__(self):
+        return self.get_person().name()
 
 
 class Semester(models.Model):

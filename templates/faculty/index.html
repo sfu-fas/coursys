@@ -113,4 +113,16 @@ $(document).ready(function() {
   {% endfor %}
   </tbody>
 </table>
+
+<h2 id="future">Future Faculty Members</h2>
+<table id="futurefaculty" class="facultytable display">
+    <thead><tr><th>Name</th></tr></thead>
+    <tbody>
+    {% for person in future_people %}
+    <tr>
+    <td>{{ person.name }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
 {% endblock %}
