@@ -186,6 +186,12 @@ class Person(models.Model, ConditionalSaveMixin):
         return "tmp-"+str(Person.next_available_temp_emplid())[5:]
 
 
+class FuturePersonManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
 class FuturePerson(models.Model):
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
@@ -193,7 +199,10 @@ class FuturePerson(models.Model):
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
+    hidden = models.BooleanField(default=False, editable=False)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
+
+    objects = FuturePersonManager()
 
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
@@ -201,6 +210,14 @@ class FuturePerson(models.Model):
     def name(self):
         return "%s %s" % (self.first_name, self.last_name)
 
+    def sortname(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    class Meta:
+        verbose_name_plural = "FuturePeople"
+
+    def hide(self):
+        self.hidden = True
 
 class RoleAccount(models.Model):
     last_name = models.CharField(max_length=32)

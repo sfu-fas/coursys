@@ -114,7 +114,7 @@ def index(request):
     events = [h for h in events if h.can_approve(editor)]
     filterform = UnitFilterForm(sub_units)
 
-    future_people = FuturePerson.objects.all()
+    future_people = FuturePerson.objects.visible()
 
     context = {
         'fac_roles': fac_roles,
@@ -884,6 +884,47 @@ def assign_position_futureperson(request, position_id):
     else:
         form = FuturePersonForm()
     return render(request, 'faculty/assign_position_futureperson.html', {'form': form, 'position_id': position_id})
+
+
+@requires_role('ADMN')
+def view_futureperson(request, futureperson_id):
+    fp = get_object_or_404(FuturePerson, pk=futureperson_id)
+    return render(request, 'faculty/view_future_person.html', {'fp': fp})
+
+
+
+@requires_role('ADMN')
+def edit_futureperson(request, futureperson_id):
+    fp = get_object_or_404(FuturePerson, pk=futureperson_id)
+    if request.method == 'POST':
+        form = FuturePersonForm(request.POST, instance=fp)
+        if form.is_valid():
+            future_person = form.save(commit=False)
+            future_person.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully edited faculty member.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Edited future person: %s" % future_person,
+                         related_object=fp
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse('faculty.views.index'))
+    else:
+        form = FuturePersonForm(instance=fp)
+    return render(request, 'faculty/edit_future_person.html', {'form': form, 'fp': fp})
+
+
+@requires_role('ADMN')
+def delete_futureperson(request, futureperson_id):
+    fp = get_object_or_404(FuturePerson, pk=futureperson_id)
+    fp.hide()
+    fp.save()
+    messages.add_message(request, messages.SUCCESS, u'Succesfully hid future person.')
+    l = LogEntry(userid=request.user.username, description="Hid future person %s" % fp, related_object=fp)
+    l.save()
+    return HttpResponseRedirect(reverse(index))
 
 ###############################################################################
 # Display/summary views for a faculty member
