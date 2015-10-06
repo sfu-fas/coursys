@@ -36,7 +36,7 @@ from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
-    NewRoleForm, PositionForm, PositionPickerForm, PositionPersonForm, FuturePersonForm
+    NewRoleForm, PositionForm, PositionPickerForm, PositionPersonForm, FuturePersonForm, PositionCredentialsForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -858,6 +858,27 @@ def assign_position_person(request, position_id):
         form = PositionPersonForm()
     return render(request, 'faculty/assign_position_person.html', {'form': form, 'position_id': position_id})
 
+@requires_role('ADMN')
+def position_add_credentials(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    if request.method == 'POST':
+        form = PositionCredentialsForm(request.POST, instance=position)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully added credentials to position.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Added credentials for position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+    else:
+        form = PositionCredentialsForm(instance=position)
+    return render(request, 'faculty/add_position_credentials.html', {'form': form, 'position': position})
+
 
 @requires_role('ADMN')
 def assign_position_futureperson(request, position_id):
@@ -865,11 +886,10 @@ def assign_position_futureperson(request, position_id):
     if request.method == 'POST':
         form = FuturePersonForm(request.POST)
         if form.is_valid():
-            new_future_person = form.save(commit=False)
-            new_future_person.save()
+            new_future_person = form.save()
             a = AnyPerson(future_person=new_future_person)
             a.save()
-            position.any_person=a
+            position.any_person = a
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,

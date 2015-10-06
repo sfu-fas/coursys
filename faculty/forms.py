@@ -297,6 +297,31 @@ class PositionForm(forms.ModelForm):
             }
 
 
+class PositionCredentialsForm(forms.ModelForm):
+    degree1 = forms.CharField(max_length=12, help_text='These are the degrees to be inserted into the '
+                                                       'Recommendation for Appointment Forms (AKA "Yellow Form"). '
+                                                       ' List the highest degree first.', required=False,
+                              label='Degree 1', widget=forms.TextInput(attrs={'size': '13'}))
+    year1 = forms.CharField(max_length=5, required=False, label='Year 1', widget=forms.TextInput(attrs={'size': '5'}))
+    institution1 = forms.CharField(max_length=25, required=False, label='Institution 1')
+    location1 = forms.CharField(max_length=23, required=False, label='City/Country 1')
+    degree2 = forms.CharField(max_length=12, required=False, label='Degree 2',
+                              widget=forms.TextInput(attrs={'size': '13'}))
+    year2 = forms.CharField(max_length=5, required=False, label='Year 2', widget=forms.TextInput(attrs={'size': '5'}))
+    institution2 = forms.CharField(max_length=25, required=False, label='Institution 2')
+    location2 = forms.CharField(max_length=23, required=False, label='City/Country 2')
+    degree3 = forms.CharField(max_length=12, required=False, label='Degree 3',
+                              widget=forms.TextInput(attrs={'size': '13'}))
+    year3 = forms.CharField(max_length=5, required=False, label='Year 3', widget=forms.TextInput(attrs={'size': '5'}))
+    institution3 = forms.CharField(max_length=25, required=False, label='Institution 3')
+    location3 = forms.CharField(max_length=23, required=False, label='City/Country 3')
+    class Meta:
+        fields = ['degree1', 'year1', 'location1', 'institution1',
+                  'degree2', 'year2', 'location2', 'institution2',
+                  'degree3', 'year3', 'location3', 'institution3']
+        model = Position
+
+
 class PositionPickerForm(forms.Form):
     position_choice = forms.ChoiceField(label='Select a position', required=True, help_text='Please select the position from which to fill the wizard.')
 
@@ -311,6 +336,7 @@ class PositionPersonForm(forms.Form):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(PositionPersonForm, self).is_valid(*args, **kwargs)
+
 
 
 class FuturePersonForm(forms.ModelForm):

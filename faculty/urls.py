@@ -109,6 +109,7 @@ faculty_patterns = [ # prefix: /faculty/
     url(r'^positions/(?P<position_id>\d+)/assign_position_entry/$', 'faculty.views.assign_position_entry'),
     url(r'^positions/(?P<position_id>\d+)/assign_position_person/$', 'faculty.views.assign_position_person'),
     url(r'^positions/(?P<position_id>\d+)/assign_position_futureperson/$', 'faculty.views.assign_position_futureperson'),
+    url(r'^positions/(?P<position_id>\d+)/add_position_credentials/$', 'faculty.views.position_add_credentials'),
 
     # Future Person Management
     url(r'^(?P<futureperson_id>\d+)/edit_futureperson/$', 'faculty.views.edit_futureperson'),

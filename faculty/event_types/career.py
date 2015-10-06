@@ -87,7 +87,7 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         spousal_hire = forms.BooleanField(initial=False, required=False)
         leaving_reason = forms.ChoiceField(initial='HERE', choices=LEAVING_CHOICES)
         degree1 = forms.CharField(max_length=12, help_text='These are the degrees to be inserted into the '
-                                                           'Reccomendation  for Appointment Forms (AKA "Yellow Form"). '
+                                                           'Recommendation for Appointment Forms (AKA "Yellow Form"). '
                                                            ' List the highest degree first.', required=False,
                                   label='Degree 1', widget=forms.TextInput(attrs={'size': '13'}))
         year1 = forms.CharField(max_length=5, required=False, label='Year 1', widget=forms.TextInput(attrs={'size': '5'}))

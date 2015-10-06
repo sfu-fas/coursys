@@ -23,6 +23,11 @@
           {% else %}Assign candidate to this position
           {% endif %}</a>
       </li>
+      {% if position.any_person %}
+          <li>
+              <a href={% url 'faculty.views.position_add_credentials' position_id=position.id %}>Add/Edit Credentials</a>
+          </li>
+      {% endif %}
   </ul>
 </div>
 {% endblock %}
