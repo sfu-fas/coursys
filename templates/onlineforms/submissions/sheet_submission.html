@@ -14,8 +14,6 @@
 //<![CDATA[
 $(document).ready(function() {
 
-    var $submitButton;
-
     $('.date-input').datepicker({ buttonImageOnly: true, buttonImage: '{{STATIC_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'both'});
@@ -25,18 +23,7 @@ $(document).ready(function() {
        $submitButton = $(this)
     });
 
-    // We need to disable the submit buttons to avoid multiple submissions, but we need to know
-    // which button was clicked for POST processing in the view.  Re-create an input with the
-    // correct values based on the one that was clicked, then add it to the form.
-    $('form').submit(function(){
-        $('input[type=submit]', this).attr('disabled', 'disabled');
-        $('<input>').attr({
-            'name': $submitButton.attr('name'),
-            'value': $submitButton.attr('value'),
-            'type': 'hidden'}).appendTo($(this))
 
-
-    });
 });
 //]]></script>
 {% endblock %}
