@@ -749,8 +749,7 @@ def new_position(request):
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             position = form.save(commit=False)
-            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
-                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
+            position.config['teaching_load'] = str(form.cleaned_data.get('teaching_load'))
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -782,8 +781,7 @@ def edit_position(request, position_id):
         form = PositionForm(request.POST, instance=position)
         if form.is_valid():
             position = form.save(commit=False)
-            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
-                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
+            position.config['teaching_load'] = str(form.cleaned_data.get('teaching_load'))
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -886,7 +884,12 @@ def assign_position_futureperson(request, position_id):
     if request.method == 'POST':
         form = FuturePersonForm(request.POST)
         if form.is_valid():
-            new_future_person = form.save()
+            new_future_person = form.save(commit=False)
+            new_future_person.set_email(form.cleaned_data.get('email'))
+            new_future_person.set_gender(form.cleaned_data.get('gender'))
+            new_future_person.set_sin(form.cleaned_data.get('sin'))
+            new_future_person.set_birthdate(form.cleaned_data.get('birthdate'))
+            new_future_person.save()
             a = AnyPerson(future_person=new_future_person)
             a.save()
             position.any_person = a
@@ -920,6 +923,10 @@ def edit_futureperson(request, futureperson_id):
         form = FuturePersonForm(request.POST, instance=fp)
         if form.is_valid():
             future_person = form.save(commit=False)
+            future_person.set_email(form.cleaned_data.get('email'))
+            future_person.set_gender(form.cleaned_data.get('gender'))
+            future_person.set_sin(form.cleaned_data.get('sin'))
+            future_person.set_birthdate(form.cleaned_data.get('birthdate'))
             future_person.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -933,6 +940,10 @@ def edit_futureperson(request, futureperson_id):
             return HttpResponseRedirect(reverse('faculty.views.index'))
     else:
         form = FuturePersonForm(instance=fp)
+        form.fields['sin'].initial = fp.sin()
+        form.fields['email'].initial = fp.email()
+        form.fields['gender'].initial = fp.gender()
+        form.fields['birthdate'].initial = fp.birthdate()
     return render(request, 'faculty/edit_future_person.html', {'form': form, 'fp': fp})
 
 

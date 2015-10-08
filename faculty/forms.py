@@ -346,7 +346,18 @@ class FuturePersonForm(forms.ModelForm):
     pref_first_name = forms.CharField(max_length=32, required=False)
     title = forms.CharField(max_length=4, required=False)
     email = forms.EmailField(required=False)
+    sin = forms.CharField(required=False, max_length=9, label='SIN')
+    birthdate = forms.DateField(required=False, label='Date of Birth')
+    gender = forms.ChoiceField((
+            ('M', 'Male'),
+            ('F', 'Female'),
+            ('U', 'Unknown')),
+            required=False, initial='AND',
+            widget=forms.RadioSelect)
 
     class Meta:
         model = FuturePerson
         exclude = ['config']
+        widgets = {
+            'sin': forms.TextInput(attrs={'size': '9'})
+        }

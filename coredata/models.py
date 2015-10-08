@@ -198,9 +198,15 @@ class FuturePerson(models.Model):
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
-    email = models.EmailField(null=True, blank=True)
     hidden = models.BooleanField(default=False, editable=False)
     config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
+
+    defaults = {'email': None, 'birthdate': None, 'gender': 'U', 'sin': '000000000'}
+
+    sin, set_sin = getter_setter('sin')
+    email, set_email = getter_setter('email')
+    gender, set_gender = getter_setter('gender')
+    birthdate, set_birthdate = getter_setter('birthdate')
 
     objects = FuturePersonManager()
 
