@@ -24,9 +24,9 @@
           {% endif %}</a>
       </li>
       {% if position.any_person %}
-          <li>
-              <a href={% url 'faculty.views.position_add_credentials' position_id=position.id %}>Add/Edit Credentials</a>
-          </li>
+          <li><a href={% url 'faculty.views.position_add_credentials' position_id=position.id %}>Add/Edit Credentials</a></li>
+          <li><a href={% url 'faculty.views.position_get_yellow_form_tenure' position_id=position.id %}>Generate Yellow Form for Tenure</a></li>
+          <li><a href={% url 'faculty.views.position_get_yellow_form_limited' position_id=position.id %}>Generate Yellow Form for Limited Term</a></li>
       {% endif %}
   </ul>
 </div>

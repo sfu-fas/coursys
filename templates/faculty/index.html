@@ -125,6 +125,7 @@ function confirmDelete(url) {
     <thead>
         <tr>
             <th>Name</th>
+            <th>Position</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -132,6 +133,7 @@ function confirmDelete(url) {
     {% for person in future_people %}
     <tr>
     <td><a href="{% url "faculty.views.view_futureperson" futureperson_id=person.id %}">{{ person.sortname }}</a></td>
+    <td>{{ person.get_position_name }}</td>
     <td>
         <div class="lineform">
             <button type='submit' class='btn' title="Hide Position"

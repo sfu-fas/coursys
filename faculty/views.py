@@ -46,7 +46,7 @@ from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
 from coredata.models import AnyPerson
-
+from dashboard.letters import position_yellow_form_limited, position_yellow_form_tenure
 from log.models import LogEntry
 
 
@@ -908,6 +908,21 @@ def assign_position_futureperson(request, position_id):
         form = FuturePersonForm()
     return render(request, 'faculty/assign_position_futureperson.html', {'form': form, 'position_id': position_id})
 
+
+def position_get_yellow_form_tenure(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="yellowform.pdf"'
+    position_yellow_form_tenure(position, response)
+    return response
+
+
+def position_get_yellow_form_limited(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="yellowform.pdf"'
+    position_yellow_form_limited(position, response)
+    return response
 
 @requires_role('ADMN')
 def view_futureperson(request, futureperson_id):

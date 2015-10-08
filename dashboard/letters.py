@@ -19,9 +19,9 @@ from coredata.models import Role
 from django.conf import settings
 import os, datetime
 from dashboard.models import Signature
-from coredata.models import Semester
+from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
-
+from datetime import datetime
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
@@ -2557,7 +2557,6 @@ class YellowFormTenure(YellowForm):
         self.c.showPage()
 
 
-
 def yellow_form_tenure(careerevent, outfile):
 
     doc = YellowFormTenure(outfile)
@@ -2954,3 +2953,83 @@ def build_data_from_event(careerevent):
             data['marketdiff'] = stipend.config.get('amount') or ''
             break
     return data
+
+
+def build_data_from_position(position):
+    """
+    This builds the correct data object for our Appointment Forms (AKA Yellow Forms) to be generated if coming
+    from a Position with a future candidate already set.
+
+    :param Position position: The position that called this generation
+    :type: Position
+    :return: a dict containing all the data necessary for the form generation
+    :rtype: dict
+    """
+    # We have to put this import here to avoid a circular import problem.
+    # This is horrible, but the best solution without refactoring everything.
+    from faculty.models import FacultyMemberInfo, CareerEvent
+
+    data = {}
+    person = position.any_person.get_person()
+    data['last_name'] = person.last_name or ''
+    data['first_name'] = person.first_name or ''
+    data['pref_first_name'] = person.pref_first_name or ''
+    data['sin'] = person.sin()
+
+    # If this is a real Faculty member in our system, he/she may have
+    # a DOB in the FacultyMemberInfo
+    if isinstance(person, Person) and FacultyMemberInfo.objects.filter(person=person).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            data['dob'] = dob
+
+    # Otherwise, we may have it in that object's config.
+    if not data.get('dob'):
+        if person.birthdate():
+            data['dob'] = datetime.strptime(person.birthdate(), "%Y-%m-%d")
+    data['gender'] = person.gender() or ''
+    data['degree1'] = position.degree1 or ''
+    data['year1'] = position.year1 or ''
+    data['institution1'] = position.institution1 or ''
+    data['location1'] = position.location1 or ''
+    data['degree2'] = position.degree2 or ''
+    data['year2'] = position.year2 or ''
+    data['institution2'] = position.institution2 or ''
+    data['location2'] = position.location2 or ''
+    data['degree3'] = position.degree3 or ''
+    data['year3'] = position.year3 or ''
+    data['institution3'] = position.institution3 or ''
+    data['location3'] = position.location3 or ''
+    data['unit'] = position.unit.informal_name()
+    data['start_date'] = position.projected_start_date
+    data['end_date'] = ''
+    data['position_number'] = position.position_number
+    data['rank'] = position.rank
+    data['step'] = str(position.step)
+
+    # For now, we store marketdiffs only for real faculty members, but let's add this here in case.  Either way, if we
+    # call this method from a position where the FuturePerson is now a real Faculty Member, this should still work.
+
+    if isinstance(person, Person):
+        stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=position.unit).effective_now()
+        for stipend in stipends:
+            if stipend.config.get('source') == 'MARKETDIFF':
+                data['marketdiff'] = stipend.config.get('amount') or ''
+                break
+
+    return data
+
+
+def position_yellow_form_limited(position,  outfile):
+    doc = YellowFormLimited(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
+    doc.save()
+
+
+def position_yellow_form_tenure(position, outfile):
+
+    doc = YellowFormTenure(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
+    doc.save()

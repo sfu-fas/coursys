@@ -92,6 +92,8 @@ class Person(models.Model, ConditionalSaveMixin):
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
     _, set_title = getter_setter('title')
+    # Added for consistency with FuturePerson instead of manually having to probe the config
+    birthdate, _ = getter_setter('birthdate')
 
 
     @staticmethod
@@ -224,6 +226,19 @@ class FuturePerson(models.Model):
 
     def hide(self):
         self.hidden = True
+
+    def get_position_name(self):
+        """
+        Each FuturePerson should have at most one Position they are assigned to, and this will return that position's
+        name, if it exists.
+        """
+        from faculty.models import Position
+
+        # Each FuturePerson should be assigned to at most one AnyPerson...
+        ap = AnyPerson.objects.filter(future_person=self).first()
+        position = Position.objects.filter(any_person=ap).first()
+        return position.title or ''
+
 
 class RoleAccount(models.Model):
     last_name = models.CharField(max_length=32)
