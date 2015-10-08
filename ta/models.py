@@ -3,7 +3,7 @@ from django.db.models import Sum
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES
 from ra.models import Account
 from courselib.json_fields import JSONField
-from courselib.json_fields import getter_setter #, getter_setter_2
+from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
 import decimal, datetime
@@ -115,8 +115,6 @@ may occur in a semester, the total workload required will be reduced by %s
 hour(s) for each base unit assigned excluding the additional %s B.U. for
 preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
     
-    #prep_weekly, set_prep_weekly = getter_setter_2('prep', 'weekly')
-
     def __unicode__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
