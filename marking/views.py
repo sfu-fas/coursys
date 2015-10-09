@@ -1039,9 +1039,9 @@ def _mark_all_groups_numeric(request, course, activity):
                 for group in groups:
                     i += 1
                     new_value = rows[i]['form'].cleaned_data['value']
-                    if not new_value:
+                    if new_value is None:
                         continue
-                    if current_act_marks[i] and current_act_marks[i].mark == new_value:
+                    if current_act_marks[i] is not None and current_act_marks[i].mark == new_value:
                         # if any of the group members originally has a grade status other than 'GRAD'
                         # so do not override the status
                         continue
@@ -1070,7 +1070,7 @@ def _mark_all_groups_numeric(request, course, activity):
         else:  # for GET request
             for group in groups: 
                 act_mark = get_group_mark(activity, group)         
-                if not act_mark:
+                if act_mark is None:
                     current_mark = 'no grade'
                 else:
                     current_mark = act_mark.mark
@@ -1113,7 +1113,7 @@ def _mark_all_groups_letter(request, course, activity):
                 current_act_marks.append(act_mark)
                 rows.append({'group': group, 'current_grade' : current_grade, 'form' : entry_form})  
             
-            if not error_info:
+            if error_info is None:
                 updated = 0
                 i = -1
                 for group in groups:
@@ -1147,7 +1147,7 @@ def _mark_all_groups_letter(request, course, activity):
         else: # for GET request
             for group in groups:
                 act_mark = get_group_mark(activity, group)
-                if not act_mark:
+                if act_mark is None:
                     current_grade = 'no grade'
                 else:
                     current_grade = act_mark.mark
@@ -1344,11 +1344,11 @@ def _mark_all_students_numeric(request, course, activity):
                 for i in range(len(memberships)):
                     student = memberships[i].person  
                     ngrade = ngrades[i]
-                    new_value = rows[i]['form'].cleaned_data['value'] 
+                    new_value = rows[i]['form'].cleaned_data['value']
                     # the new mark is blank or the new mark is the same as the old one, do nothing
-                    if not new_value:
+                    if new_value is None:
                         continue
-                    if ngrade and ngrade.value == new_value:
+                    if ngrade is not None and ngrade.value == new_value:
                         # if the student originally has a grade status other than 'GRAD',
                         # we do not override that status
                         continue 
