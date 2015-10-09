@@ -12,6 +12,8 @@ from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 import decimal, json
 
+COMMENT_LENGTH = 5000
+
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
     ('GRAD', 'graded'), 
@@ -471,7 +473,7 @@ class NumericGrade(models.Model):
 
     value = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
@@ -570,7 +572,7 @@ class LetterGrade(models.Model):
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
     def __unicode__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
@@ -771,7 +773,7 @@ class GradeHistory(models.Model):
     numeric_grade = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
 
     mark = models.ForeignKey('marking.ActivityMark', null=True, help_text='The ActivityMark object this grade came from, if applicable.')
     group = models.ForeignKey('groups.Group', null=True, help_text='If this was a mark for a group, the group.')
