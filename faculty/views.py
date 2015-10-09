@@ -1669,6 +1669,14 @@ def faculty_wizard(request, userid, position=None):
             handler_load.event.unit = handler_appoint.event.unit
             handler_load.save(editor)
             handler_load.set_status(editor)
+            # Get the future faculty member from the position and set the flag that says this person's position
+            # has been assigned to a real faculty member, meaning we most likely can delete this individual.
+            if position:
+                position = get_object_or_404(Position, pk=position)
+                a = position.any_person
+                f = a.future_person
+                f.set_assigned(True)
+                f.save()
             return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
         else:
             form_list = [form_appoint, form_salary, form_load]
@@ -1691,6 +1699,18 @@ def faculty_wizard(request, userid, position=None):
             form_appoint.fields['start_date'].initial = position.projected_start_date
             form_appoint.fields['unit'].initial = position.unit
             form_appoint.fields['position_number'].initial = position.position_number
+            form_appoint.fields['degree1'].initial = position.degree1
+            form_appoint.fields['year1'].initial = position.year1
+            form_appoint.fields['location1'].initial = position.location1
+            form_appoint.fields['institution1'].initial = position.institution1
+            form_appoint.fields['degree2'].initial = position.degree2
+            form_appoint.fields['year2'].initial = position.year2
+            form_appoint.fields['location2'].initial = position.location2
+            form_appoint.fields['institution2'].initial = position.institution2
+            form_appoint.fields['degree3'].initial = position.degree3
+            form_appoint.fields['year3'].initial = position.year3
+            form_appoint.fields['location3'].initial = position.location3
+            form_appoint.fields['institution3'].initial = position.institution3
             form_salary.fields['rank'].initial = position.rank
             form_salary.fields['step'].initial = position.step
             form_salary.fields['base_salary'].initial = position.base_salary

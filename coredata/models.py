@@ -209,6 +209,8 @@ class FuturePerson(models.Model):
     email, set_email = getter_setter('email')
     gender, set_gender = getter_setter('gender')
     birthdate, set_birthdate = getter_setter('birthdate')
+    # Something to mark if a FuturePerson's position has been assigned to a real Faculty Member
+    _, set_assigned = getter_setter('assigned')
 
     objects = FuturePersonManager()
 
@@ -238,6 +240,12 @@ class FuturePerson(models.Model):
         ap = AnyPerson.objects.filter(future_person=self).first()
         position = Position.objects.filter(any_person=ap).first()
         return position.title or ''
+
+    def assigned(self):
+        if self.config.get('assigned'):
+            return True
+        else:
+            return False
 
 
 class RoleAccount(models.Model):
