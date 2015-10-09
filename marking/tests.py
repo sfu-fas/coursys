@@ -584,7 +584,7 @@ class TestImportViews(TestCase):
         self.assertTrue(re.search(STUD2_GRADE, response.content))
 
         # Submit the grades, check that they were added to DB
-	post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
+        post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
         response = self.client.post(url, post_data, follow=True)
         self.assertEquals(response.status_code, 200)
         num_grades = NumericGrade.objects.filter(activity = self.a1).order_by('member__person__userid')

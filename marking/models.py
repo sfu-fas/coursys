@@ -4,7 +4,7 @@ from django.db import models, IntegrityError
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
-from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person
+from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person, COMMENT_LENGTH
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester, Member
 from groups.models import Group, GroupMember
@@ -26,7 +26,7 @@ class ActivityComponent(models.Model):
     numeric_activity = models.ForeignKey(NumericActivity, null=False)
     max_mark = models.DecimalField(max_digits=8, decimal_places=2, null=False)
     title = models.CharField(max_length=30, null=False)
-    description = models.TextField(max_length=500, null=True, blank=True)
+    description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
     position = models.IntegerField(null=True, default=0, blank=True)
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null=False, db_index=True, default=False)
@@ -60,7 +60,7 @@ class CommonProblem(models.Model):
     activity_component = models.ForeignKey(ActivityComponent, null=False)
     title = models.CharField(max_length=30, null=False)
     penalty = models.DecimalField(max_digits=8, decimal_places=2)
-    description = models.TextField(max_length=500, null=True, blank=True)
+    description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
     deleted = models.BooleanField(null=False, db_index=True, default=False)
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
@@ -81,10 +81,10 @@ class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
     """
-    overall_comment = models.TextField(null=True, max_length=1000, blank=True)
+    overall_comment = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True)
     late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null=True, default=0, blank=True, help_text='Percentage to deduct from the total due to late submission')
     mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null=True, default=0, blank=True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
-    mark_adjustment_reason = models.TextField(null=True, max_length=1000, blank=True, verbose_name="Mark Penalty Reason")
+    mark_adjustment_reason = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True, verbose_name="Mark Penalty Reason")
     file_attachment = models.FileField(storage=MarkingSystemStorage, null=True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
@@ -210,7 +210,7 @@ class ActivityMark_LetterGrade(models.Model):
     """
     General Marking class for one letter activity 
     """
-    overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
+    overall_comment = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
     # For the purpose of keeping a history,
@@ -246,7 +246,7 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     Marking of one student on one letter activity 
     """        
-    letter_grade = models.ForeignKey(LetterGrade, null = False, choices=LETTER_GRADE_CHOICES)
+    letter_grade = models.ForeignKey(LetterGrade, null=False, choices=LETTER_GRADE_CHOICES)
        
     def __unicode__(self):
         # get the student and the activity
