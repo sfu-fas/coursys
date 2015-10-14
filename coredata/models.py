@@ -195,8 +195,8 @@ class FuturePersonManager(models.Manager):
 
 
 class FuturePerson(models.Model):
-    last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
@@ -239,7 +239,10 @@ class FuturePerson(models.Model):
         # Each FuturePerson should be assigned to at most one AnyPerson...
         ap = AnyPerson.objects.filter(future_person=self).first()
         position = Position.objects.filter(any_person=ap).first()
-        return position.title or ''
+        if position:
+            return position.title or ''
+        else:
+            return ''
 
     def assigned(self):
         if self.config.get('assigned'):

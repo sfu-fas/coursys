@@ -37,7 +37,7 @@ $(document).ready(function() {
     {% if not can_wizard %}
     <li><a href="{% url 'faculty_event_types' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-plus"></i> Create New Event</a></li>
     {% else %}
-    <li><a href="{% url 'faculty_wizard' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-magic"></i>Faculty Setup Wizard</a></li>
+    <li><a href="{% url 'faculty_wizard' userid=person.userid_or_emplid %}"><i class="fa fa-li fa-magic"></i> Faculty Setup Wizard</a></li>
     {% endif %}
   <li>
     <a href="{% url 'faculty.views.faculty_member_info' userid=person.userid_or_emplid %}">

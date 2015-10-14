@@ -340,8 +340,8 @@ class PositionPersonForm(forms.Form):
 
 
 class FuturePersonForm(forms.ModelForm):
-    last_name = forms.CharField(max_length=32)
     first_name = forms.CharField(max_length=32)
+    last_name = forms.CharField(max_length=32)
     middle_name = forms.CharField(max_length=32, required=False)
     pref_first_name = forms.CharField(max_length=32, required=False)
     title = forms.CharField(max_length=4, required=False)

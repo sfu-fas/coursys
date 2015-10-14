@@ -27,6 +27,9 @@
           <li><a href={% url 'faculty.views.position_add_credentials' position_id=position.id %}>Add/Edit Credentials</a></li>
           <li><a href={% url 'faculty.views.position_get_yellow_form_tenure' position_id=position.id %}>Generate Yellow Form for Tenure</a></li>
           <li><a href={% url 'faculty.views.position_get_yellow_form_limited' position_id=position.id %}>Generate Yellow Form for Limited Term</a></li>
+          {% if can_wizard %}
+            <li><a href="{% url 'faculty.views.faculty_wizard' userid=position.any_person.get_person.userid_or_emplid position=position.id %}"><i class="fa fa-li fa-magic"></i> Faculty Setup Wizard</a></li>
+          {% endif %}
       {% endif %}
   </ul>
 </div>

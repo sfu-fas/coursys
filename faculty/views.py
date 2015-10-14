@@ -772,7 +772,18 @@ def new_position(request):
 @requires_role('ADMN')
 def view_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
-    return render(request, 'faculty/view_position.html', {'position': position})
+    can_wizard = False
+    # Let's first see if we have a real person for this position
+    if position.any_person and position.any_person.person:
+        person = position.any_person.get_person()
+        # Then, let's see if they are a faculty member in the same unit
+        if Role.objects.filter(role='FAC', unit=position.unit, person=person).exists():
+            # Finally, see if they are allowed to reach the wizard, same way we do in the regular view for a
+            # faculty member
+            career_events = CareerEvent.objects.not_deleted().filter(person=person, unit=position.unit)
+            can_wizard = not career_events.exclude(event_type='GRANTAPP').exists()
+
+    return render(request, 'faculty/view_position.html', {'position': position, 'can_wizard': can_wizard})
 
 @requires_role('ADMN')
 def edit_position(request, position_id):
@@ -835,11 +846,17 @@ def assign_position_person(request, position_id):
                 if AnyPerson.objects.filter(person=person).first():
                     any_person = AnyPerson.objects.filter(person=person).first()
                     position.any_person = any_person
+
                 else:
                     a = AnyPerson(person=person)
                     a.save()
                     position.any_person=a
                 position.save()
+                # Let's see if this person already has a faculty role for this unit, otherwise, add it:
+                if not Role.objects.filter(role='FAC', unit=position.unit, person=person).exists():
+                    new_role = Role(role='FAC', unit=position.unit, person=person)
+                    new_role.save()
+                    messages.add_message(request, messages.SUCCESS, u'Added faculty role for %s' % person)
                 messages.add_message(request,
                                  messages.SUCCESS,
                                  u'Successfully assigned person to position.'
@@ -1631,6 +1648,7 @@ def faculty_wizard(request, userid, position=None):
         'editor': editor,
         'handler': Handler_appoint,
         'name': Handler_appoint.NAME,
+        'position': position
     }
 
     if request.method == "POST":
@@ -1674,9 +1692,12 @@ def faculty_wizard(request, userid, position=None):
             if position:
                 position = get_object_or_404(Position, pk=position)
                 a = position.any_person
-                f = a.future_person
-                f.set_assigned(True)
-                f.save()
+                a.person = person
+                a.save()
+                if a.future_person:
+                    f = a.future_person
+                    f.set_assigned(True)
+                    f.save()
             return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
         else:
             form_list = [form_appoint, form_salary, form_load]
