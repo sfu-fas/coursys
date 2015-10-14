@@ -1,7 +1,7 @@
 from index import index
 from quick_search import quick_search
 from not_found import not_found
-from supervisor_index import supervisor_index
+from supervisor_index import supervisor_index, download_my_grads_csv
 from all_promises import all_promises
 from funding_report import funding_report
 from view import view
