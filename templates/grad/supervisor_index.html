@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -26,7 +27,7 @@
 {% if supervisors %}
 <div id="actions">
     <h2>Actions</h2>
-    <ul>
+    <ul class="fa-ul">
         <li>
             <a href="{% url 'grad.views.download_my_grads_csv' %}">
                 <i class="fa fa-li fa-download"></i> Download CSV
