@@ -21,6 +21,22 @@
 <li>Grad Students</li>
 {% endblock %}
 
+
+{% block actions %}
+{% if supervisors %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li>
+            <a href="{% url 'grad.views.download_my_grads_csv' %}">
+                <i class="fa fa-li fa-download"></i> Download CSV
+            </a>
+        </li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="datatable_container">
 	<table class="display" id="grads">
