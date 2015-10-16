@@ -207,7 +207,8 @@ div.breadcrumb ul li:first-child:before {
   content: '\00f196';
 }
 div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status,
-h2.note .collapsible-heading-status, .collapsiblecomment .collapsible-heading-status {
+h2.note .collapsible-heading-status, .collapsiblecomment .collapsible-heading-status,
+.group_members .collapsible-heading-status {
   /* hide the "show/hide" messages where appropriate */
   display: none;
 }

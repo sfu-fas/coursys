@@ -539,6 +539,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         if groupmark:
             group = get_object_or_404(Group, slug=userid, courseoffering=course)
             ActivityMarkForm = GroupActivityMarkForm
+            group_members = GroupMember.objects.filter(group=group, activity=activity)
         else:
             student = get_object_or_404(Person, find_userid_or_emplid(userid))
             membership = get_object_or_404(Member, offering=course, person=student, role='STUD') 
@@ -675,6 +676,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         context = {'course': course, 'activity': activity, 'form': form, 'component_data': component_data }
         if groupmark:
             context['group'] = group
+            context['group_members'] = group_members
         else:
             context['student'] = student
         return render_to_response("marking/marking.html", context, context_instance=RequestContext(request))  
@@ -745,14 +747,14 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug, deleted=False)
     group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
-     
+
     if not is_staff:
         gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.username)
         if not gm:
             return ForbiddenResponse(request)
      
     act_mark_id = request.GET.get('activity_mark')
-    if act_mark_id != None: 
+    if act_mark_id != None:
         act_mark = get_group_mark_by_id(activity, group, act_mark_id)
     else:
         act_mark = get_group_mark(activity, group)
