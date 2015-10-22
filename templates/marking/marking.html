@@ -43,11 +43,10 @@ $(document).ready(function() {
 
 {% block content %}
     {% if group_members %}
-    <h2 class="group_members">Group Members</h2>
+    <h2 class="group_members">Group Members ({{ group_members|length }})</h2>
     <ul class="bulleted">
     {% for m in group_members %}
         <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.student.person.userid %}">{{ m.student.person.name_with_pref }}</a>, {{ m.student.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
-        {% if not forloop.last %}, {% endif %}
     {% endfor %}
     </ul>
     {% endif %}

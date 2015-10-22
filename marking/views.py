@@ -676,7 +676,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         context = {'course': course, 'activity': activity, 'form': form, 'component_data': component_data }
         if groupmark:
             context['group'] = group
-            context['group_members'] = group_members
+            context['group_members'] = list(group_members)
         else:
             context['student'] = student
         return render_to_response("marking/marking.html", context, context_instance=RequestContext(request))  
