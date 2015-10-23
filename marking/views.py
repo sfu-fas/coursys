@@ -1086,7 +1086,7 @@ def _mark_all_groups_letter(request, course, activity):
         rows = []
         warning_info = []
         groups = set()
-        all_members = GroupMember.objects.select_related('group').filter(activity = activity, confirmed = True)
+        all_members = GroupMember.objects.select_related('group').filter(activity=activity, confirmed=True)
         for member in all_members:
             if member.group not in groups:
                 groups.add(member.group)
@@ -1095,12 +1095,12 @@ def _mark_all_groups_letter(request, course, activity):
             entered_by = get_entry_person(request.user.username)
             current_act_marks = []
             for group in groups:
-                entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = group.name)
+                entry_form = MarkEntryForm_LetterGrade(data=request.POST, prefix=group.name)
                 if not entry_form.is_valid():
                     error_info = "Error found"           
                 act_mark = None 
                 try:
-                    act_mark = LetterGrade.objects.get(activity = activity, member = member)
+                    act_mark = LetterGrade.objects.get(activity=activity, member=member.student)
                 except LetterGrade.DoesNotExist:
                     current_grade = 'no grade'
                 else:
