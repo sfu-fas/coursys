@@ -553,7 +553,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             # use POST data when creating forms
             postdata = request.POST
             filedata = request.FILES
-        elif 'base_activity_mark' in request.GET:
+        if 'base_activity_mark' in request.GET:
             # requested "mark based on": get that object
             old_id = request.GET['base_activity_mark']
             try:
@@ -565,19 +565,6 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     am = get_group_mark_by_id(activity, group, old_id)
                 else:
                     am = get_activity_mark_by_id(activity, membership, old_id)
-        elif 'load_old' in request.GET:
-            # requested load any previous mark: get that object
-            try:
-                if groupmark:
-                    am = get_group_mark(activity, group)
-                else:
-                    am = get_activity_mark_for_student(activity, membership)
-            except NumericGrade.DoesNotExist:
-                pass
-
-            if am:
-                messages.add_message(request, messages.INFO, 'There was a previous mark for this student.  Details are below.')
-            
 
         # build forms
         form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
@@ -599,6 +586,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
                 # set additional ActivityMark info
                 am = form.save(commit=False)
+                #  Let's make sure we create a new object to preserve history.  If we had an instance, this will force
+                #  creation of a new one.  If this was already a new object, no harm done.  We must specify both
+                #  pk and id due to inheritance.
+                #  See: https://docs.djangoproject.com/en/1.7/topics/db/queries/#copying-model-instances
+                am.pk = None
+                am.id = None
                 am.created_by = request.user.username
                 am.activity = activity
                 if 'file_attachment' in request.FILES:
