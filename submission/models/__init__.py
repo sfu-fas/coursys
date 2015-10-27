@@ -256,8 +256,9 @@ def generate_submission_contents(activity, z, prefix=''):
     if any_git_tags:
         script = ['#!/bin/sh', '', '# This script will clone all of the submitted git tags for this activity,',
                 '# putting them into the current directory. This should work in a Linux, OSX,',
-                'or the Git Bash shell in Windows.', '']
+                '# or the Git Bash shell in Windows.', '']
 
+        git_tags.sort()
         for comp_slug, sub_slug, url, tag in git_tags:
             dir_name = comp_slug + '_' + sub_slug
             script.append('git clone %s %s && \\\n  (cd %s && git checkout tags/%s)' % (quote(url), quote(dir_name), quote(dir_name), quote(tag)))
