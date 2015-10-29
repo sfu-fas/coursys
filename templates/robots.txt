@@ -2,5 +2,6 @@ User-agent: *
 Allow: /news/
 Allow: /calendar/
 Allow: /data/
+Allow: /forms/
+Allow: /*/pages/
 Disallow: /
-

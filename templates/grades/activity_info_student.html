@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}{{ activity.name }} Information{% endblock %}
-{% block h1 %}{{ activity.name }} Information{% endblock %}
+{% block title %}{{ activity.name }}{% endblock %}
+{% block h1 %}{{ activity.name }}{% endblock %}
 
 {% block subbreadcrumbs %}<li><a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>{{ activity.name }}</li>{% endblock %}
 

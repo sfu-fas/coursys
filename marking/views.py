@@ -539,6 +539,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         if groupmark:
             group = get_object_or_404(Group, slug=userid, courseoffering=course)
             ActivityMarkForm = GroupActivityMarkForm
+            group_members = GroupMember.objects.filter(group=group, activity=activity)
         else:
             student = get_object_or_404(Person, find_userid_or_emplid(userid))
             membership = get_object_or_404(Member, offering=course, person=student, role='STUD') 
@@ -552,7 +553,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             # use POST data when creating forms
             postdata = request.POST
             filedata = request.FILES
-        elif 'base_activity_mark' in request.GET:
+        if 'base_activity_mark' in request.GET:
             # requested "mark based on": get that object
             old_id = request.GET['base_activity_mark']
             try:
@@ -564,19 +565,6 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                     am = get_group_mark_by_id(activity, group, old_id)
                 else:
                     am = get_activity_mark_by_id(activity, membership, old_id)
-        elif 'load_old' in request.GET:
-            # requested load any previous mark: get that object
-            try:
-                if groupmark:
-                    am = get_group_mark(activity, group)
-                else:
-                    am = get_activity_mark_for_student(activity, membership)
-            except NumericGrade.DoesNotExist:
-                pass
-
-            if am:
-                messages.add_message(request, messages.INFO, 'There was a previous mark for this student.  Details are below.')
-            
 
         # build forms
         form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
@@ -598,6 +586,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
                 # set additional ActivityMark info
                 am = form.save(commit=False)
+                #  Let's make sure we create a new object to preserve history.  If we had an instance, this will force
+                #  creation of a new one.  If this was already a new object, no harm done.  We must specify both
+                #  pk and id due to inheritance.
+                #  See: https://docs.djangoproject.com/en/1.7/topics/db/queries/#copying-model-instances
+                am.pk = None
+                am.id = None
                 am.created_by = request.user.username
                 am.activity = activity
                 if 'file_attachment' in request.FILES:
@@ -675,6 +669,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         context = {'course': course, 'activity': activity, 'form': form, 'component_data': component_data }
         if groupmark:
             context['group'] = group
+            context['group_members'] = list(group_members)
         else:
             context['student'] = student
         return render_to_response("marking/marking.html", context, context_instance=RequestContext(request))  
@@ -745,14 +740,14 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug, deleted=False)
     group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
-     
+
     if not is_staff:
         gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.username)
         if not gm:
             return ForbiddenResponse(request)
      
     act_mark_id = request.GET.get('activity_mark')
-    if act_mark_id != None: 
+    if act_mark_id != None:
         act_mark = get_group_mark_by_id(activity, group, act_mark_id)
     else:
         act_mark = get_group_mark(activity, group)
@@ -1091,7 +1086,7 @@ def _mark_all_groups_letter(request, course, activity):
         rows = []
         warning_info = []
         groups = set()
-        all_members = GroupMember.objects.select_related('group').filter(activity = activity, confirmed = True)
+        all_members = GroupMember.objects.select_related('group').filter(activity=activity, confirmed=True)
         for member in all_members:
             if member.group not in groups:
                 groups.add(member.group)
@@ -1100,12 +1095,12 @@ def _mark_all_groups_letter(request, course, activity):
             entered_by = get_entry_person(request.user.username)
             current_act_marks = []
             for group in groups:
-                entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = group.name)
+                entry_form = MarkEntryForm_LetterGrade(data=request.POST, prefix=group.name)
                 if not entry_form.is_valid():
                     error_info = "Error found"           
                 act_mark = None 
                 try:
-                    act_mark = LetterGrade.objects.get(activity = activity, member = member)
+                    act_mark = LetterGrade.objects.get(activity=activity, member=member.student)
                 except LetterGrade.DoesNotExist:
                     current_grade = 'no grade'
                 else:

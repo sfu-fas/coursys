@@ -26,6 +26,11 @@ function append_problem(n, penalty, content, outof) {
   mark -= penalty;
   value.val(mark);
 }
+
+$(document).ready(function() {
+  $(".group_members").collapsible();
+});
+
 //]]></script>
 {% endblock%}
 
@@ -37,7 +42,14 @@ function append_problem(n, penalty, content, outof) {
 <li>Mark {% if student %}{{student.name}}{% else %}{{ group.name }}{% endif %}</li>{% endblock %}
 
 {% block content %}
-     
+    {% if group_members %}
+    <h2 class="group_members">Group Members ({{ group_members|length }})</h2>
+    <ul class="bulleted">
+    {% for m in group_members %}
+        <li><a href="{% url "grades.views.student_info" course_slug=course.slug userid=m.student.person.userid %}">{{ m.student.person.name_with_pref }}</a>, {{ m.student.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+    {% endfor %}
+    </ul>
+    {% endif %}
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
 	 {% for entry in component_data %}
 	     <fieldset class="marking">
