@@ -92,7 +92,7 @@ class ActivityMark(models.Model):
     # For the purpose of keeping a history,
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
-    mark = models.DecimalField(max_digits=8, decimal_places=2)
+    mark = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
     
     def __unicode__(self):
@@ -114,8 +114,10 @@ class ActivityMark(models.Model):
     
     def mark_adjustment_neg(self):
         return -self.mark_adjustment
+
     def setMark(self, grade):
-        self.mark = grade
+        if grade is not None:
+            self.mark = grade
         if not self.id:
             # ActivityMark must be saved before we can create GradeHistory objects: that is done in [subclasses].save()
             self.save()
@@ -145,9 +147,13 @@ class StudentActivityMark(ActivityMark):
         """         
         Set the mark
         """
-        super(StudentActivityMark, self).setMark(grade)       
-        self.numeric_grade.value = grade
-        self.numeric_grade.flag = 'GRAD'
+        super(StudentActivityMark, self).setMark(grade)
+
+        self.numeric_grade.value = grade or decimal.Decimal(0)
+        if grade is None:
+            self.numeric_grade.flag = 'NOGR'
+        else:
+            self.numeric_grade.flag = 'GRAD'
         self.numeric_grade.save(entered_by=entered_by, mark=self)            
         
         
@@ -176,8 +182,11 @@ class GroupActivityMark(ActivityMark):
                 ngrade = NumericGrade.objects.get(activity=self.numeric_activity, member=g_member.student)
             except NumericGrade.DoesNotExist: 
                 ngrade = NumericGrade(activity=self.numeric_activity, member=g_member.student)
-            ngrade.value = grade
-            ngrade.flag = 'GRAD'
+            ngrade.value = grade or decimal.Decimal(0)
+            if grade is None:
+                ngrade.flag = 'NOGR'
+            else:
+                ngrade.flag = 'GRAD'
             if details:
                 ngrade.save(entered_by=entered_by, mark=self, group=self.group)
             else:
@@ -192,7 +201,7 @@ class ActivityComponentMark(models.Model):
     """
     activity_mark = models.ForeignKey(ActivityMark, null = False)    
     activity_component = models.ForeignKey(ActivityComponent, null = False)
-    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark')
+    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark', null=True, blank=True)
     comment = models.TextField(null = True, max_length=1000, blank=True)
     
     def __unicode__(self):
