@@ -208,7 +208,11 @@ class Activity(models.Model):
             elif isinstance(self, LetterActivity):
                 GradeClass = LetterGrade
             graded = GradeClass.objects.filter(activity=self).exclude(flag='NOGR').count()
-            return 'ready to grade (%i/%i)' % (graded, total)
+            # If we've graded everything, might as well change the status back
+            if graded == total and total > 0:
+                return ACTIVITY_STATUS[self.status]
+            # Otherwise, let them know the progress.
+            return 'ready to grade (%i/%i graded)' % (graded, total)
 
         return ACTIVITY_STATUS[self.status]
 

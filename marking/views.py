@@ -628,8 +628,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                             messages.add_message(request, messages.WARNING, "Bonus marks given for %s" % (entry['component'].title))
                         if value < 0:
                             messages.add_message(request, messages.WARNING, "Negative mark given for %s" % (entry['component'].title))
-
-                if form.cleaned_data['late_penalty'] and form.cleaned_data['mark_adjustment'] and not components_not_all_there:
+                if not components_not_all_there:
                     mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
                            (total - form.cleaned_data['mark_adjustment'])
                 else:
