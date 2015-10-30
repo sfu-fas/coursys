@@ -195,6 +195,23 @@ class Activity(models.Model):
 
         return ACTIVITY_STATUS[self.status]
 
+    def get_status_display_staff(self):
+        """
+        Override to provide better string for not-yet-due case.
+        """
+        if self.status == "URLS" and self.due_date and self.due_date > datetime.now():
+            return "no grades: due date not passed"
+        elif self.status == 'URLS':
+            total = Member.objects.filter(offering=self.offering, role='STUD').count()
+            if isinstance(self, NumericActivity):
+                GradeClass = NumericGrade
+            elif isinstance(self, LetterActivity):
+                GradeClass = LetterGrade
+            graded = GradeClass.objects.filter(activity=self).exclude(flag='NOGR').count()
+            return 'ready to grade (%i/%i)' % (graded, total)
+
+        return ACTIVITY_STATUS[self.status]
+
     def markable(self):
         """
         Returns True if this activity is "markable".  i.e. has any marking components defined.
