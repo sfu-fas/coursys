@@ -617,16 +617,23 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                 
                 # calculate grade and save
                 total = decimal.Decimal(0)
+                components_not_all_there = False
                 for entry in component_data:
                     value = entry['form'].cleaned_data['value']
-                    total += value
-                    if value > entry['component'].max_mark:
-                        messages.add_message(request, messages.WARNING, "Bonus marks given for %s" % (entry['component'].title))
-                    if value < 0:
-                        messages.add_message(request, messages.WARNING, "Negative mark given for %s" % (entry['component'].title))
-                
-                mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
-                       (total - form.cleaned_data['mark_adjustment'])
+                    if value is None:
+                        components_not_all_there = True
+                    else:
+                        total += value
+                        if value > entry['component'].max_mark:
+                            messages.add_message(request, messages.WARNING, "Bonus marks given for %s" % (entry['component'].title))
+                        if value < 0:
+                            messages.add_message(request, messages.WARNING, "Negative mark given for %s" % (entry['component'].title))
+
+                if form.cleaned_data['late_penalty'] and form.cleaned_data['mark_adjustment'] and not components_not_all_there:
+                    mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
+                           (total - form.cleaned_data['mark_adjustment'])
+                else:
+                    mark = None
 
                 am.setMark(mark, entered_by=request.user.username)
                 am.save()
