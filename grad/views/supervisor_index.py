@@ -23,7 +23,7 @@ def download_my_grads_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'inline; filename="%s.csv"' % datetime.now().strftime('%Y%m%d')
     writer = csv.writer(response)
-    writer.writerow(['Name', 'Program', 'Your Role', 'Start Semester', 'Current Status'])
+    writer.writerow(['Name', 'Program', 'YourRole', 'StartSemester', 'EndSemester', 'ThesisTitle', 'CurrentStatus'])
     for s in supervisors:
         name = s.student.person.sortname()
         program = s.student.program.description
@@ -34,7 +34,9 @@ def download_my_grads_csv(request):
             else:
                 role += ' (no committee)'
         start = s.student.start_semester
+        end = s.student.end_semester
         status = s.student.get_current_status_display()
-        writer.writerow([name, program, role, start, status])
+        title = s.student.config.get('work_title')
+        writer.writerow([name, program, role, start, end, title, status])
 
     return response
