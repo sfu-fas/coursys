@@ -2968,6 +2968,7 @@ def build_data_from_position(position):
     # We have to put this import here to avoid a circular import problem.
     # This is horrible, but the best solution without refactoring everything.
     from faculty.models import FacultyMemberInfo, CareerEvent
+    from faculty.event_types.career import RANK_CHOICES
 
     data = {}
     person = position.any_person.get_person()
@@ -3004,8 +3005,11 @@ def build_data_from_position(position):
     data['start_date'] = position.projected_start_date
     data['end_date'] = ''
     data['position_number'] = position.position_number
-    data['rank'] = position.rank
-    data['step'] = str(position.step)
+    data['rank'] = RANK_CHOICES.get(position.rank, '')
+    if position.step:
+        data['step'] = str(position.step)
+    else:
+        data['step'] = ''
 
     # For now, we store marketdiffs only for real faculty members, but let's add this here in case.  Either way, if we
     # call this method from a position where the FuturePerson is now a real Faculty Member, this should still work.

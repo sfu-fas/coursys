@@ -278,13 +278,13 @@ class FacultyMemberInfoForm(forms.ModelForm):
 
 
 class PositionForm(forms.ModelForm):
-    title = forms.CharField(required=False)
-    projected_start_date = SemesterField(semester_start=True, required=False)
+    title = forms.CharField(required=True)
+    projected_start_date = SemesterField(semester_start=True, required=True)
     teaching_load = AnnualTeachingCreditField(label="Teaching Load", required=False)
     base_salary = AddSalaryField(required=False)
     add_salary = AddSalaryField(required=False)
     add_pay = AddPayField(required=False)
-    position_number = forms.CharField(max_length=6, required=False)
+    position_number = forms.CharField(max_length=6, required=True)
     rank = forms.ChoiceField(choices=RANK_CHOICES, required=False)
     step = forms.DecimalField(max_digits=3, decimal_places=1, required=False)
 

@@ -746,11 +746,11 @@ class Position(models.Model):
     projected_start_date = models.DateField('Projected Start Date', default=timezone_today)
     unit = models.ForeignKey(Unit, null=False, blank=False)
     position_number = models.CharField(max_length=8)
-    rank = models.CharField(choices=RANK_CHOICES, max_length=50)
-    step = models.DecimalField(max_digits=3, decimal_places=1)
-    base_salary = models.DecimalField(decimal_places=2, max_digits=10)
-    add_salary = models.DecimalField(decimal_places=2, max_digits=10)
-    add_pay = models.DecimalField(decimal_places=2, max_digits=10)
+    rank = models.CharField(choices=RANK_CHOICES, max_length=50, null=True, blank=True)
+    step = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    base_salary = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+    add_salary = models.DecimalField(decimal_places=2, max_digits=10,  null=True, blank=True)
+    add_pay = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
     any_person = models.ForeignKey(AnyPerson, null=True, blank=True)
@@ -770,7 +770,7 @@ class Position(models.Model):
     objects = PositionManager()
 
     def __unicode__(self):
-        return "%s, %s" % (self.title, self.projected_start_date)
+        return "%s - %s" % (self.position_number, self.title)
 
     def hide(self):
         self.hidden = True
