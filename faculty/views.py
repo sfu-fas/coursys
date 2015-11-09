@@ -1864,6 +1864,22 @@ def download_attachment(request, userid, event_slug, attach_slug):
     resp['Content-Length'] = attachment.contents.size
     return resp
 
+@requires_role('ADMN')
+def delete_attachment(request, userid, event_slug, attach_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
+    attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
+
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(event.get_absolute_url())
 
 ###############################################################################
 # Configuring event types, and managing memo templates
@@ -2187,6 +2203,23 @@ def view_memo(request, userid, event_slug, memo_slug):
                'person': person,
                }
     return render(request, 'faculty/view_memo.html', context)
+
+@requires_role('ADMN')
+def delete_memo(request, userid, event_slug, memo_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
+
+    memo.hide()
+
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Memo deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid memo %s" % memo, related_object=memo)
+    l.save()
+    return HttpResponseRedirect(instance.get_absolute_url())
+
 
 
 ###############################################################################

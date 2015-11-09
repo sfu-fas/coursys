@@ -14,12 +14,14 @@ event_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/events/EVENT_SLUG/
     url(r'^attach-text$', 'faculty.views.new_text_attachment'),
     url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/view$', 'faculty.views.view_attachment', name="faculty_view_attachment"),
     url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/download$', 'faculty.views.download_attachment', name="faculty_download_attachment"),
+    url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/delete$', 'faculty.views.delete_attachment'),
     url(r'^(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name="faculty_event_memo_create"),
     url(r'^new-memo$', 'faculty.views.new_memo_no_template'),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name="faculty_event_memo_manage"),
     url(r'^_get_text/(?P<memo_template_id>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_text', name="faculty_event_memo_manage"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_pdf', name="faculty_event_memo_pdf"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name="faculty_event_view_memo"),
+    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/delete$', 'faculty.views.delete_memo', name="faculty_event_delete_memo"),
     url(r'^generate_pdf/(?P<pdf_key>' + SLUG_RE + ')' + '$', 'faculty.views.generate_pdf', name="faculty_handler_generate_pdf")
 ]
 

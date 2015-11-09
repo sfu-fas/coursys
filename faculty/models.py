@@ -383,6 +383,12 @@ def attachment_upload_to(instance, filename):
     return fullpath
 
 
+class DocumentAttachmentManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
 class DocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
@@ -394,6 +400,9 @@ class DocumentAttachment(models.Model):
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = DocumentAttachmentManager()
 
     def __unicode__(self):
         return self.contents.name
@@ -404,6 +413,10 @@ class DocumentAttachment(models.Model):
 
     def contents_filename(self):
         return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
 
 class MemoTemplate(models.Model):
@@ -478,7 +491,11 @@ class Memo(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('career_event',))
 
     def __unicode__(self):
-        return u"%s memo for %s" % (self.template.label, self.career_event)
+        return u"%s memo for %s" % (self.subject, self.career_event)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
