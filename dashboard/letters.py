@@ -17,11 +17,12 @@ from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from coredata.models import Role
 from django.conf import settings
-import os, datetime
+import os
+import datetime
 from dashboard.models import Signature
 from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
-from datetime import datetime
+
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
