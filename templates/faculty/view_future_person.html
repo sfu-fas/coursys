@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}{{ fp.name }}{% endblock %}
+{% block h1 %}{{ fp.name }}{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty Management</a></li>
+<li>{{ fp.name }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+      <li><a href = {% url "faculty.views.edit_futureperson" futureperson_id=fp.id %}>Edit Person</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    <dt>Last Name</dt><dd>{{ fp.last_name }}</dd>
+    <dt>First Name</dt><dd>{{ fp.first_name }}</dd>
+    <dt>Middle Name</dt><dd>{{ fp.middle_name }}</dd>
+    <dt>Preferred First Name</dt><dd>{{ fp.pref_first_name }}</dd>
+    <dt>Title</dt><dd>{{ fp.title }}</dd>
+    <dt>Email</dt><dd>{{ fp.email }}</dd>
+    <dt>SIN</dt><dd>{{ fp.sin }}</dd>
+    <dt>Gender</dt><dd>{{ fp.gender }}</dd>
+    <dt>Date of Birth</dt><dd>{{ fp.birthdate }}</dd>
+{% endblock %}

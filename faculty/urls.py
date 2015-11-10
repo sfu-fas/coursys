@@ -14,12 +14,14 @@ event_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/events/EVENT_SLUG/
     url(r'^attach-text$', 'faculty.views.new_text_attachment'),
     url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/view$', 'faculty.views.view_attachment', name="faculty_view_attachment"),
     url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/download$', 'faculty.views.download_attachment', name="faculty_download_attachment"),
+    url(r'^attach/(?P<attach_slug>' + SLUG_RE + ')/delete$', 'faculty.views.delete_attachment'),
     url(r'^(?P<memo_template_slug>' + SLUG_RE + ')' + '/new$', 'faculty.views.new_memo', name="faculty_event_memo_create"),
     url(r'^new-memo$', 'faculty.views.new_memo_no_template'),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/manage$', 'faculty.views.manage_memo', name="faculty_event_memo_manage"),
     url(r'^_get_text/(?P<memo_template_id>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_text', name="faculty_event_memo_manage"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '$', 'faculty.views.get_memo_pdf', name="faculty_event_memo_pdf"),
     url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/view$', 'faculty.views.view_memo', name="faculty_event_view_memo"),
+    url(r'^(?P<memo_slug>' + SLUG_RE + ')' + '/delete$', 'faculty.views.delete_memo', name="faculty_event_delete_memo"),
     url(r'^generate_pdf/(?P<pdf_key>' + SLUG_RE + ')' + '$', 'faculty.views.generate_pdf', name="faculty_handler_generate_pdf")
 ]
 
@@ -105,4 +107,17 @@ faculty_patterns = [ # prefix: /faculty/
     url(r'^positions/new_position$', 'faculty.views.new_position'),
     url(r'^positions/(?P<position_id>\d+)/edit_position/$', 'faculty.views.edit_position'),
     url(r'^positions/(?P<position_id>\d+)/delete_position/$', 'faculty.views.delete_position'),
+    url(r'^positions/(?P<position_id>\d+)/view_position/$', 'faculty.views.view_position'),
+    url(r'^positions/(?P<position_id>\d+)/assign_position_entry/$', 'faculty.views.assign_position_entry'),
+    url(r'^positions/(?P<position_id>\d+)/assign_position_person/$', 'faculty.views.assign_position_person'),
+    url(r'^positions/(?P<position_id>\d+)/assign_position_futureperson/$', 'faculty.views.assign_position_futureperson'),
+    url(r'^positions/(?P<position_id>\d+)/add_position_credentials/$', 'faculty.views.position_add_credentials'),
+    url(r'^positions/(?P<position_id>\d+)/yellow1/$', 'faculty.views.position_get_yellow_form_tenure'),
+    url(r'^positions/(?P<position_id>\d+)/yellow2/$', 'faculty.views.position_get_yellow_form_limited'),
+
+
+    # Future Person Management
+    url(r'^(?P<futureperson_id>\d+)/edit_futureperson/$', 'faculty.views.edit_futureperson'),
+    url(r'^(?P<futureperson_id>\d+)/view_futureperson/$', 'faculty.views.view_futureperson'),
+    url(r'^(?P<futureperson_id>\d+)/delete_futureperson/$', 'faculty.views.delete_futureperson')
 ]

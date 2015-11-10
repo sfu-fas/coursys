@@ -92,6 +92,8 @@ class Person(models.Model, ConditionalSaveMixin):
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
     _, set_title = getter_setter('title')
+    # Added for consistency with FuturePerson instead of manually having to probe the config
+    birthdate, _ = getter_setter('birthdate')
 
 
     @staticmethod
@@ -184,6 +186,99 @@ class Person(models.Model, ConditionalSaveMixin):
     @staticmethod
     def next_available_temp_userid():
         return "tmp-"+str(Person.next_available_temp_emplid())[5:]
+
+
+class FuturePersonManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
+class FuturePerson(models.Model):
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
+    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=4, null=True, blank=True)
+    hidden = models.BooleanField(default=False, editable=False)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
+
+    defaults = {'email': None, 'birthdate': None, 'gender': 'U', 'sin': '000000000'}
+
+    sin, set_sin = getter_setter('sin')
+    email, set_email = getter_setter('email')
+    gender, set_gender = getter_setter('gender')
+    birthdate, set_birthdate = getter_setter('birthdate')
+    # Something to mark if a FuturePerson's position has been assigned to a real Faculty Member
+    _, set_assigned = getter_setter('assigned')
+
+    objects = FuturePersonManager()
+
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
+    def sortname(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    class Meta:
+        verbose_name_plural = "FuturePeople"
+
+    def hide(self):
+        self.hidden = True
+
+    def get_position_name(self):
+        """
+        Each FuturePerson should have at most one Position they are assigned to, and this will return that position's
+        name, if it exists.
+        """
+        from faculty.models import Position
+
+        # Each FuturePerson should be assigned to at most one AnyPerson...
+        ap = AnyPerson.objects.filter(future_person=self).first()
+        position = Position.objects.filter(any_person=ap).first()
+        if position:
+            return position.title or ''
+        else:
+            return ''
+
+    def assigned(self):
+        if self.config.get('assigned'):
+            return True
+        else:
+            return False
+
+
+class RoleAccount(models.Model):
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
+    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=4, null=True, blank=True)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True, unique=True,
+                              verbose_name="User ID",
+        help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
+
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
+
+class AnyPerson(models.Model):
+    person = models.ForeignKey(Person, null=True)
+    future_person = models.ForeignKey(FuturePerson, null=True)
+    role_account = models.ForeignKey(RoleAccount, null=True)
+
+    def get_person(self):
+        return self.person or self.role_account or self.future_person
+
+    def __unicode__(self):
+        return self.get_person().name()
 
 
 class Semester(models.Model):

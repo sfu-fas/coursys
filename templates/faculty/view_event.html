@@ -54,14 +54,15 @@
 <p class="empty">You cannot change the status of this event (as {{ user }})</p>
 {% endif %}
 
-{% with attachments=event.attachments.all %}
+{% with attachments=event.attachments.visible %}
 {% if attachments %}
 <h2 id="attachments">Attachments</h2>
 <ul>
 {% for a in attachments %}
 <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
   <a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
-  <a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a>
+  <a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a> |
+  <a href="{% url 'faculty.views.delete_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug  %}">Delete</a>
 </li>
 {% endfor %}
 </ul>
@@ -77,7 +78,8 @@
   ({{ l.sent_date }} from: {{ l.from_lines }})
   <a href="{% url 'faculty.views.get_memo_pdf' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
   <a href="{% url 'faculty.views.view_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a> |
-  <a href="{% url 'faculty.views.manage_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a>
+  <a href="{% url 'faculty.views.manage_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a> |
+  <a href="{% url 'faculty.views.delete_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Delete</a>
 {% if l.hidden %}</del>{% endif %}</li>
 {% endfor %}
 </ul>

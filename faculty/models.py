@@ -15,7 +15,7 @@ from autoslug import AutoSlugField
 from bitfield import BitField
 from courselib.json_fields import JSONField
 
-from coredata.models import Unit, Person, Semester, Role
+from coredata.models import Unit, Person, Semester, Role, AnyPerson
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
@@ -383,6 +383,12 @@ def attachment_upload_to(instance, filename):
     return fullpath
 
 
+class DocumentAttachmentManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
 class DocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
@@ -394,6 +400,9 @@ class DocumentAttachment(models.Model):
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = DocumentAttachmentManager()
 
     def __unicode__(self):
         return self.contents.name
@@ -404,6 +413,10 @@ class DocumentAttachment(models.Model):
 
     def contents_filename(self):
         return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
 
 class MemoTemplate(models.Model):
@@ -478,7 +491,11 @@ class Memo(models.Model):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('career_event',))
 
     def __unicode__(self):
-        return u"%s memo for %s" % (self.template.label, self.career_event)
+        return u"%s memo for %s" % (self.subject, self.career_event)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
@@ -745,19 +762,32 @@ class Position(models.Model):
     title = models.CharField(max_length=100)
     projected_start_date = models.DateField('Projected Start Date', default=timezone_today)
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    position_number = models.CharField(max_length=8, )
-    rank = models.CharField(choices=RANK_CHOICES, max_length=50)
-    step = models.DecimalField(max_digits=2, decimal_places=0)
-    base_salary = models.DecimalField(decimal_places=2, max_digits=10)
-    add_salary = models.DecimalField(decimal_places=2, max_digits=10)
-    add_pay = models.DecimalField(decimal_places=2, max_digits=10)
+    position_number = models.CharField(max_length=8)
+    rank = models.CharField(choices=RANK_CHOICES, max_length=50, null=True, blank=True)
+    step = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    base_salary = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+    add_salary = models.DecimalField(decimal_places=2, max_digits=10,  null=True, blank=True)
+    add_pay = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
+    any_person = models.ForeignKey(AnyPerson, null=True, blank=True)
+    degree1 = models.CharField(max_length=12, default='')
+    year1 = models.CharField(max_length=5, default='')
+    institution1 = models.CharField(max_length=25, default='')
+    location1 = models.CharField(max_length=23, default='')
+    degree2 = models.CharField(max_length=12, default='')
+    year2 = models.CharField(max_length=5, default='')
+    institution2 = models.CharField(max_length=25, default='')
+    location2 = models.CharField(max_length=23, default='')
+    degree3 = models.CharField(max_length=12, default='')
+    year3 = models.CharField(max_length=5, default='')
+    institution3 = models.CharField(max_length=25, default='')
+    location3 = models.CharField(max_length=23, default='')
 
     objects = PositionManager()
 
     def __unicode__(self):
-        return "%s, %s" % (self.title, self.projected_start_date)
+        return "%s - %s" % (self.position_number, self.title)
 
     def hide(self):
         self.hidden = True
@@ -766,8 +796,22 @@ class Position(models.Model):
         ordering = ('projected_start_date', 'title')
 
     def get_load_display(self):
+        """
+        Called if you're going to insert this in another AnnualTeachingCreditField,
+        like when we populate the onboarding wizard with this value.
+        """
         if 'teaching_load' in self.config:
             return unicode(Fraction(self.config['teaching_load']))
+
+        else:
+            return 0
+
+    def get_load_display_corrected(self):
+        """
+        Called if you're purely going to display the value, as when displaying the contents of the position.
+        """
+        if 'teaching_load' in self.config:
+            return unicode(Fraction(self.config['teaching_load'])*3)
 
         else:
             return 0

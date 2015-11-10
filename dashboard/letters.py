@@ -17,9 +17,10 @@ from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from coredata.models import Role
 from django.conf import settings
-import os, datetime
+import os
+import datetime
 from dashboard.models import Signature
-from coredata.models import Semester
+from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
 
 
@@ -2224,13 +2225,8 @@ class YellowForm(object):
 
 class YellowFormTenure(YellowForm):
 
-    def draw_form(self, careerevent):
+    def draw_form(self, data):
 
-        # We have to put this import here to avoid a circular import problem.
-        # This is horrible, but the best solution without refactoring everything.
-        from faculty.models import FacultyMemberInfo, CareerEvent
-        event = careerevent.event
-        person = event.person
         x_origin=15*mm
         y_origin=12*mm
         x_max=190
@@ -2251,11 +2247,11 @@ class YellowFormTenure(YellowForm):
         self.label(81, 235, 'Given:')
         self.label(144, 235, 'Preferred:')
         self.hline(16, 71, 234.5)
-        self.label_filled(17, 235, person.last_name)
+        self.label_filled(17, 235, data.get('last_name'))
         self.hline(90, 139, 234.5)
-        self.label_filled(91, 235, person.first_name)
+        self.label_filled(91, 235, data.get('first_name'))
         self.hline(158, x_max, 234.5)
-        self.label_filled(159, 235, person.pref_first_name)
+        self.label_filled(159, 235, data.get('pref_first_name'))
         self.label(0, 227, 'Canadian SIN:')
         self.label(81, 227, 'Date of Birth: ')
         self.label(102, 227, 'Yr')
@@ -2270,21 +2266,19 @@ class YellowFormTenure(YellowForm):
         self.hline(124, 133, 226.5)
         self.hline(140, 147, 226.5)
         # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
-        sin = person.sin()
+        sin = data.get('sin')
         if len(sin) == 9:
             self.label_filled(24, 227, sin[0:3])
             self.label_filled(32.5, 227, sin[3:6])
             self.label_filled(40.5, 227, sin[6:9])
         # See if we have a FacultyMemberInfo record for this person so we may have a birthdate.
-        if(FacultyMemberInfo.objects.filter(person=person)).exists():
-            f = FacultyMemberInfo.objects.get(person=person)
-            dob = f.birthday
-            if dob:
-                self.label_filled(108, 227, str(dob.year))
-                self.label_filled(127, 227, str(dob.month))
-                self.label_filled(143, 227, str(dob.day))
-        self.checkbox(169, 226, person.gender()=='M')
-        self.checkbox(180, 226, person.gender()=='F')
+        dob = data.get('dob')
+        if dob:
+            self.label_filled(108, 227, str(dob.year))
+            self.label_filled(127, 227, str(dob.month))
+            self.label_filled(143, 227, str(dob.day))
+        self.checkbox(169, 226, data.get('gender') == 'M')
+        self.checkbox(180, 226, data.get('gender') == 'F')
         self.label(0, 219.5, 'Is the Candidate a Canadian Citizen or Permanent Resident?')
         self.label(95, 219.5, 'Yes')
         self.label(111, 219.5, 'No')
@@ -2317,17 +2311,13 @@ class YellowFormTenure(YellowForm):
         self.label(157, 182, 'No')
         self.label(170, 182, 'by')
         self.hline(2, 23.5, 181.5)
-        if 'degree1' in event.config:
-            self.label_filled_centred(12.5, 182, event.config.get('degree1'))
+        self.label_filled_centred(12.5, 182, data.get('degree1'))
         self.hline(25, 47.5, 181.5)
-        if 'year1' in event.config:
-            self.label_filled_centred(36, 182, event.config.get('year1'))
+        self.label_filled_centred(36, 182, data.get('year1'))
         self.hline(49, 145, 181.5)
-        if 'institution1' in event.config:
-            self.label_filled(49, 182, event.config.get('institution1'))
+        self.label_filled(49, 182, data.get('institution1'))
         self.hline(174, 187, 181.5)
-        if 'location1' in event.config:
-            self.label_filled(100, 182, event.config.get('location1'))
+        self.label_filled(100, 182, data.get('location1'))
         self.subscript_tiny_label(9.5, 180, '(Highest)')
         self.checkbox(153.5, 181.5)
         self.checkbox(162.5, 181.5)
@@ -2338,14 +2328,10 @@ class YellowFormTenure(YellowForm):
         self.hline(25, 47.5, 176)
         self.hline(49, 145, 176)
         self.hline(174, 187, 176)
-        if 'degree2' in event.config:
-            self.label_filled_centred(12.5, 176.5, event.config.get('degree2'))
-        if 'year2' in event.config:
-            self.label_filled_centred(36, 176.5, event.config.get('year2'))
-        if 'institution2' in event.config:
-            self.label_filled(49, 176.5, event.config.get('institution2'))
-        if 'location2' in event.config:
-            self.label_filled(100, 176.5, event.config.get('location2'))
+        self.label_filled_centred(12.5, 176.5, data.get('degree2'))
+        self.label_filled_centred(36, 176.5, data.get('year2'))
+        self.label_filled(49, 176.5, data.get('institution2'))
+        self.label_filled(100, 176.5, data.get('location2'))
         self.checkbox(153.5, 176)
         self.checkbox(162.5, 176)
         self.label(147, 171, 'Yes')
@@ -2355,14 +2341,10 @@ class YellowFormTenure(YellowForm):
         self.hline(25, 47.5, 170.5)
         self.hline(49, 145, 170.5)
         self.hline(174, 187, 170.5)
-        if 'degree3' in event.config:
-            self.label_filled_centred(12.5, 171, event.config.get('degree3'))
-        if 'year3' in event.config:
-            self.label_filled_centred(36, 171, event.config.get('year3'))
-        if 'institution3' in event.config:
-            self.label_filled(49, 171, event.config.get('institution3'))
-        if 'location3' in event.config:
-            self.label_filled(100, 171, event.config.get('location3'))
+        self.label_filled_centred(12.5, 171, data.get('degree3'))
+        self.label_filled_centred(36, 171, data.get('year3'))
+        self.label_filled(49, 171, data.get('institution3'))
+        self.label_filled(100, 171, data.get('location3'))
         self.checkbox(153.5, 170.5)
         self.checkbox(162.5, 170.5)
         self.c.rect(0*mm, 168*mm, 190*mm, 29*mm)
@@ -2402,7 +2384,7 @@ class YellowFormTenure(YellowForm):
         self.label(106, 122, 'Dept):')
         self.subscript_tiny_label(103.7, 123.6, 'nd')
         self.hline(24, 98, 121.5)
-        self.label_filled(25, 122, event.unit.informal_name())
+        self.label_filled(25, 122, data.get('unit'))
         self.hline(114, x_max, 121.5)
         self.label_mid(114, 118, 'If start date is not September 1')
         self.label_mid(153.5, 118, ', which year will be')
@@ -2423,14 +2405,16 @@ class YellowFormTenure(YellowForm):
         self.hline(106, 114, 115)
         self.hline(180, x_max, 115)
         # Let's add the start and end dates if we have any
-        if event.start_date:
-            self.label_filled(23.5, 115.5, str(event.start_date.year))
-            self.label_filled(38.5, 115.5, str(event.start_date.month))
-            self.label_filled(51, 115.5, str(event.start_date.day))
-        if event.end_date:
-            self.label_filled(80.5, 115.5, str(event.end_date.year))
-            self.label_filled(95, 115.5, str(event.end_date.month))
-            self.label_filled(108, 115.5, str(event.end_date.day))
+        start_date = data.get('start_date')
+        if start_date:
+            self.label_filled(23.5, 115.5, str(start_date.year))
+            self.label_filled(38.5, 115.5, str(start_date.month))
+            self.label_filled(51, 115.5, str(start_date.day))
+        end_date = data.get('end_date')
+        if end_date:
+            self.label_filled(80.5, 115.5, str(end_date.year))
+            self.label_filled(95, 115.5, str(end_date.month))
+            self.label_filled(108, 115.5, str(end_date.day))
         self.label(0, 107.5, 'Full-Time')
         self.label(20, 107.5, 'Part-time')
         self.label(52.5, 107.5, '%')
@@ -2452,7 +2436,7 @@ class YellowFormTenure(YellowForm):
         self.hline(150, 161, 103.5)
         self.hline(172.5, 183.5, 103.5)
         self.label_filled(174, 107.5, '100')
-        self.label_filled(150.5, 107.5, event.config.get('position_number'))
+        self.label_filled(150.5, 107.5, data.get('position_number'))
 
         self.label(0, 100, 'Rank:')
         self.label(66, 100, 'Step:')
@@ -2463,20 +2447,13 @@ class YellowFormTenure(YellowForm):
         self.hline(99.5, 130, 99.5)
         self.hline(148, 182, 99.5)
 
-        # Let's get the current salary event(s) for this person so we can get the rank and step
-        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY', unit=event.unit).effective_now()
-        if salaries:
-            # There should only be one of these effective in this unit, but just in case
-            s = salaries[0]
-            self.label_filled(9.5, 100, s.get_handler().get_rank_display())
-            self.label_filled(74, 100, s.config.get('step'))
+        if data.get('rank'):
+            self.label_filled(9.5, 100, data.get('rank'))
+        if data.get('step'):
+            self.label_filled_centred(76.5, 100, data.get('step'))
 
-        stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=event.unit).effective_now()
-        for stipend in stipends:
-            if stipend.config.get('source') == 'MARKETDIFF':
-                self.label_filled(101, 100, stipend.config.get('amount'))
-                break
-
+        if data.get('marketdiff'):
+            self.label_filled(101, 100, data.get('marketdiff'))
 
         self.label(0, 94.5, 'Request appointment be concluded by:')
         self.label(118, 94.5, 'Number of teaching semesters credit, if any,')
@@ -2582,8 +2559,10 @@ class YellowFormTenure(YellowForm):
 
 
 def yellow_form_tenure(careerevent, outfile):
+
     doc = YellowFormTenure(outfile)
-    doc.draw_form(careerevent)
+    data = build_data_from_event(careerevent)
+    doc.draw_form(data)
     doc.save()
 
 
@@ -2592,13 +2571,8 @@ class YellowFormLimited(YellowForm):
     def checkbox(self, x, y, filled=0):
         self.c.circle(x*mm, y*mm + 1*mm, 1*mm, fill=filled)
 
-    def draw_form(self, careerevent):
+    def draw_form(self, data):
 
-        # We have to put this import here to avoid a circular import problem.
-        # This is horrible, but the best solution right now.
-        from faculty.models import FacultyMemberInfo, CareerEvent
-        event = careerevent.event
-        person = event.person
         x_origin=13*mm
         y_origin=12*mm
         x_max=191
@@ -2637,11 +2611,11 @@ class YellowFormLimited(YellowForm):
         self.label(81, 230.5, 'Given:')
         self.label(145, 230.5, 'Preferred:')
         self.hline(16, 76.5, 230)
-        self.label_filled(17, 230.5, person.last_name)
+        self.label_filled(17, 230.5, data.get('last_name'))
         self.hline(91, 140, 230)
-        self.label_filled(92, 230.5, person.first_name)
+        self.label_filled(92, 230.5, data.get('first_name'))
         self.hline(159, 191, 230)
-        self.label_filled(160, 230.5, person.pref_first_name)
+        self.label_filled(160, 230.5, data.get('pref_first_name'))
         self.label(0.5, 223, 'Canadian SIN:')
         self.label(81.5, 223, 'Date of Birth:')
         self.label(102.5, 223, 'Yr')
@@ -2659,22 +2633,19 @@ class YellowFormLimited(YellowForm):
         self.hline(124.5, 133.5, 222.5)
         self.hline(141.5, 147.5, 222.5)
         # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
-        sin = person.sin()
+        sin = data.get('sin')
         if len(sin) == 9:
             self.label_filled(26, 223.5, sin[0:3])
             self.label_filled(39, 223.5, sin[3:6])
             self.label_filled(51.5, 223.5, sin[6:9])
 
-        # See if we have a FacultyMemberInfo record for this person so we may have a birthdate.
-        if(FacultyMemberInfo.objects.filter(person=person)).exists():
-            f = FacultyMemberInfo.objects.get(person=person)
-            dob = f.birthday
-            if dob:
-                self.label_filled(109, 223, str(dob.year))
-                self.label_filled(127, 223, str(dob.month))
-                self.label_filled(143, 223, str(dob.day))
-        self.checkbox(171.5, 223, person.gender() == 'M')
-        self.checkbox(183.5, 223, person.gender() == 'F')
+        dob = data.get('dob')
+        if dob:
+            self.label_filled(109, 223, str(dob.year))
+            self.label_filled(127, 223, str(dob.month))
+            self.label_filled(143, 223, str(dob.day))
+        self.checkbox(171.5, 223, data.get('gender') == 'M')
+        self.checkbox(183.5, 223, data.get('gender') == 'F')
         self.label(0.5, 215, 'Is Candidate a Canadian Citizen or Cdn. Permanent Resident?')
         self.label(94, 215, 'Yes')
         self.label(111, 215, 'No')
@@ -2711,41 +2682,29 @@ class YellowFormLimited(YellowForm):
         self.hline(26, 48, 176)
         self.hline(49.5, 146, 176)
         self.hline(148, 189, 176)
-        if 'degree1' in event.config:
-            self.label_filled_centred(13, 176.5, event.config.get('degree1'))
-        if 'year1' in event.config:
-            self.label_filled_centred(36, 176.5, event.config.get('year1'))
-        if 'institution1' in event.config:
-            self.label_filled(49.5, 176.5, event.config.get('institution1'))
-        if 'location1' in event.config:
-            self.label_filled(101, 176.5, event.config.get('location1'))
+        self.label_filled_centred(13, 176.5, data.get('degree1'))
+        self.label_filled_centred(36, 176.5, data.get('year1'))
+        self.label_filled(49.5, 176.5, data.get('institution1'))
+        self.label_filled(101, 176.5, data.get('location1'))
         self.subscript_tiny_label(10, 174.5, '(Highest)')
         self.label(146, 171, '/')
         self.hline(2, 24, 170.5)
         self.hline(26, 48, 170.5)
         self.hline(49.5, 146, 170.5)
         self.hline(148, 189, 170.5)
-        if 'degree2' in event.config:
-            self.label_filled_centred(13, 171, event.config.get('degree2'))
-        if 'year2' in event.config:
-            self.label_filled_centred(36, 171, event.config.get('year2'))
-        if 'institution2' in event.config:
-            self.label_filled(49.5, 171, event.config.get('institution2'))
-        if 'location2' in event.config:
-            self.label_filled(101, 171, event.config.get('location2'))
+        self.label_filled_centred(13, 171, data.get('degree2'))
+        self.label_filled_centred(36, 171, data.get('year2'))
+        self.label_filled(49.5, 171, data.get('institution2'))
+        self.label_filled(101, 171, data.get('location2'))
         self.label(146, 165.5, '/')
         self.hline(2, 24, 165)
         self.hline(26, 48, 165)
         self.hline(49.5, 146, 165)
         self.hline(148, 189, 165)
-        if 'degree3' in event.config:
-            self.label_filled_centred(13, 165.5, event.config.get('degree3'))
-        if 'year3' in event.config:
-            self.label_filled_centred(36, 165.5, event.config.get('year3'))
-        if 'institution3' in event.config:
-            self.label_filled(49.5, 165.5, event.config.get('institution3'))
-        if 'location3' in event.config:
-            self.label_filled(101, 165.5, event.config.get('location3'))
+        self.label_filled_centred(13, 165.5, data.get('degree3'))
+        self.label_filled_centred(36, 165.5, data.get('year3'))
+        self.label_filled(49.5, 165.5, data.get('institution3'))
+        self.label_filled(101, 165.5, data.get('location3'))
         self.label(0.5, 156.5, 'Present position:')
         self.label(135, 156.5, 'Salary: $')
         self.hline(27, 132, 156)
@@ -2763,7 +2722,7 @@ class YellowFormLimited(YellowForm):
         self.label(110, 136, 'Dept:')
         self.subscript_tiny_label(107.7, 137.5, 'nd')
         self.hline(24, 98.5, 135.5)
-        self.label_filled(25, 136, event.unit.informal_name())
+        self.label_filled(25, 136, data.get('unit'))
         self.hline(118, 191, 135.5)
         self.label(1, 129.5, 'Start Date:')
         self.label(19.5, 129.5, 'Yr')
@@ -2780,14 +2739,16 @@ class YellowFormLimited(YellowForm):
         self.hline(94, 100.5, 129)
         self.hline(110, 118, 129)
         # Let's add the start and end dates if we have any
-        if event.start_date:
-            self.label_filled(24, 129.5, str(event.start_date.year))
-            self.label_filled(39.5, 129.5, str(event.start_date.month))
-            self.label_filled(52.5, 129.5, str(event.start_date.day))
-        if event.end_date:
-            self.label_filled(81.5, 129.5, str(event.end_date.year))
-            self.label_filled(96.5, 129.5, str(event.end_date.month))
-            self.label_filled(112.5, 129.5, str(event.end_date.day))
+        start_date = data.get('start_date')
+        if start_date:
+            self.label_filled(24, 129.5, str(start_date.year))
+            self.label_filled(39.5, 129.5, str(start_date.month))
+            self.label_filled(52.5, 129.5, str(start_date.day))
+        end_date = data.get('end_date')
+        if end_date:
+            self.label_filled(81.5, 129.5, str(end_date.year))
+            self.label_filled(96.5, 129.5, str(end_date.month))
+            self.label_filled(112.5, 129.5, str(end_date.day))
         self.label(1,121.5, 'Full-time')
         self.label(19.5, 121.5, 'Part-Time')
         self.label(53, 121.5, '%')
@@ -2801,7 +2762,7 @@ class YellowFormLimited(YellowForm):
         self.hline(43, 52.5, 121)
         self.hline(151, 191, 121)
         self.label_filled(44.5, 121.5, '100')
-        self.label_filled(152, 121.5, event.config.get('position_number'))
+        self.label_filled(152, 121.5, data.get('position_number'))
         self.label(1, 114.5, 'New Position ?')
         self.label(27.5, 114.5, 'Yes')
         self.label(45, 114.5, 'Fund')
@@ -2816,14 +2777,10 @@ class YellowFormLimited(YellowForm):
         self.label(120.5, 105.5, 'Step:')
         self.hline(10, 80, 105)
         self.hline(130.5, 191, 105)
-
-        # Let's get the current salary event(s) for this person
-        salaries = CareerEvent.objects.filter(person=person, event_type='SALARY', unit=event.unit).effective_now()
-        if salaries:
-            # There should only be one of these effective in this unit, but just in case
-            s = salaries[0]
-            self.label_filled(11, 105.5, s.get_handler().get_rank_display())
-            self.label_filled(131, 105.5, s.config.get('step'))
+        if data.get('rank'):
+            self.label_filled(11, 105.5, data.get('rank'))
+        if data.get('step'):
+            self.label_filled_centred(160, 105.5, data.get('step'))
 
         self.label(1, 100, 'Principal subject taught (see Stats Canada codes) :')
         self.subscript_label(165, 102, 'VPA USE ONLY :')
@@ -2936,5 +2893,148 @@ class YellowFormLimited(YellowForm):
 
 def yellow_form_limited(careerevent,  outfile):
     doc = YellowFormLimited(outfile)
-    doc.draw_form(careerevent)
+    data = build_data_from_event(careerevent)
+    doc.draw_form(data)
+    doc.save()
+
+
+def build_data_from_event(careerevent):
+    """
+    This builds the correct data object for our Appointment Forms (AKA Yellow Forms) to be generated if coming
+    from a careerevent.
+
+    :param CareerEvent careerevent: The event that called this generation
+    :type: CareerEvent
+    :return: a dict containing all the data necessary for the form generation
+    :rtype: dict
+    """
+    # We have to put this import here to avoid a circular import problem.
+    # This is horrible, but the best solution without refactoring everything.
+    from faculty.models import FacultyMemberInfo, CareerEvent
+    data = {}
+    event = careerevent.event
+    person = event.person
+
+    data['last_name'] = person.last_name or ''
+    data['first_name'] = person.first_name or ''
+    data['pref_first_name'] = person.pref_first_name or ''
+    data['sin'] = person.sin()
+    if(FacultyMemberInfo.objects.filter(person=person)).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            data['dob'] = dob
+    data['gender'] = person.gender() or ''
+    data['degree1'] = event.config.get('degree1') or ''
+    data['year1'] = event.config.get('year1') or ''
+    data['institution1'] = event.config.get('institution1') or ''
+    data['location1'] = event.config.get('location1') or ''
+    data['degree2'] = event.config.get('degree2') or ''
+    data['year2'] = event.config.get('year2') or ''
+    data['institution2'] = event.config.get('institution2') or ''
+    data['location2'] = event.config.get('location2') or ''
+    data['degree3'] = event.config.get('degree3') or ''
+    data['year3'] = event.config.get('year3') or ''
+    data['institution3'] = event.config.get('institution3') or ''
+    data['location3'] = event.config.get('location3') or ''
+    data['unit'] = event.unit.informal_name()
+    data['start_date'] = event.start_date
+    data['end_date'] = event.end_date
+    data['position_number'] = event.config.get('position_number') or ''
+    # Let's get the current salary event(s) for this person so we can get the rank and step
+    salaries = CareerEvent.objects.filter(person=person, event_type='SALARY', unit=event.unit).effective_now()
+    if salaries:
+        # There should only be one of these effective in this unit, but just in case
+        s = salaries[0]
+        data['rank'] = s.get_handler().get_rank_display() or ''
+        data['step'] = s.config.get('step') or ''
+
+    stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=event.unit).effective_now()
+    for stipend in stipends:
+        if stipend.config.get('source') == 'MARKETDIFF':
+            data['marketdiff'] = stipend.config.get('amount') or ''
+            break
+    return data
+
+
+def build_data_from_position(position):
+    """
+    This builds the correct data object for our Appointment Forms (AKA Yellow Forms) to be generated if coming
+    from a Position with a future candidate already set.
+
+    :param Position position: The position that called this generation
+    :type: Position
+    :return: a dict containing all the data necessary for the form generation
+    :rtype: dict
+    """
+    # We have to put this import here to avoid a circular import problem.
+    # This is horrible, but the best solution without refactoring everything.
+    from faculty.models import FacultyMemberInfo, CareerEvent
+    from faculty.event_types.career import RANK_CHOICES
+
+    data = {}
+    person = position.any_person.get_person()
+    data['last_name'] = person.last_name or ''
+    data['first_name'] = person.first_name or ''
+    data['pref_first_name'] = person.pref_first_name or ''
+    data['sin'] = person.sin()
+
+    # If this is a real Faculty member in our system, he/she may have
+    # a DOB in the FacultyMemberInfo
+    if isinstance(person, Person) and FacultyMemberInfo.objects.filter(person=person).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            data['dob'] = dob
+
+    # Otherwise, we may have it in that object's config.
+    if not data.get('dob'):
+        if person.birthdate():
+            data['dob'] = datetime.strptime(person.birthdate(), "%Y-%m-%d")
+    data['gender'] = person.gender() or ''
+    data['degree1'] = position.degree1 or ''
+    data['year1'] = position.year1 or ''
+    data['institution1'] = position.institution1 or ''
+    data['location1'] = position.location1 or ''
+    data['degree2'] = position.degree2 or ''
+    data['year2'] = position.year2 or ''
+    data['institution2'] = position.institution2 or ''
+    data['location2'] = position.location2 or ''
+    data['degree3'] = position.degree3 or ''
+    data['year3'] = position.year3 or ''
+    data['institution3'] = position.institution3 or ''
+    data['location3'] = position.location3 or ''
+    data['unit'] = position.unit.informal_name()
+    data['start_date'] = position.projected_start_date
+    data['end_date'] = ''
+    data['position_number'] = position.position_number
+    data['rank'] = RANK_CHOICES.get(position.rank, '')
+    if position.step:
+        data['step'] = str(position.step)
+    else:
+        data['step'] = ''
+
+    # For now, we store marketdiffs only for real faculty members, but let's add this here in case.  Either way, if we
+    # call this method from a position where the FuturePerson is now a real Faculty Member, this should still work.
+
+    if isinstance(person, Person):
+        stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=position.unit).effective_now()
+        for stipend in stipends:
+            if stipend.config.get('source') == 'MARKETDIFF':
+                data['marketdiff'] = stipend.config.get('amount') or ''
+                break
+
+    return data
+
+
+def position_yellow_form_limited(position,  outfile):
+    doc = YellowFormLimited(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
+    doc.save()
+
+
+def position_yellow_form_tenure(position, outfile):
+
+    doc = YellowFormTenure(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
     doc.save()

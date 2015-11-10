@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Edit Future Person{% endblock %}
+{% block h1 %}Edit Future Person{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "faculty.views.index" %}">Faculty Management</a></li>
+<li>Edit Person</li>
+{% endblock %}
+
+
+{% block content %}
+<form action="{% url "faculty.views.edit_futureperson" futureperson_id=fp.id%}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Person" />
+    </p>
+</form>
+{% endblock %}

@@ -26,7 +26,7 @@ from django.template.base import Template
 from django.template.context import Context
 from courselib.search import find_userid_or_emplid
 
-from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester
+from coredata.models import Person, Unit, Role, Member, CourseOffering, Semester, FuturePerson
 from grad.models import Supervisor
 from ra.models import RAAppointment
 
@@ -36,7 +36,7 @@ from faculty.models import EVENT_TYPES, EVENT_TYPE_CHOICES, EVENT_TAGS, ADD_TAGS
 from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, AttachmentForm, TextAttachmentForm, \
     ApprovalForm, GetSalaryForm, TeachingSummaryForm, DateRangeForm
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
-    NewRoleForm, PositionForm, PositionPickerForm
+    NewRoleForm, PositionForm, PositionPickerForm, PositionPersonForm, FuturePersonForm, PositionCredentialsForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
 from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
 from faculty.processing import FacultySummary
@@ -45,7 +45,8 @@ from faculty.util import ReportingSemester, make_csv_writer_response
 from faculty.event_types.choices import Choices
 from faculty.event_types.career import AccreditationFlagEventHandler
 from faculty.event_types.career import SalaryBaseEventHandler
-
+from coredata.models import AnyPerson
+from dashboard.letters import position_yellow_form_limited, position_yellow_form_tenure
 from log.models import LogEntry
 
 
@@ -113,12 +114,15 @@ def index(request):
     events = [h for h in events if h.can_approve(editor)]
     filterform = UnitFilterForm(sub_units)
 
+    future_people = FuturePerson.objects.visible()
+
     context = {
         'fac_roles': fac_roles,
         'fac_roles_gone': fac_roles_gone,
         'queued_events': len(events),
         'filterform': filterform,
-        'viewvisas': request.GET.get('viewvisas', False)
+        'viewvisas': request.GET.get('viewvisas', False),
+        'future_people': future_people
     }
     return render(request, 'faculty/index.html', context)
 
@@ -745,8 +749,7 @@ def new_position(request):
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             position = form.save(commit=False)
-            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
-                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
+            position.config['teaching_load'] = str(form.cleaned_data.get('teaching_load'))
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -767,14 +770,29 @@ def new_position(request):
     return render(request, 'faculty/new_position.html', {'form': form})
 
 @requires_role('ADMN')
+def view_position(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    can_wizard = False
+    # Let's first see if we have a real person for this position
+    if position.any_person and position.any_person.person:
+        person = position.any_person.get_person()
+        # Then, let's see if they are a faculty member in the same unit
+        if Role.objects.filter(role='FAC', unit=position.unit, person=person).exists():
+            # Finally, see if they are allowed to reach the wizard, same way we do in the regular view for a
+            # faculty member
+            career_events = CareerEvent.objects.not_deleted().filter(person=person, unit=position.unit)
+            can_wizard = not career_events.exclude(event_type='GRANTAPP').exists()
+
+    return render(request, 'faculty/view_position.html', {'position': position, 'can_wizard': can_wizard})
+
+@requires_role('ADMN')
 def edit_position(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     if request.method == 'POST':
         form = PositionForm(request.POST, instance=position)
         if form.is_valid():
             position = form.save(commit=False)
-            if 'teaching_load' in request.POST and request.POST['teaching_load'] is not None:
-                position.config['teaching_load'] = str(form.fields['teaching_load'].clean(request.POST['teaching_load']))
+            position.config['teaching_load'] = str(form.cleaned_data.get('teaching_load'))
             position.save()
             messages.add_message(request,
                                  messages.SUCCESS,
@@ -809,6 +827,167 @@ def list_positions(request):
     positions = Position.objects.visible_by_unit(sub_units)
     context = {'positions': positions}
     return render(request, 'faculty/view_positions.html', context)
+
+
+@requires_role('ADMN')
+def assign_position_entry(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    return render(request, 'faculty/assign_position_entry.html', {'position': position})
+
+
+@requires_role('ADMN')
+def assign_position_person(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    if request.method == 'POST':
+        form = PositionPersonForm(request.POST)
+        if form.is_valid():
+            if 'person' in request.POST and request.POST['person'] is not None:
+                person = form.cleaned_data['person']
+                if AnyPerson.objects.filter(person=person).first():
+                    any_person = AnyPerson.objects.filter(person=person).first()
+                    position.any_person = any_person
+
+                else:
+                    a = AnyPerson(person=person)
+                    a.save()
+                    position.any_person=a
+                position.save()
+                # Let's see if this person already has a faculty role for this unit, otherwise, add it:
+                if not Role.objects.filter(role='FAC', unit=position.unit, person=person).exists():
+                    new_role = Role(role='FAC', unit=position.unit, person=person)
+                    new_role.save()
+                    messages.add_message(request, messages.SUCCESS, u'Added faculty role for %s' % person)
+                messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully assigned person to position.'
+                                 )
+                l = LogEntry(userid=request.user.username,
+                             description="Edited position: %s" % position,
+                             related_object=position
+                             )
+                l.save()
+
+                return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+
+    else:
+        form = PositionPersonForm()
+    return render(request, 'faculty/assign_position_person.html', {'form': form, 'position_id': position_id})
+
+@requires_role('ADMN')
+def position_add_credentials(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    if request.method == 'POST':
+        form = PositionCredentialsForm(request.POST, instance=position)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully added credentials to position.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Added credentials for position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+    else:
+        form = PositionCredentialsForm(instance=position)
+    return render(request, 'faculty/add_position_credentials.html', {'form': form, 'position': position})
+
+
+@requires_role('ADMN')
+def assign_position_futureperson(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    if request.method == 'POST':
+        form = FuturePersonForm(request.POST)
+        if form.is_valid():
+            new_future_person = form.save(commit=False)
+            new_future_person.set_email(form.cleaned_data.get('email'))
+            new_future_person.set_gender(form.cleaned_data.get('gender'))
+            new_future_person.set_sin(form.cleaned_data.get('sin'))
+            new_future_person.set_birthdate(form.cleaned_data.get('birthdate'))
+            new_future_person.save()
+            a = AnyPerson(future_person=new_future_person)
+            a.save()
+            position.any_person = a
+            position.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully assigned person to position.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Edited position: %s" % position,
+                         related_object=position
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse('faculty.views.list_positions'))
+    else:
+        form = FuturePersonForm()
+    return render(request, 'faculty/assign_position_futureperson.html', {'form': form, 'position_id': position_id})
+
+
+def position_get_yellow_form_tenure(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="yellowform.pdf"'
+    position_yellow_form_tenure(position, response)
+    return response
+
+
+def position_get_yellow_form_limited(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="yellowform.pdf"'
+    position_yellow_form_limited(position, response)
+    return response
+
+@requires_role('ADMN')
+def view_futureperson(request, futureperson_id):
+    fp = get_object_or_404(FuturePerson, pk=futureperson_id)
+    return render(request, 'faculty/view_future_person.html', {'fp': fp})
+
+
+
+@requires_role('ADMN')
+def edit_futureperson(request, futureperson_id):
+    fp = get_object_or_404(FuturePerson, pk=futureperson_id)
+    if request.method == 'POST':
+        form = FuturePersonForm(request.POST, instance=fp)
+        if form.is_valid():
+            future_person = form.save(commit=False)
+            future_person.set_email(form.cleaned_data.get('email'))
+            future_person.set_gender(form.cleaned_data.get('gender'))
+            future_person.set_sin(form.cleaned_data.get('sin'))
+            future_person.set_birthdate(form.cleaned_data.get('birthdate'))
+            future_person.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Successfully edited faculty member.'
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Edited future person: %s" % future_person,
+                         related_object=fp
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse('faculty.views.index'))
+    else:
+        form = FuturePersonForm(instance=fp)
+        form.fields['sin'].initial = fp.sin()
+        form.fields['email'].initial = fp.email()
+        form.fields['gender'].initial = fp.gender()
+        form.fields['birthdate'].initial = fp.birthdate()
+    return render(request, 'faculty/edit_future_person.html', {'form': form, 'fp': fp})
+
+
+@requires_role('ADMN')
+def delete_futureperson(request, futureperson_id):
+    fp = get_object_or_404(FuturePerson, pk=futureperson_id)
+    fp.hide()
+    fp.save()
+    messages.add_message(request, messages.SUCCESS, u'Succesfully hid future person.')
+    l = LogEntry(userid=request.user.username, description="Hid future person %s" % fp, related_object=fp)
+    l.save()
+    return HttpResponseRedirect(reverse(index))
 
 ###############################################################################
 # Display/summary views for a faculty member
@@ -1469,6 +1648,7 @@ def faculty_wizard(request, userid, position=None):
         'editor': editor,
         'handler': Handler_appoint,
         'name': Handler_appoint.NAME,
+        'position': position
     }
 
     if request.method == "POST":
@@ -1507,6 +1687,17 @@ def faculty_wizard(request, userid, position=None):
             handler_load.event.unit = handler_appoint.event.unit
             handler_load.save(editor)
             handler_load.set_status(editor)
+            # Get the future faculty member from the position and set the flag that says this person's position
+            # has been assigned to a real faculty member, meaning we most likely can delete this individual.
+            if position:
+                position = get_object_or_404(Position, pk=position)
+                a = position.any_person
+                a.person = person
+                a.save()
+                if a.future_person:
+                    f = a.future_person
+                    f.set_assigned(True)
+                    f.save()
             return HttpResponseRedirect(reverse(summary, kwargs={'userid':userid}))
         else:
             form_list = [form_appoint, form_salary, form_load]
@@ -1529,6 +1720,18 @@ def faculty_wizard(request, userid, position=None):
             form_appoint.fields['start_date'].initial = position.projected_start_date
             form_appoint.fields['unit'].initial = position.unit
             form_appoint.fields['position_number'].initial = position.position_number
+            form_appoint.fields['degree1'].initial = position.degree1
+            form_appoint.fields['year1'].initial = position.year1
+            form_appoint.fields['location1'].initial = position.location1
+            form_appoint.fields['institution1'].initial = position.institution1
+            form_appoint.fields['degree2'].initial = position.degree2
+            form_appoint.fields['year2'].initial = position.year2
+            form_appoint.fields['location2'].initial = position.location2
+            form_appoint.fields['institution2'].initial = position.institution2
+            form_appoint.fields['degree3'].initial = position.degree3
+            form_appoint.fields['year3'].initial = position.year3
+            form_appoint.fields['location3'].initial = position.location3
+            form_appoint.fields['institution3'].initial = position.institution3
             form_salary.fields['rank'].initial = position.rank
             form_salary.fields['step'].initial = position.step
             form_salary.fields['base_salary'].initial = position.base_salary
@@ -1661,6 +1864,22 @@ def download_attachment(request, userid, event_slug, attach_slug):
     resp['Content-Length'] = attachment.contents.size
     return resp
 
+@requires_role('ADMN')
+def delete_attachment(request, userid, event_slug, attach_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    event = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    viewer = get_object_or_404(Person, userid=request.user.username)
+
+    attachment = get_object_or_404(event.attachments.all(), slug=attach_slug)
+
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(event.get_absolute_url())
 
 ###############################################################################
 # Configuring event types, and managing memo templates
@@ -1984,6 +2203,23 @@ def view_memo(request, userid, event_slug, memo_slug):
                'person': person,
                }
     return render(request, 'faculty/view_memo.html', context)
+
+@requires_role('ADMN')
+def delete_memo(request, userid, event_slug, memo_slug):
+    person, member_units = _get_faculty_or_404(request.units, userid)
+    instance = _get_event_or_404(units=request.units, slug=event_slug, person=person)
+    memo = get_object_or_404(Memo, slug=memo_slug, career_event=instance)
+
+    memo.hide()
+
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Memo deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid memo %s" % memo, related_object=memo)
+    l.save()
+    return HttpResponseRedirect(instance.get_absolute_url())
+
 
 
 ###############################################################################

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+{% load humanize %}
+
+{% block title %}{{ position.title }}{% endblock %}
+{% block h1 %}{{ position.title }}{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'faculty.views.index' %}">Faculty Management</a></li>
+<li><a href="{% url 'faculty.views.list_positions' %}">Positions</a></li>
+<li>{{ position.title }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2>Actions</h2>
+  <ul>
+      <li><a href = {% url "faculty.views.edit_position" position_id=position.id %}>Edit Position</a></li>
+      <li><a href = {% url 'faculty.views.assign_position_entry' position_id=position.id %}>
+          {% if position.any_person %}Change Candidate for this Position
+          {% else %}Assign candidate to this position
+          {% endif %}</a>
+      </li>
+      {% if position.any_person %}
+          <li><a href={% url 'faculty.views.position_add_credentials' position_id=position.id %}>Add/Edit Credentials</a></li>
+          <li><a href={% url 'faculty.views.position_get_yellow_form_tenure' position_id=position.id %}>Generate Yellow Form for Tenure</a></li>
+          <li><a href={% url 'faculty.views.position_get_yellow_form_limited' position_id=position.id %}>Generate Yellow Form for Limited Term</a></li>
+          {% if can_wizard %}
+            <li><a href="{% url 'faculty.views.faculty_wizard' userid=position.any_person.get_person.userid_or_emplid position=position.id %}"><i class="fa fa-li fa-magic"></i> Faculty Setup Wizard</a></li>
+          {% endif %}
+      {% endif %}
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+    <dt>Title</dt><dd>{{ position.title }}</dd>
+    <dt>Projected start date</dt><dd>{{ position.projected_start_date }}</dd>
+    <dt>Unit</dt><dd>{{ position.unit }}</dd>
+    <dt>Position</dt><dd>{{ position.position_number }}</dd>
+    <dt>Rank</dt><dd>{{ position.rank }}</dd>
+    <dt>Step</dt><dd>{{ position.step }}</dd>
+    <dt>Base salary</dt><dd>${{ position.base_salary|intcomma }}</dd>
+    <dt>Add salary</dt><dd>${{ position.add_salary|intcomma }}</dd>
+    <dt>Add pay</dt><dd>${{ position.add_pay|intcomma }}</dd>
+    <dt>Teaching load</dt><dd>{{ position.get_load_display_corrected }}</dd>
+    {% if position.any_person %}
+        <dt>Candidate</dt><dd>{{ position.any_person.get_person }}</dd>
+    {% endif %}
+{% endblock %}
