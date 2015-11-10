@@ -391,7 +391,7 @@ def _fallout_report_data(request, start_date, end_date):
     for role in fac_roles:
         unit = role.unit
         p = role.person
-        salary = FacultySummary(p).base_salary(end_date, units=[unit])
+        salary = FacultySummary(p).salary(end_date, units=[unit])
         salary_events = CareerEvent.objects.approved().overlaps_daterange(start_date, end_date) \
             .filter(person=p, unit=unit, flags=CareerEvent.flags.affects_salary)
         for event in salary_events:
@@ -403,7 +403,7 @@ def _fallout_report_data(request, start_date, end_date):
                 fallout = Decimal((salary - salary*n/d)*days/365).quantize(Decimal('.01'), rounding=ROUND_DOWN)
                 tot_fallout += fallout
 
-                table += [(unit.label, p, event, days, salary, fraction, fallout)]
+                table += [(unit.label, p, event, event.start_date, event.end_date, days, salary, fraction, fallout)]
     return table
 
 
@@ -429,17 +429,21 @@ def fallout_report_csv(request):
         'Unit',
         'Name',
         'Event',
+        'Start',
+        'End',
         'Days',
-        'Base',
+        'Salary',
         'Fraction',
         'Fallout'
     ])
 
-    for units, p, event, days, salary, fraction, fallout in _fallout_report_data(request, start_date, end_date):
+    for units, p, event, start, end, days, salary, fraction, fallout in _fallout_report_data(request, start_date, end_date):
         csv.writerow([
             units,
             p.name(),
             event.get_handler().short_summary(),
+            start,
+            end,
             days,
             salary,
             _csvfrac(fraction),
