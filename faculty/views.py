@@ -38,7 +38,7 @@ from faculty.forms import MemoTemplateForm, MemoForm, MemoFormWithUnit, Attachme
 from faculty.forms import SearchForm, EventFilterForm, GrantForm, GrantImportForm, UnitFilterForm, \
     NewRoleForm, PositionForm, PositionPickerForm, PositionPersonForm, FuturePersonForm, PositionCredentialsForm
 from faculty.forms import AvailableCapacityForm, CourseAccreditationForm
-from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm
+from faculty.forms import FacultyMemberInfoForm, TeachingCreditOverrideForm, PositionAttachmentForm
 from faculty.processing import FacultySummary
 from templatetags.event_display import fraction_display
 from faculty.util import ReportingSemester, make_csv_writer_response
@@ -1885,8 +1885,55 @@ def delete_attachment(request, userid, event_slug, attach_slug):
     l.save()
     return HttpResponseRedirect(event.get_absolute_url())
 
+
+@requires_role('ADMN')
+@transaction.atomic
+def new_position_attachment(request, position_id):
+    position = get_object_or_404(Position, pk=position_id)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = AttachmentForm()
+    context = {"position": position,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = PositionAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.position = position
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse(view_position, kwargs={'position_id':position.id}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'faculty/position_document_attachment_form.html', context)
+
+
+@requires_role('ADMN')
+def delete_position_attachment(request, position_id, attach_slug):
+    person = get_object_or_404(Person, userid=request.user.username)
+    position = get_object_or_404(Position, pk=position_id)
+
+    attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
+
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse(view_position, kwargs={'position_id':position.id}))
+
 ###############################################################################
 # Configuring event types, and managing memo templates
+
 
 @requires_role('ADMN')
 def manage_event_index(request):

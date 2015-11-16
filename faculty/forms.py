@@ -9,6 +9,7 @@ from coredata.forms import PersonField
 from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
+from faculty.models import PositionDocumentAttachment
 from faculty.models import FacultyMemberInfo
 from faculty.models import Grant
 from faculty.models import Memo
@@ -86,6 +87,13 @@ class AttachmentForm(forms.ModelForm):
     class Meta:
         model = DocumentAttachment
         exclude = ("career_event", "created_by")
+
+
+class PositionAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = PositionDocumentAttachment
+        exclude = ("position", "created_by")
+
 
 class TextAttachmentForm(forms.ModelForm):
     text_contents = forms.CharField(required=True, widget=forms.Textarea(attrs={'rows': 15, 'cols': 70}))

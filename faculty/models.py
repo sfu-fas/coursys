@@ -383,6 +383,18 @@ def attachment_upload_to(instance, filename):
     return fullpath
 
 
+def position_attachment_upload_to(instance, filename):
+    """
+    callback to avoid path in the filename(that we have append folder structure to) being striped
+    """
+    fullpath = os.path.join(
+        'faculty',
+        str(instance.position.id),
+        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
+
+
 class DocumentAttachmentManager(models.Manager):
     def visible(self):
         qs = self.get_queryset()
@@ -815,3 +827,39 @@ class Position(models.Model):
 
         else:
             return 0
+
+
+class PositionDocumentAttachmentManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
+class PositionDocumentAttachment(models.Model):
+    """
+    Document attached to a CareerEvent.
+    """
+    position = models.ForeignKey(Position, null=False, blank=False, related_name="attachments")
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('position',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=position_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = PositionDocumentAttachmentManager()
+
+    def __unicode__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("position", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
