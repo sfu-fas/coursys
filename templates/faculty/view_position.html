@@ -18,6 +18,7 @@
   <h2>Actions</h2>
   <ul>
       <li><a href = {% url "faculty.views.edit_position" position_id=position.id %}>Edit Position</a></li>
+      <li><a href="{% url 'faculty.views.new_position_attachment' position_id=position.id %}">Add File Attachment</a></li>
       <li><a href = {% url 'faculty.views.assign_position_entry' position_id=position.id %}>
           {% if position.any_person %}Change Candidate for this Position
           {% else %}Assign candidate to this position
@@ -49,4 +50,21 @@
     {% if position.any_person %}
         <dt>Candidate</dt><dd>{{ position.any_person.get_person }}</dd>
     {% endif %}
+
+
+    {% with attachments=position.attachments.visible %}
+    {% if attachments %}
+    <h2 id="attachments">Attachments</h2>
+    <ul>
+    {% for a in attachments %}
+    <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
+      <a href="{% url 'faculty.views.view_position_attachment' position_id=position.id  attach_slug=a.slug %}">View</a> |
+      <a href="{% url 'faculty.views.download_position_attachment' position_id=position.id  attach_slug=a.slug %}">Download</a> |
+      <a href="{% url 'faculty.views.delete_position_attachment' position_id=position.id  attach_slug=a.slug  %}">Delete</a>
+    </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
 {% endblock %}

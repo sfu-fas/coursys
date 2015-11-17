@@ -5,6 +5,7 @@ from courselib.urlparts import USERID_OR_EMPLID, SLUG_RE, UNIT_SLUG, COURSE_SLUG
 EVENT_TYPE = '(?P<event_type>' + SLUG_RE + ')'
 EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 GRANT_SLUG = '(?P<grant_slug>' + SLUG_RE + ')'
+ATTACH_SLUG = '(?P<attach_slug>' + SLUG_RE + ')'
 
 event_patterns = [ # prefix: /faculty/USERID_OR_EMPLID/events/EVENT_SLUG/
     url(r'^$', 'faculty.views.view_event', name="faculty_event_view"),
@@ -115,6 +116,9 @@ faculty_patterns = [ # prefix: /faculty/
     url(r'^positions/(?P<position_id>\d+)/yellow1/$', 'faculty.views.position_get_yellow_form_tenure'),
     url(r'^positions/(?P<position_id>\d+)/yellow2/$', 'faculty.views.position_get_yellow_form_limited'),
     url(r'^positions/(?P<position_id>\d+)/new_attach', 'faculty.views.new_position_attachment'),
+    url(r'^positions/(?P<position_id>\d+)/' + ATTACH_SLUG + '/delete$', 'faculty.views.delete_position_attachment'),
+    url(r'^positions/(?P<position_id>\d+)/' + ATTACH_SLUG + '/view', 'faculty.views.view_position_attachment'),
+    url(r'^positions/(?P<position_id>\d+)/' + ATTACH_SLUG + '/download$', 'faculty.views.download_position_attachment'),
 
 
     # Future Person Management

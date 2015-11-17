@@ -1914,14 +1914,32 @@ def new_position_attachment(request, position_id):
 
     return render(request, 'faculty/position_document_attachment_form.html', context)
 
+@requires_role('ADMN')
+def view_position_attachment(request, position_id, attach_slug):
+    position = get_object_or_404(Position, pk=position_id)
+    attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role('ADMN')
+def download_position_attachment(request, position_id, attach_slug):
+    position = get_object_or_404(Position, pk=position_id)
+    attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
 
 @requires_role('ADMN')
 def delete_position_attachment(request, position_id, attach_slug):
-    person = get_object_or_404(Person, userid=request.user.username)
     position = get_object_or_404(Position, pk=position_id)
-
     attachment = get_object_or_404(position.attachments.all(), slug=attach_slug)
-
     attachment.hide()
     messages.add_message(request,
                          messages.SUCCESS,
