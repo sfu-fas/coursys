@@ -815,7 +815,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             other.semlength = 1
             other.semvalue = other.amount
             other.promiseeligible = other.eligible
-            semesters[sem]['other'].append(other)
+            semesters[other.semester]['other'].append(other)
             
         return semesters
     
