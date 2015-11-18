@@ -282,7 +282,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             url = settings.BASE_ABS_URL + topic.get_absolute_url()
             editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_discussion_subscription', 
                     kwargs={'course_slug': self.member.offering.slug})
-            subject = 'New disussion in %s' % (topic.offering.name())
+            subject = 'New discussion in %s' % (topic.offering.name())
             context = {'topic': topic, 'url': url, 'editurl': editurl,
                        'offering': self.member.offering, 'subject': subject,
                        'to': self.member.person, 'author': topic.author}
@@ -297,7 +297,7 @@ class DiscussionSubscription(models.Model, _DiscussionEmailMixin):
             url = settings.BASE_ABS_URL + message.get_absolute_url()
             editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_discussion_subscription',
                     kwargs={'course_slug': self.member.offering.slug})
-            subject = 'New disussion on "%s"' % (message.topic.title)
+            subject = 'New discussion on "%s"' % (message.topic.title)
             context = {'topic': message.topic, 'message': message, 'url': url, 'editurl': editurl,
                        'offering': message.topic.offering, 'subject': subject,
                        'to': self.member.person, 'author': message.author, 'topic_sub': False}
@@ -323,7 +323,7 @@ class TopicSubscription(models.Model, _DiscussionEmailMixin):
             url = settings.BASE_ABS_URL + message.get_absolute_url()
             editurl = settings.BASE_ABS_URL + reverse('discuss.views.manage_topic_subscription',
                     kwargs={'course_slug': self.member.offering.slug, 'topic_slug': self.topic.slug})
-            subject = 'New disussion on "%s"' % (message.topic.title)
+            subject = 'New discussion on "%s"' % (message.topic.title)
             context = {'topic': self.topic, 'message': message, 'url': url, 'editurl': editurl,
                        'offering': self.topic.offering, 'subject': subject,
                        'to': self.member.person, 'author': message.author, 'topic_sub': True}
