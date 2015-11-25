@@ -591,7 +591,7 @@ class TAPostingForm(forms.ModelForm):
 
 class BUForm(forms.Form):
     students = forms.IntegerField(min_value=0, max_value=1000)
-    bus = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2)
+    bus = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, widget=forms.TextInput(attrs={'class' : 'smallnumberinput'}))
 
 BUFormSet = formset_factory(BUForm, extra=10)
 LEVEL_CHOICES = (
@@ -604,9 +604,9 @@ class TAPostingBUForm(forms.Form):
     level = forms.ChoiceField(choices=LEVEL_CHOICES)
 
 class AssignBUForm(forms.Form):
-    rank = forms.IntegerField(min_value=0, label="rank")
+    rank = forms.IntegerField(min_value=0, label="rank", widget=forms.TextInput(attrs={'class': 'smallnumberinput'}))
     rank.widget.attrs['size'] = '2'
-    bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False)
+    bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False, widget=forms.TextInput(attrs={'class': 'smallnumberinput'}))
     bu.widget.attrs['class'] = u'bu_inp'
     bu.widget.attrs['size'] = '3'
 
