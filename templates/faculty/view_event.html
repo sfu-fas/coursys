@@ -44,7 +44,7 @@
 </div>
 {% if handler.EXTRA_LINKS %}
     {% for k in handler.EXTRA_LINKS %}
-    <li><a href="{% url handler.EXTRA_LINKS|get_view_from_extras:k userid=person.userid_or_emplid %}">{{ k }}</a></li>
+    <li><a href="{% url handler.EXTRA_LINKS|get_item:k userid=person.userid_or_emplid %}">{{ k }}</a></li>
     {% endfor %}
     {% endif %}
 <div class="clearfix"></div>

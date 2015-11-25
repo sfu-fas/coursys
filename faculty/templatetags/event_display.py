@@ -118,17 +118,3 @@ def get_item(dictionary, key):
     See: http://stackoverflow.com/questions/8000022/django-template-how-to-lookup-a-dictionary-value-with-a-variable
     """
     return dictionary.get(key)
-
-
-@register.filter
-def get_view_from_extras(dictionary, key):
-    val = dictionary.get(key)
-    return val[0]
-
-@register.filter
-def get_args_from_extras(dictionary, key):
-    val = dictionary.get(key)
-    if len(val) > 1:
-        return val[1]
-    else:
-        return None
