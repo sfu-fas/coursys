@@ -465,6 +465,8 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
         <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
         <dt>Teaching Load Decrease</dt><dd>{{ handler|get_display:"teaching_decrease" }}</dd>
+        <dt>Deferred Salary</dt><dd>{{ handler|get_display:"deferred_salary"|yesno }}</dd>
+        <dt>Accumulated Credits</dt><dd>{{ handler|get_display:"accumulated_credits" }}</dd>
         <dt>Study Leave Credits Spent</dt><dd>{{ handler|get_display:"study_leave_credits" }}</dd>
         <dt>Study Leave Credits Carried Forward</dt><dd>{{ handler|get_display:"credits_forward" }}</dd>
         {% endblock %}
@@ -480,6 +482,9 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
         teaching_decrease = fields.TeachingReductionField()
+        deferred_salary = forms.BooleanField(label='Deferred Salary?', initial=False, required=False)
+        accumulated_credits = forms.IntegerField(label='Accumulated Credits', min_value=0, max_value=99,
+                                                 help_text='Accumulated unused credits', required=False)
         study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99, help_text='Total number of Study Leave Credits spent for entire leave')
         credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0, max_value=10000, help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
 
@@ -510,6 +515,10 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         'study_leave_credits',
         'credits_forward'
     ]
+
+    from django.conf.urls import url
+
+    EXTRA_LINKS = {'Teaching Summary': 'faculty.views.teaching_summary'}
 
     @classmethod
     def default_title(cls):

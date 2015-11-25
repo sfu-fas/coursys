@@ -42,6 +42,11 @@
 <div class="careerevent">
 {{ handler.to_html }}
 </div>
+{% if handler.EXTRA_LINKS %}
+    {% for k in handler.EXTRA_LINKS %}
+    <li><a href="{% url handler.EXTRA_LINKS|get_item:k userid=person.userid_or_emplid %}">{{ k }}</a></li>
+    {% endfor %}
+    {% endif %}
 <div class="clearfix"></div>
 
 {% if editor|can_approve:event %}
