@@ -805,7 +805,8 @@ def assign_bus(request, post_slug, course_slug):
 
     for applicant in applicants:
         # Determine Current Grad Status
-        statuses = GradStatus.objects.filter(student__person=applicant.person, end=None, status__in=STATUS_REAL_PROGRAM).select_related('student__program__unit')
+        statuses = GradStatus.objects.filter(student__person=applicant.person, end=None, status__in=STATUS_REAL_PROGRAM) \
+                .exclude(student__current_status='DELE').select_related('student__program__unit')
         applicant.statuses = statuses # annotate the application with their current grad status(es)
         
         # Determine Campus Preference
