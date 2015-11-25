@@ -1144,7 +1144,7 @@ def teaching_summary_csv(request, userid):
         else:
             csv.writerow([
                 semester,
-                course.offering.name(),
+                "%s (%s)" % (course.offering.name(), summary),
                 _csvfrac(credits),
                 reason,
                 enrl
