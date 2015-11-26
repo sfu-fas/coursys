@@ -461,6 +461,7 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Option</dt><dd>{{ handler|get_display:"option" }} </dd>
         <dt>Pay Fraction</dt><dd>{{ handler|get_display:"pay_fraction" }}</dd>
         <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
         <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
@@ -478,6 +479,9 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             ('9/10', '90%'),
             ('1', '100%'),
         ]
+        option = forms.CharField(min_length=1, max_length=1, required=False,
+                                 help_text='The option for this study leave.  A, B, C, etc',
+                                 widget=forms.TextInput(attrs={'size': '1'}))
         pay_fraction = fields.FractionField(choices=PAY_FRACTION_CHOICES)
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
@@ -485,8 +489,11 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         deferred_salary = forms.BooleanField(label='Deferred Salary?', initial=False, required=False)
         accumulated_credits = forms.IntegerField(label='Accumulated Credits', min_value=0, max_value=99,
                                                  help_text='Accumulated unused credits', required=False)
-        study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99, help_text='Total number of Study Leave Credits spent for entire leave')
-        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0, max_value=10000, help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
+        study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99,
+                                                 help_text='Total number of Study Leave Credits spent for entire leave')
+        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0,
+                                             max_value=10000,
+                                             help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
 
         def post_init(self):
             # finding the teaching load and set the decrease to that value
