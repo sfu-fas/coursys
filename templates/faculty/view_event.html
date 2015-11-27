@@ -26,7 +26,7 @@
 
     <li class="newsec"><a href="{% url 'faculty.views.new_memo_no_template' userid=person.userid_or_emplid event_slug=event.slug %}">New Memo (no template)</a></li>
     {% for t in templates %}
-    <li><a href="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{ t.label|title }} Memo</a></li>
+    <li><a href="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{ t.label }} Memo</a></li>
     {% endfor %}
 
     {% if handler.PDFS %}
