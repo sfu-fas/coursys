@@ -62,6 +62,13 @@ class RALetterForm(forms.ModelForm):
                    'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 70}),
                    }
 
+class LetterSelectForm(forms.Form):
+    letter_choice = forms.ChoiceField(label='Select a letter', required=True, help_text='Please select the appropriate letter template for this RA.')
+
+    def __init__(self, choices=[], *args, **kwargs):
+        super(LetterSelectForm, self).__init__(*args, **kwargs)
+        self.fields["letter_choice"].choices = choices
+
 
 class StudentSelect(forms.Select):
     input_type = 'text'
@@ -89,9 +96,7 @@ class RASearchForm(forms.Form):
     search = StudentField()
 
 class RABrowseForm(forms.Form):
-    hiring_faculty = forms.ChoiceField(choices=[])
-    account = forms.ChoiceField(choices=[])
-    project = forms.ChoiceField(choices=[])
+    current = forms.BooleanField(label='Only current appointments', initial=True, help_text='Appointments active now (or within two weeks).')
 
 class AccountForm(forms.ModelForm):
     class Meta:

@@ -12,7 +12,6 @@ SECRET_KEY = 'THIS IS NOT A VERY SECRET KEY'
 
 # passwords for various connections:
 SVN_DB_PASS = ''
-AMAINT_DB_PASSWORD = ''
 AMPQ_PASSWORD = 'supersecretpassword'
 EMPLID_API_SECRET = ''
 INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py install_secrets', if needed
@@ -20,3 +19,7 @@ INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py insta
 # reporting DB connection
 SIMS_USER = 'ggbaker'
 SIMS_PASSWORD = ''
+
+#PIWIK_URL = 'https://.../piwik/piwik.php'
+#PIWIK_TOKEN = '123456789abcdef' # find at Piwik -> user -> API
+#PIWIK_SITEID = 1

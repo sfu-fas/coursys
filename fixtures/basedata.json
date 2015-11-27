@@ -210,10 +210,10 @@
  "fields": {
   "config": "{}",
   "emplid": 200000100,
-  "first_name": "Gregory",
+  "first_name": "Gregor\u028f",
   "last_name": "Baker",
   "middle_name": "Garnet",
-  "pref_first_name": "Gregory",
+  "pref_first_name": "Greg",
   "temporary": false,
   "title": null,
   "userid": "ggbaker"

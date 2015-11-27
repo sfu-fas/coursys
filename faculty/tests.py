@@ -286,7 +286,7 @@ class PagesTest(TestCase):
 
         test_views(self, c, 'faculty.views.', ['teaching_credit_override'],
                 {'userid': 'ggbaker', 'course_slug': TEST_COURSE_SLUG})
-        test_views(self, c, 'faculty.views.', ['new_event_flag'],
+        test_views(self, c, 'faculty.views.', ['event_config_add'],
                 {'event_type': 'fellow'})
 
         # grant views
@@ -305,7 +305,7 @@ class PagesTest(TestCase):
 
                 test_views(self, c, 'faculty.views.', ['create_event'],
                     {'userid': 'ggbaker', 'event_type': slug})
-                test_views(self, c, 'faculty.views.', ['memo_templates', 'new_memo_template'],
+                test_views(self, c, 'faculty.views.', ['event_config', 'new_memo_template'],
                     {'event_type': slug})
 
                 # the search form

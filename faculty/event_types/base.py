@@ -117,6 +117,17 @@ class BaseEntryForm(forms.Form):
         "Hook to do setup of the form"
         pass
 
+    def clean_end_date(self):
+        start_date = self.cleaned_data.get('start_date', None)
+        end_date = self.cleaned_data['end_date']
+        if not start_date:
+            return end_date
+        if not end_date:
+            return
+        if start_date > end_date:
+            raise forms.ValidationError('End date cannot be before the start date.')
+        return end_date
+
 
 class CareerEventHandlerBase(object):
 
@@ -147,6 +158,10 @@ class CareerEventHandlerBase(object):
     CONFIG_FIELDS = {}
     SEARCH_RULE_INSTANCES = []
     FLAGS = []
+    PDFS = {}
+
+    # A dict for extra links to display in the template.  Should only be populated in the derived classes if needed.
+    EXTRA_LINKS = {}
 
     def __init__(self, event):
         self.event = event
@@ -183,7 +198,6 @@ class CareerEventHandlerBase(object):
             event.end_date = next_event.start_date - datetime.timedelta(days=1)
             event.save(editor, call_from_handler=True)
 
-
     def save(self, editor):
         # TODO: Log the fact that `editor` made some changes to the CareerEvent.
         self.set_handler_specific_data()
@@ -215,7 +229,7 @@ class CareerEventHandlerBase(object):
                 else:
                     return default
             else:
-                    return field.to_python(raw_value)
+                return field.to_python(raw_value)
         except forms.ValidationError:
             # XXX: A hack to get around ChoiceField stuff. The idea is that if the value is in
             #      the config field, then it was most likely valid when the event was created.
@@ -248,6 +262,7 @@ class CareerEventHandlerBase(object):
         return ret
 
     # Stuff involving permissions
+
     def permission(self, editor):
         """
         This editor's permission level with respect to this faculty member.
@@ -365,6 +380,73 @@ class CareerEventHandlerBase(object):
         form.legend = cls.NAME
         return form
 
+    # event configuration
+
+    config_name = None
+
+    class ConfigItemForm(forms.Form):
+        unit = forms.ChoiceField(help_text='Unit that owns this option (faculty members within this unit will have '
+                'this option presented)')
+
+        def __init__(self, units, *args, **kwargs):
+            super(CareerEventHandlerBase.ConfigItemForm, self).__init__(*args, **kwargs)
+            unit_choices = [(u.id, u.name) for u in Unit.sub_units(units)]
+            self.fields['unit'].choices = unit_choices
+
+        def clean(self):
+            data = self.cleaned_data
+            # stash the unit object forward for save_config
+            unit = Unit.objects.get(id=data['unit'])
+            self.unit_object = unit
+            return data
+
+        @classmethod
+        def check_unique_key(cls, event_type, config_key, value, config_name):
+            """
+            Check that this value is unique in EvenConfig[event_type~=event_type].config[config_key] first elements.
+            """
+            from faculty.models import EventConfig
+            existing = itertools.chain.from_iterable(
+                (f[0] for f in fl)
+                for fl
+                in (
+                    ec.config.get(config_key, [])
+                    for ec
+                    in EventConfig.objects.filter(event_type=event_type)
+                )
+            )
+            if value in existing:
+                raise forms.ValidationError('This short form has been used by another %s: they must be unique.'
+                        % (config_name,))
+
+        def save_config(self):
+            """
+            Save the form to a config object owned by the selected unit.
+            """
+            raise NotImplementedError()
+
+    @classmethod
+    def get_config_item_form(cls, units, **kwargs):
+        form = cls.ConfigItemForm(units=units, **kwargs)
+        return form
+
+    @classmethod
+    def all_config_fields(cls, units, field):
+        """
+        Look up EventConfig.config[field] for each unit. Returns an iterable of [unit,] + config_val lists.
+        """
+        from faculty.models import EventConfig
+        configs = EventConfig.objects.filter(unit__in=units, event_type=cls.EVENT_TYPE)
+        unit_cfs = (([cfg.unit] + e for e in cfg.config.get(field, [])) for cfg in configs)
+        return itertools.chain.from_iterable(unit_cfs)
+
+    @classmethod
+    def config_display(cls, units):
+        """
+        Get all of the configuration items for these units
+        """
+        return None
+
     # Stuff relating to HTML display
 
     def get_display(self, field, default='unknown'):
@@ -440,6 +522,21 @@ class CareerEventHandlerBase(object):
             rng = ReportingSemester.range(self.event.start_date, datetime.date.today())
         return len(list(rng))
 
+    # event config
+
+    flag_config_key = None # if set, EventConfig.config[flag_config_key] should be a list of even flag tuples
+
+    @classmethod
+    def config_flags(cls, units):
+        """
+        Return a list of the event flag configuration options (for these units). Return None if not applicable.
+        """
+        if not cls.flag_config_key:
+            return None
+
+        from faculty.models import EventConfig
+        ecs = EventConfig.objects.filter(event_type=cls.EVENT_TYPE, unit__in=units).select_related('unit')
+        return [(ec.unit, ec.config.get(cls.flag_config_key, [])) for ec in ecs]
 
     # Optionally override these
 
@@ -469,5 +566,19 @@ class CareerEventHandlerBase(object):
 
         """
         pass
+
+    def generate_pdf(self, key):
+        """
+        A method to generate a PDF from the PDF dictionary in the class.
+        This needs to be implemented in each derived class that has extra PDFs.
+
+        :param key: The key for the PDF from the handler's PDF list
+        :type key: String
+        :return: The PDF form
+        :rtype: HttpResponse
+        """
+        raise NotImplementedError("This needs to be implemented in the derived class")
+
+
 
 

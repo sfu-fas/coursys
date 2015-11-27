@@ -94,7 +94,7 @@ class EditPageForm(EditPageFileForm):
     wikitext = WikiField()
     comment = CommentField()
     
-    math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displayig TeX or MathML formulas?')
+    math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displaying TeX or MathML formulas?')
 
     @transaction.atomic
     def save(self, editor, *args, **kwargs):

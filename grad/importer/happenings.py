@@ -306,7 +306,7 @@ class ProgramStatusChange(GradHappening):
             if self.gradstatus:
                 self.gradstatus.found_in_import = True
                 assert st.status == self.status
-                assert st.start == STRM_MAP[self.strm]
+                assert (st.start == STRM_MAP[self.strm]) or ('sims_source' in st.config and st.config['sims_source'] == self.import_key())
 
 
     def update_status(self, student_info, verbosity, dry_run):
@@ -356,7 +356,6 @@ class ProgramStatusChange(GradHappening):
         # re-sort if we added something, so we find things right on the next check
         student_info['statuses'].sort(key=lambda ph: (ph.start.name, ph.start_date or datetime.date(1900,1,1)))
 
-
     def update_program_history(self, student_info, verbosity, dry_run):
         """
         Find/update GradProgramHistory object for this happening
@@ -382,7 +381,7 @@ class ProgramStatusChange(GradHappening):
             if ph.program != self.grad_program:
                 # current program isn't what we found
                 # ... but is there maybe two program changes in one semester?
-                similar_history = [p for p in programs if p.start_semester == ph.start_semester
+                similar_history = [p for p in programs if p.start_semester.name == strm
                         and p.program == self.grad_program]
                 if similar_history:
                     ph = similar_history[0]

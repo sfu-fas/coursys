@@ -4,17 +4,15 @@ import os
 import errno
 import StringIO
 import unicodecsv as csv
+from pipes import quote
 from datetime import datetime
 
-from django.db import models
-from django.shortcuts import get_object_or_404
 from django.core.servers.basehttp import FileWrapper
 from django.http import StreamingHttpResponse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
 from coredata.models import Person
-from groups.models import Group,GroupMember
-from autoslug import AutoSlugField
+from groups.models import GroupMember
 
 from url import URL
 from archive import Archive
@@ -24,8 +22,9 @@ from word import Word
 from image import Image
 from office import Office
 from codefile import Codefile
+from gittag import GitTag
 
-ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Codefile, Word, Image, Office]
+ALL_TYPE_CLASSES = [Archive, Code, Codefile, GitTag, Image, Office, PDF, URL, Word]
 
 def find_type_by_label(label):
     """
@@ -45,9 +44,9 @@ def select_all_components(activity, include_deleted=False):
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for Type in ALL_TYPE_CLASSES:
         if include_deleted:
-            comps = list(Type.Component.objects.filter(activity=activity))
+            comps = list(Type.Component.objects.filter(activity_id=activity.id))
         else:
-            comps = list(Type.Component.objects.filter(activity=activity, deleted=False))
+            comps = list(Type.Component.objects.filter(activity_id=activity.id, deleted=False))
         components.extend( (c for c in comps if c.id not in found) )
         found.update( (c.id for c in comps) )
 
@@ -55,11 +54,11 @@ def select_all_components(activity, include_deleted=False):
     return components
 
 
-def select_all_submitted_components(activity):
+def select_all_submitted_components(activity_id):
     submitted_component = [] # list of submitted component
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for Type in ALL_TYPE_CLASSES:
-        subs = list(Type.SubmittedComponent.objects.filter(submission__activity=activity))
+        subs = list(Type.SubmittedComponent.objects.filter(submission__activity_id=activity_id))
         submitted_component.extend(s for s in subs if s.id not in found)
         found.update( (s.id for s in subs) )
     submitted_component.sort()
@@ -184,14 +183,14 @@ def get_submit_time_and_owner(activity, pair_list):
         late = submit_time - activity.due_date
     return late, submit_time, owner
 
-def _add_submission_to_zip(zipf, submission, components, prefix=""):
+def _add_submission_to_zip(zipf, submission, components, prefix="", slug=None):
     """
     Add this submission to the zip file, with associated components.
     """
     for component, sub in components:
         if sub:
             try:
-                sub.add_to_zip(zipf, prefix=prefix)
+                sub.add_to_zip(zipf, prefix=prefix, slug=slug)
             except OSError as e:
                 if e.errno == errno.ENOENT:
                     # Missing file? How did that come up once in five years?
@@ -212,6 +211,7 @@ def generate_submission_contents(activity, z, prefix=''):
     """
     add of of the submissions for this activity to the ZipFile z
     """
+    from submission.models.gittag import GitTagComponent
     # build dictionary of all most recent submissions by student userid/group slug
     if activity.group:
         submissions = GroupSubmission.objects.filter(activity=activity).order_by('created_at').select_related('activity','group')
@@ -229,14 +229,18 @@ def generate_submission_contents(activity, z, prefix=''):
     
     component_list = select_all_components(activity, include_deleted=True)
     sub_time = {} # submission times for summary
+    # Manage a collection of git tag submission data we see, to produce clone-all script.
+    any_git_tags = any(isinstance(c, GitTagComponent) for c in component_list)
+    git_tags = []
     # now collect submitted components (and last-submission times for summary)
     for slug in submissions_by_person:
         submission = submissions_by_person[slug]
         last_sub = max([s.created_at for s in submission])
         sub_time[slug] = last_sub
         submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
-        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=prefix+slug)
-    
+        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=prefix+slug, slug=slug)
+        git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in submitted_components if isinstance(comp, GitTagComponent) and sub)
+
     # produce summary of submission datetimes
     slugs = sub_time.keys()
     slugs.sort()
@@ -247,6 +251,20 @@ def generate_submission_contents(activity, z, prefix=''):
         summarycsv.writerow([s, sub_time[s].strftime("%Y/%m/%d %H:%M:%S")])
     z.writestr(prefix+"summary.csv", summarybuffer.getvalue())
     summarybuffer.close()
+
+    # produce git clone-all script
+    if any_git_tags:
+        script = ['#!/bin/sh', '', '# This script will clone all of the submitted git tags for this activity,',
+                '# putting them into the current directory. This should work in a Linux, OSX,',
+                '# or the Git Bash shell in Windows.', '']
+
+        git_tags.sort()
+        for comp_slug, sub_slug, url, tag in git_tags:
+            dir_name = comp_slug + '_' + sub_slug
+            script.append('git clone %s %s && \\\n  (cd %s && git checkout tags/%s)' % (quote(url), quote(dir_name), quote(dir_name), quote(tag)))
+
+        script.append('')
+        z.writestr(prefix+"clone-all.sh", '\n'.join(script))
 
 
 def generate_activity_zip(activity, prefix=''):
@@ -277,7 +295,7 @@ def generate_zip_file(submission, submitted_components):
     os.close(handle)
     z = zipfile.ZipFile(filename, 'w')
     
-    _add_submission_to_zip(z, submission, submitted_components)
+    _add_submission_to_zip(z, submission, submitted_components, slug=submission.file_slug())
 
     z.close()
 

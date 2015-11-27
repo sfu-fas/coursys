@@ -2,6 +2,8 @@
 CourSys
 =======
 
+[![Build Status](https://travis-ci.org/sfu-fas/coursys.svg?branch=master)](https://travis-ci.org/sfu-fas/coursys)
+
 ## Getting Started
 
 See [SETUP.md](instructions/SETUP.md) for instructions to get a development environment set up.

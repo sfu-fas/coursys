@@ -248,6 +248,16 @@ function student_autocomplete(id, nonstudent) {
   });
 }
 
+// Prevent double-clicking of submit buttons in forms
+// Taken from http://thepugautomatic.com/2008/07/jquery-double-submission/
+jQuery.fn.preventDoubleSubmit = function() {
+  jQuery(this).submit(function() {
+    if (this.beenSubmitted)
+      return false;
+    else
+      this.beenSubmitted = true;
+  });
+};
 
 $(document).ready(function(){
   /* if there are any errors on a form, scroll down to the first one, so the user notices */
@@ -259,4 +269,7 @@ $(document).ready(function(){
         $('ul.errorlist').effect('shake', {times:1, distance:3}, 75);
     })
   });
+
+  // Prevent double-clicking of submissions in all our forms
+  $('form').preventDoubleSubmit()
 });

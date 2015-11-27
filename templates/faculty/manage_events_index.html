@@ -12,7 +12,7 @@
 <ul>
   {% for e in events %}
   <li>
-    <a href="{% url 'faculty.views.memo_templates' event_type=e.slug %}">{{ e.name }}</a>
+    <a href="{% url 'faculty.views.event_config' event_type=e.slug %}">{{ e.name }}</a>
   </li>
   {% endfor %}
 </ul>

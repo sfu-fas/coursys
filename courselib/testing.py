@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 # course with the test data
-TEST_COURSE_SLUG = '2015sp-cmpt-120-d1'
+TEST_COURSE_SLUG = '2015su-cmpt-120-d1'
 
 class CachedFixtureTestCase(TestCase):
     current_fixtures = None
@@ -149,10 +149,10 @@ class Client(OriginalClient):
 
         # Create a fake request to store login details.
         request = HttpRequest()
-        if self.session:
-            request.session = self.session
-        else:
-            request.session = engine.SessionStore()
+        #if self.session:
+        #    request.session = self.session
+        #else:
+        request.session = engine.SessionStore()
         login(request, user)
 
         # Set the cookie to represent the session.

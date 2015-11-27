@@ -16,6 +16,9 @@
 {% endblock %}
 
 {% block actions %}
+{% if not position %}
+<li><a href="{% url "faculty.views.pick_position" userid=person.userid_or_emplid %}">Fill from position</a></li>
+{% endif %}
 {% endblock %}
 
 {% block content %}

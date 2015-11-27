@@ -33,7 +33,7 @@ class SubmissionComponent(models.Model):
     position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
     def autoslug(self):
         return make_slug(self.title)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='activity')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='activity')
     deleted = models.BooleanField(default=False, help_text="Component is invisible to students and can't be submitted if checked.")
     specified_filename = models.CharField(max_length=200, help_text="Specify a file name for this component.")
 
@@ -103,7 +103,7 @@ class StudentSubmission(Submission):
     def get_absolute_url(self):
         return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
     def file_slug(self):
-        return self.member.person.userid or str(self.member.person.emplid)
+        return self.member.person.userid_or_emplid()
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)

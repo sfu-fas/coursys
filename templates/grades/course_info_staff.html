@@ -181,7 +181,7 @@ $(document).ready(function() {
 		{% else %}
                 <td>&mdash;</td>
                 {% endifnotequal %}
-                <td class="{{activity.status|lower}}">{{ activity.get_status_display }}</td>
+                <td class="{{activity.status|lower}}">{{ activity.get_status_display_staff }}</td>
                 <td class="{{activity.due_class}}"><span class="sort">{{ activity.due_date.isoformat }}</span>{{ activity.due_date }}</td>
             </tr>
             {% endwith %}

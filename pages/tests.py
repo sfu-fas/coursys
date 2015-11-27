@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-#from django.test import TestCase
 from testboost.testcase import FastFixtureTestCase as TestCase
 from django.core.urlresolvers import reverse
-from pages.models import Page, PageVersion, brushes_used
+from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor
 from coredata.models import CourseOffering, Member, Person
+from grades.models import Activity
 from courselib.testing import TEST_COURSE_SLUG, Client, test_views
 import re
 
@@ -217,7 +217,6 @@ class PagesTest(TestCase):
         """
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         memb = Member.objects.get(offering=crs, person__userid="ggbaker")
-        person = Person.objects.get(userid='ggbaker')
 
         p = Page(offering=crs, label="Index")
         p.save()
@@ -238,4 +237,65 @@ class PagesTest(TestCase):
         test_views(self, c, 'pages.views.', ['view_page', 'page_history', 'edit_page', 'import_page'],
                 {'course_slug': crs.slug, 'page_label': 'OtherPage'})
 
+    def test_macros(self):
+        """
+        Test macro behaviour
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        memb = Member.objects.get(offering=crs, person__userid="ggbaker")
 
+        p = Page(offering=crs, label="Index")
+        p.save()
+        v = PageVersion(page=p, title="Index Page", wikitext="one +two+ three +four+", editor=memb)
+        v.save()
+
+        # no macros defined: rendered as-is
+        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+
+        mp = Page(offering=crs, label=MACRO_LABEL)
+        mp.save()
+        mv = PageVersion(page=mp, title="Macros", wikitext="two: 22\nfour: 4444", editor=memb)
+        mv.save()
+
+        # macros defined: should be substituted
+        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one 22 three 4444</p>")
+
+        mp.safely_delete()
+
+        # macros disappear: back to original
+        self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+
+    def test_entity(self):
+        """
+        Test creole extension for HTML entities
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        p = ParserFor(crs)
+
+        # things that should be entities
+        inp = u'&amp; &NotRightTriangle; &#8935; &#x1D54B;'
+        outp = u'<p><span>&amp;</span> <span>&NotRightTriangle;</span> <span>&#8935;</span> <span>&#x1D54B;</span></p>'
+        self.assertEquals(p.text2html(inp).strip(), outp)
+
+        # things that should NOT be entities
+        inp = u'&hello world; &#000000000123; &#x000000000123; &ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;'
+        outp = u'<p>&amp;hello world; &amp;#000000000123; &amp;#x000000000123; &amp;ThisIsAnAbsurdlyLongEntityNameThatWeDontWantToParse;</p>'
+        self.assertEquals(p.text2html(inp).strip(), outp)
+
+    def test_extensions(self):
+        """
+        Test creole macros we have defined
+        """
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        p = ParserFor(crs)
+        a1 = Activity.objects.get(offering=crs, slug='a1')
+
+        html = p.text2html('one <<duedate A1>> two')
+        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y') + '<', html)
+
+        html = p.text2html('one <<duedatetime A1>> two')
+        self.assertIn('>' + a1.due_date.strftime('%A %B %d %Y, %H:%M') + '<', html)
+
+        html = p.text2html(u'one <<activitylink A1>> two')
+        link = u'<a href="%s">%s' % (a1.get_absolute_url(), a1.name)
+        self.assertIn(link.encode('utf-8'), html)

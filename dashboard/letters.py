@@ -17,10 +17,12 @@ from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from coredata.models import Role
 from django.conf import settings
-import os, datetime
+import os
+import datetime
 from dashboard.models import Signature
-from coredata.models import Semester
+from coredata.models import Semester, Person
 from grad.models import STATUS_APPLICANT
+
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
@@ -493,7 +495,7 @@ class RAForm(object, SFUMediaMixin):
 
         cat = self.ra.hiring_category
         self._checkbox(1.5*mm, 216*mm, text="Research Assistant", filled=(cat=='RA'))
-        self._checkbox(1.5*mm, 211*mm, text="Research Services Staff", filled=(cat=='RSS'))
+        self._checkbox(1.5*mm, 211*mm, text="Recreation Services Staff", filled=(cat=='RSS'))
         self._checkbox(1.5*mm, 206*mm, text="Post Doctoral Fellows", filled=(cat=='PDF'))
         self._checkbox(1.5*mm, 201*mm, text="Other Non Continuing", filled=(cat=='ONC'))
         self._checkbox(67*mm, 215.5*mm, text="University Research Assistant (R50.04)", leading=1.5*mm, filled=(cat=='RA2'))
@@ -502,7 +504,7 @@ class RAForm(object, SFUMediaMixin):
         self._checkbox(67*mm, 203*mm, text="University Research Assistant (R50.04)", leading=1.5*mm, filled=(cat=='RAR'))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(72*mm, 202.5*mm, "Renewal after 2 years with Benefits")
-        self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant", filled=(cat=='GRA'))
+        self._checkbox(142*mm, 215.5*mm, text="Graduate Research Assistant Scholarship", filled=(cat=='GRA'))
         self._checkbox(142*mm, 203*mm, text="National Scholarship", filled=(cat=='NS'))
 
         # health/numbers
@@ -2155,11 +2157,884 @@ def fasnet_forms(grads, outfile):
     doc.save()
 
 
+class YellowForm(object):
+    def __init__(self, outfile):
+        """
+        Create Yellow form in the file object (which could be a Django HttpResponse).
+        This is the base class, there are two subclasses for either the tenure form or the limited term form
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+
+    def save(self):
+        self.c.save()
+
+    def checkbox(self, x, y, filled=0):
+        self.c.rect(x*mm, y*mm, 3.1*mm, 3.8*mm, fill=filled)
+
+    def header_label(self, x, y, content):
+        self.c.setFont("Helvetica-Bold", 9)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def header_label_italics(self, x, y, content):
+        self.c.setFont("Helvetica-BoldOblique", 8)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label(self, x, y, content):
+        self.c.setFont("Helvetica", 9)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label_mid(self, x, y, content):
+        self.c.setFont("Helvetica", 8)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label_mid_bold(self, x, y, content):
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label_small(self, x, y, content):
+        self.c.setFont("Helvetica", 7)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_label(self, x, y, content):
+        self.c.setFont("Helvetica", 6)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_small_label(self, x, y, content):
+        self.c.setFont("Helvetica", 5)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def subscript_tiny_label(self, x, y, content):
+        self.c.setFont("Helvetica", 4)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def hdouble_line(self, x1, x2, y):
+        self.c.line(x1*mm, y*mm, x2*mm, y*mm)
+        self.c.line(x1*mm, y*mm-0.5*mm, x2*mm, y*mm-0.5*mm)
+
+    def hline(self, x1, x2, y):
+        self.c.line(x1*mm, y*mm, x2*mm, y*mm)
 
 
+    def label_filled(self, x, y, content):
+        self.c.setFont("Courier", 9)
+        self.c.drawString(x*mm, y*mm, content)
+
+    def label_filled_centred(self, x, y, content):
+        self.c.setFont("Courier", 9)
+        self.c.drawCentredString(x*mm, y*mm, content)
+
+class YellowFormTenure(YellowForm):
+
+    def draw_form(self, data):
+
+        x_origin=15*mm
+        y_origin=12*mm
+        x_max=190
+        self.c.translate(x_origin, y_origin) # origin = lower-left of the main box
+        self.c.setStrokeColor(black)
+
+        # Header
+        self.header_label_italics(0, 254, 'UPDATED FORM: JULY 9, 1997')
+        self.header_label_italics(87, 254, 'SUBMIT ORIGINAL (TYPED) YELLOW FORM TO VICE PRESIDENT ACADEMIC')
+        self.c.rect(-2*mm, 245*mm, 194*mm, 5*mm)
+        self.header_label(36, 246.5, 'RECOMMENDATION FOR APPOINTMENT')
+        self.header_label(109, 246.5, 'TENURE TRACK FACULTY')
+
+        # Personal information
+        self.header_label(0, 240, 'PERSONAL INFORMATION:')
+        self.hline(0, 42, 239.5)
+        self.label(0, 235, 'Surname:')
+        self.label(81, 235, 'Given:')
+        self.label(144, 235, 'Preferred:')
+        self.hline(16, 71, 234.5)
+        self.label_filled(17, 235, data.get('last_name'))
+        self.hline(90, 139, 234.5)
+        self.label_filled(91, 235, data.get('first_name'))
+        self.hline(158, x_max, 234.5)
+        self.label_filled(159, 235, data.get('pref_first_name'))
+        self.label(0, 227, 'Canadian SIN:')
+        self.label(81, 227, 'Date of Birth: ')
+        self.label(102, 227, 'Yr')
+        self.label(117, 227, 'Mo')
+        self.label(134, 227, 'Day')
+        self.label(148, 227, 'Gender:')
+        self.label(163.5, 227, 'M')
+        self.label(175, 227, 'F')
+        self.hline(30, 32, 228.5)
+        self.hline(38, 40, 228.5)
+        self.hline(107, 117, 226.5)
+        self.hline(124, 133, 226.5)
+        self.hline(140, 147, 226.5)
+        # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
+        sin = data.get('sin')
+        if len(sin) == 9:
+            self.label_filled(24, 227, sin[0:3])
+            self.label_filled(32.5, 227, sin[3:6])
+            self.label_filled(40.5, 227, sin[6:9])
+        # See if we have a FacultyMemberInfo record for this person so we may have a birthdate.
+        dob = data.get('dob')
+        if dob:
+            self.label_filled(108, 227, str(dob.year))
+            self.label_filled(127, 227, str(dob.month))
+            self.label_filled(143, 227, str(dob.day))
+        self.checkbox(169, 226, data.get('gender') == 'M')
+        self.checkbox(180, 226, data.get('gender') == 'F')
+        self.label(0, 219.5, 'Is the Candidate a Canadian Citizen or Permanent Resident?')
+        self.label(95, 219.5, 'Yes')
+        self.label(111, 219.5, 'No')
+        self.checkbox(104, 219)
+        self.checkbox(120, 219)
+        self.label(0, 214, 'Country of Citizenship:')
+        self.hline(38, x_max, 213.5)
+        self.label(0, 208, 'Mailing Address:')
+        self.hline(38, x_max, 207.5)
+        self.label(0, 203, 'Telephone:')
+        self.label(83, 203, 'HOUSEHOLD moved from:')
+        self.hline(33, 35, 204.5)
+        self.hline(20, 76, 202.5)
+        self.hline(121, x_max, 202.5)
+        self.subscript_label(22, 200.5, '(area code)')
+        self.subscript_label(148.5, 200.5, '(City/Country)')
+        self.label_small(3, 192, 'DEGREES HELD')
+        self.label_small(25, 192, 'YEAR OF DEGREE')
+        self.label_small(75, 192, 'INSTITUTION')
+        self.label_small(100, 192, 'CITY/COUNTRY')
+        self.label_small(153, 192, 'DEGREE VERIFICATION')
+        self.hline(3, 22, 191.5)
+        self.hline(25, 47, 191.5)
+        self.hline(75, 119, 191.5)
+        self.hline(153, 181.5, 191.5)
+        self.subscript_label(5, 188.5, '(or in progress)')
+        self.subscript_small_label(30, 188.5, '(mark "Cand."')
+        self.subscript_small_label(25.5, 186.5, 'if degree not yet complete)')
+        self.label(147, 182, 'Yes')
+        self.label(157, 182, 'No')
+        self.label(170, 182, 'by')
+        self.hline(2, 23.5, 181.5)
+        self.label_filled_centred(12.5, 182, data.get('degree1'))
+        self.hline(25, 47.5, 181.5)
+        self.label_filled_centred(36, 182, data.get('year1'))
+        self.hline(49, 145, 181.5)
+        self.label_filled(49, 182, data.get('institution1'))
+        self.hline(174, 187, 181.5)
+        self.label_filled(100, 182, data.get('location1'))
+        self.subscript_tiny_label(9.5, 180, '(Highest)')
+        self.checkbox(153.5, 181.5)
+        self.checkbox(162.5, 181.5)
+        self.label(147, 176.5, 'Yes')
+        self.label(157, 176.5, 'No')
+        self.label(170, 176.5, 'by')
+        self.hline(2, 23.5, 176)
+        self.hline(25, 47.5, 176)
+        self.hline(49, 145, 176)
+        self.hline(174, 187, 176)
+        self.label_filled_centred(12.5, 176.5, data.get('degree2'))
+        self.label_filled_centred(36, 176.5, data.get('year2'))
+        self.label_filled(49, 176.5, data.get('institution2'))
+        self.label_filled(100, 176.5, data.get('location2'))
+        self.checkbox(153.5, 176)
+        self.checkbox(162.5, 176)
+        self.label(147, 171, 'Yes')
+        self.label(157, 171, 'No')
+        self.label(170, 171, 'by')
+        self.hline(2, 23.5, 170.5)
+        self.hline(25, 47.5, 170.5)
+        self.hline(49, 145, 170.5)
+        self.hline(174, 187, 170.5)
+        self.label_filled_centred(12.5, 171, data.get('degree3'))
+        self.label_filled_centred(36, 171, data.get('year3'))
+        self.label_filled(49, 171, data.get('institution3'))
+        self.label_filled(100, 171, data.get('location3'))
+        self.checkbox(153.5, 170.5)
+        self.checkbox(162.5, 170.5)
+        self.c.rect(0*mm, 168*mm, 190*mm, 29*mm)
+
+        self.label(0, 162, 'Present position:')
+        self.label(134.5, 162, 'Salary: $')
+        self.hline(27, 131, 161.5)
+        self.hline(147, x_max, 161.5)
+        self.label(0, 156, 'Institution:')
+        self.hline(27, x_max, 155.5)
+        self.subscript_tiny_label(155.5, 154, '(City/Country)')
+
+        self.label(0,149, 'Principal subject taught (see Stats Canada codes):')
+        self.label(144, 149, 'Code:')
+        self.hline(74, 139, 148.5)
+        self.hline(153, x_max, 148)
+
+        self.label(0, 142, 'Candidate has held position at SFU before: ')
+        self.label(68.5, 142, 'Yes')
+        self.label(84, 142, 'No')
+        self.label(93.5, 142, 'If yes give details:')
+        self.checkbox(74.5, 141)
+        self.checkbox(88.5, 141)
+        self.hline(123, x_max, 141)
+
+        self.label(0, 136, 'Previous position #:')
+        self.hline(32, 82, 135)
+        self.hline(88, x_max, 135)
+
+        self.hdouble_line(0, x_max, 131.5)
+
+        # Appointment Information
+        self.header_label(0,127.5, 'APPOINTMENT INFORMATION')
+        self.hline(0, 47, 127)
+        self.label(0, 122, 'Dept: (Home):')
+        self.label(101, 122, '(2')
+        self.label(106, 122, 'Dept):')
+        self.subscript_tiny_label(103.7, 123.6, 'nd')
+        self.hline(24, 98, 121.5)
+        self.label_filled(25, 122, data.get('unit'))
+        self.hline(114, x_max, 121.5)
+        self.label_mid(114, 118, 'If start date is not September 1')
+        self.label_mid(153.5, 118, ', which year will be')
+        self.label_mid(114, 115.5, 'considered start date for renewal & tenure?')
+        self.subscript_tiny_label(152.2, 119.2, 'st')
+        self.label(0, 115.5, 'Start Date:')
+        self.label(19, 115.5, 'Yr')
+        self.label(32, 115.5, 'Mo')
+        self.label(44, 115.5, 'Day')
+        self.label(60.5, 115.5, 'End Date: Yr')
+        self.label(89, 115.5, 'Mo')
+        self.label(100.5, 115.5, 'Day')
+        self.hline(22, 31.5, 115)
+        self.hline(36.5, 43, 115)
+        self.hline(49, 57, 115)
+        self.hline(79, 88.5, 115)
+        self.hline(93, 100, 115)
+        self.hline(106, 114, 115)
+        self.hline(180, x_max, 115)
+        # Let's add the start and end dates if we have any
+        start_date = data.get('start_date')
+        if start_date:
+            self.label_filled(23.5, 115.5, str(start_date.year))
+            self.label_filled(38.5, 115.5, str(start_date.month))
+            self.label_filled(51, 115.5, str(start_date.day))
+        end_date = data.get('end_date')
+        if end_date:
+            self.label_filled(80.5, 115.5, str(end_date.year))
+            self.label_filled(95, 115.5, str(end_date.month))
+            self.label_filled(108, 115.5, str(end_date.day))
+        self.label(0, 107.5, 'Full-Time')
+        self.label(20, 107.5, 'Part-time')
+        self.label(52.5, 107.5, '%')
+        self.label(57, 107.5, 'Is this a replacement position?')
+        self.label(104.5, 107.5, 'Yes')
+        self.label(122.5, 107.5, 'CFL Position')
+        self.label(143.5, 107.5, '#(1):')
+        self.label(166, 107.5, 'FTE')
+        self.label(184, 107.5, '%')
+        self.label(143.5, 104, '#(2):')
+        self.label(166, 104, 'FTE')
+        self.label(184, 104, '%')
+        self.checkbox(14.5, 107, True)
+        self.checkbox(35, 107)
+        self.hline(43, 52, 107)
+        self.checkbox(112, 107)
+        self.hline(150, 161, 107)
+        self.hline(172.5, 183.5, 107)
+        self.hline(150, 161, 103.5)
+        self.hline(172.5, 183.5, 103.5)
+        self.label_filled(174, 107.5, '100')
+        self.label_filled(150.5, 107.5, data.get('position_number'))
+
+        self.label(0, 100, 'Rank:')
+        self.label(66, 100, 'Step:')
+        self.label(81, 100, 'Market Dif:  $')
+        self.label(131.5, 100, 'Start-up:  $')
+        self.hline(9.5, 64.5, 99.5)
+        self.hline(73.5, 79.5, 99.5)
+        self.hline(99.5, 130, 99.5)
+        self.hline(148, 182, 99.5)
+
+        if data.get('rank'):
+            self.label_filled(9.5, 100, data.get('rank'))
+        if data.get('step'):
+            self.label_filled_centred(76.5, 100, data.get('step'))
+
+        if data.get('marketdiff'):
+            self.label_filled(101, 100, data.get('marketdiff'))
+
+        self.label(0, 94.5, 'Request appointment be concluded by:')
+        self.label(118, 94.5, 'Number of teaching semesters credit, if any,')
+        self.label(3, 90.5, 'normal route')
+        self.label(32, 90.5, 'or expedited route')
+        self.checkbox(24, 90)
+        self.checkbox(62, 90)
+
+        self.header_label(0, 84.5, 'ATTACHMENTS:')
+        self.hline(0, 25, 84)
+
+        self.label(4.5, 79, 'Detailed recommendation for appointment')
+        self.label(82, 79, 'Search procedures')
+        self.label(144, 79, 'Advertisements')
+        self.checkbox(0.5, 78.5)
+        self.checkbox(78, 78.5)
+        self.checkbox(140, 78.5)
+        self.label(4.5, 73.5, 'CV\'s of shortlisted candidates')
+        self.label(82, 73.5, 'Statement of employment equity')
+        self.checkbox(0.5, 73)
+        self.checkbox(78, 73)
+        self.label(4.5, 68, 'Letter of reference for shortlisted candidates')
+        self.label(82, 68, 'Assessment of teaching competence')
+        self.checkbox(0.5, 67.5)
+        self.checkbox(78, 67.5)
+
+        self.hdouble_line(0, x_max, 64.5)
+
+        # Approval
+        self.header_label(0, 60.5, 'APPROVED BY:')
+        self.hline(0, 24.5, 60)
+        self.label(0.5, 55, 'Chair/Director:')
+        self.label(136, 55, 'Date:')
+        self.hline(38.5, 130, 54.5)
+        self.hline(144, x_max, 54.5)
+        self.label(0.5, 49, 'Dean of Faculty:')
+        self.label(136, 49, 'Date:')
+        self.hline(38.5, 130, 48.5)
+        self.hline(144, x_max, 48.5)
+        self.label(0.5, 43, 'Vice President Academic:')
+        self.label(136, 43, 'Date:')
+        self.hline(38.5, 130, 42.5)
+        self.hline(144, x_max, 42.5)
+        self.label(0.5, 37, 'President:')
+        self.label(136, 37, 'Date:')
+        self.hline(38.5, 130, 36.5)
+        self.hline(144, x_max, 36.5)
+
+        self.hdouble_line(0, x_max, 34)
+
+        # Private use
+
+        self.header_label(0, 30, 'FOR USE BY THE OFFICE OF THE VICE-PRESIDENT, ACADEMIC')
+        self.subscript_label(86.5, 27.5, '(year)')
+        self.label(0, 24, '1. Bi-wk. sal.')
+        self.label(24, 24, '$')
+        self.label(62, 24, '6.  Moving May')
+        self.label(148.5, 24, '7.  Confirmation of offer of')
+        self.hline(27.5, 53, 22.2)
+        self.c.rect(85.5*mm, 23*mm, 8*mm, 3.8*mm)
+        self.checkbox(186.5, 23.5)
+        self.label(0, 19, '2. Ann. sal.')
+        self.label(24, 19, '$')
+        self.label(67, 19, 'a) Allowance')
+        self.label(89.5, 19, '(moving within Canada)')
+        self.label(153, 20.5, 'employment required')
+        self.hline(27.5, 53, 18.5)
+        self.checkbox(85.5, 18.5)
+        self.label(0, 14.5, '3. Salary/Base')
+        self.hline(27.5, 53, 13)
+        self.label(0, 10, '4. Date of scale')
+        self.hline(27.5, 53, 9)
+        self.label(0, 5, '5. Pension:')
+        self.label(29.5, 5, 'Yes')
+        self.label(43, 5, 'No')
+        self.checkbox(37, 4.5)
+        self.checkbox(49, 4.5)
+        self.header_label(62, 19.5, 'or')
+        self.label(67, 14.5, 'b) Reimbursement for expenses')
+        self.label(71, 10, 'distance')
+        self.label(101.5, 10, 'km')
+        self.header_label(110.5, 10, 'X')
+        self.label(117, 10, 'rate')
+        self.label(134, 10, u'\xa2')
+        self.header_label(137, 10, '=')
+        self.label(140, 10, '$')
+        self.c.line(82.5*mm,9*mm, 101*mm, 9*mm)
+        self.hline(123.5, 133, 9)
+        self.hline(142.5, 167.5, 9)
+        self.header_label(73, 5, '+')
+        self.label(76, 5, 'base')
+        self.header_label(101.5, 5, '=')
+        self.label(104, 5, 'Maximum $')
+        self.hline(82.5, 101, 4.2)
+        self.hline(122, 153.5, 4.2)
+        self.header_label(62, 0, 'or')
+        self.label(67, 0, 'c) Reimbursement outside North America')
+        self.label(139, 0, 'Amount $')
+        self.hline(153, x_max, -0.5)
+
+        # All done, let's show the form.
+        self.c.showPage()
 
 
+def yellow_form_tenure(careerevent, outfile):
+
+    doc = YellowFormTenure(outfile)
+    data = build_data_from_event(careerevent)
+    doc.draw_form(data)
+    doc.save()
 
 
+class YellowFormLimited(YellowForm):
+
+    def checkbox(self, x, y, filled=0):
+        self.c.circle(x*mm, y*mm + 1*mm, 1*mm, fill=filled)
+
+    def draw_form(self, data):
+
+        x_origin=13*mm
+        y_origin=12*mm
+        x_max=191
+        self.c.translate(x_origin, y_origin)  # origin = lower-left of the main box
+        self.c.setStrokeColor(black)
+
+        # Header
+        self.header_label(0.5, 256.5, '1992-11 OVPA')
+        self.header_label(67, 256.5, 'RECOMMENDATION FOR APPOINTMENT')
+        self.header_label(173, 256.5, 'Form No. 2')
+        self.hline(67, 129.5, 256)
+        self.label_mid_bold(8, 250, 'LECTURER')
+        self.label_mid_bold(37, 250, 'SENIOR LECTURER')
+        self.label_mid_bold(73, 250, 'CONTINUING LANGUAGE INSTRUCTOR')
+        self.label_mid_bold(145.8, 250, 'CLINICAL PROFESSOR')
+        self.checkbox(27.5, 250)
+        self.checkbox(68.5, 250)
+        self.checkbox(131, 250)
+        self.checkbox(181, 250)
+        self.label_mid_bold(0.5, 244, 'LAB INSTRUCTOR I')
+        self.label_mid_bold(40.8, 244, 'LAB INSTRUCTOR II')
+        self.label_mid_bold(81.5, 244, 'VISITING PROFESSOR')
+        self.label_mid_bold(125.5, 244, 'LIMITED TERM')
+        self.label_mid_bold(158.5, 244, 'RESEARCH ASSOC')
+        self.checkbox(31, 244)
+        self.checkbox(72, 244)
+        self.checkbox(116, 244)
+        self.checkbox(149.5, 244)
+        self.checkbox(188.5, 244)
+        self.hdouble_line(-1.5, x_max, 239.5)
+
+        # Personal Information
+        self.header_label(0.5, 236, 'PERSONAL INFORMATION:')
+        self.hline(0.5, 42, 235.5)
+        self.label(0.5, 230.5, 'Surname:')
+        self.label(81, 230.5, 'Given:')
+        self.label(145, 230.5, 'Preferred:')
+        self.hline(16, 76.5, 230)
+        self.label_filled(17, 230.5, data.get('last_name'))
+        self.hline(91, 140, 230)
+        self.label_filled(92, 230.5, data.get('first_name'))
+        self.hline(159, 191, 230)
+        self.label_filled(160, 230.5, data.get('pref_first_name'))
+        self.label(0.5, 223, 'Canadian SIN:')
+        self.label(81.5, 223, 'Date of Birth:')
+        self.label(102.5, 223, 'Yr')
+        self.label(119, 223, 'Mo')
+        self.label(135, 223, 'Day')
+        self.label(149.5, 223, 'Gender:')
+        self.label(163, 223, 'M')
+        self.label(176.5, 223, 'F')
+        self.hline(35, 37, 224)
+        self.hline(47.5, 49.5, 224)
+        self.hline(24, 35, 222.5)
+        self.hline(37, 47.5, 222.5)
+        self.hline(49.5, 60, 222.5)
+        self.hline(108, 117.5, 222.5)
+        self.hline(124.5, 133.5, 222.5)
+        self.hline(141.5, 147.5, 222.5)
+        # Add SIN to the form if it's exactly 9 digits to avoid out-of-range index issues
+        sin = data.get('sin')
+        if len(sin) == 9:
+            self.label_filled(26, 223.5, sin[0:3])
+            self.label_filled(39, 223.5, sin[3:6])
+            self.label_filled(51.5, 223.5, sin[6:9])
+
+        dob = data.get('dob')
+        if dob:
+            self.label_filled(109, 223, str(dob.year))
+            self.label_filled(127, 223, str(dob.month))
+            self.label_filled(143, 223, str(dob.day))
+        self.checkbox(171.5, 223, data.get('gender') == 'M')
+        self.checkbox(183.5, 223, data.get('gender') == 'F')
+        self.label(0.5, 215, 'Is Candidate a Canadian Citizen or Cdn. Permanent Resident?')
+        self.label(94, 215, 'Yes')
+        self.label(111, 215, 'No')
+        self.checkbox(104.5, 215)
+        self.checkbox(121, 215)
+        self.subscript_label(149.5, 216.5, 'VPA USE ONLY')
+        self.label(0.5, 209, 'County of Citizenship:')
+        self.header_label(142.5, 209, '/')
+        self.hline(38, 142.5, 208.5)
+        self.hline(145, 191, 208.5)
+        self.label(0.5, 203.5, 'Address:')
+        self.hline(20, 191, 203)
+        self.label(0.5, 198, 'Telephone')
+        self.label(83, 198, 'HOUSEHOLD moved from:')
+        self.hline(21, 78, 197.5)
+        self.hline(122.5, 191, 197.5)
+        self.hline(33.5, 35, 199)
+        self.subscript_label(22.5, 195, '(area code)')
+        self.subscript_label(150, 195, '(City/Country)')
+        self.label_small(3.5, 187.5, 'DEGREES HELD')
+        self.label_small(26, 187.5, 'YEAR OF DEGREE')
+        self.label_small(67, 187.5, 'INSTITUTION')
+        self.label_small(110.5, 187.5, 'CITY/COUNTRY')
+        self.subscript_label(161, 188, 'VPA USE ONLY')
+        self.hline(3.5, 23, 187)
+        self.hline(26, 48, 187)
+        self.hline(67, 82.5, 187)
+        self.hline(110.5, 129, 187)
+        self.subscript_label(6, 184, '(or in progress)')
+        self.subscript_label(26, 184, '(mark "Cand." if degree')
+        self.subscript_label(29, 181.5, 'not yet complete)')
+        self.label(146, 176.5, '/')
+        self.hline(2, 24, 176)
+        self.hline(26, 48, 176)
+        self.hline(49.5, 146, 176)
+        self.hline(148, 189, 176)
+        self.label_filled_centred(13, 176.5, data.get('degree1'))
+        self.label_filled_centred(36, 176.5, data.get('year1'))
+        self.label_filled(49.5, 176.5, data.get('institution1'))
+        self.label_filled(101, 176.5, data.get('location1'))
+        self.subscript_tiny_label(10, 174.5, '(Highest)')
+        self.label(146, 171, '/')
+        self.hline(2, 24, 170.5)
+        self.hline(26, 48, 170.5)
+        self.hline(49.5, 146, 170.5)
+        self.hline(148, 189, 170.5)
+        self.label_filled_centred(13, 171, data.get('degree2'))
+        self.label_filled_centred(36, 171, data.get('year2'))
+        self.label_filled(49.5, 171, data.get('institution2'))
+        self.label_filled(101, 171, data.get('location2'))
+        self.label(146, 165.5, '/')
+        self.hline(2, 24, 165)
+        self.hline(26, 48, 165)
+        self.hline(49.5, 146, 165)
+        self.hline(148, 189, 165)
+        self.label_filled_centred(13, 165.5, data.get('degree3'))
+        self.label_filled_centred(36, 165.5, data.get('year3'))
+        self.label_filled(49.5, 165.5, data.get('institution3'))
+        self.label_filled(101, 165.5, data.get('location3'))
+        self.label(0.5, 156.5, 'Present position:')
+        self.label(135, 156.5, 'Salary: $')
+        self.hline(27, 132, 156)
+        self.hline(148, 191, 156)
+        self.label(0.5, 151, 'Institution:')
+        self.hline(27, 191, 150.5)
+        self.subscript_tiny_label(157, 149, '(City/Country)')
+        self.hdouble_line(0, 190.5, 145.5)
+
+        # Position Information
+        self.header_label(0.5, 141.5, 'POSITION INFORMATION:')
+        self.hline(0.5, 39.5, 141)
+        self.label(1, 136, 'Dept: (Home):')
+        self.label(106, 136, '2')
+        self.label(110, 136, 'Dept:')
+        self.subscript_tiny_label(107.7, 137.5, 'nd')
+        self.hline(24, 98.5, 135.5)
+        self.label_filled(25, 136, data.get('unit'))
+        self.hline(118, 191, 135.5)
+        self.label(1, 129.5, 'Start Date:')
+        self.label(19.5, 129.5, 'Yr')
+        self.label(33, 129.5, 'Mo')
+        self.label(44.5, 129.5, 'Day')
+        self.label(61, 129.5, 'End Date:')
+        self.label(77, 129.5, 'Yr')
+        self.label(90, 129.5, 'Mo')
+        self.label(105, 129.5, 'Day')
+        self.hline(22.5, 32, 129)
+        self.hline(37, 43.5, 129)
+        self.hline(49.5, 58, 129)
+        self.hline(80, 89, 129)
+        self.hline(94, 100.5, 129)
+        self.hline(110, 118, 129)
+        # Let's add the start and end dates if we have any
+        start_date = data.get('start_date')
+        if start_date:
+            self.label_filled(24, 129.5, str(start_date.year))
+            self.label_filled(39.5, 129.5, str(start_date.month))
+            self.label_filled(52.5, 129.5, str(start_date.day))
+        end_date = data.get('end_date')
+        if end_date:
+            self.label_filled(81.5, 129.5, str(end_date.year))
+            self.label_filled(96.5, 129.5, str(end_date.month))
+            self.label_filled(112.5, 129.5, str(end_date.day))
+        self.label(1,121.5, 'Full-time')
+        self.label(19.5, 121.5, 'Part-Time')
+        self.label(53, 121.5, '%')
+        self.label(61, 121.5, 'Is this a replacement position?')
+        self.label(104.5, 121.5, 'Yes')
+        self.label(129.5, 121.5, 'Position')
+        self.label(144.5, 121.5, '# :')
+        self.checkbox(15.5, 121.5, True)
+        self.checkbox(35.5, 121.5)
+        self.checkbox(113, 121.5)
+        self.hline(43, 52.5, 121)
+        self.hline(151, 191, 121)
+        self.label_filled(44.5, 121.5, '100')
+        self.label_filled(152, 121.5, data.get('position_number'))
+        self.label(1, 114.5, 'New Position ?')
+        self.label(27.5, 114.5, 'Yes')
+        self.label(45, 114.5, 'Fund')
+        self.label(55, 114.5, ':')
+        self.label(104, 114.5, 'Centre :')
+        self.label_mid(142, 114.5, 'Funding source :')
+        self.checkbox(40, 114.5)
+        self.hline(57.5, 103.5, 114)
+        self.hline(116, 141.5, 114)
+        self.hline(163, 191, 114)
+        self.label(1, 105.5, 'Rank:')
+        self.label(120.5, 105.5, 'Step:')
+        self.hline(10, 80, 105)
+        self.hline(130.5, 191, 105)
+        if data.get('rank'):
+            self.label_filled(11, 105.5, data.get('rank'))
+        if data.get('step'):
+            self.label_filled_centred(160, 105.5, data.get('step'))
+
+        self.label(1, 100, 'Principal subject taught (see Stats Canada codes) :')
+        self.subscript_label(165, 102, 'VPA USE ONLY :')
+        self.header_label(153, 99.5, '/')
+        self.hline(75.5, 153, 97.5)
+        self.hline(155.5, 190, 97.5)
+        self.label(1, 90.5, 'Candidate has held position at SFU before :')
+        self.label(76.5, 90.5, 'Yes')
+        self.label(93.5, 90.5, 'No')
+        self.label(109.5, 90.5, 'If yes, give details :')
+        self.checkbox(87, 90.5)
+        self.checkbox(103.5, 90.5)
+        self.hline(140, 191, 90)
+        self.label(115.5, 85, 'Previous position # :')
+        self.hline(1, 115, 81)
+        self.hline(147.5, 191, 81)
+        self.label(1, 76, 'Continuing Language Instructors ONLY :  Number of base units per semester :')
+        self.hline(118, 154.5, 75)
+        self.hdouble_line(0, 191, 70.5)
+
+        # Approved
+        self.header_label(0.5, 66.5, 'APPROVED BY:')
+        self.hline(0.5, 24.5, 66)
+        self.label(1, 60.5, 'Chair/Director:')
+        self.label(137.5, 60.5, 'Date:')
+        self.hline(38.5, 131, 60)
+        self.hline(145, 191, 60)
+        self.label(1, 54.5, 'Dean of Faculty:')
+        self.label(137.5, 54.5, 'Date:')
+        self.hline(38.5, 131, 54)
+        self.hline(145, 191, 54)
+        self.label(1, 48.5, 'Vice President Academic:')
+        self.label(137.5, 48.5, 'Date:')
+        self.hline(38.5, 131, 48)
+        self.hline(145, 191, 48)
+        self.hdouble_line(0, 191, 45.5)
+
+        # Private use
+        self.header_label(0.5, 41.5, 'FOR USE BY THE OFFICE OF THE VICE-PRESIDENT, ACADEMIC:')
+        self.hline(0.5, 99, 41)
+        self.subscript_label(87.5, 38.5, '(year)')
+        self.label(0.5, 35.5, '1. Bi-wk. sal.')
+        self.label(24.5, 35.5, '$')
+        self.label(63, 35.5, '6.')
+        self.label(67.5, 35.5, 'Moving May')
+        self.label(95.5, 35.5, 'scale')
+        self.label(150, 35.5, '7.')
+        self.label(154.5, 35.5, 'Confirmation of offer of')
+        self.checkbox(189, 35.5)
+        self.hline(27.5, 53, 33.2)
+
+        self.label(0.5, 30, '2. Ann. sal.')
+        self.label(24.5, 30, '$')
+        self.label(67.5, 30, 'a) Allowance')
+        self.checkbox(88, 30)
+        self.label(90.5, 30, '(moving within Canada)')
+        self.label(154.5, 32.5, 'employment required')
+        self.hline(27.5, 53, 28.5)
+
+        self.label(0.5, 24.5, '3. Salary/Base')
+        self.header_label(63, 24.5, 'or')
+        self.label(67.5, 24.5, 'b) Reimbursement for expenses')
+        self.checkbox(115, 24.5)
+        self.hline(27.5, 53, 23)
+
+        self.label(0.5, 19.5, '4. Date of scale')
+        self.label(70.5, 19.5, 'distance')
+        self.label(102.5, 19.5, 'km')
+        self.header_label(111.5, 19.5, 'X')
+        self.label(117.5, 19.5, 'rate(')
+        self.label(135, 19.5, u'\xa2')
+        self.label(136.5, 19.5, ')')
+        self.header_label(138.5, 19.5, '=')
+        self.label(141, 19.5, '$')
+        self.hline(27.5, 53, 19)
+        self.hline(83, 102, 19)
+        self.hline(124.5, 134, 19)
+        self.hline(143.5, 169, 19)
+
+        self.label(0.5, 15, '5. Pension:')
+        self.label(30, 15, 'Yes')
+        self.label(43.5, 15, 'No')
+        self.header_label(73, 15, '+')
+        self.label(76, 15, 'base')
+        self.header_label(102.5, 15, '=')
+        self.label(105.5, 15, 'Maximum $')
+        self.checkbox(38.5, 15)
+        self.checkbox(51.5, 15)
+        self.hline(83, 102, 14)
+        self.hline(122, 154.5, 14)
+
+        self.header_label(63, 10, 'or')
+        self.label(67.5, 10, 'c) Reimbursement outside North America')
+        self.checkbox(132, 10)
+        self.label(139.5, 10, 'Amount: $')
+        self.hline(154.5, 191, 9)
+        self.label(67.5, 5.5, 'd) Reimbursement : Double return economy')
+        self.checkbox(132, 5.5)
+        self.label(139.5, 5.5, 'Amount: $')
+        self.hline(154.5, 191, 4.5)
+        self.label(94.5, 1, ': Single return economy')
+        self.checkbox(132, 1)
+        self.label(139.5, 1, 'Amount: $')
+        self.hline(154.5, 191, 0)
 
 
+        # All done, show the page
+        self.c.showPage()
+
+
+def yellow_form_limited(careerevent,  outfile):
+    doc = YellowFormLimited(outfile)
+    data = build_data_from_event(careerevent)
+    doc.draw_form(data)
+    doc.save()
+
+
+def build_data_from_event(careerevent):
+    """
+    This builds the correct data object for our Appointment Forms (AKA Yellow Forms) to be generated if coming
+    from a careerevent.
+
+    :param CareerEvent careerevent: The event that called this generation
+    :type: CareerEvent
+    :return: a dict containing all the data necessary for the form generation
+    :rtype: dict
+    """
+    # We have to put this import here to avoid a circular import problem.
+    # This is horrible, but the best solution without refactoring everything.
+    from faculty.models import FacultyMemberInfo, CareerEvent
+    data = {}
+    event = careerevent.event
+    person = event.person
+
+    data['last_name'] = person.last_name or ''
+    data['first_name'] = person.first_name or ''
+    data['pref_first_name'] = person.pref_first_name or ''
+    data['sin'] = person.sin()
+    if(FacultyMemberInfo.objects.filter(person=person)).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            data['dob'] = dob
+    data['gender'] = person.gender() or ''
+    data['degree1'] = event.config.get('degree1') or ''
+    data['year1'] = event.config.get('year1') or ''
+    data['institution1'] = event.config.get('institution1') or ''
+    data['location1'] = event.config.get('location1') or ''
+    data['degree2'] = event.config.get('degree2') or ''
+    data['year2'] = event.config.get('year2') or ''
+    data['institution2'] = event.config.get('institution2') or ''
+    data['location2'] = event.config.get('location2') or ''
+    data['degree3'] = event.config.get('degree3') or ''
+    data['year3'] = event.config.get('year3') or ''
+    data['institution3'] = event.config.get('institution3') or ''
+    data['location3'] = event.config.get('location3') or ''
+    data['unit'] = event.unit.informal_name()
+    data['start_date'] = event.start_date
+    data['end_date'] = event.end_date
+    data['position_number'] = event.config.get('position_number') or ''
+    # Let's get the current salary event(s) for this person so we can get the rank and step
+    salaries = CareerEvent.objects.filter(person=person, event_type='SALARY', unit=event.unit).effective_now()
+    if salaries:
+        # There should only be one of these effective in this unit, but just in case
+        s = salaries[0]
+        data['rank'] = s.get_handler().get_rank_display() or ''
+        data['step'] = s.config.get('step') or ''
+
+    stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=event.unit).effective_now()
+    for stipend in stipends:
+        if stipend.config.get('source') == 'MARKETDIFF':
+            data['marketdiff'] = stipend.config.get('amount') or ''
+            break
+    return data
+
+
+def build_data_from_position(position):
+    """
+    This builds the correct data object for our Appointment Forms (AKA Yellow Forms) to be generated if coming
+    from a Position with a future candidate already set.
+
+    :param Position position: The position that called this generation
+    :type: Position
+    :return: a dict containing all the data necessary for the form generation
+    :rtype: dict
+    """
+    # We have to put this import here to avoid a circular import problem.
+    # This is horrible, but the best solution without refactoring everything.
+    from faculty.models import FacultyMemberInfo, CareerEvent
+    from faculty.event_types.career import RANK_CHOICES
+
+    data = {}
+    person = position.any_person.get_person()
+    data['last_name'] = person.last_name or ''
+    data['first_name'] = person.first_name or ''
+    data['pref_first_name'] = person.pref_first_name or ''
+    data['sin'] = person.sin()
+
+    # If this is a real Faculty member in our system, he/she may have
+    # a DOB in the FacultyMemberInfo
+    if isinstance(person, Person) and FacultyMemberInfo.objects.filter(person=person).exists():
+            f = FacultyMemberInfo.objects.get(person=person)
+            dob = f.birthday
+            data['dob'] = dob
+
+    # Otherwise, we may have it in that object's config.
+    if not data.get('dob'):
+        if person.birthdate():
+            data['dob'] = datetime.strptime(person.birthdate(), "%Y-%m-%d")
+    data['gender'] = person.gender() or ''
+    data['degree1'] = position.degree1 or ''
+    data['year1'] = position.year1 or ''
+    data['institution1'] = position.institution1 or ''
+    data['location1'] = position.location1 or ''
+    data['degree2'] = position.degree2 or ''
+    data['year2'] = position.year2 or ''
+    data['institution2'] = position.institution2 or ''
+    data['location2'] = position.location2 or ''
+    data['degree3'] = position.degree3 or ''
+    data['year3'] = position.year3 or ''
+    data['institution3'] = position.institution3 or ''
+    data['location3'] = position.location3 or ''
+    data['unit'] = position.unit.informal_name()
+    data['start_date'] = position.projected_start_date
+    data['end_date'] = ''
+    data['position_number'] = position.position_number
+    data['rank'] = RANK_CHOICES.get(position.rank, '')
+    if position.step:
+        data['step'] = str(position.step)
+    else:
+        data['step'] = ''
+
+    # For now, we store marketdiffs only for real faculty members, but let's add this here in case.  Either way, if we
+    # call this method from a position where the FuturePerson is now a real Faculty Member, this should still work.
+
+    if isinstance(person, Person):
+        stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=position.unit).effective_now()
+        for stipend in stipends:
+            if stipend.config.get('source') == 'MARKETDIFF':
+                data['marketdiff'] = stipend.config.get('amount') or ''
+                break
+
+    return data
+
+
+def position_yellow_form_limited(position,  outfile):
+    doc = YellowFormLimited(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
+    doc.save()
+
+
+def position_yellow_form_tenure(position, outfile):
+
+    doc = YellowFormTenure(outfile)
+    data = build_data_from_position(position)
+    doc.draw_form(data)
+    doc.save()

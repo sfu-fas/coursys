@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from optparse import make_option
@@ -24,7 +23,13 @@ class Command(BaseCommand):
         now = datetime.datetime.now().replace(microsecond=0)
         filename = now.strftime(filename_format)
 
-        dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip', raw_args='--skip-extended-insert')
+        if 'ssl' in settings.DATABASES['default']['OPTIONS']:
+            sslarg = ' --ssl-ca=' + settings.DATABASES['default']['OPTIONS']['ssl']['ca']
+        else:
+            sslarg = ''
+
+        dbdump.Command().handle(backup_directory=path, filename=filename, compression_command='gzip',
+                                raw_args='--single-transaction --skip-extended-insert' + sslarg)
 
         if options['clean_old']:
             dates_covered = set()

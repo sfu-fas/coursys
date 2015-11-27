@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import PromiseForm
 from django.core.urlresolvers import reverse
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from coredata.models import Semester
 from log.models import LogEntry
 

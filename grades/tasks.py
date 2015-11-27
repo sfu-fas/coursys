@@ -21,7 +21,7 @@ def _send_grade_released_news(activity_id):
                       % (activity.name, activity.offering.name()),
                     'url': activity.get_absolute_url()})
 
-@task(max_retries=2)
+@task(max_retries=2, queue='fast')
 def send_grade_released_news_task(activity_id):
     _send_grade_released_news(activity_id)
 

@@ -10,29 +10,10 @@
 {% compress js %}
 <script type="text/javascript" src="{% static 'fullcalendar/fullcalendar.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/advisornotes.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/browse.js' %}"></script>
 <script type="text/javascript" src="{% static 'jquery-ext/jquery.linkify.min.js' %}"></script>
+{% endcompress %}
 <script type="text/javascript">
-function build_calendar(url, y, m ,d) {
-	$('#calendar').fullCalendar({
-    	header: {
-      		left: 'prev,next today',
-	      	center: 'title',
-      		right: 'month,agendaWeek'
-    	},
-    	events: {
-      		url: url,
-	      	cache: true,
-      		ignoreTimezone: false,
-    	},
-    	height: 500,
-    	firstHour: 8,
-    	slotMinutes: 60,
-    	defaultView: 'agendaWeek',
-    	year: y,
-    	month: m,
-    	day: d,
-  	})
-}
 $(document).ready(function() {
 	$('table#maininfo').after('<i class="fa fa-spinner fa-spin" id="fetchwait"></i>');
 	$('h2#outline').after('<i class="fa fa-spinner fa-spin" id="fetchwait-outline"></i>');
@@ -42,7 +23,6 @@ $(document).ready(function() {
         {{ offering.semester.start.year }}, {{ offering.semester.start.month }}, {{ offering.semester.start.day }});
 } );
 </script>
-{% endcompress %}
 {% endblock %}
 
 {% block content %}

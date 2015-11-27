@@ -233,8 +233,8 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
             {% endfor %}
         </td>
         <td>
-            {% for st in a.statuses %}
-                {{st.student.program.label}} ({{st.student.program.unit.label}}, {{st.get_status_display}}) {% if not forloop.last %}<br />{% endif %}
+            {% for st in a.active_gs %}
+                {{st.program.label}} ({{st.program.unit.label}}, {{st.get_current_status_display}}) {% if not forloop.last %}<br />{% endif %}
             {% endfor %}
         </td>
         <td>{{ a.get_category_display }}</td>

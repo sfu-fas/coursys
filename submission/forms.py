@@ -50,7 +50,7 @@ def filetype(fh):
                 pass
 
             return "ZIP"
-        except zipfile.BadZipfile:
+        except (zipfile.BadZipfile, ValueError):
             pass
 
     elif magic=="Rar!":

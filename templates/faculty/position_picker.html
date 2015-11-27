@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}Select Position{% endblock %}
+{% block h1 %}Select Position{% endblock %}
+
+{% block content %}
+    {% if positions %}
+    <div>Select a position:</div>
+    <form action="{% url "faculty.views.pick_position" userid=userid %}" method="POST">
+        {% csrf_token %}
+        {{ form|as_dl }}
+        <p><input type="submit" class="submit" value="Submit" /></p>
+    </form>
+    {% else %}
+    <div>Sorry, there are no positions to select in this faculty member's unit(s). <a href="{% url "faculty.views.list_positions" %}">See all positions</a></div>
+    {% endif %}
+
+{% endblock %}

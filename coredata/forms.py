@@ -493,17 +493,17 @@ class CheckboxSelectTerse(forms.CheckboxSelectMultiple):
         return mark_safe(u'\n'.join(output))
 
 FLAG_DICT = dict(WQB_FLAGS)
-UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
-COLUMN_CHOICES = [ # columns that can be turned on and off by the user.
-    ('title', 'Course Title'), 
-    ('instructors', 'Instructor(s)'),
-    ('enrl_tot', 'Enrolment'),
-    ('campus', 'Campus'),
-    ]
-COLUMN_NAMES = dict(COLUMN_CHOICES)
-COLUMN_NAMES['semester'] = 'Semester'
-COLUMN_NAMES['coursecode'] = 'Course'
-DEFAULT_COLUMNS = ['title', 'instructors', 'campus']
+#UNIVERSAL_COLUMNS = ['semester', 'coursecode'] # always display these Just Because.
+#COLUMN_CHOICES = [ # columns that can be turned on and off by the user.
+#    ('title', 'Course Title'),
+#    ('instructors', 'Instructor(s)'),
+#    ('enrl_tot', 'Enrolment'),
+#    ('campus', 'Campus'),
+#    ]
+#COLUMN_NAMES = dict(COLUMN_CHOICES)
+#COLUMN_NAMES['semester'] = 'Semester'
+#COLUMN_NAMES['coursecode'] = 'Course'
+#DEFAULT_COLUMNS = ['title', 'enrol', 'instructors', 'campus']
 class OfferingFilterForm(forms.Form):
     #columns = forms.MultipleChoiceField(choices=COLUMN_CHOICES, initial=DEFAULT_COLUMNS)
     subject = forms.ChoiceField()

@@ -12,6 +12,8 @@ from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 import decimal, json
 
+COMMENT_LENGTH = 5000
+
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
     ('GRAD', 'graded'), 
@@ -75,7 +77,7 @@ class Activity(models.Model):
     short_name = models.CharField(max_length=15, db_index=True, help_text='Short-form name of the activity.')
     def autoslug(self):
         return make_slug(self.short_name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering', manager=objects,
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering', manager=objects,
                          help_text='String that identifies this activity within the course offering')
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(null=True, help_text='Activity due date')
@@ -138,8 +140,7 @@ class Activity(models.Model):
 
             # newly-released grades: create news items
             send_grade_released_news(self.id)
-            
-        
+
         if old and old.group and not self.group:
             # activity changed group -> individual. Clean out any group memberships
             from groups.models import GroupMember
@@ -167,7 +168,6 @@ class Activity(models.Model):
             self.slug = None
             self.save()
 
-
     def display_label(self):
         if self.percent:
             return "%s (%s%%)" % (self.name, self.percent)
@@ -185,12 +185,34 @@ class Activity(models.Model):
         String representing grade for this student
         """
         return self.display_grade_visible(student, 'INST')
+
     def get_status_display(self):
         """
         Override to provide better string for not-yet-due case.
         """
         if self.status == "URLS" and self.due_date and self.due_date > datetime.now():
             return "no grades: due date not passed"
+
+        return ACTIVITY_STATUS[self.status]
+
+    def get_status_display_staff(self):
+        """
+        Override to provide better string for not-yet-due case.
+        """
+        if self.status == "URLS" and self.due_date and self.due_date > datetime.now():
+            return "no grades: due date not passed"
+        elif self.status == 'URLS':
+            total = Member.objects.filter(offering=self.offering, role='STUD').count()
+            if isinstance(self, NumericActivity):
+                GradeClass = NumericGrade
+            elif isinstance(self, LetterActivity):
+                GradeClass = LetterGrade
+            graded = GradeClass.objects.filter(activity=self).exclude(flag='NOGR').count()
+            # If we've graded everything, might as well change the status back
+            if graded == total and total > 0:
+                return ACTIVITY_STATUS[self.status]
+            # Otherwise, let them know the progress.
+            return 'ready to grade (%i/%i graded)' % (graded, total)
 
         return ACTIVITY_STATUS[self.status]
 
@@ -275,14 +297,16 @@ class NumericActivity(Activity):
     Activity with a numeric mark
     """
     max_grade = models.DecimalField(max_digits=8, decimal_places=2)
-    
 
     class Meta:
         verbose_name_plural = "numeric activities"
+
     def type_long(self):
         return "Numeric Graded"
+
     def is_numeric(self):
         return True
+
     def is_calculated(self):
         return False
 
@@ -314,10 +338,13 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
+
     def type_long(self):
         return "Letter Graded"
+
     def is_numeric(self):
         return False
+
     def is_calculated(self):
         return False
 
@@ -350,10 +377,13 @@ class CalNumericActivity(NumericActivity):
 
     def is_calculated(self):
         return True
+
     class Meta:
         verbose_name_plural = "cal numeric activities"
+
     def type_long(self):
         return "Calculated Numeric Grade"
+
     def formula_display(self):
         from grades.formulas import display_formula
         activities = all_activities_filter(self.offering)
@@ -369,6 +399,7 @@ class CalLetterActivity(LetterActivity):
 
     def is_calculated(self):
         return True
+
     def is_numeric(self):
         return False
     
@@ -376,6 +407,7 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
+
     def type_long(self):
         return "Calculated Letter Grade"
     
@@ -462,7 +494,7 @@ class NumericGrade(models.Model):
 
     value = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
@@ -498,7 +530,6 @@ class NumericGrade(models.Model):
             return '%s/%s' % (self.value, self.activity.max_grade)
         else:
             return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
-        
 
     def save(self, entered_by, mark=None, newsitem=True, group=None, is_temporary=False):
         """Save the grade.
@@ -562,7 +593,7 @@ class LetterGrade(models.Model):
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default='NOGR')
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
     
     def __unicode__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
@@ -643,9 +674,10 @@ def neaten_activity_positions(course):
     update all positions to consecutive integers: seems possible to get identical positions in some cases
     """
     count = 1
-    for a in Activity.objects.filter(offering=course).order_by('position'):
-        a.position = count
-        a.save()
+    for a in Activity.objects.filter(offering=course, deleted=False).order_by('position'):
+        if a.position != count:
+            a.position = count
+            a.save()
         count += 1
 
 LETTER_POSITION = {
@@ -762,7 +794,7 @@ class GradeHistory(models.Model):
     numeric_grade = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=False)
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     grade_flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
-    comment = models.TextField(null=True)
+    comment = models.TextField(null=True, max_length=COMMENT_LENGTH)
 
     mark = models.ForeignKey('marking.ActivityMark', null=True, help_text='The ActivityMark object this grade came from, if applicable.')
     group = models.ForeignKey('groups.Group', null=True, help_text='If this was a mark for a group, the group.')

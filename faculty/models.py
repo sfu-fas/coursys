@@ -8,12 +8,14 @@ import copy
 from django.db import models
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.apps.registry import apps
+from django.utils import timezone
 
 from autoslug import AutoSlugField
 from bitfield import BitField
 from courselib.json_fields import JSONField
 
-from coredata.models import Unit, Person, Semester, Role
+from coredata.models import Unit, Person, Semester, Role, AnyPerson
 from courselib.json_fields import config_property
 from courselib.slugs import make_slug
 from courselib.text import normalize_newlines, many_newlines
@@ -44,6 +46,8 @@ from faculty.event_types.position import AdminPositionEventHandler
 from faculty.event_types.teaching import NormalTeachingLoadHandler
 from faculty.event_types.teaching import OneInNineHandler
 from faculty.util import ReportingSemester
+from faculty.event_types.career import RANK_CHOICES
+from fractions import Fraction
 
 # CareerEvent.event_type value -> CareerEventManager class
 HANDLERS = [
@@ -192,7 +196,7 @@ class CareerQuerySet(models.query.QuerySet):
 # adapted from https://djangosnippets.org/snippets/562/
 class CareerEventManager(models.Manager):
     def get_queryset(self):
-        model = models.get_model('faculty', 'CareerEvent')
+        model = apps.get_model('faculty', 'CareerEvent')
         return CareerQuerySet(model)
 
     def __getattr__(self, attr, *args):
@@ -379,6 +383,24 @@ def attachment_upload_to(instance, filename):
     return fullpath
 
 
+def position_attachment_upload_to(instance, filename):
+    """
+    callback to avoid path in the filename(that we have append folder structure to) being striped
+    """
+    fullpath = os.path.join(
+        'faculty',
+        str(instance.position.id),
+        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
+
+
+class DocumentAttachmentManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
 class DocumentAttachment(models.Model):
     """
     Document attached to a CareerEvent.
@@ -390,6 +412,9 @@ class DocumentAttachment(models.Model):
     created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
     contents = models.FileField(storage=NoteSystemStorage, upload_to=attachment_upload_to, max_length=500)
     mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = DocumentAttachmentManager()
 
     def __unicode__(self):
         return self.contents.name
@@ -400,6 +425,10 @@ class DocumentAttachment(models.Model):
 
     def contents_filename(self):
         return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
 
 class MemoTemplate(models.Model):
@@ -422,7 +451,7 @@ class MemoTemplate(models.Model):
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return u"%s in %s" % (self.label, self.unit)
@@ -455,15 +484,14 @@ class Memo(models.Model):
 
     template = models.ForeignKey(MemoTemplate, null=True)
     memo_text = models.TextField(help_text="I.e. 'Congratulations on ... '")
-    #salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
-    #closing = models.CharField(max_length=100, default="Sincerely")
 
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(Person, help_text='Letter generation requested by.', related_name='+')
     hidden = models.BooleanField(default=False)
-    config = JSONField(default={})  # addition configuration for within the memo
-    # XXX: 'use_sig': use the from_person's signature if it exists?
-    #                 (Users set False when a real legal signature is required.
+    config = JSONField(default={})  # addition configuration for the memo
+    # 'use_sig': use the from_person's signature if it exists?
+    #            (Users set False when a real legal signature is required.)
+    # 'pdf_generated': set to True if a PDF has ever been created for this memo (used to decide if it's editable)
 
     use_sig = config_property('use_sig', default=True)
 
@@ -472,10 +500,14 @@ class Memo(models.Model):
             return make_slug(self.career_event.slug + "-" + self.template.label)
         else:
             return make_slug(self.career_event.slug + "-memo")
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('career_event',))
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('career_event',))
 
     def __unicode__(self):
-        return u"%s memo for %s" % (self.template.label, self.career_event)
+        return u"%s memo for %s" % (self.subject, self.career_event)
+
+    def hide(self):
+        self.hidden = True
+        self.save()
 
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
@@ -488,8 +520,24 @@ class Memo(models.Model):
         self.memo_text = many_newlines.sub('\n\n', self.memo_text)
         super(Memo, self).save(*args, **kwargs)
 
+    def uneditable_reason(self):
+        """
+        Return a string indicating why this memo cannot be edited, or None.
+        """
+        age = timezone.now() - self.created_at
+        if age > datetime.timedelta(minutes=15):
+            return 'memo is more than 15 minutes old'
+        #elif self.config.get('pdf_generated', False):
+        #    return 'PDF has been generated, so we assume it was sent'
+        return None
+
     def write_pdf(self, response):
         from dashboard.letters import OfficialLetter, MemoContents
+
+        # record the fact that it was generated (for editability checking)
+        self.config['pdf_generated'] = True
+        self.save()
+
         doc = OfficialLetter(response, unit=self.unit)
         l = MemoContents(to_addr_lines=self.to_lines.split("\n"),
                         from_name_lines=self.from_lines.split("\n"),
@@ -610,7 +658,7 @@ class Grant(models.Model):
     title = models.CharField(max_length=64, help_text='Label for the grant within this system')
     slug = AutoSlugField(populate_from='title', unique_with=("unit",), null=False, editable=False)
     label = models.CharField(max_length=255, help_text="for identification from FAST import", db_index=True)
-    owners = models.ManyToManyField(Person, through='GrantOwner', blank=False, null=True, help_text='Who owns/controls this grant?')
+    owners = models.ManyToManyField(Person, through='GrantOwner', blank=False, help_text='Who owns/controls this grant?')
     project_code = models.CharField(max_length=32, db_index=True, help_text="The fund and project code, like '13-123456'")
     start_date = models.DateField(null=False, blank=False)
     expiry_date = models.DateField(null=True, blank=True)
@@ -684,7 +732,8 @@ class GrantBalance(models.Model):
 
 
 class FacultyMemberInfo(models.Model):
-    person = models.ForeignKey(Person, unique=True, related_name='+')
+    #person = models.ForeignKey(Person, unique=True, related_name='+')
+    person = models.OneToOneField(Person, related_name='+')
     title = models.CharField(max_length=50)
     birthday = models.DateField(verbose_name="Birthdate", null=True, blank=True)
     office_number = models.CharField('Office', max_length=20, null=True, blank=True)
@@ -700,3 +749,117 @@ class FacultyMemberInfo(models.Model):
     def get_absolute_url(self):
         return reverse('faculty.views.faculty_member_info',
                        args=[self.person.userid_or_emplid()])
+
+
+def timezone_today():
+    """
+    Return the timezone-aware version of datetime.date.today()
+
+    :return: Today's date corrected for timezones
+    """
+    return timezone.now().date()
+
+
+class PositionManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+    def visible_by_unit(self, units):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False).filter(unit__in=units)
+
+
+class Position(models.Model):
+    title = models.CharField(max_length=100)
+    projected_start_date = models.DateField('Projected Start Date', default=timezone_today)
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    position_number = models.CharField(max_length=8)
+    rank = models.CharField(choices=RANK_CHOICES, max_length=50, null=True, blank=True)
+    step = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    base_salary = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+    add_salary = models.DecimalField(decimal_places=2, max_digits=10,  null=True, blank=True)
+    add_pay = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+    config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
+    hidden = models.BooleanField(default=False, editable=False)
+    any_person = models.ForeignKey(AnyPerson, null=True, blank=True)
+    degree1 = models.CharField(max_length=12, default='')
+    year1 = models.CharField(max_length=5, default='')
+    institution1 = models.CharField(max_length=25, default='')
+    location1 = models.CharField(max_length=23, default='')
+    degree2 = models.CharField(max_length=12, default='')
+    year2 = models.CharField(max_length=5, default='')
+    institution2 = models.CharField(max_length=25, default='')
+    location2 = models.CharField(max_length=23, default='')
+    degree3 = models.CharField(max_length=12, default='')
+    year3 = models.CharField(max_length=5, default='')
+    institution3 = models.CharField(max_length=25, default='')
+    location3 = models.CharField(max_length=23, default='')
+
+    objects = PositionManager()
+
+    def __unicode__(self):
+        return "%s - %s" % (self.position_number, self.title)
+
+    def hide(self):
+        self.hidden = True
+
+    class Meta:
+        ordering = ('projected_start_date', 'title')
+
+    def get_load_display(self):
+        """
+        Called if you're going to insert this in another AnnualTeachingCreditField,
+        like when we populate the onboarding wizard with this value.
+        """
+        if 'teaching_load' in self.config:
+            return unicode(Fraction(self.config['teaching_load']))
+
+        else:
+            return 0
+
+    def get_load_display_corrected(self):
+        """
+        Called if you're purely going to display the value, as when displaying the contents of the position.
+        """
+        if 'teaching_load' in self.config:
+            return unicode(Fraction(self.config['teaching_load'])*3)
+
+        else:
+            return 0
+
+
+class PositionDocumentAttachmentManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
+class PositionDocumentAttachment(models.Model):
+    """
+    Document attached to a CareerEvent.
+    """
+    position = models.ForeignKey(Position, null=False, blank=False, related_name="attachments")
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('position',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=position_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = PositionDocumentAttachmentManager()
+
+    def __unicode__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("position", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()

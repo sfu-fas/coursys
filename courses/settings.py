@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     #'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'test_without_migrations',
     #'south',
     'compressor',
     'haystack',
@@ -63,6 +64,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'oauth_provider',
     'rest_framework_swagger',
+    #'piwik_middleware',
 
     'coredata',
     'dashboard',
@@ -98,6 +100,7 @@ MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'courselib.middleware.ExceptionIgnorer',
     'django_cas.middleware.CASMiddleware',
     'courselib.impersonate.ImpersonateMiddleware',
+    #'piwik_middleware.middleware.PiwikMiddleware',
 )
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'templates'),
@@ -114,9 +117,8 @@ OAUTH_SIGNATURE_METHODS = ['hmac-sha1',]
 OAUTH_UNSAFE_REDIRECTS = True
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.OAuthAuthentication',
+        'rest_framework_oauth.authentication.OAuthAuthentication',
     )
 }
 SWAGGER_SETTINGS = { "api_version": '1' }
@@ -158,6 +160,12 @@ if DEPLOY_MODE in ['production', 'proddev']:
         }
     }
 
+    # Celery (and other long-idle manage.py tasks) can't have CONN_MAX_AGE set. Only set for gunicorn processes.
+    # See https://code.djangoproject.com/ticket/21597
+    gunicorn_process = 'SERVER_SOFTWARE' in os.environ and os.environ['SERVER_SOFTWARE'].startswith('gunicorn/')
+    if gunicorn_process:
+        DATABASES['default']['CONN_MAX_AGE'] = 3600
+
     if DEPLOY_MODE == 'proddev':
         DATABASES['default'].update({
             'NAME': 'coursys',
@@ -169,6 +177,9 @@ if DEPLOY_MODE in ['production', 'proddev']:
 
     DATABASES['default'].update(getattr(localsettings, 'DB_CONNECTION', {}))
     DATABASES['default'].update(getattr(secrets, 'DB_CONNECTION', {}))
+    if getattr(secrets, 'MORE_DATABASES', None):
+        DATABASES.update(secrets.MORE_DATABASES)
+
     INSTALLED_APPS = INSTALLED_APPS + ('dbdump',)
 
 else:
@@ -287,6 +298,7 @@ if USE_CELERY:
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
     CELERY_BEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+    CELERYD_TASK_SOFT_TIME_LIMIT = 1200
 
     CELERY_DEFAULT_QUEUE = 'batch'
     CELERY_QUEUES = { # any new queues should be reflected in the /etc/defaults/celery setup
@@ -318,8 +330,15 @@ SIMS_USER = getattr(secrets, 'SIMS_USER', 'ggbaker')
 SIMS_PASSWORD = getattr(secrets, 'SIMS_PASSWORD', '')
 SIMS_DB_NAME = "csrpt"
 SIMS_DB_SCHEMA = "dbcsown"
-AMAINT_DB_PASSWORD = getattr(secrets, 'AMAINT_DB_PASSWORD', '')
 EMPLID_API_SECRET = getattr(secrets, 'EMPLID_API_SECRET', '')
+
+#PIWIK_URL = getattr(secrets, 'PIWIK_URL', None)
+#PIWIK_TOKEN = getattr(secrets, 'PIWIK_TOKEN', None)
+#PIWIK_SITEID = getattr(secrets, 'PIWIK_SITEID', 1)
+#PIWIK_CELERY = USE_CELERY
+#PIWIK_CELERY_TASK_KWARGS = {'queue': 'batch', 'rate_limit': '5/s', 'max_retries': 6, 'default_retry_delay': 600}
+#PIWIK_FAIL_SILENTLY = True
+#PIWIK_FORCE_HOST = 'courses.cs.sfu.ca'
 
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
@@ -366,6 +385,7 @@ if DEPLOY_MODE == 'production':
 if getattr(localsettings, 'DEBUG_TOOLBAR', False):
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
     MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    INTERNAL_IPS = getattr(localsettings, 'INTERNAL_IPS', [])
     #DEBUG_TOOLBAR_CONFIG = {
     #    'INTERCEPT_REDIRECTS': False,
     #}

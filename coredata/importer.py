@@ -1,5 +1,4 @@
 import sys, os, datetime, time, copy
-import MySQLdb
 sys.path.append(".")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'courses.settings'
 
@@ -25,27 +24,6 @@ past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=110)
 
 # fake combined sections now handed at https://courses.cs.sfu.ca/sysadmin/combined/
-
-class MySQLConn(DBConn):
-    db_host = '127.0.0.1'
-    db_port = 4000
-    def escape_arg(self, a):
-        return "'" + MySQLdb.escape_string(str(a)) + "'"
-
-
-class AMAINTConn(MySQLConn):
-    """
-    Singleton object representing AMAINT DB connection
-    """
-    db_user = "ggbaker"
-    db_name = "amaint"
-    db_passwd = settings.AMAINT_DB_PASSWORD
-
-    def get_connection(self):
-        conn = MySQLdb.connect(host=self.db_host, user=self.db_user,
-             passwd=self.db_passwd, db=self.db_name, port=self.db_port)
-        return conn, conn.cursor()
-
 
 @transaction.atomic
 def create_semesters():
@@ -202,7 +180,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
 CLASS_TBL_FIELDS = 'ct.subject, ct.catalog_nbr, ct.class_section, ct.strm, ct.crse_id, ct.class_nbr, ' \
         + 'ct.ssr_component, ct.descr, ct.campus, ct.enrl_cap, ct.enrl_tot, ct.wait_tot, ct.cancel_dt, ' \
-        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn, cc.units_minimum'
+        + 'ct.acad_org, ct.instruction_mode, cc.rqmnt_designtn, cc.units_minimum' # cc.course_title_long
 CLASS_TBL_QUERY = """
 SELECT """ + CLASS_TBL_FIELDS + """
 FROM ps_class_tbl ct
@@ -559,38 +537,6 @@ def import_joint(extra_where='1=1'):
 def import_combined(import_semesters=import_semesters):
     for combined in CombinedOffering.objects.filter(semester__name__in=import_semesters):
         combined.create_combined_offering()
-
-'''
-@transaction.atomic
-def update_all_userids():
-    """
-    Make sure everybody's userid is right.
-    """
-    accounts_by_emplid = dict((ca.emplid, ca) for ca in ComputingAccount.objects.all())
-    
-    for p in Person.objects.all():
-        if p.emplid in accounts_by_emplid:
-            account_userid = accounts_by_emplid[p.emplid].userid
-            if p.userid != account_userid:
-                if account_userid:
-                    if p.userid:
-                        p.config['replaced_userid'] = p.userid
-                    p.userid = account_userid
-                    p.save()
-                else:
-                    # this case: proposing to replace a non-null userid with null. i.e. deactivate the account
-                    # let's not do that. If userids get reused, this is the wrong thing.
-                    print "!!! not deactivating userid %s (1)" % (p.userid)
-
-
-        else:
-            if p.userid:
-                # as above: don't deactivate old userids
-                print "!!! not deactivating userid %s (2)" % (p.userid)
-                #p.config['old_userid'] = p.userid
-                #p.userid = None
-                #p.save()
-'''
 
 def update_grads():
     """

@@ -39,7 +39,7 @@ class Report(models.Model):
 
     def autoslug(self):
         return make_slug( self.name )
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, 
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False,
                          unique=True)
 
     def expired_schedule_rules(self):
@@ -340,7 +340,7 @@ class Run(models.Model):
     manual = models.BooleanField(default=False, help_text="Was this run requested manually (as opposed to scheduled)?")
     def autoslug(self):
         return make_slug( self.created_at )
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     
     def addLine(self, message):
         r = RunLine(run=self, description=message)
@@ -382,7 +382,7 @@ class Result(models.Model):
         else: 
             return make_slug( self.id )
     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     cached_table = None
     cached_summary = None

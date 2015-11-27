@@ -336,7 +336,7 @@ def add_combined_offering(request, pk):
 def admin_panel(request):
     if 'content' in request.GET:
         if request.GET['content'] == 'deploy_checks':
-            passed, failed = panel.deploy_checks()
+            passed, failed = panel.deploy_checks(request=request)
             return render(request, 'coredata/admin_panel_tab.html', {'passed': passed, 'failed': failed})
         elif request.GET['content'] == 'settings_info':
             data = panel.settings_info()
@@ -354,7 +354,7 @@ def admin_panel(request):
             return render(request, 'coredata/admin_panel_tab.html', {'tasks': True})
         elif request.GET['content'] == 'request':
             import pprint
-            return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request)})
+            return render(request, 'coredata/admin_panel_tab.html', {'request': pprint.pformat(request.__dict__)})
         elif request.GET['content'] == 'git':
             git = {}
             git['branch'] = panel.git_branch()
@@ -375,7 +375,7 @@ def admin_panel(request):
             else:
                 messages.error(request, res)
         elif 'tasks' in request.POST:
-            if 'grad' in request.POST:
+            if 'daily' in request.POST:
                 from coredata.tasks import import_task
                 import_task.apply_async()
                 messages.success(request, 'Daily import task started.')
@@ -760,23 +760,23 @@ import pytz
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from courselib.auth import NotFoundResponse
-from coredata.forms import OfferingFilterForm, UNIVERSAL_COLUMNS, DEFAULT_COLUMNS, COLUMN_NAMES, FLAG_DICT
+from coredata.models import CAMPUSES_SHORT
+from coredata.forms import OfferingFilterForm, FLAG_DICT
 from coredata.queries import more_offering_info, outlines_data_json, SIMSProblem
 from dashboard.views import _offerings_calendar_data
 
+COLUMNS = ['semester', 'coursecode', 'title', 'enrol', 'instructors', 'campus']
 COLUMN_ORDERING = { # column -> ordering info for datatable_view
     'semester': 'semester__name',
     'coursecode': ['subject', 'number', 'section'],
     'title': 'title',
     'instructors': [],
-    'enrl_tot': 'enrl_tot',
+    'enrol': 'enrl_tot',
     'campus': 'campus',
     }
 
 class OfferingDataJson(BaseDatatableView):
     model = CourseOffering
-    #columns = ['semester', 'coursecode', 'title', 'instructors', 'enrl_tot']
-    #order_columns = ['semester__name', ['subject', 'number'], 'section', 'title', [], 'enrl_tot']
     max_display_length = 500
     
     def set_columns(self, col_list):
@@ -785,11 +785,19 @@ class OfferingDataJson(BaseDatatableView):
 
     def render_column(self, offering, column):
         if column == 'coursecode':
-            txt = '%s %s %s' % (offering.subject, offering.number, offering.section)
+            txt = u'%s\u00a0%s\u00a0%s' % (offering.subject, offering.number, offering.section) # those are nbsps
             url = reverse('coredata.views.browse_courses_info', kwargs={'course_slug': offering.slug})
             col = mark_safe('<a href="%s">%s</a>' % (url, conditional_escape(txt)))
         elif column == 'instructors':
             col = offering.instructors_str()
+        elif column == 'campus':
+            col = CAMPUSES_SHORT[offering.campus]
+        elif column == 'enrol':
+            col = '%i/%i' % (offering.enrl_tot, offering.enrl_cap)
+            if offering.wait_tot:
+                col += ' (+%i)' % (offering.wait_tot,)
+        elif column == 'semester':
+            col = unicode(offering.semester).replace(u' ', u'\u00a0') # nbsp
         elif hasattr(offering, 'get_%s_display' % column):
             # it's a choice field
             col = getattr(offering, 'get_%s_display' % column)()
@@ -812,11 +820,11 @@ class OfferingDataJson(BaseDatatableView):
         # no locally-merged courses
         qs = qs.exclude(flags=CourseOffering.flags.combined)
 
-        req_cols = GET.get('columns', '').split(',')
-        if req_cols == [''] or req_cols == ['null']:
-            req_cols = DEFAULT_COLUMNS
-        columns = UNIVERSAL_COLUMNS + req_cols
-        self.set_columns(columns)
+        #req_cols = GET.get('columns', '').split(',')
+        #if req_cols == [''] or req_cols == ['null']:
+        #    req_cols = DEFAULT_COLUMNS
+        #columns = UNIVERSAL_COLUMNS + req_cols
+        self.set_columns(COLUMNS)
         
         srch = GET.get('sSearch', None)
         if srch:
@@ -828,7 +836,6 @@ class OfferingDataJson(BaseDatatableView):
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
-
         subject = GET.get('subject', None)
         if subject:
             qs = qs.filter(subject=subject)
@@ -839,7 +846,7 @@ class OfferingDataJson(BaseDatatableView):
             
         section = GET.get('section', None)
         if section:
-            qs = qs.filter(section__startswith=section)
+            qs = qs.filter(section__istartswith=section)
 
         instructor = GET.get('instructor', None)
         if instructor:
@@ -867,7 +874,6 @@ class OfferingDataJson(BaseDatatableView):
             offering_pks = (r.pk for r in offering_qs if r is not None)
             qs = qs.filter(pk__in=offering_pks)
 
-
         wqb = GET.getlist('wqb')
         for f in wqb:
             if f not in FLAG_DICT:
@@ -888,17 +894,17 @@ class OfferingDataJson(BaseDatatableView):
         #qs = qs[:500] # ignore requests for crazy amounts of data
         return qs
 
-    def XXX_prepare_results(self, qs):
-        "Prepare for mData-style data handling"
-        data = []
-        for item in qs:
-            data.append(dict((column, self.render_column(item, column)) for column in self.get_columns()))
-        return data
+    #def XXX_prepare_results(self, qs):
+    #    "Prepare for mData-style data handling"
+    #    data = []
+    #    for item in qs:
+    #        data.append(dict((column, self.render_column(item, column)) for column in self.get_columns()))
+    #    return data
 
-    def get_context_data(self, *args, **kwargs):
-        data = super(OfferingDataJson, self).get_context_data(*args, **kwargs)
-        data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
-        return data
+    #def get_context_data(self, *args, **kwargs):
+    #    data = super(OfferingDataJson, self).get_context_data(*args, **kwargs)
+    #    data['colinfo'] = [(c, COLUMN_NAMES.get(c, '???')) for c in self.get_columns()]
+    #    return data
 
 _offering_data = uses_feature('course_browser')(OfferingDataJson.as_view())
 

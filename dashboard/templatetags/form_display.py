@@ -18,11 +18,14 @@ def field_display(field, safe=False):
         out.append('<div class="field">%s</div>' % (unicode(field)))
     out.append(unicode(field.errors))
 
-    if field.help_text and not isinstance(field.help_text, Promise): # we don't have translations: if exists, it's the default
-        if safe:
-            out.append('<div class="helptext">%s</div>' % (field.help_text))
+    if field.help_text:
+        if isinstance(field.help_text, Promise):
+            out.append(u'<div class="helptext">%s</div>' % (escape(field.help_text)))
         else:
-            out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
+            if safe:
+                out.append(u'<div class="helptext">%s</div>' % (field.help_text))
+            else:
+                out.append(u'<div class="helptext">%s</div>' % (escape(field.help_text)))
     return mark_safe('\n'.join(out))
 
 

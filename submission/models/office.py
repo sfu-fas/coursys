@@ -35,8 +35,8 @@ class JSONFieldFlexible(JSONField):
 
         return super(JSONFieldFlexible, self).formfield(**kwargs)
 
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^submission\.models\.office\.JSONFieldFlexible"])
+#from south.modelsinspector import add_introspection_rules
+#add_introspection_rules([], ["^submission\.models\.office\.JSONFieldFlexible"])
 
 class OfficeComponent(SubmissionComponent):
     "An office document submission component"
@@ -85,7 +85,7 @@ class SubmittedOffice(SubmittedComponent):
     def get_filename(self):
         return os.path.split(self.office.name)[1]
 
-    def download_response(self):
+    def download_response(self, **kwargs):
         # figure out the MIME type
         for ext in self.component.mime_types:
             if self.office.name.lower().endswith(ext):
@@ -96,7 +96,7 @@ class SubmittedOffice(SubmittedComponent):
         self.sendfile(self.office, response)
         return response
 
-    def add_to_zip(self, zipfile, prefix=None):
+    def add_to_zip(self, zipfile, prefix=None, **kwargs):
         filename = self.file_filename(self.office, prefix)
         zipfile.write(self.office.path, filename)
 

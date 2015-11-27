@@ -5,6 +5,9 @@ from django import forms
 from django.forms.models import BaseModelFormSet
 from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN
 import json
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
+
 
 
 class OutOfInput(forms.widgets.NumberInput):
@@ -16,6 +19,17 @@ class OutOfInput(forms.widgets.NumberInput):
 
     def render(self, *args, **kwargs):
         return super(OutOfInput, self).render(*args, **kwargs) + ' out of ' + unicode(self.max_mark)
+
+
+class PercentageInput(forms.widgets.NumberInput):
+    "A NumberInput, but with a suffix '%'"
+    def __init__(self, **kwargs):
+        defaults = {'attrs': {'size': 8}}
+        defaults.update(**kwargs)
+        super(PercentageInput, self).__init__(**defaults)
+
+    def render(self, *args, **kwargs):
+        return mark_safe(conditional_escape(super(PercentageInput, self).render(*args, **kwargs)) + ' %')
 
 
 class ActivityComponentMarkForm(ModelForm):
@@ -36,7 +50,7 @@ class ActivityComponentMarkForm(ModelForm):
 activity_mark_fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
                   'file_attachment']
 activity_mark_widgets = {
-    'late_penalty': forms.NumberInput(attrs={'class': 'gradeinput'}),
+    'late_penalty': PercentageInput(attrs={'class': 'gradeinput'}),
     'mark_adjustment': forms.NumberInput(attrs={'class': 'gradeinput'}),
     'mark_adjustment_reason': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
     'overall_comment': forms.Textarea(attrs={'cols': 60, 'rows': 4}),
@@ -228,7 +242,10 @@ class ImportMarkFileForm(forms.Form):
         except ValueError as e:
             raise forms.ValidationError(u'JSON decoding error.  Exception was: "' + str(e) + '"')
 
-        return activity_marks_from_JSON(self.activity, self.userid, data)
+        # actually parse the input to see if it's valid
+        activity_marks_from_JSON(self.activity, self.userid, data, save=False)
+
+        return data
 
 
 class ActivityRenameForm(forms.Form):

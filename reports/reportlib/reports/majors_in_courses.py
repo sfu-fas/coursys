@@ -10,7 +10,7 @@ class PlansInCoursesQuery(DB2_Query):
     description = "All academic plans for students in courses, as of the start of the semester"
 
     query = string.Template("""
-    SELECT cls.subject, cls.catalog_nbr, cls.class_section, cls.campus, std.emplid, plan.acad_plan
+    SELECT cls.subject, cls.catalog_nbr, cls.class_section, cls.campus, std.emplid, cls.enrl_tot, cls.ENRL_CAP, plan.acad_plan
     FROM ps_class_tbl cls
       INNER JOIN ps_stdnt_enrl std
         ON std.class_nbr=cls.class_nbr
@@ -43,7 +43,7 @@ class PlansDescriptionQuery(DB2_Query):
 
 def _rowkey(row):
     "key for counting programs in each offering"
-    return (row['SUBJECT'], row['CATALOG_NBR'], row['CLASS_SECTION'], row['CAMPUS'])
+    return (row['SUBJECT'], row['CATALOG_NBR'], row['CLASS_SECTION'],  row['CAMPUS'], row['ENRL_TOT'], row['ENRL_CAP'])
 
 def counter(iter):
     """
@@ -74,6 +74,8 @@ class MajorsInCoursesReport(Report):
         programs.append_column('CATALOG_NBR')
         programs.append_column('CLASS_SECTION')
         programs.append_column('CAMPUS')
+        programs.append_column('ENRL_TOTAL')
+        programs.append_column('ENRL_CAP')
         programs.append_column('PLANS')
 
         # group plans by offering
@@ -84,7 +86,7 @@ class MajorsInCoursesReport(Report):
 
         # count for each offering
         found_plans = set()
-        for (subj, nbr, sect, campus), plans in offering_plans:
+        for (subj, nbr, sect, campus, tot, cap), plans in offering_plans:
             plans = list(plans)
             found_plans |= set(plans)
             count = counter(plans)
@@ -92,7 +94,7 @@ class MajorsInCoursesReport(Report):
             count.sort()
             count.reverse()
             count_str = ', '.join("%i*%s" % (n,plan) for n,plan in count)
-            programs.append_row(("%04i"%(semester), subj, nbr, sect, campus, count_str))
+            programs.append_row(("%04i"%(semester), subj, nbr, sect, campus, tot, cap, count_str))
 
         self.artifacts.append(programs)
 

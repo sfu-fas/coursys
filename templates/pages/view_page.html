@@ -10,9 +10,10 @@
 MathJax.Hub.Config({
   displayAlign: "left",
   displayIndent: "2em",
+  "HTML-CSS": { scale: 100 }
 });
 </script>
-<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 {% endif %}
 {% if version.syntax %}
 <script type="text/javascript" src="{{STATIC_URL}}syntaxhighlighter/scripts/shCore.js"></script>
@@ -47,12 +48,13 @@ MathJax.Hub.Config({
 {% block content %}
 {% if page.release_message %}<div class="warningmessage">{{ page.release_message }}</div>{% endif %}
 
-
 {% if version.is_filepage %}
 <p>View file <a href="{% url "pages.views.view_file" course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}), or <a href="{% url "pages.views.download_file" course_slug=offering.slug page_label=page.label %}">download</a>.</p>
 {% else %}
 <div class="wikicontents">{{ version.html_contents }}</div>
 {% endif %}
-<div class="updateinfo">Updated {{ version.created_at }} by {{version.editor.person.userid }}.</div>
+<div class="updateinfo">Updated {{ version.created_at }} by {{version.editor.person.userid }}.
+{% if can_edit and page.can_read != 'ALL' %}<br /><span class="infomessage">This page is visible only to {{ page.get_can_read_display }}.</span>{% endif %}
+</div>
 
 {% endblock %}

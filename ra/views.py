@@ -4,19 +4,40 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from django.template.defaultfilters import date as datefilter
 from django.conf import settings
+from django.db.models import Q
+from django.utils.html import conditional_escape as escape
 from ra.models import RAAppointment, Project, Account, SemesterConfig
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm, SemesterConfigForm, LetterSelectForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester, Unit
 from coredata.queries import more_personal_info, SIMSProblem
-from courselib.auth import requires_role, ForbiddenResponse
+from courselib.auth import requires_role, has_role, ForbiddenResponse, user_passes_test
 from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+from haystack.query import SearchQuerySet
+
 import json, datetime, urllib
+
+def _can_view_ras():
+    """
+    Allows access to funding admins, and supervisors of (any) RA.
+
+    Request object gets .units and .is_supervisor set along the way.
+    """
+    def auth_test(request, **kwargs):
+        supervisor = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username).exists()
+        request.is_supervisor = supervisor
+        return has_role('FUND', request, **kwargs) or supervisor
+
+    actual_decorator = user_passes_test(auth_test)
+    return actual_decorator
+
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -56,7 +77,7 @@ def found(request):
     people = Person.objects.filter(studentQuery)[:200]
     for p in people:
         # decorate with RAAppointment count
-        p.ras = RAAppointment.objects.filter(person=p, deleted=False).count()
+        p.ras = RAAppointment.objects.filter(unit__in=Unit.sub_units(request.units), person=p, deleted=False).count()
 
     context = {'people': people}
     return render(request, 'ra/found.html', context)
@@ -88,7 +109,7 @@ def _appointment_defaults(units, emplid=None):
 #New RA Appointment
 @requires_role("FUND")
 def new(request):
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units)
     if request.method == 'POST':
         data = request.POST.copy()
         if data['pay_frequency'] == 'L':
@@ -130,7 +151,7 @@ def new_student(request, userid):
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     initial = {'person': student.emplid, 'start_date': semesterconfig.start_date(), 'end_date': semesterconfig.end_date(), 'hours': 80 }
-    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=student.emplid)
     gss = GradStudent.objects.filter(person=student)
     if gss:
         gradstudent = gss[0]
@@ -148,7 +169,7 @@ def new_student(request, userid):
 #Edit RA Appointment
 @requires_role("FUND")
 def edit(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)    
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=appointment.person.emplid)
     if request.method == 'POST':
         data = request.POST.copy()
@@ -184,7 +205,7 @@ def edit(request, ra_slug):
 #Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
 @requires_role("FUND")
 def reappoint(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     semester = Semester.next_starting()
     semesterconfig = SemesterConfig.get_config(request.units, semester)
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True,
@@ -202,7 +223,7 @@ def reappoint(request, ra_slug):
 
 @requires_role("FUND")
 def edit_letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
 
     if request.method == 'POST':
         form = RALetterForm(request.POST, instance=appointment)
@@ -212,24 +233,50 @@ def edit_letter(request, ra_slug):
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': appointment.person.userid})))
     else:
         if not appointment.offer_letter_text:
-            appointment.offer_letter_text = appointment.default_letter_text()
+            letter_choices = RAAppointment.letter_choices(request.units)
+            if len(letter_choices) == 1: # why make them select from one?
+                appointment.build_letter_text(letter_choices[0][0])
+            else:
+                return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug})))
         form = RALetterForm(instance=appointment)
     
     context = {'appointment': appointment, 'form': form}
     return render(request, 'ra/edit_letter.html', context)
 
+# If we don't have an appointment letter yet, pick one.
+@requires_role("FUND")
+def select_letter(request, ra_slug, print_only=None):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
+    letter_choices = RAAppointment.letter_choices(request.units)
+    if request.method == 'POST':
+        filled_form = LetterSelectForm(data=request.POST, choices=letter_choices)
+        if filled_form.is_valid():
+            appointment.build_letter_text(filled_form.cleaned_data['letter_choice'])
+        if print_only == 'print':
+            return HttpResponseRedirect(reverse(letter, kwargs=({'ra_slug': ra_slug})))
+        else:
+            return HttpResponseRedirect(reverse(edit_letter, kwargs=({'ra_slug': ra_slug})))
+
+    else:
+        new_form = LetterSelectForm(choices=letter_choices)
+        context = {'form': new_form, 'ra_slug': ra_slug, 'print_only': print_only}
+        return render(request, 'ra/select_letter.html', context)
+
 
 #View RA Appointment
-@requires_role("FUND")
+@_can_view_ras()
 def view(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment,
+        Q(unit__in=Unit.sub_units(request.units)) | Q(hiring_faculty__userid=request.user.username),
+        slug=ra_slug, deleted=False)
     student = appointment.person
-    return render(request, 'ra/view.html', {'appointment': appointment, 'student': student})
+    return render(request, 'ra/view.html',
+        {'appointment': appointment, 'student': student, 'supervisor_only': not request.units})
 
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
 def form(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=request.units)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s.pdf"' % (appointment.slug)
     ra_form(appointment, response)
@@ -237,7 +284,13 @@ def form(request, ra_slug):
 
 @requires_role("FUND")
 def letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False, unit__in=Unit.sub_units(request.units))
+    if not appointment.offer_letter_text:
+        letter_choices = RAAppointment.letter_choices(request.units)
+        if len(letter_choices) == 1:  # why make them select from one?
+            appointment.build_letter_text(letter_choices[0][0])
+        else:
+            return HttpResponseRedirect(reverse(select_letter, kwargs=({'ra_slug': ra_slug, 'print_only': 'print'})))
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename="%s-letter.pdf"' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
@@ -255,7 +308,7 @@ def letter(request, ra_slug):
 
 @requires_role("FUND")
 def delete_ra(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, unit__in=request.units)
     if request.method == 'POST':
         appointment.deleted = True
         appointment.save()
@@ -270,7 +323,7 @@ def delete_ra(request, ra_slug):
 
 
 
-#Methods relating to Account creation. These are all straight forward.
+# Methods relating to Account creation. These are all straight forward.
 @requires_role(["FUND", "TAAD", "GRAD"])
 def new_account(request):
     accountform = AccountForm(request.POST or None)
@@ -292,7 +345,7 @@ def accounts_index(request):
 
 @requires_role(["FUND", "TAAD", "GRAD"])
 def edit_account(request, account_slug):
-    account = get_object_or_404(Account, slug=account_slug)
+    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
     if request.method == 'POST':
         accountform = AccountForm(request.POST, instance=account)
         if accountform.is_valid():
@@ -306,7 +359,7 @@ def edit_account(request, account_slug):
 
 @requires_role("FUND")
 def remove_account(request, account_slug):
-    account = get_object_or_404(Account, slug=account_slug)
+    account = get_object_or_404(Account, slug=account_slug, unit__in=request.units)
     account.delete()
     messages.success(request, "Removed account %s." % str(account.account_number))
     l = LogEntry(userid=request.user.username,
@@ -337,7 +390,7 @@ def projects_index(request):
 
 @requires_role("FUND")
 def edit_project(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug)
+    project = get_object_or_404(Project, slug=project_slug, unit__in=request.units)
     if request.method == 'POST':
         projectform = ProjectForm(request.POST, instance=project)
         if projectform.is_valid():
@@ -351,7 +404,7 @@ def edit_project(request, project_slug):
 
 @requires_role("FUND")
 def remove_project(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug)
+    project = get_object_or_404(Project, slug=project_slug, unit__in=request.units)
     project.delete()
     messages.success(request, "Removed project %s." % str(project.project_number))
     l = LogEntry(userid=request.user.username,
@@ -401,57 +454,82 @@ def search_scholarships_by_student(request, student_id):
     json.dump(data, response, indent=1)
     return response
 
-@requires_role("FUND")
+@_can_view_ras()
 def browse(request):
-    units = Unit.sub_units(request.units)
-    hiring_choices = [('all', 'All')] + possible_supervisors(units)
-    project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
-    account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
-    if 'data' in request.GET:
-        # AJAX query for data
-        ras = RAAppointment.objects.filter(unit__in=units, deleted=False) \
-                .select_related('person', 'hiring_faculty', 'project', 'account')
-        if 'hiring_faculty' in request.GET and request.GET['hiring_faculty'] != 'all':
-            ras = ras.filter(hiring_faculty__id=request.GET['hiring_faculty'])
-        if 'project' in request.GET and request.GET['project'] != 'all':
-            ras = ras.filter(project__id=request.GET['project'], project__unit__in=units)
-        if 'account' in request.GET and request.GET['account'] != 'all':
-            ras = ras.filter(account__id=request.GET['account'], account__unit__in=units)
+    if 'tabledata' in request.GET:
+        return RADataJson.as_view()(request)
 
-        truncated = False
-        if ras.count() > 200:
-            ras = ras[:200]
-            truncated = True
-        data = []
-        for ra in ras:
-            radata = {
-                'slug': ra.slug,
-                'name': ra.person.sortname(),
-                'hiring': ra.hiring_faculty.sortname(),
-                'project': unicode(ra.project),
-                'project_hidden': ra.project.hidden,
-                'account': unicode(ra.account),
-                'account_hidden': ra.account.hidden,
-                'start': datefilter(ra.start_date, settings.GRAD_DATE_FORMAT),
-                'end': datefilter(ra.end_date, settings.GRAD_DATE_FORMAT),
-                'amount': '$'+unicode(ra.lump_sum_pay),
-                }
-            data.append(radata)
-        
-        response = HttpResponse(content_type="application/json")
-        json.dump({'truncated': truncated, 'data': data}, response, indent=1)
-        return response
+    form = RABrowseForm()
+    context = {'form': form, 'supervisor_only': not request.units}
+    return render(request, 'ra/browse.html', context)
 
-    else:
-        # request for page
-        form = RABrowseForm()
-        form.fields['hiring_faculty'].choices = hiring_choices
-        form.fields['account'].choices = account_choices
-        form.fields['project'].choices = project_choices
-        context = {
-            'form': form
-            }
-        return render(request, 'ra/browse.html', context)
+
+class RADataJson(BaseDatatableView):
+    model = RAAppointment
+    columns = ['person', 'hiring_faculty', 'unit', 'project', 'account', 'start_date', 'end_date', 'lump_sum_pay']
+    order_columns = [
+        ['person__last_name', 'person__first_name'],
+        ['hiring_faculty__last_name', 'hiring_faculty__first_name'],
+        'unit__label',
+        'project__project_number',
+        'account__account_number',
+        'start_date',
+        'end_date',
+        'lump_sum_pay',
+    ]
+    max_display_length = 500
+
+    def get_initial_queryset(self):
+        qs = super(RADataJson, self).get_initial_queryset()
+        # do some select related because we'll need them for display later
+        qs = qs.select_related('person', 'hiring_faculty', 'unit')
+        return qs
+
+    def filter_queryset(self, qs):
+        GET = self.request.GET
+
+        # limit to those visible to this user
+        qs = qs.filter(
+            Q(unit__in=Unit.sub_units(self.request.units))
+            | Q(hiring_faculty__userid=self.request.user.username)
+        )
+        qs = qs.exclude(deleted=True)
+
+        # "current" contracts filter
+        if 'current' in GET and GET['current'] == 'yes':
+            today = datetime.date.today()
+            slack = 14 # number of days to fudge the start/end
+            qs = qs.filter(start_date__lte=today + datetime.timedelta(days=slack),
+                           end_date__gte=today - datetime.timedelta(days=slack))
+
+        # search box
+        srch = GET.get('sSearch', None)
+        if srch:
+            # get RA set from haystack, and use it to limit our query.
+            ra_qs = SearchQuerySet().models(RAAppointment).filter(text=srch)[:500]
+            ra_qs = [r for r in ra_qs if r is not None]
+            if ra_qs:
+                # ignore very low scores: elasticsearch grabs too much sometimes
+                max_score = max(r.score for r in ra_qs)
+                ra_pks = (r.pk for r in ra_qs if r.score > max_score/5)
+                qs = qs.filter(pk__in=ra_pks)
+            else:
+                qs = qs.none()
+
+        return qs
+
+    def render_column(self, ra, column):
+        if column == 'lump_sum_pay':
+            return "${:,}".format(ra.lump_sum_pay)
+        elif column == 'person':
+            url = ra.get_absolute_url()
+            name = ra.person.sortname()
+            return u'<a href="%s">%s</a>' % (escape(url), escape(name))
+        elif column == 'unit':
+            return ra.unit.label
+
+        return unicode(getattr(ra, column))
+
 
 def pay_periods(request):
     """
@@ -475,9 +553,9 @@ def pay_periods(request):
         else:
             # move start/end into Mon-Fri work week
             if st.weekday() == 5:
-                en += 2*day
+                st += 2*day
             elif st.weekday() == 6:
-                en += day
+                st += day
             if en.weekday() == 5:
                 en -= day
             elif en.weekday() == 6:

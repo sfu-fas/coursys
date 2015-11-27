@@ -62,6 +62,7 @@ DUMMY_SINS = ['999999999', '000000000', '123456789']
 class HiringSemesterQuerySet(QuerySet):
     def visible(self, units):
         return self.filter(unit__in=units)
+
     def semester(self, semester_name, units):
         return self.filter(unit__in=units, 
                            semester=Semester.objects.get(name=semester_name))
@@ -76,12 +77,14 @@ class TAContractQuerySet(QuerySet):
     def visible(self, hiring_semester):
         return self.filter(category__hiring_semester=hiring_semester)\
                     .select_related('category')\
-                    .select_related('email_receipt')\
                     .prefetch_related('course')
+
     def draft(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='NEW')
+
     def signed(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='SGN')
+
     def cancelled(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='CAN')
 
@@ -195,21 +198,20 @@ class TACategory(models.Model):
     # ensc-gta2
     def autoslug(self):
         return make_slug(self.account.unit.label + '-' + unicode(self.code))
-    slug = AutoSlugField(populate_from=autoslug, 
+    slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
                          unique=True)
     created = models.DateTimeField(default=datetime.datetime.now,
                                    editable=False)
     hidden = models.BooleanField(default=False, editable=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
 
     objects = PassThroughManager.for_queryset_class(TACategoryQuerySet)()
     
     def __unicode__(self):
         return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), 
                                   unicode(self.title), unicode(self.account))
-
 
     @property
     def frozen(self):
@@ -288,14 +290,14 @@ class TAContract(models.Model):
     def autoslug(self):
         return make_slug(self.person.first_name + '-' + self.person.last_name \
                             + "-" + unicode(self.pay_start))
-    slug = AutoSlugField(populate_from=autoslug, 
+    slug = AutoSlugField(populate_from='autoslug',
                          null=False, 
                          editable=False, 
                          unique=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     created_by = models.CharField(max_length=20, null=False, blank=False, \
                                   editable=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     objects = PassThroughManager.for_queryset_class(TAContractQuerySet)()
    
@@ -451,7 +453,7 @@ class TAContract(models.Model):
 
     @property
     def should_be_added_to_the_course(self):
-        return (self.status == "SGN" or self.accepted_by_student == True)
+        return (self.status == "SGN" or self.accepted_by_student == True) and not (self.status == "CAN")
 
     @classmethod
     def update_ta_members(cls, person, semester_id):
@@ -542,11 +544,11 @@ class TACourse(models.Model):
         curtis-lassam-2014-09-01 
         """
         return make_slug(self.course.slug)
-    slug = AutoSlugField(populate_from=autoslug, 
+    slug = AutoSlugField(populate_from='autoslug', 
                          null=False, 
                          editable=False, 
                          unique=False)
-    config = JSONField(null=False, blank=False, editable=False, default={})
+    config = JSONField(null=False, blank=False, editable=False, default=dict)
     
     class Meta:
         unique_together = (('contract', 'course'),)

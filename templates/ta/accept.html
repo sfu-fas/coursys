@@ -17,16 +17,13 @@
 <h2> You have already {{contract.get_status_display}} the offer.</h2>
 <p><em>** Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; after <b>accepting</b> the contract.</em> </p>
 {%else%}
-<div class="table_container">
 <h3>You have been chosen to be a TA for {{contract.posting.semester}}.</h3>
  <table class="info">
 	<tr><th scope="row">Acceptance Deadline</th><td>{{acc_deadline}}</td></tr>
 </table>
-
-</div> 
+{%endif%}
 
 <h2>Courses Assigned</h2>
-<div class="table_container">
 <table class="info">
 		<thead class="form_head">
           <tr>
@@ -58,10 +55,8 @@
 	      </tr>		
 		</tbody>
   </table>
-</div>
 
 <h2>Payment Information</h2>
-<div class="table_container"> 
       <table class="info">
       	<thead class="form_head">
           <tr>
@@ -90,9 +85,9 @@
 			<tr><th scope="row">Start Date</th><td>{{ contract.pay_start }}</td></tr>
 			<tr><th scope="row">End Date</th><td>{{ contract.pay_end }}</td></tr>
 	  </table>
-</div>
 
-<div class="form_container">
+{% if contract.status == 'ACC'  or contract.status == 'REJ' %}
+{% else %}
 <form action="" method="post">{% csrf_token %}
 <p><strong>Social Insurance Number:</strong> {{ form.sin }}
 <span class="helptext">(required for receiving payments)</span></p>
@@ -110,6 +105,5 @@
 {% endif %}
 
 </form>
-</div>
-{%endif%}
+{% endif %}
 {% endblock %}

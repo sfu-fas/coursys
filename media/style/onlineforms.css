@@ -40,12 +40,10 @@ fieldset div.explanation_block ul>li {
 fieldset label.sublabel {
 	width: auto;
 }
-fieldset label.xxxxsublabel {
-	position: static;
-    display: inline;
-    width: auto;
-    float: none;
-    margin-right: 0;
-    line-height: 1em;
-    text-align: left;
+
+p.formlogentry {
+  font-size: 80%;
+  margin: 0;
+  font-style: italic;
+  line-height: 1.25em;
 }

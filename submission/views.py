@@ -13,7 +13,7 @@ from django.contrib import messages
 from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.db import transaction
 from courselib.db import retry_transaction
 from courselib.search import find_userid_or_emplid
@@ -331,8 +331,6 @@ def get_submission(submission_id):
             return GroupSubmission.objects.get(id=submission_id)
         except GroupSubmission.DoesNotExist:
             return None
-    
-
 
 @requires_course_by_slug
 @uses_feature('submit-get')
@@ -361,7 +359,6 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     else:
         return NotFoundResponse(request)
 
-    
     # make sure this user is allowed to see the file
     if staff:
         pass
@@ -380,7 +377,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
         components = [sub for comp,sub in submitted_components if sub and sub.component.slug==component_slug]
         if not components:
             return NotFoundResponse(request)
-        return components[0].download_response()
+        return components[0].download_response(slug=submission.file_slug())
     else:
         # no component specified: give back the full ZIP file.
         return generate_zip_file(submission, submitted_components)

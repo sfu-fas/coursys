@@ -6,6 +6,7 @@ from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from pages.models import ParserFor
+from django.forms.utils import ErrorList
 
 class DividerFieldWidget(forms.TextInput):
     def render(self, name, value, attrs=None):
@@ -39,12 +40,23 @@ class EmployeeSearchForm(forms.Form):
 
 # Manage forms
 class FormForm(ModelForm):
+    loginprompt = forms.BooleanField(required=False, initial=True, label='Login prompt',
+        help_text='Should non-logged-in users be prompted to log in? Uncheck this if you expect most users to be external to SFU.')
+
     class Meta:
         model = Form
         exclude = ('active', 'original', 'unit', 'config')
         widgets = {
                 'description': forms.TextInput(attrs={'size': '70'})
                 }
+
+    def __init__(self, *args, **kwargs):
+        super(FormForm, self).__init__(*args, **kwargs)
+        self.initial['loginprompt'] = self.instance.loginprompt()
+
+    def save(self, *args, **kwargs):
+        self.instance.set_loginprompt(self.cleaned_data['loginprompt'])
+        return super(FormForm, self).save(*args, **kwargs)
 
     # get instance of the FormForm    
     def _get(self):
@@ -245,7 +257,7 @@ class DynamicForm(forms.Form):
                 field.initial = cleaned_data
             except forms.ValidationError, e:
                 #self.errors[name] = ", ".join(e.messages)
-                self.errors[name] = forms.util.ErrorList(e.messages)
+                self.errors[name] = ErrorList(e.messages)
                 if str(name) in post_data:
                     field.initial = post_data[str(name)]
                 else:

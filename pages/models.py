@@ -37,7 +37,10 @@ ACL_ROLES = { # reverse of MEMBER_ROLES: what ACLs is this Member allowed to acc
         'DROP': set(['ALL']),
         }
 
+MACRO_LABEL = 'MACROS' # special page that contain macro expansions for other pages
+
 label_re = re.compile("^[\w\-_\.]+$")
+macroline_re = re.compile("^(?P<key>\w+):\s*(?P<value>.*)\s*$")
 
 PageFilesStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 def attachment_upload_to(instance, filename):
@@ -65,7 +68,9 @@ class Page(models.Model):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # p.config['releasedate']: date after which is page is visible
         # p.config['editdate']: date after which is page is editable
-    
+        # p.config['migrated_to']: if this page was migrated to a new location, the new (offering.slug, page.label)
+        # p.config['migrated_from']: if this page was migrated from an old location, the old (offering.slug, page.label)
+
     defaults = {'releasedate': None, 'editdate': None}
     releasedate_txt, set_releasedate_txt = getter_setter('releasedate')
     editdate_txt, set_editdate_txt = getter_setter('editdate')
@@ -76,6 +81,7 @@ class Page(models.Model):
     
     def save(self, *args, **kwargs):
         assert self.label_okay(self.label) is None
+        self.expire_offering_cache()
         super(Page, self).save(*args, **kwargs)
 
     def releasedate(self):
@@ -84,29 +90,45 @@ class Page(models.Model):
             return None
         else:
             return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+
     def editdate(self):
         d = self.editdate_txt()
         if d is None:
             return None
         else:
             return datetime.datetime.strptime(d, "%Y-%m-%d").date()
+
     def set_releasedate(self, val):
         if isinstance(val, datetime.date):
             val = val.strftime("%Y-%m-%d")
         self.set_releasedate_txt(val)
+
     def set_editdate(self, val):
         if isinstance(val, datetime.date):
             val = val.strftime("%Y-%m-%d")
         self.set_editdate_txt(val)
-            
 
     def get_absolute_url(self):
         if self.label == 'Index':
             return reverse('pages.views.index_page', kwargs={'course_slug': self.offering.slug})
         else:
             return reverse('pages.views.view_page', kwargs={'course_slug': self.offering.slug, 'page_label': self.label})
+
     def version_cache_key(self):
         return "page-curver-" + str(self.id)
+
+    def macro_cache_key(self):
+        return "MACROS-" + str(self.offering_id)
+
+    def expire_offering_cache(self):
+        # invalidate cache for all pages in this offering: makes sure current page, and all <<filelist>> are up to date
+        for pv in PageVersion.objects.filter(page__offering=self.offering):
+            cache.delete(pv.html_cache_key())
+            cache.delete(pv.wikitext_cache_key())
+        # other cache cleanup
+        cache.delete(self.version_cache_key())
+        cache.delete(self.macro_cache_key())
+
     def label_okay(self, label):
         """
         Check to make sure this label is acceptable (okay characters)
@@ -132,7 +154,7 @@ class Page(models.Model):
             return v
         else:
             v = PageVersion.objects.filter(page=self).select_related('editor__person').latest('created_at')
-            cache.set(key, v, 3600) # expired when a PageVersion is saved
+            cache.set(key, v, 24*3600) # expired when a PageVersion is saved
             return v
 
     def safely_delete(self):
@@ -155,10 +177,8 @@ class Page(models.Model):
             self.can_write = 'NONE'
             self.save()
 
-
-
-    @classmethod
-    def adjust_acl_release(cls, acl_value, date):
+    @staticmethod
+    def adjust_acl_release(acl_value, date):
         """
         Adjust the access control value appropriately, taking the release date into account.
         """
@@ -179,6 +199,7 @@ class Page(models.Model):
 
     def release_message(self):
         return self._release_message(self.releasedate(), self.can_read, "viewable")
+
     def _release_message(self, date, acl_value, attrib):
         today = datetime.date.today()
         if not date:
@@ -188,7 +209,6 @@ class Page(models.Model):
         else:
             #return "This page was made %s automatically on %s." % (attrib, date)
             return None
-
 
 
 class PageVersion(models.Model):
@@ -224,7 +244,7 @@ class PageVersion(models.Model):
         return "page-html-" + str(self.id)
     def wikitext_cache_key(self):
         return "page-wikitext-" + str(self.id)
-    
+
     def get_wikitext(self):
         """
         Return this version's wikitext (reconstructing from diffs if necessary).
@@ -244,14 +264,17 @@ class PageVersion(models.Model):
                 return wikitext
 
         return self.wikitext
-    
+
     def __init__(self, *args, **kwargs):
         super(PageVersion, self).__init__(*args, **kwargs)
         self.Creole = None
     
-    def get_creole(self):
+    def get_creole(self, offering=None):
         if not self.Creole:
-            self.Creole = ParserFor(self.page.offering, self)
+            if offering:
+                self.Creole = ParserFor(offering, self)
+            else:
+                self.Creole = ParserFor(self.page.offering, self)
     
     def previous_version(self):
         """
@@ -318,7 +341,6 @@ class PageVersion(models.Model):
 
         return "\n".join(lines)
 
-    
     def diff_to(self, other):
         """
         Turn this version into a diff based on the other version (if apprpriate).
@@ -379,15 +401,7 @@ class PageVersion(models.Model):
             if prev:
                 prev.diff_to(self)
 
-        # invalidate cache for all pages in this offering: makes sure current page, and all <<filelist>> are up to date
-        for pv in PageVersion.objects.filter(page__offering=self.page.offering):
-            key = pv.html_cache_key()
-            cache.delete(key)
-        # other cache cleanup
-        cache.delete(self.wikitext_cache_key())
-        cache.delete(self.page.version_cache_key())
-        
-
+        self.page.expire_offering_cache()
 
     def __unicode__(self):
         return unicode(self.page) + '@' + unicode(self.created_at)
@@ -397,9 +411,52 @@ class PageVersion(models.Model):
         Is this PageVersion a file attachment (as opposed to a Wiki page)?
         """
         return bool(self.file_attachment)
-    def html_contents(self):
+
+    @staticmethod
+    def _offering_macros(offering):
         """
-        Return the HTML version of this version's wikitext.
+        Do the actual work of constructing the macro dict for this offering
+        """
+        try:
+            pv = PageVersion.objects.filter(page__offering=offering, page__label=MACRO_LABEL).latest('created_at')
+        except PageVersion.DoesNotExist:
+            return {}
+
+        macros = {}
+        for line in pv.get_wikitext().splitlines(True):
+            m = macroline_re.match(line)
+            if m:
+                macros[m.group('key')] = m.group('value')
+        return macros
+
+    def offering_macros(self):
+        """
+        Return a dict of macros for this page's offering (caches _offering_macros).
+        """
+        offering = self.Creole.offering
+        key = self.page.macro_cache_key()
+        macros = cache.get(key)
+        if macros is not None:
+            return macros
+        else:
+            macros = PageVersion._offering_macros(offering)
+            cache.set(key, macros, 24*3600) # expired when a page is saved
+            return macros
+
+    def substitute_macros(self, wikitext):
+        """
+        Substitute our macros into the wikitext.
+        """
+        macros = self.offering_macros()
+        for macro, replacement in macros.iteritems():
+            wikitext = wikitext.replace('+' + macro + '+', replacement)
+        return wikitext
+
+    def html_contents(self, offering=None):
+        """
+        Return the HTML version of this version's wikitext (with macros substituted if available)
+
+        offering argument only required if self.page isn't set: used when doing a speculative conversion of unsaved content.
         
         Cached to save frequent conversion.
         """
@@ -408,8 +465,9 @@ class PageVersion(models.Model):
         if html:
             return mark_safe(html)
         else:
-            self.get_creole()
-            html = self.Creole.text2html(self.get_wikitext())
+            self.get_creole(offering=offering)
+            wikitext = self.get_wikitext()
+            html = self.Creole.text2html(self.substitute_macros(wikitext))
             cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
 
@@ -438,6 +496,7 @@ models.signals.post_save.connect(clear_offering_cache)
 
 import genshi
 from brush_map import brush_code
+from genshi.core import Markup
 
 brushre = r"[\w\-#]+"
 brush_class_re = re.compile(r'brush:\s+(' + brushre + ')')
@@ -458,6 +517,19 @@ class AbbrAcronym(creoleparser.elements.InlineElement):
                    creoleparser.core.fragmentize(abbr,
                        self.child_elements,
                        element_store, environ), title=title)
+
+class HTMLEntity(creoleparser.elements.InlineElement):
+    # Allows HTML elements to be passed through
+    def __init__(self):
+        super(HTMLEntity, self).__init__('span', ['&',';'])
+        self.regexp = re.compile(self.re_string())
+
+    def re_string(self):
+        return '&([A-Za-z]\w{1,24}|#\d{2,7}|#[Xx][0-9a-zA-Z]{2,6});'
+
+    def _build(self,mo,element_store, environ):
+        content = mo.group(1)
+        return creoleparser.core.bldr.tag.__getattr__('span')(Markup('&' + content + ';'))
 
 
 class CodeBlock(creoleparser.elements.BlockElement):
@@ -488,6 +560,21 @@ class CodeBlock(creoleparser.elements.BlockElement):
                         element_store, environ, remove_escapes=False),
             class_="brush: "+lang)
 
+def _find_activity(offering, arg_string):
+    """
+    Find activity from the arg_string from a macro. Return error message string if it can't be found.
+    """
+    act_name = arg_string.strip()
+    attrs = {}
+    acts = Activity.objects.filter(offering=offering, deleted=False).filter(models.Q(name=act_name) | models.Q(short_name=act_name))
+    if len(acts) == 0:
+        return u'[No activity "%s"]' % (act_name)
+    elif len(acts) > 1:
+        return u'[There is both a name and short name "%s"]' % (act_name)
+    else:
+        return acts[0]
+        due = act.due_date
+
 local_tz = pytz.timezone(settings.TIME_ZONE)
 def _duedate(offering, dateformat, macro, environ, *act_name):
     """
@@ -495,28 +582,37 @@ def _duedate(offering, dateformat, macro, environ, *act_name):
     
     Must be created in a closure by ParserFor with offering set (since that
     doesn't come from the parser).
-    """    
-    act_name = macro['arg_string'].strip()
+    """
+    act = _find_activity(offering, macro['arg_string'])
     attrs = {}
-    acts = Activity.objects.filter(offering=offering, deleted=False).filter(models.Q(name=act_name) | models.Q(short_name=act_name))
-    if len(acts) == 0:
-        text = '[No activity "%s"]' % (act_name)
-        attrs['class'] = 'empty'
-    elif len(acts) > 1:
-        text = '[There is both a name and short name "%s"]' % (act_name)
-        attrs['class'] = 'empty'
-    else:
-        act = acts[0]
+    if isinstance(act, Activity):
         due = act.due_date
-        if not due:
-            text = '["%s" has no due date specified]' % (act_name)
-            attrs['class'] = 'empty'
-        else:
+        if due:
             iso8601 = local_tz.localize(due).isoformat()
             text = act.due_date.strftime(dateformat)
             attrs['title'] = iso8601
+        else:
+            text = u'["%s" has no due date specified]' % (act.name)
+            attrs['class'] = 'empty'
+    else:
+        # error
+        text = act
+        attrs['class'] = 'empty'
 
     return creoleparser.core.bldr.tag.__getattr__('span')(text, **attrs)
+
+def _activitylink(offering, macro, environ, *act_name):
+    act = _find_activity(offering, macro['arg_string'])
+    attrs = {}
+    if isinstance(act, Activity):
+        text = act.name
+        attrs['href'] = act.get_absolute_url()
+    else:
+        # error
+        text = act
+        attrs['class'] = 'empty'
+
+    return creoleparser.core.bldr.tag.__getattr__('a')(text, **attrs)
 
 def _pagelist(offering, pageversion, macro, environ, prefix=None):
     # all pages [with the given prefix] for this offering
@@ -535,7 +631,8 @@ def _pagelist(offering, pageversion, macro, environ, prefix=None):
         li = creoleparser.core.bldr.tag.__getattr__('li')(link)
         elements.append(li)
     return creoleparser.core.bldr.tag.__getattr__('ul')(elements, **{'class': 'filelist'})
-    
+
+
 class ParserFor(object):
     """
     Class to hold the creoleparser objects for a particular CourseOffering.
@@ -548,8 +645,13 @@ class ParserFor(object):
         
         def duedate_macro(macro, environ, *act_name):
             return _duedate(self.offering, '%A %B %d %Y', macro, environ, *act_name)
+
         def duedatetime_macro(macro, environ, *act_name):
             return _duedate(self.offering, '%A %B %d %Y, %H:%M', macro, environ, *act_name)
+
+        def activitylink_macro(macro, environ, *act_name):
+            return _activitylink(self.offering, macro, environ, *act_name)
+
         def pagelist_macro(macro, environ, prefix=None):
             return _pagelist(self.offering, self.pageversion, macro, environ, prefix)
 
@@ -558,14 +660,16 @@ class ParserFor(object):
                      'duedate': duedate_macro,
                      'duedatetime': duedatetime_macro,
                      'pagelist': pagelist_macro,
+                     'activitylink': activitylink_macro,
                      }
         else:
             nb_macros = None
-        CreoleBase = creoleparser.creole11_base(non_bodied_macros=nb_macros)
+        CreoleBase = creoleparser.creole11_base(non_bodied_macros=nb_macros, add_heading_ids='h-')
 
         class CreoleDialect(CreoleBase):
             codeblock = CodeBlock()
             abbracronym = AbbrAcronym()
+            htmlentity = HTMLEntity()
             strikethrough = creoleparser.elements.InlineElement('del','--')
             
             def __init__(self):
@@ -577,6 +681,7 @@ class ParserFor(object):
                 inline = super(CreoleDialect, self).inline_elements
                 inline.append(self.abbracronym)
                 inline.append(self.strikethrough)
+                inline.append(self.htmlentity)
                 return inline
 
             @property
@@ -587,13 +692,12 @@ class ParserFor(object):
         
         self.parser = creoleparser.core.Parser(CreoleDialect)
         self.text2html = self.parser.render
-        
 
 
 def brushes_used(parse):
     """
-	All SyntaxHighlighter brush code files used in this wikitext.
-	"""
+    All SyntaxHighlighter brush code files used in this wikitext.
+    """
     res = set()
     if hasattr(parse, 'children'):
         # recurse

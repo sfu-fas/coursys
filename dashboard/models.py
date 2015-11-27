@@ -128,8 +128,6 @@ class NewsItem(models.Model):
         msg.attach_alternative(html_content, "text/html")
         msg.send()
         
-        
-        
     def content_xhtml(self):
         """
         Render content field as XHTML.
@@ -140,7 +138,7 @@ class NewsItem(models.Model):
         val = cache.get(key)
         if val:
             return mark_safe(val)
-        
+
         markup = mark_safe(textile_restricted(unicode(self.content)))
 
         cache.set(key, markup, 86400)

@@ -69,6 +69,7 @@ urlpatterns = [
     url(r'^tacontracts/', include(tacontract_patterns)),
     url(r'^tugs/', include(tug_patterns)),
     url(r'^my_grads/$', 'grad.views.supervisor_index'),
+    url(r'^my_grads/download/$', 'grad.views.download_my_grads_csv'),
     url(r'^visas/', include(visas_pattern)),
 
     # redirect old mobile URLs to rightful locations

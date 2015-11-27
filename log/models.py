@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 class LogEntry(models.Model):
     """
@@ -30,7 +30,7 @@ class LogEntry(models.Model):
     # link to object that was changed
     content_type = models.ForeignKey(ContentType, null=False, related_name="content_type")
     object_id = models.PositiveIntegerField(null=True)
-    related_object = generic.GenericForeignKey('content_type', 'object_id')
+    related_object = GenericForeignKey('content_type', 'object_id')
     class Meta:
         ordering = ['-datetime']
 

@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.utils.html import conditional_escape as e
 from featureflags.flags import feature_disabled
 import re, hashlib, datetime, string, urllib, urllib2, httplib, time, json
-from socket import timeout
+import socket
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -80,20 +80,20 @@ class SIMSConn(DBConn):
 
     def get_connection(self):
         if settings.DISABLE_REPORTING_DB:
-            raise SIMSProblem, "Reporting database access has been disabled in this deployment."
+            raise SIMSProblem("Reporting database access has been disabled in this deployment.")
         elif feature_disabled('sims'):
-            raise SIMSProblem, "Reporting database access has been temporarily disabled due to server maintenance or load."
+            raise SIMSProblem("Reporting database access has been temporarily disabled due to server maintenance or load.")
 
         try:
             import DB2
         except ImportError:
-            raise SIMSProblem, "could not import DB2 module"
+            raise SIMSProblem("could not import DB2 module")
         SIMSConn.DatabaseError = DB2.DatabaseError
         SIMSConn.DB2Error = DB2.Error
         try:
             dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=self.sims_passwd)
         except DB2._db2.DatabaseError:
-            raise SIMSProblem, "Could not communicate with reporting database."
+            raise SIMSProblem("Could not communicate with reporting database.")
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
         return dbconn, cursor
@@ -148,9 +148,9 @@ def SIMS_problem_handler(func):
         try:
             return func(*args, **kwargs)
         except SIMSConn.DatabaseError as e:
-            raise SIMSProblem, "could not connect to reporting database"
+            raise SIMSProblem("could not connect to reporting database")
         except SIMSConn.DB2Error as e:
-            raise SIMSProblem, "problem with reporting database connection"
+            raise SIMSProblem("problem with connection to reporting database")
 
     wrapped.__name__ = func.__name__
     return wrapped
@@ -211,7 +211,7 @@ def find_person(emplid, get_userid=True):
                (str(emplid),))
 
     for emplid, last_name, first_name, middle_name in db:
-        # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
+        # use emails to guess userid: if not found, leave unset and hope the userid API has it on next nightly update
         if get_userid:
             userid = userid_from_sims(emplid)
         else:
@@ -256,7 +256,7 @@ def add_person(emplid, commit=True, get_userid=True, external_email=False):
         if data['userid']:
             ps = Person.objects.filter(userid=data['userid'])
             if ps:
-                raise ValueError, 'Possibly re-used userid %r?' % (data['userid'])
+                raise ValueError('Possibly re-used userid %r?' % (data['userid']))
 
         if commit:
             p.save()
@@ -711,7 +711,7 @@ def acad_plan_count(acad_plan, strm):
 @SIMS_problem_handler
 def get_or_create_semester(strm):
     if not (isinstance(strm, basestring) and strm.isdigit() and len(strm)==4):
-        raise ValueError, "Bad strm: " + repr(strm)
+        raise ValueError("Bad strm: " + repr(strm))
     oldsem = Semester.objects.filter(name=strm)
     if oldsem:
         return oldsem[0]
@@ -720,7 +720,7 @@ def get_or_create_semester(strm):
     db.execute("SELECT strm, term_begin_dt, term_end_dt FROM ps_term_tbl WHERE strm=%s", (strm,))
     row = db.fetchone()
     if row is None:
-        raise ValueError, "Not Found: %r" % (strm)
+        raise ValueError("Not Found: %r" % strm)
     strm, st, en = row
     
     # create Semester object
@@ -1293,11 +1293,11 @@ def outlines_data_json(offering):
         data = json.loads(jsondata)
     except ValueError:
         data = {'internal_error': 'could not decode JSON'}
-    except (urllib2.HTTPError, urllib2.URLError, timeout):
+    except (urllib2.HTTPError, urllib2.URLError, socket.timeout, socket.error):
         data = {'internal_error': 'could not retrieve outline data from API'}
 
-    if 'info' in data and 'nodePath' in data['info']:
-        data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['nodePath']
+    if 'info' in data and 'outlinePath' in data['info']:
+        data['outlineurl'] = OUTLINES_FRONTEND_BASE + '?' + data['info']['outlinePath']
 
     return json.dumps(data, indent=1)
 
@@ -1325,7 +1325,7 @@ def userid_to_emplid(userid):
     except ValueError:
         # can't decode JSON
         return None
-    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException, timeout):
+    except (urllib2.HTTPError, urllib2.URLError, httplib.HTTPException, socket.timeout, socket.error):
         # network problem, or 404 (if userid doesn't exist)
         return None
 
@@ -1354,7 +1354,7 @@ def emplid_to_userid(emplid):
         return None
 
     if 'username' not in data:
-        raise ValueError, "No 'username' returned in response."
+        raise ValueError("No 'username' returned in response.")
 
     userids = data['username']
     return userids.split(',')[0].strip()
@@ -1397,7 +1397,7 @@ def build_person(emplid, userid=None):
 
 def import_person(p, commit=True, grad_data=False):
     """
-    Import SIMS/AMAINT information about this Person. Return the Person or None if they can't be found.
+    Import SIMS (+ userid) information about this Person. Return the Person or None if they can't be found.
     """
     last_name, first_name, middle_name, pref_first_name, title = get_names(p.emplid)
     if last_name is None:

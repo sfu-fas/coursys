@@ -46,16 +46,19 @@ def _create_news(person, url, from_user, accept_deadline):
     gradstudents = GradStudent.get_canonical(person)
     if len(gradstudents) > 0:
         gradstudent = gradstudents[0]
-        senior_supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type='SEN')
+        # See if we can find a supervisor to notify.  The student shouldn't have Senior, CoSenior, and Potential
+        #  supervisors, so we'll just get all of those and grab the first one.
+        supervisors = Supervisor.objects.filter(student=gradstudent, supervisor_type__in=['SEN', 'COS', 'POT'])
         supervisor_url = reverse('ta.views.instr_offers')
-        if len(senior_supervisors) > 0:
-            senior_supervisor = senior_supervisors[0].supervisor
-            n = NewsItem( user=senior_supervisor,
-                            source_app="ta_contract",
-                            title=u"TA Contract Offer for %s" % person,
-                            url=supervisor_url,
-                            author=from_user,
-                            content="Your student %s has been offered a TA contract." % person );
+        if len(supervisors) > 0:
+            supervisor = supervisors[0].supervisor
+            n = NewsItem(user=supervisor,
+                         source_app="ta_contract",
+                         title=u"TA Contract Offer for %s" % person,
+                         url=supervisor_url,
+                         author=from_user,
+                         content=u"Your student %s has been offered a TA contract." % person
+                         )
             n.save()
 
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
@@ -187,6 +190,7 @@ def view_tug(request, course_slug, userid):
         tug = get_object_or_404(TUG, member=member)
         iterable_fields = [(_, params) for _, params in tug.config.iteritems() if hasattr(params, '__iter__') ]
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in iterable_fields if params.get('total',0) is not None)
+        total_hours = round(total_hours, 2)
 
         contract_info = __get_contract_info(member)
         if contract_info:
@@ -572,13 +576,17 @@ def view_all_applications(request,post_slug):
 @requires_role("TAAD")
 def print_all_applications(request,post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    applications = TAApplication.objects.filter(posting=posting)
+    applications = TAApplication.objects.filter(posting=posting).order_by('person')
 
     for application in applications:
         application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
         application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
-        application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+        application.campuses = CampusPreference.objects.filter(app=application)
         application.contracts = TAContract.objects.filter(application=application)
+        application.previous_experience = TACourse.objects.filter(contract__application__person=application.person) \
+            .exclude(contract__application=application).select_related('course__semester')
+        application.grad_programs = GradStudent.objects \
+             .filter(program__unit__in=request.units, person=application.person)
 
     context = {
             'applications': applications,
@@ -602,12 +610,18 @@ def print_all_applications_by_course(request,post_slug):
         applications_for_this_offering = [pref.app for pref in prefs if 
             (pref.course.number == offering.course.number and pref.course.subject == offering.course.subject)]
         for application in applications_for_this_offering:
-            application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
-            application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
-            application.campuses = CampusPreference.objects.filter(app=application).select_related('campus')
-            application.contracts = TAContract.objects.filter(application=application)
+            if not hasattr(application, 'extra_data_done'):
+                application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+                application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+                application.campuses = CampusPreference.objects.filter(app=application)
+                application.contracts = TAContract.objects.filter(application=application)
+                application.previous_experience = TACourse.objects.filter(contract__application__person=application.person) \
+                    .exclude(contract__application=application).select_related('course__semester')
+                application.grad_programs = GradStudent.objects \
+                     .filter(program__unit__in=request.units, person=application.person)
+                application.extra_data_done = True
+
             offering.applications.append(application)
-            
 
     context = {
             'offerings': offerings,
@@ -628,25 +642,26 @@ def view_application(request, post_slug, userid):
             return ForbiddenResponse(request, 'You cannot access this application')
         elif application.posting.unit not in units:
             return ForbiddenResponse(request, 'You cannot access this application')
+    else:
+        units = [application.posting.unit]
    
-    courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
-    skills = SkillLevel.objects.filter(app=application).select_related('skill')
-    campuses = CampusPreference.objects.filter(app=application).select_related('campus')
-    contracts = TAContract.objects.filter(application=application)
-    experience = TACourse.objects.filter(contract__application__person=application.person) \
+    application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
+    application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
+    application.campuses = CampusPreference.objects.filter(app=application)
+    application.contracts = TAContract.objects.filter(application=application)
+    application.previous_experience = TACourse.objects.filter(contract__application__person=application.person) \
             .exclude(contract__application=application).select_related('course__semester')
-    if roles and contracts:
-        contract = contracts[0]
+    application.grad_programs = GradStudent.objects \
+                 .filter(program__unit__in=units, person=application.person)
+
+    if roles and application.courses:
+        contract = application.courses[0]
     else:
         contract = None
 
     context = {
             'application':application,
-            'courses':courses,
-            'skills': skills,
-            'campuses': campuses,
             'contract': contract,
-            'experience': experience,
             }
     return render(request, 'ta/view_application.html', context)
 
@@ -685,7 +700,7 @@ def assign_tas(request, post_slug):
     # decorate offerings with currently-assigned TAs
     all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract__application__person')
     for o in all_offerings:
-        o.assigned = [crs for crs in all_assignments if crs.course==o]
+        o.assigned = [crs for crs in all_assignments if crs.course == o and crs.contract.bu() > 0]
     
     # ignore excluded courses
     excl = set(posting.excluded())
@@ -790,8 +805,8 @@ def assign_bus(request, post_slug, course_slug):
 
     for applicant in applicants:
         # Determine Current Grad Status
-        statuses = GradStatus.objects.filter(student__person=applicant.person, end=None, status__in=STATUS_REAL_PROGRAM).select_related('student__program__unit')
-        applicant.statuses = statuses # annotate the application with their current grad status(es)
+        applicant.active_gs = GradStudent.objects.filter(person=applicant.person, current_status__in=STATUS_REAL_PROGRAM) \
+                .select_related('program__unit')
         
         # Determine Campus Preference
         try:
@@ -972,7 +987,7 @@ def contracts_csv(request, post_slug):
                      'Lump Sum Hours', 'Scholarship Lump Sum'])
     
     contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']) \
-                .select_related('semester', 'application__person')
+                .select_related('application__person')
     seq = posting.next_export_seq()
     batchid = '%s_%s_%02i' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"), seq)
     for c in contracts:
@@ -1032,10 +1047,8 @@ def accept_contract(request, post_slug, userid, preview=False):
     schol_sem_out = _format_currency(schol_sem)
     salary_bi = _format_currency(salary_sem / pp)
     schol_bi = _format_currency(schol_sem / pp)
-    
-    
-    if request.method == "POST":
 
+    if request.method == "POST":
         form = TAAcceptanceForm(request.POST, instance=contract)
         if form.is_valid():
             contract = form.save(commit=False)
@@ -1057,8 +1070,7 @@ def accept_contract(request, post_slug, userid, preview=False):
             return HttpResponseRedirect(reverse(accept_contract, args=(post_slug,userid)))
     else:   
         form = TAContractForm(instance=contract) 
-        
-    
+
     context = { 'contract':contract, 
                 'courses':courses,
                 'pay':_format_currency(contract.pay_per_bu),
@@ -1472,7 +1484,7 @@ def generate_csv(request, post_slug):
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).exclude(component='CAN').select_related('course')
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
-    
+
     # collect all course preferences in a sensible way
     course_prefs = {}
     prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
@@ -1490,11 +1502,12 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off = ['Name', 'Categ', 'Program (Reported)', 'Program (System)', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus',
+           'Assigned Course(s)', 'Assigned BUs'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
     csvWriter.writerow(off)
     
     # next row: campuses
-    off = ['']*9 + [str(o.campus) for o in offerings]
+    off = ['']*11 + [str(o.campus) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
@@ -1526,8 +1539,21 @@ def generate_csv(request, post_slug):
                 campuspref += cp.campus[0].upper()
             elif cp.pref == 'WIL':
                 campuspref += cp.campus[0].lower()
-        
-        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem, app.base_units, campuspref]
+
+        # Get all TAContracts that match this posting and application, then the matching TACourses
+        # so we can find out if a course/courses have been assigned to this TA
+
+        assigned_courses = ''
+        assigned_bus = ''
+        ta_contracts = TAContract.objects.filter(posting=posting, application=app).exclude(status__in=['CAN', 'REJ'])
+        if len(ta_contracts) > 0:
+            ta_courses = TACourse.objects.filter(contract__in=ta_contracts)
+            if len(ta_courses) > 0:
+                assigned_courses = ', '.join([tacourse.course.name() for tacourse in ta_courses])
+                assigned_bus = sum([t.total_bu for t in ta_courses])
+
+        row = [app.person.sortname(), app.category, app.current_program, system_program, status, unit, startsem,
+               app.base_units, campuspref, assigned_courses, assigned_bus]
         
         for off in offerings:
             crs = off.course
@@ -1713,7 +1739,7 @@ def instr_offers(request):
     offerings = [m.offering for m in members]
     tacrses = TACourse.objects.filter(course__in=offerings, bu__gt=0,
                                       contract__status__in=['OPN','REJ','ACC','SGN']) \
-                              .select_related('contract__application__person', 'offering')
+                              .select_related('contract__application__person')
 
     for crs in tacrses:
         p = crs.contract.application.person

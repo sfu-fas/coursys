@@ -28,6 +28,12 @@
     {% for t in templates %}
     <li><a href="{% url 'faculty.views.new_memo' userid=person.userid_or_emplid event_slug=event.slug memo_template_slug=t.slug %}">New {{ t.label|title }} Memo</a></li>
     {% endfor %}
+
+    {% if handler.PDFS %}
+    {% for k in handler.PDFS %}
+    <li><a href="{% url 'faculty.views.generate_pdf' userid=person.userid_or_emplid event_slug=event.slug pdf_key=k %}">{{ handler.PDFS|get_item:k }}</a></li>
+    {% endfor %}
+    {% endif %}
     </ul>
 </div>
 {% endblock %}
@@ -36,6 +42,11 @@
 <div class="careerevent">
 {{ handler.to_html }}
 </div>
+{% if handler.EXTRA_LINKS %}
+    {% for k in handler.EXTRA_LINKS %}
+    <li><a href="{% url handler.EXTRA_LINKS|get_item:k userid=person.userid_or_emplid %}">{{ k }}</a></li>
+    {% endfor %}
+    {% endif %}
 <div class="clearfix"></div>
 
 {% if editor|can_approve:event %}
@@ -48,14 +59,15 @@
 <p class="empty">You cannot change the status of this event (as {{ user }})</p>
 {% endif %}
 
-{% with attachments=event.attachments.all %}
+{% with attachments=event.attachments.visible %}
 {% if attachments %}
 <h2 id="attachments">Attachments</h2>
 <ul>
 {% for a in attachments %}
 <li>{{ a.title }} ({{a.contents_filename}}, {{ a.created_at.date }}, {{ a.contents.file.size|filesizeformat }})
   <a href="{% url 'faculty_view_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">View</a> |
-  <a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a>
+  <a href="{% url 'faculty_download_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug %}">Download</a> |
+  <a href="{% url 'faculty.views.delete_attachment' userid=person.userid_or_emplid event_slug=event.slug attach_slug=a.slug  %}">Delete</a>
 </li>
 {% endfor %}
 </ul>
@@ -66,11 +78,14 @@
 <h2 id="memos">Memos</h2>
 <ul>
 {% for l in memos %}
-<li>{{ l.template.label }} ({{ l.sent_date }} from: {{ l.from_lines }})
+<li>{% if l.hidden %}<del>{% endif %}
+  {% if l.template %}{{ l.template.label }}{% else %}<span class="empty">No template</span>{% endif %}
+  ({{ l.sent_date }} from: {{ l.from_lines }})
   <a href="{% url 'faculty.views.get_memo_pdf' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Get PDF</a> |
   <a href="{% url 'faculty.views.view_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">View Body</a> |
-  <a href="{% url 'faculty.views.manage_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a>
-</li>
+  <a href="{% url 'faculty.views.manage_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Edit Memo</a> |
+  <a href="{% url 'faculty.views.delete_memo' userid=person.userid_or_emplid event_slug=event.slug memo_slug=l.slug %}">Delete</a>
+{% if l.hidden %}</del>{% endif %}</li>
 {% endfor %}
 </ul>
 {% endif %}

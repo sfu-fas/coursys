@@ -1,4 +1,5 @@
-#from django.test import TestCase
+# coding=utf-8
+
 from testboost.testcase import FastFixtureTestCase as TestCase
 from grades.formulas import parse, cols_used, eval_parse, EvalException, ParseException
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, \
@@ -143,7 +144,6 @@ class GradesTest(TestCase):
         tree = parse(expr, c, ca)
         res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 7.229166666)
-        
 
     def test_activities(self):
         """
@@ -201,7 +201,7 @@ class GradesTest(TestCase):
         client = Client()
         client.login_user("0aaa0")
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, "Gregory Baker")
+        self.assertContains(response, u"Gregorʏ (Greg) Baker")
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         response = basic_page_tests(self, client, a.get_absolute_url())
@@ -731,7 +731,7 @@ class APITests(TestCase):
             la.save(entered_by=instr.person)
             resp = client.get(grades_url)
             data = json.loads(resp.content)
-            self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2')
+            self.assertEqual(self._get_by_slug(data, 'a1')['grade'], '2.00')
             self.assertEqual(self._get_by_slug(data, 'rep')['grade'], 'A')
             self.assertEqual(self._get_by_slug(data, 'a1')['details']['overall_comment'], 'thecomment')
             self.assertIsNone(self._get_by_slug(data, 'rep')['details']) # letter grades have no marking

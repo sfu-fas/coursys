@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.urlresolvers import reverse
 from coredata.models import Person, Unit, Semester
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
@@ -6,7 +7,11 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
 from courselib.text import normalize_newlines
+from django.template.loader import get_template
+from django.template import Context
+from django.core.mail import EmailMultiAlternatives
 import datetime
+
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -52,7 +57,7 @@ class Project(models.Model):
     fund_number = models.PositiveIntegerField()
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.project_number))
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False)
     
     class Meta:
@@ -74,7 +79,7 @@ class Account(models.Model):
     title = models.CharField(max_length=60)
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     hidden = models.BooleanField(null=False, default=False)
 
     class Meta:
@@ -86,19 +91,48 @@ class Account(models.Model):
         self.hidden = True
         self.save()
 
-
-DEFAULT_LETTER = [
+#  The built-in default letter templates
+DEFAULT_LETTER = '\n\n'.join([
         """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
         """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
         """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation.""",
         """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
         """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
         """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
-    ]
-DEFAULT_LETTER_LUMPSUM = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s."""] \
-                         + DEFAULT_LETTER
-DEFAULT_LETTER_BIWEEKLY = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation."""] \
-                         + DEFAULT_LETTER
+        ])
+DEFAULT_LETTER_LUMPSUM = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s.\n\n" + DEFAULT_LETTER
+DEFAULT_LETTER_BIWEEKLY = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation.\n\n" \
+    + DEFAULT_LETTER
+
+DEFAULT_LETTER_NON_STUDENT = '\n\n'.join([
+        """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
+        """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
+        """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
+        """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
+        """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
+        ])
+DEFAULT_LETTER_NON_STUDENT_LUMPSUM = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s and subject to all statutory income tax and benefit deductions.\n\n" + DEFAULT_LETTER_NON_STUDENT
+DEFAULT_LETTER_NON_STUDENT_BIWEEKLY = "This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation and subject to all statutory income tax and benefit deductions.\n\n" \
+    + DEFAULT_LETTER_NON_STUDENT
+
+DEFAULT_LETTER_POSTDOC = '\n\n'.join([
+        """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
+        """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
+        """Basic Benefits: further details are in SFU Policies and Procedures R 50.02 and 50.03, which can be found on the SFU website.""",
+        """Hours of work: There will be a great deal of flexibility exercised in the time and place of the performance of these services, but I expect these hours not to exceed 40 hours per week.""",
+        """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
+        ])
+DEFAULT_LETTER_POSTDOC_LUMPSUM = "This is to confirm remuneration of work performed as a Postdoctoral Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s and subject to all statutory income tax and benefit deductions.\n\n" + DEFAULT_LETTER_POSTDOC
+DEFAULT_LETTER_POSTDOC_BIWEEKLY = "This is to confirm remuneration of work performed as a Postdoctoral Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation and subject to all statutory income tax and benefit deductions.\n\n" \
+    + DEFAULT_LETTER_POSTDOC
+
+# user-available choices for letters: {key: (name, lumpsum text, biweekly text)}. Key must be URL-safe text
+DEFAULT_LETTERS = {
+    'DEFAULT': ('Standard RA Letter', DEFAULT_LETTER_LUMPSUM, DEFAULT_LETTER_BIWEEKLY),
+    'NONSTUDENT': ('RA Letter for Non-Student', DEFAULT_LETTER_NON_STUDENT_LUMPSUM,
+                   DEFAULT_LETTER_NON_STUDENT_BIWEEKLY),
+    'POSTDOC': ('RA Letter for Post-Doc', DEFAULT_LETTER_POSTDOC_LUMPSUM, DEFAULT_LETTER_POSTDOC_BIWEEKLY),
+}   # note to self: if allowing future configuration per-unit, make sure the keys are globally-unique.
 
 class RAAppointment(models.Model):
     """
@@ -135,10 +169,10 @@ class RAAppointment(models.Model):
         else:
             ident = unicode(self.person.emplid)
         return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + ident)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     deleted = models.BooleanField(null=False, default=False)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff
     defaults = {'use_hourly': False}
     use_hourly, set_use_hourly = getter_setter('use_hourly')
 
@@ -154,10 +188,27 @@ class RAAppointment(models.Model):
             self.person.set_sin(self.sin)
             self.person.save()
         super(RAAppointment, self).save(*args, **kwargs)
-    
-    def default_letter_text(self):
+
+    def get_absolute_url(self):
+        return reverse('ra.views.view', kwargs={'ra_slug': self.slug})
+
+    def mark_reminded(self):
+        self.config['reminded'] = True
+        self.save()
+
+    @staticmethod
+    def letter_choices(units):
         """
-        Default text for the letter (for editing, or use if not set)
+        Return a form choices list for RA letter templates in these units.
+
+        Ignores the units for now: we want to allow configurability later.
+        """
+        return [(key, label) for (key, (label, _, _)) in DEFAULT_LETTERS.items()]
+
+    def build_letter_text(self, selection):
+        """
+        This takes the value passed from the letter selector menu and builds the appropriate
+        default letter based on that.
         """
         substitutions = {
             'start_date': self.start_date.strftime("%B %d, %Y"),
@@ -165,17 +216,23 @@ class RAAppointment(models.Model):
             'lump_sum_pay': self.lump_sum_pay,
             'biweekly_pay': self.biweekly_pay,
             }
+
+        _, lumpsum_text, biweekly_text = DEFAULT_LETTERS[selection]
+
         if self.pay_frequency == 'B':
-            text = DEFAULT_LETTER_BIWEEKLY
+            text = biweekly_text
         else:
-            text = DEFAULT_LETTER_LUMPSUM
-        return '\n\n'.join(text) % substitutions
-    
+            text = lumpsum_text
+
+        letter_text = text % substitutions
+        self.offer_letter_text = letter_text
+        self.save()
+
     def letter_paragraphs(self):
         """
         Return list of paragraphs in the letter (for PDF creation)
         """
-        text = self.offer_letter_text or self.default_letter_text()
+        text = self.offer_letter_text
         text = normalize_newlines(text)
         return text.split("\n\n") 
     
@@ -236,6 +293,39 @@ class RAAppointment(models.Model):
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1
+
+    @classmethod
+    def expiring_appointments(cls):
+        """
+        Get the list of RA Appointments that will expire in the next few weeks so we can send a reminder email
+        """
+        today = datetime.datetime.now()
+        min_age = datetime.datetime.now() + datetime.timedelta(days=14)
+        expiring_ras = RAAppointment.objects.filter(end_date__gt=today, end_date__lte=min_age)
+        ras = [ra for ra in expiring_ras if 'reminded' not in ra.config or not ra.config['reminded']]
+        return ras
+
+    @classmethod
+    def email_expiring_ras(cls):
+        """
+        Emails the supervisors of the RAs who have appointments that are about to expire.
+        """
+        subject = 'RA appointment expiry reminder'
+        from_email = "nobody@courses.cs.sfu.ca"
+
+        expiring_ras = cls.expiring_appointments()
+        template = get_template('ra/emails/reminder.txt')
+
+        for raappt in expiring_ras:
+            supervisor = raappt.hiring_faculty
+            context = Context({'supervisor': supervisor, 'raappt': raappt})
+
+            msg = EmailMultiAlternatives(subject, template.render(context), from_email, [supervisor.email()],
+                                         headers={'X-coursys-topic': 'ra'})
+            msg.send()
+            raappt.mark_reminded()
+
+
 
 
 

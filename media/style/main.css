@@ -97,7 +97,7 @@ dl.inline dt, dl.inline dd {
 dl.inline dt {
   clear: left;
   margin-top: 0;
-  min-width: 8em;
+  min-width: 9em;
 }
 dl.inline dt:after {
   content: ':';
@@ -107,6 +107,9 @@ dl.inline.dlform dt:after {
 }
 dl.inline dd {
   margin: 0 2em;
+}
+dl.inline p.helptext {
+  margin-top: 0;
 }
 
 legend {
@@ -204,7 +207,8 @@ div.breadcrumb ul li:first-child:before {
   content: '\00f196';
 }
 div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status,
-h2.note .collapsible-heading-status, .collapsiblecomment .collapsible-heading-status {
+h2.note .collapsible-heading-status, .collapsiblecomment .collapsible-heading-status,
+.group_members .collapsible-heading-status {
   /* hide the "show/hide" messages where appropriate */
   display: none;
 }
@@ -875,10 +879,11 @@ div.syntaxhighlighter {
 div.updateinfo {
   font-size: smaller;
   text-align: right;
-  margin-bottom: -1em;
+  margin-bottom: -0.5em;
   margin-right: 1em;
   margin-top: 2em;
   clear: right;
+  line-height: 1.25em;
 }
 
 /* advisornotes styles */
@@ -1047,6 +1052,11 @@ div#main .artifact-note p {
   text-align: center;
   margin: 0.5em 0.5em;
   *display: inline;
+}
+#filterform li label {
+  display: block;
+  font-weight: bold;
+  margin: 0;
 }
 #filterform li label {
   display: block;

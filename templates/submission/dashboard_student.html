@@ -23,9 +23,6 @@
 
 {% block content%}
 
-{% ifequal submitted_pair|length 0 %}
-    {# there is no component #}
-{% else %}
         <div class="table_container">
         <table class="info">
             {% block studentinfo %}{% if activity.group %}<tr><th scope="row">Last Submitter:</th><td>{{student.name}}</td></tr>{% endif %}{% endblock %}
@@ -65,7 +62,7 @@
                         <legend>{{data.comp.title}}</legend>
                         <dl class="inline">
                         {% for f in data.form.visible_fields %}
-                        <dt>{{ f.label }}</dt><dd>{{ f }}</dd>
+                        <dt>{{ f.label }}</dt><dd>{{ f }}{% if f.help_text %}<p class="helptext">{{ f.help_text }}</p>{% endif %}</dd>
                         {% endfor %}
                         {% if data.comp.description %}<dt>Description</dt><dd>{{data.comp.description|linebreaksbr}}</dd>{% endif %}
                         {% if data.comp.max_size %}<dt>Max File Size</dt><dd>{{data.comp.max_size}} KB</dd>{% endif %}
@@ -103,7 +100,5 @@
         {% endifequal %}
         {% endfor %}
         {% endif %}
-
-{% endifequal %}
 
 {% endblock %}

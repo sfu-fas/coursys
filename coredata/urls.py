@@ -3,7 +3,7 @@ from courselib.urlparts import COURSE_SLUG, USERID_OR_EMPLID, USERID_SLUG, \
                                EMPLID_SLUG, SEMESTER, UNIT_SLUG, SEMESTER
 
 data_patterns = [ # prefix /data/
-    url(r'^courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
+#    url(r'^courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
     url(r'^offerings$', 'coredata.views.offerings_search'),
     url(r'^offerings_slug$', 'coredata.views.offerings_slug_search'),
     url(r'^offerings_slug/'+SEMESTER+'$', 'coredata.views.offerings_slug_search'),

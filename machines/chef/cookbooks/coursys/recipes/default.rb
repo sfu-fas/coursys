@@ -7,6 +7,7 @@ package "python-dev"
 package "python-lxml"
 package "sqlite3"
 package "zlib1g-dev"
+package "mercurial"
 
 #install the proper pip
 execute "install_proper_pip" do

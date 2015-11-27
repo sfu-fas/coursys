@@ -230,7 +230,7 @@ def _get_photos(emplids):
 
 LETTERS = string.ascii_letters
 DIGITS = string.digits
-PUNCTUATION = string.punctuation
+PUNCTUATION = string.punctuation.replace('/', '')
 ALL_CHARS = LETTERS + DIGITS + PUNCTUATION
 PW_SERIES = '2'
 

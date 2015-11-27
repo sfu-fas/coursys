@@ -124,7 +124,7 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
     allmembers = GroupMember.objects.filter(group__courseoffering=course).select_related('group', 'student', 'student__person', 'activity')
     if activity_slug:
         activity = get_object_or_404(Activity, offering=course, slug=activity_slug, deleted=False)
-        members = allmembers.filter(activity=activity)
+        members = allmembers.filter(activity_id=activity.id)
     else:
         activity = None
         members = allmembers
@@ -203,7 +203,7 @@ def group_data(request, course_slug):
 
     if 'activity' in request.GET:
         activity = get_object_or_404(Activity, offering=offering, slug=request.GET['activity'])
-        allmembers = allmembers.filter(activity=activity)
+        allmembers = allmembers.filter(activity_id=activity.id)
 
     response = HttpResponse(content_type='text/plain; charset=utf-8')
     for g in groups:
@@ -385,7 +385,7 @@ def submit(request, course_slug):
 
         if is_course_student_by_slug(request, course_slug):
             for activity in selected_act:
-                groupMember = GroupMember(group=group, student=member, confirmed=True, activity=activity)
+                groupMember = GroupMember(group=group, student=member, confirmed=True, activity_id=activity.id)
                 groupMember.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -402,7 +402,7 @@ def submit(request, course_slug):
                 studentForm = StudentForm(request.POST, prefix = student.person.userid)
                 if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
                     for activity in selected_act:
-                        groupMember = GroupMember(group=group, student=student, confirmed=True, activity=activity)
+                        groupMember = GroupMember(group=group, student=student, confirmed=True, activity_id=activity.id)
                         groupMember.save()
                         #LOG EVENT#
                         l = LogEntry(userid=request.user.username,
@@ -637,11 +637,11 @@ def assign_student(request, course_slug, group_slug):
             form = StudentForm(request.POST, prefix=m.person.userid)
             if form.is_valid() and form.cleaned_data['selected'] == True:
                 for a in add_act:
-                    old_gm = GroupMember.objects.filter(activity=a, student=m)
+                    old_gm = GroupMember.objects.filter(activity_id=a.id, student=m)
                     if len(old_gm) > 0:
                         messages.error(request, "%s is already in a group for %s." % (m.person.name(), a.name))
                     else:
-                        gm = GroupMember(group=group, student=m, confirmed=True, activity=a)
+                        gm = GroupMember(group=group, student=m, confirmed=True, activity_id=a.id)
                         gm.save()
                         messages.success(request, "%s added to group %s for %s." % (m.person.name(), group.name, a.name))
                         #LOG EVENT#

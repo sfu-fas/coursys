@@ -3,7 +3,7 @@ from django.db.models import Sum
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES
 from ra.models import Account
 from courselib.json_fields import JSONField
-from courselib.json_fields import getter_setter #, getter_setter_2
+from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
 import decimal, datetime
@@ -38,7 +38,7 @@ class TUG(models.Model):
     Based on form in Appendix C (p. 73) of the collective agreement:
     http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf
     """	
-    member = models.ForeignKey(Member, null=False, unique=True)
+    member = models.OneToOneField(Member, null=False)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
     last_update = models.DateField(auto_now=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
@@ -115,8 +115,6 @@ may occur in a semester, the total workload required will be reduced by %s
 hour(s) for each base unit assigned excluding the additional %s B.U. for
 preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOURS_PER_BU, LAB_BONUS, 4.4, 4+LAB_BONUS)}}
     
-    #prep_weekly, set_prep_weekly = getter_setter_2('prep', 'weekly')
-
     def __unicode__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
@@ -150,7 +148,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (HOLIDAY_HOUR
         """
         Total number of hours assigned
         """
-        return sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total']))
+        return round(sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total'])), 2)
 
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
@@ -169,8 +167,8 @@ class TAPosting(models.Model):
     closes = models.DateField(help_text='Closing date for the posting')
     def autoslug(self):
         return make_slug(self.semester.slugform() + "-" + self.unit.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default=dict) # addition configuration stuff:
         # 'salary': default pay rates per BU for each GTA1, GTA2, UTA, EXT: ['1.00', '2.00', '3.00', '4.00']
         # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
         # 'accounts': default accounts for GTA1, GTA2, UTA, EXT (ra.models.Account.id values)
@@ -433,13 +431,15 @@ class TAApplication(models.Model):
     
     def course_assigned_display(self):
         crs = []
-        tacrss = TACourse.objects.filter(contract__application=self).select_related('course')
+        tacrss = TACourse.objects.filter(contract__application=self).exclude(contract__status__in=['CAN', 'REJ'])\
+            .select_related('course')
         for tacrs in tacrss:
             crs.append(tacrs.course.subject + ' ' + tacrs.course.number)
         return ', '.join(crs)
     
     def base_units_assigned(self):
-        crs = TACourse.objects.filter(contract__application=self).aggregate(Sum('bu'))
+        crs = TACourse.objects.filter(contract__application=self).exclude(contract__status__in=['CAN', 'REJ'])\
+            .aggregate(Sum('bu'))
         return crs['bu__sum']
 
 PREFERENCE_CHOICES = (
@@ -538,6 +538,14 @@ class TAContract(models.Model):
         from tacontracts.models import TAContract as NewTAContract
         NewTAContract.update_ta_members(self.application.person, self.posting.semester_id)
 
+        # If the status of this contract is Cancelled or Rejected, find all the TACourses
+        # it applies to and set their BUs to 0.
+        if self.status in ('CAN', 'REJ'):
+            courses = TACourse.objects.filter(contract=self)
+            for course in courses:
+                course.bu = 0
+                course.save()
+
 
     def first_assign(self, application, posting):
         self.application = application
@@ -555,24 +563,35 @@ class TAContract(models.Model):
 
     def bu(self):
         courses = TACourse.objects.filter(contract=self)
-        return sum( [course.bu for course in courses] )
+        if self.status in ('CAN', 'REJ'):
+            return 0
+        return sum([course.bu for course in courses])
 
     def total_bu(self):
         courses = TACourse.objects.filter(contract=self)
         if self.status in ('CAN', 'REJ'):
             return 0
-        return sum( [course.total_bu for course in courses] )
+        return sum([course.total_bu for course in courses])
 
     def prep_bu(self):
         courses = TACourse.objects.filter(contract=self)
-        return sum( [course.prep_bu for course in courses] )
+        if self.status in ('CAN', 'REJ'):
+            return 0
+        return sum([course.prep_bu for course in courses])
 
     def total_pay(self):
         return decimal.Decimal(self.bu()) * self.pay_per_bu
 
+    def scholarship_pay(self):
+        return decimal.Decimal(self.bu()) * self.scholarship_per_bu
+
     @property
     def should_be_added_to_the_course(self):
         return self.status in ['SGN', 'ACC']
+
+    @property
+    def total(self):
+        return self.total_pay() + self.scholarship_pay()
 
 
 class CourseDescription(models.Model):
@@ -607,7 +626,12 @@ class TACourse(models.Model):
         Return the prep BUs for this assignment
         """
         if self.has_labtut():
-            return LAB_BONUS_DECIMAL
+            # If the contract that is attached to this course has been cancelled/rejected, there
+            # really aren't any BUs that are really used here.
+            if self.contract.status in ('CAN', 'REJ'):
+                return 0
+            else:
+                return LAB_BONUS_DECIMAL
         else:
             return 0
 
@@ -616,7 +640,12 @@ class TACourse(models.Model):
         """
         Return the total BUs for this assignment
         """
-        return self.bu + self.prep_bu
+        # If the contract that is attached to this course has been cancelled/rejected, there
+        # really aren't any BUs that are really used here.
+        if self.contract.status in ('CAN', 'REJ'):
+                return 0
+        else:
+            return self.bu + self.prep_bu
 
     @property
     def hours(self):

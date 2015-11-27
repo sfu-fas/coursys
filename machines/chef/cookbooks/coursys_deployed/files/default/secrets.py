@@ -12,7 +12,6 @@ SECRET_KEY = 'THIS IS NOT A VERY SECRET KEY'
 
 # passwords for various connections:
 SVN_DB_PASS = ''
-AMAINT_DB_PASSWORD = ''
 AMPQ_PASSWORD = 'supersecretpassword'
 INITIAL_PHOTO_PASSWORD = '' # will be injected into database by 'manage.py install_secrets', if needed
 

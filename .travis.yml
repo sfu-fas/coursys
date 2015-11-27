@@ -4,8 +4,10 @@ python:
 notifications:
     email:
       - courseman-project@sfu.ca
+cache: pip
 install: "pip install -r build_deps/working_deps.txt"
-script: "python manage.py test"
+script: "python manage.py test --nomigration"
+sudo: false
 branches:
   except:
     - django17

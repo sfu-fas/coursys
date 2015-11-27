@@ -140,6 +140,9 @@ end
 execute "dos2unix" do
     command "dos2unix /etc/rabbitmq/rabbitmq-env.conf"
 end
+execute "rabbit_enable_management" do
+    command "rabbitmq-plugins enable rabbitmq_management"
+end
 execute "kill_the_rabbit" do
     # sometimes the initial startup seems to not connect to the pid file
     cwd "/"
@@ -212,6 +215,9 @@ cookbook_file "nginx_default.conf" do
 end
 service "nginx" do
   action :restart
+end
+cookbook_file "error503.html" do
+    path "/usr/share/nginx/html/error503.html"
 end
 
 # purge supervisord

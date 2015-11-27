@@ -3,17 +3,21 @@ from django.forms.models import modelformset_factory
 from django.template import Template, TemplateSyntaxError
 from django.utils.translation import ugettext as _
 
-from coredata.models import Semester, Unit, Person, Role
+from coredata.models import Semester, Unit, Person, Role, FuturePerson
 from coredata.forms import PersonField
 
-from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput
+from faculty.event_types.fields import SemesterCodeField, TeachingCreditField, DollarInput, FractionField, AddSalaryField, AddPayField, AnnualTeachingCreditField
 from faculty.models import CareerEvent
 from faculty.models import DocumentAttachment
+from faculty.models import PositionDocumentAttachment
 from faculty.models import FacultyMemberInfo
 from faculty.models import Grant
 from faculty.models import Memo
 from faculty.models import MemoTemplate
+from faculty.models import Position
+from faculty.models import RANK_CHOICES
 from faculty.util import ReportingSemester
+from faculty.event_types.fields import SemesterField
 
 from collections import OrderedDict
 
@@ -84,16 +88,19 @@ class AttachmentForm(forms.ModelForm):
         model = DocumentAttachment
         exclude = ("career_event", "created_by")
 
+
+class PositionAttachmentForm(forms.ModelForm):
+    class Meta:
+        model = PositionDocumentAttachment
+        exclude = ("position", "created_by")
+
+
 class TextAttachmentForm(forms.ModelForm):
     text_contents = forms.CharField(required=True, widget=forms.Textarea(attrs={'rows': 15, 'cols': 70}))
+
     class Meta:
         model = DocumentAttachment
         exclude = ("career_event", "created_by", "contents")
-
-class EventFlagForm(forms.Form):
-    flag_short = forms.CharField(label='Flag short form', help_text='e.g. LEEF')
-    flag = forms.CharField(label='Flag full name', help_text='e.g. Leef Chair')
-    unit = forms.ChoiceField()
 
 class MemoTemplateForm(forms.ModelForm):
     class Meta:
@@ -276,3 +283,89 @@ class FacultyMemberInfoForm(forms.ModelForm):
         if title.endswith('.'):
             title = title[:-1]
         return title
+
+
+class PositionForm(forms.ModelForm):
+    title = forms.CharField(required=True)
+    projected_start_date = SemesterField(semester_start=True, required=True)
+    teaching_load = AnnualTeachingCreditField(label="Teaching Load", required=False)
+    base_salary = AddSalaryField(required=False)
+    add_salary = AddSalaryField(required=False)
+    add_pay = AddPayField(required=False)
+    position_number = forms.CharField(max_length=6, required=True)
+    rank = forms.ChoiceField(choices=RANK_CHOICES, required=False)
+    step = forms.DecimalField(max_digits=3, decimal_places=1, required=False)
+
+    class Meta:
+        fields = ['title', 'projected_start_date', 'unit', 'position_number', 'rank', 'step',
+                  'base_salary', 'add_salary', 'add_pay']
+        model = Position
+        widgets = {
+            'position_number': forms.TextInput(attrs={'size': '6'})
+            }
+
+
+class PositionCredentialsForm(forms.ModelForm):
+    degree1 = forms.CharField(max_length=12, help_text='These are the degrees to be inserted into the '
+                                                       'Recommendation for Appointment Forms (AKA "Yellow Form"). '
+                                                       ' List the highest degree first.', required=False,
+                              label='Degree 1', widget=forms.TextInput(attrs={'size': '13'}))
+    year1 = forms.CharField(max_length=5, required=False, label='Year 1', widget=forms.TextInput(attrs={'size': '5'}))
+    institution1 = forms.CharField(max_length=25, required=False, label='Institution 1')
+    location1 = forms.CharField(max_length=23, required=False, label='City/Country 1')
+    degree2 = forms.CharField(max_length=12, required=False, label='Degree 2',
+                              widget=forms.TextInput(attrs={'size': '13'}))
+    year2 = forms.CharField(max_length=5, required=False, label='Year 2', widget=forms.TextInput(attrs={'size': '5'}))
+    institution2 = forms.CharField(max_length=25, required=False, label='Institution 2')
+    location2 = forms.CharField(max_length=23, required=False, label='City/Country 2')
+    degree3 = forms.CharField(max_length=12, required=False, label='Degree 3',
+                              widget=forms.TextInput(attrs={'size': '13'}))
+    year3 = forms.CharField(max_length=5, required=False, label='Year 3', widget=forms.TextInput(attrs={'size': '5'}))
+    institution3 = forms.CharField(max_length=25, required=False, label='Institution 3')
+    location3 = forms.CharField(max_length=23, required=False, label='City/Country 3')
+    class Meta:
+        fields = ['degree1', 'year1', 'location1', 'institution1',
+                  'degree2', 'year2', 'location2', 'institution2',
+                  'degree3', 'year3', 'location3', 'institution3']
+        model = Position
+
+
+class PositionPickerForm(forms.Form):
+    position_choice = forms.ChoiceField(label='Select a position', required=True, help_text='Please select the position from which to fill the wizard.')
+
+    def __init__(self, choices=[], *args, **kwargs):
+        super(PositionPickerForm, self).__init__(*args, **kwargs)
+        self.fields['position_choice'].choices = choices
+
+
+class PositionPersonForm(forms.Form):
+    person = PersonField(label="Emplid", help_text="or type to search")
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(PositionPersonForm, self).is_valid(*args, **kwargs)
+
+
+
+class FuturePersonForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=32)
+    last_name = forms.CharField(max_length=32)
+    middle_name = forms.CharField(max_length=32, required=False)
+    pref_first_name = forms.CharField(max_length=32, required=False)
+    title = forms.CharField(max_length=4, required=False)
+    email = forms.EmailField(required=False)
+    sin = forms.CharField(required=False, max_length=9, label='SIN')
+    birthdate = forms.DateField(required=False, label='Date of Birth')
+    gender = forms.ChoiceField((
+            ('M', 'Male'),
+            ('F', 'Female'),
+            ('U', 'Unknown')),
+            required=False, initial='AND',
+            widget=forms.RadioSelect)
+
+    class Meta:
+        model = FuturePerson
+        exclude = ['config']
+        widgets = {
+            'sin': forms.TextInput(attrs={'size': '9'})
+        }

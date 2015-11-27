@@ -35,7 +35,7 @@ def beat_test():
     with file(BEAT_TEST_FILE, 'w') as fh:
         fh.write('Celery beat did things on %s.\n' % (datetime.datetime.now()))
 
-@periodic_task(run_every=crontab(minute=0, hour='*/3'))
+@periodic_task(run_every=crontab(minute=0, hour='*'))
 def backup_database():
     if settings.DO_IMPORTING_HERE:
         # if we're not on the "real" database, then don't bother with regular backups
@@ -238,7 +238,7 @@ def daily_cleanup():
     # cleanup old news items
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
     # cleanup old log entries
-    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
+    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old official grades
     Member.clear_old_official_grades()
     # cleanup old celery tasks

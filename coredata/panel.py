@@ -11,7 +11,7 @@ from coredata.queries import SIMSConn, SIMSProblem, userid_to_emplid, csrpt_upda
 from dashboard.photos import do_photo_fetch
 
 import celery
-import random, socket, subprocess, urllib2, os, stat, time
+import random, socket, subprocess, urllib2, os, stat, time, copy, pprint
 
 
 def _last_component(s):
@@ -60,19 +60,25 @@ def _check_file_create(directory):
 def settings_info():
     info = []
     info.append(('Deploy mode', settings.DEPLOY_MODE))
-    info.append(('Database engine', _last_component(settings.DATABASES['default']['ENGINE'])))
-    info.append(('Cache backend', _last_component(settings.CACHES['default']['BACKEND'])))
-    info.append(('Haystack engine', _last_component(settings.HAYSTACK_CONNECTIONS['default']['ENGINE'])))
-    info.append(('Email backend', '.'.join(settings.EMAIL_BACKEND.split('.')[-2:])))
+    info.append(('Database engine', settings.DATABASES['default']['ENGINE']))
+    info.append(('Cache backend', settings.CACHES['default']['BACKEND']))
+    info.append(('Haystack engine', settings.HAYSTACK_CONNECTIONS['default']['ENGINE']))
+    info.append(('Email backend', settings.EMAIL_BACKEND))
     if hasattr(settings, 'CELERY_EMAIL') and settings.CELERY_EMAIL:
-        info.append(('Celery email backend', '.'.join(settings.CELERY_EMAIL_BACKEND.split('.')[-2:])))
+        info.append(('Celery email backend', settings.CELERY_EMAIL_BACKEND))
     if hasattr(settings, 'BROKER_URL'):
         info.append(('Celery broker', settings.BROKER_URL.split(':')[0]))
+
+    DATABASES = copy.deepcopy(settings.DATABASES)
+    for d in DATABASES:
+        if 'PASSWORD' in DATABASES[d]:
+            DATABASES[d]['PASSWORD'] = '*****'
+    info.append(('DATABASES',  mark_safe('<pre>'+escape(pprint.pformat(DATABASES))+'</pre>')))
 
     return info
 
 
-def deploy_checks():
+def deploy_checks(request=None):
     passed = []
     failed = []
 
@@ -202,6 +208,23 @@ def deploy_checks():
     else:
         passed.append(('Emplid API', 'okay'))
 
+    # Piwik API
+    #if not request:
+    #    failed.append(('Piwik API', "can only check in web frontend with valid request object"))
+    #elif not settings.PIWIK_URL or not settings.PIWIK_TOKEN:
+    #    failed.append(('Piwik API', "not configured in secrets.py"))
+    #else:
+    #    # try to re-log this request in piwik and see what happens
+    #    from piwik_middleware.tracking import PiwikTrackerLogic, urllib_errors
+    #    tracking_logic = PiwikTrackerLogic()
+    #    kwargs = tracking_logic.get_track_kwargs(request)
+    #    try:
+    #        tracking_logic.do_track_page_view(fail_silently=False, **kwargs)
+    #    except urllib_errors as e:
+    #        failed.append(('Piwik API', "API call failed: %s" % (e)))
+    #    else:
+    #        passed.append(('Piwik API', 'okay'))
+
 
     # certificates
     bad_cert = 0
@@ -219,7 +242,7 @@ def deploy_checks():
         bad_cert += 1
 
     if bad_cert == 0:
-        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/'))
+        passed.append(('Certificates', 'All okay, but maybe check http://www.digicert.com/help/ or https://www.ssllabs.com/ssltest/'))
 
     # SVN database
     if settings.SVN_DB_CONNECT:
@@ -237,24 +260,6 @@ def deploy_checks():
             failed.append(('SVN database', "can't connect to database"))
     else:
         failed.append(('SVN database', 'SVN_DB_CONNECT not set in secrets.py'))
-
-    # AMAINT database
-    if settings.AMAINT_DB_PASSWORD:
-        from coredata.importer import AMAINTConn
-        import MySQLdb
-        try:
-            db = AMAINTConn()
-            db.execute("SELECT count(*) FROM idMap", ())
-            n = list(db)[0][0]
-            if n > 0:
-                passed.append(('AMAINT database', 'okay'))
-            else:
-                failed.append(('AMAINT database', "couldn't access records"))
-        except MySQLdb.OperationalError:
-            failed.append(('AMAINT database', "can't connect to database"))
-    else:
-        failed.append(('AMAINT database', 'AMAINT_DB_PASSWORD not set in secrets.py'))
-
 
     # file creation in the necessary places
     dirs_to_check = [

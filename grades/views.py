@@ -246,21 +246,21 @@ def _activity_info_staff(request, course_slug, activity_slug):
     # collect group membership info
     group_membership = {}
     if activity.group:
-        gms = GroupMember.objects.filter(activity=activity, confirmed=True).select_related('group', 'student__person', 'group__courseoffering')
+        gms = GroupMember.objects.filter(activity_id=activity.id, confirmed=True).select_related('group', 'student__person', 'group__courseoffering')
         for gm in gms:
             group_membership[gm.student.person.userid_or_emplid()] = gm.group
 
     # collect submission status
-    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity=activity, deleted=False)]
+    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity_id=activity.id, deleted=False)]
     submitted = {}
     if activity.group:
-        subs = GroupSubmission.objects.filter(activity=activity).select_related('group')
+        subs = GroupSubmission.objects.filter(activity_id=activity.id).select_related('group')
         for s in subs:
-            members = s.group.groupmember_set.filter(activity=activity)
+            members = s.group.groupmember_set.filter(activity_id=activity.id)
             for m in members:
                 submitted[m.student.person.userid_or_emplid()] = True
     else:
-        subs = StudentSubmission.objects.filter(activity=activity)
+        subs = StudentSubmission.objects.filter(activity_id=activity.id)
         for s in subs:
             submitted[s.member.person.userid_or_emplid()] = True
 
@@ -268,20 +268,19 @@ def _activity_info_staff(request, course_slug, activity_slug):
         messages.warning(request, 'Students will not be able to submit: no due date/time is set.')
 
     # collect marking status
-    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
+    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)]
     marked = {}
-    marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade__member__person')
+    marks = StudentActivityMark.objects.filter(activity_id=activity.id).select_related('numeric_grade__member__person')
     for m in marks:
         marked[m.numeric_grade.member.person.userid_or_emplid()] = True
     if activity.group:
         # also collect group marks: attribute to both the group and members
-        marks = GroupActivityMark.objects.filter(activity=activity).select_related('group')
+        marks = GroupActivityMark.objects.filter(activity_id=activity.id).select_related('group')
         for m in marks:
             marked[m.group.slug] = True
-            members = m.group.groupmember_set.filter(activity=activity).select_related('student__person')
+            members = m.group.groupmember_set.filter(activity_id=activity.id).select_related('student__person')
             for m in members:
                 marked[m.student.person.userid_or_emplid()] = True
-            
 
     context = {'course': course, 'activity': activity, 'students': students, 'grades': grades, 'source_grades': source_grades,
                'activity_view_type': 'individual', 'group_membership': group_membership,
@@ -303,10 +302,10 @@ def _activity_info_student(request, course_slug, activity_slug):
         return NotFoundResponse(request)
 
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
-    grade = (activity.GradeClass).objects.filter(activity=activity, member=student)
+    grade = (activity.GradeClass).objects.filter(activity_id=activity.id, member=student)
     if activity.status != "RLS" or not grade:
         # shouldn't display or nothing in database: create temporary nograde object for the template
-        grade = (activity.GradeClass)(activity=activity, member=student, flag="NOGR")
+        grade = (activity.GradeClass)(activity_id=activity.id, member=student, flag="NOGR")
     else:
         grade = grade[0]
     
@@ -358,7 +357,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
 
     # collect submission status
     submitted = {}
-    subs = GroupSubmission.objects.filter(activity=activity).select_related('group')
+    subs = GroupSubmission.objects.filter(activity_id=activity.id).select_related('group')
     for s in subs:
         submitted[s.group.slug] = True
     
@@ -368,8 +367,8 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         activity_type = ACTIVITY_TYPE['LG']
     
     # more activity info for display
-    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity=activity, deleted=False)]
-    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
+    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity_id=activity.id, deleted=False)]
+    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)]
 
     context = {'course': course, 'activity_type': activity_type, 
                'activity': activity, 'ungrouped_students': ungrouped_students,
@@ -399,19 +398,19 @@ def activity_stat(request, course_slug, activity_slug):
     
     # counts submissions (individual & group)
     submark_stat = {}
-    submark_stat['submittable'] = bool(SubmissionComponent.objects.filter(activity=activity))
-    submark_stat['studentsubmissons'] = len(set((s.member for s in StudentSubmission.objects.filter(activity=activity))))
-    submark_stat['groupsubmissons'] = len(set((s.group for s in GroupSubmission.objects.filter(activity=activity))))
+    submark_stat['submittable'] = bool(SubmissionComponent.objects.filter(activity_id=activity.id))
+    submark_stat['studentsubmissons'] = len(set((s.member for s in StudentSubmission.objects.filter(activity_id=activity.id))))
+    submark_stat['groupsubmissons'] = len(set((s.group for s in GroupSubmission.objects.filter(activity_id=activity.id))))
     
     # build counts of how many times each component has been submitted (by unique members/groups)
     sub_comps = select_all_components(activity)
     subed_comps = dict(((comp.id, set()) for comp in sub_comps))
     # build dictionaries of submisson.id -> owner so we can look up quickly when scanning
-    subid_dict = dict(((s.id, ("s", s.member_id)) for s in StudentSubmission.objects.filter(activity=activity)))
-    subid_dict.update( dict(((s.id, ("g", s.group_id)) for s in GroupSubmission.objects.filter(activity=activity))) )
+    subid_dict = dict(((s.id, ("s", s.member_id)) for s in StudentSubmission.objects.filter(activity_id=activity.id)))
+    subid_dict.update( dict(((s.id, ("g", s.group_id)) for s in GroupSubmission.objects.filter(activity_id=activity.id))) )
     
     # build sets of who has submitted each SubmissionComponent
-    for sc in select_all_submitted_components(activity=activity):
+    for sc in select_all_submitted_components(activity_id=activity.id):
         if sc.component.deleted:
             # don't report on deleted components
             continue
@@ -424,11 +423,11 @@ def activity_stat(request, course_slug, activity_slug):
         data = {'comp': comp, 'count': len(subed_comps[comp.id])}
         sub_comp_rows.append(data)
     
-    submark_stat['studentgrades'] = len(set([s.member for s in GradeClass.objects.filter(activity=activity)]))
+    submark_stat['studentgrades'] = len(set([s.member for s in GradeClass.objects.filter(activity_id=activity.id)]))
     if activity.is_numeric():
-        submark_stat['markable'] = bool(ActivityComponent.objects.filter(numeric_activity=activity))
-        submark_stat['studentmarks'] = len(set([s.numeric_grade.member for s in StudentActivityMark.objects.filter(activity=activity)]))
-        submark_stat['groupmarks'] = len(set([s.group for s in GroupActivityMark.objects.filter(activity=activity)]))
+        submark_stat['markable'] = bool(ActivityComponent.objects.filter(numeric_activity_id=activity.id))
+        submark_stat['studentmarks'] = len(set([s.numeric_grade.member for s in StudentActivityMark.objects.filter(activity_id=activity.id)]))
+        submark_stat['groupmarks'] = len(set([s.group for s in GroupActivityMark.objects.filter(activity_id=activity.id)]))
     else:
         submark_stat['markable'] = False
 
@@ -508,7 +507,7 @@ def compare_official(request, course_slug, activity_slug):
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
     
     members = Member.objects.filter(offering=course, role='STUD')
-    grades = dict(((g.member, g.letter_grade)for g in LetterGrade.objects.filter(activity=activity).exclude(flag='NOGR')))
+    grades = dict(((g.member, g.letter_grade)for g in LetterGrade.objects.filter(activity_id=activity.id).exclude(flag='NOGR')))
     data = []
     
     for m in members:
@@ -532,7 +531,7 @@ def grade_change(request, course_slug, activity_slug, userid):
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
     member = get_object_or_404(Member, ~Q(role='DROP'), find_member(userid), offering__slug=course_slug)
     user = Person.objects.get(userid=request.user.username)
-    grades = LetterGrade.objects.filter(activity=activity, member=member).exclude(flag='NOGR')
+    grades = LetterGrade.objects.filter(activity_id=activity.id, member=member).exclude(flag='NOGR')
     if grades:
         grade = grades[0].letter_grade
     else:
@@ -668,9 +667,10 @@ def add_cal_letter_activity(request, course_slug):
                     position = aggr_dict['position__max'] + 1
 
                 if form.cleaned_data['exam_activity'] == '0':
-                    exam_activity = None
+                    exam_activity_id = None
                 else:
                     exam_activity = Activity.objects.get(pk=form.cleaned_data['exam_activity'])
+                    exam_activity_id = exam_activity.id
 
                 config = {
                         'showstats': form.cleaned_data['showstats'],
@@ -678,14 +678,14 @@ def add_cal_letter_activity(request, course_slug):
                         'url': form.cleaned_data['url'],
                         }
                 CalLetterActivity.objects.create(name=form.cleaned_data['name'],
-                                                short_name=form.cleaned_data['short_name'],
-                                                status=form.cleaned_data['status'],
-                                                numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
-                                                exam_activity=exam_activity,
-                                                offering=course, 
-                                                position=position,
-                                                group=False,
-                                                config=config)
+                                                 short_name=form.cleaned_data['short_name'],
+                                                 status=form.cleaned_data['status'],
+                                                 numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
+                                                 exam_activity_id=exam_activity_id,
+                                                 offering=course,
+                                                 position=position,
+                                                 group=False,
+                                                 config=config)
             except NotImplementedError:
                 return NotFoundResponse(request)
             
@@ -1365,13 +1365,13 @@ def student_info(request, course_slug, userid):
         
         # find marking info
         info['marked'] = False
-        if StudentActivityMark.objects.filter(activity=a, numeric_grade__member=member):
+        if StudentActivityMark.objects.filter(activity_id=a.id, numeric_grade__member=member):
             info['marked'] = True
-        gms = GroupMember.objects.filter(activity=a, student=member, confirmed=True)
+        gms = GroupMember.objects.filter(activity_id=a.id, student=member, confirmed=True)
         if gms:
             # in a group
             gm = gms[0]
-            if GroupActivityMark.objects.filter(activity=a, group=gm.group):
+            if GroupActivityMark.objects.filter(activity_id=a.id, group=gm.group):
                 info['marked'] = True
 
     dishonesty_cases = []
@@ -1415,7 +1415,7 @@ def export_all(request, course_slug):
     # add marking data
     acts = all_activities_filter(course)
     for a in acts:
-        if ActivityComponent.objects.filter(numeric_activity=a):
+        if ActivityComponent.objects.filter(numeric_activity_id=a.id):
             markingdata = _mark_export_data(a)
             markout = StringIO.StringIO()
             json.dump({'marks': markingdata}, markout, cls=_DecimalEncoder, indent=1)
@@ -1425,7 +1425,7 @@ def export_all(request, course_slug):
     # add submissions
     acts = all_activities_filter(course)
     for a in acts:
-        if SubmissionComponent.objects.filter(activity=a):
+        if SubmissionComponent.objects.filter(activity_id=a.id):
             generate_submission_contents(a, z, prefix=a.slug+'-submissions' + os.sep)
 
     # add discussion

@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load staticfiles %}
 
 {% block h1 %}View {{ form.title }}{% endblock %}
 {% block title %}View {{ form.title }}{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{STATIC_URL}}style/onlineforms.css" media="all" />
+<link rel="stylesheet" href="{% static 'style/onlineforms.css' %}" media="all" />
 <script type="text/javascript">
     $(document).ready(function() {
         $('#form_table').dataTable({
@@ -30,11 +31,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="form_container">
-	{% if sheet_submissions %}
-	    {% include "onlineforms/admin/view_sheet.html" with sheet_submissions=sheet_submissions sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug can_admin=can_admin can_advise=can_advise %}
+	{% if formsub_activity %}
+	    {% include "onlineforms/admin/view_sheet.html" with formsub_activity=formsub_activity sheetsWithFiles=sheetsWithFiles form_slug=form_slug formsubmit_slug=formsubmit_slug can_admin=can_admin can_advise=can_advise %}
     {% endif %}
-</div>
+
 <p>Current status: {{ form_sub.get_status_display }}</p>
 {% if waiting_sheets %}
 <p>Sheets currently waiting to be completed:</p>

@@ -4,7 +4,7 @@ from django.db import models, IntegrityError
 from django.core.urlresolvers import reverse
 from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
-from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person
+from grades.models import all_activities_filter, neaten_activity_positions, get_entry_person, COMMENT_LENGTH
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester, Member
 from groups.models import Group, GroupMember
@@ -26,13 +26,13 @@ class ActivityComponent(models.Model):
     numeric_activity = models.ForeignKey(NumericActivity, null=False)
     max_mark = models.DecimalField(max_digits=8, decimal_places=2, null=False)
     title = models.CharField(max_length=30, null=False)
-    description = models.TextField(max_length=500, null=True, blank=True)
+    description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
     position = models.IntegerField(null=True, default=0, blank=True)
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null=False, db_index=True, default=False)
     def autoslug(self):
         return make_slug(self.title)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='numeric_activity')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='numeric_activity')
     
     def __unicode__(self):        
         return self.title
@@ -60,7 +60,7 @@ class CommonProblem(models.Model):
     activity_component = models.ForeignKey(ActivityComponent, null=False)
     title = models.CharField(max_length=30, null=False)
     penalty = models.DecimalField(max_digits=8, decimal_places=2)
-    description = models.TextField(max_length=500, null=True, blank=True)
+    description = models.TextField(max_length=COMMENT_LENGTH, null=True, blank=True)
     deleted = models.BooleanField(null=False, db_index=True, default=False)
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
@@ -81,10 +81,10 @@ class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
     """
-    overall_comment = models.TextField(null=True, max_length=1000, blank=True)
+    overall_comment = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True)
     late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null=True, default=0, blank=True, help_text='Percentage to deduct from the total due to late submission')
     mark_adjustment = models.DecimalField(max_digits=8, decimal_places=2, null=True, default=0, blank=True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
-    mark_adjustment_reason = models.TextField(null=True, max_length=1000, blank=True, verbose_name="Mark Penalty Reason")
+    mark_adjustment_reason = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True, verbose_name="Mark Penalty Reason")
     file_attachment = models.FileField(storage=MarkingSystemStorage, null=True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
@@ -92,7 +92,7 @@ class ActivityMark(models.Model):
     # For the purpose of keeping a history,
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
-    mark = models.DecimalField(max_digits=8, decimal_places=2)
+    mark = models.DecimalField(max_digits=8, decimal_places=2, null=True)
     activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
     
     def __unicode__(self):
@@ -114,8 +114,10 @@ class ActivityMark(models.Model):
     
     def mark_adjustment_neg(self):
         return -self.mark_adjustment
+
     def setMark(self, grade):
-        self.mark = grade
+        if grade is not None:
+            self.mark = grade
         if not self.id:
             # ActivityMark must be saved before we can create GradeHistory objects: that is done in [subclasses].save()
             self.save()
@@ -145,9 +147,13 @@ class StudentActivityMark(ActivityMark):
         """         
         Set the mark
         """
-        super(StudentActivityMark, self).setMark(grade)       
-        self.numeric_grade.value = grade
-        self.numeric_grade.flag = 'GRAD'
+        super(StudentActivityMark, self).setMark(grade)
+
+        self.numeric_grade.value = grade or decimal.Decimal(0)
+        if grade is None:
+            self.numeric_grade.flag = 'NOGR'
+        else:
+            self.numeric_grade.flag = 'GRAD'
         self.numeric_grade.save(entered_by=entered_by, mark=self)            
         
         
@@ -176,8 +182,11 @@ class GroupActivityMark(ActivityMark):
                 ngrade = NumericGrade.objects.get(activity=self.numeric_activity, member=g_member.student)
             except NumericGrade.DoesNotExist: 
                 ngrade = NumericGrade(activity=self.numeric_activity, member=g_member.student)
-            ngrade.value = grade
-            ngrade.flag = 'GRAD'
+            ngrade.value = grade or decimal.Decimal(0)
+            if grade is None:
+                ngrade.flag = 'NOGR'
+            else:
+                ngrade.flag = 'GRAD'
             if details:
                 ngrade.save(entered_by=entered_by, mark=self, group=self.group)
             else:
@@ -192,7 +201,7 @@ class ActivityComponentMark(models.Model):
     """
     activity_mark = models.ForeignKey(ActivityMark, null = False)    
     activity_component = models.ForeignKey(ActivityComponent, null = False)
-    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark')
+    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark', null=True, blank=True)
     comment = models.TextField(null = True, max_length=1000, blank=True)
     
     def __unicode__(self):
@@ -210,7 +219,7 @@ class ActivityMark_LetterGrade(models.Model):
     """
     General Marking class for one letter activity 
     """
-    overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
+    overall_comment = models.TextField(null=True, max_length=COMMENT_LENGTH, blank=True)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
     # For the purpose of keeping a history,
@@ -246,7 +255,7 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     Marking of one student on one letter activity 
     """        
-    letter_grade = models.ForeignKey(LetterGrade, null = False, choices=LETTER_GRADE_CHOICES)
+    letter_grade = models.ForeignKey(LetterGrade, null=False, choices=LETTER_GRADE_CHOICES)
        
     def __unicode__(self):
         # get the student and the activity
@@ -374,7 +383,7 @@ def get_activity_mark_for_student(activity, student_membership, include_all=Fals
     
     # the mark maybe assigned directly to this student 
     try:
-        num_grade = NumericGrade.objects.get(activity=activity, member=student_membership)
+        num_grade = NumericGrade.objects.get(activity_id=activity.id, member=student_membership)
     except NumericGrade.DoesNotExist:
         return None
     std_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
@@ -383,7 +392,7 @@ def get_activity_mark_for_student(activity, student_membership, include_all=Fals
         current_mark = std_marks.latest('created_at')
         
     # the mark maybe assigned to this student via the group this student participates for this activity       
-    group_mems = GroupMember.objects.filter(student=student_membership, activity=activity, confirmed=True).select_related('group')
+    group_mems = GroupMember.objects.filter(student=student_membership, activity_id=activity.id, confirmed=True).select_related('group')
     
     if group_mems.count() > 0:
         group = group_mems[0].group # there should be only one group this student is in
@@ -424,6 +433,11 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
         week, wkday = source_course_offering.semester.week_weekday(source_activity.due_date)
         new_due_date = target_course_offering.semester.duedate(week, wkday, source_activity.due_date)
         new_activity.due_date = new_due_date
+
+    if 'url' in new_activity.config:
+        # if offering slug is in URL, replace it, to heuristically adapt to moved course pages.
+        new_activity.config['url'] = new_activity.config['url'].replace(source_course_offering.slug, target_course_offering.slug)
+
     return new_activity
 
 def save_copied_activity(target_activity, model, target_course_offering):
@@ -454,6 +468,10 @@ def copyCourseSetup(course_copy_from, course_copy_to):
         for f in course_copy_from.copy_config_fields:
             if f in course_copy_from.config:
                 course_copy_to.config[f] = course_copy_from.config[f]
+
+        if 'url' in course_copy_to.config:
+            # if slug is in URL, replace it, to heuristically adapt to moved course pages.
+            course_copy_to.config['url'] = course_copy_to.config['url'].replace(course_copy_from.slug, course_copy_to.slug)
         course_copy_to.save()
 
         # copy Activities (and related content)
@@ -465,7 +483,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             save_copied_activity(new_activity, Class, course_copy_to)
         
             # should only apply to NumericActivity: others have no ActivityComponents
-            for activity_component in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False):
+            for activity_component in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False):
                 new_activity_component = copy.deepcopy(activity_component)
                 new_activity_component.id = None
                 new_activity_component.pk = None
@@ -514,11 +532,11 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 activity.exam_activity = a
             
             activity.save()
-        
-        
+
         # copy the Pages
         from pages.models import Page, PageFilesStorage, attachment_upload_to
-        for p in Page.objects.filter(offering=course_copy_from):
+        copy_pages = Page.objects.filter(offering=course_copy_from).exclude(can_read='NONE', can_write='NONE')
+        for p in copy_pages:
             new_p = copy.deepcopy(p)
             new_p.id = None
             new_p.pk = None
@@ -543,7 +561,14 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 new_date = course_copy_to.semester.duedate(week, wkday, None)
                 new_p.set_editdate(new_date)
 
+            # record that the page was migrated
+            new_p.config['migrated_from'] = [course_copy_from.slug, p.label]
+            if 'migrated_to' in new_p.config:
+                del new_p.config['migrated_to']
             new_p.save()
+
+            p.config['migrated_to'] = [course_copy_to.slug, new_p.label]
+            p.save()
 
             v = p.current_version()
             new_v = copy.deepcopy(v)
@@ -584,11 +609,13 @@ def copyCourseSetup(course_copy_from, course_copy_to):
 
 
 from django.forms import ValidationError
-def activity_marks_from_JSON(activity, userid, data):
+def activity_marks_from_JSON(activity, userid, data, save=False):
     """
     Build ActivityMark and ActivityComponentMark objects from imported JSON data.
     
-    Return three lists: all ActivityMarks and all ActivityComponentMark and all NumericGrades *all not yet saved*.
+    Since validating the input involves almost all of the work of saving the data, this function handles both. It is
+    called once from is_valid with save==False to check everything, and again with save==True to actually do the work.
+    Redundant yes, but it lets is_valid actually do its job without side effects.
     """
     if not isinstance(data, dict):
         raise ValidationError(u'Outer JSON data structure must be an object.')
@@ -599,11 +626,8 @@ def activity_marks_from_JSON(activity, userid, data):
 
     # All the ActivityMark and ActivityComponentMark objects get built here:
     # we basically have to do this work to validate anyway.
-    components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
+    components = ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False)
     components = dict((ac.slug, ac) for ac in components)
-    activity_marks = []
-    activity_component_marks = []
-    numeric_grades = []
     found = set()
     combine = False # are we combining these marks with existing (as opposed to overwriting)?
     if 'combine' in data and bool(data['combine']):
@@ -620,7 +644,7 @@ def activity_marks_from_JSON(activity, userid, data):
                 group = Group.objects.get(slug=markdata['group'], courseoffering=activity.offering)
             except Group.DoesNotExist:
                 raise ValidationError(u'Group with id "%s" not found.' % (markdata['group']))
-            am = GroupActivityMark(activity=activity, numeric_activity=activity, group=group, created_by=userid)
+            am = GroupActivityMark(activity_id=activity.id, numeric_activity_id=activity.id, group=group, created_by=userid)
             recordid = markdata['group']
 
         elif 'userid' in markdata:
@@ -629,7 +653,7 @@ def activity_marks_from_JSON(activity, userid, data):
                 member = Member.objects.get(person__userid=markdata['userid'], offering=activity.offering, role="STUD")
             except Member.DoesNotExist:
                 raise ValidationError(u'Userid %s not in course.' % (markdata['userid']))
-            am = StudentActivityMark(activity=activity, created_by=userid)
+            am = StudentActivityMark(activity_id=activity.id, created_by=userid)
             recordid = markdata['userid']
         else:
             raise ValidationError(u'Must specify "userid" or "group" for mark.')
@@ -649,7 +673,7 @@ def activity_marks_from_JSON(activity, userid, data):
             except NumericGrade.DoesNotExist:
                 old_am = None
 
-        activity_marks.append(am)
+        acms = [] # ActivityComponentMarks we will create for am
 
         # build ActivityComponentMarks
         found_comp_slugs = set()
@@ -708,13 +732,13 @@ def activity_marks_from_JSON(activity, userid, data):
                 comp = components[slug]
                 found_comp_slugs.add(slug)
             elif slug in components:
-                # shouldn't happend because JSON lib forces unique keys, but let's be extra safe...
+                # shouldn't happen because JSON lib forces unique keys, but let's be extra safe...
                 raise ValidationError(u'Multiple values given for "%s" in record for "%s".' % (slug, recordid))
             else:
                 raise ValidationError(u'Mark component "%s" not found in record for "%s".' % (slug, recordid))
 
-            cm = ActivityComponentMark(activity_mark=am, activity_component=comp)
-            activity_component_marks.append(cm)
+            cm = ActivityComponentMark(activity_component=comp)
+            acms.append(cm) # can't set activity_mark yet since it doesn't have an id
 
             componentdata = markdata[slug]
             if not isinstance(componentdata, dict):
@@ -729,20 +753,22 @@ def activity_marks_from_JSON(activity, userid, data):
                 raise ValidationError(u'Value for "mark" must be numeric for "%s" in record for "%s".' % (comp.title, recordid))
 
             cm.value = value
+
             mark_total += float(componentdata['mark'])
-            if 'comment' in componentdata:
+            if 'comment' in componentdata and save:
                 cm.comment = unicode(componentdata['comment'])
 
         for slug in set(components.keys()) - found_comp_slugs:
             # handle missing components
-            cm = ActivityComponentMark(activity_mark=am, activity_component=components[slug])
-            activity_component_marks.append(cm)
+            cm = ActivityComponentMark(activity_component=components[slug])
+            acms.append(cm) # can't set activity_mark yet since it doesn't have an id
+
             if combine and old_am:
                 old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
+                mark_total += float(old_cm.value)
                 cm.value = old_cm.value
                 cm.comment = old_cm.comment
-                mark_total += float(cm.value)
-            else:                
+            else:
                 cm.value = decimal.Decimal(0)
                 cm.comment = ''
 
@@ -751,8 +777,9 @@ def activity_marks_from_JSON(activity, userid, data):
             # new attachment
             if not (file_filename and file_data and file_mediatype):
                 raise ValidationError(u'Must specify all or none of "attach_type", "attach_filename", "attach_data" in record for "%s"' % (recordid))
-            am.file_attachment.save(name=file_filename, content=ContentFile(file_data), save=False)
             am.file_mediatype = file_mediatype
+            if save:
+                am.file_attachment.save(name=file_filename, content=ContentFile(file_data), save=False)
         elif combine and old_am:
             # recycle old
             am.file_attachment = old_am.file_attachment
@@ -772,29 +799,37 @@ def activity_marks_from_JSON(activity, userid, data):
         
         # put the total mark and numeric grade objects in place
         am.mark = mark_total
+
         value = mark_total
         if isinstance(am, StudentActivityMark):
-            grades = NumericGrade.objects.filter(activity=activity, member=member)
+            grades = NumericGrade.objects.filter(activity_id=activity.id, member=member)
             if grades:
                 numeric_grade = grades[0]
                 numeric_grade.flag = "GRAD"
             else:
-                numeric_grade = NumericGrade(activity=activity, member=member, flag="GRAD")
+                numeric_grade = NumericGrade(activity_id=activity.id, member=member, flag="GRAD")
 
             numeric_grade.value = value
-            am.numeric_grade = numeric_grade
-            numeric_grades.append(numeric_grade)
+            if save:
+                numeric_grade.save(entered_by=userid)
+                am.numeric_grade = numeric_grade
 
         else:
-            group_members = GroupMember.objects.filter(group=group, activity=activity, confirmed=True)
+            group_members = GroupMember.objects.filter(group=group, activity_id=activity.id, confirmed=True)
             for g_member in group_members:
                 try:            
-                    ngrade = NumericGrade.objects.get(activity=activity, member=g_member.student)
+                    ngrade = NumericGrade.objects.get(activity_id=activity.id, member=g_member.student)
                 except NumericGrade.DoesNotExist: 
-                    ngrade = NumericGrade(activity=activity, member=g_member.student)
+                    ngrade = NumericGrade(activity_id=activity.id, member=g_member.student)
                 ngrade.value = value
                 ngrade.flag = 'GRAD'
-                numeric_grades.append(ngrade)
+                if save:
+                    ngrade.save(entered_by=userid)
 
-    return (activity_marks, activity_component_marks, numeric_grades)
+        if save:
+            am.save()
+            for cm in acms:
+                cm.activity_mark = am
+                cm.save()
 
+    return found

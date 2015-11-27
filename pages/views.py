@@ -5,12 +5,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import django.db.transaction
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
-from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
+from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES, MACRO_LABEL
 from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
@@ -279,11 +278,21 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                 if label == 'Index':
                     form.initial['title'] = offering.name()
                     form.fields['label'].help_text += u'\u2014the label "Index" indicates the front page for this course.'
+                elif label == MACRO_LABEL:
+                    form.initial['can_read'] = 'INST'
+                    form.initial['can_write'] = 'INST'
+                    form.initial['title'] = MACRO_LABEL
                 else:
                     form.initial['title'] = label.title()
                 form.initial['label'] = label
 
-        context = {'offering': offering, 'page': page, 'form': form, 'kind': kind.title()}
+        context = {
+            'offering': offering,
+            'page': page,
+            'form': form,
+            'kind': kind.title(),
+            'is_macro_page': form.initial.get('title', None) == MACRO_LABEL,
+        }
         return render(request, 'pages/edit_page.html', context)
 
 def _delete_pagefile(request, course_slug, page_label, kind):
@@ -334,12 +343,11 @@ def convert_content(request, course_slug, page_label=None):
             pv = page.current_version()
         else:
             # create temporary Page for conversion during creation
-            p = Page(offering=offering)
-            pv = PageVersion(page=p)
+            pv = PageVersion()
         
         pv.wikitext = data
         pv.diff_from = None
-        result = {'data': pv.html_contents()}
+        result = {'data': pv.html_contents(offering=offering)}
         return HttpResponse(json.dumps(result), content_type="application/json")
     else:
         # convert HTML to wikitext

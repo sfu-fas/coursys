@@ -97,8 +97,6 @@ class ApplicationTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<td class="num">2.00</td>')
 
-
-
     def test_pages(self):
         c = Client()
 

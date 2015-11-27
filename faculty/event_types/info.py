@@ -1,6 +1,12 @@
-import fractions
+import fractions, itertools
+from cache_utils.decorators import cached
 
 from django import forms
+from django.template import Context, Template
+from django.utils.safestring import mark_safe, SafeText
+from django.utils.html import conditional_escape as escape
+from django.core.urlresolvers import reverse
+from django.utils.functional import lazy
 
 from coredata.models import Unit
 
@@ -68,52 +74,159 @@ class ExternalAffiliationHandler(CareerEventHandlerBase):
         org_name = self.get_config('org_name')
         return 'Affiliated with {}'.format(org_name)
 
+def _committee_helptext():
+    "Lazily generate the helptext so reverse isn't called until it is possible."
+    url = reverse('faculty.views.event_config', kwargs={'event_type': 'committee'})
+    h = mark_safe(u'More committees can be added on the <a href="%s">configuration</a> page' % (escape(url)))
+    return h
+committee_helptext = lazy(_committee_helptext, SafeText)
 
 class CommitteeMemberHandler(CareerEventHandlerBase):
 
     EVENT_TYPE = 'COMMITTEE'
     NAME = 'Committee Member'
+    config_name = 'Committee'
 
     TO_HTML_TEMPLATE = '''
         {% extends 'faculty/event_base.html' %}{% load event_display %}{% block dl %}
-        <dt>Committee Name</dt><dd>{{ handler|get_display:'committee_name' }}</dd>
-        <dt>Committee Unit</dt><dd>{{ handler|get_display:'committee_unit' }}</dd>
+        <dt>Committee</dt><dd>{{ handler|get_display:'committee' }}</dd>
         {% endblock %}
     '''
 
     class EntryForm(BaseEntryForm):
+        committee = forms.ChoiceField(label='Committee', choices=[], help_text=committee_helptext())
 
-        committee_name = forms.CharField(label='Committee Name', max_length=255)
-        committee_unit = forms.ModelChoiceField(label='Committee Unit',
-                                                queryset=Unit.objects.all())
+        def post_init(self):
+            # set the allowed position choices from the config from allowed units
+            choices = CommitteeMemberHandler.get_committee_choices(self.units, only_active=True)
+            self.fields['committee'].choices = choices
+
+    @classmethod
+    def get_committee_choices(cls, units, only_active=False):
+        """
+        Get the committee choices from EventConfig in these units, or superunits of them.
+        """
+        from faculty.models import EventConfig
+        unit_lookup = CommitteeMemberHandler._unit_lookup()
+
+        superunits = [u.super_units() for u in units] + [units]
+        superunits =  set(u for sublist in superunits for u in sublist) # flatten list of lists
+        ecs = EventConfig.objects.filter(unit__in=superunits,
+                                         event_type=CommitteeMemberHandler.EVENT_TYPE)
+        choices = itertools.chain(*[ec.config.get('committees', []) for ec in ecs])
+        choices = (c for c in choices if c[-1] == 'ACTIVE')
+        choices = ((short, CommitteeMemberHandler.get_committee_display_for(short)) for short,long,unit,status in choices)
+        return choices
+
+    class CommitteeSearchRule(search.ChoiceSearchRule):
+        def make_value_field(self, viewer, member_units):
+            field = super(CommitteeMemberHandler.CommitteeSearchRule, self).make_value_field(viewer, member_units)
+            choices = CommitteeMemberHandler.get_committee_choices(member_units)
+            field.choices.extend(choices)
+            return field
 
     SEARCH_RULES = {
-        'committee_name': search.StringSearchRule,
-        'committee_unit': search.ChoiceSearchRule,
+        'committee': CommitteeSearchRule,
     }
     SEARCH_RESULT_FIELDS = [
-        'committee_name',
-        'committee_unit',
+        'committee',
     ]
 
-    def get_committee_unit_display(self):
-        unit = self.get_config('committee_unit', '')
-        if unit:
-            return unit.informal_name()
-        else:
-            return '???'
+    @staticmethod
+    @cached(24*3600)
+    def _unit_lookup():
+        unit_lookup = dict((str(u.id), u) for u in Unit.objects.all())
+        return unit_lookup
 
-    def get_committee_unit_display_short(self):
-        unit = self.get_config('committee_unit', None)
-        if unit:
-            return unit.label
-        else:
-            return '???'
+    @staticmethod
+    @cached(24*3600)
+    def _committee_lookup():
+        from faculty.models import EventConfig
+        unit_lookup = CommitteeMemberHandler._unit_lookup()
+        ecs = EventConfig.objects.filter(event_type=CommitteeMemberHandler.EVENT_TYPE)
+        cttes = [ec.config.get('committees', []) for ec in ecs]
+        return dict((c[0], (c[1], unit_lookup[c[2]])) for c in itertools.chain.from_iterable(cttes))
+
+    @staticmethod
+    def get_committee_display_for(ctte_short):
+        ctte_lookup = CommitteeMemberHandler._committee_lookup()
+        try:
+            ctte, unit = ctte_lookup[ctte_short]
+        except KeyError:
+            return 'unknown committee'
+        lbl = unit.label if unit.label != 'UNIV' else 'SFU'
+        return "%s (%s)" % (ctte, lbl)
+
+    def get_committee_display(self):
+        ctte = self.get_config('committee')
+        return CommitteeMemberHandler.get_committee_display_for(ctte)
+
+    class ConfigItemForm(CareerEventHandlerBase.ConfigItemForm):
+        flag_short = forms.CharField(label='Committee short form', help_text='e.g. UGRAD')
+        flag = forms.CharField(label='Committee full name', help_text='e.g. Undergraduate Program Committee')
+        ctte_unit = forms.ChoiceField(label="Committee Unit", help_text='Unit where the committee lives')
+
+        def __init__(self, units, *args, **kwargs):
+            super(CommitteeMemberHandler.ConfigItemForm, self).__init__(units, *args, **kwargs)
+            unit_choices = [(u.id, u.name) for u in Unit.objects.all()]
+            self.fields['ctte_unit'].choices = unit_choices
+
+        def clean_flag_short(self):
+            """
+            Make sure the flag is globally-unique.
+            """
+            flag_short = self.cleaned_data['flag_short']
+            CommitteeMemberHandler.ConfigItemForm.check_unique_key('COMMITTEE', 'committees', flag_short, 'committee')
+            return flag_short
+
+        def save_config(self):
+            from faculty.models import EventConfig
+            ec, _ = EventConfig.objects.get_or_create(unit=self.unit_object, event_type='COMMITTEE')
+            fellows = ec.config.get('committees', [])
+            fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], self.cleaned_data['ctte_unit'], 'ACTIVE'])
+            ec.config['committees'] = fellows
+            ec.save()
+            CommitteeMemberHandler._committee_lookup.invalidate()
+
+    DISPLAY_TEMPLATE = Template("""
+        <h2 id="config">Configured Committees</h2>
+        <table class="display" id="config_table">
+        <thead><tr><th scope="col">Committee Name</th><th scope="col">Committee Unit</th><th scope="col">Member Unit</th><!--<th scope="col">Action</th>--></tr></thead>
+        <tbody>
+            {% for unit, short, name, ctteunit, active in committees %}
+            {% if active == 'ACTIVE' %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ ctteunit.informal_name }}</td>
+                <td>{{ unit.informal_name }}</td>
+                <!--<td><a href="{ url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+        </table>""")
+
+    @classmethod
+    def config_display(cls, units):
+        committees = list(cls.all_config_fields(Unit.sub_units(units), 'committees'))
+        unit_lookup = CommitteeMemberHandler._unit_lookup()
+        for c in committees:
+            c[3] = unit_lookup[c[3]]
+        context = Context({'committees': committees})
+        return cls.DISPLAY_TEMPLATE.render(context)
+
+    def get_committee_display_short(self):
+        choices = dict(
+            self.get_committee_choices(
+                self.event.unit.super_units(include_self=True)
+            )
+        )
+        ctte = choices.get(self.get_config('committee', 'unknown committee'))
+        return ctte
 
     def short_summary(self):
-        name = self.get_config('committee_name', '')
-        unit = self.get_committee_unit_display_short()
-        return 'Committee member: {} ({})'.format(name, unit)
+        ctte = self.get_committee_display_short()
+        return 'Committee member: {}'.format(ctte)
 
 
 class ResearchMembershipHandler(CareerEventHandlerBase):

@@ -3,7 +3,7 @@ from coredata.models import Person, Member, CourseOffering, Role
 from grades.models import Activity
 #from django.http import Http404
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from django.template.loader import render_to_string
@@ -183,7 +183,7 @@ class DisciplineGroup(models.Model):
     offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with")
     def autoslug(self):
         return make_slug(self.name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
     
     def __unicode__(self):
         return "%s in %s" % (self.name, self.offering)
@@ -215,7 +215,7 @@ class DisciplineCaseBase(models.Model):
     notes_public = models.TextField(blank=True, null=True, verbose_name="Public Notes", help_text='Notes about the case (public notes, '+TEXTILENOTE+').')
     def autoslug(self):
         return self.student.userid
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with='offering')
     group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).")
     
 
@@ -583,7 +583,7 @@ class _FakeMember(object):
 
 
 class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
-    emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
+    emplid = models.PositiveIntegerField(null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
     userid = models.CharField(max_length=8, null=True, blank=True, help_text='SFU Unix userid, if known')
     email = models.EmailField(null=False, blank=False)
     last_name = models.CharField(max_length=32)
@@ -620,7 +620,7 @@ class DisciplineCaseChairStudent(DisciplineCaseChair):
         return self.student.userid
 
 class DisciplineCaseChairNonStudent(DisciplineCaseChair):
-    emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
+    emplid = models.PositiveIntegerField(null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
     userid = models.CharField(max_length=8, null=True, blank=True, help_text='SFU Unix userid, if known')
     email = models.EmailField(null=False, blank=False)
     last_name = models.CharField(max_length=32)
@@ -661,7 +661,7 @@ class RelatedObject(models.Model):
     
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     # front-end handles adding some types of content_object, but can handle
     # any object that has a .short_str() method (which is used as its label)
 

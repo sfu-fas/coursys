@@ -20,6 +20,7 @@ from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from discuss.models import DiscussionTopic
 from onlineforms.models import FormGroup
 from pages.models import Page, ACL_ROLES
+from ra.models import RAAppointment
 from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
@@ -27,6 +28,7 @@ from icalendar import Calendar, Event
 from featureflags.flags import uses_feature
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery, Exact, Clean
+from xml.etree.ElementTree import ParseError
 from ipware import ip
 import pytz
 import itertools
@@ -40,9 +42,10 @@ def index(request):
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
-    is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).count() > 0
-    has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).count() > 0
-    form_groups = FormGroup.objects.filter(members__userid=request.user.username).count() > 0
+    is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).exists()
+    has_grads = Supervisor.objects.filter(supervisor__userid=userid, supervisor_type='SEN', removed=False).exists()
+    form_groups = FormGroup.objects.filter(members__userid=request.user.username).exists()
+    has_ras = RAAppointment.objects.filter(hiring_faculty__userid=request.user.username, deleted=False).exists()
 
     #messages.add_message(request, messages.SUCCESS, 'Success message.')
     #messages.add_message(request, messages.WARNING, 'Warning message.')
@@ -54,7 +57,8 @@ def index(request):
                 'news_list': news_list, 
                 'roles': roles, 
                 'is_grad':is_grad,
-                'has_grads': has_grads, 
+                'has_grads': has_grads,
+                'has_ras': has_ras,
                 'excluded': excluded, 
                 'form_groups': form_groups}
     return render(request, "dashboard/index.html", context)
@@ -151,6 +155,8 @@ def login(request, next_page=None, required=False):
                 user = None
             else:
                 raise IOError, "The errno is %r: %s." % (e.errno, unicode(e))
+        except ParseError:
+            user = None
 
         if user is not None:
             auth.login(request, user)
@@ -822,11 +828,19 @@ def view_doc(request, doc_slug):
 @gzip_page
 @cache_page(60 * 60 * 6)
 def courses_json(request, semester):
-    courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN") \
-              .select_related('semester')
+    offerings = CourseOffering.objects.filter(semester__name=semester)\
+        .exclude(component="CAN").exclude(flags=CourseOffering.flags.combined) \
+        .select_related('semester').prefetch_related('meetingtime_set')
+    instructors = Member.objects.filter(role='INST', offering__semester__name=semester).select_related('person')
+    instr_by_offeringid = dict(
+        (oid, list(instr))
+        for oid, instr
+        in itertools.groupby(instructors, lambda m: m.offering_id)
+    )
+
     resp = HttpResponse(content_type="application/json")
     resp['Content-Disposition'] = 'inline; filename="' + semester + '.json"'
-    crs_data = (c.export_dict() for c in courses)
+    crs_data = (o.export_dict(instructors=instr_by_offeringid.get(o.id, [])) for o in offerings)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
 

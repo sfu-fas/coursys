@@ -29,7 +29,7 @@ class GradProgram(models.Model):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
         return make_slug(sluglabel)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('unit',))
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique_with=('unit',))
     class Meta:
         unique_together = (('unit', 'label'),)
     def __unicode__ (self):
@@ -206,7 +206,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         else:
             userid = str(self.person.emplid)
         return make_slug(userid + "-" + self.program.slug)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True, manager=all_objects)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True, manager=all_objects)
     research_area = models.TextField('Research Area', blank=True)
     campus = models.CharField(max_length=5, choices=GRAD_CAMPUS_CHOICES, blank=True, db_index=True)
 
@@ -815,7 +815,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             other.semlength = 1
             other.semvalue = other.amount
             other.promiseeligible = other.eligible
-            semesters[sem]['other'].append(other)
+            semesters[other.semester]['other'].append(other)
             
         return semesters
     
@@ -852,7 +852,7 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         if semester == None:
             semester = Semester.current() 
 
-        student_records = GradStudent.objects.filter(person=person)
+        student_records = GradStudent.objects.filter(person=person).order_by('-start_semester')
 
         students_and_statuses = [(gs, gs.status_as_of(semester)) for gs in student_records]
 
@@ -865,14 +865,15 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         def intersect( l1, l2 ):
             return bool(set(l1) & set(l2))
 
-        if (intersect( STATUS_ACTIVE, statuses ) or 
-            intersect( STATUS_APPLICANT, statuses ) or 
-            'LEAV' in statuses):
-            students_and_statuses = [(student, status) for student, status in 
-                                        students_and_statuses if 
-                                        status not in STATUS_INACTIVE]
+        if intersect(STATUS_ACTIVE, statuses):
+            return [student for (student, status) in students_and_statuses if status in STATUS_ACTIVE]
+        elif intersect(STATUS_APPLICANT, statuses):
+            return [student for (student, status) in students_and_statuses if status in STATUS_APPLICANT]
+        elif 'LEAV' in statuses:
+            return [student for (student, status) in students_and_statuses if status == 'LEAV']
+        else:
+            return [student for (student, status) in students_and_statuses]
 
-        return student_records
 
     @classmethod
     def create( cls, person, program ):
@@ -1238,7 +1239,7 @@ class LetterTemplate(models.Model):
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)  
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False)
     class Meta:
         unique_together = ('unit', 'label')      
     def __unicode__(self):
@@ -1266,7 +1267,7 @@ class Letter(models.Model):
 
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     def __unicode__(self):
         return u"%s letter for %s" % (self.template.label, self.student)
     def save(self, *args, **kwargs):

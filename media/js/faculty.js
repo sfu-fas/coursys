@@ -35,3 +35,8 @@ function event_filter_update(datatable) {
 
   table.draw();
 }
+
+function numberWithCommas(x) {
+    // Based on http://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+    return x.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

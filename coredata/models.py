@@ -16,7 +16,6 @@ from django.utils.html import escape
 from bitfield import BitField
 import fractions
 
-
 def repo_name(offering, slug):
     """
     Label for a SVN repository
@@ -93,6 +92,8 @@ class Person(models.Model, ConditionalSaveMixin):
     nonstudent_colg, set_nonstudent_colg = getter_setter('nonstudent_colg')
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
     _, set_title = getter_setter('title')
+    # Added for consistency with FuturePerson instead of manually having to probe the config
+    birthdate, _ = getter_setter('birthdate')
 
 
     @staticmethod
@@ -153,7 +154,7 @@ class Person(models.Model, ConditionalSaveMixin):
             return None
     def userid_or_emplid(self):
         "userid if possible or emplid if not: inverse of find_userid_or_emplid searching"
-        return self.userid or self.emplid
+        return self.userid or str(self.emplid)
 
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))
@@ -185,6 +186,99 @@ class Person(models.Model, ConditionalSaveMixin):
     @staticmethod
     def next_available_temp_userid():
         return "tmp-"+str(Person.next_available_temp_emplid())[5:]
+
+
+class FuturePersonManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
+class FuturePerson(models.Model):
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
+    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=4, null=True, blank=True)
+    hidden = models.BooleanField(default=False, editable=False)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
+
+    defaults = {'email': None, 'birthdate': None, 'gender': 'U', 'sin': '000000000'}
+
+    sin, set_sin = getter_setter('sin')
+    email, set_email = getter_setter('email')
+    gender, set_gender = getter_setter('gender')
+    birthdate, set_birthdate = getter_setter('birthdate')
+    # Something to mark if a FuturePerson's position has been assigned to a real Faculty Member
+    _, set_assigned = getter_setter('assigned')
+
+    objects = FuturePersonManager()
+
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
+    def sortname(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    class Meta:
+        verbose_name_plural = "FuturePeople"
+
+    def hide(self):
+        self.hidden = True
+
+    def get_position_name(self):
+        """
+        Each FuturePerson should have at most one Position they are assigned to, and this will return that position's
+        name, if it exists.
+        """
+        from faculty.models import Position
+
+        # Each FuturePerson should be assigned to at most one AnyPerson...
+        ap = AnyPerson.objects.filter(future_person=self).first()
+        position = Position.objects.filter(any_person=ap).first()
+        if position:
+            return position.title or ''
+        else:
+            return ''
+
+    def assigned(self):
+        if self.config.get('assigned'):
+            return True
+        else:
+            return False
+
+
+class RoleAccount(models.Model):
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
+    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=4, null=True, blank=True)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True, unique=True,
+                              verbose_name="User ID",
+        help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
+
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
+
+class AnyPerson(models.Model):
+    person = models.ForeignKey(Person, null=True)
+    future_person = models.ForeignKey(FuturePerson, null=True)
+    role_account = models.ForeignKey(RoleAccount, null=True)
+
+    def get_person(self):
+        return self.person or self.role_account or self.future_person
+
+    def __unicode__(self):
+        return self.get_person().name()
 
 
 class Semester(models.Model):
@@ -507,7 +601,7 @@ class Course(models.Model, ConditionalSaveMixin):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
     def autoslug(self):
         return make_slug(self.subject + '-' + self.number)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     
     class Meta:
         unique_together = (('subject', 'number'),)
@@ -664,7 +758,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         else:
             words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
         return '-'.join(words)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     class Meta:
         ordering = ['-semester', 'subject', 'number', 'section']
@@ -806,11 +900,15 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
             and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
                  or (self.semester.name >= "1121" and self.number >= "200"))
 
-    
-    def export_dict(self):
+    def export_dict(self, instructors=None):
         """
-        Produce dictionary of data about offering that can be serialized as JSON
+        Produce dictionary of data about offering that can be serialized as JSON.
+
+        May optionally pass as list of instructors (Member objects) if known, to save the query here.
         """
+        if instructors is None:
+            instructors = self.member_set.filter(role="INST").select_related('person')
+
         d = {}
         d['subject'] = self.subject
         d['number'] = self.number
@@ -820,7 +918,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         d['title'] = self.title
         d['campus'] = self.campus
         d['meetingtimes'] = [m.export_dict() for m in self.meetingtime_set.all()]
-        d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST").select_related('person')]
+        d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in instructors]
         d['wqb'] = [desc for flag,desc in WQB_FLAGS if getattr(self.flags, flag)]
         d['class_nbr'] = self.class_nbr
         return d
@@ -915,8 +1013,8 @@ class Member(models.Model, ConditionalSaveMixin):
     def bu(self):
         return decimal.Decimal(unicode(self.raw_bu()))
 
-    @classmethod
-    def get_memberships(cls, userid):
+    @staticmethod
+    def get_memberships(userid):
         """
         Get course memberships for this userid that we want to display on their menu. return list of Member objects and
         a boolean indicating whether or not there were temporal exclusions (so the "course history" link is relevant).
@@ -1122,7 +1220,7 @@ class Unit(models.Model):
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
     def autoslug(self):
         return self.label.lower()
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # 'address': list of (3) lines in mailing address (default: SFU main address)
         # 'email': contact email address (may be None)
@@ -1148,8 +1246,10 @@ class Unit(models.Model):
 
     class Meta:
         ordering = ['label']
+
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.label)
+
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
@@ -1200,26 +1300,30 @@ class Unit(models.Model):
         ids = cls.sub_unit_ids(units, by_id=by_id)
         return Unit.objects.filter(id__in=ids)
 
-
     def __super_units(self):
         if not self.parent:
             return []
         else:
             return [self.parent] + self.parent.super_units()
             
-    def super_units(self):
+    def super_units(self, include_self=False):
         """
         Units directly above this in the heirarchy
         """
         key = 'superunits-' + self.slug
         res = cache.get(key)
         if res:
-            return res
+            if include_self:
+                return res + [self]
+            else:
+                return res
         else:
             res = self.__super_units()
             cache.set(key, res, 24*3600)
-            return res
-        
+            if include_self:
+                return res + [self]
+            else:
+                return res
 
 
 ROLE_CHOICES = (
@@ -1290,18 +1394,6 @@ class Role(models.Model):
     def all_roles(cls, userid):
         return set((r.role for r in Role.objects.filter(person__userid=userid)))
 
-    
-class ComputingAccount(models.Model):
-    """
-    A model to represent userid <-> emplid mappings.
-    
-    Complete table imported from AMAINT so we can lookup online. i.e. if the user
-    has an active computing account, there should be an entry here. (There is no
-    such guarantee for Person.)
-    """
-    emplid = models.PositiveIntegerField(primary_key=True, unique=True, null=False)
-    userid = models.CharField(max_length=8, unique=True, null=False, db_index=True)
-
 
 class CombinedOffering(models.Model):
     """
@@ -1321,7 +1413,7 @@ class CombinedOffering(models.Model):
     title = models.CharField(max_length=30)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
 
-    offerings = models.ManyToManyField(CourseOffering, related_name='+')
+    offerings = models.ManyToManyField(CourseOffering)
         # actually a Many-to-One, but don't want to junk CourseOffering up with another ForeignKey
 
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff

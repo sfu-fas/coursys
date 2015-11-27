@@ -30,7 +30,7 @@ class AlertType(models.Model):
 
     def autoslug(self):
         return make_slug( self.code )
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
 class Alert(models.Model):
     """

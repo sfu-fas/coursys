@@ -1,97 +1,40 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 {% load form_display %}
 
 {% block title %}RA Appointments{% endblock %}
 {% block h1 %}RA Appointments{% endblock %}
 
 {% block headextra %}
-<style>
-.warning { background-color: #ECF073; padding:2px; text-decoration: underline; }
-</style>
-
-<script type="text/javascript">
-//<![CDATA[
-var datatable;
-var RAURL = '{% url "ra.views.view" ra_slug="RASLUG" %}'
-
-function update_table() {
-	console.log()
-	var qs = '?data=yes';
-	qs += '&hiring_faculty=' + encodeURIComponent($('#id_hiring_faculty').val());
-	qs += '&account=' + encodeURIComponent($('#id_account').val());
-	qs += '&project=' + encodeURIComponent($('#id_project').val());
-	$.ajax({
-		url: '{% url "ra.views.browse" %}' + qs,
-		success: function(data) {
-			datatable.fnClearTable();
-			if(data.truncated) {
-				$("#truncated").show();
-			} else {
-				$("#truncated").hide();
-			}
-			$.each(data.data, function(index, radata) {
-                var project = radata.project
-                if (radata.project_hidden){
-                    project = '<abbr class="warning" title="This project has been deleted from the project list!">' + 
-                                    project + "</abbr>";
-                }
-                var account = radata.account
-                if (radata.account_hidden){
-                    account = '<abbr class="warning" title="This account has been deleted from the account list!">' + 
-                                    account + "</abbr>";
-                }
-				datatable.fnAddData([
-					'<a href="' + RAURL.replace('RASLUG', radata.slug)+ '">'+radata.name+'</a>',
-					radata.hiring,
-					project,
-					account,
-					radata.start,
-					radata.end,
-					radata.amount
-					]);
-			});
-		},
-	});
-}
-
-
+<script type="text/javascript" src="{% static "jquery-ext/jquery.ba-bbq.min.js" %}"></script>
+<script src="{% static 'js/ra.js' %}"></script>
+<script>
 $(document).ready(function() {
-	$("#truncated").hide();
-    datatable = $('table#ras').dataTable( {
-      'bPaginate': false,
-      'bInfo': false,
-      'bLengthChange': false,
-      "bJQueryUI": true,
-      'aaSorting': [[0, 'asc']],
-    } );
-    $('form#filter').change(update_table);
-    update_table();
+  ra_browser_setup("{% url 'ra.views.browse' %}");
 });
-//]]></script>{% endblock %}
+</script>{% endblock %}
 
-{% block subbreadcrumbs %}<li><a href="{% url "ra.views.search" %}">RA Appointments</a></li>
-<li>Browse</li>{% endblock %}
+{% block subbreadcrumbs %}
+{% if supervisor_only %}
+<li>RAs</li>
+{% else %}
+<li><a href="{% url "ra.views.search" %}">RAs</a></li>
+{% endif %}
+<li>Browse</li>
+{% endblock %}
 
 {% block actions %}
 {% endblock %}
 
 {% block content %}
-<form id="filter">
-<fieldset>
-{{form|as_dl_noreq}}
-</fieldset>
-</form>
-
-<div class="datatable_container">
-<table class="display" id="ras">
+<form action="" id="filterform">{{ form.as_ul }}</form>
+<table class="display" id="ra_table">
 <thead>
-<tr><th scope="col">RA Name</th><th scope="col">Faculty Name</th><th scope="col">Project</th><th scope="col">Account</th>
+<tr><th scope="col">RA Name</th><th scope="col">Faculty Name</th><th scope="col">Unit</th>
+<th scope="col">Project</th><th scope="col">Account</th>
 <th scope="col">Start Date</th><th scope="col">End Date</th><th scope="col">Amount</th>
 </tr>
 </thead>
 <tbody></tbody>
 </table>
-</div>
-<p id="truncated" class="error">Too many records returned: not all shown.</p>
-
 {% endblock %}

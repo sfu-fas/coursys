@@ -1,7 +1,9 @@
 import itertools
 
 from django import forms
+from django.template import Context, Template
 from cache_utils.decorators import cached
+from coredata.models import Unit
 
 from faculty.event_types.base import CareerEventHandlerBase
 from faculty.event_types.base import BaseEntryForm
@@ -31,6 +33,7 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     EVENT_TYPE = 'FELLOW'
     NAME = 'Fellowship / Chair'
+    config_name = 'Fellowship'
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
@@ -45,8 +48,6 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
     def get_fellowship_choices(cls, units, only_active=False):
         """
         Get the fellowship choices from EventConfig in these units, or superunits of them.
-
-        Since we look at superunits, we should be ensuring that the key is globally-unique.
         """
         from faculty.models import EventConfig
         superunits = [u.super_units() for u in units] + [units]
@@ -83,6 +84,49 @@ class FellowshipEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
                 raise forms.ValidationError("That fellowship is not owned by the selected unit.")
 
             return data
+
+    class ConfigItemForm(CareerEventHandlerBase.ConfigItemForm):
+        flag_short = forms.CharField(label='Fellowship short form', help_text='e.g. LEEF')
+        flag = forms.CharField(label='Fellowship full name', help_text='e.g. Leef Chair')
+
+        def clean_flag_short(self):
+            """
+            Make sure the flag is globally-unique.
+            """
+            flag_short = self.cleaned_data['flag_short']
+            FellowshipEventHandler.ConfigItemForm.check_unique_key('FELLOW', 'fellowships', flag_short, 'fellowship')
+            return flag_short
+
+        def save_config(self):
+            from faculty.models import EventConfig
+            ec, _ = EventConfig.objects.get_or_create(unit=self.unit_object, event_type='FELLOW')
+            fellows = ec.config.get('fellowships', [])
+            fellows.append([self.cleaned_data['flag_short'], self.cleaned_data['flag'], 'ACTIVE'])
+            ec.config['fellowships'] = fellows
+            ec.save()
+
+    DISPLAY_TEMPLATE = Template("""
+        <h2 id="config">Configured Fellowships</h2>
+        <table class="display" id="config_table">
+        <thead><tr><th scope="col">Fellowship Name</th><th scope="col">Unit</th><!--<th scope="col">Action</th>--></tr></thead>
+        <tbody>
+            {% for unit, short, name, active in fellowships %}
+            {% if active == 'ACTIVE' %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ unit.informal_name }}</td>
+                <!--<td><a href="{ url 'faculty.views.delete_event_flag' event_type=event_type_slug unit=unit.label flag=short }">Delete</a></td>-->
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+        </table>""")
+
+    @classmethod
+    def config_display(cls, units):
+        fellowships = cls.all_config_fields(Unit.sub_units(units), 'fellowships')
+        context = Context({'fellowships': fellowships})
+        return cls.DISPLAY_TEMPLATE.render(context)
 
     SEARCH_RULES = {
         'position': FellowshipPositionSearchRule,
