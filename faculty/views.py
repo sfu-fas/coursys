@@ -1897,7 +1897,7 @@ def new_position_attachment(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     editor = get_object_or_404(Person, userid=request.user.username)
 
-    form = AttachmentForm()
+    form = PositionAttachmentForm()
     context = {"position": position,
                "attachment_form": form}
 

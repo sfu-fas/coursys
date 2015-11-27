@@ -1,9 +1,11 @@
 from courselib.auth import requires_global_role, requires_role
 from .models import Visa
-from .forms import VisaForm
+from .forms import VisaForm, VisaAttachmentForm
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, HttpResponse
+from django.http import StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from django.db import transaction
 from log.models import LogEntry
 from datetime import datetime
 from courselib.search import find_userid_or_emplid
@@ -79,6 +81,12 @@ def edit_visa(request, visa_id):
 
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+def view_visa(request, visa_id):
+    visa = get_object_or_404(Visa, pk=visa_id)
+    return render(request, 'visas/view_visa.html', {'visa': visa})
+
+
+@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def delete_visa(request, visa_id):
     visa = get_object_or_404(Visa, pk=visa_id)
     messages.success(request, 'Hid visa for %s' % (visa.person.name()))
@@ -109,3 +117,66 @@ def download_visas_csv(request):
         writer.writerow([person, start_date, end_date, visa_type, validity])
 
     return response
+
+@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+@transaction.atomic
+def new_attachment(request, visa_id):
+    visa = get_object_or_404(Visa, pk=visa_id)
+    editor = get_object_or_404(Person, userid=request.user.username)
+
+    form = VisaAttachmentForm()
+    context = {"visa": visa,
+               "attachment_form": form}
+
+    if request.method == "POST":
+        form = VisaAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            attachment = form.save(commit=False)
+            attachment.visa = visa
+            attachment.created_by = editor
+            upfile = request.FILES['contents']
+            filetype = upfile.content_type
+            if upfile.charset:
+                filetype += "; charset=" + upfile.charset
+            attachment.mediatype = filetype
+            attachment.save()
+            return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))
+        else:
+            context.update({"attachment_form": form})
+
+    return render(request, 'visas/visa_document_attachment_form.html', context)
+
+@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+def view_attachment(request, visa_id, attach_slug):
+    visa = get_object_or_404(Visa, pk=visa_id)
+    attachment = get_object_or_404(visa.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+def download_attachment(request, visa_id, attach_slug):
+    visa = get_object_or_404(Visa, pk=visa_id)
+    attachment = get_object_or_404(visa.attachments.all(), slug=attach_slug)
+    filename = attachment.contents.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(attachment.contents.chunks(), content_type=attachment.mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = attachment.contents.size
+    return resp
+
+
+@requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
+def delete_attachment(request, visa_id, attach_slug):
+    visa = get_object_or_404(Visa, pk=visa_id)
+    attachment = get_object_or_404(visa.attachments.all(), slug=attach_slug)
+    attachment.hide()
+    messages.add_message(request,
+                         messages.SUCCESS,
+                         u'Attachment deleted.'
+                         )
+    l = LogEntry(userid=request.user.username, description="Hid attachment %s" % attachment, related_object=attachment)
+    l.save()
+    return HttpResponseRedirect(reverse(view_visa, kwargs={'visa_id':visa.id}))

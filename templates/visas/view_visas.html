@@ -74,6 +74,12 @@ function confirmDelete(url) {
                                 <i class='fa fa-edit'></i>
                             </button>
                         </form>
+                        <form class="lineform" method="GET"
+                            action="{% url "visas.views.view_visa" visa_id=visa.id %}">
+                            <button type='submit' class='btn' title="View Visa">
+                                <i class='fa fa-eye'></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>
             {% endfor %}

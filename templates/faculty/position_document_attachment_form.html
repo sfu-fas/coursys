@@ -13,7 +13,7 @@ var event_type = "{{ event_type|escapejs }}";
 <li><a href="{% url 'faculty.views.index' %}">Faculty Management</a></li>
 <li><a href="{% url 'faculty.views.list_positions' %}">Positions</a></li>
 <li><a href="{% url 'faculty.views.view_position' position_id=position.id %}">{{ position.title }}</a></li>
-<li>Add File Attachement</li>
+<li>Add File Attachment</li>
 {% endblock %}
 
 {% block content %}
