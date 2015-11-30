@@ -1135,12 +1135,13 @@ def teaching_summary_csv(request, userid):
 
     for semester, course, summary, credits, reason, enrl, event in events:
         if event:
-            csv.writerow([
-                semester,
-                event.get_handler().short_summary(),
-                _csvfrac(credits),
-                enrl
-            ])
+            if 'exclude_events' not in request.GET:
+                csv.writerow([
+                    semester,
+                    event.get_handler().short_summary(),
+                    _csvfrac(credits),
+                    enrl
+                ])
         else:
             csv.writerow([
                 semester,

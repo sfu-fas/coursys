@@ -33,6 +33,11 @@ $(document).ready(function() {
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     </li>
+    <li>
+      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}&amp;exclude_events=True">
+        <i class="fa fa-li fa-download"></i> Download CSV without events
+      </a>
+    </li>
   </ul>
 </div>
 {% endblock %}
