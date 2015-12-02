@@ -405,11 +405,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 self.start_semester = application_statuses[-1].start
 
         # end_semester
-        if 'end_semester' in self.config:
-            if self.config['end_semester']:
+        # Modified to ignore the cases where people had 'end_semester': None in their config.
+        if 'end_semester' in self.config and self.config['end_semester']:
                 self.end_semester = Semester.objects.get(name=self.config['end_semester'])
-            else:
-                self.end_semester = None
         else:
             if self.current_status in STATUS_DONE:
                 ends = [status for status in all_gs if status.status in STATUS_DONE]
