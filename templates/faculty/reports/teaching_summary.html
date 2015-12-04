@@ -33,6 +33,11 @@ $(document).ready(function() {
         <i class="fa fa-li fa-download"></i> Download CSV
       </a>
     </li>
+    <li>
+      <a href="{% url 'faculty.views.teaching_summary_csv' userid=person.userid_or_emplid %}?start_semester={{ start_code }}&amp;end_semester={{ end_code }}&amp;exclude_events=True">
+        <i class="fa fa-li fa-download"></i> Download CSV without events
+      </a>
+    </li>
   </ul>
 </div>
 {% endblock %}
@@ -60,19 +65,22 @@ $(document).ready(function() {
       <th scope="col">Semester</th>
       <th scope="col">Course/Event</th>
       <th scope="col">Credits</th>
+      <th scope="col">Enrollment</th>
     </tr></thead>
     <tbody>
-    {% for semester, course, summary, credits, reason, event in events %}
+    {% for semester, course, summary, credits, reason, enrl, event in events %}
     <tr>
       <td>{{ semester }}</td>
       {% if event %}
         <td><a href="{{ event.get_absolute_url }}">{{ event.get_handler.short_summary }}</a></td>
         <td>{{ credits }}</td>
+        <td>{{ enrl }}</td>
       {% else %}
         <td>{{ course.offering.name }} ({{summary}})</td>
         <td><span class="sort">{{ credits|floatformat:'3' }}</span>
           <a title='Edit' href="{% url 'faculty.views.teaching_credit_override' userid=person.userid_or_emplid course_slug=course.offering.slug %}">{{ credits }}</a>
           {% if reason %}({{ reason }}){% endif %}
+        <td>{{ enrl }}</td>
         </td>
       {% endif %}
     </tr>

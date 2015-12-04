@@ -160,6 +160,9 @@ class CareerEventHandlerBase(object):
     FLAGS = []
     PDFS = {}
 
+    # A dict for extra links to display in the template.  Should only be populated in the derived classes if needed.
+    EXTRA_LINKS = {}
+
     def __init__(self, event):
         self.event = event
 

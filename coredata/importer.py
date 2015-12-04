@@ -267,7 +267,11 @@ def get_person(emplid, commit=True, force=False, grad_data=False):
 
     # active students with no userid: pay more attention to try to get their userid for login/email.
     if p.userid is None and import_age > NO_USERID_IMPORT_THRESHOLD:
-        return import_person(p, commit=commit, grad_data=grad_data)
+        new_p = import_person(p, commit=commit, grad_data=grad_data)
+        if new_p:
+            return new_p
+        elif p_old:
+            return p
 
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
@@ -276,8 +280,12 @@ def get_person(emplid, commit=True, force=False, grad_data=False):
 
     # actually import their data
     else:
-        return import_person(p, commit=commit, grad_data=grad_data)
-    
+        new_p =  import_person(p, commit=commit, grad_data=grad_data)
+        if new_p:
+            return new_p
+        elif p_old:
+            return p
+
 
 imported_people_full = {}
 def get_person_grad(emplid, commit=True, force=False):

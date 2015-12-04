@@ -90,7 +90,7 @@
   	<td class="miniaction">
   		{% if contract.status == 'NEW' %}
   		<input name="contract_{{contract.id}}" class="offer" type="checkbox"/>
-  		{% else %}{% if contract.status == 'ACC' or contract.status == 'OPN' %}
+  		{% else %}{% if contract.status == 'ACC'%}
   		<input type="submit" name="signed-{{ contract.application.person.userid }}" value="Signed" />
   		{% endif %}{% endif %}
   	</td>

@@ -461,10 +461,13 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
 
     TO_HTML_TEMPLATE = """
         {% extends "faculty/event_base.html" %}{% load event_display %}{% block dl %}
+        <dt>Option</dt><dd>{{ handler|get_display:"option" }} </dd>
         <dt>Pay Fraction</dt><dd>{{ handler|get_display:"pay_fraction" }}</dd>
         <dt>Report Received</dt><dd>{{ handler|get_display:"report_received"|yesno }}</dd>
         <dt>Report Received On</dt><dd>{{ handler|get_display:"report_received_date" }}</dd>
         <dt>Teaching Load Decrease</dt><dd>{{ handler|get_display:"teaching_decrease" }}</dd>
+        <dt>Deferred Salary</dt><dd>{{ handler|get_display:"deferred_salary"|yesno }}</dd>
+        <dt>Accumulated Credits</dt><dd>{{ handler|get_display:"accumulated_credits" }}</dd>
         <dt>Study Leave Credits Spent</dt><dd>{{ handler|get_display:"study_leave_credits" }}</dd>
         <dt>Study Leave Credits Carried Forward</dt><dd>{{ handler|get_display:"credits_forward" }}</dd>
         {% endblock %}
@@ -476,12 +479,21 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
             ('9/10', '90%'),
             ('1', '100%'),
         ]
+        option = forms.CharField(min_length=1, max_length=1, required=False,
+                                 help_text='The option for this study leave.  A, B, C, etc',
+                                 widget=forms.TextInput(attrs={'size': '1'}))
         pay_fraction = fields.FractionField(choices=PAY_FRACTION_CHOICES)
         report_received = forms.BooleanField(label='Report Received?', initial=False, required=False)
         report_received_date = fields.SemesterField(required=False, semester_start=False)
         teaching_decrease = fields.TeachingReductionField()
-        study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99, help_text='Total number of Study Leave Credits spent for entire leave')
-        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0, max_value=10000, help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
+        deferred_salary = forms.BooleanField(label='Deferred Salary?', initial=False, required=False)
+        accumulated_credits = forms.IntegerField(label='Accumulated Credits', min_value=0, max_value=99,
+                                                 help_text='Accumulated unused credits', required=False)
+        study_leave_credits = forms.IntegerField(label='Study Leave Credits Spent', min_value=0, max_value=99,
+                                                 help_text='Total number of Study Leave Credits spent for entire leave')
+        credits_forward = forms.IntegerField(label='Study Leave Credits Carried Forward', required=False, min_value=0,
+                                             max_value=10000,
+                                             help_text='Study Credits Carried Forward After Leave (may be left blank if unknown)')
 
         def post_init(self):
             # finding the teaching load and set the decrease to that value
@@ -510,6 +522,10 @@ class StudyLeaveEventHandler(CareerEventHandlerBase, SalaryCareerEvent, Teaching
         'study_leave_credits',
         'credits_forward'
     ]
+
+    from django.conf.urls import url
+
+    EXTRA_LINKS = {'Teaching Summary': 'faculty.views.teaching_summary'}
 
     @classmethod
     def default_title(cls):

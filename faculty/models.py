@@ -84,6 +84,7 @@ EVENT_TAGS = {
                 'last_name': 'recipients\'s last name',
                 'his_her' : '"his" or "her" (or use His_Her for capitalized)',
                 'he_she' : '"he" or "she" (or use He_She for capitalized)',
+                'him_her' : '"him" or "her" (or use Him_Her for capitalized)',
                 'start_date': 'start date of the event, if applicable',
                 'end_date': 'end date of the event, if applicable',
                 'event_title': 'name of event',
@@ -330,12 +331,15 @@ class CareerEvent(models.Model):
         if gender == "M" :
             hisher = "his"
             heshe = 'he'
+            himher = 'him'
         elif gender == "F":
             hisher = "her"
             heshe = 'she'
+            himher = 'her'
         else:
             hisher = "his/her"
             heshe = 'he/she'
+            himher = 'him/her'
 
         # grab event type specific config data
         handler = self.get_handler()
@@ -356,6 +360,8 @@ class CareerEvent(models.Model):
                 'His_Her' : hisher.title(),
                 'he_she' : heshe,
                 'He_She' : heshe.title(),
+                'him_her' : himher,
+                'Him_Her' : himher.title(),
                 'first_name': self.person.first_name,
                 'last_name': self.person.last_name,
                 'start_date': start,

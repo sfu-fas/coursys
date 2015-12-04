@@ -1075,16 +1075,17 @@ def _teaching_events_data(person, semester):
         .select_related('offering', 'offering__semester')
     for course in courses:
         credits, reason = course.teaching_credit_with_reason()
-        e += [(semester.code, course, course.offering.title, credits, reason, '')]
+        enrl = '%i/%i' % (course.offering.enrl_tot, course.offering.enrl_cap)
+        e += [(semester.code, course, course.offering.title, credits, reason, enrl, '')]
         cb += course.teaching_credit()
 
     teaching_events = FacultySummary(person).teaching_events(semester)
     for event in teaching_events:
         credits, load_decrease = FacultySummary(person).teaching_event_info(event)
         if load_decrease:
-            e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease, '', event)]
+            e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), load_decrease, '', '', event)]
         if credits:
-            e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), credits, '', event)]
+            e += [(semester.code, event.get_event_type_display(), event.get_handler().short_summary(), credits, '', '', event)]
         cb += credits + load_decrease
 
     return cb, e
@@ -1128,21 +1129,26 @@ def teaching_summary_csv(request, userid):
         'Course/Event',
         'Credits/Load Effect',
         'Credit Reason',
+        'Enrollment',
+        'Study Leave Calculation'
     ])
 
-    for semester, course, summary, credits, reason, event in events:
+    for semester, course, summary, credits, reason, enrl, event in events:
         if event:
-            csv.writerow([
-                semester,
-                event.get_handler().short_summary(),
-                _csvfrac(credits),
-            ])
+            if 'exclude_events' not in request.GET:
+                csv.writerow([
+                    semester,
+                    event.get_handler().short_summary(),
+                    _csvfrac(credits),
+                    enrl
+                ])
         else:
             csv.writerow([
                 semester,
-                course.offering.name(),
+                "%s (%s)" % (course.offering.name(), summary),
                 _csvfrac(credits),
                 reason,
+                enrl
             ])
 
     return response
@@ -1892,7 +1898,7 @@ def new_position_attachment(request, position_id):
     position = get_object_or_404(Position, pk=position_id)
     editor = get_object_or_404(Person, userid=request.user.username)
 
-    form = AttachmentForm()
+    form = PositionAttachmentForm()
     context = {"position": position,
                "attachment_form": form}
 

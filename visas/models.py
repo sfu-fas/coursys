@@ -1,4 +1,12 @@
+import os
+import datetime
+
+from autoslug import AutoSlugField
 from django.db import models
+
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+
 from coredata.models import VISA_STATUSES as REAL_VISA_STATUSES, Person
 from django.utils import timezone
 from courselib.json_fields import JSONField
@@ -7,9 +15,12 @@ from django.db.models.query import QuerySet
 from model_utils.managers import PassThroughManager
 
 # "citizen" isn't truly a visa status, but it's something we want to track here.
-VISA_STATUSES = (('Citizen', 'Citizen'),) + REAL_VISA_STATUSES
+# SIMS has no Work Visa status, so we're adding that here too.
+VISA_STATUSES = (('Citizen', 'Citizen'), ('Work', 'Work Visa')) + REAL_VISA_STATUSES
 
 EXPIRY_STATUSES = ['Expired', 'Expiring Soon', 'Valid']
+
+NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 def timezone_today():
     """
@@ -90,13 +101,62 @@ class Visa (models.Model):
                 print emplid, visas.get(visatype, None)
 
     @staticmethod
-    def get_visas(person):
+    def get_visas(people):
         """
-        Returns all visible visas for a given person
+        Returns all visible visas for given people
 
-        :param Person person: The person we are querying for visa information
-        :type: Person
+        :param Person people: The people we are querying for visa information
+        :type: list of Person
         :return: A list of visas
         :rtype: list
         """
-        return Visa.objects.filter(person=person).order_by('start_date')
+        return Visa.objects.filter(person__in=people).visible().order_by('start_date')
+
+
+def visa_attachment_upload_to(instance, filename):
+    """
+    callback to avoid path in the filename(that we have append folder structure to) being striped
+    """
+    fullpath = os.path.join(
+        'visas',
+        instance.visa.person.userid_or_emplid(),
+        str(instance.visa.id),
+        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
+
+
+class VisaDocumentAttachmentManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
+
+
+class VisaDocumentAttachment(models.Model):
+    """
+    Document attached to a CareerEvent.
+    """
+    visa = models.ForeignKey(Visa, null=False, blank=False, related_name="attachments")
+    title = models.CharField(max_length=250, null=False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with=('visa',))
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Person, help_text='Document attachment created by.')
+    contents = models.FileField(storage=NoteSystemStorage, upload_to=visa_attachment_upload_to, max_length=500)
+    mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
+    hidden = models.BooleanField(default=False, editable=False)
+
+    objects = VisaDocumentAttachmentManager()
+
+    def __unicode__(self):
+        return self.contents.name
+
+    class Meta:
+        ordering = ("created_at",)
+        unique_together = (("visa", "slug"),)
+
+    def contents_filename(self):
+        return os.path.basename(self.contents.name)
+
+    def hide(self):
+        self.hidden = True
+        self.save()

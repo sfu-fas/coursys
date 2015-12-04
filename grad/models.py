@@ -405,11 +405,9 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 self.start_semester = application_statuses[-1].start
 
         # end_semester
-        if 'end_semester' in self.config:
-            if self.config['end_semester']:
+        # Modified to ignore the cases where people had 'end_semester': None in their config.
+        if 'end_semester' in self.config and self.config['end_semester']:
                 self.end_semester = Semester.objects.get(name=self.config['end_semester'])
-            else:
-                self.end_semester = None
         else:
             if self.current_status in STATUS_DONE:
                 ends = [status for status in all_gs if status.status in STATUS_DONE]
@@ -532,12 +530,15 @@ class GradStudent(models.Model, ConditionalSaveMixin):
         if gender == "M" :
             hisher = "his"
             heshe = 'he'
+            himher = 'her'
         elif gender == "F":
             hisher = "her"
             heshe = 'she'
+            himher = 'her'
         else:
             hisher = "his/her"
             heshe = 'he/she'
+            himher = 'him/her'
         
         # financial stuff
         promises = Promise.objects.filter(student=self).order_by('-start_semester')
@@ -691,6 +692,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 'His_Her' : hisher.title(),
                 'he_she' : heshe,
                 'He_She' : heshe.title(),
+                'him_her' : himher,
+                'Him_Her' : himher.title(),
                 'first_name': self.person.first_name,
                 'last_name': self.person.last_name,
                 'emplid': emplid, 
@@ -921,6 +924,7 @@ LETTER_TAGS = {
                'emplid': 'student\'s emplid',
                'his_her' : '"his" or "her" (or use His_Her for capitalized)',
                'he_she' : '"he" or "she" (or use He_She for capitalized)',
+               'him_her' : '"him" or "her" (or use Him_Her for capitalized)',
                'program': 'the program the student is enrolled in',
                'start_semester': 'student\'s first semester (e.g. "Summer 2000")',
                'start_year': 'year of student\'s first semester (e.g. "2000")',
