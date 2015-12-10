@@ -46,7 +46,8 @@
     <dt>Base salary</dt><dd>${{ position.base_salary|intcomma }}</dd>
     <dt>Add salary</dt><dd>${{ position.add_salary|intcomma }}</dd>
     <dt>Add pay</dt><dd>${{ position.add_pay|intcomma }}</dd>
-    <dt>Teaching load</dt><dd>{{ position.get_load_display_corrected }}</dd>
+    <dt>Teaching load</dt><dd>{{ position.get_load_display_corrected }}
+    <dt>Teaching Semester Credits</dt><dd>{{ position.teaching_semester_credits }}</dd>
     {% if position.any_person %}
         <dt>Candidate</dt><dd>{{ position.any_person.get_person }}</dd>
     {% endif %}

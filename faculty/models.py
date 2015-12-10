@@ -801,6 +801,7 @@ class Position(models.Model):
     year3 = models.CharField(max_length=5, default='')
     institution3 = models.CharField(max_length=25, default='')
     location3 = models.CharField(max_length=23, default='')
+    teaching_semester_credits = models.DecimalField(decimal_places=0, max_digits=3, null=True, blank=True)
 
     objects = PositionManager()
 

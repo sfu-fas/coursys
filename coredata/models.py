@@ -77,7 +77,7 @@ class Person(models.Model, ConditionalSaveMixin):
 
     defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None,
                 'citizen': None, 'nonstudent_hs': '',  'nonstudent_colg': '', 'nonstudent_notes': None,
-                'sin': '000000000', 'phone_ext': None}
+                'sin': '000000000', 'phone_ext': None, 'birthdate': None}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
