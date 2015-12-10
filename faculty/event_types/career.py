@@ -62,6 +62,9 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         <dd>{{ handler|get_display:"degree3" }},  {{ handler|get_display:"year3" }},
         {{ handler|get_display:"institution3" }}, {{ handler|get_display:"location3" }}{% endif %}
         {% endif %}
+        {% if handler|get_config:"teaching_semester_credits" != 'unknown' and  handler|get_config:"teaching_semester_credits" != ''%}
+        <dt>Teaching Semester Credits</dt><dd>{{ handler|get_config:"teaching_semester_credits" }}</dd>
+        {% endif %}
 
         {% endblock %}
     """
@@ -103,6 +106,10 @@ class AppointmentEventHandler(CareerEventHandlerBase):
         year3 = forms.CharField(max_length=5, required=False, label='Year 3', widget=forms.TextInput(attrs={'size': '5'}))
         institution3 = forms.CharField(max_length=25, required=False, label='Institution 3')
         location3 = forms.CharField(max_length=23, required=False, label='City/Country 3')
+        teaching_semester_credits = forms.DecimalField(max_digits=3, decimal_places=0, required=False,
+                                                       help_text='Number of teaching semester credits, for the tenure '
+                                                       'track form')
+
 
     SEARCH_RULES = {
         'position_number': search.StringSearchRule,

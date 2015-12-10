@@ -1742,6 +1742,7 @@ def faculty_wizard(request, userid, position=None):
             form_appoint.fields['year3'].initial = position.year3
             form_appoint.fields['location3'].initial = position.location3
             form_appoint.fields['institution3'].initial = position.institution3
+            form_appoint.fields['teaching_semester_credits'].initial = position.teaching_semester_credits
             form_salary.fields['rank'].initial = position.rank
             form_salary.fields['step'].initial = position.step
             form_salary.fields['base_salary'].initial = position.base_salary

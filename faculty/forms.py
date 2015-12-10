@@ -323,10 +323,15 @@ class PositionCredentialsForm(forms.ModelForm):
     year3 = forms.CharField(max_length=5, required=False, label='Year 3', widget=forms.TextInput(attrs={'size': '5'}))
     institution3 = forms.CharField(max_length=25, required=False, label='Institution 3')
     location3 = forms.CharField(max_length=23, required=False, label='City/Country 3')
+    teaching_semester_credits = forms.DecimalField(max_digits=3, decimal_places=0, required=False,
+                                                   help_text='Number of teaching semester credits, for the tenure '
+                                                   'track form')
+
     class Meta:
         fields = ['degree1', 'year1', 'location1', 'institution1',
                   'degree2', 'year2', 'location2', 'institution2',
-                  'degree3', 'year3', 'location3', 'institution3']
+                  'degree3', 'year3', 'location3', 'institution3',
+                  'teaching_semester_credits']
         model = Position
 
 

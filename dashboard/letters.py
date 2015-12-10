@@ -2457,6 +2457,8 @@ class YellowFormTenure(YellowForm):
 
         self.label(0, 94.5, 'Request appointment be concluded by:')
         self.label(118, 94.5, 'Number of teaching semesters credit, if any,')
+        self.hline(168, 182, 88.5)
+        self.label_filled_centred(175, 89, data.get('teaching_semester_credits'))
         self.label(3, 90.5, 'normal route')
         self.label(32, 90.5, 'or expedited route')
         self.checkbox(24, 90)
@@ -2948,6 +2950,8 @@ def build_data_from_event(careerevent):
         data['rank'] = s.get_handler().get_rank_display() or ''
         data['step'] = s.config.get('step') or ''
 
+    data['teaching_semester_credits'] = event.config.get('teaching_semester_credits') or ''
+
     stipends = CareerEvent.objects.filter(person=person, event_type='STIPEND', unit=event.unit).effective_now()
     for stipend in stipends:
         if stipend.config.get('source') == 'MARKETDIFF':
@@ -3011,6 +3015,11 @@ def build_data_from_position(position):
         data['step'] = str(position.step)
     else:
         data['step'] = ''
+
+    if position.teaching_semester_credits:
+        data['teaching_semester_credits'] = str(position.teaching_semester_credits)
+    else:
+        data['teaching_semester_credits'] = ''
 
     # For now, we store marketdiffs only for real faculty members, but let's add this here in case.  Either way, if we
     # call this method from a position where the FuturePerson is now a real Faculty Member, this should still work.
