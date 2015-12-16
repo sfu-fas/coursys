@@ -3,6 +3,7 @@ from django import forms
 from django.forms.utils import ErrorList
 from collections import OrderedDict
 from coredata.models import Member
+from coredata.widgets import CalendarWidget
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
         CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES
 from ta.util import table_row__Form
@@ -253,7 +254,9 @@ class TAContractForm(forms.ModelForm):
     class Meta:
         model = TAContract
         exclude = ['posting', 'application', 'created_by']
-        widgets = {'remarks': forms.Textarea(attrs={'rows': 3, 'cols': 60}), }
+        widgets = {'remarks': forms.Textarea(attrs={'rows': 3, 'cols': 60}),
+                   'appointment_start': CalendarWidget,
+                   'appointment_end': CalendarWidget}
         
         
     def clean_pay_per_bu(self):
@@ -280,7 +283,19 @@ class TAContractForm(forms.ModelForm):
         if not re.match('\d{9}$',sin):
             raise forms.ValidationError("Invalid SIN")
         return sin
-        
+
+    def clean_appointment_start(self):
+        start = self.cleaned_data['appointment_start']
+        return start
+
+    def clean_appointment_end(self):
+        end = self.cleaned_data['appointment_end']
+        if 'appointment_start' in self.cleaned_data:
+            start = self.cleaned_data['appointment_start']
+            if start >= end:
+                raise forms.ValidationError("Contracts must end after they start")
+        return end
+
     def clean_pay_start(self):
         start = self.cleaned_data['pay_start']
         return start

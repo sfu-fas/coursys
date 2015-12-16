@@ -1002,6 +1002,8 @@ class TAForm(object):
             first_name=contract.application.person.first_name,
             unit_name=contract.application.posting.unit.informal_name(),
             deptid=contract.application.posting.unit.deptid(),
+            appointment_start=contract.appointment_start,
+            appointment_end=contract.appointment_end,
             pay_start=contract.pay_start,
             pay_end=contract.pay_end,
             initial_appointment_fill=initial_appointment_fill,
@@ -1048,6 +1050,8 @@ class TAForm(object):
             first_name=contract.person.first_name,
             unit_name=contract.category.account.unit.informal_name(),
             deptid=contract.category.account.unit.deptid(),
+            appointment_start=contract.appointment_start,
+            appointment_end=contract.appointment_end,
             pay_start=contract.pay_start,
             pay_end=contract.pay_end,
             initial_appointment_fill=initial_appointment_fill,
@@ -1064,12 +1068,20 @@ class TAForm(object):
             sigs=Signature.objects.filter(user__userid=contract.created_by),
         )
 
-    def draw_form(self, emplid, sin, last_name, first_name, unit_name, deptid, pay_start, pay_end,
-                  initial_appointment_fill, reappointment_fill, position_number, courses, appt_category,
-                  appt_cond, total_pay, biweek_pay, total_schol, biweek_schol, remarks, sigs):
+    def draw_form(self, emplid, sin, last_name, first_name, unit_name, deptid, appointment_start, appointment_end,
+                  pay_start, pay_end, initial_appointment_fill, reappointment_fill, position_number, courses,
+                  appt_category, appt_cond, total_pay, biweek_pay, total_schol, biweek_schol, remarks, sigs):
         """
         Generic TA Form drawing method: probably called by one of the above that abstract out the object details.
         """
+
+        # For backwards compatibility to older contracts without their own appoinment start/end dates/
+        if not appointment_start:
+            appointment_start = pay_start
+        if not appointment_end:
+            appointment_end = pay_end
+
+
         self.c.setStrokeColor(black)
         self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
         main_width = 7.25*inch
@@ -1115,8 +1127,8 @@ class TAForm(object):
         if deptid:
             dept += " (%s)" % (deptid)
         self._draw_box(20*mm, 193*mm, 78*mm, content=dept) # DEPARTMENT
-        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(pay_start))
-        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(pay_end))
+        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(appointment_start))
+        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(appointment_end))
 
         # initial appointment boxes
         self.c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=initial_appointment_fill)

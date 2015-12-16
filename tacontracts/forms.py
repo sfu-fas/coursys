@@ -25,10 +25,10 @@ class HiringSemesterForm(forms.ModelForm):
         model = HiringSemester
         exclude = []
         widgets = {
-                    'deadline_for_acceptance':CalendarWidget,
-                    'pay_start':CalendarWidget,
-                    'pay_end':CalendarWidget,
-                    'payperiods':GuessPayperiodsWidget,
+                    'deadline_for_acceptance': CalendarWidget,
+                    'pay_start': CalendarWidget,
+                    'pay_end': CalendarWidget,
+                    'payperiods': GuessPayperiodsWidget,
                 }
 
 class TACategoryForm(forms.ModelForm):
@@ -51,10 +51,12 @@ class TAContractForm(forms.ModelForm):
         model = TAContract
         exclude = []
         widgets = {
-            'pay_start':CalendarWidget,
-            'pay_end':CalendarWidget,
-            'deadline_for_acceptance':CalendarWidget,
-            'payperiods':GuessPayperiodsWidget,
+            'appointment_start': CalendarWidget,
+            'appointment_end': CalendarWidget,
+            'pay_start': CalendarWidget,
+            'pay_end': CalendarWidget,
+            'deadline_for_acceptance': CalendarWidget,
+            'payperiods': GuessPayperiodsWidget,
         }
 
 class TACourseForm(forms.ModelForm):
