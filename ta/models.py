@@ -500,6 +500,8 @@ class TAContract(models.Model):
     posting = models.ForeignKey(TAPosting)
     application = models.ForeignKey(TAApplication)
     sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
+    appointment_start = models.DateField(null=True, blank=True)
+    appointment_end = models.DateField(null=True, blank=True)
     pay_start = models.DateField()
     pay_end = models.DateField()
     appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category", default="GTA1")
@@ -552,6 +554,8 @@ class TAContract(models.Model):
         self.posting = posting
         self.sin = application.sin
         self.appt_category = application.category
+        self.appointment_start = posting.start()
+        self.appointment_end = posting.end()
         self.pay_start = posting.start()
         self.pay_end = posting.end()
         self.deadline = posting.deadline()

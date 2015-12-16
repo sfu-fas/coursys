@@ -269,6 +269,8 @@ class TAContract(models.Model):
     # allow printing of the contract if this box hasn't been checked.
     visa_verified = models.BooleanField(default=False, help_text="I have verified this TA's visa information")
     deadline_for_acceptance = models.DateField()
+    appointment_start = models.DateField(null=True, blank=True)
+    appointment_end = models.DateField(null=True, blank=True)
     pay_start = models.DateField()
     pay_end = models.DateField()
     payperiods = models.DecimalField(max_digits=4, decimal_places=2,
@@ -367,6 +369,8 @@ class TAContract(models.Model):
                                  sin=self.sin,
                                  deadline_for_acceptance= \
                                         self.deadline_for_acceptance,
+                                 appointment_start=self.appointment_start,
+                                 appointment_end=self.appointment_end,
                                  pay_start=self.pay_start,
                                  pay_end=self.pay_end,
                                  payperiods=self.payperiods,

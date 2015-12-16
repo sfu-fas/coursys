@@ -345,6 +345,8 @@ def new_contract(request, unit_slug, semester):
     else:
         form = TAContractForm(hiring_semester, initial={
             'deadline_for_acceptance':hiring_semester.deadline_for_acceptance,
+            'appointment_start':hiring_semester.pay_start,
+            'appointment_end':hiring_semester.pay_end,
             'pay_start':hiring_semester.pay_start,
             'pay_end':hiring_semester.pay_end,
             'payperiods':hiring_semester.payperiods
