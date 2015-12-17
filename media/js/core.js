@@ -272,4 +272,22 @@ $(document).ready(function(){
 
   // Prevent double-clicking of submissions in all our forms
   $('form').preventDoubleSubmit()
+
+  // Add proper date-picker code to anything with the datepicker class, like our CalendarWidget inputs
+  $('.datepicker').datepicker({ buttonImageOnly: true, buttonImage: '/static/images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'both'});
+
+  // Add proper Person autocomplete code for PersonField in widgets.py
+  $('.autocomplete_person').each(function(){
+        $(this).autocomplete({
+            source: '/data/students',
+            minLength: 2,
+            select: function(event, ui){
+              $(this).data('val', ui.item.value);
+            }
+          });
+        });
+
+
 });
