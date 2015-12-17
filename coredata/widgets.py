@@ -17,17 +17,18 @@ class AutocompletePersonWidget(forms.TextInput):
         else:
             attrs['class'] = attrs['class'] + " autocomplete_person"
         html = super(AutocompletePersonWidget, self).render(name, value, attrs)
-        html += "<script type='application/javascript'>"
-        html += "$('.autocomplete_person').each(function(){"
-        html += "  $(this).autocomplete({"
-        html += "    source: '/data/students',"
-        html += "    minLength: 2,"
-        html += "    select: function(event, ui){"
-        html += "      $(this).data('val', ui.item.value);"
-        html += "    }"
-        html += "  });"
-        html += "});"
-        html += "</script>"
+        # This javascript moved to core.js instead
+        # html += "<script type='application/javascript'>"
+        # html += "$('.autocomplete_person').each(function(){"
+        # html += "  $(this).autocomplete({"
+        # html += "    source: '/data/students',"
+        # html += "    minLength: 2,"
+        # html += "    select: function(event, ui){"
+        # html += "      $(this).data('val', ui.item.value);"
+        # html += "    }"
+        # html += "  });"
+        # html += "});"
+        # html += "</script>"
         return html
 
 class PersonField(forms.CharField):
@@ -77,7 +78,7 @@ class AutocompleteOfferingWidget(forms.TextInput):
         elif not 'class' in attrs:
             attrs['class'] = 'autocomplete_courseoffering'
         else:
-            attrs['class'] = attrs['class'] + " autocomplete_person"
+            attrs['class'] = attrs['class'] + " autocomplete_courseoffering"
         
 
         html = super(AutocompleteOfferingWidget, self).render(name, value, attrs)
@@ -140,9 +141,10 @@ class CalendarWidget(forms.TextInput):
         else:
             attrs['class'] = attrs['class'] + " datepicker"
         html = super(CalendarWidget, self).render(name, value, attrs)
-        html += "<script type='application/javascript'>"
-        html += "$('.datepicker').each(function(){"
-        html += "  $(this).datepicker({'dateFormat': $.datepicker.ISO_8601}); "
-        html += "});"
-        html += "</script>"
+        # The Javascript should be done in core.js instead.
+        # html += "<script type='application/javascript'>"
+        # html += "$('.datepicker').each(function(){"
+        # html += "  $(this).datepicker({'dateFormat': $.datepicker.ISO_8601}); "
+        # html += "});"
+        # html += "</script>"
         return html
