@@ -16,6 +16,7 @@ from courselib.testing import Client, TEST_COURSE_SLUG
 
 #App
 from .models import ConsumerInfo
+from coredata.models import Member
 
 
 VERIFIER = '1234567890'
@@ -170,7 +171,36 @@ class APITest(TestCase):
 
         tester.check_found_links()
 
-
-class APILogicTests(TestCase):
     def test_class_list_permission(self):
-        raise # TODO: test that class list is truly visible to instructor but not students
+        """
+        Check that the class list API endpoint has the right permissions
+        """
+        client = self.client
+
+        # no auth: should be forbidden
+        url = reverse('api.OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 403)
+        data = json.loads(resp.content)
+        self.assertIsInstance(data, dict)
+        self.assertEqual(data.keys(), ['detail'])
+
+        # as instructor: should return class list
+        client.login_user("ggbaker")
+        url = reverse('api.OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertIsInstance(data, list)
+        self.assertEqual([d['userid'] for d in data],
+                         [m.person.userid for m in Member.objects.filter(offering__slug=TEST_COURSE_SLUG, role='STUD')
+                             .select_related('person')])
+
+        # as a student: should be forbidden
+        client.login_user("0aaa0")
+        url = reverse('api.OfferingStudents', kwargs={'course_slug': TEST_COURSE_SLUG})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 403)
+        data = json.loads(resp.content)
+        self.assertIsInstance(data, dict)
+        self.assertEqual(data.keys(), ['detail'])
