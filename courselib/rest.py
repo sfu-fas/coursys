@@ -61,6 +61,22 @@ class IsOfferingMember(permissions.BasePermission):
 
         return bool(view.member)
 
+class IsOfferingStaff(permissions.BasePermission):
+    """
+    Check that the authenticated user is an instructor or TA for the course
+    """
+    def has_permission(self, request, view):
+        if not hasattr(view, 'offering'):
+            offering = get_object_or_404(CourseOffering, slug=view.kwargs['course_slug'])
+            view.offering = offering
+
+        if not hasattr(view, 'member'):
+            assert request.user.is_authenticated()
+            member = Member.objects.filter(role__in=['INST', 'TA', 'APPR']).filter(offering=offering, person__userid=request.user.username).first()
+            view.member = member
+
+        return bool(view.member)
+
 from django.core.cache import caches
 from django.utils.encoding import force_bytes, iri_to_uri
 from django.utils.cache import patch_response_headers, patch_cache_control

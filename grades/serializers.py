@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from coredata.models import Person
 from grades.models import Activity
 from grades.utils import generate_numeric_activity_stat, generate_letter_activity_stat
 from marking.models import get_activity_mark_for_student
@@ -60,6 +61,17 @@ class GradeMarkSerializer(serializers.Serializer):
 
     def get_max_grade(self, a):
         return getattr(a, 'max_grade', None)
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    emplid = serializers.SerializerMethodField()
+    class Meta:
+        model = Person
+        fields = ('emplid', 'userid', 'first_name', 'last_name', 'pref_first_name', 'email')
+
+    def get_emplid(self, p):
+        return unicode(p.emplid)
+
 
 
 class StatsSerializer(serializers.Serializer):
