@@ -1135,7 +1135,7 @@ def _mark_all_groups_letter(request, course, activity):
 
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                         description=("bulk marked %s for group '%s': %s") % (activity, group.name, new_value),
+                         description=(u"bulk marked %s for group '%s': %s") % (activity, group.name, new_value),
                          related_object=act_mark)
                     l.save()                  
                      
