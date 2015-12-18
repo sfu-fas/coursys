@@ -304,7 +304,7 @@ class TAContract(models.Model):
     objects = PassThroughManager.for_queryset_class(TAContractQuerySet)()
    
     def __unicode__(self):
-        return "%s" % (self.person,)
+        return u"%s" % (self.person,)
 
     @property
     def frozen(self):
