@@ -101,7 +101,7 @@ class Activity(models.Model):
     showformula, set_showformula = getter_setter('showformula')
 
     def __unicode__(self):
-        return "%s - %s" % (self.offering, self.name)
+        return u"%s - %s" % (self.offering, self.name)
     def short_str(self):
         return self.name
     def __cmp__(self, other):
@@ -563,8 +563,8 @@ class NumericGrade(models.Model):
         if self.activity.status == "RLS" and newsitem and self.flag not in ["NOGR", "CALC"]:
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
-                source_app="grades", title="%s grade available" % (self.activity.name), 
-                content='A new grade for %s in %s is available.' 
+                source_app="grades", title=u"%s grade available" % (self.activity.name),
+                content=u'A new grade for %s in %s is available.'
                   % (self.activity.name, self.activity.offering.name()),
                 url=self.activity.get_absolute_url())
             n.save()
@@ -607,7 +607,7 @@ class LetterGrade(models.Model):
         if self.flag == 'NOGR':
             return u'\u2014'
         else:
-            return "%s" % (self.letter_grade)
+            return u"%s" % (self.letter_grade)
     display_staff_short = display_staff
 
     def display_with_percentage_student(self):
@@ -621,7 +621,7 @@ class LetterGrade(models.Model):
         elif self.flag == "NOGR":
             return u'\u2014'
         else:
-            return '%s' % (self.letter_grade)     
+            return u'%s' % (self.letter_grade)
     
     def save(self, entered_by, group=None, newsitem=True):
         """Save the grade.

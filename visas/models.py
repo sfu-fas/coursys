@@ -76,7 +76,7 @@ class Visa (models.Model):
         return "Unknown"  # We'll hit this if the end_date is null.
 
     def __unicode__(self):
-        return "%s, %s, %s" % (self.person, self.status, self.start_date)
+        return u"%s, %s, %s" % (self.person, self.status, self.start_date)
 
     def hide(self):
         self.hidden = True
