@@ -522,7 +522,7 @@ class TAContract(models.Model):
         unique_together = (('posting', 'application'),)
         
     def __unicode__(self):
-        return "%s" % (self.application.person)
+        return u"%s" % (self.application.person)
 
     def save(self, *args, **kwargs):
         super(TAContract, self).save(*args, **kwargs)
