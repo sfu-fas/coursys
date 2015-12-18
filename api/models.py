@@ -11,6 +11,7 @@ PERMISSION_CHOICES = [
     ('courses', 'View the courses you are enrolled in'),
     ('grades', 'View the marks you have received in your courses'),
     ('groups', 'Group memberships in your courses'),
+    ('instr-info', 'Instructor-only information (read-only)'),
 ]
 PERMISSION_OPTIONS = dict(PERMISSION_CHOICES)
 

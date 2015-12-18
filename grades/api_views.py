@@ -57,7 +57,7 @@ class OfferingStudents(CacheMixin, generics.ListAPIView):
     serializer_class = StudentSerializer
 
     permission_classes = (APIConsumerPermissions, IsOfferingStaff,)
-    consumer_permissions = set(['courses'])
+    consumer_permissions = set(['courses', 'instr-info'])
     cache_hours = 2
 
     def get_queryset(self):
