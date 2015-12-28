@@ -613,10 +613,12 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
+    from marking.tasks import copy_setup_pages_task
     with django.db.transaction.atomic():
         copy_setup_base(course_copy_from, course_copy_to)
         copy_setup_activities(course_copy_from, course_copy_to)
-        copy_setup_pages(course_copy_from, course_copy_to)
+        # copy pages asynchronously, since it can be slow with many pages.
+        copy_setup_pages_task.delay(course_copy_from.slug, course_copy_to.slug)
 
 
 
