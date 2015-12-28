@@ -456,14 +456,8 @@ def save_copied_activity(target_activity, model, target_course_offering):
         old_activity.save()
         target_activity.save(force_insert=True)            
 
-def copyCourseSetup(course_copy_from, course_copy_to):
-    """
-    copy all the activities setup from one course to another
-    copy numeric activities with their marking components, common problems and submission components
-    """
-    with django.db.transaction.atomic():
-        from submission.models.code import CodeComponent
-        from submission.models.codefile import CodefileComponent
+
+def copy_setup_base(course_copy_from, course_copy_to):
         # copy things in offering's .config dict
         for f in course_copy_from.copy_config_fields:
             if f in course_copy_from.config:
@@ -474,6 +468,11 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             course_copy_to.config['url'] = course_copy_to.config['url'].replace(course_copy_from.slug, course_copy_to.slug)
         course_copy_to.save()
 
+
+def copy_setup_activities(course_copy_from, course_copy_to):
+        from submission.models.code import CodeComponent
+        from submission.models.codefile import CodefileComponent
+
         # copy Activities (and related content)
         all_activities = all_activities_filter(offering=course_copy_from)
 
@@ -481,7 +480,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             Class = activity.__class__
             new_activity = copy_activity(activity, course_copy_from, course_copy_to)
             save_copied_activity(new_activity, Class, course_copy_to)
-        
+
             # should only apply to NumericActivity: others have no ActivityComponents
             for activity_component in ActivityComponent.objects.filter(numeric_activity_id=activity.id, deleted=False):
                 new_activity_component = copy.deepcopy(activity_component)
@@ -497,7 +496,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                     new_common_problem.penalty = str(new_common_problem.penalty)
                     new_common_problem.activity_component = new_activity_component
                     new_common_problem.save(force_insert=True)
-            
+
             for submission_component in select_all_components(activity):
                 new_submission_component = copy.deepcopy(submission_component)
                 new_submission_component.id = None
@@ -507,14 +506,14 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 if isinstance(new_submission_component, CodeComponent):
                     # upgrade Code to Codefile while migrating
                     new_submission_component = CodefileComponent.build_from_codecomponent(new_submission_component)
-                
+
                 # enforce tighter submission size limits
                 if hasattr(new_submission_component, 'max_size'):
                     if new_submission_component.max_size > settings.MAX_SUBMISSION_SIZE:
                       new_submission_component.max_size = settings.MAX_SUBMISSION_SIZE
-                
+
                 new_submission_component.save(force_insert=True)
-        
+
         for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
             # fix up source and exam activities as best possible
             if activity.numeric_activity:
@@ -523,16 +522,18 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 except NumericActivity.DoesNotExist:
                     na = NumericActivity.objects.filter(offering=course_copy_to, deleted=False)[0]
                 activity.numeric_activity = na
-                
+
             if activity.exam_activity:
                 try:
                     a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
                 except Activity.DoesNotExist:
                     a = Activity.objects.filter(offering=course_copy_to, deleted=False)[0]
                 activity.exam_activity = a
-            
+
             activity.save()
 
+
+def copy_setup_pages(course_copy_from, course_copy_to):
         # copy the Pages
         from pages.models import Page, PageFilesStorage, attachment_upload_to
         copy_pages = Page.objects.filter(offering=course_copy_from).exclude(can_read='NONE', can_write='NONE')
@@ -550,7 +551,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 except IntegrityError:
                     count += 1
                     new_p.label = orig_label + "-" + str(count)
-            
+
             # if there are release dates, adapt to new semester
             if new_p.releasedate():
                 week, wkday = course_copy_from.semester.week_weekday(new_p.releasedate())
@@ -580,7 +581,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_v.diff = None
             new_v.diff_from = None
             new_v.comment = "Page migrated from %s" % (course_copy_from)
-            
+
             if new_v.file_attachment:
                 # copy the file (so we can safely remove old semesters'
                 # files without leaving bad path reference)
@@ -593,7 +594,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                     dstpath += "_"
                 dst = os.path.join(dstpath, dstfile)
                 new_v.file_attachment = dst
-                
+
                 if not os.path.exists(dstpath):
                     os.makedirs(dstpath)
 
@@ -605,6 +606,17 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                     shutil.copyfile(src, dst)
 
             new_v.save(force_insert=True)
+
+
+def copyCourseSetup(course_copy_from, course_copy_to):
+    """
+    copy all the activities setup from one course to another
+    copy numeric activities with their marking components, common problems and submission components
+    """
+    with django.db.transaction.atomic():
+        copy_setup_base(course_copy_from, course_copy_to)
+        copy_setup_activities(course_copy_from, course_copy_to)
+        copy_setup_pages(course_copy_from, course_copy_to)
 
 
 
