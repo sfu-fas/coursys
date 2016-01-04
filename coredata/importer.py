@@ -301,6 +301,9 @@ def get_person_grad(emplid, commit=True, force=False):
     
     imported_people_full[emplid] = p
 
+    if p is None:
+        raise ValueError("No person found for emplid %s." % (emplid,))
+
     if 'lastimportgrad' in p.config:
         import_age = time.time() - p.config['lastimportgrad']
     else:
