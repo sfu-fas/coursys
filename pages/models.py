@@ -215,7 +215,7 @@ class PageVersion(models.Model):
     """
     A particular revision of a Page's contents. Could be either a wiki page or a file attachment.
     """
-    page = models.ForeignKey(Page)
+    page = models.ForeignKey(Page, blank=True, null=True)
     title = models.CharField(max_length=60, help_text="The title for the page")
     wikitext = models.TextField(help_text='WikiCreole-formatted content of the page')
     diff = models.TextField(null=True, blank=True)
@@ -433,6 +433,8 @@ class PageVersion(models.Model):
         """
         Return a dict of macros for this page's offering (caches _offering_macros).
         """
+        if not self.page:
+            return {}
         offering = self.Creole.offering
         key = self.page.macro_cache_key()
         macros = cache.get(key)
@@ -448,8 +450,9 @@ class PageVersion(models.Model):
         Substitute our macros into the wikitext.
         """
         macros = self.offering_macros()
-        for macro, replacement in macros.iteritems():
-            wikitext = wikitext.replace('+' + macro + '+', replacement)
+        if macros:
+            for macro, replacement in macros.iteritems():
+                wikitext = wikitext.replace('+' + macro + '+', replacement)
         return wikitext
 
     def html_contents(self, offering=None):
