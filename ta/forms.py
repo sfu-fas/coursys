@@ -290,7 +290,7 @@ class TAContractForm(forms.ModelForm):
 
     def clean_appointment_end(self):
         end = self.cleaned_data['appointment_end']
-        if 'appointment_start' in self.cleaned_data:
+        if end and 'appointment_start' in self.cleaned_data:
             start = self.cleaned_data['appointment_start']
             if start >= end:
                 raise forms.ValidationError("Contracts must end after they start")
