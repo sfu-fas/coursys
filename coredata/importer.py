@@ -280,47 +280,18 @@ def get_person(emplid, commit=True, force=False, grad_data=False):
 
     # actually import their data
     else:
-        new_p =  import_person(p, commit=commit, grad_data=grad_data)
+        new_p = import_person(p, commit=commit, grad_data=grad_data)
         if new_p:
             return new_p
         elif p_old:
             return p
 
 
-imported_people_full = {}
 def get_person_grad(emplid, commit=True, force=False):
     """
     Get/update personal info: does get_person() plus additional info we need for grad students
     """
-    global imported_people_full
-    # use imported_people_full as a cache
-    if emplid in imported_people_full:
-        return imported_people_full[emplid]
-    
-    p = get_person(emplid, commit=False, grad_data=True)
-    
-    imported_people_full[emplid] = p
-
-    if p is None:
-        raise ValueError("No person found for emplid %s." % (emplid,))
-
-    if 'lastimportgrad' in p.config:
-        import_age = time.time() - p.config['lastimportgrad']
-    else:
-        import_age = IMPORT_THRESHOLD * 2
-
-    # only import if data is older than IMPORT_THRESHOLD (unless forced)
-    # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if not force and import_age < IMPORT_THRESHOLD and random.random() < 0.98 \
-            and p.userid:
-        return p
-
-    #create_or_update_student(emplid)
-
-    p.config['lastimportgrad'] = int(time.time())
-    if commit:
-        _person_save(p)
-    
+    p = get_person(emplid, commit=commit, grad_data=True, force=force)
     return p
 
 
