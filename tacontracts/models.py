@@ -425,6 +425,8 @@ class TAContract(models.Model):
 
     @property
     def biweekly_pay(self):
+        if self.payperiods == 0:
+            return decimal.Decimal(0)
         return self.total_pay / decimal.Decimal(self.payperiods)
 
     @property
@@ -436,6 +438,8 @@ class TAContract(models.Model):
 
     @property
     def biweekly_scholarship(self):
+        if self.payperiods == 0:
+            return decimal.Decimal(0)
         return self.scholarship_pay / decimal.Decimal(self.payperiods)
 
     @property
