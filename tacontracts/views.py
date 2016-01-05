@@ -338,6 +338,9 @@ def new_contract(request, unit_slug, semester):
             contract.created_by = request.user.username
             contract.hiring_semster = hiring_semester
             contract.save()
+            if contract.payperiods == 0:
+                messages.add_message(request, messages.WARNING,
+                                     'You have entered 0 pay periods.  This TA will never get paid.')
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Contract %s created.' % unicode(contract))
@@ -396,6 +399,9 @@ def edit_contract(request, unit_slug, semester, contract_slug):
         form = TAContractForm(hiring_semester, request.POST, instance=contract)
         if form.is_valid():
             contract = form.save()
+            if contract.payperiods == 0:
+                messages.add_message(request, messages.WARNING,
+                                     'You have entered 0 pay periods.  This TA will never get paid.')
             messages.add_message(request, 
                                  messages.SUCCESS, 
                                  u'Contract %s updated.' % unicode(contract))
