@@ -1,0 +1,15 @@
+<script type="text/javascript">
+function setgrades() {
+    $("tr input").val($("#setallgrades").val());
+}
+
+function cleargrades() {
+    $("tr input").val('');
+    $("#setallgrades").val('');
+
+}
+</script>
+
+Set all grades to: <input type="text" id="setallgrades" size=5>
+<button type="button" onclick="setgrades();">Set</button>
+<button type="button" onclick="cleargrades();">Clear all</button>

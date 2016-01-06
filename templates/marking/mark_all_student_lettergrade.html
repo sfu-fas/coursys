@@ -45,6 +45,9 @@ column is the grade.  Other columns will be ignored.</li>
 {%if too_many %}
 <input class="submit" type="submit" value="Submit" />
 {% endif %}
+
+{% include "marking/mark_all_includes.html" %}
+
      <table class="display" id="all_marks">
         <thead class="form_head">
             <tr>
