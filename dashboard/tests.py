@@ -180,7 +180,7 @@ class DashboardTest(TestCase):
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, "BEGIN:VCALENDAR")
-        self.assertContains(response, "DTSTART;VALUE=DATE-TIME:20")
+        self.assertContains(response, "END:VCALENDAR")
         
         # change calendar URL
         url = reverse('dashboard.views.create_calendar_url', kwargs={})
