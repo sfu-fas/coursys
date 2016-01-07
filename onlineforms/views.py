@@ -1315,6 +1315,8 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 else:
                     messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
 
+        can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
+
         context = {'owner_form': owner_form,
                     'sheet': sheet,
                     'form': form,
@@ -1323,5 +1325,6 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                     'filled_sheets': filled_sheets,
                     'alternate_url': alternate_url,
                     'nonSFUFormFillerForm': nonSFUFormFillerForm,
-                    'this_path': this_path,}
+                    'this_path': this_path,
+                    'can_advise': can_advise}
         return render(request, 'onlineforms/submissions/sheet_submission.html', context)
