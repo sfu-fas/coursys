@@ -1,5 +1,5 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -90,7 +90,7 @@ def view_page(request, course_slug, page_label):
         return render(request, 'pages/missing_page.html', context, status=404)
     else:
         page = pages[0]
-    
+
     version = page.current_version()
     
     member = _check_allowed(request, offering, page.can_read, page.releasedate())
@@ -109,7 +109,24 @@ def view_page(request, course_slug, page_label):
         can_edit = bool(editor)
     else:
         can_edit = False
-    
+
+    redirect_url = None
+    if ( 'migrated_to' in page.config
+            and offering.config.get('redirect_pages', False)
+            and not page.config.get('prevent_redirect', False) ):
+        # we have a migrated page and should redirect to the new location
+        slug, label = page.config['migrated_to']
+        url = reverse(view_page, kwargs={'course_slug': slug, 'page_label': label})
+
+        member = _check_allowed(request, offering, offering.page_creators()) # users who can create pages
+        can_create = bool(member)
+        if can_create:
+            # show these users a message so they can see what's happening
+            redirect_url = url
+        else:
+            # but most users just get a 301
+            return redirect(url, permanent=True)
+
     is_index = page_label=='Index'
     if is_index:
         # canonical-ize the index URL
@@ -118,7 +135,7 @@ def view_page(request, course_slug, page_label):
             return HttpResponseRedirect(url)
     
     context = {'offering': offering, 'page': page, 'version': version,
-               'can_edit': can_edit, 'is_index': is_index}
+               'can_edit': can_edit, 'is_index': is_index, 'redirect_url': redirect_url}
     return render(request, 'pages/view_page.html', context)
 
 def view_file(request, course_slug, page_label):

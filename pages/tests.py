@@ -210,11 +210,8 @@ class PagesTest(TestCase):
         self.assertEqual(v.get_wikitext(), 'This page is special in **some** way. \\(x~^2+1 = \\frac{1}{2}\\).\n\nGoodbye world!')
         self.assert_('math' in v.config)
         self.assertEqual(v.config['math'], True)
-        
-    def test_pages(self):
-        """
-        Basic page rendering
-        """
+
+    def _sample_setup(self):
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         memb = Member.objects.get(offering=crs, person__userid="ggbaker")
 
@@ -226,7 +223,14 @@ class PagesTest(TestCase):
         p.save()
         v = PageVersion(page=p, title="Other Page", wikitext="Original Contents", editor=memb)
         v.save()
-        
+
+        return crs
+
+    def test_pages(self):
+        """
+        Basic page rendering
+        """
+        crs = self._sample_setup()
         c = Client()
         c.login_user('ggbaker')
         
@@ -264,6 +268,46 @@ class PagesTest(TestCase):
 
         # macros disappear: back to original
         self.assertEqual(p.current_version().html_contents().strip(), u"<p>one +two+ three +four+</p>")
+
+    def test_redirect(self):
+        """
+        Redirecting after a migration
+        """
+        c = Client()
+        c.login_user('0aaa0')
+
+        # sample pages
+        crs = self._sample_setup()
+        # fake the course-has-been-migrated situation
+        p = crs.page_set.exclude(label='Index').first()
+        p.config['migrated_to'] = ['2000sp-subj-000-d1', 'PageLabel']
+        p.can_read = 'ALL'
+        p.save()
+        url = reverse('pages.views.view_page', kwargs={'course_slug': crs.slug, 'page_label': p.label})
+
+        # without course setting, shouldn't redirect
+        resp = c.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+        # instructor said yes to redirects: make sure page redirects
+        crs.config['redirect_pages'] = True
+        crs.save()
+        resp = c.get(url)
+        self.assertEqual(resp.status_code, 301)
+
+        # instructor should see a "this will usually redirect" message
+        c.login_user('ggbaker')
+        resp = c.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('redirect_url', resp.context)
+
+        # make sure prevent_redirect is honoured
+        c.login_user('0aaa0')
+        p.config['prevent_redirect'] = True
+        p.save()
+        resp = c.get(url)
+        self.assertEqual(resp.status_code, 200)
+
 
     def test_entity(self):
         """
