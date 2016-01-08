@@ -1045,6 +1045,11 @@ class Member(models.Model, ConditionalSaveMixin):
                         or m.offering.semester.end >= past1]
         count2 = len(memberships)
 
+        # exclude offerings explicity asked to not be in the students' menu by their .config
+        memberships = [m for m in memberships if not (m.role == 'STUD' and 
+                       'no_menu' in m.offering.config
+                       and m.offering.config['no_menu'])]
+
         # have courses been excluded because of date?
         excluded = (count1-count2) != 0
         return memberships, excluded
