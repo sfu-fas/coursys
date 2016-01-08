@@ -608,13 +608,15 @@ def copy_setup_pages(course_copy_from, course_copy_to):
             new_v.save(force_insert=True)
 
 
-def copyCourseSetup(course_copy_from, course_copy_to):
+def copyCourseSetup(course_copy_from, course_copy_to, redirect_pages):
     """
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
     from marking.tasks import copy_setup_pages_task
     with django.db.transaction.atomic():
+        course_copy_from.config['redirect_pages'] = redirect_pages
+        course_copy_from.save()
         copy_setup_base(course_copy_from, course_copy_to)
         copy_setup_activities(course_copy_from, course_copy_to)
         # copy pages asynchronously, since it can be slow with many pages.

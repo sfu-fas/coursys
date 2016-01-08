@@ -8,6 +8,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.forms.models import ModelChoiceField, modelformset_factory
 from django.forms.forms import Form
+from django.forms import BooleanField
 from django.db.models import Q, Max, Sum
 import django.db.transaction
 from django.shortcuts import render_to_response, render, get_object_or_404
@@ -134,6 +135,8 @@ def copy_course_setup(request, course_slug):
                 return "%s" % (obj.offering)
         class CourseSourceForm(Form):
             course = CourseChoiceField(label="Source course", queryset=courses_qset)
+        class PageRedirectForm(Form):
+            redirect = BooleanField(label='Redirect old offering\'s pages to the new offering?', initial=True, required=False)
         
         if request.method == "POST":         
             target_setup = Activity.objects.filter(offering = course, deleted = False)
@@ -143,28 +146,30 @@ def copy_course_setup(request, course_slug):
                 select_form = CourseSourceForm(request.POST, prefix = "select-form")
                 if select_form.is_valid():
                     source_course = select_form.cleaned_data['course'].offering
-                    source_setup = Activity.objects.filter(offering = source_course, deleted = False)
+                    source_setup = Activity.objects.filter(offering=source_course, deleted=False)
                     source_pages = Page.objects.filter(offering=source_course).exclude(can_read='NONE', can_write='NONE')
                     conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
-                    rename_forms =[ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
+                    rename_forms = [ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
+                    page_form = PageRedirectForm(prefix='pages')
                 else:
-                    return render_to_response("marking/select_course_setup.html", 
-                                 {'course': course, 'select_form': select_form},\
+                    return render_to_response("marking/select_course_setup.html",
+                                 {'course': course, 'select_form': select_form},
                                  context_instance=RequestContext(request))                
                 
-            else: # POST request for renaming and copy    
-                source_course = get_object_or_404(CourseOffering, slug = source_slug)
-                source_setup = Activity.objects.filter(offering = source_course, deleted = False) 
-                source_pages = Page.objects.filter(offering=source_course)
-                conflicting_acts = _find_setup_conflicts(source_setup, target_setup)   
+            else: # POST request for renaming and copy
+                source_course = get_object_or_404(CourseOffering, slug=source_slug)
+                source_setup = Activity.objects.filter(offering=source_course, deleted=False)
+                source_pages = Page.objects.filter(offering=source_course).exclude(can_read='NONE', can_write='NONE')
+                conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
+                page_form = PageRedirectForm(request.POST, prefix='pages')
                 
                 if conflicting_acts: # check the renamed activities
                     rename_forms = [ ActivityRenameForm(request.POST, prefix=act.id) for act in conflicting_acts ]
                     error_info = _check_and_save_renamed_activities(
                                        target_setup, conflicting_acts, rename_forms, request.user.username)
                 
-                if not error_info:# do the copy !
-                    copyCourseSetup(source_course, course)
+                if not error_info and page_form.is_valid(): # do the copy !
+                    copyCourseSetup(source_course, course, redirect_pages=page_form.cleaned_data['redirect'])
                     neaten_activity_positions(course)
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
@@ -172,15 +177,16 @@ def copy_course_setup(request, course_slug):
                                       (source_course, course),
                           related_object=course)
                     l.save()                         
-                    messages.add_message(request, messages.SUCCESS, \
+                    messages.add_message(request, messages.SUCCESS,
                             "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))                
                     return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
-            
+
             if error_info:
                 messages.add_message(request, messages.ERROR, error_info)   
             
-            return render(request, "marking/copy_course_setup.html",\
-                    {'course' : course, 'source_course' : source_course, "source_pages": source_pages,\
+            return render(request, "marking/copy_course_setup.html",
+                    {'course' : course, 'source_course' : source_course, "source_pages": source_pages,
+                     'page_form': page_form,
                     'source_setup' : source_setup, 'conflicting_activities' : zip(conflicting_acts, rename_forms)})
                 
         else: # for GET request

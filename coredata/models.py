@@ -725,6 +725,7 @@ class CourseOffering(models.Model, ConditionalSaveMixin):
         # 'sessional_pay': amount the sessional was paid (used in grad finances)
         # 'joint_with': list of offerings this one is combined with (as CourseOffering.slug)
         # 'maillist': course mailing list (@sfu.ca). Used for CMPT in course homepage list
+        # 'redirect_pages': If a Page has a migrated_to, should we redirect to the new location? Set by copy_course_setup.
 
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False,

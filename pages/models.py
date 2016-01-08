@@ -70,6 +70,7 @@ class Page(models.Model):
         # p.config['editdate']: date after which is page is editable
         # p.config['migrated_to']: if this page was migrated to a new location, the new (offering.slug, page.label)
         # p.config['migrated_from']: if this page was migrated from an old location, the old (offering.slug, page.label)
+        # p.config['prevent_redirect']: if True, don't do a redirect, even if migration settings look like it should.
 
     defaults = {'releasedate': None, 'editdate': None}
     releasedate_txt, set_releasedate_txt = getter_setter('releasedate')
