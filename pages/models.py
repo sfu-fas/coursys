@@ -256,15 +256,15 @@ class PageVersion(models.Model):
             key = self.wikitext_cache_key()
             wikitext = cache.get(key)
             if wikitext:
-                return wikitext
+                return unicode(wikitext)
             else:
                 src = self.diff_from
                 diff = json.loads(self.diff)
                 wikitext = src.apply_changes(diff)
                 cache.set(key, wikitext, 24*3600) # no need to expire: shouldn't change for a version
-                return wikitext
+                return unicode(wikitext)
 
-        return self.wikitext
+        return unicode(self.wikitext)
 
     def __init__(self, *args, **kwargs):
         super(PageVersion, self).__init__(*args, **kwargs)
@@ -340,7 +340,7 @@ class PageVersion(models.Model):
             else:
                 raise ValueError
 
-        return "\n".join(lines)
+        return u"\n".join(lines)
 
     def diff_to(self, other):
         """
