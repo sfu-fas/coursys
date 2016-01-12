@@ -70,7 +70,7 @@
 		<th scope="col">TA Courses</th>
 		<th scope="col">Deadline</th>
   		<th scope="col">Manage</th>
-  		<th scope="col">Send?<input type="checkbox" id="select_tog"></th>
+  		<th scope="col">Send? &nbsp;<input type="checkbox" id="select_tog"></th>
   	</tr>
   </thead>
   <tbody>
@@ -83,7 +83,7 @@
 	<td>{{contract.total_bu}}</td>
 	<td>{{contract.crs_list|linebreaksbr}}</td>
 	<td>{{ contract.deadline|date:"M d Y" }}</td>
-  	<td>
+  	<td style="min-width: 120px">
         <a class="lineform" href="{% url "ta.views.view_form" post_slug=contract.posting.slug userid=contract.application.person.userid %}">
             <button type='button' class='btn' title="View Form"><i class='fa fa-print'></i></button>
         </a>
