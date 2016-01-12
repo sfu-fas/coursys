@@ -84,8 +84,15 @@
 	<td>{{contract.crs_list|linebreaksbr}}</td>
 	<td>{{ contract.deadline|date:"M d Y" }}</td>
   	<td>
-  		<a href="{% url "ta.views.view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a>&nbsp;
-  		<a href="{% url "ta.views.edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a>&nbsp;
+        <a class="lineform" href="{% url "ta.views.view_form" post_slug=contract.posting.slug userid=contract.application.person.userid %}">
+            <button type='button' class='btn' title="View Form"><i class='fa fa-print'></i></button>
+        </a>
+        <a class="lineform" href="{% url "ta.views.edit_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">
+            <button type='button' class='btn' title="Edit Contract"><i class='fa fa-edit'></i></button>
+        </a>
+  		<a class="lineform" href="{% url "ta.views.view_contract" post_slug=contract.posting.slug userid=contract.application.person.userid%}">
+            <button type='button' class='btn' title="View Contract"><i class='fa fa-eye'></i></button>
+        </a>
   	</td>
   	<td class="miniaction">
   		{% if contract.status == 'NEW' %}
