@@ -26,12 +26,13 @@ def filetype(fh):
         return "MS-PROJ"
     elif fname.endswith('.vsd'):
         return "MS-VISIO"
-    
+
     # methods extracted from the magic file (/usr/share/file/magic)
     # why not just check the filename?  Students seem to randomly rename.
     fh.seek(0)
-    magic = fh.read(4)
-    if magic=="PK\003\004" or magic=="PK00":
+    header = fh.read(10)
+    magic = header[0:4]
+    if magic == "PK\003\004" or magic == "PK00":
         # it's ZIP-ish: also look for ZIP-contained types
         fh.seek(0)
         try:
@@ -53,9 +54,9 @@ def filetype(fh):
         except (zipfile.BadZipfile, ValueError):
             pass
 
-    elif magic=="Rar!":
+    elif magic == "Rar!":
         return "RAR"
-    elif magic[0:2]=="\037\213":
+    elif magic[0:2] == "\037\213":
         fh.seek(0)
         gzfh = gzip.GzipFile(filename="filename", fileobj=fh)
         try:
@@ -64,21 +65,23 @@ def filetype(fh):
             # generic error occurs on invalid gzip data
             return None
 
-        if gzfh.read(5)=="ustar":
+        if gzfh.read(5) == "ustar":
             return "TGZ"
         else:
             return "GZIP"
-    elif magic=="%PDF":
+    elif magic == "%PDF":
         return "PDF"
     elif magic in ["\377\330\377\340", "\377\330\377\356"]:
         return "JPEG"
-    elif magic=="\211PNG":
+    elif header[6:10] == "Exif" and magic[0:2] == "\377\330":
+        return "JPEG"
+    elif magic == "\211PNG":
         return "PNG"
-    elif magic=="GIF8":
+    elif magic == "GIF8":
         return "GIF"
-  
+
     fh.seek(257)
-    if fh.read(5)=="ustar":
+    if fh.read(5) == "ustar":
         return "TAR"
 
     return None
