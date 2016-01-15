@@ -1,5 +1,5 @@
 from ..report import Report
-from ..queries import ActivePlanQuery, SingleCourseQuery, SubplanQuery, CGPAQuery, EmailQuery, NameQuery
+from ..queries import ActivePlanQuery, SingleCourseQuery, SubplanQuery, CGPAQuery, EmailQuery, NameQuery, ActivePlanQueryWithReqTerm
 from .. import rules
 
 import copy
@@ -31,10 +31,10 @@ class FasStudentReport( Report ):
 
     def run( self ):
         # Queries 
-        student_query = ActivePlanQuery( {'plans':['ENSCPRO']} )
+        student_query = ActivePlanQueryWithReqTerm({'plans':['ENSCPRO']})
         students = student_query.result()
 
-        subplan_query = SubplanQuery( )
+        subplan_query = SubplanQuery()
         subplans = subplan_query.result()
         subplans.flatten("EMPLID")
 
