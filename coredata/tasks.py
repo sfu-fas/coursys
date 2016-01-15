@@ -236,7 +236,7 @@ def daily_cleanup():
     # cleanup sessions table
     call_command('clearsessions')
     # cleanup old news items
-    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
+    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old log entries
     LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup old official grades
