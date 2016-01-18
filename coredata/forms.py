@@ -1,6 +1,6 @@
 from django import forms
 from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, \
-    CombinedOffering
+    CombinedOffering, AnyPerson, FuturePerson, RoleAccount
 from coredata.queries import find_person, add_person, SIMSProblem, userid_to_emplid
 from cache_utils.decorators import cached
 from django.utils.safestring import mark_safe
@@ -552,3 +552,25 @@ class TemporaryPersonForm(forms.Form):
 class CourseHomePageForm(forms.Form):
     url = forms.URLField(required=True, label="URL", help_text="URL of the course's main web page")
     maillist = forms.CharField(required=False, label="Mailing List", help_text="The course mailing list. Leave blank for the default. e.g. \"cmpt-100-bby\".")
+
+
+class AnyPersonForm(forms.ModelForm):
+
+    person = PersonField(required=False)
+    #  This is just for admins, so we really shouldn't limit the queryset.  Instead, set the list of AnyPersons to
+    #  clearly tell us which FuturePersons were hidden by users so we know it may be safe to delete them if they have
+    #  no other foreign key
+    #future_person = forms.ModelChoiceField(queryset=FuturePerson.objects.visible(), required=False)
+    #role_account = forms.ModelChoiceField(queryset=RoleAccount.objects.all(), required=False)
+
+
+    class Meta:
+        model = AnyPerson
+        exclude = []
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AnyPersonForm, self).is_valid(*args, **kwargs)
+
+
+

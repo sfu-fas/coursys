@@ -4,13 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
-        TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm
+        TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup
 from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
-    CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
+    AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
 from coredata import panel
 from advisornotes.models import NonStudent
 from log.models import LogEntry
@@ -396,7 +396,78 @@ def admin_panel(request):
     return render(request, 'coredata/admin_panel.html', context)
 
 
+@requires_global_role("SYSA")
+def list_any_persons(request):
+    anypersons = AnyPerson.objects.all()
+    context = {'anypersons': anypersons}
+    return render(request, 'coredata/any_persons.html', context)
 
+
+@requires_global_role("SYSA")
+def delete_anyperson(request, anyperson_id):
+    anyperson = get_object_or_404(AnyPerson, pk=anyperson_id)
+    messages.success(request, u'Deleted anyperson for %s' % anyperson)
+    l = LogEntry(userid=request.user.username,
+                 description="deleted anyperson: %s" % anyperson,
+                 related_object=anyperson)
+    l.save()
+
+    anyperson.delete()
+    return HttpResponseRedirect(reverse(list_any_persons))
+
+
+@requires_global_role("SYSA")
+def add_anyperson(request):
+    if request.method == 'POST':
+        form = AnyPersonForm(request.POST)
+        if form.is_valid():
+            ap = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'AnyPerson %s was created.' % ap
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="added anyperson: %s" % ap,
+                         related_object=ap
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse(list_any_persons))
+    else:
+        form = AnyPersonForm()
+
+    return render(request, 'coredata/new_anyperson.html', {'form': form})
+
+
+@requires_global_role("SYSA")
+def edit_anyperson(request, anyperson_id):
+    anyperson = get_object_or_404(AnyPerson, pk=anyperson_id)
+    if request.method == 'POST':
+        form = AnyPersonForm(request.POST, instance=anyperson)
+        if form.is_valid():
+            ap = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'AnyPerson for %s was edited.' % ap
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="edited anyperson: %s" % ap,
+                         related_object=ap
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse(list_any_persons))
+    else:
+        initial_values = {}
+        if anyperson.person:
+            initial_values['person'] = anyperson.person.emplid
+        if anyperson.future_person:
+            initial_values['future_person'] = anyperson.future_person_id
+        if anyperson.role_account:
+            initial_values['role_account'] = anyperson.role_account_id
+        form = AnyPersonForm(instance=anyperson, initial=initial_values)
+
+    return render(request, 'coredata/edit_anyperson.html', {'form': form, 'anyperson_id': anyperson_id})
 
 # views to let instructors manage TAs
 

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}AnyPersons{% endblock %}
+{% block h1 %}AnyPersons{% endblock %}
+
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#anypersons').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[0, 'asc']]
+  } );
+} );
+
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this record?  This may cause horrible things to happen if the foreign keys are used elsewhere") ) {
+    document.location = url;
+  };
+}
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li><li>AnyPersons</li>{% endblock %}
+
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "coredata.views.add_anyperson" %}">Add New AnyPerson</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if anypersons %}
+    <table id="anypersons" class="display">
+        <thead>
+            <tr>
+                <th>Person</th>
+                <th>Future Person</th>
+                <th>Role Account</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for anyperson in anypersons %}
+        <tr>
+            <td>{{ anyperson.person }}</td>
+            <td>{{ anyperson.future_person }} {% if anyperson.future_person.hidden %}(hidden){% endif %}</td>
+            <td>{{ anyperson.role_account }}</td>
+            <td>
+                <div class="lineform">
+                    <button type='submit' class='btn' title="Delete AnyPerson"
+                            onclick="confirmDelete('{% url "coredata.views.delete_anyperson" anyperson_id=anyperson.id %}')">
+                        <i class='fa fa-trash-o'></i>
+                    </button>
+                </div>
+                <form class="lineform" method="GET"
+                    action="{% url "coredata.views.edit_anyperson" anyperson_id=anyperson.id %}">
+                    <button type='submit' class='btn' title="Edit Anyperson">
+                        <i class='fa fa-edit'></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+    <h2>There are no people to display.</h2>
+{% endif %}
+
+{% endblock %}

@@ -270,9 +270,9 @@ class RoleAccount(models.Model):
 
 
 class AnyPerson(models.Model):
-    person = models.ForeignKey(Person, null=True)
-    future_person = models.ForeignKey(FuturePerson, null=True)
-    role_account = models.ForeignKey(RoleAccount, null=True)
+    person = models.ForeignKey(Person, null=True, blank=True)
+    future_person = models.ForeignKey(FuturePerson, null=True, blank=True)
+    role_account = models.ForeignKey(RoleAccount, null=True, blank=True)
 
     def get_person(self):
         return self.person or self.role_account or self.future_person

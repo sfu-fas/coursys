@@ -55,6 +55,12 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
     url(r'^dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
     url(r'^panel$', 'coredata.views.admin_panel'),
+    url(r'^anypersons/$', 'coredata.views.list_any_persons'),
+    url(r'^anyperson/delete/(?P<anyperson_id>\d+)$', 'coredata.views.delete_anyperson'),
+    url(r'^anyperson/new/$', 'coredata.views.add_anyperson'),
+    url(r'^anyperson/edit/(?P<anyperson_id>\d+)$', 'coredata.views.edit_anyperson'),
+
+
 ]
 
 browse_patterns = [ # prefix /browse/

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}New AnyPerson{% endblock %}
+{% block h1 %}New AnyPerson{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "coredata.views.list_any_persons" %}">Anypersons</a></li>
+<li>Add New AnyPerson</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#id_person').each(function() {
+        $(this).autocomplete({
+          source: '/data/students',
+          minLength: 2,
+          select: function(event, ui){
+            $(this).data("val", ui.item.value);
+          }
+        });
+      });
+} );
+
+</script>
+{% endblock %}
+
+{% block content %}
+<form action="{% url "coredata.views.add_anyperson" %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add AnyPerson" />
+    </p>
+</form>
+{% endblock %}
