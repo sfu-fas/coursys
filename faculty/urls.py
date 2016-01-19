@@ -123,6 +123,8 @@ faculty_patterns = [ # prefix: /faculty/
 
     # Future Person Management
     url(r'^(?P<futureperson_id>\d+)/edit_futureperson/$', 'faculty.views.edit_futureperson'),
+    url(r'^(?P<futureperson_id>\d+)/edit_futureperson/(?P<from_admin>\d)/$', 'faculty.views.edit_futureperson'),
     url(r'^(?P<futureperson_id>\d+)/view_futureperson/$', 'faculty.views.view_futureperson'),
+    url(r'^(?P<futureperson_id>\d+)/view_futureperson/(?P<from_admin>\d)/$', 'faculty.views.view_futureperson'),
     url(r'^(?P<futureperson_id>\d+)/delete_futureperson/$', 'faculty.views.delete_futureperson')
 ]

@@ -250,23 +250,45 @@ class FuturePerson(models.Model):
         else:
             return False
 
+    def is_anyperson(self):
+        """
+        Checks if there is at least one AnyPerson that has this object as a ForeignKey.
+        Useful for the admin screens to know if we can safely delete it.
+
+        :return: True or False
+        :rtype: Boolean
+        """
+
+        return AnyPerson.objects.filter(future_person=self).count() > 0
+
 
 class RoleAccount(models.Model):
-    last_name = models.CharField(max_length=32)
-    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32, null=True, blank=True)
+    first_name = models.CharField(max_length=32, null=True, blank=True)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=4, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
-    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True, unique=True,
+    userid = models.CharField(max_length=8, db_index=True, unique=True,
                               verbose_name="User ID",
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
 
     def __unicode__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
+        return "%s, %s, %s" % (self.userid, self.last_name, self.first_name)
 
     def name(self):
         return "%s %s" % (self.first_name, self.last_name)
+
+    def is_anyperson(self):
+        """
+        Checks if there is at least one AnyPerson that has this object as a ForeignKey.
+        Useful for the admin screens to know if we can safely delete it.
+
+        :return: True or False
+        :rtype: Boolean
+        """
+
+        return AnyPerson.objects.filter(role_account=self).count() > 0
 
 
 class AnyPerson(models.Model):

@@ -11,6 +11,7 @@ from featureflags.flags import uses_feature
 from courselib.search import get_query, find_userid_or_emplid
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
     AnyPerson, FuturePerson, RoleAccount, CombinedOffering, UNIT_ROLES, ROLES, ROLE_DESCR, INSTR_ROLES
+from faculty.forms import FuturePersonForm
 from coredata import panel
 from advisornotes.models import NonStudent
 from log.models import LogEntry
@@ -397,7 +398,7 @@ def admin_panel(request):
 
 
 @requires_global_role("SYSA")
-def list_any_persons(request):
+def list_anypersons(request):
     anypersons = AnyPerson.objects.all()
     context = {'anypersons': anypersons}
     return render(request, 'coredata/any_persons.html', context)
@@ -406,14 +407,14 @@ def list_any_persons(request):
 @requires_global_role("SYSA")
 def delete_anyperson(request, anyperson_id):
     anyperson = get_object_or_404(AnyPerson, pk=anyperson_id)
+    anyperson.delete()
     messages.success(request, u'Deleted anyperson for %s' % anyperson)
     l = LogEntry(userid=request.user.username,
                  description="deleted anyperson: %s" % anyperson,
                  related_object=anyperson)
     l.save()
 
-    anyperson.delete()
-    return HttpResponseRedirect(reverse(list_any_persons))
+    return HttpResponseRedirect(reverse(list_anypersons))
 
 
 @requires_global_role("SYSA")
@@ -432,7 +433,7 @@ def add_anyperson(request):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_any_persons))
+            return HttpResponseRedirect(reverse(list_anypersons))
     else:
         form = AnyPersonForm()
 
@@ -456,7 +457,7 @@ def edit_anyperson(request, anyperson_id):
                          )
             l.save()
 
-            return HttpResponseRedirect(reverse(list_any_persons))
+            return HttpResponseRedirect(reverse(list_anypersons))
     else:
         initial_values = {}
         if anyperson.person:
@@ -468,6 +469,67 @@ def edit_anyperson(request, anyperson_id):
         form = AnyPersonForm(instance=anyperson, initial=initial_values)
 
     return render(request, 'coredata/edit_anyperson.html', {'form': form, 'anyperson_id': anyperson_id})
+
+@requires_global_role("SYSA")
+def list_futurepersons(request):
+    futurepersons = FuturePerson.objects.all()
+    context = {'futurepersons': futurepersons}
+    return render(request, 'coredata/future_persons.html', context)
+
+
+@requires_global_role("SYSA")
+def edit_futureperson(request, futureperson_id):
+    return HttpResponseRedirect(reverse('faculty.views.edit_futureperson', kwargs={'futureperson_id': futureperson_id,
+                                                                                   'from_admin': 1}))
+
+
+@requires_global_role("SYSA")
+def delete_futureperson(request, futureperson_id):
+    futureperson = FuturePerson.objects.get(pk=futureperson_id)
+    futureperson.delete()
+    messages.success(request, u'Deleted anyperson for %s' % futureperson)
+    l = LogEntry(userid=request.user.username,
+                 description="deleted futureperson: %s" % futureperson,
+                 related_object=futureperson)
+    l.save()
+    return HttpResponseRedirect(reverse(list_futurepersons))
+
+@requires_global_role("SYSA")
+def add_futureperson(request):
+    if request.method == 'POST':
+        form = FuturePersonForm(request.POST)
+        if form.is_valid():
+            new_future_person = form.save(commit=False)
+            new_future_person.set_email(form.cleaned_data.get('email'))
+            new_future_person.set_gender(form.cleaned_data.get('gender'))
+            new_future_person.set_sin(form.cleaned_data.get('sin'))
+            new_future_person.set_birthdate(form.cleaned_data.get('birthdate'))
+            new_future_person.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'FuturePerson %s was edited.' % new_future_person
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="Added FuturePerson: %s" % new_future_person,
+                         related_object=new_future_person
+                         )
+            l.save()
+            return HttpResponseRedirect(reverse(list_futurepersons))
+
+    else:
+        form = FuturePersonForm()
+    return render(request, 'coredata/new_futureperson.html', {'form': form})
+
+@requires_global_role("SYSA")
+def view_futureperson(request, futureperson_id):
+    return HttpResponseRedirect(reverse('faculty.views.view_futureperson', kwargs={'futureperson_id': futureperson_id,
+                                                                                   'from_admin': 1}))
+
+@requires_global_role("SYSA")
+def list_role_accounts(request):
+    roleaccounts = RoleAccount.objects.all()
+    context = {'roleaccounts': roleaccounts}
+    return render(request, 'coredata/role_accounts.html', context)
 
 # views to let instructors manage TAs
 

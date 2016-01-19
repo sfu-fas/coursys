@@ -946,14 +946,22 @@ def position_get_yellow_form_limited(request, position_id):
     return response
 
 @requires_role('ADMN')
-def view_futureperson(request, futureperson_id):
+def view_futureperson(request, futureperson_id, from_admin=0):
+    """
+    The from_admin parameter is used to know if we are getting here from the sysadmin panel, and only causes things
+    like breadcrumbs to be different.
+    """
     fp = get_object_or_404(FuturePerson, pk=futureperson_id)
-    return render(request, 'faculty/view_future_person.html', {'fp': fp})
+    return render(request, 'faculty/view_future_person.html', {'fp': fp, 'from_admin': from_admin})
 
 
 
 @requires_role('ADMN')
-def edit_futureperson(request, futureperson_id):
+def edit_futureperson(request, futureperson_id, from_admin=0):
+    """
+    The from_admin parameter is used to know if we are getting here from the sysadmin panel, and only causes things
+    like breadcrumbs and the page we redirect to at the end to be different.
+    """
     fp = get_object_or_404(FuturePerson, pk=futureperson_id)
     if request.method == 'POST':
         form = FuturePersonForm(request.POST, instance=fp)
@@ -973,14 +981,17 @@ def edit_futureperson(request, futureperson_id):
                          related_object=fp
                          )
             l.save()
-            return HttpResponseRedirect(reverse('faculty.views.index'))
+            if from_admin == '1':
+                return HttpResponseRedirect(reverse('coredata.views.list_futurepersons'))
+            else:
+                return HttpResponseRedirect(reverse('faculty.views.index'))
     else:
         form = FuturePersonForm(instance=fp)
         form.fields['sin'].initial = fp.sin()
         form.fields['email'].initial = fp.email()
         form.fields['gender'].initial = fp.gender()
         form.fields['birthdate'].initial = fp.birthdate()
-    return render(request, 'faculty/edit_future_person.html', {'form': form, 'fp': fp})
+    return render(request, 'faculty/edit_future_person.html', {'form': form, 'fp': fp, 'from_admin': from_admin})
 
 
 @requires_role('ADMN')
