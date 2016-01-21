@@ -41,12 +41,11 @@ the grade.  All other columns will be ignored.
 column is the grade.  Other columns will be ignored.</li>
 </ul>
 
+    {% include "marking/mark_all_includes.html" %}
 <form id="grades_form" class="subtle" action="{% url "marking.views.mark_all_students" course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
 {%if too_many %}
 <input class="submit" type="submit" value="Submit" />
 {% endif %}
-
-{% include "marking/mark_all_includes.html" %}
 
      <table class="display" id="all_marks">
         <thead class="form_head">
