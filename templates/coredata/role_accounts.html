@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}FuturePersons{% endblock %}
-{% block h1 %}FuturePersons{% endblock %}
+{% block title %}RoleAccounts{% endblock %}
+{% block h1 %}RoleAccounts{% endblock %}
 
 
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
-  $('#futurepersons').dataTable( {
+  $('#roleaccounts').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': false,
@@ -27,7 +27,7 @@ function confirmDelete(url) {
 {% block subbreadcrumbs %}
     <li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
     <li><a href="{% url "coredata.views.list_anypersons" %}">AnyPersons</a></li>
-    <li>FuturePersons</li>
+    <li>Role Accounts</li>
 {% endblock %}
 
 
@@ -35,43 +35,41 @@ function confirmDelete(url) {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url "coredata.views.add_futureperson" %}">Add New FuturePerson</a></li>
+        <li><a href="{% url "coredata.views.add_roleaccount" %}">Add New Role Account</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
-{% if futurepersons %}
-    <table id="futurepersons" class="display">
+{% if roleaccounts %}
+    <table id="roleaccounts" class="display">
         <thead>
             <tr>
-                <th>FuturePerson</th>
+                <th>Userid</th>
+                <th>Label</th>
+                <th>Description</th>
                 <th>AnyPerson exists</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-        {% for futureperson in futurepersons %}
+        {% for roleaccount in roleaccounts %}
         <tr>
-            <td>{{ futureperson }} {% if futureperson.hidden %}(hidden){% endif %}</td>
-            <td>{{ futureperson.is_anyperson|yesno }}</td>
+            <td>{{ roleaccount.userid }}</td>
+            <td>{{ roleaccount.label }}</td>
+            <td>{{ roleaccount.description }}</td>
+            <td>{{ roleAccount.is_anyperson|yesno }}</td>
             <td>
                 <div class="lineform">
                     <button type='submit' class='btn' title="Delete"
-                            onclick="confirmDelete('{% url "coredata.views.delete_futureperson" futureperson_id=futureperson.id %}')">
+                            onclick="confirmDelete('{% url "coredata.views.delete_roleaccount" roleaccount_id=roleaccount.id %}')">
                         <i class='fa fa-trash-o'></i>
                     </button>
                 </div>
                 <form class="lineform" method="GET"
-                    action="{% url "coredata.views.edit_futureperson" futureperson_id=futureperson.id %}">
+                    action="{% url "coredata.views.edit_roleaccount" roleaccount_id=roleaccount.id %}">
                     <button type='submit' class='btn' title="Edit">
                         <i class='fa fa-edit'></i>
-                    </button>
-                </form>
-                <form class="lineform" method="GET"
-                    action="{% url "coredata.views.view_futureperson" futureperson_id=futureperson.id %}">
-                    <button type='submit' class='btn' title="View">
-                        <i class='fa fa-eye'></i>
                     </button>
                 </form>
             </td>
@@ -81,7 +79,7 @@ function confirmDelete(url) {
     </table>
 
 {% else %}
-    <h2>There are no futurepersons to display.</h2>
+    <h2>There are no role accounts to display.</h2>
 {% endif %}
 
 {% endblock %}

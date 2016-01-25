@@ -59,11 +59,16 @@ sysadmin_patterns = [ # prefix /sysadmin/
     url(r'^anyperson/delete/(?P<anyperson_id>\d+)$', 'coredata.views.delete_anyperson'),
     url(r'^anyperson/new/$', 'coredata.views.add_anyperson'),
     url(r'^anyperson/edit/(?P<anyperson_id>\d+)$', 'coredata.views.edit_anyperson'),
+    url(r'^anyperson/cleanup/$', 'coredata.views.delete_empty_anypersons'),
     url(r'^futurepersons/$', 'coredata.views.list_futurepersons'),
     url(r'^futureperson/delete/(?P<futureperson_id>\d+)$', 'coredata.views.delete_futureperson'),
     url(r'^futureperson/view/(?P<futureperson_id>\d+)$', 'coredata.views.view_futureperson'),
     url(r'^futureperson/new/$', 'coredata.views.add_futureperson'),
     url(r'^futureperson/edit/(?P<futureperson_id>\d+)$', 'coredata.views.edit_futureperson'),
+    url(r'^roleaccounts/$', 'coredata.views.list_roleaccounts'),
+    url(r'^roleaccount/delete/(?P<roleaccount_id>\d+)$', 'coredata.views.delete_roleaccount'),
+    url(r'^roleaccount/new/$', 'coredata.views.add_roleaccount'),
+    url(r'^roleaccount/edit/(?P<roleaccount_id>\d+)$', 'coredata.views.edit_roleaccount'),
     
 
 

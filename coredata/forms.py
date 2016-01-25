@@ -573,4 +573,8 @@ class AnyPersonForm(forms.ModelForm):
         return super(AnyPersonForm, self).is_valid(*args, **kwargs)
 
 
-
+class RoleAccountForm(forms.ModelForm):
+    description = forms.CharField(widget=forms.Textarea, required=False)
+    class Meta:
+        model = RoleAccount
+        exclude = ['config']

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset, SysAdminSearchForm, \
-        TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm
+        TemporaryPersonForm, CourseHomePageForm, OneOfferingForm, NewCombinedForm, AnyPersonForm, RoleAccountForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
         has_formgroup
 from featureflags.flags import uses_feature
@@ -397,6 +397,8 @@ def admin_panel(request):
     return render(request, 'coredata/admin_panel.html', context)
 
 
+# Methods for managing AnyPersons
+
 @requires_global_role("SYSA")
 def list_anypersons(request):
     anypersons = AnyPerson.objects.all()
@@ -471,6 +473,18 @@ def edit_anyperson(request, anyperson_id):
     return render(request, 'coredata/edit_anyperson.html', {'form': form, 'anyperson_id': anyperson_id})
 
 @requires_global_role("SYSA")
+def delete_empty_anypersons(request):
+    if request.method == 'POST':
+        res = AnyPerson.delete_empty_anypersons()
+        messages.add_message(request,
+                             messages.SUCCESS,
+                             u'Deleted %s empty AnyPersonn(s).' % unicode(res)
+                             )
+
+        return HttpResponseRedirect(reverse(list_anypersons))
+
+
+@requires_global_role("SYSA")
 def list_futurepersons(request):
     futurepersons = FuturePerson.objects.all()
     context = {'futurepersons': futurepersons}
@@ -487,7 +501,7 @@ def edit_futureperson(request, futureperson_id):
 def delete_futureperson(request, futureperson_id):
     futureperson = FuturePerson.objects.get(pk=futureperson_id)
     futureperson.delete()
-    messages.success(request, u'Deleted anyperson for %s' % futureperson)
+    messages.success(request, u'Deleted futureperson %s' % futureperson)
     l = LogEntry(userid=request.user.username,
                  description="deleted futureperson: %s" % futureperson,
                  related_object=futureperson)
@@ -526,10 +540,66 @@ def view_futureperson(request, futureperson_id):
                                                                                    'from_admin': 1}))
 
 @requires_global_role("SYSA")
-def list_role_accounts(request):
+def list_roleaccounts(request):
     roleaccounts = RoleAccount.objects.all()
     context = {'roleaccounts': roleaccounts}
     return render(request, 'coredata/role_accounts.html', context)
+
+@requires_global_role("SYSA")
+def delete_roleaccount(request, roleaccount_id):
+    roleaccount = RoleAccount.objects.get(pk=roleaccount_id)
+    roleaccount.delete()
+    messages.success(request, u'Deleted roleaccount %s' % roleaccount)
+    l = LogEntry(userid=request.user.username,
+                 description="deleted roleaccount: %s" % roleaccount,
+                 related_object=roleaccount)
+    l.save()
+    return HttpResponseRedirect(reverse(list_roleaccounts))
+
+@requires_global_role("SYSA")
+def edit_roleaccount(request, roleaccount_id):
+    roleaccount = get_object_or_404(RoleAccount, pk=roleaccount_id)
+    if request.method == 'POST':
+        form = RoleAccountForm(request.POST, instance=roleaccount)
+        if form.is_valid():
+            ra = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Role Account %s was edited.' % ra
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="edited roleaccount: %s" % ra,
+                         related_object=ra
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse(list_roleaccounts))
+    else:
+        form = RoleAccountForm(instance=roleaccount)
+
+    return render(request, 'coredata/edit_roleaccount.html', {'form': form, 'roleaccount_id': roleaccount_id})
+
+@requires_global_role("SYSA")
+def add_roleaccount(request):
+    if request.method == 'POST':
+        form = RoleAccountForm(request.POST)
+        if form.is_valid():
+            ra = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'added roleaccount %s' % ra
+                                 )
+            l = LogEntry(userid=request.user.username,
+                         description="added roleaccount: %s" % ra,
+                         related_object=ra
+                         )
+            l.save()
+
+            return HttpResponseRedirect(reverse(list_roleaccounts))
+    else:
+        form = RoleAccountForm()
+
+    return render(request, 'coredata/new_roleaccount.html', {'form': form})
 
 # views to let instructors manage TAs
 

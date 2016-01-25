@@ -17,7 +17,13 @@ $(document).ready(function() {
 } );
 
 function confirmDelete(url) {
-  if ( confirm("Are you sure you want to delete this record?  This may cause horrible things to happen if the foreign keys are used elsewhere") ) {
+    if (confirm("Are you sure you want to delete this record?  This may cause horrible things to happen if the foreign keys are used elsewhere")) {
+        document.location = url;
+    }
+}
+
+function confirmCleanup(url) {
+  if ( confirm("Are you sure you want to delete empty AnyPersons?  This may cause horrible things to happen if the foreign keys are used elsewhere") ) {
     document.location = url;
   };
 }
@@ -33,6 +39,7 @@ function confirmDelete(url) {
     <ul>
         <li><a href="{% url "coredata.views.add_anyperson" %}">Add New AnyPerson</a></li>
         <li><a class="newsec" href="{% url "coredata.views.list_futurepersons" %}">Manage Future Persons</a></li>
+        <li><a href="{% url "coredata.views.list_roleaccounts" %}">Manage Role Accounts</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -73,6 +80,13 @@ function confirmDelete(url) {
         </tbody>
     </table>
 
+    <form method="POST" action={% url "coredata.views.delete_empty_anypersons" %}>
+    {% csrf_token %}
+        Remove AnyPersons with no Person, FuturePerson, and RoleAccount
+    <button type="submit" class='btn' title="Clean up empty AnyPersons"
+            onclick="confirmCleanup('{% url "coredata.views.delete_empty_anypersons" %}')">Cleanup</button>
+
+    </form>
 {% else %}
     <h2>There are no people to display.</h2>
 {% endif %}
