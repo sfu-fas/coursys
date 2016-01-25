@@ -19,6 +19,7 @@ import bu_rules
 LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
 LAB_BONUS = float(LAB_BONUS_DECIMAL)
 HOURS_PER_BU = 42 # also in media/js/ta.js
+LAB_PREP_HOURS = 13 # min hours of prep for courses with tutorials/labs
 
 HOLIDAY_HOURS_PER_BU = decimal.Decimal('1.1')
 

@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU, \
-    HOLIDAY_HOURS_PER_BU
+    HOLIDAY_HOURS_PER_BU, LAB_PREP_HOURS
 from tacontracts.models import TACourse as NewTACourse
 from ra.models import Account
 from grad.models import GradStudent, STATUS_REAL_PROGRAM
@@ -255,7 +255,7 @@ def _edit_tug(request, course_slug, userid, tug=None):
         prep_bu = contract_info.prep_bu
     else:
         has_lab_or_tut = course.labtas()
-        prep_min = HOURS_PER_BU if has_lab_or_tut else 0
+        prep_min = LAB_PREP_HOURS if has_lab_or_tut else 0
         bu = member.bu()
         if not bu and tug:
             bu = tug.base_units
