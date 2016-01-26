@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load staticfiles %}
+
+{% block title %}New RoleAccount{% endblock %}
+{% block h1 %}New Role Account{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "coredata.views.sysadmin" %}">System Admin</a></li>
+<li><a href="{% url "coredata.views.list_anypersons" %}">AnyPersons</a></li>
+<li><a href="{% url "coredata.views.list_roleaccounts" %}">Role Accounts</a></li>
+<li>New Role Account</li>
+{% endblock %}
+
+
+{% block content %}
+    <form action="{% url "coredata.views.add_roleaccount" %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Add Role Account" />
+    </p>
+</form>
+{% endblock %}

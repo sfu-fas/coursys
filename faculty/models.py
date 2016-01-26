@@ -788,7 +788,7 @@ class Position(models.Model):
     add_pay = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
-    any_person = models.ForeignKey(AnyPerson, null=True, blank=True)
+    any_person = models.ForeignKey(AnyPerson, on_delete=models.SET_NULL, null=True, blank=True)
     degree1 = models.CharField(max_length=12, default='')
     year1 = models.CharField(max_length=5, default='')
     institution1 = models.CharField(max_length=25, default='')

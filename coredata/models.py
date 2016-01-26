@@ -95,43 +95,54 @@ class Person(models.Model, ConditionalSaveMixin):
     # Added for consistency with FuturePerson instead of manually having to probe the config
     birthdate, _ = getter_setter('birthdate')
 
-
     @staticmethod
     def emplid_header():
         return "ID Number"
+
     @staticmethod
     def userid_header():
         return "Userid"
 
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
+
     def name(self):
         return "%s %s" % (self.first_name, self.last_name)
+
     def sortname(self):
         return "%s, %s" % (self.last_name, self.first_name)
+
     def initials(self):
         return "%s%s" % (self.first_name[0], self.last_name[0])
+
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
+
     def real_pref_first(self):
         return self.config.get('pref_first_name', None) or self.pref_first_name or self.first_name
+
     def name_pref(self):
         return "%s %s" % (self.real_pref_first(), self.last_name)
+
     def first_with_pref(self):
         name = self.first_name
         pref = self.real_pref_first()
         if pref != self.first_name:
             name += ' (%s)' % (pref)
         return name
+
     def sortname_pref(self):
         return "%s, %s" % (self.last_name, self.first_with_pref())
+
     def name_with_pref(self):
         return "%s %s" % (self.first_with_pref(), self.last_name)
+
     def letter_name(self):
         if 'letter_name' in self.config:
             return self.config['letter_name']
         else:
             return self.name()
+
     def get_title(self):
         if 'title' in self.config:
             return self.config['title']
@@ -143,6 +154,7 @@ class Person(models.Model, ConditionalSaveMixin):
             return 'Ms'
         else:
             return 'M'
+
     def email(self):
         if 'email' in self.config:
             return self.config['email']
@@ -152,12 +164,14 @@ class Person(models.Model, ConditionalSaveMixin):
             return self.config['applic_email']
         else:
             return None
+
     def userid_or_emplid(self):
         "userid if possible or emplid if not: inverse of find_userid_or_emplid searching"
         return self.userid or str(self.emplid)
 
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))
+
     class Meta:
         verbose_name_plural = "People"
         ordering = ['last_name', 'first_name', 'userid']
@@ -172,8 +186,26 @@ class Person(models.Model, ConditionalSaveMixin):
             return mark_safe('<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
         else:
             return "None"
+
     def search_label_value(self):
         return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
+
+    def get_role_account(self):
+        """
+        We're going to have to assume that a person has at most one role account.
+        """
+        ra = AnyPerson.objects.filter(person=self, role_account__isnull=False).first()
+        if ra:
+            return ra.role_account
+        else:
+            return None
+
+    def role_account_email(self):
+        ra = self.get_role_account()
+        if ra:
+            return "%s@sfu.ca" % ra.userid
+        else:
+            return self.email()
 
     @staticmethod
     def next_available_temp_emplid():
@@ -261,23 +293,25 @@ class FuturePerson(models.Model):
 
         return AnyPerson.objects.filter(future_person=self).count() > 0
 
+    def delete(self):
+        super(FuturePerson, self).delete()
+        AnyPerson.delete_empty_anypersons()
+
 
 class RoleAccount(models.Model):
-    last_name = models.CharField(max_length=32, null=True, blank=True)
-    first_name = models.CharField(max_length=32, null=True, blank=True)
-    middle_name = models.CharField(max_length=32, null=True, blank=True)
-    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
-    title = models.CharField(max_length=4, null=True, blank=True)
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
     userid = models.CharField(max_length=8, db_index=True, unique=True,
                               verbose_name="User ID",
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
+    label = models.CharField(max_length=50, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
 
     def __unicode__(self):
-        return "%s, %s, %s" % (self.userid, self.last_name, self.first_name)
+        return "%s - %s" % (self.userid, self.label)
 
     def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+        return self.__unicode__()
+
 
     def is_anyperson(self):
         """
@@ -290,17 +324,38 @@ class RoleAccount(models.Model):
 
         return AnyPerson.objects.filter(role_account=self).count() > 0
 
+    def delete(self):
+        super(RoleAccount, self).delete()
+        AnyPerson.delete_empty_anypersons()
+
 
 class AnyPerson(models.Model):
-    person = models.ForeignKey(Person, null=True, blank=True)
-    future_person = models.ForeignKey(FuturePerson, null=True, blank=True)
-    role_account = models.ForeignKey(RoleAccount, null=True, blank=True)
+    person = models.ForeignKey(Person, on_delete=models.SET_NULL, null=True, blank=True)
+    future_person = models.ForeignKey(FuturePerson, on_delete=models.SET_NULL, null=True, blank=True)
+    role_account = models.ForeignKey(RoleAccount, on_delete=models.SET_NULL, null=True, blank=True)
 
     def get_person(self):
         return self.person or self.role_account or self.future_person
 
     def __unicode__(self):
+        if not self.get_person():
+            return "None"
         return self.get_person().name()
+
+    @classmethod
+    def delete_empty_anypersons(cls):
+        """
+        When deleting FuturePersons/Role_Accounts, we may end up with AnyPersons that no longer have any foreign
+        keys to any records at all.  This method deletes those to avoid cluttering the DB with empty records.  It gets
+        called from either the RoleAccount or FuturePerson delete methods, and we also have a way to call it from the
+        sysadmin AnyPersons management template.
+        """
+        count = 0
+        for anyperson in AnyPerson.objects.all():
+            if not anyperson.person and not anyperson.future_person and not anyperson.role_account:
+                anyperson.delete()
+                count += 1
+        return count
 
 
 class Semester(models.Model):
