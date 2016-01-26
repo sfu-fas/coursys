@@ -46,7 +46,7 @@ function confirmDelete(url) {
         <thead>
             <tr>
                 <th>Userid</th>
-                <th>Label</th>
+                <th>Type</th>
                 <th>Description</th>
                 <th>AnyPerson exists</th>
                 <th>Actions</th>
@@ -56,9 +56,9 @@ function confirmDelete(url) {
         {% for roleaccount in roleaccounts %}
         <tr>
             <td>{{ roleaccount.userid }}</td>
-            <td>{{ roleaccount.label }}</td>
+            <td>{{ roleaccount.get_type_display }}</td>
             <td>{{ roleaccount.description }}</td>
-            <td>{{ roleAccount.is_anyperson|yesno }}</td>
+            <td>{{ roleaccount.is_anyperson|yesno }}</td>
             <td>
                 <div class="lineform">
                     <button type='submit' class='btn' title="Delete"
