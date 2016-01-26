@@ -39,6 +39,55 @@ VISA_STATUSES = ( # as taken from SIMS ps_visa_permit_tbl
         ('Live-in Ca', 'Live-in Caregiver'),
         )
 
+ROLE_CHOICES = (
+        ('ADVS', 'Advisor'),
+        ('FAC', 'Faculty Member'),
+        ('SESS', 'Sessional Instructor'),
+        ('COOP', 'Co-op Staff'),
+        ('INST', 'Other Instructor'),
+        ('SUPV', 'Additional Supervisor'),
+        ('PLAN', 'Planning Administrator'),
+        ('DISC', 'Discipline Case Administrator'),
+        ('DICC', 'Discipline Case Filer (email CC)'),
+        ('ADMN', 'Departmental Administrator'),
+        ('TAAD', 'TA Administrator'),
+        ('TADM', 'Teaching Administrator'),
+        ('GRAD', 'Grad Student Administrator'),
+        ('GRPD', 'Graduate Program Director'),
+        ('FUND', 'Grad Funding Administrator'),
+        ('FDCC', 'Grad Funding Reminder CC'),
+        ('TECH', 'Tech Staff'),
+        ('GPA', 'GPA conversion system admin'),
+        ('SYSA', 'System Administrator'),
+        ('NONE', 'none'),
+        )
+ROLES = dict(ROLE_CHOICES)
+# roles departmental admins ('ADMN') are allowed to assign within their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'FDCC', 'GRPD',
+              'FAC', 'SESS', 'COOP', 'INST', 'SUPV'] # 'PLAN', 'TADM', 'TECH'
+# help text for the departmental admin on those roles
+ROLE_DESCR = {
+        'ADVS': 'Has access to the advisor notes.',
+        'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
+        'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
+        'PLAN': 'Can manage plans for course offerings in future semesters.',
+        'TAAD': 'Can administer TA job postings and appointments.',
+        'TADM': 'Can manage teaching history for faculty members.',
+        'GRAD': 'Can view and update the grad student database.',
+        'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
+        'FUND': 'Can work with the grad student funding database.',
+        'FDCC': 'Gets copied on RA expiring reminder emails',
+        'TECH': 'Can manage resources required for courses.',
+        'FAC': 'Faculty Member',
+        'SESS': 'Sessional Instructor',
+        'COOP': 'Co-op Staff Member',
+        'INST': 'Instructors outside of the department or others who teach courses',
+        'REPR': 'Has Reporting Database access.',
+        'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
+              }
+INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors
+
+
 class Person(models.Model, ConditionalSaveMixin):
     """
     A person in the system (students, instuctors, etc.).
@@ -190,18 +239,18 @@ class Person(models.Model, ConditionalSaveMixin):
     def search_label_value(self):
         return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
 
-    def get_role_account(self):
+    def get_role_account(self, type):
         """
         We're going to have to assume that a person has at most one role account.
         """
-        ra = AnyPerson.objects.filter(person=self, role_account__isnull=False).first()
+        ra = AnyPerson.objects.filter(person=self, role_account__isnull=False, role_account__type=type).first()
         if ra:
             return ra.role_account
         else:
             return None
 
-    def role_account_email(self):
-        ra = self.get_role_account()
+    def role_account_email(self, type):
+        ra = self.get_role_account(type)
         if ra:
             return "%s@sfu.ca" % ra.userid
         else:
@@ -299,15 +348,17 @@ class FuturePerson(models.Model):
 
 
 class RoleAccount(models.Model):
-    userid = models.CharField(max_length=8, db_index=True, unique=True,
-                              verbose_name="User ID",
-        help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
-    label = models.CharField(max_length=50, null=True, blank=True)
+    userid = models.CharField(max_length=8, db_index=True, verbose_name="User ID",
+                              help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
+    type = models.CharField(max_length=4, choices=ROLE_CHOICES, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
 
+    class Meta:
+        unique_together = (('userid', 'type'),)
+
     def __unicode__(self):
-        return "%s - %s" % (self.userid, self.label)
+        return "%s - %s" % (self.userid, self.type)
 
     def name(self):
         return self.__unicode__()
@@ -1408,52 +1459,6 @@ class Unit(models.Model):
             else:
                 return res
 
-
-ROLE_CHOICES = (
-        ('ADVS', 'Advisor'),
-        ('FAC', 'Faculty Member'),
-        ('SESS', 'Sessional Instructor'),
-        ('COOP', 'Co-op Staff'),
-        ('INST', 'Other Instructor'),
-        ('SUPV', 'Additional Supervisor'),
-        ('PLAN', 'Planning Administrator'),
-        ('DISC', 'Discipline Case Administrator'),
-        ('DICC', 'Discipline Case Filer (email CC)'),
-        ('ADMN', 'Departmental Administrator'),
-        ('TAAD', 'TA Administrator'),
-        ('TADM', 'Teaching Administrator'),
-        ('GRAD', 'Grad Student Administrator'),
-        ('GRPD', 'Graduate Program Director'),
-        ('FUND', 'Grad Funding Administrator'),
-        ('TECH', 'Tech Staff'),
-        ('GPA', 'GPA conversion system admin'),
-        ('SYSA', 'System Administrator'),
-        ('NONE', 'none'),
-        )
-ROLES = dict(ROLE_CHOICES)
-# roles departmental admins ('ADMN') are allowed to assign within their unit
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'GRPD',
-              'FAC', 'SESS', 'COOP', 'INST', 'SUPV'] # 'PLAN', 'TADM', 'TECH'
-# help text for the departmental admin on those roles
-ROLE_DESCR = {
-        'ADVS': 'Has access to the advisor notes.',
-        'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
-        'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
-        'PLAN': 'Can manage plans for course offerings in future semesters.',
-        'TAAD': 'Can administer TA job postings and appointments.',
-        'TADM': 'Can manage teaching history for faculty members.',
-        'GRAD': 'Can view and update the grad student database.',
-        'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
-        'FUND': 'Can work with the grad student funding database.',
-        'TECH': 'Can manage resources required for courses.',
-        'FAC': 'Faculty Member',
-        'SESS': 'Sessional Instructor',
-        'COOP': 'Co-op Staff Member',
-        'INST': 'Instructors outside of the department or others who teach courses',
-        'REPR': 'Has Reporting Database access.',
-        'SUPV': 'Others who can supervise RAs or grad students, in addition to faculty',
-              }
-INSTR_ROLES = ["FAC","SESS","COOP",'INST'] # roles that are given to categorize course instructors
 
 class Role(models.Model):
     """

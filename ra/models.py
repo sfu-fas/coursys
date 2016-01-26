@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.urlresolvers import reverse
-from coredata.models import Person, Unit, Semester
+from coredata.models import Person, Unit, Semester, Role
 from courselib.json_fields import JSONField
 from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
@@ -319,9 +319,21 @@ class RAAppointment(models.Model):
         for raappt in expiring_ras:
             supervisor = raappt.hiring_faculty
             context = Context({'supervisor': supervisor, 'raappt': raappt})
-
+            # Let's see if we have any Funding CC supervisors that should also get the reminder.
+            cc = None
+            fund_cc_roles = Role.objects.filter(unit=raappt.unit, role='FDCC')
+            # If we do, let's add them to the CC list, but let's also make sure to use their role account email for
+            # the given role type if it exists.
+            if fund_cc_roles:
+                people = []
+                for role in fund_cc_roles:
+                    people.append(role.person)
+                people = list(set(people))
+                cc = []
+                for person in people:
+                    cc.append(person.role_account_email('FDCC'))
             msg = EmailMultiAlternatives(subject, template.render(context), from_email, [supervisor.email()],
-                                         headers={'X-coursys-topic': 'ra'})
+                                         headers={'X-coursys-topic': 'ra'}, cc=cc)
             msg.send()
             raappt.mark_reminded()
 
