@@ -555,6 +555,7 @@ REQMNT_DESIGNTN_FLAGS = { # map of ps_rqmnt_desig_tbl.descrshort to CourseOfferi
     'W/B-HumSci': ['bhum', 'bsci'],
     'B-Hum/Soc': ['bhum', 'bsoc'],
     'W/B-H/Soc': ['write', 'bhum', 'bsoc'],
+    'Q/B-Soc/Sc': ['quant', 'bsoc', 'bsci'],
     }
 
 @cache_by_args
