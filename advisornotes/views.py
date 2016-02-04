@@ -4,7 +4,7 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit
 from alerts.models import Alert
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
-from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, \
+from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
     SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
@@ -387,6 +387,35 @@ def student_courses_data(request, userid):
     json.dump(data, response, encoding='utf-8', indent=1)
     return response
 
+
+@requires_role('ADVS')
+def student_transfer_data(request, userid):
+    """
+    AJAX request for transfer data, etc. (queries SIMS directly)
+    """
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    try:
+        data = transfer_data(student.emplid)
+    except SIMSProblem as e:
+        data = {'error': unicode(e)}
+
+    response = HttpResponse(content_type='application/json;charset=utf-8')
+    json.dump(data, response, encoding='utf-8', indent=1)
+    return response
+
+
+@requires_role('ADVS')
+def student_transfers(request, userid):
+    """
+    List of courses now (and in surrounding semesters)
+    """
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+
+    context = {
+               'userid': userid,
+               'student': student,
+               }
+    return render(request, 'advisornotes/student_transfers.html', context)
 
 @requires_role('ADVS')
 @require_POST

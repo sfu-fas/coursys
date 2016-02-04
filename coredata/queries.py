@@ -685,6 +685,44 @@ def course_data(emplid, needed=ALLFIELDS, exclude=[]):
     return data
 
 
+@cache_by_args
+@SIMS_problem_handler
+def transfer_data(emplid):
+    """
+    Return external transfer credits for a given emplid
+
+    :param string emplid: The employee ID of the person whose transfer info we want
+    :return: A list of external transfers
+    :rtype: list
+    """
+    emplid = str(emplid)
+    db = SIMSConn()
+    transfers = "WITH crse_offer AS (select crse_id, CRSE_OFFER_NBR, subject, catalog_nbr from dbcsown.ps_crse_offer "\
+                "A where effdt=(SELECT MAX(effdt) FROM dbcsown.ps_crse_offer WHERE crse_id=A.crse_id)), ext_org_tbl AS"\
+                "(select ext_org_id, descr50 from dbcsown.ps_ext_org_tbl A where effdt=(SELECT MAX(effdt) FROM"\
+                " dbcsown.ps_ext_org_tbl WHERE ext_org_id=A.ext_org_id))"\
+                "select tcd.emplid, eot.descr50, ec.SCHOOL_SUBJECT, ec.SCHOOL_CRSE_NBR, tcd.trnsfr_eqvlncy_grp, "\
+                "tcd.trnsfr_stat, co.subject, co.catalog_nbr, tcd.CRSE_GRADE_INPUT as tcd_grade_input, "\
+                "tcd.crse_grade_off as tcd_grade_off,ec.CRSE_GRADE_INPUT as ec_grade_input, ec.crse_grade_off "\
+                "as ec_grade_off, tcd.UNT_TRNSFR "\
+                "from dbcsown.ps_trns_crse_dtl tcd inner join dbcsown.ps_trns_crse_sch tcs on tcs.emplid=tcd.emplid "\
+                "and tcd.acad_career=tcs.acad_career and tcd.institution=tcs.institution and "\
+                "tcd.model_nbr=tcs.model_nbr left outer join dbcsown.ps_ext_course ec on ec.emplid=tcd.emplid and "\
+                "ec.ext_course_nbr=tcd.ext_course_nbr and ec.ext_org_id=tcs.ext_org_id left outer join ext_org_tbl "\
+                "eot on tcd.TRNSFR_SRC_ID = eot.ext_org_id left outer join crse_offer co on tcd.crse_id = co.crse_id "\
+                "and tcd.CRSE_OFFER_NBR = co.CRSE_OFFER_NBR where tcd.trnsfr_stat='P' and tcs.model_status='P' "\
+                "and tcd.emplid=%s order by tcd.model_nbr, tcd.TRNSFR_EQVLNCY_GRP, tcd.TRNSFR_EQVLNCY_SEQ"
+    db.execute(transfers, (emplid,))
+    fields = ['emplid', 'descr', 'school_subject', 'crse_nbr', 'trsnf_equivlncy_grp', 'transfr_stat', 'subject',
+              'catalog_nbr', 'tcd_grade_input', 'tcd_grade_off', 'ec_grade_input', 'ec_grade_off', 'unt_trnsfr']
+    data = {}
+    transfers = []
+    for row in list(db):
+        rdata = dict(zip(fields, row))
+        transfers.append(rdata)
+    data['transfers'] = transfers
+    return data
+
 
 @cache_by_args
 @SIMS_problem_handler

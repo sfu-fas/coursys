@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Current Courses for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block h1 %}Current Courses for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url "advisornotes.views.advising" %}">Advising</a></li>
+<li><a href="{% url "advisornotes.views.student_notes" userid=userid %}">{{ student.name }}</a></li>
+<li>Transfer credits</li>
+{% endblock %}
+
+
+
+{% block headextra %}
+<script type="text/javascript">//<![CDATA[
+
+	var course_data;
+	function display_data(data) {
+        //console.log(data);
+
+        var elt = $('#transferscontent');
+        if (data['error']) {
+            var res = '<p class="empty">Could not fetch data: ' + data['error'] + '.</p>';
+            elt.html(res);
+            return;
+        }
+        course_data = data;
+        elt.html('');
+        var html = '';
+
+        if (data.transfers.length > 0) {
+        /* transfer credits */
+
+            html += '<h2 id="transfer">Transfer Credits</h2><table id="transfers">';
+            html += '<thead><tr>'
+            html += '<th>Description</th><th>School Subject</th><th>Crse Nbr</th><th>Trsnf Equivlncy Grp</th>';
+            html += '<th>Transfr Stat</th><th>Subject</th><th>Catalog Nbr</th><th>Tcd Grade Input</th>';
+            html += '<th>Tcd Grade Off</th><th>Ec Grade Input</th><th>Ec Grade Off</th><th>Unt Trnsfr</th>';
+            html += '</tr></thead>';
+            $(data.transfers).each(function (i, trns) {
+                html += '<tr><td>' + trns.descr + '</td><td>' + trns.school_subject + '</td><td>' + trns.crse_nbr + '</td>';
+                html += '<td>' + trns.trsnf_equivlncy_grp + '</td><td>' + trns.transfr_stat + '</td><td>' + trns.subject;
+                html += '</td><td>' + trns.catalog_nbr + '</td><td>' + trns.tcd_grade_input + '</td><td>';
+                html += trns.tcd_grade_off + '</td><td>' + trns.ec_grade_input + '</td><td>' + trns.ec_grade_off;
+                html += '</td><td>' + trns.unt_trnsfr + '</td > </tr>';
+            });
+            html += '</table>';
+        } else {
+            html += '<h2>This student has no transfer information to display.</h2>'
+        }
+        elt.append(html);
+
+    $('#transfers').dataTable( {
+        'bPaginate': false,
+        'bInfo': false,
+        'bLengthChange': false,
+        "bJQueryUI": true
+        } );
+    }
+
+	var data_url = '{% url "advisornotes.views.student_transfer_data" userid=userid %}';
+    $(document).ready(function() {
+    	$.ajax({
+        	url: data_url,
+        	success: display_data,
+	        error: function(jqXHR, textStatus, errorThrown) {
+				res = '<p class="empty">Could not contact server to check for student data.</p>';
+				$('#transferscontent').html(res);
+        	},
+
+   		});
+ 	});
+
+//]]></script>
+
+{% endblock %}
+
+{% block content %}
+<div id="messages"><ul><li class="warning">These are based on the data in the Reporting Database.  These are not the most up to date results.</li></ul></div>
+
+<div id="transferscontent"><i class="fa fa-spinner fa-spin" id="fetchwait"></i></div>
+
+
+{% endblock content %}
