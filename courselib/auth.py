@@ -96,7 +96,7 @@ def has_role(role, request, get_only=None, **kwargs):
             allowed += list(get_only)
         else:
             allowed.append(get_only)
-        
+
     roles = Role.objects.filter(person__userid=request.user.username, role__in=allowed).select_related('unit')
     request.units = set(r.unit for r in roles)
     count = roles.count()
