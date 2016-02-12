@@ -75,6 +75,7 @@ def committee_members(emplids):
                 ON (mem.institution=st.institution AND mem.committee_id=st.committee_id AND com.effdt=mem.effdt)
         WHERE
             st.emplid in %s
+            AND com.committee_type IN ['GSSUPER', 'GSEXAMING']
         ORDER BY com.effdt""",
         (emplids,))
     return list(db)
