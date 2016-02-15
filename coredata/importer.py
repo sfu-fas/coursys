@@ -476,7 +476,8 @@ def import_students(offering):
     db.execute("SELECT e.emplid, e.acad_career, e.unt_taken, e.crse_grade_off, r.crse_grade_input "
                "FROM ps_stdnt_enrl e LEFT JOIN ps_grade_roster r "
                "ON e.strm=r.strm and e.acad_career=r.acad_career and e.emplid=r.emplid and e.class_nbr=r.class_nbr "
-               "WHERE e.class_nbr=%s and e.strm=%s and e.stdnt_enrl_status='E'", (offering.class_nbr, offering.semester.name))
+               "WHERE e.class_nbr=%s and e.strm=%s and e.stdnt_enrl_status='E' and "
+               "e.enrl_status_reason IN ('ENRL','EWAT')", (offering.class_nbr, offering.semester.name))
     for emplid, acad_career, unt_taken, grade_official, grade_roster in db.rows():
         p = get_person(emplid)
         sec = labtut.get(emplid, None)
