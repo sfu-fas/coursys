@@ -434,7 +434,7 @@ def student_transfers_download(request, userid):
                                                                         datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
     writer.writerow(['Description', 'School Subject', 'Course Number', 'Transfer Equivalency Group', 'Transfer Status',
-                     'Subject', 'Catalog Nbr', 'Transfer Grade Input', 'Transfer Official Grade',
+                     'Subject', 'Catalog Number', 'Transfer Grade Input', 'Transfer Official Grade',
                      'External Grade Input', 'External Official Grade', 'Units Transferred'])
     if 'transfers' in data:
         for trns in data['transfers']:
