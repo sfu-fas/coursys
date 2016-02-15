@@ -14,7 +14,12 @@
 <script type="text/javascript">//<![CDATA[
 
 	var course_data;
-	function display_data(data) {
+
+    function noNulls(value) {
+        return (value == null) ? '' : value
+    }
+
+  	function display_data(data) {
         //console.log(data);
 
         var elt = $('#transferscontent');
@@ -32,16 +37,19 @@
 
             html += '<h2 id="transfer">Transfer Credits</h2><table id="transfers">';
             html += '<thead><tr>'
-            html += '<th>Description</th><th>School Subject</th><th>Crse Nbr</th><th>Trsnf Equivlncy Grp</th>';
-            html += '<th>Transfr Stat</th><th>Subject</th><th>Catalog Nbr</th><th>Tcd Grade Input</th>';
-            html += '<th>Tcd Grade Off</th><th>Ec Grade Input</th><th>Ec Grade Off</th><th>Unt Trnsfr</th>';
-            html += '</tr></thead>';
+            html += '<th>Description</th><th>School Subject</th><th>Course Number</th><th>Transfer Equivalency ';
+            html += 'Group</th><th>Transfer Status</th><th>Subject</th><th>Catalog Number</th><th>Transfer Grade Input';
+            html += '</th><th>Transfer Official Grade</th><th>External Grade Input</th><th>External Official Grade';
+            html += '</th><th>Units Transferred</th></tr></thead>';
+
+
             $(data.transfers).each(function (i, trns) {
-                html += '<tr><td>' + trns.descr + '</td><td>' + trns.school_subject + '</td><td>' + trns.crse_nbr + '</td>';
-                html += '<td>' + trns.trsnf_equivlncy_grp + '</td><td>' + trns.transfr_stat + '</td><td>' + trns.subject;
-                html += '</td><td>' + trns.catalog_nbr + '</td><td>' + trns.tcd_grade_input + '</td><td>';
-                html += trns.tcd_grade_off + '</td><td>' + trns.ec_grade_input + '</td><td>' + trns.ec_grade_off;
-                html += '</td><td>' + trns.unt_trnsfr + '</td > </tr>';
+                html += '<tr><td>' + noNulls(trns.descr) + '</td><td>' + noNulls(trns.school_subject) + '</td><td>';
+                html += noNulls(trns.crse_nbr) + '</td><td>' + noNulls(trns.trsnf_equivlncy_grp) + '</td><td>';
+                html += noNulls(trns.transfr_stat) + '</td><td>' + noNulls(trns.subject) + '</td><td>';
+                html += noNulls(trns.catalog_nbr) + '</td><td>' + noNulls(trns.tcd_grade_input) + '</td><td>';
+                html += noNulls(trns.tcd_grade_off) + '</td><td>' + noNulls(trns.ec_grade_input) + '</td><td>';
+                html += noNulls(trns.ec_grade_off) + '</td><td>' + noNulls(trns.unt_trnsfr) + '</td > </tr>';
             });
             html += '</table>';
         } else {
@@ -57,7 +65,7 @@
         } );
     }
 
-	var data_url = '{% url "advisornotes.views.student_transfer_data" userid=userid %}';
+	var data_url = '{% url "advisornotes.views.student_transfers_data" userid=userid %}';
     $(document).ready(function() {
     	$.ajax({
         	url: data_url,
@@ -72,6 +80,16 @@
 
 //]]></script>
 
+{% endblock %}
+
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url "advisornotes.views.student_transfers_download" userid=userid%}">Download CSV</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}

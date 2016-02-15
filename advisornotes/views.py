@@ -25,6 +25,8 @@ import datetime
 import json
 import rest
 from timeit import itertools
+import unicodecsv as csv
+
 
 
 def _redirect_to_notes(student):
@@ -314,8 +316,9 @@ def student_notes(request, userid):
         nonstudent = True
     
     show_transcript = False
-    if 'UNIV' in [u.label for u in request.units]:
-        show_transcript = True
+    # For demo purposes only.
+    # if 'UNIV' in [u.label for u in request.units]:
+    #    show_transcript = True
 
     template = 'advisornotes/student_notes.html'
     if 'compact' in request.GET:
@@ -389,7 +392,7 @@ def student_courses_data(request, userid):
 
 
 @requires_role('ADVS')
-def student_transfer_data(request, userid):
+def student_transfers_data(request, userid):
     """
     AJAX request for transfer data, etc. (queries SIMS directly)
     """
@@ -407,7 +410,7 @@ def student_transfer_data(request, userid):
 @requires_role('ADVS')
 def student_transfers(request, userid):
     """
-    List of courses now (and in surrounding semesters)
+    List of transfer credits for a given student
     """
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
 
@@ -416,6 +419,43 @@ def student_transfers(request, userid):
                'student': student,
                }
     return render(request, 'advisornotes/student_transfers.html', context)
+
+
+@requires_role('ADVS')
+def student_transfers_download(request, userid):
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    try:
+        data = transfer_data(student.emplid)
+    except SIMSProblem as e:
+        data = {'error': unicode(e)}
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-%s.csv"' % (userid,
+                                                                        datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+    writer.writerow(['Description', 'School Subject', 'Course Number', 'Transfer Equivalency Group', 'Transfer Status',
+                     'Subject', 'Catalog Nbr', 'Transfer Grade Input', 'Transfer Official Grade',
+                     'External Grade Input', 'External Official Grade', 'Units Transferred'])
+    if 'transfers' in data:
+        for trns in data['transfers']:
+            descr = trns.get('descr') or ''
+            school_subject = trns.get('school_subject') or ''
+            crse_nbr = trns.get('crse_nbr') or ''
+            trsnf_equivlncy_grp = trns.get('trsnf_equivlncy_grp') or ''
+            transfr_stat = trns.get('transfr_stat') or ''
+            subject = trns.get('subject') or ''
+            catalog_nbr = trns.get('catalog_nbr') or ''
+            tcd_grade_input = trns.get('tcd_grade_input') or ''
+            tcd_grade_off = trns.get('tcd_grade_off') or ''
+            ec_grade_input = trns.get('ec_grade_input') or ''
+            ec_grade_off = trns.get('ec_grade_off') or ''
+            unt_trnsfr = trns.get('unt_trnsfr') or 0
+
+            writer.writerow([descr, school_subject, crse_nbr, trsnf_equivlncy_grp, transfr_stat, subject, catalog_nbr,
+                             tcd_grade_input, tcd_grade_off, ec_grade_input, ec_grade_off, unt_trnsfr])
+
+    return response
+
 
 @requires_role('ADVS')
 @require_POST
