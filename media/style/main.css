@@ -412,6 +412,9 @@ div#newsitems a.morenews {
   font-weight: bold;
   margin-right: 0.5em;
 }
+div#newsitems a.collapsible-heading-toggle {
+    color: #000;
+}
 
 
 
