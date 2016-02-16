@@ -433,6 +433,11 @@ def student_transfers_download(request, userid):
     response['Content-Disposition'] = 'inline; filename="%s-%s.csv"' % (userid,
                                                                         datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
+
+    writer.writerow(['Employee ID', 'Last Name', 'First Name'])
+    writer.writerow([student.emplid, student.last_name, student.first_name])
+    writer.writerow([])
+
     writer.writerow(['Description', 'School Subject', 'Course Number', 'Transfer Equivalency Group', 'Transfer Status',
                      'Subject', 'Catalog Number', 'Transfer Grade Input', 'Transfer Official Grade',
                      'External Grade Input', 'External Official Grade', 'Units Transferred'])
