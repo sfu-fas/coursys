@@ -39,6 +39,7 @@ advisornotes_patterns = [ # prefix /advising/
     url(r'^students/' + USERID_OR_EMPLID + '/courses$', 'advisornotes.views.student_courses'),
     url(r'^students/' + USERID_OR_EMPLID + '/visited/' + UNIT_SLUG, 'advisornotes.views.record_advisor_visit'),
     url(r'^students/' + USERID_OR_EMPLID + '/courses-data$', 'advisornotes.views.student_courses_data'),
+    url(r'^students/' + USERID_OR_EMPLID + '/courses-download$', 'advisornotes.views.student_courses_download'),
     url(r'^students/' + USERID_OR_EMPLID + '/transfers-data$', 'advisornotes.views.student_transfers_data'),
     url(r'^students/' + USERID_OR_EMPLID + '/transfers$', 'advisornotes.views.student_transfers'),
     url(r'^students/' + USERID_OR_EMPLID + '/transfers-download$', 'advisornotes.views.student_transfers_download'),

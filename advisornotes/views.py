@@ -5,7 +5,7 @@ from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,
 from alerts.models import Alert
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
-    SIMSProblem
+    SIMSProblem, classes_data
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
 from courselib.search import find_userid_or_emplid, get_query
@@ -392,6 +392,37 @@ def student_courses_data(request, userid):
 
 
 @requires_role('ADVS')
+def student_courses_download(request, userid):
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    try:
+        data = classes_data(student.emplid)
+    except SIMSProblem as e:
+        data = {'error': unicode(e)}
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'inline; filename="%s-%s-courses.csv"' % (userid,
+                                                                        datetime.datetime.now().strftime('%Y%m%d'))
+    writer = csv.writer(response)
+
+    writer.writerow(['Employee ID', 'Last Name', 'First Name'])
+    writer.writerow([student.emplid, student.last_name, student.first_name])
+    writer.writerow([])
+
+    writer.writerow(['Semester', 'Subject', 'Catalogue Number', 'Description', 'Official Grade', 'Units Taken'])
+    if 'courses' in data:
+        for crse in data['courses']:
+            strm = crse.get('strm') or ''
+            descr = crse.get('descr') or ''
+            subject = crse.get('subject') or ''
+            catalog_nbr = crse.get('catalog_nbr') or ''
+            crse_grade_off = crse.get('crse_grade_off') or ''
+            unt_taken = crse.get('unt_taken') or 0
+
+            writer.writerow([strm, subject, catalog_nbr, descr, crse_grade_off, unt_taken])
+
+    return response
+
+@requires_role('ADVS')
 def student_transfers_data(request, userid):
     """
     AJAX request for transfer data, etc. (queries SIMS directly)
@@ -430,7 +461,7 @@ def student_transfers_download(request, userid):
         data = {'error': unicode(e)}
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'inline; filename="%s-%s.csv"' % (userid,
+    response['Content-Disposition'] = 'inline; filename="%s-%s-transfers.csv"' % (userid,
                                                                         datetime.datetime.now().strftime('%Y%m%d'))
     writer = csv.writer(response)
 
@@ -439,7 +470,7 @@ def student_transfers_download(request, userid):
     writer.writerow([])
 
     writer.writerow(['Description', 'School Subject', 'Course Number', 'Transfer Equivalency Group', 'Transfer Status',
-                     'Subject', 'Catalog Number', 'Transfer Grade Input', 'Transfer Official Grade',
+                     'Subject', 'Catalogue Number', 'Transfer Grade Input', 'Transfer Official Grade',
                      'External Grade Input', 'External Official Grade', 'Units Transferred'])
     if 'transfers' in data:
         for trns in data['transfers']:

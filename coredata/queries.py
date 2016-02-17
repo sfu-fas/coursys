@@ -692,8 +692,8 @@ def transfer_data(emplid):
     Return external transfer credits for a given emplid
 
     :param string emplid: The employee ID of the person whose transfer info we want
-    :return: A list of external transfers
-    :rtype: list
+    :return: A JSON-fiable object with external transfers
+    :rtype: object
     """
     emplid = str(emplid)
     db = SIMSConn()
@@ -721,6 +721,34 @@ def transfer_data(emplid):
         rdata = dict(zip(fields, row))
         transfers.append(rdata)
     data['transfers'] = transfers
+    return data
+
+
+@cache_by_args
+@SIMS_problem_handler
+def classes_data(emplid):
+    """
+    Return all courses and grades taken by a given emplid
+
+    :param string emplid: The employee ID of the person whose course info we want
+    :return: A JSON-fiable object of courses taken
+    :rtype: object
+    """
+    emplid = str(emplid)
+    db = SIMSConn()
+    courses = "SELECT e.strm, c.subject, c.catalog_nbr, c.descr, e.crse_grade_off, e.unt_taken "\
+                 "FROM ps_stdnt_enrl e, ps_class_tbl c "\
+                 "WHERE e.class_nbr=c.class_nbr AND e.strm=c.strm AND e.emplid=%s "\
+                 "AND c.class_type='E' AND e.stdnt_enrl_status='E' "\
+                 "ORDER BY e.strm, c.subject, c.catalog_nbr"
+    db.execute(courses, (emplid,))
+    fields = ['strm', 'subject', 'catalog_nbr', 'descr', 'crse_grade_off', 'unt_taken']
+    data = {}
+    courses = []
+    for row in list(db):
+        rdata = dict(zip(fields, row))
+        courses.append(rdata)
+    data['courses'] = courses
     return data
 
 

@@ -14,6 +14,7 @@
     <ul>
         <li class="showtitle"><a href="javascript:show_titles();">Show Course Titles</a></li>
         <li class="coursetitle"><a href="javascript:hide_titles();">Hide Course Titles</a></li>
+        <li><a href={% url "advisornotes.views.student_courses_download" userid=userid %}>Download Courses</a></li>
     </ul>
 </div>
 {% endblock %}
