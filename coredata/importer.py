@@ -440,7 +440,7 @@ def import_instructors(offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
     db = SIMSConn()
     db.execute("SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE " \
-               "crse_id=%s and class_section=%s and strm=%s and instr_role='PI' and sched_print_instr='Y'",
+               "crse_id=%s and class_section=%s and strm=%s and instr_role IN ('PI', 'SI') and sched_print_instr='Y'",
                ("%06i" % (int(offering.crse_id)), offering.section, offering.semester.name))
     for emplid, _, _ in db.rows():
         if not emplid:
