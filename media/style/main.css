@@ -879,7 +879,7 @@ td.miniaction input {
 
 /* pages module styles */
 div.syntaxhighlighter {
-  padding-left: 2em;
+  padding: 0.1em 0.1em 0.1em 2em;
   clear: right;
 }
 div.updateinfo {
