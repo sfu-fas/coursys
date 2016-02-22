@@ -528,7 +528,9 @@ def update_grads():
     active = GradStudent.objects.filter(current_status__in=STATUS_ACTIVE).select_related('person')
     applicants = GradStudent.objects.filter(current_status__in=STATUS_APPLICANT,
                  updated_at__gt=datetime.datetime.now()-datetime.timedelta(days=7)).select_related('person')
-    for gs in itertools.chain(active, applicants):
+    s = Semester.current().offset(1)
+    far_applicants = GradStudent.objects.filter(start_semester__name__gte=s.name).select_related('person')
+    for gs in set(itertools.chain(active, applicants, far_applicants)):
         get_person_grad(gs.person.emplid)
 
 
