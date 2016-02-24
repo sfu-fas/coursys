@@ -450,7 +450,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         body = wrap(self.substitite_values(self.contact_email_text), 72)
         
         email = EmailMessage(
-            subject='Academic dishonesty in %s' % (self.offering),
+            subject='Academic dishonesty in %s' % (self.get_origsection()),
             body=body,
             from_email=self.owner.email(),
             to=[self.student.email()],
@@ -490,7 +490,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         
         # instructor/student email
         email = EmailMultiAlternatives(
-            subject='Academic dishonesty in %s' % (self.offering),
+            subject='Academic dishonesty in %s' % (self.get_origsection()),
             body=text_body,
             from_email=instr,
             to=[student],
@@ -505,7 +505,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
 
         # copy for filing
         email = EmailMultiAlternatives(
-            subject='Academic dishonesty in %s' % (self.offering),
+            subject='Academic dishonesty in %s' % (self.get_origsection()),
             body=text_body,
             from_email=instr,
             to=dept + univ,
