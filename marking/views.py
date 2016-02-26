@@ -1559,15 +1559,6 @@ def _export_mark_dict(m):
 def _mark_export_data(activity):
     data = []
     found = set()
-    marks = StudentActivityMark.objects.filter(numeric_grade__activity=activity).order_by('-created_at')
-    for m in marks:
-        ident = m.numeric_grade.member.person.userid
-        if ident in found:
-            continue
-        found.add(ident)
-        mdict = _export_mark_dict(m)
-        mdict['userid'] = ident
-        data.append(mdict)
     marks = GroupActivityMark.objects.filter(numeric_activity=activity).order_by('-created_at')
     for m in marks:
         ident = m.group.slug
@@ -1577,7 +1568,17 @@ def _mark_export_data(activity):
         mdict = _export_mark_dict(m)
         mdict['group'] = ident
         data.append(mdict)
-    
+
+    marks = StudentActivityMark.objects.filter(numeric_grade__activity=activity).order_by('-created_at')
+    for m in marks:
+        ident = m.numeric_grade.member.person.userid
+        if ident in found:
+            continue
+        found.add(ident)
+        mdict = _export_mark_dict(m)
+        mdict['userid'] = ident
+        data.append(mdict)
+
     return data
 
 @requires_course_staff_by_slug
