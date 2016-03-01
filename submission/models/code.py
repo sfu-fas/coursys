@@ -95,8 +95,8 @@ FIELD_TEMPLATE = Template('''<li>
                     {{ field.label_tag }}
                     <div class="inputfield">
                         {{ field }}
-			{% if field.errors %}<div class="errortext"><img src="'''+ STATIC_URL+'''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>{% endif %}
-			<div class="helptext">{{field.help_text}}</div>
+            {% if field.errors %}<div class="errortext">{{field.errors.0}}</div>{% endif %}
+            <div class="helptext">{{field.help_text}}</div>
                     </div>
                 </li>''')
                         
