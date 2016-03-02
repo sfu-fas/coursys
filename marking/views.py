@@ -1552,19 +1552,24 @@ def _export_mark_dict(m):
     mdict['mark_penalty'] = m.mark_adjustment
     mdict['mark_penalty_reason'] = m.mark_adjustment_reason
     mdict['overall_comment'] = m.overall_comment
-    
+    # TODO: implement method to calculate mark in model and check validity here.  Add numeric mark if it doesn't match
+    # if m.calculated_mark != m.mark:
+    #     mdict['mark'] = m.mark
+
     return mdict
 
 
 def _mark_export_data(activity):
     data = []
-    found = set()
+    found = {}
     marks = GroupActivityMark.objects.filter(numeric_activity=activity).order_by('-created_at')
     for m in marks:
         ident = m.group.slug
         if ident in found:
             continue
-        found.add(ident)
+        found[ident] = m.mark
+        for member in m.group.confirmed_members():
+            found[member.student.person.userid] = m.mark
         mdict = _export_mark_dict(m)
         mdict['group'] = ident
         data.append(mdict)
@@ -1574,10 +1579,15 @@ def _mark_export_data(activity):
         ident = m.numeric_grade.member.person.userid
         if ident in found:
             continue
-        found.add(ident)
+        found[ident]=m.mark
         mdict = _export_mark_dict(m)
         mdict['userid'] = ident
         data.append(mdict)
+
+    #  Also add any individual numeric grades that have been added
+    for g in NumericGrade.objects.filter(activity=activity):
+        if g.member.person.userid not in found or g.grade != found[g.member.person.userid]:
+            data.append({'userid': g.member.person.userid, 'the_mark': g.grade})
 
     return data
 

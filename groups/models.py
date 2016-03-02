@@ -29,13 +29,20 @@ class Group(models.Model):
 
     def __unicode__(self):
         return '%s' % (self.name)
+
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+
     def __cmp__(self, other):
         return cmp(self.name, other.name)
+
     def get_absolute_url(self):
         return reverse('groups.views.view_group', kwargs={'course_slug': self.courseoffering.slug,
                                                           'group_slug': self.slug})
+
+    def confirmed_members(self):
+        return self.groupmember_set.filter(confirmed=True).select_related('student__person')
+
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
         return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
