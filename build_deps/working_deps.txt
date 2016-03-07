@@ -1,5 +1,6 @@
 BeautifulSoup==3.2.1
-Creoleparser==0.7.4
+#Creoleparser==0.7.4  Replaced with version below that incorporates our fix for null headings
+git+git://github.com/garrison/creoleparser.git@78aab98896a05185997ca5da0859a8448fa35cc9
 Django==1.8.11
 Genshi==0.7
 #South==1.0.1
