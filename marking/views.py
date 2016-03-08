@@ -1552,9 +1552,8 @@ def _export_mark_dict(m):
     mdict['mark_penalty'] = m.mark_adjustment
     mdict['mark_penalty_reason'] = m.mark_adjustment_reason
     mdict['overall_comment'] = m.overall_comment
-    # TODO: implement method to calculate mark in model and check validity here.  Add numeric mark if it doesn't match
-    # if m.calculated_mark != m.mark:
-    #     mdict['mark'] = m.mark
+    if m.calculated_mark != m.mark:
+        mdict['mark'] = m.mark
 
     return mdict
 

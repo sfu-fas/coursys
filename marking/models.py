@@ -129,6 +129,24 @@ class ActivityMark(models.Model):
         _, filename = os.path.split(self.file_attachment.name)
         return filename
 
+    def get_components(self):
+        """
+        Get all the components associated with this activity mark so we can calculate the grade
+        """
+        return self.activitycomponentmark_set.all()
+
+    def calculated_mark(self):
+        """
+        Actually calculate the mark based on the components so we can check if we need a separate numeric grade
+        """
+        components = self.get_components()
+        total = decimal.Decimal(0)
+        for c in components:
+            total += c.value
+        return (1-self.late_penalty/decimal.Decimal(100)) * \
+               (total - self.mark_adjustment)
+
+
 class StudentActivityMark(ActivityMark):
     """
     Marking of one student on one numeric activity 
