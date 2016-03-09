@@ -412,11 +412,15 @@ class AccountsField(forms.MultiValueField):
 class TAPostingForm(forms.ModelForm):
     deadline = forms.DateField(label="Acceptance Deadline", 
         help_text='Default deadline for apointees to accept/decline contracts')
-    start = forms.DateField(label="Contract Start", 
-        help_text='Default start date for contracts')
-    end = forms.DateField(label="Contract End", 
-        help_text='Default end date for contracts')
-    salary = PayField(label="Salary per BU", 
+    start = forms.DateField(label="Appointment Start",
+        help_text='Default appointment start date for contracts')
+    end = forms.DateField(label="Appointment End",
+        help_text='Default appointment end date for contracts')
+    payroll_start = forms.DateField(label="Payroll Start",
+        help_text='Default payroll start date for contracts', required=False)
+    payroll_end = forms.DateField(label="Payroll End",
+        help_text='Default payroll end date for contracts', required=False)
+    salary = PayField(label="Salary per BU",
         help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", 
         help_text="Default scholarship rates for contracts")
@@ -462,6 +466,8 @@ class TAPostingForm(forms.ModelForm):
         self.initial['start'] = self.instance.start()
         self.initial['accounts'] = self.instance.accounts()
         self.initial['end'] = self.instance.end()
+        self.initial['payroll_start'] = self.instance.payroll_start()
+        self.initial['payroll_end'] = self.instance.payroll_end()
         self.initial['deadline'] = self.instance.deadline()
         self.initial['excluded'] = self.instance.excluded()
         self.initial['max_courses'] = self.instance.max_courses()
@@ -498,6 +504,23 @@ class TAPostingForm(forms.ModelForm):
                 raise forms.ValidationError("Contracts must end after they start")
         self.instance.config['end'] = unicode(end)
         return end
+
+    def clean_payroll_start(self):
+        payroll_start = self.cleaned_data['payroll_start']
+        if payroll_start:
+            self.instance.config['payroll_start'] = unicode(payroll_start)
+        return payroll_start
+
+    def clean_payroll_end(self):
+        payroll_end = self.cleaned_data['payroll_end']
+        if 'payroll_start' in self.cleaned_data:
+            payroll_start = self.cleaned_data['payroll_start']
+            if payroll_start:
+                if not payroll_end or payroll_start >= payroll_end:
+                    raise forms.ValidationError("Payroll periods must end after they start")
+        if payroll_end:
+            self.instance.config['payroll_end'] = unicode(payroll_end)
+        return payroll_end
 
     def clean_deadline(self):
         deadline = self.cleaned_data['deadline']

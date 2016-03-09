@@ -175,6 +175,8 @@ class TAPosting(models.Model):
         # 'accounts': default accounts for GTA1, GTA2, UTA, EXT (ra.models.Account.id values)
         # 'start': default start date for contracts ('YYYY-MM-DD')
         # 'end': default end date for contracts ('YYYY-MM-DD')
+        # 'payroll_start': default payroll start date for contracts ('YYYY-MM-DD')
+        # 'payroll_end': default payroll start date for contracts ('YYYY-MM-DD')
         # 'deadline': default deadline to accept contracts ('YYYY-MM-DD')
         # 'excluded': courses to exclude from posting (list of Course.id values)
         # 'payperiods': number of pay periods in the semeseter
@@ -193,6 +195,8 @@ class TAPosting(models.Model):
             'accounts': [None]*len(CATEGORY_CHOICES),
             'start': '',
             'end': '',
+            'payroll_start': '',
+            'payroll_end': '',
             'deadline': '',
             'excluded': [],
             'bu_defaults': {},
@@ -211,6 +215,8 @@ class TAPosting(models.Model):
     accounts, set_accounts = getter_setter('accounts')
     start, set_start = getter_setter('start')
     end, set_end = getter_setter('end')
+    payroll_start, set_payroll_start = getter_setter('payroll_start')
+    payroll_end, set_payroll_end = getter_setter('payroll_end')
     deadline, set_deadline = getter_setter('deadline')
     excluded, set_excluded = getter_setter('excluded')
     bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
@@ -523,7 +529,7 @@ class TAContract(models.Model):
         unique_together = (('posting', 'application'),)
         
     def __unicode__(self):
-        return u"%s" % (self.application.person)
+        return u"%s" % self.application.person
 
     def save(self, *args, **kwargs):
         super(TAContract, self).save(*args, **kwargs)
@@ -557,8 +563,16 @@ class TAContract(models.Model):
         self.appt_category = application.category
         self.appointment_start = posting.start()
         self.appointment_end = posting.end()
-        self.pay_start = posting.start()
-        self.pay_end = posting.end()
+        # New postings may have proper payroll_start/end fields.  If so, let's use them,
+        # otherwise, use the same fields as for the appointment start/end for backwards compatibility.
+        if posting.payroll_start():
+            self.pay_start = posting.payroll_start()
+        else:
+            self.pay_start = posting.start()
+        if posting.payroll_end():
+            self.pay_end = posting.payroll_end()
+        else:
+            self.pay_end = posting.end()
         self.deadline = posting.deadline()
         index = posting.cat_index(application.category)
         self.position_number = Account.objects.get(pk=posting.accounts()[index])

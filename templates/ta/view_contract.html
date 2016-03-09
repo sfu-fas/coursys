@@ -33,8 +33,10 @@
   	<tr><th>Category</th><td>{{ contract.get_appt_category_display }}</td></tr>
   	<tr><th>Appointment Type</th><td>{{ contract.get_appt_display }}</td></tr>
   	<tr><th>Status</th><td>{{ contract.get_status_display }}</td></tr>
-    <tr><th>Contract Start Date</th><td>{{ contract.pay_start }}</td></tr>
-    <tr><th>Contract End Date</th><td>{{ contract.pay_end }}</td></tr>
+    <tr><th>Appointment Start Date</th><td>{{ contract.appointment_start }}</td></tr>
+    <tr><th>Appointment End Date</th><td>{{ contract.appointment_end }}</td></tr>
+    <tr><th>Payroll Start Date</th><td>{{ contract.pay_start }}</td></tr>
+    <tr><th>Payroll End Date</th><td>{{ contract.pay_end }}</td></tr>
     <tr><th>Acceptance Deadline</th><td>{{ contract.deadline }}</td></tr>
     <tr><th>Conditional</th><td>{{ contract.appt_cond|yesno }}</td></tr>
     <tr><th>Appointment in TSSU</th><td>{{ contract.appt_tssu|yesno }}</td></tr>
