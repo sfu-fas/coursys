@@ -10,7 +10,7 @@ dfn, var {
   font-style: italic;
 }
 code, tt {
-  font-family: monospace;
+  font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", "Courier", monospace;
 }
 blockquote {
 	margin: 1em 2.5em;
@@ -23,7 +23,7 @@ div#main dl.docs dd>p:first-child {
 	padding-top: 0;
 }
 pre {
-	font-family: monospace;
+	font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", "Courier", monospace;
 }
 
 dt {
@@ -68,7 +68,7 @@ ul.bulleted li, .wikicontents ul>li, table.info ul li {
   margin-left: 1em;
 }
 .wikicontents pre {
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 a img {
     border-style: none;
