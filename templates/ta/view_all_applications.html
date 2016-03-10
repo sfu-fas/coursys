@@ -29,6 +29,7 @@
   	<tr>
 	<th scope="col">Person</th>
 	<th scope="col">Category</th>
+    <th scope="col">Program</th>
 	<th scope="col">Assigned BUs</th>
 	<th scope="col">Max BUs</th>
 	<th scope="col">Ranked</th>
@@ -40,6 +41,7 @@
   <tr>
   	<td><a href="{% url "ta.views.view_application" post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
   	<td>{{ app.get_category_display }}</td>
+    <td>{{ app.current_program }}</td>
   	<td>{{ app.base_units_assigned }}</td>
   	<td>{{ app.base_units }}</td>
   	<td>{{ app.course_pref_display }}</td>
