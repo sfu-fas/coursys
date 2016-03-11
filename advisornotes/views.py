@@ -2,7 +2,6 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
     EditArtifactNoteForm, CourseSearchForm, OfferingSearchForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote, AdvisorVisit
-from alerts.models import Alert
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member, Role
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, transfer_data,\
     SIMSProblem, classes_data
@@ -17,7 +16,6 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.text import wrap
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from log.models import LogEntry
 from onlineforms.models import FormSubmission
@@ -292,20 +290,17 @@ def student_notes(request, userid):
 
     if isinstance(student, Person):
         notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
-        alerts = Alert.objects.filter(person=student, alerttype__unit__in=request.units, hidden=False).order_by("-created_at")
         form_subs = FormSubmission.objects.filter(initiator__sfuFormFiller=student, form__unit__in=Unit.sub_units(request.units),
                                                   form__advisor_visible=True)
 
         # decorate with .entry_type (and .created_at if not present so we can sort nicely)
         for n in notes:
             n.entry_type = 'NOTE'
-        for a in alerts:
-            a.entry_type = 'ALERT'
         for fs in form_subs:
             fs.entry_type = 'FORM'
             fs.created_at = fs.last_sheet_completion()
 
-        items = list(itertools.chain(notes, alerts, form_subs))
+        items = list(itertools.chain(notes, form_subs))
         items.sort(key=lambda x: x.created_at, reverse=True)
         nonstudent = False
     else:

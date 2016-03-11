@@ -9,7 +9,7 @@ import courselib.json_fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '__first__'),
+        #('alerts', '__first__'),
         ('coredata', '0001_initial'),
     ]
 

@@ -1,13 +1,12 @@
 from django import forms
 from django.forms.models import ModelForm
 from models import Report, HardcodedReport, Query, AccessRule, ScheduleRule
-from django.template import Template, TemplateSyntaxError
 from coredata.forms import PersonField
 
 class ReportForm(ModelForm):
     class Meta:
         model = Report
-        exclude = ('config', 'created_at', 'hidden', 'alert')
+        exclude = ('config', 'created_at', 'hidden')
 
 class HardcodedReportForm(ModelForm):
     class Meta:

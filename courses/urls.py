@@ -5,7 +5,6 @@ from django.views.generic import TemplateView,  RedirectView
 from courselib.urlparts import USERID_SLUG, COURSE_SLUG
 
 from advisornotes.urls import advisornotes_patterns
-from alerts.urls import alerts_patterns
 from coredata.urls import data_patterns, admin_patterns, sysadmin_patterns, browse_patterns
 from dashboard.urls import config_patterns, news_patterns, calendar_patterns, docs_patterns, studentsearch_patterns
 from discipline.urls import discipline_patterns
@@ -55,7 +54,6 @@ urlpatterns = [
 
     # nicely self-contained apps
     url(r'^advising/', include(advisornotes_patterns)),
-    url(r'^alerts/', include(alerts_patterns)),
     url(r'^discipline/', include(discipline_patterns)),
     url(r'^faculty/', include(faculty_patterns)),
     url(r'^forms/', include(forms_patterns)),

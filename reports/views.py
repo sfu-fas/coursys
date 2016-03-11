@@ -6,14 +6,11 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib import messages
-from django.template import Template, Context
 
 # Third-Party
 import unicodecsv as csv
 
 # Local
-from alerts.models import AlertType
-from alerts.forms import AlertTypeForm
 from privacy.models import needs_privacy_signature, privacy_redirect
 from courselib.auth import requires_role, has_role, HttpResponseRedirect, \
                     ForbiddenResponse
@@ -347,20 +344,3 @@ def csv_result(request, report, run, result):
     
     return response
 
-@requires_role('SYSA')
-def new_alert(request, report):
-    report = get_object_or_404(Report, slug=report)
-
-    if request.method == 'POST':
-        form = AlertTypeForm(request.POST)
-        if form.is_valid():
-            f = form.save(commit=False)
-            f.save()
-            messages.success(request, "Created new alert type:  %s." % str(f.code) )
-            report.alert = f
-            report.save()
-            return HttpResponseRedirect(reverse('reports.views.view_report', kwargs={'report':report.slug}))
-    else:
-        form = AlertTypeForm()
-
-    return render(request, 'reports/new_alert.html', {'form': form, 'report': report })
