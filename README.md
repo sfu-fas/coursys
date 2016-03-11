@@ -337,11 +337,12 @@ Here is a quick description of what is in the project:
 * pages: wiki-like course web pages
 * onlineforms: configurable and fillable online forms
 * visas: Visa management for grads and whoever else we want to manually manage
-* Dead/unused/unfinished code:
+* oldcode:  Dead/unused/unfinished code, including:
     * alerts: automated student problem alerts (zombie code.  Not used at all anymore)
     * planning: planning of courses, assigning instructors, etc. (incomplete and disabled).  This one will possibly get finished.
     * techreq: collection of technical requirements for courses (incomplete and disabled)
     * booking: booking system for advisors (incomplete and disabled)
+    * gpaconvert: GPA conversion code for grades from other places (incomplete and disabled)
 
 ### OTHER TOP-LEVEL FILES/DIRECTORIES
 * courselib: various library code for the system

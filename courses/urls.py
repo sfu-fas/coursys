@@ -10,7 +10,6 @@ from dashboard.urls import config_patterns, news_patterns, calendar_patterns, do
 from discipline.urls import discipline_patterns
 from faculty.urls import faculty_patterns
 from onlineforms.urls import forms_patterns
-from gpaconvert.urls import gpaconvert_patterns
 from grad.urls import grad_patterns
 from grades.urls import offering_patterns
 from ra.urls import ra_patterns
@@ -57,7 +56,6 @@ urlpatterns = [
     url(r'^discipline/', include(discipline_patterns)),
     url(r'^faculty/', include(faculty_patterns)),
     url(r'^forms/', include(forms_patterns)),
-    url(r'^gpacalc/', include(gpaconvert_patterns)),
     url(r'^reports/', include(report_patterns)),
 
     # graduate student-related apps
