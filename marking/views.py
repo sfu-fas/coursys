@@ -1251,9 +1251,9 @@ def _mark_all_students_letter(request, course, activity):
                     current_grade = 'no grade'
                 else:
                     current_grade = lgrade.letter_grade            
-                initial_value = imported_data.get(student.userid) 
+                initial_value = imported_data.get(student.userid)
                 if initial_value is not None:
-                    entry_form = MarkEntryForm_LetterGrade(initial={'value': initial_value}, prefix=student.userid)
+                    entry_form = MarkEntryForm_LetterGrade(initial={'value': initial_value.strip()}, prefix=student.userid)
                 else:
                     entry_form = MarkEntryForm_LetterGrade(prefix = student.userid)                                    
                 rows.append({'student': student, 'member': member, 'current_grade': current_grade, 'form': entry_form})
