@@ -664,18 +664,20 @@ class TestMarkingImport(TestCase):
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('3'))
         self.assertEquals(mc.comment, "0aaa1 1")
-        mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
-        self.assertEquals(mc.value, Decimal('0'))
-        self.assertEquals(mc.comment, "")
+        # No longer true since we make components optional in the import
+        # mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
+        # self.assertEquals(mc.value, Decimal('0'))
+        # self.assertEquals(mc.comment, "")
 
         m = marks.get(numeric_grade__member__person__userid="0aaa2")
         self.assertAlmostEquals(float(m.numeric_grade.value), 3.6)
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('4'))
         self.assertEquals(mc.comment, "0aaa2 1a")
-        mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
-        self.assertEquals(mc.value, Decimal('0'))
-        self.assertEquals(mc.comment, "")
+        # Same as above.
+        # mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
+        # self.assertEquals(mc.value, Decimal('0'))
+        # self.assertEquals(mc.comment, "")
 
         # post second file: should be combined with first.
         with open('marking/testfiles/marking_import2.json') as file:

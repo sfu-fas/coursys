@@ -1552,8 +1552,8 @@ def _export_mark_dict(m):
     mdict['mark_penalty'] = m.mark_adjustment
     mdict['mark_penalty_reason'] = m.mark_adjustment_reason
     mdict['overall_comment'] = m.overall_comment
-    if m.calculated_mark != m.mark:
-        mdict['mark'] = m.mark
+    if m.calculated_mark() != m.mark:
+        mdict['the_mark'] = m.mark
 
     return mdict
 

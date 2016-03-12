@@ -719,6 +719,9 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
         file_filename = None
         file_data = None
         file_mediatype = None
+        # Added for the special case where we have a numeric mark only, without components.  This can happen when
+        # using the "mark for all groups/users" form.
+        the_mark = decimal.Decimal(0)
 
         if combine and old_am:
             late_percent = old_am.late_penalty
@@ -729,6 +732,9 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
         for slug in markdata:
             # handle special-case slugs (that don't represent MarkComponents)
             if slug in ['userid', 'group']:
+                continue
+            elif slug == 'the_mark':
+                the_mark = decimal.Decimal(str(markdata[slug]))
                 continue
             elif slug=="late_percent":
                 try:
@@ -792,19 +798,19 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             if 'comment' in componentdata and save:
                 cm.comment = unicode(componentdata['comment'])
 
-        for slug in set(components.keys()) - found_comp_slugs:
-            # handle missing components
-            cm = ActivityComponentMark(activity_component=components[slug])
-            acms.append(cm) # can't set activity_mark yet since it doesn't have an id
+        # In the case of combined gradings, we have to get the value from old components to add to it.
+        if combine:
+            for slug in set(components.keys()) - found_comp_slugs:
+                # handle missing components
+                cm = ActivityComponentMark(activity_component=components[slug])
+                acms.append(cm) # can't set activity_mark yet since it doesn't have an id
 
-            if combine and old_am:
-                old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
-                mark_total += float(old_cm.value)
-                cm.value = old_cm.value
-                cm.comment = old_cm.comment
-            else:
-                cm.value = decimal.Decimal(0)
-                cm.comment = ''
+                if old_am:
+                    old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
+                    mark_total += float(old_cm.value)
+                    cm.value = old_cm.value
+                    cm.comment = old_cm.comment
+
 
         # handle file attachment
         if file_filename or file_data or file_mediatype:
@@ -827,9 +833,9 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
         am.mark_adjustment = mark_penalty
         am.mark_adjustment_reason = mark_penalty_reason
         am.overall_comment = overall_comment
-        
-        mark_total = (1-late_percent/decimal.Decimal(100)) * \
-                  (decimal.Decimal(str(mark_total)) - mark_penalty)
+
+        mark_total = the_mark or ((1-late_percent/decimal.Decimal(100)) *
+                                  (decimal.Decimal(str(mark_total)) - mark_penalty))
         
         # put the total mark and numeric grade objects in place
         am.mark = mark_total
