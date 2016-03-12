@@ -76,6 +76,10 @@ $(document).ready(function() {
 </div>
 {% endblock %}
 {% block content %}
+{% if offer_combined %}
+<p class="infomessage">This seems to be joint with another offering. It is possible to combine offerings in CourSys so they appear as one large &ldquo;course&rdquo;:
+email <a href="mailto:coursys-help@sfu.ca">coursys-help@sfu.ca</a> to get it set up <em>before</em> you do any setup here.</p>
+{% endif %}
 <div class="table_container">
     <table class="info">
         <tbody>

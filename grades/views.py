@@ -132,9 +132,13 @@ def _course_info_staff(request, course_slug):
     discussion_activity = False
     if course.discussion:
         discussion_activity = discuss_activity.recent_activity(member)
+
+    # advertise combined offering if applicable.
+    offer_combined = course.joint_with() and len(activities) == 0
     
     context = {'course': course, 'member': member, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
-               'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent, 'discussion_activity': discussion_activity}
+               'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent, 'discussion_activity': discussion_activity,
+               'offer_combined': offer_combined}
     return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))
 
