@@ -50,17 +50,6 @@ def _rowkey(row):
     return (row ['STRM'], row['SUBJECT'], row['CATALOG_NBR'], row['CLASS_SECTION'],  row['CAMPUS'], row['ENRL_TOT'],
             row['ENRL_CAP'], row['SEX'])
 
-def counter(iter):
-    """
-    Fake collections.Counts, since we don't have that in Python 2.6 on production
-    """
-    counts = {}
-    for o in iter:
-        counts[o] = counts.get(o, 0) + 1
-    return counts
-
-#counter = collections.Counter
-
 
 class DiversityInCMPT120Report(Report):
     title = "Diversity in CMPT 120"
@@ -109,9 +98,11 @@ class DiversityInCMPT120Report(Report):
                     current_plan['M'] = current_plan.get('M', 0) + 1
                 elif sex == 'F':
                     current_plan['F'] = current_plan.get('F', 0) +1
-            count_str = ''
 
+        # Let's iterate through our counter object and just add one row per semester, concatenating the string with
+        # the breakdown of males/females in each plan.
         for strm in count:
+            count_str = ''
             for plan in count[strm]:
                 m_count = count[strm].get(plan).get('M', 0)
                 f_count = count[strm].get(plan).get('F', 0)
