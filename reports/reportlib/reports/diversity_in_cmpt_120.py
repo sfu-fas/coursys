@@ -91,6 +91,7 @@ class DiversityInCMPT120Report(Report):
         # count for each offering
         found_plans = set()
         count = {}
+        strm_added = set()
 
         # Build an object to count the instance of each gender in each plan for each semester
         for (strm, subj, nbr, sect, campus, tot, cap, sex), plans in offering_plans:
@@ -115,7 +116,9 @@ class DiversityInCMPT120Report(Report):
                 f_count = count[strm].get(plan).get('F', 0)
                 total_count = count[strm].get(plan).get('TOTAL', 0)
                 count_str += str("%s Total: %i, M: %i, F: %i  " % (plan, total_count, m_count, f_count))
-            programs.append_row((strm, subj, nbr, sect, campus, tot, cap, count_str))
+            if strm not in strm_added:
+                programs.append_row((strm, subj, nbr, sect, campus, tot, cap, count_str))
+                strm_added.add(strm)
 
         self.artifacts.append(programs)
 
