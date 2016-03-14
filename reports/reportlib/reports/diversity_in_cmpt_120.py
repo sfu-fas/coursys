@@ -110,6 +110,8 @@ class DiversityInCMPT120Report(Report):
                 elif sex == 'F':
                     current_plan['F'] = current_plan.get('F', 0) +1
             count_str = ''
+
+        for strm in count:
             for plan in count[strm]:
                 m_count = count[strm].get(plan).get('M', 0)
                 f_count = count[strm].get(plan).get('F', 0)
