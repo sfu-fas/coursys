@@ -225,7 +225,8 @@ class LetterContents(object):
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
     def __init__(self, to_addr_lines, from_name_lines, date=None,
-                 closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True):
+                 closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True,
+                 body_font_size=None):
         self.date = date or datetime.date.today()
         self.closing = closing
         self.flowables = []
@@ -238,15 +239,15 @@ class LetterContents(object):
             self.add_paragraphs(paragraphs)
 
         # styles
-        self.line_height = 13
+        self.line_height = (body_font_size or 12) + 1
         self.content_style = ParagraphStyle(name='Normal',
-                                      fontName='BemboMTPro',
-                                      fontSize=12,
-                                      leading=self.line_height,
-                                      allowWidows=0,
-                                      allowOrphans=0,
-                                      alignment=TA_JUSTIFY,
-                                      textColor=black)
+                                            fontName='BemboMTPro',
+                                            fontSize=body_font_size or 12,
+                                            leading=self.line_height,
+                                            allowWidows=0,
+                                            allowOrphans=0,
+                                            alignment=TA_JUSTIFY,
+                                            textColor=black)
         self.table_style = TableStyle([
                     ('FONT', (0,0), (-1,-1), 'BemboMTPro', 12, self.line_height),
                     ('TOPPADDING', (0,0), (-1,-1), 0),
