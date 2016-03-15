@@ -12,11 +12,12 @@ def get_letter(request, grad_slug, letter_slug):
 
     doc = OfficialLetter(response, unit=letter.student.program.unit)
     l = LetterContents(to_addr_lines=letter.to_lines.split("\n"), 
-                        from_name_lines=letter.from_lines.split("\n"), 
-                        date=letter.date, 
-                        closing=letter.closing, 
-                        signer=letter.from_person,
-                        use_sig=letter.use_sig())
+                       from_name_lines=letter.from_lines.split("\n"),
+                       date=letter.date,
+                       closing=letter.closing,
+                       signer=letter.from_person,
+                       use_sig=letter.use_sig(),
+                       body_font_size=letter.template.body_font_size())
     content_lines = letter.content.split("\n\n")
     l.add_paragraphs(content_lines)
     doc.add_letter(l)
