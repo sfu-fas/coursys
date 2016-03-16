@@ -3,7 +3,7 @@ python:
   - "2.7"
 notifications:
     email:
-      - courseman-project@sfu.ca
+      - coursys-help@sfu.ca
 cache: pip
 install: "pip install -r build_deps/working_deps.txt"
 script: "python manage.py test --nomigration"
