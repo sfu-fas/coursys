@@ -104,7 +104,7 @@ def import_task():
     """
     Enter all of the daily import tasks into the queue, where they can grind away from there.
 
-    The import is broken up into tasks for a few reasons: it can be paused by stopping the sims queue if necssary;
+    The import is broken up into tasks for a few reasons: it can be paused by stopping the sims queue if necessary;
     works around the celery task time limit.
     """
     if not settings.DO_IMPORTING_HERE:
@@ -117,6 +117,7 @@ def import_task():
         import_grads.si(),
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
+        import_semester_info.si(),
         #get_import_offerings_task(),
         #import_combined_sections.si(),
         #send_report.si()
@@ -176,6 +177,7 @@ def import_offerings(continue_import=False):
     if continue_import:
         #import_combined_sections.apply_async()
         tasks = tasks | import_combined_sections.si()
+        tasks = tasks | import_joint.si()
 
     logger.info('Starting offering subtasks')
     tasks.apply_async()
@@ -221,9 +223,9 @@ def import_combined_sections():
     importer.import_combined()
 
 @task(queue='sims')
-def combine_sections():
-    logger.info('Combining locally-combined sections')
-    importer.combine_sections(importer.get_combined())
+def import_joint():
+    logger.info('Importing joint offerings from SIMS')
+    importer.import_joint()
 
 @task(queue='sims')
 def import_semester_info():
