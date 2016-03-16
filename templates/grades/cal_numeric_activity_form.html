@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
+{% load static %}
 
 {% block h1 %}
 {% ifequal form_type 'add' %}Add Calculated Numeric Activity{% endifequal %}
@@ -10,9 +11,9 @@
 {% ifequal form_type 'edit' %}{{ course.name }} - Edit Calculated Numeric Activity{% endifequal %}
 {% endblock %}
 
-{% block grades_headextra %}
-<script type="text/javascript" src="{{STATIC_URL}}js/formula.js"></script>
-<script type="text/javascript">
+{% block headextra %}
+<script src="{% static 'js/formula.js"' %}"></script>
+<script>
 $(document).ready(function() {
     $("#id_due_date_0").datepicker({dateFormat: 'yy-mm-dd'});
     document.getElementById('testerlink').setAttribute('target', '_blank');
