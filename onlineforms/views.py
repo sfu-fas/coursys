@@ -905,8 +905,9 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
 
             later_sheets = SheetSubmission.objects.filter(form_submission=formsub,
                     filler__sfuFormFiller__userid=request.user.username,
-                    sheet__order__gte=sheetsub.sheet.order,
+                    given_at__gte=sheetsub.completed_at,
                     sheet__can_view='ALL')
+
             if later_sheets:
                 # this is the filler of a later sheet who can view the other parts
                 form_submissions = [formsub]
