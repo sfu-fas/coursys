@@ -234,16 +234,18 @@ class GradStatusForm(ModelForm):
                    'notes': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
                    }
 
+
 class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
         exclude = ('hidden','series')
 
+
 class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
     class Meta:
         model = LetterTemplate
-        exclude = ('created_by',)
+        exclude = ('created_by', 'config')
     
     def clean_content(self):
         content = self.cleaned_data['content']
@@ -252,6 +254,7 @@ class LetterTemplateForm(ModelForm):
         except TemplateSyntaxError as e:
             raise forms.ValidationError('Syntax error in template: ' + unicode(e))
         return content
+
 
 class LetterForm(ModelForm):
     use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
