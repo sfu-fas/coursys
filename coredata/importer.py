@@ -695,7 +695,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
         elif not bootstrap:
             # also check that the last day of classes is at a coherent time. Might reveal problems with reading week specification.
             endweek,_ = semester.week_weekday(semester.end, weeks=weeks)
-            if endweek not in [13, 14]:
+            if endweek not in [12, 13, 14]:
                 message = "Semester %s ends in week %i (should be 13 or 14). That's weird. Have a look here to see if things are coherent: %s" % (strm, endweek, url)
                 if verbose:
                     output.append('*** ' + message)
