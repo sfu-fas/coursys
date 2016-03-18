@@ -14,6 +14,8 @@ from submission.models import select_all_components
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
+from courselib.json_fields import JSONField
+from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
 import os, decimal, base64
 
@@ -142,7 +144,7 @@ class ActivityMark(models.Model):
         components = self.get_components()
         total = decimal.Decimal(0)
         for c in components:
-            total += c.value
+            total += c.value or 0
         return (1-self.late_penalty/decimal.Decimal(100)) * \
                (total - self.mark_adjustment)
 
@@ -221,7 +223,13 @@ class ActivityComponentMark(models.Model):
     activity_component = models.ForeignKey(ActivityComponent, null = False)
     value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Mark', null=True, blank=True)
     comment = models.TextField(null = True, max_length=1000, blank=True)
-    
+    config = JSONField(null=False, blank=False, default={})
+        # 'display_raw': Whether the comment should be displayed in a <pre> tag instead of using the
+        # linebreaks filter.  Useful for comments with blocks of code.
+
+    defaults = {'display_raw': False}
+    display_raw, set_display_raw = getter_setter('display_raw')
+
     def __unicode__(self):
         # get the student and the activity
         return "Marking for [%s]" %(self.activity_component,)
@@ -723,6 +731,7 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
         # using the "mark for all groups/users" form.
         the_mark = decimal.Decimal(0)
 
+
         if combine and old_am:
             late_percent = old_am.late_penalty
             mark_penalty = old_am.mark_adjustment
@@ -766,7 +775,7 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
                 except TypeError:
                     raise ValidationError('Invalid base64 file data for "%s"' % (recordid))
                 continue
-            
+
             # handle MarkComponents
             if slug in components and slug not in found_comp_slugs:
                 comp = components[slug]
@@ -798,6 +807,9 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
             if 'comment' in componentdata and save:
                 cm.comment = unicode(componentdata['comment'])
 
+            if 'display_raw' in componentdata and save:
+                cm.set_display_raw(bool(componentdata['display_raw']))
+
         # In the case of combined gradings, we have to get the value from old components to add to it.
         if combine:
             for slug in set(components.keys()) - found_comp_slugs:
@@ -810,6 +822,7 @@ def activity_marks_from_JSON(activity, userid, data, save=False):
                     mark_total += float(old_cm.value)
                     cm.value = old_cm.value
                     cm.comment = old_cm.comment
+                    cm.set_display_raw(old_cm.display_raw())
 
 
         # handle file attachment

@@ -1547,6 +1547,8 @@ def _export_mark_dict(m):
     for c in comps:
         mdict[c.activity_component.slug] = {'mark': c.value}
         mdict[c.activity_component.slug]['comment'] = c.comment
+        if c.display_raw():
+            mdict[c.activity_component.slug]['display_raw'] = True
         
     mdict['late_percent'] = m.late_penalty
     mdict['mark_penalty'] = m.mark_adjustment
@@ -1554,6 +1556,7 @@ def _export_mark_dict(m):
     mdict['overall_comment'] = m.overall_comment
     if m.calculated_mark() != m.mark:
         mdict['the_mark'] = m.mark
+
 
     return mdict
 
