@@ -324,9 +324,11 @@ class Form(models.Model, _FormCoherenceMixin):
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default=dict)  # addition configuration stuff:
         # 'loginprompt': should the "log in with your account" prompt be displayed for non-logged-in? (default True)
+        # 'unlisted':  Form can be filled out, but doesn't show up in the index
 
-    defaults = {'loginprompt': True}
+    defaults = {'loginprompt': True, 'unlisted': False}
     loginprompt, set_loginprompt = getter_setter('loginprompt')
+    unlisted, set_unlisted = getter_setter('unlisted')
 
     def __unicode__(self):
         return u"%s [%s]" % (self.title, self.id)

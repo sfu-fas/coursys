@@ -32,14 +32,16 @@ $(document).ready(function() {
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url "ra.views.search" %}"><i class="fa fa-li fa-money"></i> Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles or 'TAAD' in roles %}<li><a href="{% url "ta.views.all_tugs_admin" %}"><i class="fa fa-li fa-clock-o"></i> Time Use Guidelines</a></li>{% endif %}
 
-    {% if form_groups %}<li class='newsec'><a href="{% url "onlineforms.views.index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>{% endif %}
+    <li class='newsec'><a href="{% url "onlineforms.views.index" %}"><i class="fa fa-li fa-envelope-o"></i> Online Forms</a></li>
     {% if 'TAAD' in roles %}<li><a href="{% url "ta.views.view_postings" %}"><i class="fa fa-li fa-briefcase"></i> TA Job Postings</a></li>{% endif %}
     {% if 'TAAD' in roles %}<li><a href="{% url "tacontracts.views.list_all_semesters" %}"><i class="fa fa-li fa-file-zip-o"></i> TA Contracts</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li><a href="{% url "faculty.views.index" %}"><i class="fa fa-li fa-files-o"></i> Faculty Management</a></li>
-    {% if 'GRAD' in roles or 'GRPD' in roles or 'ADMN' in roles or 'TAAD' in roles %}
-    <li><a href="{% url "visas.views.list_all_visas" %}"><i class="fa fa-li fa-plane"></i> Manage Visas</a></li>
+    {% if 'ADMN' in roles %}
+        <li><a href="{% url "faculty.views.index" %}"><i class="fa fa-li fa-files-o"></i> Faculty Management</a></li>
+        <li><a href="{% url "coredata.views.unit_admin" %}"><i class="fa fa-li fa-gears"></i> Department Management</a></li>
     {% endif %}
-    <li><a href="{% url "coredata.views.unit_admin" %}"><i class="fa fa-li fa-gears"></i> Department Management</a></li>{% endif %}
+    {% if 'GRAD' in roles or 'GRPD' in roles or 'ADMN' in roles or 'TAAD' in roles %}
+        <li><a href="{% url "visas.views.list_all_visas" %}"><i class="fa fa-li fa-plane"></i> Manage Visas</a></li>
+    {% endif %}
     
     {% if has_grads %}<li ><a href="{% url "grad.views.supervisor_index" %}"><i class="fa fa-li fa-group"></i> My Grad Students</a></li>{% endif %}
     {% if has_ras %}<li ><a href="{% url "ra.views.browse" %}"><i class="fa fa-li fa-user-plus"></i> My RAs</a></li>{% endif %}

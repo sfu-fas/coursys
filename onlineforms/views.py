@@ -826,6 +826,7 @@ def index(request):
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
+        forms = [form for form in forms if not form.unlisted()]
         other_forms = []
         sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
                 .exclude(status='DONE').exclude(status='REJE')
@@ -833,7 +834,9 @@ def index(request):
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
+        forms = [form for form in forms if not form.unlisted()]
         other_forms = Form.objects.filter(active=True, initiators='LOG')
+        other_forms = [form for form in other_forms if not form.unlisted()]
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 

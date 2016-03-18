@@ -41,7 +41,12 @@ class EmployeeSearchForm(forms.Form):
 # Manage forms
 class FormForm(ModelForm):
     loginprompt = forms.BooleanField(required=False, initial=True, label='Login prompt',
-        help_text='Should non-logged-in users be prompted to log in? Uncheck this if you expect most users to be external to SFU.')
+                                     help_text='Should non-logged-in users be prompted to log in? Uncheck this if you '
+                                               'expect most users to be external to SFU.')
+    unlisted = forms.BooleanField(required=False, initial=False, label='Unlisted',
+                                  help_text='Should this form be visible in the list of forms everyone can see?  '
+                                            'if this is checked, only people with the direct URL will be able to '
+                                            'fill in this form.')
 
     class Meta:
         model = Form
@@ -53,9 +58,11 @@ class FormForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(FormForm, self).__init__(*args, **kwargs)
         self.initial['loginprompt'] = self.instance.loginprompt()
+        self.initial['unlisted'] = self.instance.unlisted()
 
     def save(self, *args, **kwargs):
         self.instance.set_loginprompt(self.cleaned_data['loginprompt'])
+        self.instance.set_unlisted(self.cleaned_data['unlisted'])
         return super(FormForm, self).save(*args, **kwargs)
 
     # get instance of the FormForm    

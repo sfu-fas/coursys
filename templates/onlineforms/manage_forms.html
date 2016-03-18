@@ -44,7 +44,7 @@
             </thead>
             {% for form in forms %}
                 <tr>
-                    <td><a href="{% url "onlineforms.views.view_form" form_slug=form.slug %}">{{ form.title }}</a></td>
+                    <td><a href="{% url "onlineforms.views.view_form" form_slug=form.slug %}">{{ form.title }}</a>{% if form.unlisted %} (unlisted){% endif %}</td>
                     <td>{{ form.owner|default:"" }}</td>
                     <td>{{ form.get_initiators_display_short }}</td>
                     <td class="miniaction">
