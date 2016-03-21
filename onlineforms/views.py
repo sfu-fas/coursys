@@ -845,7 +845,7 @@ def index(request):
 
 
 is_displayable_sheet_sub = Q(status__in=["DONE","REJE"]) | Q(sheet__is_initial=True)
-def _readonly_sheets(form_submission):
+def _readonly_sheets(form_submission, current_sheetsub=None):
     """
     Collect sheet subs and other info to display this form submission.
     """
@@ -853,6 +853,21 @@ def _readonly_sheets(form_submission):
             .filter(form_submission=form_submission) \
             .filter(is_displayable_sheet_sub) \
             .order_by('completed_at')
+
+    # If we passed in a current sheet submission, we may want to see submissions for a form we were involved in.  Based
+    # on the state of said sheet, we can decide if we want to display only that one sheet + the initial sheet
+    # or every sheet up to that one.
+    if current_sheetsub:
+        # If you could view all sheetsubs at the time you got this one, see everything up to it.
+        if current_sheetsub.sheet.can_view == 'ALL':
+            sheet_submissions = [sheetsub for sheetsub in sheet_submissions if sheetsub.completed_at <=
+                                 current_sheetsub.given_at]
+
+        # Otherwise, sheetsub status was most likely "NON", see only the initial sheet and this one
+            sheet_submissions = [sheetsub for sheetsub in sheet_submissions if sheet_sub.sheet.is_initial or
+                                 sheetsub == current_sheetsub]
+
+
     sheet_sub_html = []
     for sheet_sub in sheet_submissions:
         # get html from field submissions
@@ -1139,8 +1154,10 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             # check if this sheet has already been filled
             if sheet_submission.status in ["DONE", "REJE"]:
                 # TODO: show in display-only mode instead?
-                messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
-                return HttpResponseRedirect(reverse(index))
+                # messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
+                # return HttpResponseRedirect(reverse(index))
+                filled_sheets = _readonly_sheets(form_submission, sheet_submission)
+                sheet = None
 
             # check that they can access this sheet
             formFiller = sheet_submission.filler
@@ -1151,10 +1168,11 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                     else:
                         # not logged in: maybe they really are the filler and we need to know.
                         return login_redirect(request.path)
-            # do we do need to do any checking for non sfu form fillers?
-
-            form = DynamicForm(sheet.title)
-            form.fromFields(sheet.fields, sheet_submission.field_submissions)
+            # do we do need to do any checking for non sfu form fillers?  Only if we don't already have filled_sheets
+            # which would mean that we are now viewing in read_only mode
+            if not filled_sheets:
+                form = DynamicForm(sheet.title)
+                form.fromFields(sheet.fields, sheet_submission.field_submissions)
 
             # populate the field -> fieldSubmission lookup
             for field_submission in sheet_submission.field_submissions:
