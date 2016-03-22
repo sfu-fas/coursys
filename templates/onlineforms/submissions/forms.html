@@ -38,6 +38,13 @@
         {% endif %}
     </ul>
 </div>
+{% elif participated %}
+    <div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    	<li><a href="{% url "onlineforms.views.participated_in" %}">View completed forms in which you participated</a></li>
+    </ul>
+</div>
 {% endif %}
 {% endblock %}
 

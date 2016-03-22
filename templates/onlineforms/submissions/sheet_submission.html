@@ -46,51 +46,53 @@ $(document).ready(function() {
             {% include "onlineforms/admin/view_sheet.html" with formsub_activity=filled_sheets %}
         {% endif %}
 
-        {% if sheet %}
-            <div class="form_container">
-            {% if form.is_multipart %}
-                <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
-            {% else %}
-                <form action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
-            {% endif %}
-            {% csrf_token %}
-            {% if nonSFUFormFillerForm %}
-                <fieldset>
-                    <legend>Your Contact Information</legend>
-                    {% if sheet.form.loginprompt %}
-                    <p>If you have a SFU account, please <a href="{{ LOGIN_URL }}?next={{this_path}}">login</a>. It will be easier for us and you to keep track of your info if you do.</p>
-                    {% endif %}
-                    {{ nonSFUFormFillerForm|as_dl_onlineforms }}
-                    <input type="hidden" name="add-nonsfu" value="True"/>
-                </fieldset>
-            {% endif %}
-            <fieldset>
-                <legend>{{ sheet.title }}</legend>
-                {% if sheet_submission and sheet_submission.assign_comment %}
-                <p class="assign-comment">Comment from {{ sheet_submission.assigner.name }} when assigning sheet: {{ sheet_submission.assign_comment|linebreaksbr }}</p>
+        {% if not readonly %}
+            {% if sheet %}
+                <div class="form_container">
+                {% if form.is_multipart %}
+                    <form enctype="multipart/form-data" action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
+                {% else %}
+                    <form action="{% if alternate_url %}{{alternate_url}}{% endif %}" method="post">
                 {% endif %}
-                {{ form|as_dl_onlineforms }}
-                <input type="submit" name="submit" value="Complete and Submit" class="submit"/>
-                <input type="submit" name="save" value="Save for Later" class="submit"/>
-            </fieldset>
-            </form>
-            {% if sheet_submission %}
-            <form action="{% if sheet_submission.filler.isSFUPerson %}{% url "onlineforms.views.reject_sheet_subsequent" form_slug=sheet.form.slug formsubmit_slug=form_submission.slug sheet_slug=sheet.slug sheetsubmit_slug=sheet_submission.slug %}{% else %}{% url "onlineforms.views.reject_sheet_via_url" secret_url=sheet_submission.get_secret.key %}{% endif %}" method="post">{% csrf_token %}
-            <p>
-           	{% if sheet.is_initial %}
-            <input type="submit" value="Throw away form" class="submit nofloat" />
+                {% csrf_token %}
+                {% if nonSFUFormFillerForm %}
+                    <fieldset>
+                        <legend>Your Contact Information</legend>
+                        {% if sheet.form.loginprompt %}
+                        <p>If you have a SFU account, please <a href="{{ LOGIN_URL }}?next={{this_path}}">login</a>. It will be easier for us and you to keep track of your info if you do.</p>
+                        {% endif %}
+                        {{ nonSFUFormFillerForm|as_dl_onlineforms }}
+                        <input type="hidden" name="add-nonsfu" value="True"/>
+                    </fieldset>
+                {% endif %}
+                <fieldset>
+                    <legend>{{ sheet.title }}</legend>
+                    {% if sheet_submission and sheet_submission.assign_comment %}
+                    <p class="assign-comment">Comment from {{ sheet_submission.assigner.name }} when assigning sheet: {{ sheet_submission.assign_comment|linebreaksbr }}</p>
+                    {% endif %}
+                    {{ form|as_dl_onlineforms }}
+                    <input type="submit" name="submit" value="Complete and Submit" class="submit"/>
+                    <input type="submit" name="save" value="Save for Later" class="submit"/>
+                </fieldset>
+                </form>
+                {% if sheet_submission %}
+                <form action="{% if sheet_submission.filler.isSFUPerson %}{% url "onlineforms.views.reject_sheet_subsequent" form_slug=sheet.form.slug formsubmit_slug=form_submission.slug sheet_slug=sheet.slug sheetsubmit_slug=sheet_submission.slug %}{% else %}{% url "onlineforms.views.reject_sheet_via_url" secret_url=sheet_submission.get_secret.key %}{% endif %}" method="post">{% csrf_token %}
+                <p>
+                {% if sheet.is_initial %}
+                <input type="submit" value="Throw away form" class="submit nofloat" />
+                {% else %}
+                <input type="submit" value="Reject sheet" class="submit nofloat" />
+                <span class="helptext">This will give the form back to the admins and discard your work. Please contact them with more information if necessary.</span>
+                <br/>
+                Reason for rejecting sheet: <input type="text" size="60" name="reject_reason"/>
+                {% endif %}
+                </p>
+                </form>
+                {% endif %}
+                </div>
             {% else %}
-            <input type="submit" value="Reject sheet" class="submit nofloat" />
-            <span class="helptext">This will give the form back to the admins and discard your work. Please contact them with more information if necessary.</span>
-            <br/>
-            Reason for rejecting sheet: <input type="text" size="60" name="reject_reason"/>
+                <p>This form is empty.</p>
             {% endif %}
-            </p>
-            </form>
-            {% endif %}
-            </div>
-        {% else %}
-            <p>This form is empty.</p>
         {% endif %}
     {% endif %}
 

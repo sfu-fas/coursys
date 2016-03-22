@@ -823,15 +823,21 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 def index(request):
     form_groups = None
     sheet_submissions = None
+    participated = None
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
         other_forms = []
         sheet_submissions = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user)) \
-                .exclude(status='DONE').exclude(status='REJE')
+            .exclude(status='DONE').exclude(status='REJE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
+        # If the user is authenticated, see if they have forms that are done in which they participated.
+        participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user),
+                                                      form_submission__status='DONE')\
+            .exclude(form_submission__initiator=_userToFormFiller(loggedin_user)).count() > 0
+
     else:
         forms = Form.objects.filter(active=True, initiators='ANY').order_by('unit__name', 'title')
         forms = [form for form in forms if not form.unlisted()]
@@ -840,8 +846,18 @@ def index(request):
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
+    context = {'forms': forms, 'other_forms': other_forms, 'sheet_submissions': sheet_submissions,
+               'form_groups': form_groups, 'dept_admin': dept_admin, 'participated': participated}
     return render(request, 'onlineforms/submissions/forms.html', context)
+
+
+@login_required()
+def participated_in(request):
+    loggedin_user = get_object_or_404(Person, userid=request.user.username)
+    participated = SheetSubmission.objects.filter(filler=_userToFormFiller(loggedin_user),
+                                                  form_submission__status='DONE')\
+        .exclude(form_submission__initiator=_userToFormFiller(loggedin_user))
+    return render(request, 'onlineforms/submissions/participated.html', {'participated': participated})
 
 
 is_displayable_sheet_sub = Q(status__in=["DONE","REJE"]) | Q(sheet__is_initial=True)
@@ -860,12 +876,13 @@ def _readonly_sheets(form_submission, current_sheetsub=None):
     if current_sheetsub:
         # If you could view all sheetsubs at the time you got this one, see everything up to it.
         if current_sheetsub.sheet.can_view == 'ALL':
+            print current_sheetsub.given_at
             sheet_submissions = [sheetsub for sheetsub in sheet_submissions if sheetsub.completed_at <=
-                                 current_sheetsub.given_at]
+                                 current_sheetsub.given_at or sheetsub == current_sheetsub]
 
-        # Otherwise, sheetsub status was most likely "NON", see only the initial sheet and this one
-            sheet_submissions = [sheetsub for sheetsub in sheet_submissions if sheet_sub.sheet.is_initial or
-                                 sheetsub == current_sheetsub]
+        else:
+        # Otherwise, sheetsub status was "NON", see only this sheet
+            sheet_submissions = [current_sheetsub]
 
 
     sheet_sub_html = []
@@ -1112,6 +1129,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
     with django.db.transaction.atomic():
         owner_form = get_object_or_404(Form, slug=form_slug)
         this_path = request.get_full_path()
+        readonly = False
         
         # if no one can fill out this form, stop right now
         if owner_form.initiators == "NON" and not formsubmit_slug:
@@ -1153,11 +1171,13 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
             sheet = sheet_submission.sheet # revert to the old version that the user was working with.
             # check if this sheet has already been filled
             if sheet_submission.status in ["DONE", "REJE"]:
-                # TODO: show in display-only mode instead?
-                # messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
+                messages.info(request, u'That form sheet has already been completed and submitted. It cannot be edited further.')
                 # return HttpResponseRedirect(reverse(index))
                 filled_sheets = _readonly_sheets(form_submission, sheet_submission)
-                sheet = None
+                # Set correct flags.  Don't set the sheet to None, as we need it in the template for some info.
+                # instead, set the readonly flag.
+                form = None
+                readonly = True
 
             # check that they can access this sheet
             formFiller = sheet_submission.filler
@@ -1179,7 +1199,7 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
                 field_submission_dict[field_submission.field] = field_submission
 
             # get previously filled in sheet's data
-            if sheet.can_view == 'ALL':
+            if sheet.can_view == 'ALL' and not readonly:
                 filled_sheets = _readonly_sheets(form_submission)
         else:
             # make sure we are allowed to initiate this form
@@ -1340,13 +1360,14 @@ def _sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None,
         can_advise = Role.objects.filter(person__userid=request.user.username, role='ADVS').count() > 0
 
         context = {'owner_form': owner_form,
-                    'sheet': sheet,
-                    'form': form,
-                    'form_submission': form_submission,
-                    'sheet_submission': sheet_submission,
-                    'filled_sheets': filled_sheets,
-                    'alternate_url': alternate_url,
-                    'nonSFUFormFillerForm': nonSFUFormFillerForm,
-                    'this_path': this_path,
-                    'can_advise': can_advise}
+                   'sheet': sheet,
+                   'form': form,
+                   'form_submission': form_submission,
+                   'sheet_submission': sheet_submission,
+                   'filled_sheets': filled_sheets,
+                   'alternate_url': alternate_url,
+                   'nonSFUFormFillerForm': nonSFUFormFillerForm,
+                   'this_path': this_path,
+                   'can_advise': can_advise,
+                   'readonly': readonly}
         return render(request, 'onlineforms/submissions/sheet_submission.html', context)

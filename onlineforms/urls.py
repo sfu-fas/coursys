@@ -43,6 +43,7 @@ forms_patterns = [
     url(r'^manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/field-' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
 
     url(r'^$', 'onlineforms.views.index'),
+    url(r'^participated/$', 'onlineforms.views.participated_in'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
     url(r'^view/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + '(?P<action>\w+)/' + '(?P<file_id>\d+)/$', 'onlineforms.views.file_field_download'),
     url(r'^' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission_initial'),
