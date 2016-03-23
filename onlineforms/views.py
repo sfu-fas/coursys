@@ -876,9 +876,8 @@ def _readonly_sheets(form_submission, current_sheetsub=None):
     if current_sheetsub:
         # If you could view all sheetsubs at the time you got this one, see everything up to it.
         if current_sheetsub.sheet.can_view == 'ALL':
-            print current_sheetsub.given_at
             sheet_submissions = [sheetsub for sheetsub in sheet_submissions if sheetsub.completed_at <=
-                                 current_sheetsub.given_at or sheetsub == current_sheetsub]
+                                 current_sheetsub.given_at or sheetsub == current_sheetsub or sheetsub.sheet.is_initial]
 
         else:
         # Otherwise, sheetsub status was "NON", see only this sheet
