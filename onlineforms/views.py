@@ -942,8 +942,20 @@ def _formsubmission_find_and_authz(request, form_slug, formsubmit_slug, file_id=
                     given_at__gte=sheetsub.completed_at,
                     sheet__can_view='ALL')
 
-            if later_sheets:
-                # this is the filler of a later sheet who can view the other parts
+            # Another edge case:  The sheetsub with the files is the initial sheet, but it got modified later on,
+            # so its completed date is later than the sheet we are using.  If this is the initial sheet, and the
+            # user has filled in any other sheets for this form where they could see all, let them get to the file
+            # as well.
+            filled_sheets_by_user = None
+            if sheetsub.sheet.is_initial:
+                filled_sheets_by_user = \
+                    SheetSubmission.objects.filter(form_submission=formsub,
+                                                   filler__sfuFormFiller__userid=request.user.username,
+                                                   sheet__can_view='ALL')
+
+            if later_sheets or filled_sheets_by_user:
+                # this is the filler of a later sheet who can view the other parts or this is the initial sheet and
+                # this filler has filled other sheets and can view other parts.
                 form_submissions = [formsub]
 
     if not form_submissions:
