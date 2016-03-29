@@ -143,7 +143,7 @@ NOSE_ARGS = ['--exe',
             '--exclude=(test_views|basic_page_tests|get_test_file|test_auth|create_test_offering|field_test)']
 
 # security-related settings
-ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca'])
+ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca'])
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 X_FRAME_OPTIONS = 'DENY'
