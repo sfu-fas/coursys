@@ -393,7 +393,8 @@ class GradStudent(models.Model, ConditionalSaveMixin):
             active_statuses = [status for status in all_gs if status.status=='ACTI']
             confirmed_statuses = [status for status in all_gs if status.status=='CONF']
             offered_statuses = [status for status in all_gs if status.status=='OFFO']
-            application_statuses = [status for status in all_gs if status.status=='COMP']
+            completed_application_statuses = [status for status in all_gs if status.status=='COMP']
+            rejected_application_statuses = [status for status in all_gs if status.status=='REJE']
 
             if len(active_statuses) > 0:
                 self.start_semester = active_statuses[0].start
@@ -401,8 +402,10 @@ class GradStudent(models.Model, ConditionalSaveMixin):
                 self.start_semester = confirmed_statuses[-1].start
             elif len(offered_statuses) > 0:
                 self.start_semester = offered_statuses[-1].start
-            elif len(application_statuses) > 0:
-                self.start_semester = application_statuses[-1].start
+            elif len(completed_application_statuses) > 0:
+                self.start_semester = completed_application_statuses[-1].start
+            elif len(rejected_application_statuses) > 0:
+                self.start_semester = rejected_application_statuses[-1].start
 
         # end_semester
         # Modified to ignore the cases where people had 'end_semester': None in their config.
