@@ -314,7 +314,7 @@ class ProgramStatusChange(GradHappening):
         Find/update GradStatus object for this happening
         """
         # don't manage for CMPT, except completed application status for recent applicants
-        if self.unit.slug == 'cmpt' and (self.status not in ['COMP'] or self.admit_term < CMPT_CUTOFF):
+        if self.unit.slug == 'cmpt' and (self.status not in ['COMP', 'REJE'] or self.admit_term < CMPT_CUTOFF):
             return
 
         statuses = student_info['statuses']
