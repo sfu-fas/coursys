@@ -371,7 +371,11 @@ class CareerEvent(models.Model):
         ls = dict(ls.items() + config_data.items())
         return ls
 
+    def has_memos(self):
+        return Memo.objects.filter(career_event=self, hidden=False).count() > 0
 
+    def has_attachments(self):
+        return DocumentAttachment.objects.filter(career_event=self, hidden=False).count() > 0
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
