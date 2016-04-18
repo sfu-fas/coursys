@@ -787,6 +787,8 @@ class Position(models.Model):
     position_number = models.CharField(max_length=8)
     rank = models.CharField(choices=RANK_CHOICES, max_length=50, null=True, blank=True)
     step = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True,
+                                     help_text='Percentage of this position in the given unit', default=100)
     base_salary = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     add_salary = models.DecimalField(decimal_places=2, max_digits=10,  null=True, blank=True)
     add_pay = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)

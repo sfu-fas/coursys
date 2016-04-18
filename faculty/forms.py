@@ -297,7 +297,7 @@ class PositionForm(forms.ModelForm):
     step = forms.DecimalField(max_digits=3, decimal_places=1, required=False)
 
     class Meta:
-        fields = ['title', 'projected_start_date', 'unit', 'position_number', 'rank', 'step',
+        fields = ['title', 'projected_start_date', 'unit', 'position_number', 'percentage', 'rank', 'step',
                   'base_salary', 'add_salary', 'add_pay']
         model = Position
         widgets = {
