@@ -11,10 +11,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='report',
-            name='alert',
-        ),
+        #migrations.RemoveField(
+        #    model_name='report',
+        #    name='alert',
+        #),
         migrations.AlterField(
             model_name='hardcodedreport',
             name='file_location',

@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                 ('config', courselib.json_fields.JSONField(default={})),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('slug', autoslug.fields.AutoSlugField(unique=True, editable=False)),
-                ('alert', models.ForeignKey(to='alerts.AlertType', null=True)),
+                #('alert', models.ForeignKey(to='alerts.AlertType', null=True)),
             ],
             options={
             },
