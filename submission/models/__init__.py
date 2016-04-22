@@ -23,8 +23,9 @@ from image import Image
 from office import Office
 from codefile import Codefile
 from gittag import GitTag
+from text import Text
 
-ALL_TYPE_CLASSES = [Archive, Code, Codefile, GitTag, Image, Office, PDF, URL, Word]
+ALL_TYPE_CLASSES = [Archive, Code, Codefile, GitTag, Image, Office, PDF, Text, URL, Word]
 
 def find_type_by_label(label):
     """
