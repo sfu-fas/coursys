@@ -6,8 +6,9 @@ from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug
 from courselib.search import find_member, find_userid_or_emplid
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
-from submission.models import StudentSubmission, GroupSubmission, get_current_submission, select_all_components, \
-    get_submission_components, get_component, find_type_by_label, generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES
+from submission.models import StudentSubmission, GroupSubmission, get_current_submission, get_all_submissions
+from submission.models import select_all_components, get_submission_components, get_component, find_type_by_label
+from submission.models import generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES, SubmissionComponent
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from marking.views import marking_student, marking_group
@@ -46,13 +47,19 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     activity = get_object_or_404(course.activity_set,slug=activity_slug, deleted=False)
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     cansubmit = True
-
-    submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
-    if len(submitted_components) == 0:
+    submission_configured = SubmissionComponent.objects.filter(activity_id=activity.id).exists()
+    if not submission_configured:
         return NotFoundResponse(request)
 
-    if submission and activity.due_date and activity.due_date < submission.created_at:
-        late = submission.created_at - activity.due_date
+    # type of submissions: [(Submission, [SubmittedComponent|None]), ...]
+    if activity.multisubmit():
+        submissions = get_all_submissions(student, activity, include_deleted=staff)
+    else:
+        submissions = [get_current_submission(student, activity, include_deleted=staff)]
+    any_submissions = submissions and submissions[0][0] is not None
+
+    if any_submissions and activity.due_date and activity.due_date < submissions[0][0].created_at:
+        late = submissions[0][0].created_at - activity.due_date
     else:
         late = 0
     
@@ -63,8 +70,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             member = gm[0].student
         else:
             group = None
-            #cansubmit = False
-            #messages.add_message(request, messages.INFO, "This is a group submission. You cannot submit since you aren't in a group.")
+
     else:
         group = None
 
@@ -74,7 +80,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     if not cansubmit:
         messages.add_message(request, messages.ERROR, "This activity is not submittable.")
         return render(request, "submission/" + template,
-        {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components,
+        {"course":course, "activity":activity, "submissions": submissions, 'any_submissions': any_submissions,
          "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit})
 
     # get all components of activity
@@ -122,8 +128,11 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         while not all_ok:
             all_ok = True
             d = {}
-            for c,s in submitted_components:
-                d[c] = s and s.get_filename()
+            if not activity.multisubmit():
+                # single-submit logic: don't want to overrite filenames from earlier submissions that are still in-play
+                for c,s in submissions[0][1]:
+                    d[c] = s and s.get_filename()
+            # filenames from this submission
             for s in submitted_comp:
                 d[s.component] = s.get_filename()
             # a list holding all file names
@@ -174,9 +183,9 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         
         component_form_list = make_form_from_list(component_list)
         return render(request, "submission/" + template,
-        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission,
-         "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group,
-         "cansubmit":cansubmit, "is_staff":staff})
+        {'component_form_list': component_form_list, "course": course, "activity": activity, "submissions": submissions,
+         "userid":userid, "late":late, "student":student, "group":group,
+         "cansubmit":cansubmit, "is_staff":staff, 'any_submissions': any_submissions})
 
 @requires_course_by_slug
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):

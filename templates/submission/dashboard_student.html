@@ -7,11 +7,11 @@
 
 
 {% block actions %}
-{% if submission %}
+{% if any_submissions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        {% if submission %}
+        {% if any_submissions %}
         <li><a href="{% url "submission.views.show_components_submission_history" course_slug=course.slug activity_slug=activity.slug %}">View Submission History</a></li>
         <li><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug userid=userid %}">Download Current Submission</a></li>
         {% endif %}
@@ -22,8 +22,6 @@
 
 
 {% block content%}
-
-        <div class="table_container">
         <table class="info">
             {% block studentinfo %}{% if activity.group %}<tr><th scope="row">Last Submitter:</th><td>{{student.name}}</td></tr>{% endif %}{% endblock %}
             {% if activity.group %}
@@ -43,11 +41,10 @@
             {% if late %}
             <tr id="late_for">
                 <th scope="row">Late for:</th>
-                <td style="color:red">{{activity.due_date|timesince:submission.created_at}}</td>
+                <td class="warningmessage">{{activity.due_date|timesince:submission.created_at}}</td>
             </tr>
             {% endif %}
         </table>
-        </div>
 
         {% if cansubmit %}
         {% if not is_staff %}
@@ -78,9 +75,9 @@
         {% endif %}
         {% endif %}
 
-        {% if submitted_components %}<h2 id="submitted">Current Submission</h2>
+        {% if submissions %}<h2 id="submitted">Current Submission</h2>
         {# <!-- pair<component, its latest submission> --> #}
-        {% for pair in submitted_components %}
+        {% for pair in submissions.0.1 %}
         <h3>{{pair.0.title}}</h3>
 
         {% ifequal pair.1 None %}

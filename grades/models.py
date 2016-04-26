@@ -90,15 +90,17 @@ class Activity(models.Model):
         # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
         # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
         # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
+        # a.config['multisubmit'] (boolean, default False): Use the "submit many times" behaviour?
         # TODO: showformula not actually implemented yet
     
     offering = models.ForeignKey(CourseOffering)
     
-    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False}
+    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False, 'multisubmit': False}
     url, set_url = getter_setter('url')
     showstats, set_showstats = getter_setter('showstats')
     showhisto, set_showhisto = getter_setter('showhisto')
     showformula, set_showformula = getter_setter('showformula')
+    multisubmit, set_multisubmit = getter_setter('multisubmit')
 
     def __unicode__(self):
         return u"%s - %s" % (self.offering, self.name)
