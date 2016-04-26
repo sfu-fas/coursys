@@ -394,6 +394,42 @@ class AnyPerson(models.Model):
         return self.get_person().name()
 
     @classmethod
+    def get_or_create_for(cls, person=None, role_account=None, future_person=None):
+        """
+        A method to either return (if one exists) or create an AnyPerson based on the possible
+        parameters.  Only exactly one of these parameters should get passed in.  
+        """
+        if person:
+            if role_account or future_person:
+                raise ValidationError('More than one argument given.')
+            if AnyPerson.objects.filter(person=person).exists():
+                return AnyPerson.objects.filter(person=person)[0]
+            else:
+                anyperson = AnyPerson(person=person)
+                anyperson.save()
+                return anyperson
+        elif role_account:
+            if person or future_person:
+                raise ValidationError('More than one argument given.')
+            if AnyPerson.objects.filter(role_account=role_account).exists():
+                return AnyPerson.objects.filter(role_account=role_account)[0]
+            else:
+                anyperson = AnyPerson(role_account=role_account)
+                anyperson.save()
+                return anyperson
+        elif future_person:
+            if person or role_account:
+                raise ValidationError('More than one argument given.')
+            if AnyPerson.objects.filter(future_person=future_person).exists():
+                return AnyPerson.objects.filter(future_person=future_person)[0]
+            else:
+                anyperson = AnyPerson(future_person=future_person)
+                anyperson.save()
+                return anyperson
+        else:
+            raise ValidationError('You must supply exactly one of the three possible arguments')
+
+    @classmethod
     def delete_empty_anypersons(cls):
         """
         When deleting FuturePersons/Role_Accounts, we may end up with AnyPersons that no longer have any foreign
