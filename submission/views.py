@@ -6,9 +6,9 @@ from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug
 from courselib.search import find_member, find_userid_or_emplid
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
-from submission.models import StudentSubmission, GroupSubmission, get_all_submissions
+from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label
-from submission.models import generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES, SubmissionComponent
+from submission.models import generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from marking.views import marking_student, marking_group
@@ -131,7 +131,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             d = {}
             if not activity.multisubmit():
                 # single-submit logic: don't want to overrite filenames from earlier submissions that are still in-play
-                for c,s in submissions[0][1]:
+                for c,s in submission_info.components_and_submitted():
                     d[c] = s and s.get_filename()
             # filenames from this submission
             for s in submitted_comp:
