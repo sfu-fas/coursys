@@ -40,7 +40,7 @@ from marking.models import get_group_mark, StudentActivityMark, GroupActivityMar
 
 from groups.models import GroupMember, add_activity_to_group
 
-from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
+from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, SubmissionInfo, select_all_submitted_components, select_all_components
 
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
@@ -1362,8 +1362,8 @@ def student_info(request, course_slug, userid):
             info['grade'] = None
 
         # find most recent submission
-        sub, _ = get_current_submission(member.person, a)
-        info['sub'] = sub
+        sub_info = SubmissionInfo(member.person, a)
+        info['sub'] = sub_info.have_submitted()
 
         grade_info.append(info)
         

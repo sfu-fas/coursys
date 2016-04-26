@@ -79,7 +79,8 @@ def get_component(**kwargs):
             return res[0]
 
     return None
-        
+
+
 def get_submitted_component(**kwargs):
     """
     Find the submitted component (with the most specific type).  Returns None if doesn't exist.
@@ -95,7 +96,70 @@ def get_submitted_component(**kwargs):
     return None
 
 
-def get_submission_components(submission, activity, component_list=None, include_deleted=False):
+class SubmissionInfo(object):
+    """
+    Collection of information about a student's/group's submission.
+
+    self.components and self.submitted_components will always correspond, so can be zipped.
+    """
+    def __init__(self, student, activity, include_deleted=False):
+        self.include_deleted = include_deleted
+        self.activity = activity
+        self.student = student
+        assert isinstance(student, Person)
+
+        self.components = None
+
+        if self.activity.group:
+            gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
+            self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
+        else:
+            self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
+
+        self.submissions = self.submissions.order_by('-created_at')
+
+    def have_submitted(self):
+        return self.submissions.exists()
+
+    def latest(self):
+        return self.submissions[0]
+
+    def components_and_submitted(self):
+        self.ensure_components()
+        assert self.submitted_components is not None
+        return zip(self.components, self.submitted_components)
+
+    def ensure_components(self):
+        """
+        Make sure self.component_list is populated.
+        """
+        if self.components:
+            return
+        self.components = select_all_components(self.activity, include_deleted=self.include_deleted)
+
+    def get_most_recent_components(self):
+        """
+        Build self.submitted_components by taking the most-recently-submitted for each component.
+        Relevant to single-submit behaviour.
+        """
+        self.ensure_components()
+
+        submitted_components = []
+        for component in self.components:
+            SubmittedComponent = component.Type.SubmittedComponent
+            submits = SubmittedComponent.objects.filter(component=component, submission__in=self.submissions).order_by('-submit_time')
+            if submits:
+                sub = submits[0]
+            else:
+                # this component has never been submitted
+                sub = None
+            submitted_components.append(sub)
+
+        self.submitted_components = submitted_components
+
+
+
+def XXXget_submission_components(submission, activity, component_list=None, include_deleted=False):
     """
     return a list of pair[component, latest_submission(could be None)] for specific submission
     """
@@ -117,7 +181,7 @@ def get_submission_components(submission, activity, component_list=None, include
         submitted_components.append((component, sub))
     return submitted_components
 
-def get_all_submission_components(submission, activity, component_list=None, include_deleted=False):
+def XXXget_all_submission_components(submission, activity, component_list=None, include_deleted=False):
     """
     return a list of pair[component, latest_submission(could be None)] for all submissions
     """
@@ -144,7 +208,7 @@ def get_all_submission_components(submission, activity, component_list=None, inc
         submitted_components.append((component, sub))
     return submitted_components
 
-def get_current_submission(student, activity, include_deleted=False):
+def XXXget_current_submission(student, activity, include_deleted=False):
     """
     return most recent submission (individual or group) and compilation of valid components
     """
@@ -161,13 +225,11 @@ def get_current_submission(student, activity, include_deleted=False):
         submitted_components = get_all_submission_components(None, activity, include_deleted=include_deleted)
         return None, submitted_components
 
-def get_all_submissions(student, activity, include_deleted=False):
+def XXXget_all_submissions(student, activity, include_deleted=False):
     """
     Return all submissions (individual or group) and compilation of valid components,
     as a list of (submission, components) values.
     """
-    return [get_current_submission(student, activity, include_deleted=False)] # temporarily punt
-
     if activity.group:
         gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
         submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
@@ -176,6 +238,7 @@ def get_all_submissions(student, activity, include_deleted=False):
 
     submissions = submissions.order_by('-created_at')
     results = []
+    submitted_components = get_all_submission_components(submissions, activity, include_deleted=include_deleted)
 
     return results
 
