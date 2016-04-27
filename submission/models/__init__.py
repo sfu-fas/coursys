@@ -314,7 +314,7 @@ class SubmissionInfo(object):
         os.close(handle)
 
         z = zipfile.ZipFile(filename, 'w')
-        self._generate_submission_contents(self, z, prefix='')
+        self.generate_submission_contents(z, prefix='')
         z.close()
 
         file = open(filename, 'rb')
@@ -349,17 +349,16 @@ class SubmissionInfo(object):
             zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
                           (created_at, created_at - activity.due_date, activity.due_date))
 
-    @staticmethod
-    def _generate_submission_contents(submission_info, z, prefix=''):
+    def generate_submission_contents(self, z, prefix='', always_summary=True):
         """
         Assemble submissions and put in ZIP file.
         """
-        submission_info.ensure_components()
-        assert submission_info.submissions is not None
-        assert submission_info.all_submitted_components is not None
+        self.ensure_components()
+        assert self.submissions is not None
+        assert self.all_submitted_components is not None
 
         from submission.models.gittag import GitTagComponent
-        any_git_tags = any(isinstance(c, GitTagComponent) for c in submission_info.components)
+        any_git_tags = any(isinstance(c, GitTagComponent) for c in self.components)
         git_tags = []
 
         # Collect all of the SubmittedComponents that we need to output
@@ -367,7 +366,7 @@ class SubmissionInfo(object):
         found = set()  # (student|group, SubmissionComponent) pairs we have already included
         individual_subcomps = {}  # student|group: [(SubmissionComponent, SubmittedComponent)]
         last_submission = {}  # student|group: final Submission
-        for sub, subcomps in submission_info.submissions_and_components():
+        for sub, subcomps in self.submissions_and_components():
             slug = sub.file_slug()
             for comp, sc in subcomps:
                 key = (slug, comp.slug)
@@ -387,22 +386,23 @@ class SubmissionInfo(object):
         # Now add them to the ZIP
         for slug, subcomps in individual_subcomps.iteritems():
             lastsub = last_submission[slug]
-            submission_info._add_to_zip(z, submission_info.activity, subcomps, lastsub.created_at,
+            self._add_to_zip(z, self.activity, subcomps, lastsub.created_at,
                     slug=lastsub.file_slug(), prefix=prefix + slug)
 
             git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in subcomps if
                             isinstance(comp, GitTagComponent) and sub)
 
         # produce summary of submission datetimes
-        slugs = last_submission.keys()
-        slugs.sort()
-        summarybuffer = StringIO.StringIO()
-        summarycsv = csv.writer(summarybuffer)
-        summarycsv.writerow([Person.userid_header(), "Last Submission"])
-        for s in slugs:
-            summarycsv.writerow([s, last_submission[s].created_at.strftime("%Y/%m/%d %H:%M:%S")])
-        z.writestr(prefix + "summary.csv", summarybuffer.getvalue())
-        summarybuffer.close()
+        if found or always_summary:
+            slugs = last_submission.keys()
+            slugs.sort()
+            summarybuffer = StringIO.StringIO()
+            summarycsv = csv.writer(summarybuffer)
+            summarycsv.writerow([Person.userid_header(), "Last Submission"])
+            for s in slugs:
+                summarycsv.writerow([s, last_submission[s].created_at.strftime("%Y/%m/%d %H:%M:%S")])
+            z.writestr(prefix + "summary.csv", summarybuffer.getvalue())
+            summarybuffer.close()
 
         # produce git clone-all script
         if any_git_tags:

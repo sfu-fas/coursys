@@ -1401,7 +1401,7 @@ def export_all(request, course_slug):
     from django.http import StreamingHttpResponse
     from django.core.servers.basehttp import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
-    from submission.models import generate_submission_contents
+    from submission.models import SubmissionInfo
     from discuss.models import DiscussionTopic
 
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1429,8 +1429,9 @@ def export_all(request, course_slug):
     # add submissions
     acts = all_activities_filter(course)
     for a in acts:
-        if SubmissionComponent.objects.filter(activity_id=a.id):
-            generate_submission_contents(a, z, prefix=a.slug+'-submissions' + os.sep)
+        submission_info = SubmissionInfo.for_activity(a)
+        submission_info.get_all_components()
+        submission_info.generate_submission_contents(z, prefix=a.slug+'-submissions' + os.sep, always_summary=False)
 
     # add discussion
     if course.discussion():
