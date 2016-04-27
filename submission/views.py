@@ -8,7 +8,7 @@ from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
 from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label
-from submission.models import generate_activity_zip, generate_zip_file, ALL_TYPE_CLASSES
+from submission.models import generate_activity_zip, ALL_TYPE_CLASSES
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from marking.views import marking_student, marking_group
@@ -333,14 +333,6 @@ def add_component(request, course_slug, activity_slug):
     return render(request, "submission/component_add.html",
         {"course":course, "activity":activity, "form":form, "type":Type, "types": type_classes})
 
-def get_submission(submission_id):
-    try:
-        return StudentSubmission.objects.get(id=submission_id)
-    except StudentSubmission.DoesNotExist:
-        try:
-            return GroupSubmission.objects.get(id=submission_id)
-        except GroupSubmission.DoesNotExist:
-            return None
 
 @requires_course_by_slug
 @uses_feature('submit-get')
@@ -350,47 +342,46 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     staff = False
     if is_course_staff_by_slug(request, course_slug):
         staff = True
-    
+
     # find the appropriate submission object
     if submission_id:
         # explicit request: get that one.
-        submission = get_submission(submission_id)
-        if not submission or submission.activity!=activity:
-            return NotFoundResponse(request)
-        submitted_components = get_submission_components(submission, activity, include_deleted=staff)
-
+        submission_info = SubmissionInfo.from_submission_id(submission_id)
     elif userid:
         # userid specified: get their most recent submission
         student = get_object_or_404(Person, find_userid_or_emplid(userid))
-        submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
-        if not submission:
-            return NotFoundResponse(request)
-    
+        submission_info = SubmissionInfo(student=student, activity=activity, include_deleted=staff)
+        submission_info.get_most_recent_components()
     else:
+        return NotFoundResponse(request)
+
+    if not submission_info.have_submitted() or submission_info.activity != activity:
         return NotFoundResponse(request)
 
     # make sure this user is allowed to see the file
     if staff:
         pass
-    elif isinstance(submission, GroupSubmission):
-        membership = submission.group.groupmember_set.filter(student__person__userid=request.user.username, activity=activity, confirmed=True)
+    elif submission_info.is_group:
+        membership = submission_info.submissions[0].group.groupmember_set.filter(student__person__userid=request.user.username, activity=activity, confirmed=True)
         if not membership:
             return ForbiddenResponse(request)
-    elif isinstance(submission, StudentSubmission):
-        if submission.member.person.userid != request.user.username:
+    elif not submission_info.is_group:
+        if submission_info.submissions[0].member.person.userid != request.user.username:
             return ForbiddenResponse(request)
 
     # create the result
     if component_slug:
         # download single component if specified
         # get the actual component: already did the searching above, so just look in that list
-        components = [sub for comp,sub in submitted_components if sub and sub.component.slug==component_slug]
-        if not components:
+        submitted_components = [subcomp for comp, subcomp in submission_info.components_and_submitted() if subcomp and comp.slug == component_slug]
+        if not submitted_components:
             return NotFoundResponse(request)
-        return components[0].download_response(slug=submission.file_slug())
+
+        submitted_component = submitted_components[0]
+        return submitted_component.download_response(slug=submission_info.submissions[0].file_slug())
     else:
         # no component specified: give back the full ZIP file.
-        return generate_zip_file(submission, submitted_components)
+        return submission_info.generate_zip_file()
 
 @requires_course_staff_by_slug
 @uses_feature('submit-get')

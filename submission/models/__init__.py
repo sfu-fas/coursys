@@ -102,29 +102,64 @@ class SubmissionInfo(object):
 
     self.components and self.submitted_components will always correspond, so can be zipped.
     """
-    def __init__(self, student, activity, include_deleted=False):
+    def __init__(self, activity, student=None, include_deleted=False):
         self.include_deleted = include_deleted
         self.activity = activity
         self.student = student
-        assert isinstance(student, Person)
+        assert student is None or isinstance(student, Person)
 
         self.components = None
+        self.submissions = None
 
-        if self.activity.group:
-            gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
-            self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
+        if student:
+            if self.activity.group:
+                gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
+                self.is_group = True
+                self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
+            else:
+                self.is_group = False
+                self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
+
+            self.submissions = self.submissions.order_by('-created_at')
+
+
+    @classmethod
+    def from_submission_id(cls, submission_id):
+        submission, is_group = cls._get_submission(submission_id)
+        activity = submission.activity
+        si = cls(activity=activity)
+        if submission:
+            si.submissions = [submission]
         else:
-            self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
+            si.submissions = []
 
-        self.submissions = self.submissions.order_by('-created_at')
+        si.is_group = is_group
+        si.get_most_recent_components()
+
+        return si
+
+
+    @staticmethod
+    def _get_submission(submission_id):
+        try:
+            return StudentSubmission.objects.get(id=submission_id), False
+        except StudentSubmission.DoesNotExist:
+            try:
+                return GroupSubmission.objects.get(id=submission_id), True
+            except GroupSubmission.DoesNotExist:
+                return None, None
+
 
     def have_submitted(self):
-        return self.submissions.exists()
+        return bool(self.submissions)
 
     def latest(self):
         return self.submissions[0]
 
     def components_and_submitted(self):
+        """
+        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs
+        """
         self.ensure_components()
         assert self.submitted_components is not None
         return zip(self.components, self.submitted_components)
@@ -157,90 +192,51 @@ class SubmissionInfo(object):
 
         self.submitted_components = submitted_components
 
+    def generate_zip_file(self):
+        self.ensure_components()
+        assert self.submissions
+        assert self.submitted_components is not None
 
+        handle, filename = tempfile.mkstemp('.zip')
+        os.close(handle)
+        z = zipfile.ZipFile(filename, 'w')
 
-def XXXget_submission_components(submission, activity, component_list=None, include_deleted=False):
-    """
-    return a list of pair[component, latest_submission(could be None)] for specific submission
-    """
-    if not component_list:
-        component_list = select_all_components(activity, include_deleted=include_deleted)
+        self._add_to_zip(z, self.activity, self.components_and_submitted(), self.submissions[0].created_at, slug=self.submissions[0].file_slug())
 
-    submitted_components = []
-    for component in component_list:
-        if submission:
-            SubmittedComponent = component.Type.SubmittedComponent
-            submits = SubmittedComponent.objects.filter(component=component, submission=submission)
-            if submits:
-                sub = submits[0]
-            else:
-                # this component didn't get submitted
-                sub = None
-        else:
-            sub = None
-        submitted_components.append((component, sub))
-    return submitted_components
+        z.close()
 
-def XXXget_all_submission_components(submission, activity, component_list=None, include_deleted=False):
-    """
-    return a list of pair[component, latest_submission(could be None)] for all submissions
-    """
-    if not component_list:
-        component_list = select_all_components(activity, include_deleted=include_deleted)
-    
-    submitted_components = []
-    for component in component_list:
-        # find most recent submission for this component
-        if submission:
-            SubmittedComponent = component.Type.SubmittedComponent
-            submits_all = SubmittedComponent.objects.filter(component=component)
-            submits = []
-            for s in submission:
-                submits.extend(submits_all.filter(submission=s))
-            if len(submits) > 0:
-                submits.sort()
-                sub = submits[0]
-            else:
-                # this component didn't get submitted
-                sub = None
-        else:
-            sub = None
-        submitted_components.append((component, sub))
-    return submitted_components
+        file = open(filename, 'rb')
+        response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="%s_%s.zip"' % (
+                self.submissions[0].file_slug(), self.activity.slug)
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
+        return response
 
-def XXXget_current_submission(student, activity, include_deleted=False):
-    """
-    return most recent submission (individual or group) and compilation of valid components
-    """
-    if activity.group:
-        gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
-        submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
-    else:
-        submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
+    @staticmethod
+    def _add_to_zip(zipf, activity, components_and_submitted, created_at, prefix='', slug=None):
+        for component, subcomp in components_and_submitted:
+            if subcomp:
+                try:
+                    subcomp.add_to_zip(zipf, prefix=prefix, slug=slug)
+                except OSError as e:
+                    if e.errno == errno.ENOENT:
+                        # Missing file? How did that come up once in five years?
+                        fn = os.path.join(prefix, "MISSING_FILE.txt")
+                        zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
+                                          "Please email coursys-help@sfu.ca and ask us to help track it down."
+                                      % (subcomp.get_filename()))
+                    else:
+                        raise
 
-    if len(submissions) > 0:
-        submitted_components = get_all_submission_components(submissions, activity, include_deleted=include_deleted)
-        return submissions.latest('created_at'), submitted_components
-    else:
-        submitted_components = get_all_submission_components(None, activity, include_deleted=include_deleted)
-        return None, submitted_components
+        # add lateness note
+        if activity.due_date and created_at > activity.due_date:
+            fn = os.path.join(prefix, "LATE.txt")
+            zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
+                          (created_at, created_at - activity.due_date, activity.due_date))
 
-def XXXget_all_submissions(student, activity, include_deleted=False):
-    """
-    Return all submissions (individual or group) and compilation of valid components,
-    as a list of (submission, components) values.
-    """
-    if activity.group:
-        gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
-        submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
-    else:
-        submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
-
-    submissions = submissions.order_by('-created_at')
-    results = []
-    submitted_components = get_all_submission_components(submissions, activity, include_deleted=include_deleted)
-
-    return results
 
 def get_submit_time_and_owner(activity, pair_list):
     """
@@ -265,29 +261,7 @@ def get_submit_time_and_owner(activity, pair_list):
         late = submit_time - activity.due_date
     return late, submit_time, owner
 
-def _add_submission_to_zip(zipf, submission, components, prefix="", slug=None):
-    """
-    Add this submission to the zip file, with associated components.
-    """
-    for component, sub in components:
-        if sub:
-            try:
-                sub.add_to_zip(zipf, prefix=prefix, slug=slug)
-            except OSError as e:
-                if e.errno == errno.ENOENT:
-                    # Missing file? How did that come up once in five years?
-                    fn = os.path.join(prefix, "MISSING_FILE.txt")
-                    zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
-                                      "Please email coursys-help@sfu.ca and ask us to help track it down."
-                                      % (sub.get_filename()))
-                else:
-                    raise
 
-    # add lateness note
-    if submission.activity.due_date and submission.created_at > submission.activity.due_date:
-        fn = os.path.join(prefix, "LATE.txt")
-        zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
-            (submission.created_at, submission.created_at - submission.activity.due_date, submission.activity.due_date))
 
 def generate_submission_contents(activity, z, prefix=''):
     """
@@ -368,25 +342,3 @@ def generate_activity_zip(activity, prefix=''):
     except OSError:
         pass
     return response
-
-def generate_zip_file(submission, submitted_components):
-    """
-    return a zip file containing latest submission from userid for activity
-    """
-    handle, filename = tempfile.mkstemp('.zip')
-    os.close(handle)
-    z = zipfile.ZipFile(filename, 'w')
-    
-    _add_submission_to_zip(z, submission, submitted_components, slug=submission.file_slug())
-
-    z.close()
-
-    file = open(filename, 'rb')
-    response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
-    response['Content-Disposition'] = 'attachment; filename="%s_%s.zip"' % (submission.file_slug(), submission.activity.slug)
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
-    return response
-
