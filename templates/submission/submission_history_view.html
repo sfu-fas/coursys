@@ -12,6 +12,9 @@
 
 
 {% block content %}
+{% if submission_info.is_group %}
+<p class="infomessage">This is a group activity. This history is based on submissions from all group members.</p>
+{% endif %}
 
     {% for submission, subcomps in submission_info.submissions_and_components %}
     <h2 id="submission-{{ submission.id }}">Submission at {{submission.created_at|date:"Y-m-d H:i:s"}}

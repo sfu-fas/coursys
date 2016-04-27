@@ -51,6 +51,9 @@
             <p class="infomessage">You need to <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
             {% else %}
         <h2 id="submit">Make a Submission</h2>
+            {% if submission_info.is_group and group %}
+            <p class="infomessage">This is a group activity. You will submit on behalf of the group &ldquo;{{ group }}&rdquo;.</p>
+            {% endif %}
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
                     {% for data in component_form_list %}
                         <fieldset>

@@ -7,8 +7,7 @@ from courselib.search import find_member, find_userid_or_emplid
 from submission.forms import make_form_from_list
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import StudentSubmission, GroupSubmission, SubmissionComponent
-from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label
-from submission.models import generate_activity_zip, ALL_TYPE_CLASSES
+from submission.models import select_all_components, SubmissionInfo, get_component, find_type_by_label, ALL_TYPE_CLASSES
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from marking.views import marking_student, marking_group
@@ -179,9 +178,6 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             {"course":course, "activity":activity, "component_list":component_form_list,
             "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp})
     else: #not POST
-        if activity.group and gm:
-            messages.add_message(request, messages.INFO, "This is a group submission. You will submit on behalf of the group %s." % group.name)
-        
         component_form_list = make_form_from_list(component_list)
         return render(request, "submission/" + template,
         {'component_form_list': component_form_list, "course": course, "activity": activity, "submission_info": submission_info,
@@ -195,14 +191,12 @@ def show_components_submission_history(request, course_slug, activity_slug, user
     activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     staff = False
 
+    userid = userid or request.user.username
     member = get_object_or_404(Member, find_member(userid), offering=offering)
     submission_info = SubmissionInfo(student=member.person, activity=activity)
     submission_info.get_all_components()
     if not submission_info.accessible_by(request):
         return ForbiddenResponse(request)
-
-    if submission_info.is_group:
-        messages.add_message(request, messages.INFO, "This is a group submission. This history is based on submissions from all your group members.")
 
     return render(request, "submission/submission_history_view.html",
         {"offering":offering, "activity":activity, 'userid':userid, 'submission_info': submission_info})
@@ -356,15 +350,16 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
         return submitted_component.download_response(slug=submission_info.submissions[0].file_slug())
     else:
         # no component specified: give back the full ZIP file.
-        return submission_info.generate_zip_file()
+        return submission_info.generate_student_zip()
 
 @requires_course_staff_by_slug
 @uses_feature('submit-get')
 def download_activity_files(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
-
-    return generate_activity_zip(activity)
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
+    submission_info = SubmissionInfo.for_activity(activity)
+    submission_info.get_all_components()
+    return submission_info.generate_activity_zip()
 
 @requires_course_staff_by_slug
 def show_student_submission_staff(request, course_slug, activity_slug, userid):

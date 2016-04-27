@@ -127,6 +127,9 @@ class SubmissionInfo(object):
 
     @classmethod
     def from_submission_id(cls, submission_id):
+        """
+        Build for a specific submission
+        """
         submission, is_group = cls._get_submission(submission_id)
         activity = submission.activity
         si = cls(activity=activity)
@@ -139,6 +142,24 @@ class SubmissionInfo(object):
         si.get_most_recent_components()
 
         return si
+
+    @classmethod
+    def for_activity(cls, activity):
+        """
+        Gather info for a whole class on the activity.
+        """
+        si = cls(activity=activity)
+
+        if si.activity.group:
+            si.submissions = GroupSubmission.objects.filter(activity=activity)
+        else:
+            si.submissions = StudentSubmission.objects.filter(activity=activity)
+
+        si.submissions = si.submissions.order_by('-created_at')
+
+        return si
+
+
 
 
     # Utility methods
@@ -262,7 +283,7 @@ class SubmissionInfo(object):
 
         return False
 
-    def generate_zip_file(self):
+    def generate_student_zip(self):
         self.ensure_components()
         assert self.submissions
         assert self.submitted_components is not None
@@ -283,6 +304,27 @@ class SubmissionInfo(object):
             os.remove(filename)
         except OSError:
             pass
+        return response
+
+    def generate_activity_zip(self):
+        """
+        Create ZIP file for this activity
+        """
+        handle, filename = tempfile.mkstemp('.zip')
+        os.close(handle)
+
+        z = zipfile.ZipFile(filename, 'w')
+        self._generate_submission_contents(self, z, prefix='')
+        z.close()
+
+        file = open(filename, 'rb')
+        response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="%s.zip"' % (self.activity.slug)
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
+
         return response
 
     @staticmethod
@@ -307,108 +349,73 @@ class SubmissionInfo(object):
             zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
                           (created_at, created_at - activity.due_date, activity.due_date))
 
+    @staticmethod
+    def _generate_submission_contents(submission_info, z, prefix=''):
+        """
+        Assemble submissions and put in ZIP file.
+        """
+        submission_info.ensure_components()
+        assert submission_info.submissions is not None
+        assert submission_info.all_submitted_components is not None
 
-def get_submit_time_and_owner(activity, pair_list):
-    """
-    returns (late time, latest submit_time, ownership)
-    """
-    #calculate latest submission
-    submit_time = None
-    owner = None
-    for pair in pair_list:
-        if pair[1] != None:
-            try:
-                if submit_time == None:
-                    submit_time = datetime.min
-            except:
-                pass
-            if pair[1].submission.owner != None:
-                owner = pair[1].submission.owner.person
-            if submit_time < pair[1].submission.created_at:
-                submit_time = pair[1].submission.created_at
-    late = None
-    if submit_time != None and submit_time > activity.due_date:
-        late = submit_time - activity.due_date
-    return late, submit_time, owner
+        from submission.models.gittag import GitTagComponent
+        any_git_tags = any(isinstance(c, GitTagComponent) for c in submission_info.components)
+        git_tags = []
 
+        # Collect all of the SubmittedComponents that we need to output
+        # i.e. the most recent of each by student|group and component
+        found = set()  # (student|group, SubmissionComponent) pairs we have already included
+        individual_subcomps = {}  # student|group: [(SubmissionComponent, SubmittedComponent)]
+        last_submission = {}  # student|group: final Submission
+        for sub, subcomps in submission_info.submissions_and_components():
+            slug = sub.file_slug()
+            for comp, sc in subcomps:
+                key = (slug, comp.slug)
+                if key in found or sc is None:
+                    continue
 
+                if slug not in last_submission:
+                    last_submission[slug] = sub
 
-def generate_submission_contents(activity, z, prefix=''):
-    """
-    add of of the submissions for this activity to the ZipFile z
-    """
-    from submission.models.gittag import GitTagComponent
-    # build dictionary of all most recent submissions by student userid/group slug
-    if activity.group:
-        submissions = GroupSubmission.objects.filter(activity=activity).order_by('created_at').select_related('activity','group')
-    else:
-        submissions = StudentSubmission.objects.filter(activity=activity).order_by('created_at').select_related('activity','member','member__person')
-    
-    # group submissions by student/group
-    submissions_by_person = {}
-    for s in submissions:
-        slug = s.file_slug()
-        if slug not in submissions_by_person:
-            submissions_by_person[slug] = []
-        subs = submissions_by_person[slug]
-        subs.append(s)
-    
-    component_list = select_all_components(activity, include_deleted=True)
-    sub_time = {} # submission times for summary
-    # Manage a collection of git tag submission data we see, to produce clone-all script.
-    any_git_tags = any(isinstance(c, GitTagComponent) for c in component_list)
-    git_tags = []
-    # now collect submitted components (and last-submission times for summary)
-    for slug in submissions_by_person:
-        submission = submissions_by_person[slug]
-        last_sub = max([s.created_at for s in submission])
-        sub_time[slug] = last_sub
-        submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
-        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=prefix+slug, slug=slug)
-        git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in submitted_components if isinstance(comp, GitTagComponent) and sub)
+                found.add(key)
 
-    # produce summary of submission datetimes
-    slugs = sub_time.keys()
-    slugs.sort()
-    summarybuffer = StringIO.StringIO()
-    summarycsv = csv.writer(summarybuffer)
-    summarycsv.writerow([Person.userid_header(), "Last Submission"])
-    for s in slugs:
-        summarycsv.writerow([s, sub_time[s].strftime("%Y/%m/%d %H:%M:%S")])
-    z.writestr(prefix+"summary.csv", summarybuffer.getvalue())
-    summarybuffer.close()
+                scs = individual_subcomps.get(slug, [])
+                scs.append((comp, sc))
 
-    # produce git clone-all script
-    if any_git_tags:
-        script = ['#!/bin/sh', '', '# This script will clone all of the submitted git tags for this activity,',
-                '# putting them into the current directory. This should work in a Linux, OSX,',
-                '# or the Git Bash shell in Windows.', '']
+                individual_subcomps[sub.file_slug()] = scs
 
-        git_tags.sort()
-        for comp_slug, sub_slug, url, tag in git_tags:
-            dir_name = comp_slug + '_' + sub_slug
-            script.append('git clone %s %s && \\\n  (cd %s && git checkout tags/%s)' % (quote(url), quote(dir_name), quote(dir_name), quote(tag)))
+        # Now add them to the ZIP
+        for slug, subcomps in individual_subcomps.iteritems():
+            lastsub = last_submission[slug]
+            submission_info._add_to_zip(z, submission_info.activity, subcomps, lastsub.created_at,
+                    slug=lastsub.file_slug(), prefix=prefix + slug)
 
-        script.append('')
-        z.writestr(prefix+"clone-all.sh", '\n'.join(script))
+            git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in subcomps if
+                            isinstance(comp, GitTagComponent) and sub)
 
+        # produce summary of submission datetimes
+        slugs = last_submission.keys()
+        slugs.sort()
+        summarybuffer = StringIO.StringIO()
+        summarycsv = csv.writer(summarybuffer)
+        summarycsv.writerow([Person.userid_header(), "Last Submission"])
+        for s in slugs:
+            summarycsv.writerow([s, last_submission[s].created_at.strftime("%Y/%m/%d %H:%M:%S")])
+        z.writestr(prefix + "summary.csv", summarybuffer.getvalue())
+        summarybuffer.close()
 
-def generate_activity_zip(activity, prefix=''):
-    """
-    Return a zip file with all (current) submissions for the activity
-    """
-    handle, filename = tempfile.mkstemp('.zip')
-    os.close(handle)
-    z = zipfile.ZipFile(filename, 'w')
-    
-    generate_submission_contents(activity, z, prefix=prefix)
-    z.close()
+        # produce git clone-all script
+        if any_git_tags:
+            script = ['#!/bin/sh', '', '# This script will clone all of the submitted git tags for this activity,',
+                      '# putting them into the current directory. This should work in a Linux, OSX,',
+                      '# or the Git Bash shell in Windows.', '']
 
-    file = open(filename, 'rb')
-    response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
-    response['Content-Disposition'] = 'attachment; filename="%s.zip"' % (activity.slug)
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
-    return response
+            git_tags.sort()
+            for comp_slug, sub_slug, url, tag in git_tags:
+                dir_name = comp_slug + '_' + sub_slug
+                script.append('git clone %s %s && \\\n  (cd %s && git checkout tags/%s)' % (
+                    quote(url), quote(dir_name), quote(dir_name), quote(tag)))
+
+            script.append('')
+            z.writestr(prefix + "clone-all.sh", '\n'.join(script))
+
