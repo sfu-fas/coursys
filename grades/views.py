@@ -1362,7 +1362,7 @@ def student_info(request, course_slug, userid):
             info['grade'] = None
 
         # find most recent submission
-        sub_info = SubmissionInfo(member.person, a)
+        sub_info = SubmissionInfo(student=member.person, activity=a)
         info['sub'] = sub_info.have_submitted()
 
         grade_info.append(info)
@@ -1401,7 +1401,6 @@ def export_all(request, course_slug):
     from django.http import StreamingHttpResponse
     from django.core.servers.basehttp import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
-    from submission.models import SubmissionInfo
     from discuss.models import DiscussionTopic
 
     course = get_object_or_404(CourseOffering, slug=course_slug)

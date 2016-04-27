@@ -117,7 +117,9 @@ class SubmissionInfo(object):
 
         if student:
             if self.activity.group:
-                gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
+                gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity).select_related('group')
+                if gms:
+                    self.group = gms[0].group
                 self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
             else:
                 self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
@@ -135,6 +137,8 @@ class SubmissionInfo(object):
         si = cls(activity=activity)
         if submission:
             si.submissions = [submission]
+            if is_group:
+                si.group = submission.group
         else:
             si.submissions = []
 
@@ -264,7 +268,7 @@ class SubmissionInfo(object):
         """
         Can we show this info the the user?
         """
-        assert self.submissions
+        assert self.submissions is not None
         from courselib.auth import is_course_staff_by_slug
 
         if request.user.is_anonymous():
@@ -274,12 +278,12 @@ class SubmissionInfo(object):
             return True
 
         elif self.is_group:
-            membership = self.submissions[0].group.groupmember_set.filter(
+            membership = self.group.groupmember_set.filter(
                 student__person__userid=request.user.username, activity=self.activity, confirmed=True)
             return membership.exists()
 
         elif not self.is_group:
-            return self.submissions[0].member.person.userid == request.user.username
+            return self.student.userid == request.user.username
 
         return False
 

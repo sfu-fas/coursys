@@ -76,7 +76,7 @@
         {% endif %}
         {% endif %}
 
-        {% if submission_info.submissions %}<h2 id="submitted">Current Submission</h2>
+        <h2 id="submitted">Current Submission</h2>
         {% for comp,subcomp in submission_info.components_and_submitted %}
         <h3>{{comp.title}}</h3>
 
@@ -96,6 +96,5 @@
             </ul>
         {% endifequal %}
         {% endfor %}
-        {% endif %}
 
 {% endblock %}
