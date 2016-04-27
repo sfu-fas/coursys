@@ -51,7 +51,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     if not submission_configured:
         return NotFoundResponse(request)
 
-    submission_info = SubmissionInfo(student, activity)
+    submission_info = SubmissionInfo(student=student, activity=activity)
     if activity.multisubmit():
         submission_info.get_most_recent_components()
     else:
@@ -188,41 +188,24 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
          "userid":userid, "late":late, "student":student, "group":group,
          "cansubmit":cansubmit, "is_staff":staff, 'any_submissions': any_submissions})
 
+
 @requires_course_by_slug
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):
-    if userid is None:
-        userid = request.GET.get('userid')
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set,slug = activity_slug, deleted=False)
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(offering.activity_set, slug=activity_slug, deleted=False)
     staff = False
 
-    if userid is None:
-        # can always see your own submissions
-        userid = request.user.username
-    else:
-        # specifying a userid: must be course staff
-        if is_course_staff_by_slug(request, course.slug):
-            staff = True
-        else:
-            return ForbiddenResponse(request)
+    member = get_object_or_404(Member, find_member(userid), offering=offering)
+    submission_info = SubmissionInfo(student=member.person, activity=activity)
+    submission_info.get_all_components()
+    if not submission_info.accessible_by(request):
+        return ForbiddenResponse(request)
 
-    member = get_object_or_404(Member, find_member(userid), offering=course)
-    if activity.group:
+    if submission_info.is_group:
         messages.add_message(request, messages.INFO, "This is a group submission. This history is based on submissions from all your group members.")
-        gms = GroupMember.objects.filter(student=member, confirmed=True, activity=activity)
-        submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
-    else:
-        submissions = StudentSubmission.objects.filter(activity=activity, member=member)
 
-    # get all submission components
-    component_list = select_all_components(activity, include_deleted=staff)
-    all_submitted_components = []
-    for submission in submissions:
-        c = get_submission_components(submission, activity, component_list)
-        all_submitted_components.append({'sub':submission, 'comp':c})
-    
     return render(request, "submission/submission_history_view.html",
-        {"course":course, "activity":activity,'userid':userid,'submitted_components': all_submitted_components})
+        {"offering":offering, "activity":activity, 'userid':userid, 'submission_info': submission_info})
 
 #staff submission configuratiton
 def _show_components_staff(request, course_slug, activity_slug):
@@ -358,16 +341,8 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     if not submission_info.have_submitted() or submission_info.activity != activity:
         return NotFoundResponse(request)
 
-    # make sure this user is allowed to see the file
-    if staff:
-        pass
-    elif submission_info.is_group:
-        membership = submission_info.submissions[0].group.groupmember_set.filter(student__person__userid=request.user.username, activity=activity, confirmed=True)
-        if not membership:
-            return ForbiddenResponse(request)
-    elif not submission_info.is_group:
-        if submission_info.submissions[0].member.person.userid != request.user.username:
-            return ForbiddenResponse(request)
+    if not submission_info.accessible_by(request):
+        return ForbiddenResponse(request)
 
     # create the result
     if component_slug:

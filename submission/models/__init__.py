@@ -102,6 +102,9 @@ class SubmissionInfo(object):
 
     self.components and self.submitted_components will always correspond, so can be zipped.
     """
+
+    # Constructors
+
     def __init__(self, activity, student=None, include_deleted=False):
         self.include_deleted = include_deleted
         self.activity = activity
@@ -110,14 +113,13 @@ class SubmissionInfo(object):
 
         self.components = None
         self.submissions = None
+        self.is_group = self.activity.group
 
         if student:
             if self.activity.group:
                 gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
-                self.is_group = True
                 self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
             else:
-                self.is_group = False
                 self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
 
             self.submissions = self.submissions.order_by('-created_at')
@@ -139,6 +141,8 @@ class SubmissionInfo(object):
         return si
 
 
+    # Utility methods
+
     @staticmethod
     def _get_submission(submission_id):
         try:
@@ -150,19 +154,7 @@ class SubmissionInfo(object):
                 return None, None
 
 
-    def have_submitted(self):
-        return bool(self.submissions)
-
-    def latest(self):
-        return self.submissions[0]
-
-    def components_and_submitted(self):
-        """
-        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs
-        """
-        self.ensure_components()
-        assert self.submitted_components is not None
-        return zip(self.components, self.submitted_components)
+    # State-updating methods
 
     def ensure_components(self):
         """
@@ -182,7 +174,8 @@ class SubmissionInfo(object):
         submitted_components = []
         for component in self.components:
             SubmittedComponent = component.Type.SubmittedComponent
-            submits = SubmittedComponent.objects.filter(component=component, submission__in=self.submissions).order_by('-submit_time')
+            submits = SubmittedComponent.objects.filter(component=component,
+                    submission__in=self.submissions).order_by('-submit_time')
             if submits:
                 sub = submits[0]
             else:
@@ -191,6 +184,83 @@ class SubmissionInfo(object):
             submitted_components.append(sub)
 
         self.submitted_components = submitted_components
+
+    def get_all_components(self):
+        """
+        Build self.all_submitted_components by finding all submissions for each component.
+
+        self.all_submitted_components and self.submissions correspond, so can be zipped.
+        self.all_submitted_components[i] and self.components correspond, so can be zipped.
+        """
+        self.ensure_components()
+        assert self.submissions is not None
+
+        # build dict-of-dicts to map submission -> component -> submittedcomponent
+        subcomps = {s.id: {} for s in self.submissions}
+
+        for component in self.components:
+            SubmittedComponent = component.Type.SubmittedComponent
+            scs = SubmittedComponent.objects.filter(component=component,
+                    submission__in=self.submissions).order_by('-submission__created_at')
+            for sc in scs:
+                sub = subcomps[sc.submission.id]
+                sub[sc.component.id] = sc
+
+        self.all_submitted_components = []
+        for s in self.submissions:
+            scs = []
+            for c in self.components:
+                scs.append(subcomps.get(s.id, {}).get(c.id, None))
+            self.all_submitted_components.append(scs)
+
+
+    # Status/read-state methods
+
+    def have_submitted(self):
+        return bool(self.submissions)
+
+    def latest(self):
+        return self.submissions[0]
+
+    def components_and_submitted(self):
+        """
+        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs
+        """
+        self.ensure_components()
+        assert self.submitted_components is not None
+        return zip(self.components, self.submitted_components)
+
+    def submissions_and_components(self):
+        """
+        Iterable of (Submission, [(SubmissionComponent, SubmittedComponent|None)]) pairs
+        """
+        assert self.submissions is not None
+        assert self.all_submitted_components is not None
+        for sub, subcomps in zip(self.submissions, self.all_submitted_components):
+            yield sub, zip(self.components, subcomps)
+
+    def accessible_by(self, request):
+        """
+        Can we show this info the the user?
+        """
+        assert self.submissions
+        from courselib.auth import is_course_staff_by_slug
+
+        if request.user.is_anonymous():
+            return False
+
+        elif is_course_staff_by_slug(request, self.activity.offering.slug):
+            return True
+
+        elif self.is_group:
+            membership = self.submissions[0].group.groupmember_set.filter(
+                student__person__userid=request.user.username, activity=self.activity, confirmed=True)
+            return membership.exists()
+
+        elif not self.is_group:
+            return self.submissions[0].member.person.userid == request.user.username
+
+        return False
 
     def generate_zip_file(self):
         self.ensure_components()
