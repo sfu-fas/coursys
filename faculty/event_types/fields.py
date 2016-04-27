@@ -12,6 +12,61 @@ from django.utils.html import conditional_escape
 from faculty.util import ReportingSemester
 
 
+class AnnualOrBiweeklySalary(forms.widgets.MultiWidget):
+    """
+    A widget to return the annual salary if inputed, or to calculate it
+    based on the biweekly salary otherwise.
+
+    Magic number: 26.089285714  Here's how we got it:
+
+    There are 365 days in a year, 366 in a leap year.  Thus, 365.25 days on average.
+    Thus, we have 52 weeks + 1.25 days on average per year.
+    Therefore, number of biweekly periods in a year, on average:
+    (52 + 1.25/7) / 2 = 26.089285714
+    """
+
+
+    class Media:
+        # To calculate the annual salary on the fly from the biweekly and populate the annual field
+        js = ('js/salary.js',)
+
+    def __init__(self, attrs=None):
+        annual_attrs = attrs or {}
+        biweekly_attrs = attrs or {}
+        annual_attrs.update({"size": "8", "step": "0.01", "class": "annual-input", "title": "Annual Salary"})
+        biweekly_attrs.update({"size": "7", "step": "0.01", "class": "biweekly-input", "title": "Biweekly Salary"})
+        _widgets = (
+            forms.widgets.NumberInput(attrs=annual_attrs),
+            forms.widgets.NumberInput(attrs=biweekly_attrs)
+        )
+        super(AnnualOrBiweeklySalary, self).__init__(_widgets, attrs)
+
+    def decompress(self, value):
+        # Really, we only care about the one value.  We have to allow 0, however, since that is our initial default
+        if value or value == 0:
+            return [value, None]
+        return [None, None]
+
+    def format_output(self, rendered_widgets):
+        # Add our help text right in the rendering so we don't have to add it to every field or do some other magic.
+        return mark_safe('$ ' + u' '.join(rendered_widgets) + '<br/>' +
+                         "<span class=helptext>Enter annual salary on the left <strong>or</strong> biweekly salary "
+                         "on the right.</span>")
+
+    def value_from_datadict(self, data, files, name):
+        salarylist = [w.value_from_datadict(data, files, "%s_%s" % (name, i)) for i, w, in enumerate(self.widgets)]
+        annualsalary = salarylist[0]
+        biweeklysalary = salarylist[1]
+        if annualsalary:
+            return annualsalary
+        elif biweeklysalary:
+            # Only reachable if someone puts in the biweekly salary and Javascript is off or they delete the value
+            # in the annual salary.  Fairly unlikely, so we can do the same calculation the JS would.
+            return round(float(biweeklysalary) * 26.089285714, 2)
+        else:
+            return None
+
+
 class SemesterDateInput(forms.widgets.MultiWidget):
     class Media:
         js = ('js/semesters.js',)
@@ -35,7 +90,7 @@ class SemesterDateInput(forms.widgets.MultiWidget):
         return [None, None]
 
     def format_output(self, rendered_widgets):
-        return u''.join(rendered_widgets)
+        return u' '.join(rendered_widgets)
 
     def get_semester(self, code):
         try:
@@ -189,7 +244,7 @@ PAY_FIELD_DEFAULTS = {
     'max_digits': 8,
     'decimal_places': 2,
     'initial': 0,
-    'widget': DollarInput,
+    'widget': AnnualOrBiweeklySalary,
 }
 
 class AddSalaryField(forms.DecimalField):
