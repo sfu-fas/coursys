@@ -1245,6 +1245,8 @@ class TAForm(object):
         self.c.drawString(61*mm, 16*mm, "APPROVED BY FACULTY")
         self.c.drawString(1*mm, 1*mm, "DATE")
         self.c.drawString(61*mm, 1*mm, "DATE")
+        self.c.drawString(121*mm, 1*mm, "DATE")
+        self.c.drawString(121*mm, 16*mm, "TEACHING ASSISTANT SIGNATURE")
 
         self.c.setFont("Helvetica", self.CONTENT_SIZE)
         date = datetime.date.today()
@@ -1261,7 +1263,7 @@ class TAForm(object):
         self.c.drawString(1*mm, -5*mm - 20, "IF YOU HAVE ANY QUESTIONS ABOUT THE COLLECTION AND USE OF THIS INFORMATION, PLEASE CONTACT THE SIMON FRASER UNIVERSITY PAYROLL SUPERVISOR.")
 
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
-        self.c.drawString(1*mm, -18*mm, "Updated October 2014 (produced by CourSys TAForm)")
+        self.c.drawString(1*mm, -18*mm, "Updated April 2016 (produced by CourSys TAForm)")
 
         self.c.showPage()
 
