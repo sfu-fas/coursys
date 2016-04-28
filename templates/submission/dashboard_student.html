@@ -74,9 +74,10 @@
             {% endif %}
         {% endif %}
 
-        <h2 id="submitted">{% if activity.multisubmit %}Most-Recent Submission{% else %}Current Submission{% endif %}</h2>
+        {% if not activity.multisubmit %}
+        <h2 id="submitted">Current Submission</h2>
         {% for comp,subcomp in submission_info.components_and_submitted %}
-        <h3>{{comp.title}}</h3>
+        <h3 id="submitted-{{ comp.slug }}">{{comp.title}}</h3>
 
         {% ifequal subcomp None %}
             <p class="empty"><i class="fa fa-exclamation-triangle warningmessage"></i> You haven't made a submission for this component.</p>
@@ -95,11 +96,12 @@
         {% endifequal %}
         {% endfor %}
 
-        {% if activity.multisubmit %}
-        <h2 id="all">All Submissions</h2>
+        {% else %}
+        <h2 id="submitted">Submissions</h2>
+        <p class="infomessage">The instructor has flagged this activity for multiple submissions: older submissions will be available to the instructor. How they are used will depend on the course.</p>
 
         {% for submission, subcomp in submission_info.submissions_and_components %}
-            <h3>{{ submission.created_at }}</h3>
+            <h3 id="sub-{{ submission.id }}">{{ submission.created_at }}</h3>
             <ul>
             {% for comp, sub in subcomp %}
                 {% if sub %}

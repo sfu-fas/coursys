@@ -330,7 +330,6 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
         # userid specified: get their most recent submission
         student = get_object_or_404(Person, find_userid_or_emplid(userid))
         submission_info = SubmissionInfo(student=student, activity=activity, include_deleted=staff)
-        submission_info.get_most_recent_components()
     else:
         return NotFoundResponse(request)
 
@@ -343,7 +342,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     # create the result
     if component_slug:
         # download single component if specified
-        # get the actual component: already did the searching above, so just look in that list
+        submission_info.get_most_recent_components()
         submitted_components = [subcomp for comp, subcomp in submission_info.components_and_submitted() if subcomp and comp.slug == component_slug]
         if not submitted_components:
             return NotFoundResponse(request)

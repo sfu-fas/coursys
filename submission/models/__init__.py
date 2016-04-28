@@ -113,6 +113,8 @@ class SubmissionInfo(object):
 
         self.components = None
         self.submissions = None
+        self.submitted_components = None
+        self.all_submitted_components = None
         self.is_group = self.activity.group
 
         if student:
@@ -198,6 +200,9 @@ class SubmissionInfo(object):
 
         Fills self.submitted_components.
         """
+        if self.submitted_components is not None:
+            return
+
         self.ensure_components()
 
         submitted_components = []
@@ -223,6 +228,9 @@ class SubmissionInfo(object):
         self.all_submitted_components and self.submissions correspond, so can be zipped.
         self.all_submitted_components[i] and self.components correspond, so can be zipped.
         """
+        if self.all_submitted_components is not None:
+            return
+
         self.ensure_components()
         assert self.submissions is not None
 
@@ -232,7 +240,7 @@ class SubmissionInfo(object):
         for component in self.components:
             SubmittedComponent = component.Type.SubmittedComponent
             scs = SubmittedComponent.objects.filter(component=component,
-                    submission__in=self.submissions).order_by('-submission__created_at')
+                    submission__in=self.submissions).order_by('-submission__created_at').select_related('submission')
             for sc in scs:
                 sub = subcomps[sc.submission.id]
                 sub[sc.component.id] = sc
@@ -255,7 +263,7 @@ class SubmissionInfo(object):
 
     def components_and_submitted(self):
         """
-        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs
+        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs for most-recent submissions
         """
         self.ensure_components()
         assert self.submitted_components is not None
@@ -269,6 +277,17 @@ class SubmissionInfo(object):
         assert self.all_submitted_components is not None
         for sub, subcomps in zip(self.submissions, self.all_submitted_components):
             yield sub, zip(self.components, subcomps)
+
+    def all_components_and_submitted(self):
+        """
+        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs for all submissions
+        """
+        assert self.submissions is not None
+        assert self.all_submitted_components is not None
+
+        for sub, subcomps in zip(self.submissions, self.all_submitted_components):
+            for pr in zip(self.components, subcomps):
+                yield pr
 
     def accessible_by(self, request):
         """
@@ -294,13 +313,22 @@ class SubmissionInfo(object):
     def generate_student_zip(self):
         self.ensure_components()
         assert self.submissions
-        assert self.submitted_components is not None
+
+        multi = self.activity.multisubmit()
+
+        if multi:
+            self.get_all_components()
+            compsub = self.all_components_and_submitted()
+        else:
+            self.get_most_recent_components()
+            compsub = self.components_and_submitted()
 
         handle, filename = tempfile.mkstemp('.zip')
         os.close(handle)
         z = zipfile.ZipFile(filename, 'w')
 
-        self._add_to_zip(z, self.activity, self.components_and_submitted(), self.submissions[0].created_at, slug=self.submissions[0].file_slug())
+        self._add_to_zip(z, self.activity, compsub, self.submissions[0].created_at,
+                slug=self.submissions[0].file_slug(), multi=multi)
 
         z.close()
 
@@ -337,14 +365,20 @@ class SubmissionInfo(object):
         return response
 
     @staticmethod
-    def _add_to_zip(zipf, activity, components_and_submitted, created_at, prefix='', slug=None):
+    def _add_to_zip(zipf, activity, components_and_submitted, created_at, prefix='', slug=None, multi=False):
         """
         Add this list of (SubmissionComponent, SubmittedComponent) pairs to the zip file.
         """
         for component, subcomp in components_and_submitted:
             if subcomp:
+                if multi:
+                    dt = subcomp.submission.created_at.strftime('%Y-%m-%d-%H-%M-%S')
+                    p = os.path.join(prefix, dt)
+                else:
+                    p = prefix
+
                 try:
-                    subcomp.add_to_zip(zipf, prefix=prefix, slug=slug)
+                    subcomp.add_to_zip(zipf, prefix=p, slug=slug)
                 except OSError as e:
                     if e.errno == errno.ENOENT:
                         # Missing file? How did that come up once in five years?
@@ -369,6 +403,8 @@ class SubmissionInfo(object):
         assert self.submissions is not None
         assert self.all_submitted_components is not None
 
+        multi = self.activity.multisubmit()
+
         from submission.models.gittag import GitTagComponent
         any_git_tags = any(isinstance(c, GitTagComponent) for c in self.components)
         git_tags = []
@@ -382,7 +418,7 @@ class SubmissionInfo(object):
             slug = sub.file_slug()
             for comp, sc in subcomps:
                 key = (slug, comp.slug)
-                if key in found or sc is None:
+                if (not multi and key in found) or sc is None:
                     continue
 
                 if slug not in last_submission:
@@ -398,8 +434,9 @@ class SubmissionInfo(object):
         # Now add them to the ZIP
         for slug, subcomps in individual_subcomps.iteritems():
             lastsub = last_submission[slug]
+            p = os.path.join(prefix, slug)
             self._add_to_zip(z, self.activity, subcomps, lastsub.created_at,
-                    slug=lastsub.file_slug(), prefix=prefix + slug)
+                    slug=lastsub.file_slug(), prefix=p, multi=multi)
 
             git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in subcomps if
                             isinstance(comp, GitTagComponent) and sub)
