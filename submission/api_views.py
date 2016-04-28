@@ -33,7 +33,7 @@ class ActivitySubmissions(generics.ListAPIView):
         try:
             hours = datetime.timedelta(hours=float(h))
             cutoff = timezone.now() - hours
-        except ValueError:
+        except (ValueError, TypeError):
             cutoff = None
 
         submission_info = SubmissionInfo.for_activity(activity)
