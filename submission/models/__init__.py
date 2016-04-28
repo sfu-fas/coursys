@@ -122,9 +122,9 @@ class SubmissionInfo(object):
                 gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity).select_related('group')
                 if gms:
                     self.group = gms[0].group
-                self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
+                self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms).select_related('group')
             else:
-                self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student)
+                self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student).select_related('member__person')
 
             self.submissions = self.submissions.order_by('-created_at')
 
