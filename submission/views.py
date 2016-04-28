@@ -51,10 +51,9 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         return NotFoundResponse(request)
 
     submission_info = SubmissionInfo(student=student, activity=activity)
+    submission_info.get_most_recent_components()
     if activity.multisubmit():
-        submission_info.get_most_recent_components()
-    else:
-        submission_info.get_most_recent_components()
+        submission_info.get_all_components()
 
     any_submissions = bool(submission_info.submissions)
 
@@ -323,7 +322,10 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     # find the appropriate submission object
     if submission_id:
         # explicit request: get that one.
-        submission_info = SubmissionInfo.from_submission_id(submission_id)
+        try:
+            submission_info = SubmissionInfo.from_submission_id(submission_id)
+        except ValueError:
+            return NotFoundResponse(request)
     elif userid:
         # userid specified: get their most recent submission
         student = get_object_or_404(Person, find_userid_or_emplid(userid))

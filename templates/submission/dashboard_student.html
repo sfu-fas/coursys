@@ -44,8 +44,7 @@
             {% endif %}
         </table>
 
-        {% if cansubmit %}
-        {% if not is_staff %}
+        {% if cansubmit and not is_staff %}
             {% if activity.group and not group %}
             <p class="infomessage">This is a group-based activity: you cannot submit because you aren't in a group.</p>
             <p class="infomessage">You need to <a href="{% url "groups.views.groupmanage" course_slug=course.slug %}">create or join a group</a> before you can submit. It can be a group with only one member if that is allowed by your instructor.</p>
@@ -74,9 +73,8 @@
             </form>
             {% endif %}
         {% endif %}
-        {% endif %}
 
-        <h2 id="submitted">Current Submission</h2>
+        <h2 id="submitted">{% if activity.multisubmit %}Most-Recent Submission{% else %}Current Submission{% endif %}</h2>
         {% for comp,subcomp in submission_info.components_and_submitted %}
         <h3>{{comp.title}}</h3>
 
@@ -92,9 +90,28 @@
                 <li>File Size: {{subcomp.get_size|filesizeformat}} </li>
                 {% endif %}
                 <li><a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.slug submission_id=subcomp.submission.id %}"><i class="fa fa-download"></i>
-                    Download {% if subcomp.get_filename %}{{ subcomp.get_filename }}{% else %}submission{% endif %}</a></li>
+                    Download {{ subcomp.get_filename|default:'submission' }}</a></li>
             </ul>
         {% endifequal %}
         {% endfor %}
+
+        {% if activity.multisubmit %}
+        <h2 id="all">All Submissions</h2>
+
+        {% for submission, subcomp in submission_info.submissions_and_components %}
+            <h3>{{ submission.created_at }}</h3>
+            <ul>
+            {% for comp, sub in subcomp %}
+                {% if sub %}
+                <li>{{ comp.title }}:
+                    <a href="{% url "submission.views.download_file" course_slug=course.slug activity_slug=activity.slug component_slug=comp.slug submission_id=submission.id %}"><i class="fa fa-download"></i> {{ sub.get_filename|default:'submission' }}</a></li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        {% empty %}
+        <p class="empty">None</p>
+        {% endfor %}
+
+        {% endif %}
 
 {% endblock %}

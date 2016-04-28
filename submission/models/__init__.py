@@ -133,16 +133,17 @@ class SubmissionInfo(object):
         Build for a specific submission
         """
         submission, is_group = cls._get_submission(submission_id)
+        if not submission:
+            raise ValueError, 'No such submission'
+
         activity = submission.activity
         si = cls(activity=activity)
-        if submission:
-            si.submissions = [submission]
-            if is_group:
-                si.group = submission.group
-        else:
-            si.submissions = []
-
         si.is_group = is_group
+        si.submissions = [submission]
+        si.student = submission.member.person
+        if is_group:
+            si.group = submission.group
+
         si.get_most_recent_components()
 
         return si
@@ -184,6 +185,8 @@ class SubmissionInfo(object):
     def ensure_components(self):
         """
         Make sure self.component_list is populated.
+
+        Fills self.components.
         """
         if self.components:
             return
@@ -191,8 +194,9 @@ class SubmissionInfo(object):
 
     def get_most_recent_components(self):
         """
-        Build self.submitted_components by taking the most-recently-submitted for each component.
-        Relevant to single-submit behaviour.
+        Find the most-recently-submission for each component.
+
+        Fills self.submitted_components.
         """
         self.ensure_components()
 
@@ -212,7 +216,9 @@ class SubmissionInfo(object):
 
     def get_all_components(self):
         """
-        Build self.all_submitted_components by finding all submissions for each component.
+        Collected all submitted components (for self.submissions) by finding all submissions for each component.
+
+        Fills self.all_submitted_components.
 
         self.all_submitted_components and self.submissions correspond, so can be zipped.
         self.all_submitted_components[i] and self.components correspond, so can be zipped.
@@ -282,10 +288,8 @@ class SubmissionInfo(object):
                 student__person__userid=request.user.username, activity=self.activity, confirmed=True)
             return membership.exists()
 
-        elif not self.is_group:
+        else:
             return self.student.userid == request.user.username
-
-        return False
 
     def generate_student_zip(self):
         self.ensure_components()
@@ -308,6 +312,7 @@ class SubmissionInfo(object):
             os.remove(filename)
         except OSError:
             pass
+
         return response
 
     def generate_activity_zip(self):
@@ -333,6 +338,9 @@ class SubmissionInfo(object):
 
     @staticmethod
     def _add_to_zip(zipf, activity, components_and_submitted, created_at, prefix='', slug=None):
+        """
+        Add this list of (SubmissionComponent, SubmittedComponent) pairs to the zip file.
+        """
         for component, subcomp in components_and_submitted:
             if subcomp:
                 try:
