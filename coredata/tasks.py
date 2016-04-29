@@ -118,6 +118,7 @@ def import_task():
         get_update_grads_task(),
         import_offerings.si(continue_import=True),
         import_semester_info.si(),
+        import_active_grad_gpas.si(),
         #get_import_offerings_task(),
         #import_combined_sections.si(),
         #send_report.si()
@@ -246,3 +247,7 @@ def daily_cleanup():
     # cleanup old celery tasks
     TaskMeta.objects.filter(date_done__lt=datetime.datetime.now()-datetime.timedelta(days=2)).delete()
 
+@task(queue='sims')
+def import_active_grad_gpas():
+    logger.info('Importing active grad GPAs')
+    importer.import_active_grads_gpas()
