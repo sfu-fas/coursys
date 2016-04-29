@@ -12,6 +12,8 @@ PERMISSION_CHOICES = [
     ('grades', 'View the marks you have received in your courses'),
     ('groups', 'Group memberships in your courses'),
     ('instr-info', 'Instructor-only information (read-only)'),
+    ('submissions-read', 'Retrieve submissions'),
+    ('submissions-write', 'Make submissions'),
 ]
 PERMISSION_OPTIONS = dict(PERMISSION_CHOICES)
 

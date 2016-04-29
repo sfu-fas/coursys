@@ -234,7 +234,7 @@ class SubmissionTest(TestCase):
         #submission page for assignment 1
         url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, "This is a group submission. You will submit on behalf of the group Test Group.")
+        self.assertContains(response, "This is a group activity. You will submit on behalf of the group &ldquo;Test Group&rdquo;.")
         self.assertContains(response, "You haven't made a submission for this component.")
 
 

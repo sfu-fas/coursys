@@ -40,7 +40,7 @@ from marking.models import get_group_mark, StudentActivityMark, GroupActivityMar
 
 from groups.models import GroupMember, add_activity_to_group
 
-from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
+from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, SubmissionInfo, select_all_submitted_components, select_all_components
 
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
@@ -1362,8 +1362,8 @@ def student_info(request, course_slug, userid):
             info['grade'] = None
 
         # find most recent submission
-        sub, _ = get_current_submission(member.person, a)
-        info['sub'] = sub
+        sub_info = SubmissionInfo(student=member.person, activity=a)
+        info['sub'] = sub_info.have_submitted()
 
         grade_info.append(info)
         
@@ -1401,7 +1401,6 @@ def export_all(request, course_slug):
     from django.http import StreamingHttpResponse
     from django.core.servers.basehttp import FileWrapper
     from marking.views import _mark_export_data, _DecimalEncoder
-    from submission.models import generate_submission_contents
     from discuss.models import DiscussionTopic
 
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1429,8 +1428,9 @@ def export_all(request, course_slug):
     # add submissions
     acts = all_activities_filter(course)
     for a in acts:
-        if SubmissionComponent.objects.filter(activity_id=a.id):
-            generate_submission_contents(a, z, prefix=a.slug+'-submissions' + os.sep)
+        submission_info = SubmissionInfo.for_activity(a)
+        submission_info.get_all_components()
+        submission_info.generate_submission_contents(z, prefix=a.slug+'-submissions' + os.sep, always_summary=False)
 
     # add discussion
     if course.discussion():

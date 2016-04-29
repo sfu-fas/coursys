@@ -100,7 +100,7 @@ dl.inline dt, dl.inline dd {
 dl.inline dt {
   clear: left;
   margin-top: 0;
-  min-width: 9em;
+  min-width: 10em;
 }
 dl.inline dt:after {
   content: ':';
