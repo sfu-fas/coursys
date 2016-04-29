@@ -79,7 +79,8 @@ def get_component(**kwargs):
             return res[0]
 
     return None
-        
+
+
 def get_submitted_component(**kwargs):
     """
     Find the submitted component (with the most specific type).  Returns None if doesn't exist.
@@ -95,217 +96,375 @@ def get_submitted_component(**kwargs):
     return None
 
 
-def get_submission_components(submission, activity, component_list=None, include_deleted=False):
+class SubmissionInfo(object):
     """
-    return a list of pair[component, latest_submission(could be None)] for specific submission
-    """
-    if not component_list:
-        component_list = select_all_components(activity, include_deleted=include_deleted)
+    Collection of information about a student's/group's submission.
 
-    submitted_components = []
-    for component in component_list:
-        if submission:
+    self.components and self.submitted_components will always correspond, so can be zipped.
+    """
+
+    # Constructors
+
+    def __init__(self, activity, student=None, include_deleted=False):
+        self.include_deleted = include_deleted
+        self.activity = activity
+        self.student = student
+        assert student is None or isinstance(student, Person)
+
+        self.components = None
+        self.submissions = None
+        self.submitted_components = None
+        self.all_submitted_components = None
+        self.is_group = self.activity.group
+
+        if student:
+            if self.activity.group:
+                gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity).select_related('group')
+                if gms:
+                    self.group = gms[0].group
+                self.submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms).select_related('group')
+            else:
+                self.submissions = StudentSubmission.objects.filter(activity=activity, member__person=student).select_related('member__person')
+
+            self.submissions = self.submissions.order_by('-created_at')
+
+
+    @classmethod
+    def from_submission_id(cls, submission_id):
+        """
+        Build for a specific submission
+        """
+        submission, is_group = cls._get_submission(submission_id)
+        if not submission:
+            raise ValueError, 'No such submission'
+
+        activity = submission.activity
+        si = cls(activity=activity)
+        si.is_group = is_group
+        si.submissions = [submission]
+        si.student = submission.member.person
+        if is_group:
+            si.group = submission.group
+
+        si.get_most_recent_components()
+
+        return si
+
+    @classmethod
+    def for_activity(cls, activity):
+        """
+        Gather info for a whole class on the activity.
+        """
+        si = cls(activity=activity)
+
+        if si.activity.group:
+            si.submissions = GroupSubmission.objects.filter(activity=activity)
+        else:
+            si.submissions = StudentSubmission.objects.filter(activity=activity)
+
+        si.submissions = si.submissions.order_by('-created_at')
+
+        return si
+
+
+
+
+    # Utility methods
+
+    @staticmethod
+    def _get_submission(submission_id):
+        try:
+            return StudentSubmission.objects.get(id=submission_id), False
+        except StudentSubmission.DoesNotExist:
+            try:
+                return GroupSubmission.objects.get(id=submission_id), True
+            except GroupSubmission.DoesNotExist:
+                return None, None
+
+
+    # State-updating methods
+
+    def ensure_components(self):
+        """
+        Make sure self.component_list is populated.
+
+        Fills self.components.
+        """
+        if self.components:
+            return
+        self.components = select_all_components(self.activity, include_deleted=self.include_deleted)
+
+    def get_most_recent_components(self):
+        """
+        Find the most-recently-submission for each component.
+
+        Fills self.submitted_components.
+        """
+        if self.submitted_components is not None:
+            return
+
+        self.ensure_components()
+
+        submitted_components = []
+        for component in self.components:
             SubmittedComponent = component.Type.SubmittedComponent
-            submits = SubmittedComponent.objects.filter(component=component, submission=submission)
+            submits = SubmittedComponent.objects.filter(component=component,
+                    submission__in=self.submissions).order_by('-submit_time')
             if submits:
                 sub = submits[0]
             else:
-                # this component didn't get submitted
+                # this component has never been submitted
                 sub = None
-        else:
-            sub = None
-        submitted_components.append((component, sub))
-    return submitted_components
+            submitted_components.append(sub)
 
-def get_all_submission_components(submission, activity, component_list=None, include_deleted=False):
-    """
-    return a list of pair[component, latest_submission(could be None)] for all submissions
-    """
-    if not component_list:
-        component_list = select_all_components(activity, include_deleted=include_deleted)
-    
-    submitted_components = []
-    for component in component_list:
-        # find most recent submission for this component
-        if submission:
+        self.submitted_components = submitted_components
+
+    def get_all_components(self):
+        """
+        Collected all submitted components (for self.submissions) by finding all submissions for each component.
+
+        Fills self.all_submitted_components.
+
+        self.all_submitted_components and self.submissions correspond, so can be zipped.
+        self.all_submitted_components[i] and self.components correspond, so can be zipped.
+        """
+        if self.all_submitted_components is not None:
+            return
+
+        self.ensure_components()
+        assert self.submissions is not None
+
+        # build dict-of-dicts to map submission -> component -> submittedcomponent
+        subcomps = {s.id: {} for s in self.submissions}
+
+        for component in self.components:
             SubmittedComponent = component.Type.SubmittedComponent
-            submits_all = SubmittedComponent.objects.filter(component=component)
-            submits = []
-            for s in submission:
-                submits.extend(submits_all.filter(submission=s))
-            if len(submits) > 0:
-                submits.sort()
-                sub = submits[0]
-            else:
-                # this component didn't get submitted
-                sub = None
+            scs = SubmittedComponent.objects.filter(component=component,
+                    submission__in=self.submissions).order_by('-submission__created_at').select_related('submission')
+            for sc in scs:
+                sub = subcomps[sc.submission.id]
+                sub[sc.component.id] = sc
+
+        self.all_submitted_components = []
+        for s in self.submissions:
+            scs = []
+            for c in self.components:
+                scs.append(subcomps.get(s.id, {}).get(c.id, None))
+            self.all_submitted_components.append(scs)
+
+
+    # Status/read-state methods
+
+    def have_submitted(self):
+        return bool(self.submissions)
+
+    def latest(self):
+        return self.submissions[0]
+
+    def components_and_submitted(self):
+        """
+        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs for most-recent submissions
+        """
+        self.ensure_components()
+        assert self.submitted_components is not None
+        return zip(self.components, self.submitted_components)
+
+    def submissions_and_components(self):
+        """
+        Iterable of (Submission, [(SubmissionComponent, SubmittedComponent|None)]) pairs
+        """
+        assert self.submissions is not None
+        assert self.all_submitted_components is not None
+        for sub, subcomps in zip(self.submissions, self.all_submitted_components):
+            yield sub, zip(self.components, subcomps)
+
+    def all_components_and_submitted(self):
+        """
+        Iterable of (SubmissionComponent, SubmittedComponent|None) pairs for all submissions
+        """
+        assert self.submissions is not None
+        assert self.all_submitted_components is not None
+
+        for sub, subcomps in zip(self.submissions, self.all_submitted_components):
+            for pr in zip(self.components, subcomps):
+                yield pr
+
+    def accessible_by(self, request):
+        """
+        Can we show this info the the user?
+        """
+        assert self.submissions is not None
+        from courselib.auth import is_course_staff_by_slug
+
+        if request.user.is_anonymous():
+            return False
+
+        elif is_course_staff_by_slug(request, self.activity.offering.slug):
+            return True
+
+        elif self.is_group:
+            membership = self.group.groupmember_set.filter(
+                student__person__userid=request.user.username, activity=self.activity, confirmed=True)
+            return membership.exists()
+
         else:
-            sub = None
-        submitted_components.append((component, sub))
-    return submitted_components
+            return self.student.userid == request.user.username
 
-def get_current_submission(student, activity, include_deleted=False):
-    """
-    return most recent submission (individual or group) and compilation of valid components
-    """
-    if activity.group:
-        gms = GroupMember.objects.filter(student__person=student, confirmed=True, activity=activity)
-        submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
-    else:
-        submission = StudentSubmission.objects.filter(activity=activity, member__person=student)
+    def generate_student_zip(self):
+        self.ensure_components()
+        assert self.submissions
 
-    if len(submission) > 0:
-        submitted_components = get_all_submission_components(submission, activity, include_deleted=include_deleted)
-        return submission.latest('created_at'), submitted_components
-    else:
-        submitted_components = get_all_submission_components(None, activity, include_deleted=include_deleted)
-        return None, submitted_components
+        multi = self.activity.multisubmit()
 
-def get_submit_time_and_owner(activity, pair_list):
-    """
-    returns (late time, latest submit_time, ownership)
-    """
-    #calculate latest submission
-    submit_time = None
-    owner = None
-    for pair in pair_list:
-        if pair[1] != None:
-            try:
-                if submit_time == None:
-                    submit_time = datetime.min
-            except:
-                pass
-            if pair[1].submission.owner != None:
-                owner = pair[1].submission.owner.person
-            if submit_time < pair[1].submission.created_at:
-                submit_time = pair[1].submission.created_at
-    late = None
-    if submit_time != None and submit_time > activity.due_date:
-        late = submit_time - activity.due_date
-    return late, submit_time, owner
+        if multi:
+            self.get_all_components()
+            compsub = self.all_components_and_submitted()
+        else:
+            self.get_most_recent_components()
+            compsub = self.components_and_submitted()
 
-def _add_submission_to_zip(zipf, submission, components, prefix="", slug=None):
-    """
-    Add this submission to the zip file, with associated components.
-    """
-    for component, sub in components:
-        if sub:
-            try:
-                sub.add_to_zip(zipf, prefix=prefix, slug=slug)
-            except OSError as e:
-                if e.errno == errno.ENOENT:
-                    # Missing file? How did that come up once in five years?
-                    fn = os.path.join(prefix, "MISSING_FILE.txt")
-                    zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
-                                      "Please email coursys-help@sfu.ca and ask us to help track it down."
-                                      % (sub.get_filename()))
+        handle, filename = tempfile.mkstemp('.zip')
+        os.close(handle)
+        z = zipfile.ZipFile(filename, 'w')
+
+        self._add_to_zip(z, self.activity, compsub, self.submissions[0].created_at,
+                slug=self.submissions[0].file_slug(), multi=multi)
+
+        z.close()
+
+        file = open(filename, 'rb')
+        response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="%s_%s.zip"' % (
+                self.submissions[0].file_slug(), self.activity.slug)
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
+
+        return response
+
+    def generate_activity_zip(self):
+        """
+        Create ZIP file for this activity
+        """
+        handle, filename = tempfile.mkstemp('.zip')
+        os.close(handle)
+
+        z = zipfile.ZipFile(filename, 'w')
+        self.generate_submission_contents(z, prefix='')
+        z.close()
+
+        file = open(filename, 'rb')
+        response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="%s.zip"' % (self.activity.slug)
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
+
+        return response
+
+    @staticmethod
+    def _add_to_zip(zipf, activity, components_and_submitted, created_at, prefix='', slug=None, multi=False):
+        """
+        Add this list of (SubmissionComponent, SubmittedComponent) pairs to the zip file.
+        """
+        for component, subcomp in components_and_submitted:
+            if subcomp:
+                if multi:
+                    dt = subcomp.submission.created_at.strftime('%Y-%m-%d-%H-%M-%S')
+                    p = os.path.join(prefix, dt)
                 else:
-                    raise
+                    p = prefix
 
-    # add lateness note
-    if submission.activity.due_date and submission.created_at > submission.activity.due_date:
-        fn = os.path.join(prefix, "LATE.txt")
-        zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
-            (submission.created_at, submission.created_at - submission.activity.due_date, submission.activity.due_date))
+                try:
+                    subcomp.add_to_zip(zipf, prefix=p, slug=slug)
+                except OSError as e:
+                    if e.errno == errno.ENOENT:
+                        # Missing file? How did that come up once in five years?
+                        fn = os.path.join(prefix, "MISSING_FILE.txt")
+                        zipf.writestr(fn, "A file named '%s' was submitted but can't be found on CourSys. That's weird.\n"
+                                          "Please email coursys-help@sfu.ca and ask us to help track it down."
+                                      % (subcomp.get_filename()))
+                    else:
+                        raise
 
-def generate_submission_contents(activity, z, prefix=''):
-    """
-    add of of the submissions for this activity to the ZipFile z
-    """
-    from submission.models.gittag import GitTagComponent
-    # build dictionary of all most recent submissions by student userid/group slug
-    if activity.group:
-        submissions = GroupSubmission.objects.filter(activity=activity).order_by('created_at').select_related('activity','group')
-    else:
-        submissions = StudentSubmission.objects.filter(activity=activity).order_by('created_at').select_related('activity','member','member__person')
-    
-    # group submissions by student/group
-    submissions_by_person = {}
-    for s in submissions:
-        slug = s.file_slug()
-        if slug not in submissions_by_person:
-            submissions_by_person[slug] = []
-        subs = submissions_by_person[slug]
-        subs.append(s)
-    
-    component_list = select_all_components(activity, include_deleted=True)
-    sub_time = {} # submission times for summary
-    # Manage a collection of git tag submission data we see, to produce clone-all script.
-    any_git_tags = any(isinstance(c, GitTagComponent) for c in component_list)
-    git_tags = []
-    # now collect submitted components (and last-submission times for summary)
-    for slug in submissions_by_person:
-        submission = submissions_by_person[slug]
-        last_sub = max([s.created_at for s in submission])
-        sub_time[slug] = last_sub
-        submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
-        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=prefix+slug, slug=slug)
-        git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in submitted_components if isinstance(comp, GitTagComponent) and sub)
+        # add lateness note
+        if activity.due_date and created_at > activity.due_date:
+            fn = os.path.join(prefix, "LATE.txt")
+            zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
+                          (created_at, created_at - activity.due_date, activity.due_date))
 
-    # produce summary of submission datetimes
-    slugs = sub_time.keys()
-    slugs.sort()
-    summarybuffer = StringIO.StringIO()
-    summarycsv = csv.writer(summarybuffer)
-    summarycsv.writerow([Person.userid_header(), "Last Submission"])
-    for s in slugs:
-        summarycsv.writerow([s, sub_time[s].strftime("%Y/%m/%d %H:%M:%S")])
-    z.writestr(prefix+"summary.csv", summarybuffer.getvalue())
-    summarybuffer.close()
+    def generate_submission_contents(self, z, prefix='', always_summary=True):
+        """
+        Assemble submissions and put in ZIP file.
+        """
+        self.ensure_components()
+        assert self.submissions is not None
+        assert self.all_submitted_components is not None
 
-    # produce git clone-all script
-    if any_git_tags:
-        script = ['#!/bin/sh', '', '# This script will clone all of the submitted git tags for this activity,',
-                '# putting them into the current directory. This should work in a Linux, OSX,',
-                '# or the Git Bash shell in Windows.', '']
+        multi = self.activity.multisubmit()
 
-        git_tags.sort()
-        for comp_slug, sub_slug, url, tag in git_tags:
-            dir_name = comp_slug + '_' + sub_slug
-            script.append('git clone %s %s && \\\n  (cd %s && git checkout tags/%s)' % (quote(url), quote(dir_name), quote(dir_name), quote(tag)))
+        from submission.models.gittag import GitTagComponent
+        any_git_tags = any(isinstance(c, GitTagComponent) for c in self.components)
+        git_tags = []
 
-        script.append('')
-        z.writestr(prefix+"clone-all.sh", '\n'.join(script))
+        # Collect all of the SubmittedComponents that we need to output
+        # i.e. the most recent of each by student|group and component
+        found = set()  # (student|group, SubmissionComponent) pairs we have already included
+        individual_subcomps = {}  # student|group: [(SubmissionComponent, SubmittedComponent)]
+        last_submission = {}  # student|group: final Submission
+        for sub, subcomps in self.submissions_and_components():
+            slug = sub.file_slug()
+            for comp, sc in subcomps:
+                key = (slug, comp.slug)
+                if (not multi and key in found) or sc is None:
+                    continue
 
+                if slug not in last_submission:
+                    last_submission[slug] = sub
 
-def generate_activity_zip(activity, prefix=''):
-    """
-    Return a zip file with all (current) submissions for the activity
-    """
-    handle, filename = tempfile.mkstemp('.zip')
-    os.close(handle)
-    z = zipfile.ZipFile(filename, 'w')
-    
-    generate_submission_contents(activity, z, prefix=prefix)
-    z.close()
+                found.add(key)
 
-    file = open(filename, 'rb')
-    response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
-    response['Content-Disposition'] = 'attachment; filename="%s.zip"' % (activity.slug)
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
-    return response
+                scs = individual_subcomps.get(slug, [])
+                scs.append((comp, sc))
 
-def generate_zip_file(submission, submitted_components):
-    """
-    return a zip file containing latest submission from userid for activity
-    """
-    handle, filename = tempfile.mkstemp('.zip')
-    os.close(handle)
-    z = zipfile.ZipFile(filename, 'w')
-    
-    _add_submission_to_zip(z, submission, submitted_components, slug=submission.file_slug())
+                individual_subcomps[sub.file_slug()] = scs
 
-    z.close()
+        # Now add them to the ZIP
+        for slug, subcomps in individual_subcomps.iteritems():
+            lastsub = last_submission[slug]
+            p = os.path.join(prefix, slug)
+            self._add_to_zip(z, self.activity, subcomps, lastsub.created_at,
+                    slug=lastsub.file_slug(), prefix=p, multi=multi)
 
-    file = open(filename, 'rb')
-    response = StreamingHttpResponse(FileWrapper(file), content_type='application/zip')
-    response['Content-Disposition'] = 'attachment; filename="%s_%s.zip"' % (submission.file_slug(), submission.activity.slug)
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
-    return response
+            git_tags.extend((comp.slug, slug, sub.url, sub.tag) for comp, sub in subcomps if
+                            isinstance(comp, GitTagComponent) and sub)
+
+        # produce summary of submission datetimes
+        if found or always_summary:
+            slugs = last_submission.keys()
+            slugs.sort()
+            summarybuffer = StringIO.StringIO()
+            summarycsv = csv.writer(summarybuffer)
+            summarycsv.writerow([Person.userid_header(), "Last Submission"])
+            for s in slugs:
+                summarycsv.writerow([s, last_submission[s].created_at.strftime("%Y/%m/%d %H:%M:%S")])
+            z.writestr(prefix + "summary.csv", summarybuffer.getvalue())
+            summarybuffer.close()
+
+        # produce git clone-all script
+        if any_git_tags:
+            script = ['#!/bin/sh', '', '# This script will clone all of the submitted git tags for this activity,',
+                      '# putting them into the current directory. This should work in a Linux, OSX,',
+                      '# or the Git Bash shell in Windows.', '']
+
+            git_tags.sort()
+            for comp_slug, sub_slug, url, tag in git_tags:
+                dir_name = comp_slug + '_' + sub_slug
+                script.append('git clone %s %s && \\\n  (cd %s && git checkout tags/%s)' % (
+                    quote(url), quote(dir_name), quote(dir_name), quote(tag)))
+
+            script.append('')
+            z.writestr(prefix + "clone-all.sh", '\n'.join(script))
 
