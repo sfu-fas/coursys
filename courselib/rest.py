@@ -35,7 +35,7 @@ class APIConsumerPermissions(permissions.BasePermission):
             # re-find the Token, since it isn't stashed in the request
             # could be avoided if: http://code.larlet.fr/django-oauth-plus/issue/40/set-requestconsumer-and-requesttoken-to
             oauth_req = get_oauth_request(request)
-            token = Token.objects.get(key=oauth_req['oauth_token'], consumer__key=oauth_req['oauth_consumer_key'])
+            token = get_object_or_404(Token, key=oauth_req['oauth_token'], consumer__key=oauth_req['oauth_consumer_key'])
 
             # consumer must have asked for all of the permissions being used
             allowed_perms = ConsumerInfo.allowed_permissions(token)
