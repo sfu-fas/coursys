@@ -724,7 +724,7 @@ def import_semester_info(verbose=False, dry_run=False, long_long_ago=False, boot
 
 def import_active_grads_gpas(verbose=False, dry_run=False):
     """
-    Update active grads gpas.  We added this task because it turns out some people care
+    Update active grads GPAs.  We added this task because it turns out some people care
     more about this than we originally thought.  Let's run this every day instead with just the GPA and credits fields.
     """
     from coredata.queries import more_personal_info
@@ -735,4 +735,4 @@ def import_active_grads_gpas(verbose=False, dry_run=False):
             print "Updating info for: ", grad.person.name(), " with: ", data
         grad.person.config.update(data)
         if not dry_run:
-            grad.save()
+            grad.person.save()
