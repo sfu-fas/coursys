@@ -142,9 +142,12 @@ class SubmissionInfo(object):
         si = cls(activity=activity)
         si.is_group = is_group
         si.submissions = [submission]
-        si.student = submission.member.person
+
         if is_group:
             si.group = submission.group
+            si.student = None
+        else:
+            si.student = submission.member.person
 
         si.get_most_recent_components()
 
