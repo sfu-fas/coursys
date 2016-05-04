@@ -133,14 +133,9 @@ USE_I18N = False
 USE_L10N = False
 USE_TZ = False
 FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
-#TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-NOSE_ARGS = ['--exe',
-            '--with-progressive',
-            '--progressive-editor=vim',
-            '--with-timer',
-            '--with-fixture-bundling',
-            '--timer-top-n=10',
-            '--exclude=(test_views|basic_page_tests|get_test_file|test_auth|create_test_offering|field_test)']
+#TEST_RUNNER = 'django_coverage.coverage_runner.CoverageRunner'
+from test_without_migrations.management.commands.test import DisableMigrations
+MIGRATION_MODULES = DisableMigrations()
 
 # security-related settings
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca'])

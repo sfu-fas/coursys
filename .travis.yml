@@ -6,7 +6,7 @@ notifications:
       - coursys-help@sfu.ca
 cache: pip
 install: "pip install -r build_deps/working_deps.txt"
-script: "python manage.py test --nomigration"
+script: "python manage.py test"
 sudo: false
 branches:
   except:
