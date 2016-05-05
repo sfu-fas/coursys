@@ -1,5 +1,5 @@
 #from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 
 from submission.models import URL, Archive, Code, StudentSubmission, select_all_components, ALL_TYPE_CLASSES
 from submission.models.code import SubmittedCode

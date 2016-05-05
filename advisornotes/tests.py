@@ -1,15 +1,9 @@
-#from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase as TestCase
-from django.test.testcases import TransactionTestCase
+from django.test import TestCase
 
 from django.core.urlresolvers import reverse
 from coredata.models import Person, Unit
 from advisornotes.models import NonStudent, AdvisorNote
 from courselib.testing import basic_page_tests, Client
-from dashboard.models import UserConfig
-import datetime
-
-from nose.plugins.skip import Skip, SkipTest
 
 class AdvisorNotestest(TestCase):
     fixtures = ['basedata', 'coredata']

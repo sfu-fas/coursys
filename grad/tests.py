@@ -1,5 +1,4 @@
-#from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 from django.core.urlresolvers import reverse
 import json, datetime
 from coredata.models import Person, Semester, Role
@@ -11,6 +10,7 @@ from courselib.testing import basic_page_tests, Client, test_views
 from grad.views.view import all_sections
 from django.http import QueryDict
 from grad.forms import SearchForm
+
 
 class GradTest(TestCase):
     fixtures = ['basedata', 'coredata', 'grad']

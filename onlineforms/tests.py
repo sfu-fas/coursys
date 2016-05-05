@@ -1,4 +1,4 @@
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 import django.db.transaction
 from django.db.utils import IntegrityError
 from django.core.urlresolvers import reverse

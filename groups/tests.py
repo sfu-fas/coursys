@@ -1,23 +1,11 @@
-#from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase as TestCase
-
 from django.conf import settings
 CAS_SERVER_URL = settings.CAS_SERVER_URL
 
 from coredata.tests import create_offering
-from coredata.models import *
-from grades.models import *
 from courselib.testing import *
 from groups.models import *
-from django.core.urlresolvers import reverse
-from django.db import IntegrityError
-
-import re, datetime
-from coredata.models import Member, Person, CourseOffering
-from groups.models import *
 from submission.models import GroupSubmission
-from grades.models import Activity
-from django.db.models import Q
+
 
 class GroupTest(TestCase):
     fixtures = ['basedata', 'coredata', 'grades']

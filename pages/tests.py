@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import  TestCase
 from django.core.urlresolvers import reverse
 from pages.models import Page, PageVersion, brushes_used, MACRO_LABEL, ParserFor
 from coredata.models import CourseOffering, Member, Person

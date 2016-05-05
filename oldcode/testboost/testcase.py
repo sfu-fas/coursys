@@ -8,7 +8,6 @@ Mock doesn't do well at mocking out @decorators, AFAICT.
 """
 
 #Python
-from functools import wraps
 import sys
 
 #Django
@@ -18,7 +17,6 @@ from django.conf import settings
 from django.core import cache, mail
 from django.core.management import call_command
 from django.db import connections, DEFAULT_DB_ALIAS, transaction
-import django.db.transaction
 
 #Third Party
 from django_nose.fixture_tables import tables_used_by_fixtures
@@ -26,7 +24,7 @@ from django_nose.utils import uses_mysql
 import mock
 
 #Local
-from testboost import fake_transaction
+from oldcode.testboost import fake_transaction
 
 
 __all__ = ['FastFixtureTestCase']

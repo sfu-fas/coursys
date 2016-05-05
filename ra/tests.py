@@ -1,6 +1,7 @@
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 from courselib.testing import Client, test_views
 from ra.models import RAAppointment, Account, Project
+
 
 class RATest(TestCase):
     fixtures = ['basedata', 'coredata', 'ta_ra']

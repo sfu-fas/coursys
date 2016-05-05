@@ -60,7 +60,7 @@ INSTALLED_APPS = (
     'djcelery',
     'djcelery_email',
     'featureflags',
-    'django_nose',
+    #'django_nose',
     'rest_framework',
     'oauth_provider',
     'rest_framework_swagger',

@@ -2,9 +2,13 @@ from coredata.tests import create_offering
 from coredata.models import Person, Member, CourseOffering, Role
 from dashboard.models import UserConfig, NewsItem
 from courselib.testing import TEST_COURSE_SLUG, Client, validate_content, create_test_offering, test_views
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.core.management import call_command
+from haystack.query import SearchQuerySet
+from pages.models import Page, PageVersion
 import re, datetime
+
 
 class DashboardTest(TestCase):
     fixtures = ['basedata', 'coredata']
@@ -247,8 +251,6 @@ class DashboardTest(TestCase):
         confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
         self.assertEquals(len(confs), 1)
         self.assertIsNotNone(tokenre.match(confs[0].value['token']))
-        
-
 
     def test_pages(self):
         person = Person.objects.filter()[0]
@@ -291,9 +293,7 @@ class DatetimeTest(TestCase):
 
         test_views(self, c, 'dashboard.views.', ['index', 'news_list'], {})
 
-from django.core.management import call_command
-from haystack.query import SearchQuerySet
-from pages.models import Page, PageVersion
+
 class FulltextTest(TestCase):
     """
     Tests of the full-text indexing and searching.
