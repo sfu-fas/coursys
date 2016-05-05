@@ -1,5 +1,4 @@
 from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase
 from coredata.models import CourseOffering, Semester, Person, SemesterWeek, \
                             Member, Role, Unit, ROLE_CHOICES
 
@@ -13,6 +12,7 @@ from courselib.testing import basic_page_tests, validate_content, Client, \
 from django.db import IntegrityError
 from datetime import date, datetime
 import pytz, json
+
 
 def create_semesters():
     semester_1124 = Semester(name="1124", start=date(2012,4,4), end=date(2012,9,3))
@@ -296,7 +296,7 @@ class CoredataTest(TestCase):
         self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)
 
 
-class SlowCoredataTest(FastFixtureTestCase):
+class SlowCoredataTest(TestCase):
     fixtures = ['basedata', 'coredata']
     
     def test_course_browser(self):
@@ -335,7 +335,7 @@ class SlowCoredataTest(FastFixtureTestCase):
         self.assertIn(str(p.emplid), emplids)
 
 
-class DependencyTest(FastFixtureTestCase):
+class DependencyTest(TestCase):
     """
     Tests of dependent libraries, where there have been problems
     """

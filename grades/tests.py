@@ -1,6 +1,5 @@
 # coding=utf-8
 
-from testboost.testcase import FastFixtureTestCase as TestCase
 from grades.formulas import parse, cols_used, eval_parse, EvalException, ParseException
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, \
     NumericGrade, LetterGrade, GradeHistory, all_activities_filter, ACTIVITY_STATUS, sorted_letters, \

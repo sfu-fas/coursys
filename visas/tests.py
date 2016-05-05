@@ -1,5 +1,4 @@
-#from django.test import TestCase
-from testboost.testcase import FastFixtureTestCase as TestCase
+from django.test import TestCase
 from visas.models import Visa
 from coredata.models import Person, Semester, VISA_STATUSES
 from datetime import date, timedelta
