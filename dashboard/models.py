@@ -70,7 +70,7 @@ class NewsItem(models.Model):
         elif self.author:
             return self.author.full_email()
         else:
-            return "CourSys <%s>" % (settings.DEFAULT_FROM_EMAIL)
+            return settings.DEFAULT_FROM_EMAIL
     
     # turn the source_app field into a more externally-friendly string
     source_app_translate = {
