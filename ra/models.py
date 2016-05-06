@@ -10,6 +10,7 @@ from courselib.text import normalize_newlines
 from django.template.loader import get_template
 from django.template import Context
 from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 import datetime
 
 
@@ -311,7 +312,7 @@ class RAAppointment(models.Model):
         Emails the supervisors of the RAs who have appointments that are about to expire.
         """
         subject = 'RA appointment expiry reminder'
-        from_email = "nobody@courses.cs.sfu.ca"
+        from_email = settings.DEFAULT_FROM_EMAIL
 
         expiring_ras = cls.expiring_appointments()
         template = get_template('ra/emails/reminder.txt')

@@ -860,7 +860,7 @@ class SheetSubmission(models.Model):
         """
         full_url = settings.BASE_ABS_URL + reverse('onlineforms.views.index')
         subject = 'Waiting form reminder'
-        from_email = "nobody@courses.cs.sfu.ca"
+        from_email = settings.DEFAULT_FROM_EMAIL
 
         filler_ss = cls.waiting_sheets_by_user()
         template = get_template('onlineforms/emails/reminder.txt')
