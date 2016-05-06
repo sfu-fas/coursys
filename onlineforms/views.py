@@ -361,6 +361,15 @@ def admin_return_sheet(request, form_slug, formsubmit_slug, sheetsubmit_slug):
                                             owner__in=request.formgroups)
         sheet_submission = get_object_or_404(SheetSubmission, form_submission=form_submission, slug=sheetsubmit_slug)
 
+        # There shouldn't be a link to this anymore, but either way, we don't allow returning of the initial
+        # sheet.  Since we can't assign an initial sheet, we shouldn't return it, which is the same thing.
+        # This caused problems with the auto-cleanup code where there were suddenly open initial sheets that
+        # where older than our cutoff period:
+        if sheet_submission.sheet.is_initial:
+            messages.error(request, u'You cannot return the initial sheet.')
+            return HttpResponseRedirect(reverse('onlineforms.views.view_submission',
+                                                kwargs={'form_slug': form_slug, 'formsubmit_slug': formsubmit_slug}))
+
         if request.method == 'POST':
             form = AdminReturnForm(data=request.POST)
             if form.is_valid():

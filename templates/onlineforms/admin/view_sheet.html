@@ -53,7 +53,7 @@
             <dt><label>Completed at:</label></dt>
             <dd>{% if sheet_sub.status == 'DONE' %}{{sheet_sub.completed_at}}{% else %}Still incomplete.{% endif %}</dd>
 			</dl>
-            {% if sheet_sub.status == 'DONE' and can_admin %}
+            {% if sheet_sub.status == 'DONE' and can_admin and not sheet_sub.sheet.is_initial %}
             <p class="returnlink">
             <a href="{% url "onlineforms.views.admin_return_sheet" form_slug=sheet_sub.sheet.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheetsubmit_slug=sheet_sub.slug %}">
             Return to {{ sheet_sub.filler.name }}</a></p>
