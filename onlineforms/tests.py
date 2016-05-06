@@ -288,7 +288,9 @@ class ViewTestCase(TestCase):
                 'sheet_slug': "initial",
                 'field_slug': "favorite-color",
                 'sheetsubmit_slug': "submission-initial-2",
-                'secret_url': "b50d3a695edf877df2a2100376d493f1aec5c26a"}
+                'secret_url': "b50d3a695edf877df2a2100376d493f1aec5c26a",
+                'non_initial_sheet_slug': "initial-000",
+                'non_initial_sheetsubmit_slug': "submission-noninitial"}
 
     def setUp(self):
         self.client = Client()
@@ -345,9 +347,9 @@ class ViewTestCase(TestCase):
     def test_total_submission_pages(self):
         views = ['sheet_submission_subsequent']
         args = {'form_slug': self.slug_data["form_slug"],
-                'sheet_slug': self.slug_data["sheet_slug"],
+                'sheet_slug': self.slug_data["non_initial_sheet_slug"],
                 'formsubmit_slug': self.slug_data["formsubmit_slug"],
-                'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
+                'sheetsubmit_slug': self.slug_data["non_initial_sheetsubmit_slug"]}
         self.run_basic_page_tests(views, args)
 
         views = ['admin_return_sheet']
@@ -372,6 +374,19 @@ class ViewTestCase(TestCase):
             except:
                 print "with view==" + repr(view)
                 raise
+
+    def test_returning_initial_sheet(self):
+        # We should no longer be able to return the initial sheet.
+        args = {'form_slug': self.slug_data["form_slug"],
+                'formsubmit_slug': self.slug_data["formsubmit_slug"],
+                'sheetsubmit_slug': self.slug_data["sheetsubmit_slug"]}
+        try:
+            url = reverse('onlineforms.views.admin_return_sheet', kwargs=args)
+            response = self.client.get(url)
+            self.assertEquals(response.status_code, 302)
+        except:
+            print "with view == views.admin_return_sheet"
+            raise
 
 
 class MiscTests(TestCase):
