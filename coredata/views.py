@@ -279,6 +279,7 @@ def new_combined(request):
             combined.class_nbr = _new_fake_class_nbr(combined.semester)
             combined.save()
             combined.offerings.add(offering)
+            combined.create_combined_offering()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("created combined offering %i with %s") % (combined.id, offering.slug),
@@ -316,6 +317,7 @@ def add_combined_offering(request, pk):
                 messages.error(request, 'That offering is already in the combined section.')
             else:
                 combined.offerings.add(offering)
+                combined.create_combined_offering()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("added %s to combined offering %i") % (offering.slug, combined.id),
