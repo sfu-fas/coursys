@@ -12,7 +12,7 @@ tacontract_patterns = [ # prefix /tacontract/
     url(r'^student/'+SEMESTER+'$', 'tacontracts.views.student_contract'),
     url(r'^student/'+SEMESTER+'/'+CONTRACT_SLUG+'$', 'tacontracts.views.accept_contract'),
 
-    url(r'^/'+SEMESTER+'/setup$', 'tacontracts.views.setup_semester'),
+    url(r'^'+SEMESTER+'/setup$', 'tacontracts.views.setup_semester'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/edit$', 'tacontracts.views.edit_semester'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'$', 'tacontracts.views.list_all_contracts'),
     url(r'^'+UNIT_SLUG+'/'+SEMESTER+'/course$', 'tacontracts.views.list_all_contracts_by_course'),
