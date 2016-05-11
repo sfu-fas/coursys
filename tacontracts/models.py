@@ -59,25 +59,29 @@ APPOINTMENT_CHOICES = (
 DUMMY_SINS = ['999999999', '000000000', '123456789']
 
 
-class HiringSemesterQuerySet(QuerySet):
+class HiringSemesterManager(models.Manager):
     def visible(self, units):
-        return self.filter(unit__in=units)
+        qs = self.get_queryset()
+        return qs.filter(unit__in=units)
 
     def semester(self, semester_name, units):
-        return self.filter(unit__in=units, 
-                           semester=Semester.objects.get(name=semester_name))
+        qs = self.get_queryset()
+        return qs.filter(unit__in=units,
+                         semester=Semester.objects.get(name=semester_name))
 
 
-class TACategoryQuerySet(QuerySet):
+class TACategoryManager(models.Manager):
     def visible(self, hiring_semester):
-        return self.filter(hiring_semester=hiring_semester, hidden=False)
+        qs = self.get_queryset()
+        return qs.filter(hiring_semester=hiring_semester, hidden=False)
 
 
-class TAContractQuerySet(QuerySet):
+class TAContractManager(models.Manager):
     def visible(self, hiring_semester):
-        return self.filter(category__hiring_semester=hiring_semester)\
-                    .select_related('category')\
-                    .prefetch_related('course')
+        qs = self.get_queryset()
+        return qs.filter(category__hiring_semester=hiring_semester)\
+                         .select_related('category')\
+                         .prefetch_related('course')
 
     def draft(self, hiring_semester):
         return self.visible(hiring_semester).filter(status='NEW')
@@ -142,7 +146,7 @@ class HiringSemester(models.Model):
     def total_bu(self):
         return sum([contract.total_bu for contract in self.contracts])
     
-    objects = PassThroughManager.for_queryset_class(HiringSemesterQuerySet)()
+    objects = HiringSemesterManager()
     
     def next_export_seq(self):
         """
@@ -207,7 +211,7 @@ class TACategory(models.Model):
     hidden = models.BooleanField(default=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
 
-    objects = PassThroughManager.for_queryset_class(TACategoryQuerySet)()
+    objects = TACategoryManager()
     
     def __unicode__(self):
         return "%s %s %s - %s" % (self.account.unit.label, unicode(self.code), 
@@ -301,7 +305,7 @@ class TAContract(models.Model):
                                   editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
     
-    objects = PassThroughManager.for_queryset_class(TAContractQuerySet)()
+    objects = TAContractManager()
    
     def __unicode__(self):
         return u"%s" % (self.person,)

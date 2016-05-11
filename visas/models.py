@@ -12,7 +12,6 @@ from django.utils import timezone
 from courselib.json_fields import JSONField
 from coredata.models import Semester
 from django.db.models.query import QuerySet
-from model_utils.managers import PassThroughManager
 
 # "citizen" isn't truly a visa status, but it's something we want to track here.
 # SIMS has no Work Visa status, so we're adding that here too.
@@ -30,13 +29,14 @@ def timezone_today():
     return timezone.now().date()
 
 
-class VisaQuerySet(QuerySet):
+class VisaManager(models.Manager):
+    def visible(self):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False)
 
-        def visible(self):
-            return self.filter(hidden=False)
-
-        def visible_given_user(self, person):
-            return self.filter(hidden=False, person=person)
+    def visible_given_user(self, person):
+        qs = self.get_queryset()
+        return qs.filter(hidden=False, person=person)
 
 
 class Visa (models.Model):
@@ -47,7 +47,7 @@ class Visa (models.Model):
     config = JSONField(null=False, blank=False, editable=False, default=dict)  # For future fields
     hidden = models.BooleanField(default=False, editable=False)
 
-    objects = PassThroughManager.for_queryset_class(VisaQuerySet)()
+    objects = VisaManager()
 
     class Meta:
         ordering = ('start_date',)
@@ -110,7 +110,7 @@ class Visa (models.Model):
         :return: A list of visas
         :rtype: list
         """
-        return Visa.objects.filter(person__in=people).visible().order_by('start_date')
+        return Visa.objects.visible().filter(person__in=people).order_by('start_date')
 
 
 def visa_attachment_upload_to(instance, filename):
