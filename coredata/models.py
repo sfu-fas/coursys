@@ -1341,8 +1341,10 @@ MEETINGTYPE_CHOICES = (
         ("LAB", "Lab/Tutorial"),
         )
 MEETINGTYPES = dict(MEETINGTYPE_CHOICES)
+
+
 class MeetingTime(models.Model):
-    offering = models.ForeignKey(CourseOffering, null=False)
+    offering = models.ForeignKey(CourseOffering, null=False, related_name='meeting_time')
     weekday = models.PositiveSmallIntegerField(null=False, choices=WEEKDAY_CHOICES,
         help_text='Day of week of the meeting')
     start_time = models.TimeField(null=False, help_text='Start time of the meeting')
