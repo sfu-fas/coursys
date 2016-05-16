@@ -840,6 +840,7 @@ INSTR_MODE_CHOICES = [ # from ps_instruct_mode in reporting DB
     ('GI', 'Graduate Internship'),
     ('P', 'In Person'),
     ('PO', 'In Person - Off Campus'),
+    ('PR', 'Practicum'),
     ]
 INSTR_MODE = dict(INSTR_MODE_CHOICES)
 
