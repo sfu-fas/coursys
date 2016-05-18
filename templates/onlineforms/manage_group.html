@@ -67,7 +67,7 @@ $(document).ready(function() {
         <tbody>
             {% for member in groupmembers %}
             <tr>
-                <td>{{ member.person.sortname }}</td>
+                <td>{{ member.person.sortname }}{% if member.person.userid %} &nbsp;({{ member.person.userid }}){% endif %}</td>
                 <td>{{ member.email|yesno }}</td>
                 <td class="miniaction"> 
                     <form action="{% url "onlineforms.views.remove_group_member" formgroup_slug=group.slug userid=member.person.emplid %}" method="post">{% csrf_token %}
