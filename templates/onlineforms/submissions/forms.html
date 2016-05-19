@@ -36,6 +36,13 @@
     	{% if dept_admin %}
         <li><a href="{% url "onlineforms.views.manage_groups" %}">Manage Form Groups</a></li>
         {% endif %}
+        {% if participated %}
+            <li>
+                <a href="{% url "onlineforms.views.participated_in" %}">
+                    View completed forms in which you participated
+                </a>
+            </li>
+        {% endif %}
     </ul>
 </div>
 {% elif participated %}

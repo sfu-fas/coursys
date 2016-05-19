@@ -101,6 +101,12 @@ def add_group_member(request, formgroup_slug):
                     # search returns Person object
                     person = search_form.cleaned_data['search']
                     email = search_form.cleaned_data['email']
+                    # If this FormGroupMember already exists, catch it instead of throwing an exception because of
+                    # a violated UNIQUE constraint.
+                    if FormGroupMember.objects.filter(person=person, formgroup=group).exists():
+                        messages.error(request, "This person is already in this Form Group")
+                        return HttpResponseRedirect(
+                            reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
                     member = FormGroupMember(person=person, formgroup=group)
                     member.set_email(email)
                     member.save()
@@ -108,6 +114,7 @@ def add_group_member(request, formgroup_slug):
                          description=(u"added %s to form group %s (%i)") % (person.userid_or_emplid(), group, group.id),
                          related_object=member)
                     l.save()
+                    messages.success(request, u"%s added to this Form Group." % person)
                     return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
             else: # if accidentally don't search for anybody
                 return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug }))
