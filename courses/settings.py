@@ -134,8 +134,11 @@ USE_L10N = False
 USE_TZ = False
 FIXTURE_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
 #TEST_RUNNER = 'django_coverage.coverage_runner.CoverageRunner'
-from test_without_migrations.management.commands.test import DisableMigrations
-MIGRATION_MODULES = DisableMigrations()
+
+# Disable migrations only when running tests.
+if 'test' in sys.argv[1:]:
+    from test_without_migrations.management.commands.test import DisableMigrations
+    MIGRATION_MODULES = DisableMigrations()
 
 # security-related settings
 ALLOWED_HOSTS = getattr(localsettings, 'ALLOWED_HOSTS', ['courses.cs.sfu.ca', 'coursys.cs.sfu.ca'])
