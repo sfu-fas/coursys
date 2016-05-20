@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sessionals{% endblock %}
+{% block h1 %}Sessionals{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li>Sessionals</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url 'manage_accounts' %}">Manage Accounts</a></li>
+    </ul>
+</div>
+{% endblock %}

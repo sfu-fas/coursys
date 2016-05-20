@@ -9,6 +9,17 @@ from coredata.models import AnyPerson, Unit, JSONField, CourseOffering
 from courselib.slugs import make_slug
 
 
+class SessionalAccountQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
+
+
 class SessionalAccount(models.Model):
     """
     Sessionals have their own position and account number per unit.  Each unit has up to
@@ -25,7 +36,8 @@ class SessionalAccount(models.Model):
         return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
 
     slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
-    hidden = models.BooleanField(null=False, default=False)
+    hidden = models.BooleanField(null=False, default=False, editable=False)
+    objects = SessionalAccountQuerySet.as_manager()
 
     def __unicode__(self):
         return u"%s - %s" % (self.unit, self.title)
@@ -34,6 +46,17 @@ class SessionalAccount(models.Model):
         """Like most of our objects, we don't want to ever really delete it."""
         self.hidden = True
         self.save()
+
+
+class SessionalContractQuerySet(models.QuerySet):
+    """
+    As usual, define some querysets.
+    """
+    def visible(self, units):
+        """
+        Only see visible items, in this case also limited by accessible units.
+        """
+        return self.filter(hidden=False, unit__in=units)
 
 
 class SessionalContract(models.Model):
@@ -53,8 +76,9 @@ class SessionalContract(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     created_by = models.CharField(max_length=20, null=False, blank=False, editable=False)
-    hidden = models.BooleanField(null=False, default=False)
+    hidden = models.BooleanField(null=False, default=False, edi)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
+    objects = SessionalContractQuerySet.as_manager()
 
     def autoslug(self):
         """As usual, create a unique slug for each object"""
