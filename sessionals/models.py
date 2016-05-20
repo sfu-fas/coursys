@@ -76,7 +76,7 @@ class SessionalContract(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, editable=False)
     created_by = models.CharField(max_length=20, null=False, blank=False, editable=False)
-    hidden = models.BooleanField(null=False, default=False, edi)
+    hidden = models.BooleanField(null=False, default=False, editable=False)
     config = JSONField(null=False, blank=False, editable=False, default=dict)
     objects = SessionalContractQuerySet.as_manager()
 
