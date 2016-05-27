@@ -91,6 +91,7 @@ INSTALLED_APPS = (
     'tacontracts',
     'api',
     'visas',
+    'outreach',
 )
 MIDDLEWARE_CLASSES = global_settings.MIDDLEWARE_CLASSES + (
     'django.contrib.sessions.middleware.SessionMiddleware',
