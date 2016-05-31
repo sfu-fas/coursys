@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Event{% endblock %}
+{% block h1 %}Edit Event{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'index' %}">Outreach</a></li>
+<li>New Event</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url 'edit_event' event_id=event_id %}" method="post">
+    {% csrf_token %}
+    {{ form|as_dl }}
+    <p>
+        <input type="submit" class="submit" value="Save Event" />
+    </p>
+</form>
+{% endblock %}

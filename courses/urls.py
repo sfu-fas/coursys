@@ -68,7 +68,7 @@ urlpatterns = [
     url(r'^my_grads/$', 'grad.views.supervisor_index'),
     url(r'^my_grads/download/$', 'grad.views.download_my_grads_csv'),
     url(r'^visas/', include(visas_pattern)),
-    url(r'^outreach', include(outreach_pattern)),
+    url(r'^outreach/', include(outreach_pattern)),
 
     # redirect old mobile URLs to rightful locations
     url(r'^m/(?P<urltail>.*)$',  RedirectView.as_view(url='/%(urltail)s/', permanent=True)),

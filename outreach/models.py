@@ -28,6 +28,12 @@ class EventQuerySet(models.QuerySet):
         """
         return self.filter(hidden=False, unit__in=units)
 
+    def upcoming(self, units):
+        return self.visible(units).filter(start_date__gte=timezone_today())
+
+    def past(self, units):
+        return self.visible(units).filter(end_date__lte=timezone_today())
+
 
 class OutreachEvent(models.Model):
     """
@@ -37,7 +43,7 @@ class OutreachEvent(models.Model):
     title = models.CharField(max_length=60, null=False, blank=False)
     start_date = models.DateField('Start Date', default=timezone_today, help_text='Event start date')
     end_date = models.DateField('End Date', blank=True, null=True, help_text='Event end date, if any')
-    description = models.CharField(max_length=400)
+    description = models.CharField(max_length=400, blank=True, null=True)
     unit = models.ForeignKey(Unit, blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     objects = EventQuerySet.as_manager()
@@ -67,6 +73,20 @@ class OutreachEventRegistration(models.Model):
     should only ever have to fill in these once, but we'll add a UUID in case we need to send them back to them.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
+    email = models.EmailField()
+    event = models.ForeignKey(OutreachEvent, blank=False, null=False)
+    waiver = models.BooleanField(default=False, help_text="I agree to have <insert legalese here>")
+    hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+    objects = OutreachEventRegistrationQuerySet.as_manager()
 
 
+    def __unicode__(self):
+        return u"%s, %s = %s" % (self.last_name, self.first_name, self.event)
 
+    def delete(self):
+        """Like most of our objects, we don't want to ever really delete it."""
+        self.hidden = True
+        self.save()
