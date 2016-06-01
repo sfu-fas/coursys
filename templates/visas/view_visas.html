@@ -62,12 +62,14 @@ function confirmDelete(url) {
                     <td>{{ visa.status }}</td>
                     <td>{{ visa.get_validity }}</td>
                     <td>
-                        <div class="lineform">
-                            <button type='submit' class='btn' title="Hide Visa"
-                                    onclick="confirmDelete('{% url "visas.views.delete_visa" visa_id=visa.id %}')">
+                        <form class="lineform" method="POST"
+                              action="{% url "visas.views.delete_visa" visa_id=visa.id %}"
+                              onsubmit="confirmDelete(this)">
+                            {% csrf_token %}
+                            <button type='submit' class='btn' title="Hide Visa">
                                 <i class='fa fa-trash-o'></i>
                             </button>
-                        </div>
+                        </form>
                         <form class="lineform" method="GET"
                             action="{% url "visas.views.edit_visa" visa_id=visa.id %}">
                             <button type='submit' class='btn' title="Edit Visa">

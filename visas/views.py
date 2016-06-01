@@ -88,16 +88,17 @@ def view_visa(request, visa_id):
 
 @requires_role(["TAAD", "GRAD", "ADMN", "GRPD"])
 def delete_visa(request, visa_id):
-    visa = get_object_or_404(Visa, pk=visa_id)
-    messages.success(request, 'Hid visa for %s' % (visa.person.name()))
-    l = LogEntry(userid=request.user.username,
-                 description="deleted visa: %s" % (visa),
-                 related_object=visa.person
-                 )
-    l.save()
+    if request.method == 'POST':
+        visa = get_object_or_404(Visa, pk=visa_id)
+        messages.success(request, 'Hid visa for %s' % (visa.person.name()))
+        l = LogEntry(userid=request.user.username,
+                     description="deleted visa: %s" % (visa),
+                     related_object=visa.person
+                     )
+        l.save()
 
-    visa.hide()
-    visa.save()
+        visa.hide()
+        visa.save()
     return HttpResponseRedirect(reverse(list_all_visas))
 
 
