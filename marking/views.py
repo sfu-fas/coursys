@@ -288,7 +288,7 @@ def manage_activity_components(request, course_slug, activity_slug):
 
 
 @requires_course_staff_by_slug
-def import_components(request, course_slug, activity_slug):
+def OFF_import_components(request, course_slug, activity_slug):
     """
     Quick (but not pretty) view to allow importing marking setup from the old system.  Not well tested, but seems to work well enough.
     """
