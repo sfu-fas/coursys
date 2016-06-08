@@ -4,6 +4,7 @@ A module written to manage our outreach events.
 
 from django.db import models
 from django.utils import timezone
+from django.db.models import Q
 from coredata.models import Unit
 import uuid
 from autoslug import AutoSlugField
@@ -15,7 +16,7 @@ def timezone_today():
     Return the timezone-aware version of datetime.date.today()
     """
     # field default must be a callable (so it's the "today" of the request, not the "today" of the server startup)
-    return timezone.now().date()
+    return timezone.now()
 
 
 class EventQuerySet(models.QuerySet):
@@ -34,6 +35,12 @@ class EventQuerySet(models.QuerySet):
     def past(self, units):
         return self.visible(units).filter(end_date__lte=timezone_today())
 
+    """
+    A current event may have already started
+    """
+    def current(self, units):
+        return self.visible(units).filter(Q(start_date__gte=timezone_today()) | Q(end_date__gte=timezone_today()))
+
 
 class OutreachEvent(models.Model):
     """
@@ -41,12 +48,17 @@ class OutreachEvent(models.Model):
     system.
     """
     title = models.CharField(max_length=60, null=False, blank=False)
-    start_date = models.DateField('Start Date', default=timezone_today, help_text='Event start date')
-    end_date = models.DateField('End Date', blank=True, null=True, help_text='Event end date, if any')
+    start_date = models.DateTimeField('Start Date and Time', default=timezone_today, help_text='Event start date and time.  Use 24h format for the time if needed.')
+    end_date = models.DateTimeField('End Date and Time', blank=True, null=True, help_text='Event end date and time, if any')
     description = models.CharField(max_length=400, blank=True, null=True)
     unit = models.ForeignKey(Unit, blank=False, null=False)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     objects = EventQuerySet.as_manager()
+
+    def autoslug(self):
+        return make_slug(self.unit.slug + '-' + self.title + '-' + str(self.start_date.date()))
+
+    slug = AutoSlugField(populate_from='autoslug', null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.title, self.unit.label, self.start_date)
@@ -55,6 +67,13 @@ class OutreachEvent(models.Model):
         """Like most of our objects, we don't want to ever really delete it."""
         self.hidden = True
         self.save()
+
+    def current(self):
+        """
+        Find out if an event is still current.  Otherwise, we shouldn't be able to register for it.
+        """
+        return self.start_date > timezone_today() or self.end_date >= timezone_today()
+
 
 class OutreachEventRegistrationQuerySet(models.QuerySet):
     """
@@ -81,7 +100,7 @@ class OutreachEventRegistration(models.Model):
     waiver = models.BooleanField(default=False, help_text="I agree to have <insert legalese here>")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     objects = OutreachEventRegistrationQuerySet.as_manager()
-
+    slug = AutoSlugField(populate_from=id, editable=False)
 
     def __unicode__(self):
         return u"%s, %s = %s" % (self.last_name, self.first_name, self.event)
@@ -90,3 +109,6 @@ class OutreachEventRegistration(models.Model):
         """Like most of our objects, we don't want to ever really delete it."""
         self.hidden = True
         self.save()
+
+    def fullname(self):
+        return u"%s, %s %s" % (self.last_name, self,first_name, self.middle_name or '')

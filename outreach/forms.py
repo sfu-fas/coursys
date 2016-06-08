@@ -16,20 +16,13 @@ class OutreachEventForm(forms.ModelForm):
         exclude = []
         model = OutreachEvent
         widgets = {
-            'start_date': CalendarWidget,
-            'end_date': CalendarWidget,
+            'start_date': forms.SplitDateTimeWidget,
+            'end_date': forms.SplitDateTimeWidget,
             'description': forms.Textarea
         }
 
 
 class OutreachEventRegistrationForm(forms.ModelForm):
-    def __init__(self, request, *args, **kwargs):
-        super(OutreachEventRegistrationForm, self).__init__(*args, **kwargs)
-        unit_ids = [unit.id for unit in request.units]
-        units = Unit.objects.filter(id__in=unit_ids)
-        self.fields['event'].queryset = OutreachEvent.visible(units)
-        self.fields['event'].empty_label = None
-
     class Meta:
-        exclude = []
+        exclude = ['event']
         model = OutreachEventRegistration

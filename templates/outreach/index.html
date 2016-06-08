@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Outreach{% endblock %}
-{% block h1 %}Outreach{% endblock %}
+{% block title %}Outreach Events{% endblock %}
+{% block h1 %}Outreach Events{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -13,11 +13,24 @@ $(document).ready(function() {
     "bJQueryUI": true,
     'aaSorting': [[1, 'asc']]
   } );
+  $('#pastoutreachevents').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+  $('#view_past_events').prop('checked', false);
+  $('#pastevents').hide();
 } );
 function confirmDelete(url) {
   if ( confirm("Are you sure you want to delete this event?") ) {
     document.location = url;
   };
+}
+
+function togglePast() {
+    $('#pastevents').toggle();
 }
 </script>
 {% endblock %}
@@ -32,6 +45,9 @@ function confirmDelete(url) {
 {% endblock %}
 
 {% block content %}
+    {% if past_events %}
+    <div>View past events &nbsp; <input type="checkbox" id="view_past_events" onclick="togglePast()"></div>
+    {% endif %}
     {% if events %}
         <table id="outreachevents" class="display">
             <thead>
@@ -59,13 +75,13 @@ function confirmDelete(url) {
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "edit_event" event_id=event.id %}">
+                        action="{% url "edit_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="Edit Event">
                             <i class='fa fa-edit'></i>
                         </button>
                     </form>
                     <form class="lineform" method="GET"
-                        action="{% url "view_event" event_id=event.id %}">
+                        action="{% url "view_event" event_slug=event.slug %}">
                         <button type='submit' class='btn' title="View Event">
                             <i class='fa fa-eye'></i>
                         </button>
@@ -77,5 +93,51 @@ function confirmDelete(url) {
 
     {% else %}
         <div>There are no events to display.</div>
+    {% endif %}
+    {% if past_events %}
+        <div id="pastevents">
+        <h1>Past Events</h1>
+        <table id="pastoutreachevents" class="display">
+            <thead>
+                <tr>
+                    <td>Title</td>
+                    <td>Start Date</td>
+                    <td>End Date</td>
+                    <td>Unit</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            {% for event in past_events %}
+            <tr>
+                <td>{{ event.title }}</td>
+                <td>{{ event.start_date }}</td>
+                <td>{{ event.end_date }}</td>
+                <td>{{ event.unit }}</td>
+                <td>
+                    <form class="lineform" method="POST"
+                          action="{% url "delete_event" event_id=event.id %}"
+                          onsubmit="confirmDelete(this)">
+                        {% csrf_token %}
+                        <button type='submit' class='btn' title="Hide Event">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "edit_event" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Edit Event">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "view_event" event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="View Event">
+                            <i class='fa fa-eye'></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        </div>
     {% endif %}
 {% endblock %}
