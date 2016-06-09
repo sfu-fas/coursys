@@ -8,6 +8,7 @@ from api.api_views import APIRoot
 from coredata.api_views import MyOfferings, OfferingInfo
 from grades.api_views import OfferingActivities, OfferingGrades, OfferingStats, OfferingStudents
 from submission.api_views import ActivitySubmissions
+from marking.api_views import MarkingDetails
 
 endpoint_v1_patterns = [
     url(r'^offerings/$', MyOfferings.as_view(), name='api.MyOfferings'),
@@ -18,6 +19,9 @@ endpoint_v1_patterns = [
     url(r'^offerings/' + COURSE_SLUG + '/students', OfferingStudents.as_view(), name='api.OfferingStudents'),
     url(r'^offerings/' + COURSE_SLUG + '/submissions/' + ACTIVITY_SLUG, ActivitySubmissions.as_view(),
         name='api.ActivitySubmissions'),
+    #url(r'^offerings/' + COURSE_SLUG + '/marking/' + ACTIVITY_SLUG, MarkingDetails.as_view(),
+    #    name='api.MarkingDetails'),
+
 ]
 endpoint_v1_patterns = format_suffix_patterns(endpoint_v1_patterns)
 
