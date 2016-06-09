@@ -14,6 +14,7 @@ PERMISSION_CHOICES = [
     ('instr-info', 'Instructor-only information (read-only)'),
     ('submissions-read', 'Retrieve submissions'),
     ('submissions-write', 'Make submissions'),
+    ('grades-write', 'Edit grades in courses where you are an instructor/TA'),
 ]
 PERMISSION_OPTIONS = dict(PERMISSION_CHOICES)
 
