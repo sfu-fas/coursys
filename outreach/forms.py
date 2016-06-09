@@ -1,7 +1,7 @@
 from models import OutreachEvent, OutreachEventRegistration
 from django import forms
-from coredata.widgets import CalendarWidget
 from coredata.models import Unit
+from faculty.event_types.fields import DollarInput
 
 
 class OutreachEventForm(forms.ModelForm):
@@ -18,7 +18,9 @@ class OutreachEventForm(forms.ModelForm):
         widgets = {
             'start_date': forms.SplitDateTimeWidget,
             'end_date': forms.SplitDateTimeWidget,
-            'description': forms.Textarea
+            'description': forms.Textarea,
+            'resources': forms.Textarea,
+            'cost': DollarInput
         }
 
 
@@ -26,3 +28,7 @@ class OutreachEventRegistrationForm(forms.ModelForm):
     class Meta:
         exclude = ['event']
         model = OutreachEventRegistration
+        widgets = {
+            'notes': forms.Textarea,
+            'contact': forms.Textarea,
+        }

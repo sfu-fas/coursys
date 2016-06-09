@@ -52,6 +52,8 @@ class OutreachEvent(models.Model):
     end_date = models.DateTimeField('End Date and Time', blank=True, null=True, help_text='Event end date and time, if any')
     description = models.CharField(max_length=400, blank=True, null=True)
     unit = models.ForeignKey(Unit, blank=False, null=False)
+    resources = models.CharField(max_length=400, blank=True, null=True, help_text="Resources needed for this event.")
+    cost = models.DecimalField(blank=True, null=True, max_digits=8, decimal_places=2, help_text="Cost of this event")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
     objects = EventQuerySet.as_manager()
 
@@ -92,15 +94,21 @@ class OutreachEventRegistration(models.Model):
     should only ever have to fill in these once, but we'll add a UUID in case we need to send them back to them.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    last_name = models.CharField(max_length=32)
-    first_name = models.CharField(max_length=32)
-    middle_name = models.CharField(max_length=32, null=True, blank=True)
-    email = models.EmailField()
+    last_name = models.CharField("Participant Last Name", max_length=32)
+    first_name = models.CharField("Participant First Name", max_length=32)
+    middle_name = models.CharField("Participant Middle Name", max_length=32, null=True, blank=True)
+    age = models.DecimalField("Participant Age", null=True, blank=True, max_digits=2, decimal_places=0)
+    contact = models.CharField("Emergency Contact", max_length=400, blank=True, null=True)
+    email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False)
     waiver = models.BooleanField(default=False, help_text="I agree to have <insert legalese here>")
+    school = models.CharField("Participant School", null=True, blank=True, max_length=200)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+    notes = models.CharField("Special Instructions", max_length=400, blank=True, null=True)
     objects = OutreachEventRegistrationQuerySet.as_manager()
-    slug = AutoSlugField(populate_from=id, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    last_modified = models.DateTimeField(editable=False, blank=False, null=False)
+    attended = models.BooleanField(default=True, editable=False, blank=False, null=False)
 
     def __unicode__(self):
         return u"%s, %s = %s" % (self.last_name, self.first_name, self.event)
@@ -112,3 +120,7 @@ class OutreachEventRegistration(models.Model):
 
     def fullname(self):
         return u"%s, %s %s" % (self.last_name, self,first_name, self.middle_name or '')
+
+    def save(self, *args, **kwargs):
+        self.last_modified = timezone.now()
+        super(OutreachEventRegistration, self).save(*args, **kwargs)
