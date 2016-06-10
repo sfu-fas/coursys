@@ -22,6 +22,7 @@ class Migration(migrations.Migration):
                 ('start_date', models.DateTimeField(default=outreach.models.timezone_today, help_text=b'Event start date and time.  Use 24h format for the time if needed.', verbose_name=b'Start Date and Time')),
                 ('end_date', models.DateTimeField(help_text=b'Event end date and time, if any', null=True, verbose_name=b'End Date and Time', blank=True)),
                 ('description', models.CharField(max_length=400, null=True, blank=True)),
+                ('score', models.DecimalField(max_length=2, null=True, max_digits=2, decimal_places=0, blank=True)),
                 ('resources', models.CharField(help_text=b'Resources needed for this event.', max_length=400, null=True, blank=True)),
                 ('cost', models.DecimalField(help_text=b'Cost of this event', null=True, max_digits=8, decimal_places=2, blank=True)),
                 ('hidden', models.BooleanField(default=False, editable=False)),

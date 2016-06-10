@@ -20,7 +20,8 @@ class OutreachEventForm(forms.ModelForm):
             'end_date': forms.SplitDateTimeWidget,
             'description': forms.Textarea,
             'resources': forms.Textarea,
-            'cost': DollarInput
+            'cost': DollarInput,
+            'score': forms.NumberInput(attrs={'class': 'smallnumberinput'})
         }
 
 

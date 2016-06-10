@@ -51,6 +51,7 @@ class OutreachEvent(models.Model):
     start_date = models.DateTimeField('Start Date and Time', default=timezone_today, help_text='Event start date and time.  Use 24h format for the time if needed.')
     end_date = models.DateTimeField('End Date and Time', blank=True, null=True, help_text='Event end date and time, if any')
     description = models.CharField(max_length=400, blank=True, null=True)
+    score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True)
     unit = models.ForeignKey(Unit, blank=False, null=False)
     resources = models.CharField(max_length=400, blank=True, null=True, help_text="Resources needed for this event.")
     cost = models.DecimalField(blank=True, null=True, max_digits=8, decimal_places=2, help_text="Cost of this event")
