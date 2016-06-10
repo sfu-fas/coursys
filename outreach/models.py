@@ -56,6 +56,7 @@ class OutreachEvent(models.Model):
     resources = models.CharField(max_length=400, blank=True, null=True, help_text="Resources needed for this event.")
     cost = models.DecimalField(blank=True, null=True, max_digits=8, decimal_places=2, help_text="Cost of this event")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
+    # TODO Add registration notes to display in registrations if it exists.
     objects = EventQuerySet.as_manager()
 
     def autoslug(self):
@@ -76,6 +77,8 @@ class OutreachEvent(models.Model):
         Find out if an event is still current.  Otherwise, we shouldn't be able to register for it.
         """
         return self.start_date > timezone_today() or self.end_date >= timezone_today()
+
+    # TODO add copy method to copy from one event to another
 
 
 class OutreachEventRegistrationQuerySet(models.QuerySet):

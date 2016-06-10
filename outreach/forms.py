@@ -5,6 +5,8 @@ from faculty.event_types.fields import DollarInput
 
 
 class OutreachEventForm(forms.ModelForm):
+    start_date = forms.SplitDateTimeField()
+    end_date = forms.SplitDateTimeField()
     def __init__(self, request, *args, **kwargs):
         super(OutreachEventForm, self).__init__(*args, **kwargs)
         unit_ids = [unit.id for unit in request.units]
@@ -16,8 +18,6 @@ class OutreachEventForm(forms.ModelForm):
         exclude = []
         model = OutreachEvent
         widgets = {
-            'start_date': forms.SplitDateTimeWidget,
-            'end_date': forms.SplitDateTimeWidget,
             'description': forms.Textarea,
             'resources': forms.Textarea,
             'cost': DollarInput,
