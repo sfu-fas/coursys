@@ -91,15 +91,20 @@ def register(request, event_slug):
             messages.add_message(request,
                                  messages.SUCCESS,
                                  u'Successfully registered')
-            l = LogEntry(userid=registration.name,
-                         description="Registered %s for event %s" % (registration, registration.event),
-                         related_object=registration)
+            l = LogEntry(userid='',
+                         description="Registered %s for event %s" % (registration.fullname(), registration.event.title),
+                         related_object=registration
+                         )
             l.save()
-            return HttpResponseRedirect(reverse('index'))
+            return HttpResponseRedirect(reverse('register_success', kwargs={'event_slug': event_slug}))
     else:
         form = OutreachEventRegistrationForm()
     return render(request, 'outreach/register.html', {'form': form, 'event': event})
 
 
-
-
+def register_success(request, event_slug):
+    """
+    CAREFUL, this view is open to the whole world.
+    """
+    event = get_object_or_404(OutreachEvent, slug=event_slug)
+    return render(request, 'outreach/registered.html', {'event': event})

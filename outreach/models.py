@@ -48,15 +48,24 @@ class OutreachEvent(models.Model):
     system.
     """
     title = models.CharField(max_length=60, null=False, blank=False)
-    start_date = models.DateTimeField('Start Date and Time', default=timezone_today, help_text='Event start date and time.  Use 24h format for the time if needed.')
-    end_date = models.DateTimeField('End Date and Time', blank=True, null=True, help_text='Event end date and time, if any')
+    start_date = models.DateTimeField('Start Date and Time', default=timezone_today,
+                                      help_text='Event start date and time.  Use 24h format for the time if needed.')
+    end_date = models.DateTimeField('End Date and Time', blank=True, null=True,
+                                    help_text='Event end date and time, if any')
+    location = models.CharField(max_length=400, blank=True, null=True)
     description = models.CharField(max_length=400, blank=True, null=True)
-    score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True)
+    score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True,
+                                help_text='The score according to the event score matrix')
     unit = models.ForeignKey(Unit, blank=False, null=False)
     resources = models.CharField(max_length=400, blank=True, null=True, help_text="Resources needed for this event.")
     cost = models.DecimalField(blank=True, null=True, max_digits=8, decimal_places=2, help_text="Cost of this event")
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
-    # TODO Add registration notes to display in registrations if it exists.
+    notes = models.CharField(max_length=400, blank=True, null=True, help_text='Special notes to registrants.  These '
+                                                                              '*will* be displayed on the registration '
+                                                                              'forms.')
+    email = models.EmailField('Contact e-mail', null=True, blank=True,
+                              help_text='Contact email.  Address that will be given to registrants on the registration '
+                                        'success page in case they have any questions/problems.')
     objects = EventQuerySet.as_manager()
 
     def autoslug(self):
@@ -97,7 +106,8 @@ class OutreachEventRegistration(models.Model):
     An event registration.  Only outreach admins should ever need to see this.  Ideally, the users (not loggedin)
     should only ever have to fill in these once, but we'll add a UUID in case we need to send them back to them.
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Don't make the UUID the primary key.  We need a primary key that can be cast to an int for our logger.
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, null=False)
     last_name = models.CharField("Participant Last Name", max_length=32)
     first_name = models.CharField("Participant First Name", max_length=32)
     middle_name = models.CharField("Participant Middle Name", max_length=32, null=True, blank=True)
@@ -123,7 +133,7 @@ class OutreachEventRegistration(models.Model):
         self.save()
 
     def fullname(self):
-        return u"%s, %s %s" % (self.last_name, self,first_name, self.middle_name or '')
+        return u"%s, %s %s" % (self.last_name, self.first_name, self.middle_name or '')
 
     def save(self, *args, **kwargs):
         self.last_modified = timezone.now()

@@ -14,4 +14,5 @@ outreach_pattern = [  # prefix /outreach/
     url(r'^' + EVENT_ID + '/delete$', views.delete_event, name='delete_event'),
     url(r'^' + EVENT_SLUG + '/view$', views.view_event, name='view_event'),
     url(r'^' + EVENT_SLUG + '/register$', views.register, name='register'),
+    url(r'^' + EVENT_SLUG + '/registered$', views.register_success, name='register_success'),
 ]
