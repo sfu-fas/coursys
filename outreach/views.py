@@ -67,13 +67,12 @@ def edit_event(request, event_slug):
 def delete_event(request, event_id):
     event = get_object_or_404(OutreachEvent, pk=event_id)
     if request.method == 'POST':
+        event.delete()
         messages.success(request, 'Hid event %s' % event)
         l = LogEntry(userid=request.user.username,
                      description="Deleted event: %s" % event,
                      related_object=event)
         l.save()
-
-        event.delete()
     return HttpResponseRedirect(reverse(index))
 
 
@@ -108,3 +107,79 @@ def register_success(request, event_slug):
     """
     event = get_object_or_404(OutreachEvent, slug=event_slug)
     return render(request, 'outreach/registered.html', {'event': event})
+
+
+@requires_role('OUTR')
+def view_all_registrations(request):
+    unit_ids = [unit.id for unit in request.units]
+    units = Unit.objects.filter(id__in=unit_ids)
+    current_registrations = OutreachEventRegistration.objects.current(units).order_by('event__start_date')
+    past_registrations = OutreachEventRegistration.objects.past(units).order_by('event__start_date')
+    context = {'current_registrations': current_registrations, 'past_registrations': past_registrations}
+    return render(request, 'outreach/all_registrations.html', context)
+
+
+@requires_role('OUTR')
+def view_registration(request, registration_id):
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
+    return render(request, 'outreach/view_registration.html', {'registration': registration})
+
+
+@requires_role('OUTR')
+def edit_registration(request, registration_id, event_slug=None):
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
+    if request.method == 'POST':
+        form = OutreachEventRegistrationForm(request.POST, instance=registration)
+        if form.is_valid():
+            registration = form.save()
+            messages.add_message(request,
+                                 messages.SUCCESS,
+                                 u'Registration was edited')
+            l = LogEntry(userid=request.user.username,
+                         description="Edited registration for %s" % registration,
+                         related_object=registration)
+            l.save()
+            if event_slug:
+                return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
+            return HttpResponseRedirect(reverse(view_all_registrations))
+    else:
+        form = OutreachEventRegistrationForm(instance=registration)
+    return render(request, 'outreach/edit_registration.html', {'form': form, 'registration': registration,
+                                                               'event_slug': event_slug})
+
+
+@requires_role('OUTR')
+def delete_registration(request, registration_id, event_slug=None):
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
+    if request.method == 'POST':
+        registration.delete()
+        messages.success(request, 'Hid registration %s' % registration)
+        l = LogEntry(userid=request.user.username,
+                     description="Deleted registration: %s" % registration,
+                     related_object=registration)
+        l.save()
+    if event_slug:
+        return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
+    return HttpResponseRedirect(reverse(view_all_registrations))
+
+@requires_role('OUTR')
+def toggle_registration_attendance(request, registration_id, event_slug=None):
+    registration = get_object_or_404(OutreachEventRegistration, pk=registration_id)
+    if request.method == 'POST':
+        registration.attended = not registration.attended
+        registration.save()
+        messages.success(request, 'Toggle attendance for %s' % registration)
+        l = LogEntry(userid=request.user.username,
+                     description="Toggled attendance for registration: %s" % registration,
+                     related_object=registration)
+        l.save()
+    if event_slug:
+        return HttpResponseRedirect(reverse(view_event_registrations, kwargs={'event_slug': event_slug}))
+    return HttpResponseRedirect(reverse(view_all_registrations))
+
+
+@requires_role('OUTR')
+def view_event_registrations(request, event_slug):
+    event = get_object_or_404(OutreachEvent, slug=event_slug)
+    registrations = OutreachEventRegistration.objects.filter(event=event, hidden=False)
+    return render(request, 'outreach/event_registrations.html', {'event': event, 'registrations': registrations})

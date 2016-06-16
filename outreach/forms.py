@@ -30,6 +30,13 @@ class OutreachEventForm(forms.ModelForm):
             'end_date': forms.SplitDateTimeWidget,
         }
 
+    def clean(self):
+        cleaned_data = super(OutreachEventForm, self).clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        if end_date is not None and end_date < start_date:
+            raise forms.ValidationError("End date cannot be before start date.")
+
 
 class OutreachEventRegistrationForm(forms.ModelForm):
     class Meta:

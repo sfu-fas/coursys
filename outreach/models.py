@@ -98,7 +98,19 @@ class OutreachEventRegistrationQuerySet(models.QuerySet):
         """
         Only see visible items, in this case also limited by accessible units.
         """
-        return self.filter(hidden=False, unit__in=units)
+        return self.filter(hidden=False, event__unit__in=units)
+
+    def current(self, units):
+        """
+        Return visible registrations for current events
+        """
+        return self.visible(units).filter(event__in=OutreachEvent.objects.current(units))
+
+    def past(self, units):
+        """
+        Return visible registrations for past events
+        """
+        return self.visible(units).filter(event__in=OutreachEvent.objects.past(units))
 
 
 class OutreachEventRegistration(models.Model):

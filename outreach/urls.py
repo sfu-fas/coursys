@@ -6,6 +6,7 @@ from courselib.urlparts import ID_RE, SLUG_RE
 EVENT_ID = '(?P<event_id>' + ID_RE + ')'
 #EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 EVENT_SLUG = '(?P<event_slug>[\w\-\.]+)'
+REGISTRATION_ID = '(?P<registration_id>' + ID_RE + ')'
 
 outreach_pattern = [  # prefix /outreach/
     url('^$', views.index, name='index'),
@@ -15,4 +16,17 @@ outreach_pattern = [  # prefix /outreach/
     url(r'^' + EVENT_SLUG + '/view$', views.view_event, name='view_event'),
     url(r'^' + EVENT_SLUG + '/register$', views.register, name='register'),
     url(r'^' + EVENT_SLUG + '/registered$', views.register_success, name='register_success'),
+    url(r'^all_registrations/$', views.view_all_registrations, name='all_registrations'),
+    url(r'^registration/' + REGISTRATION_ID + '/view$', views.view_registration, name='view_registration'),
+    url(r'^registration/' + REGISTRATION_ID + '/edit$', views.edit_registration, name='edit_registration'),
+    url(r'^registration/' + REGISTRATION_ID + '/edit/' + EVENT_SLUG + '/$', views.edit_registration,
+        name='edit_registration'),
+    url(r'^registration/' + REGISTRATION_ID + '/delete$', views.delete_registration, name='delete_registration'),
+    url(r'^registration/' + REGISTRATION_ID + '/delete/' + EVENT_SLUG + '$', views.delete_registration,
+        name='delete_registration'),
+    url(r'^registration/' + REGISTRATION_ID + '/toggle$', views.toggle_registration_attendance,
+        name='toggle_registration_attendance'),
+    url(r'^registration/' + REGISTRATION_ID + '/toggle/' + EVENT_SLUG + '$', views.toggle_registration_attendance,
+        name='toggle_registration_attendance'),
+    url(r'^' + EVENT_SLUG + '/registrations$', views.view_event_registrations, name='view_event_registrations'),
 ]

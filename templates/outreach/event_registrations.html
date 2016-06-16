@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Event Registrations{% endblock %}
+{% block h1 %}Event Registrations{% endblock %}
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'index' %}">Outreach</a></li>
+<li><a href="{% url 'view_event' event_slug=event.slug %}">{{ event.title }}</a></li>
+<li>Registration</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#registrations').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']]
+  } );
+} );
+
+function confirmDelete() {
+  return confirm("Are you sure you want to remove this registration?");
+}
+
+</script>
+{% endblock %}
+
+{% block content %}
+{% if registrations %}
+        <table id="registrations">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Event</td>
+                    <td>Event Start Date</td>
+                    <td>Registration Date</td>
+                    <td>Waiver</td>
+                    <td>Attending</td>
+                    <td>Actions</td>
+                </tr>
+            </thead>
+            {% for registration in registrations %}
+                <tr>
+                    <td>{{ registration.fullname }}</td>
+                    <td><a href="{% url 'view_event' event_slug=registration.event.slug  %}" title="View event">{{ registration.event.title }}</a></td>
+                    <td>{{ registration.event.start_date }}</td>
+                    <td>{{ registration.created_at }}</td>
+                    <td>{{ registration.waiver|yesno }}</td>
+                    <td>{{ registration.attended|yesno }}</td>
+                    <td>
+                    <form class="lineform" method="POST"
+                        action = "{% url "toggle_registration_attendance" registration_id=registration.id event_slug=event.slug %}">
+                        {% csrf_token %}
+                        <button type='submit' class='btn' title="Toggle Attendance">
+                            <i class='fa fa-check-square'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="POST"
+                          action="{% url "delete_registration" registration_id=registration.id event_slug=event.slug %}"
+                          onsubmit="return confirmDelete();">
+                        {% csrf_token %}
+                        <button type='submit' class='btn' title="Hide Registration">
+                            <i class='fa fa-trash-o'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "edit_registration" registration_id=registration.id event_slug=event.slug %}">
+                        <button type='submit' class='btn' title="Edit Registration">
+                            <i class='fa fa-edit'></i>
+                        </button>
+                    </form>
+                    <form class="lineform" method="GET"
+                        action="{% url "view_registration" registration_id=registration.id %}">
+                        <button type='submit' class='btn' title="View Registration">
+                            <i class='fa fa-eye'></i>
+                        </button>
+                    </form>
+                </td>
+                </tr>
+            {% endfor %}
+        </table>
+{% else %}
+    There are no registrations for this event.
+{% endif %}
+{% endblock %}
