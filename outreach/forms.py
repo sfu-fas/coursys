@@ -46,3 +46,6 @@ class OutreachEventRegistrationForm(forms.ModelForm):
             'notes': forms.Textarea,
             'contact': forms.Textarea,
         }
+        labels = {
+            'waiver': "Photo Waiver.  I hereby agree to <legalese>"
+        }
