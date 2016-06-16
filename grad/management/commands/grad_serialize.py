@@ -10,8 +10,11 @@ from grad.models import CompletedRequirement, Letter, Scholarship, OtherFunding,
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument('unit_slugs', nargs='+', type=str)
+
     def handle(self, *args, **options):
-        unit_slugs = args
+        unit_slugs = options['unit_slugs']
         units = Unit.objects.filter(slug__in=unit_slugs)
         assert len(units) == len(unit_slugs)
 
