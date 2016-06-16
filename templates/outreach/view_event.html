@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}View Event{% endblock %}
+{% block h1 %}View Event{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li><a href="{% url 'index' %}">Outreach</a></li>
+<li>View Event</li>
+{% endblock %}
+
+{% block actions %}
+<h2>Actions</h2>
+<ul>
+    <li><a href="{% url "edit_event" event_slug=event.slug %}">Edit</a></li>
+    <li><a href="{% url "view_event_registrations" event_slug=event.slug %}">View Registrations</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<dt>Title</dt><dd>{{ event.title }}</dd>
+<dt>Start Date</dt><dd>{{ event.start_date }}</dd>
+<dt>End Date</dt><dd>{{ event.end_date }}</dd>
+<dt>Description</dt><dd>{{ event.description|linebreaks }}</dd>
+<dt>Location</dt><dd>{{ event.location|linebreaks }}</dd>
+<dt>Unit</dt><dd>{{ event.unit }}</dd>
+<dt>Resources</dt><dd>{{ event.resources|linebreaks }}</dd>
+<dt>Cost</dt><dd>${{ event.cost }}</dd>
+<dt>Notes</dt><dd>{{ event.notes|linebreaks }}</dd>
+<dt>Contact Email</dt><dd>{{ event.email }}</dd>
+{% if event.current %}
+<p>
+<div>
+    The registration link for this event is:
+    <a href="{% url "register" event_slug=event.slug %}"> {{ register_url }}</a>
+</div>
+</p>
+{% endif %}
+{% endblock %}
