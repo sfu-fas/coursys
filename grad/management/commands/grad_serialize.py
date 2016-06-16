@@ -37,7 +37,8 @@ class Command(BaseCommand):
             objs.extend(LetterTemplate.objects.filter(unit=unit))
             objs.extend(GradFlag.objects.filter(unit=unit))
 
-            objs.extend(CompletedRequirement.objects.filter(student__program__unit=unit))
+            objs.extend(CompletedRequirement.objects.filter(student__program__unit=unit,
+                                                            requirement__program__unit=unit))
             letters = Letter.objects.filter(student__program__unit=unit)
             objs.extend(letters)
             objs.extend(Scholarship.objects.filter(student__program__unit=unit))
