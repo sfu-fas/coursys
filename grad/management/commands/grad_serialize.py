@@ -20,9 +20,9 @@ class Command(BaseCommand):
 
         objs = list(units)
         objs.extend(Semester.objects.all())
+        objs.extend(Unit.objects.all())
 
         for unit in units:
-            objs.extend(unit.super_units())
             objs.extend(GradProgram.objects.filter(unit=unit))
             gss = GradStudent.all_objects.filter(program__unit=unit).select_related('person')
             objs.extend(gss)
