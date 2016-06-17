@@ -7,7 +7,10 @@ package "python-dev"
 package "python-lxml"
 package "sqlite3"
 package "zlib1g-dev"
+package "libjpeg8-dev" # for pillow build
 package "mercurial"
+
+
 
 #install the proper pip
 execute "install_proper_pip" do
