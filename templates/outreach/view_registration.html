@@ -21,7 +21,8 @@
 <dt>First Name</dt><dd>{{ registration.first_name }}</dd>
 <dt>Middle Name</dt><dd>{{ registration.middle_name|default:"None" }}</dd>
 <dt>Age</dt><dd>{{ registration.age|default:"None" }}</dd>
-<dt>Contact</dt><dd>{{ registration.contact|default:"None"|linebreaks }}</dd>
+<dt>Parent Name</dt><dd>{{ registration.parent_name }}</dd>
+<dt>Parent Phone</dt><dd>{{ registration.parent_phone }}</dd>
 <dt>Email</dt><dd>{{ registration.email }}</dd>
 <dt>Waiver</dt><dd>{{ registration.waiver|yesno }}</dd>
 <dt>School</dt><dd>{{ registration.school|default:"None" }}</dd>

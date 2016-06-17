@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Outreach Events{% endblock %}
-{% block h1 %}Outreach Events{% endblock %}
+{% block h1 %}Current Events{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -40,6 +40,12 @@ function togglePast() {
     <ul>
         <li><a href="{% url "new_event" %}">Add New Event</a></li>
         <li><a href="{% url "all_registrations" %}">View All Registrations</a></li>
+        {% if events %}
+            <li><a href="{% url "download_events" %}">Download Current Events</a></li>
+        {% endif %}
+        {% if past_events %}
+            <li><a href="{% url "download_events" past=1 %}">Download Past Events</a></li>
+        {% endif %}
     </ul>
 </div>
 {% endblock %}
@@ -56,6 +62,7 @@ function togglePast() {
                     <td>Start Date</td>
                     <td>End Date</td>
                     <td>Unit</td>
+                    <td>Attending</td>
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -65,6 +72,7 @@ function togglePast() {
                 <td>{{ event.start_date }}</td>
                 <td>{{ event.end_date }}</td>
                 <td>{{ event.unit }}</td>
+                <td>{{ event.registration_count }}</td>
                 <td>
                     <form class="lineform" method="POST"
                           action="{% url "delete_event" event_id=event.id %}"
@@ -92,7 +100,7 @@ function togglePast() {
         </table>
 
     {% else %}
-        <div>There are no events to display.</div>
+        <div>There are no current events to display.</div>
     {% endif %}
     {% if past_events %}
         <div id="pastevents">
@@ -104,6 +112,7 @@ function togglePast() {
                     <td>Start Date</td>
                     <td>End Date</td>
                     <td>Unit</td>
+                    <td>Attended</td>
                     <td>Actions</td>
                 </tr>
             </thead>
@@ -113,6 +122,7 @@ function togglePast() {
                 <td>{{ event.start_date }}</td>
                 <td>{{ event.end_date }}</td>
                 <td>{{ event.unit }}</td>
+                <td>{{ event.registration_count }}</td>
                 <td>
                     <form class="lineform" method="POST"
                           action="{% url "delete_event" event_id=event.id %}"
