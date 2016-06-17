@@ -13,6 +13,7 @@
 <ul>
     <li><a href="{% url "edit_event" event_slug=event.slug %}">Edit</a></li>
     <li><a href="{% url "view_event_registrations" event_slug=event.slug %}">View Registrations</a></li>
+    <li><a href="{% url "download_registrations" event_slug=event.slug %}">Download Registrations</a></li>
 </ul>
 {% endblock %}
 

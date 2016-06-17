@@ -7,6 +7,7 @@ EVENT_ID = '(?P<event_id>' + ID_RE + ')'
 #EVENT_SLUG = '(?P<event_slug>' + SLUG_RE + ')'
 EVENT_SLUG = '(?P<event_slug>[\w\-\.]+)'
 REGISTRATION_ID = '(?P<registration_id>' + ID_RE + ')'
+PAST_FLAG = '(?P<past>' + ID_RE + ')'
 
 outreach_pattern = [  # prefix /outreach/
     url('^$', views.index, name='index'),
@@ -29,4 +30,9 @@ outreach_pattern = [  # prefix /outreach/
     url(r'^registration/' + REGISTRATION_ID + '/toggle/' + EVENT_SLUG + '$', views.toggle_registration_attendance,
         name='toggle_registration_attendance'),
     url(r'^' + EVENT_SLUG + '/registrations$', views.view_event_registrations, name='view_event_registrations'),
+    url(r'^download_events$', views.download_current_events_csv, name='download_events'),
+    url(r'^download_events/' + PAST_FLAG + '$', views.download_current_events_csv, name='download_events'),
+    url(r'^' + EVENT_SLUG + 'download_registrations/$', views.download_registrations, name='download_registrations'),
+    url(r'^download_registrations$', views.download_registrations, name='download_registrations'),
+    url(r'^download_registrations/' + PAST_FLAG + '$', views.download_registrations, name='download_registrations'),
 ]
