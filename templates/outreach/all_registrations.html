@@ -8,6 +8,21 @@
 <li>All Registration</li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        {% if current_registrations %}
+            <li><a href="{% url "download_registrations" %}">Download Current Registrations</a></li>
+        {% endif %}
+        {% if past_registrations %}
+            <li><a href="{% url "download_registrations" past=1 %}">Download Past Registrations</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {

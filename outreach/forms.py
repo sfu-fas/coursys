@@ -35,10 +35,12 @@ class OutreachEventForm(forms.ModelForm):
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
         if end_date is not None and end_date < start_date:
-            raise forms.ValidationError("End date cannot be before start date.")
+            raise forms.ValidationError({'end_date': "End date cannot be before start date.",
+                                         'start_date': "End date cannot be before start date."})
 
 
 class OutreachEventRegistrationForm(forms.ModelForm):
+    confirm_email = forms.EmailField(required=True)
     class Meta:
         exclude = ['event']
         model = OutreachEventRegistration
@@ -49,3 +51,18 @@ class OutreachEventRegistrationForm(forms.ModelForm):
         labels = {
             'waiver': "Photo Waiver.  I hereby agree to <legalese>"
         }
+        fields = ['last_name', 'first_name', 'middle_name', 'age', 'parent_name', 'parent_phone', 'email',
+                  'confirm_email', 'waiver', 'school', 'notes']
+
+        # Add help text for legalese here so we can add it when we have it without creating a migration
+        help_texts = {
+            'waiver': "I hereby agree to <insert legalese>"
+        }
+
+    def clean(self):
+        cleaned_data = super(OutreachEventRegistrationForm, self).clean()
+        email = cleaned_data.get("email")
+        confirm_email = cleaned_data.get("confirm_email")
+        if email != confirm_email:
+            raise forms.ValidationError({'confirm_email': "The emails do not match.",
+                                         'email': "The emails do not match."})

@@ -29,15 +29,11 @@ class EventQuerySet(models.QuerySet):
         """
         return self.filter(hidden=False, unit__in=units)
 
-    def upcoming(self, units):
-        return self.visible(units).filter(start_date__gte=timezone_today())
 
     def past(self, units):
-        return self.visible(units).filter(end_date__lte=timezone_today())
+        return self.visible(units).filter(end_date__lt=timezone_today())
 
-    """
-    A current event may have already started
-    """
+
     def current(self, units):
         return self.visible(units).filter(Q(start_date__gte=timezone_today()) | Q(end_date__gte=timezone_today()))
 
@@ -50,8 +46,8 @@ class OutreachEvent(models.Model):
     title = models.CharField(max_length=60, null=False, blank=False)
     start_date = models.DateTimeField('Start Date and Time', default=timezone_today,
                                       help_text='Event start date and time.  Use 24h format for the time if needed.')
-    end_date = models.DateTimeField('End Date and Time', blank=True, null=True,
-                                    help_text='Event end date and time, if any')
+    end_date = models.DateTimeField('End Date and Time', blank=False, null=False,
+                                    help_text='Event end date and time')
     location = models.CharField(max_length=400, blank=True, null=True)
     description = models.CharField(max_length=400, blank=True, null=True)
     score = models.DecimalField(max_digits=2, decimal_places=0, max_length=2, null=True, blank=True,
@@ -89,6 +85,9 @@ class OutreachEvent(models.Model):
 
     # TODO add copy method to copy from one event to another
 
+    def registration_count(self):
+        return OutreachEventRegistration.objects.attended_event(self).count()
+
 
 class OutreachEventRegistrationQuerySet(models.QuerySet):
     """
@@ -112,6 +111,12 @@ class OutreachEventRegistrationQuerySet(models.QuerySet):
         """
         return self.visible(units).filter(event__in=OutreachEvent.objects.past(units))
 
+    def attended_event(self, event):
+        return self.filter(hidden=False, event=event, attended=True)
+
+    def by_event(self, event):
+        return self.filter(hidden=False, event=event)
+
 
 class OutreachEventRegistration(models.Model):
     """
@@ -124,13 +129,14 @@ class OutreachEventRegistration(models.Model):
     first_name = models.CharField("Participant First Name", max_length=32)
     middle_name = models.CharField("Participant Middle Name", max_length=32, null=True, blank=True)
     age = models.DecimalField("Participant Age", null=True, blank=True, max_digits=2, decimal_places=0)
-    contact = models.CharField("Emergency Contact", max_length=400, blank=True, null=True)
+    parent_name = models.CharField(max_length=100, blank=False, null=False)
+    parent_phone = models.CharField(max_length=15, blank=False, null=False)
     email = models.EmailField("Contact E-mail")
     event = models.ForeignKey(OutreachEvent, blank=False, null=False)
-    waiver = models.BooleanField(default=False, help_text="I agree to have <insert legalese here>")
+    waiver = models.BooleanField(default=False)
     school = models.CharField("Participant School", null=True, blank=True, max_length=200)
     hidden = models.BooleanField(default=False, null=False, blank=False, editable=False)
-    notes = models.CharField("Special Instructions", max_length=400, blank=True, null=True)
+    notes = models.CharField("Allergies/Dietary Restrictions", max_length=400, blank=True, null=True)
     objects = OutreachEventRegistrationQuerySet.as_manager()
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_modified = models.DateTimeField(editable=False, blank=False, null=False)
@@ -150,3 +156,4 @@ class OutreachEventRegistration(models.Model):
     def save(self, *args, **kwargs):
         self.last_modified = timezone.now()
         super(OutreachEventRegistration, self).save(*args, **kwargs)
+
