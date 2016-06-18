@@ -32,7 +32,7 @@ application = get_wsgi_application()
 
 NEEDED_SEMESTERS = [1131,1134,1137, 1141,1144,1147, 1151,1154,1157, 1161,1164,1167, 1171,1174,1177, 1181,1184,1187]
 IMPORT_SEMESTERS = ('1164', '1167')
-TEST_SEMESTER = 1167 # semester for TA/RA demo data
+TEST_SEMESTER = 1164 # semester for TA/RA demo data
 
 fakes = {}
 next_emplid = 100
