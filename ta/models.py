@@ -450,8 +450,8 @@ class TAApplication(models.Model):
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
-    resume = models.FileField(storage=TASystemStorage, upload_to=_resume_upload_to, max_length=500, blank=True,
-                              null=True, help_text='Please attach your resume.')
+    resume = models.FileField("Curriculum Vitae (CV)", storage=TASystemStorage, upload_to=_resume_upload_to, max_length=500,
+                              blank=True, null=True, help_text='Please attach your Curriculum Vitae (CV).')
     resume_mediatype = models.CharField(max_length=200, null=True, blank=True, editable=False)
     transcript = models.FileField(storage=TASystemStorage, upload_to=_transcript_upload_to, max_length=500, blank=True,
                                   null=True, help_text='Please attach your unofficial transcript.')
