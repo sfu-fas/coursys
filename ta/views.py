@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -319,13 +319,14 @@ def edit_application(request, post_slug, userid):
 def _new_application(request, post_slug, manual=False, userid=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     editing = bool(userid)
+    is_ta_admin = False
     
     if editing:
         if userid == request.user.username and posting.is_open():
             # can edit own application until closes
             pass
         elif has_role('TAAD', request) and posting.unit in request.units:
-            # admin can always edit
+            is_ta_admin = True
             pass
         else:
             return ForbiddenResponse(request)
@@ -348,10 +349,15 @@ def _new_application(request, post_slug, manual=False, userid=None):
         application = None
     
     if not manual:
-        try:
-            person = ensure_person_from_userid(request.user.username)
-        except SIMSProblem:
-            return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
+        """
+        Don't change the person in the case of a TA Admin editing, as we don't want to save this application as the
+        Admin's, but as the original user's.
+        """
+        if not is_ta_admin:
+            try:
+                person = ensure_person_from_userid(request.user.username)
+            except SIMSProblem:
+                return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
 
         if not person:
             return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email coursys-help@sfu.ca.")
@@ -382,10 +388,10 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
         if editing:
-            ta_form = TAApplicationForm(request.POST, prefix='ta', instance=application)
+            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta', instance=application)
         else:
-            ta_form = TAApplicationForm(request.POST, prefix='ta')
-        
+            ta_form = TAApplicationForm(request.POST, request.FILES, prefix='ta')
+
         ta_form.add_extra_questions(posting)
 
         courses_formset = CoursesFormSet(request.POST)
@@ -424,7 +430,25 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 app.person = person
                 if manual:
                     app.admin_create = True
-                    
+
+                # Add our attachments (resume and transcript if included.)
+                if request.FILES and 'ta-resume' in request.FILES:
+                    resume = request.FILES['ta-resume']
+                    resume_file_type = resume.content_type
+                    if resume.charset:
+                        resume_file_type += "; charset=" + resume.charset
+                    app.resume = resume
+                    app.resume_mediatype = resume_file_type
+
+                if request.FILES and 'ta-transcript' in request.FILES:
+                    transcript = request.FILES['ta-transcript']
+                    transcript_file_type = transcript.content_type
+                    if transcript.charset:
+                        transcript_file_type += "; charset=" + transcript.charset
+                    app.transcript = transcript
+                    app.transcript_mediatype = transcript_file_type
+
+
                 app.save()
                 ta_form.save_m2m()
                 
@@ -486,6 +510,12 @@ def _new_application(request, post_slug, manual=False, userid=None):
         # editing: build initial form from existing values
         
         ta_form = TAApplicationForm(prefix='ta', instance=application)
+        # Stupidly, the filefields don't consider themselves "filled" if we have a previous instance that contained
+        # the right fields anyway.  Manually check and clear the required part.
+        if application.resume:
+            ta_form.fields['resume'].required = False
+        if application.transcript:
+            ta_form.fields['transcript'].required = False
         ta_form.add_extra_questions(posting)
         cp_init = [{'course': cp.course, 'taken': cp.taken, 'exper':cp.exper} for cp in old_coursepref]
         search_form = None
@@ -633,17 +663,14 @@ def print_all_applications_by_course(request,post_slug):
 @login_required
 def view_application(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
-    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
-   
-    #Only TA Administrator or owner of application can view it
-    if application.person.userid != request.user.username:
-        units = [r.unit for r in roles]
-        if roles.count() == 0:
-            return ForbiddenResponse(request, 'You cannot access this application')
-        elif application.posting.unit not in units:
-            return ForbiddenResponse(request, 'You cannot access this application')
-    else:
-        units = [application.posting.unit]
+    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+
+    # Only TA Administrator or owner of application can view it
+    if application.person.userid != request.user.username and not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+
+    units = [application.posting.unit]
    
     application.courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
     application.skills = SkillLevel.objects.filter(app=application).select_related('skill')
@@ -654,7 +681,7 @@ def view_application(request, post_slug, userid):
     application.grad_programs = GradStudent.objects \
                  .filter(program__unit__in=units, person=application.person)
 
-    if roles and application.courses:
+    if is_ta_admin and application.courses:
         contract = application.courses[0]
     else:
         contract = None
@@ -662,8 +689,71 @@ def view_application(request, post_slug, userid):
     context = {
             'application':application,
             'contract': contract,
+            'is_ta_admin': is_ta_admin,
             }
     return render(request, 'ta/view_application.html', context)
+
+
+@requires_role("TAAD")
+def view_resume(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    resume = application.resume
+    filename = resume.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(resume.chunks(), content_type=application.resume_mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = resume.size
+    return resp
+
+
+@requires_role("TAAD")
+def download_resume(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    resume = application.resume
+    filename = resume.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(resume.chunks(), content_type=application.resume_mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = resume.size
+    return resp
+
+
+@requires_role("TAAD")
+def view_transcript(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    transcript = application.transcript
+    filename = transcript.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(transcript.chunks(), content_type=application.transcript_mediatype)
+    resp['Content-Disposition'] = 'inline; filename="' + filename + '"'
+    resp['Content-Length'] = transcript.size
+    return resp
+
+
+@requires_role("TAAD")
+def download_transcript(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
+    is_ta_admin = Role.objects.filter(role="TAAD", person__userid=request.user.username,
+                                      unit=application.posting.unit).count() > 0
+    if not is_ta_admin:
+        return ForbiddenResponse(request, 'You cannot access this application')
+    transcript = application.transcript
+    filename = transcript.name.rsplit('/')[-1]
+    resp = StreamingHttpResponse(transcript.chunks(), content_type=application.transcript_mediatype)
+    resp['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    resp['Content-Length'] = transcript.size
+    return resp
+
+
 
 @requires_role("TAAD")
 def view_late_applications(request,post_slug):

@@ -12,6 +12,8 @@ import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
 from django.forms.models import BaseInlineFormSet
 from pages.forms import WikiField
+from coredata.widgets import NotClearableFileInput
+
 
 class LabelledHidden(forms.HiddenInput):
     """
@@ -191,6 +193,8 @@ class TAApplicationForm(forms.ModelForm):
                    'course_load': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
                    'other_support': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
                    'comments': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
+                   'resume': NotClearableFileInput(),
+                   'transcript': NotClearableFileInput(),
                    }
 
     def __init__(self, *args, **kwargs):
@@ -198,6 +202,8 @@ class TAApplicationForm(forms.ModelForm):
         self.fields['sin'].help_text = 'Social insurance number (required for receiving payments: if you don\'t have a SIN yet, please enter "000000000".)'
         self.fields['sin'].required = True
         self.fields['current_program'].required = True
+        self.fields['resume'].required = True
+        self.fields['transcript'].required = True
 
     def add_extra_questions(self, posting):
         if 'extra_questions' in posting.config and len(posting.config['extra_questions']) > 0:
@@ -222,6 +228,7 @@ class TAApplicationForm(forms.ModelForm):
         if bu > 5 or bu < 1:
             raise forms.ValidationError("BU amount must be in the range 1-5")
         return bu
+
 
 class CoursePreferenceForm(forms.ModelForm):
 
