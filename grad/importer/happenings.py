@@ -314,8 +314,8 @@ class ProgramStatusChange(GradHappening):
         Find/update GradStatus object for this happening
         """
         # don't manage for CMPT, except completed application status for recent applicants
-        if self.unit.slug == 'cmpt' and (self.status not in ['COMP', 'REJE'] or self.admit_term < CMPT_CUTOFF):
-            return
+        # if self.unit.slug == 'cmpt' and (self.status not in ['COMP', 'REJE'] or self.admit_term < CMPT_CUTOFF):
+        #     return
 
         statuses = student_info['statuses']
         if self.gradstatus:
@@ -362,9 +362,9 @@ class ProgramStatusChange(GradHappening):
         """
         programs = student_info['programs']
 
-        if self.unit.slug == 'cmpt' and programs:
-            # CMPT students get only their initial application gradprogramhistory filled in.
-            return
+        # if self.unit.slug == 'cmpt' and programs:
+        #     # CMPT students get only their initial application gradprogramhistory filled in.
+        #     return
 
         key = self.import_key()
         if self.strm < student_info['real_admit_term']:
@@ -475,8 +475,8 @@ class GradSemester(GradHappening):
         pass
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        if self.grad_program.unit.slug == 'cmpt':
-            return
+        # if self.grad_program.unit.slug == 'cmpt':
+        #     return
 
         # make sure the student is "active" as of the start of this semester, since they're taking courses
         statuses = student_info['statuses']
@@ -565,8 +565,8 @@ class CommitteeMembership(GradHappening):
         return [self.committee_id, self.effdt, self.committee_type, self.sup_emplid, self.committee_role]
 
     def update_local_data(self, student_info, verbosity, dry_run):
-        if self.grad_program.unit.slug == 'cmpt':
-            return
+        # if self.grad_program.unit.slug == 'cmpt':
+        #     return
 
         key = self.import_key()
         local_committee = student_info['committee']

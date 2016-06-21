@@ -267,9 +267,9 @@ class GradCareer(object):
         extra_statuses = [s for s in self.student_info['statuses'] if SIMS_SOURCE not in s.config]
         extra_programs = [p for p in self.student_info['programs'] if SIMS_SOURCE not in p.config]
         extra_committee = [c for c in self.student_info['committee'] if SIMS_SOURCE not in c.config]
-        if self.unit.slug == 'cmpt':
-            # doesn't make sense for CMPT, since we're not importing everything else
-            return
+        # if self.unit.slug == 'cmpt':
+        #     # doesn't make sense for CMPT, since we're not importing everything else
+        #     return
 
         if verbosity:
             for s in extra_statuses:
